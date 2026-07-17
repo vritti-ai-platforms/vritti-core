@@ -11,7 +11,6 @@ export interface InventoryItemUomConversionData {
   uomQty: number;
   toPrimaryConversionFactor: number;
   toUomConversionFactor: number;
-  canEdit: boolean;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;

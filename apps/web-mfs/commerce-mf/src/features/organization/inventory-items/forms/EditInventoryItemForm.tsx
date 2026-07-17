@@ -3,14 +3,14 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
-import { Switch } from '@vritti/quantum-ui/Switch';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
+import { TaxClassSelector } from '@vritti/quantum-ui/selects/tax-class';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { useUpdateInventoryItem } from '@/hooks/organization/inventory-items';
 import {
   type InventoryItemData,
@@ -43,13 +43,11 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
       description: item.description ?? '',
       uomId: item.uomId,
       hsnCode: item.hsnCode ?? '',
-      hasMrp: item.hasMrp,
-      mrpUomId: item.mrpUomId ?? undefined,
+      taxClassId: item.taxClassId ?? undefined,
     },
   });
 
   const updateMutation = useUpdateInventoryItem({ onSuccess });
-  const hasMrp = useWatch({ control: form.control, name: 'hasMrp' });
 
   return (
     <Form
@@ -58,10 +56,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: item.id,
-        data: {
-          ...data,
-          mrpUomId: data.hasMrp ? data.mrpUomId : undefined,
-        },
+        data,
       })}
     >
       <div className="flex flex-col gap-6">
@@ -72,7 +67,16 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
             <Select name="type" label="Type" placeholder="Select type" options={inventoryItemTypeOptions} />
             <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
             <div className="col-span-2">
-              <CategorySelector name="categoryId" />
+              <CategorySelector
+                name="categoryId"
+                fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'path', additionalKeys: 'defaultTaxClassId' }}
+                onOptionSelect={(o) => {
+                  const defaultTaxClassId = o?.additionals?.defaultTaxClassId as string | null | undefined;
+                  if (defaultTaxClassId) {
+                    form.setValue('taxClassId', defaultTaxClassId, { shouldValidate: true, shouldDirty: true });
+                  }
+                }}
+              />
             </div>
           </div>
         </FormSection>
@@ -83,24 +87,10 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
           </FormSection>
         )}
 
-        <FormSection title="MRP & Compliance" contentClassName="block">
+        <FormSection title="Compliance" contentClassName="block">
           <div className="grid grid-cols-2 gap-4">
             <TextField name="hsnCode" label="HSN Code" placeholder="e.g. 1006" />
-            <div className="col-span-2">
-              <Switch
-                name="hasMrp"
-                label="Tracks MRP"
-                description="Enable to capture a printed MRP on this item and its stock."
-              />
-            </div>
-            {hasMrp && (
-              <UomSelector
-                name="mrpUomId"
-                label="MRP Unit"
-                placeholder="Select unit"
-                params={{ inventoryItemId: item.id }}
-              />
-            )}
+            <TaxClassSelector name="taxClassId" />
           </div>
         </FormSection>
 

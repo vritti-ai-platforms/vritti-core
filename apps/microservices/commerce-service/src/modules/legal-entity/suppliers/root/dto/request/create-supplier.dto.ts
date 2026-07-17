@@ -1,57 +1,12 @@
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsCurrencyCode } from '@vritti/api-sdk/money';
-import { Type } from 'class-transformer';
-import {
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Matches,
-  MaxLength,
-  Min,
-  ValidateIf,
-  ValidateNested,
-} from 'class-validator';
-
-export class CreatePrimarySupplierContactDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
-  name: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Matches(/^\+[1-9]\d{5,14}$/, { message: 'Phone must be a valid international number (e.g. +919876543210).' })
-  @MaxLength(20)
-  phone: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  alternatePhone?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  email?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  alternateEmail?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  designation?: string;
-}
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateSupplierDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
-  name: string;
+  @IsUUID()
+  partyId: string;
 
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -61,42 +16,20 @@ export class CreateSupplierDto {
   @IsCurrencyCode()
   currencyCode: string;
 
-  @ValidateNested()
-  @Type(() => CreatePrimarySupplierContactDto)
-  primaryContact: CreatePrimarySupplierContactDto;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  website?: string;
-
-  @ValidateIf((o: CreateSupplierDto) => o.taxIdType != null)
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(15)
-  taxId?: string;
-
-  @ValidateIf((o: CreateSupplierDto) => o.taxId != null && String(o.taxId).trim().length > 0)
-  @IsEnum(['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER'])
-  taxIdType?: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER';
-
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  paymentTerms?: string;
+  paymentTerms?: string | null;
 
   @IsOptional()
   @IsInt()
   @Min(0)
   leadTimeDays?: number;
 
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  notes?: string;
+  notes?: string | null;
 }

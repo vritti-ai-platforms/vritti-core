@@ -5,7 +5,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { InvoiceStatusValues } from '@/db/schema';
-import type { CreatePaymentDto } from './dto/request/create-payment.dto';
+import { CreatePaymentDto } from './dto/request/create-payment.dto';
 
 @Controller()
 export class PaymentsController {

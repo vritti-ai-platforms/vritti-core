@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateOrderStatusDto {
@@ -11,8 +12,9 @@ export class UpdateOrderStatusDto {
   @IsNotEmpty()
   status: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Reason for cancellation (required when cancelling)' })
   @IsOptional()
   @IsString()
-  cancellationReason?: string;
+  cancellationReason?: string | null;
 }

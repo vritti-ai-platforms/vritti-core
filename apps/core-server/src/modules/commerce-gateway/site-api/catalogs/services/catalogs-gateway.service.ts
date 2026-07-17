@@ -48,7 +48,7 @@ export class CatalogsGatewayService {
   // Returns paginated, filtered, and sorted catalogs for the data table
   async findForTable(userId: string): Promise<CatalogTableResponseDto> {
     this.logger.log('site.catalogs.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-catalogs');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-catalogs');
 
     const { result, count } = await this.nats.send<{ result: CatalogResponseDto[]; count: number }>(
       'commerce',
@@ -112,7 +112,7 @@ export class CatalogsGatewayService {
   // Returns paginated offerings for a catalog data table
   async findOfferingsForTable(catalogId: string, userId: string): Promise<OfferingsTableResponseDto> {
     this.logger.log(`catalogs.offerings.table — catalogId: ${catalogId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-offerings');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-offerings');
 
     const { result, count } = await this.nats.send<{ result: OfferingResponseDto[]; count: number }>(
       'commerce',

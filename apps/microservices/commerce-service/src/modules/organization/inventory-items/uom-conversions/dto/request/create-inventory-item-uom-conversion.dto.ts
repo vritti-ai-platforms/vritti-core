@@ -2,6 +2,9 @@ import { IsInt, IsUUID, Min } from 'class-validator';
 
 export class CreateInventoryItemUomConversionDto {
   @IsUUID()
+  inventoryItemId: string;
+
+  @IsUUID()
   uomId: string;
 
   @IsInt()

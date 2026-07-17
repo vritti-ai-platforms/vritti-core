@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class UpdateOfferingDto {
@@ -18,11 +19,13 @@ export class UpdateOfferingDto {
   @IsEnum(['STOCK', 'SERVICE', 'COMPOSITE'])
   fulfilmentType?: string;
 
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Updated offering name' })
   @IsOptional()
   @IsString()
   name?: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Updated description' })
   @IsOptional()
   @IsString()

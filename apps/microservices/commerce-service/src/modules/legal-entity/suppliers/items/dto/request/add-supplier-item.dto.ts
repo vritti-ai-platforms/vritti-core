@@ -1,15 +1,20 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class AddSupplierItemDto {
   @IsUUID()
+  supplierId: string;
+
+  @IsUUID()
   inventoryItemId: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  supplierItemCode?: string;
+  supplierItemCode?: string | null;
 
   @IsCurrency()
   unitPrice: CurrencyAmountDto;

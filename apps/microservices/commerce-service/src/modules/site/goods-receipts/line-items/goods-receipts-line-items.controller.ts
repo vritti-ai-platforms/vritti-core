@@ -3,6 +3,7 @@ import { GoodsReceiptLineItemsService } from '@domain/goods-receipt-line-items/s
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import { AddGoodsReceiptLineItemDto } from './dto/request/add-goods-receipt-line-item.dto';
 
 @Controller()
 export class GoodsReceiptsLineItemsController {
@@ -20,9 +21,7 @@ export class GoodsReceiptsLineItemsController {
   }
 
   @MessagePattern({ cmd: 'site.goodsReceipts.addLineItem' })
-  addLineItem(
-    @Payload() data: { goodsReceiptId: string; itemId: string; lineId: string; serialNumber: string },
-  ): Promise<GoodsReceiptLineItemDto> {
+  addLineItem(@Payload() data: AddGoodsReceiptLineItemDto): Promise<GoodsReceiptLineItemDto> {
     this.logger.log(`goodsReceipts.addLineItem — line: ${data.lineId}`);
     return this.service.addLineItem(data.goodsReceiptId, data.itemId, data.lineId, {
       serialNumber: data.serialNumber,

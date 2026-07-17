@@ -130,7 +130,7 @@ export const CostCategoriesPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-cost-categories',
+    slug: 'commerce-le-cost-categories',
     label: 'cost category',
     serverState: response,
     enableRowSelection: false,

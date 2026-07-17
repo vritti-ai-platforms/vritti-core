@@ -9,9 +9,9 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CreateCategoryDto } from '../dto/request/create-category.dto';
-import type { ReorderCategoriesDto } from '../dto/request/reorder-categories.dto';
-import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
+import { CreateCategoryDto } from './dto/request/create-category.dto';
+import { ReorderCategoriesDto } from './dto/request/reorder-categories.dto';
+import { UpdateCategoryDto } from './dto/request/update-category.dto';
 
 @Controller()
 export class CategoriesRootController {
@@ -58,8 +58,8 @@ export class CategoriesRootController {
 
   // Updates a category by ID
   @MessagePattern({ cmd: 'org.categories.update' })
-  async update(@Payload() data: { id: string } & UpdateCategoryDto): Promise<CategoryDto> {
-    const { id, ...updateData } = data;
+  async update(@Payload() dto: UpdateCategoryDto): Promise<CategoryDto> {
+    const { id, ...updateData } = dto;
     this.logger.log(`categories.update — id: ${id}`);
     return this.categoriesService.update(id, updateData);
   }

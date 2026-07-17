@@ -22,19 +22,19 @@ export const taxGroups = coreSchema.table(
     }),
     pgPolicy('le_read', {
       for: 'select',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
+      using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
     }),
     pgPolicy('le_write', {
       for: 'insert',
-      withCheck: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
+      withCheck: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
     }),
     pgPolicy('le_update', {
       for: 'update',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
+      using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
     }),
     pgPolicy('le_delete', {
       for: 'delete',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
+      using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
     }),
   ],
 );

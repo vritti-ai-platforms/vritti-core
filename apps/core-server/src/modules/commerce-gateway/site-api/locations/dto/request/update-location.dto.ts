@@ -1,9 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 import { type LocationRole, LocationRoleValues } from '../../constants/location-role.constants';
 
 export class UpdateLocationDto {
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Updated location name' })
   @IsOptional()
   @IsString()
@@ -11,6 +13,7 @@ export class UpdateLocationDto {
   @MaxLength(100)
   name?: string;
 
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Updated location code' })
   @IsOptional()
   @IsString()
@@ -30,11 +33,12 @@ export class UpdateLocationDto {
   @Min(1)
   sortOrder?: number;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Updated location area' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  area?: string;
+  area?: string | null;
 
   @ApiPropertyOptional({ description: 'Updated manager user ID' })
   @IsOptional()

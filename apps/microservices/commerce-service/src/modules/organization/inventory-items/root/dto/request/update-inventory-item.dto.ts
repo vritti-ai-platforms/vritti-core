@@ -1,13 +1,18 @@
-import { IsCode } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsCode, Trim } from '@vritti/api-sdk/decorators';
+import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import type { InventoryItemType, InventoryPickStrategy } from '@/db/schema';
 
 export class UpdateInventoryItemDto {
+  @IsUUID()
+  id: string;
+
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   name?: string;
 
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -22,6 +27,7 @@ export class UpdateInventoryItemDto {
   @IsUUID()
   categoryId?: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(500)
@@ -36,15 +42,12 @@ export class UpdateInventoryItemDto {
   pickStrategy?: InventoryPickStrategy;
 
   @IsOptional()
+  @IsUUID()
+  taxClassId?: string;
+
+  @Trim()
+  @IsOptional()
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
-
-  @IsOptional()
-  @IsBoolean()
-  hasMrp?: boolean;
-
-  @IsOptional()
-  @IsUUID()
-  mrpUomId?: string;
 }

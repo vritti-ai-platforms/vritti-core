@@ -142,10 +142,11 @@ export class GoodsReceiptsPublishService {
       }
     }
 
-    // Record the received MRP as the org-wide suggestion for this item in the receipt currency.
+    // Record the received MRP as the org-wide suggestion for this item at the received unit and currency.
     if (lastMrp != null) {
-      await this.inventoryItemMrpsService.upsertForCurrency(
+      await this.inventoryItemMrpsService.upsert(
         grItem.inventoryItemId,
+        grItem.uomId,
         siteCurrencyCode,
         lastMrp,
         lastMrpLotId,

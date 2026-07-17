@@ -27,7 +27,7 @@ export const SupplierDetailPage = () => {
 
   const handleDelete = useCallback(async () => {
     const confirmed = await confirm({
-      title: `Delete "${supplier.name}"?`,
+      title: `Delete "${supplier.partyName}"?`,
       description: 'This supplier and all linked supplier items and contacts will be permanently removed.',
       confirmLabel: 'Delete',
       variant: 'destructive',
@@ -40,7 +40,7 @@ export const SupplierDetailPage = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={supplier.name}
+        title={supplier.partyName}
         description={supplier.code}
         actions={
           <div className="flex items-center gap-2">

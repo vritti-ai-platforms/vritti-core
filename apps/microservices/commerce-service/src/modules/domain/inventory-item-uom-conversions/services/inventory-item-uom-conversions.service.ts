@@ -35,7 +35,6 @@ export class InventoryItemUomConversionsService {
   async findForTable(
     inventoryItemId: string,
     state: TableViewState,
-    currentSiteId: string,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemUomConversionsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemUomConversionsService.FIELD_MAP);
@@ -53,7 +52,7 @@ export class InventoryItemUomConversionsService {
     const usedUomIds = new Set(await this.repository.findUomIdsUsedBySupplierItems(inventoryItemId));
 
     return {
-      result: result.map((row) => InventoryItemUomConversionDto.from(row, currentSiteId, usedUomIds.has(row.uomId))),
+      result: result.map((row) => InventoryItemUomConversionDto.from(row, usedUomIds.has(row.uomId))),
       count,
     };
   }
@@ -65,7 +64,6 @@ export class InventoryItemUomConversionsService {
     inventoryItemId: string,
     dto: { uomId: string } & ConversionPair,
     uomContext: { baseUnitId: string | null; name: string; symbol: string },
-    currentSiteId: string,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     if (uomContext.baseUnitId !== null) {
       throw new ValidationException({
@@ -106,15 +104,16 @@ export class InventoryItemUomConversionsService {
     return {
       success: true,
       message: 'UOM conversion created successfully.',
-      data: InventoryItemUomConversionDto.from(
-        { ...uomConversion, uomName: uomContext.name, uomSymbol: uomContext.symbol },
-        currentSiteId,
-      ),
+      data: InventoryItemUomConversionDto.from({
+        ...uomConversion,
+        uomName: uomContext.name,
+        uomSymbol: uomContext.symbol,
+      }),
     };
   }
 
   // Updates an existing UOM conversion's ratio
-  async update(id: string, dto: ConversionPair, _currentSiteId: string): Promise<SuccessResponseDto> {
+  async update(id: string, dto: ConversionPair): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('UOM conversion not found.');
 

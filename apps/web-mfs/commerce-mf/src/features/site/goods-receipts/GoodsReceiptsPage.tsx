@@ -91,7 +91,7 @@ export const GoodsReceiptsPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-goods-receipts',
+    slug: 'commerce-site-goods-receipts',
     label: 'goods receipt',
     serverState: response,
     enableRowSelection: false,

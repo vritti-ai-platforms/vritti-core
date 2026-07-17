@@ -1,0 +1,12 @@
+ALTER POLICY "le_read" ON "vritti_core"."supplier_contacts" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_write" ON "vritti_core"."supplier_contacts" TO public WITH CHECK (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_update" ON "vritti_core"."supplier_contacts" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_delete" ON "vritti_core"."supplier_contacts" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_read" ON "vritti_core"."suppliers" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_write" ON "vritti_core"."suppliers" TO public WITH CHECK (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_update" ON "vritti_core"."suppliers" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_delete" ON "vritti_core"."suppliers" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_read" ON "vritti_core"."tax_groups" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_write" ON "vritti_core"."tax_groups" TO public WITH CHECK (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_update" ON "vritti_core"."tax_groups" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));--> statement-breakpoint
+ALTER POLICY "le_delete" ON "vritti_core"."tax_groups" TO public USING (legal_entity_id = (select current_setting('app.le_id', true)::uuid));

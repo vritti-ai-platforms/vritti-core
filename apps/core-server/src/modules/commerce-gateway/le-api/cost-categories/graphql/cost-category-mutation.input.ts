@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsCode } from '@vritti/api-sdk/decorators';
+import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { COST_CATEGORY_KINDS, type CostCategoryKind } from '../dto/request/create-cost-category.dto';
 
@@ -8,6 +8,7 @@ import { COST_CATEGORY_KINDS, type CostCategoryKind } from '../dto/request/creat
 @InputType()
 export class CreateCostCategoryInput {
   @Field(() => String)
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
@@ -15,6 +16,7 @@ export class CreateCostCategoryInput {
   code: string;
 
   @Field(() => String)
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
@@ -28,6 +30,7 @@ export class CreateCostCategoryInput {
 @InputType()
 export class UpdateCostCategoryInput {
   @Field(() => String, { nullable: true })
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @MaxLength(255)

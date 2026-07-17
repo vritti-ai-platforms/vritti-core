@@ -17,14 +17,25 @@ export const CategoryRoleLabels: Record<CategoryRole, string> = {
 
 const categoryRoleEnumValues = Object.values(CategoryRoleValues) as [CategoryRole, ...CategoryRole[]];
 
-const _categorySchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255),
-  parentId: z.string().optional().nullable(),
-  categoryRole: z.enum(categoryRoleEnumValues),
-  sortOrder: zodNumericField({ required: 'Sort order is required', min: 1 }),
-  isActive: z.boolean(),
-  defaultTaxGroupId: z.string().optional().nullable(),
-});
+const _categorySchema = z
+  .object({
+    name: z.string().min(1, 'Name is required').max(255),
+    parentId: z.string().optional().nullable(),
+    categoryRole: z.enum(categoryRoleEnumValues),
+    sortOrder: zodNumericField({ required: 'Sort order is required', min: 1 }),
+    isActive: z.boolean(),
+    defaultTaxClassId: z.string().uuid().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    // Tax class only applies to leaf CATEGORY-role categories (they hold items) — required there
+    if (data.categoryRole === CategoryRoleValues.CATEGORY && !data.defaultTaxClassId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Tax class is required',
+        path: ['defaultTaxClassId'],
+      });
+    }
+  });
 
 // TypeScript form type — sortOrder is number for defaultValues, mutation, and form logic
 export type CategoryFormData = {
@@ -33,7 +44,7 @@ export type CategoryFormData = {
   categoryRole: CategoryRole;
   sortOrder: number;
   isActive: boolean;
-  defaultTaxGroupId?: string | null;
+  defaultTaxClassId?: string | null;
 };
 
 // Pre-typed resolver — casts once here so no `as any` leaks into components
@@ -50,7 +61,8 @@ export interface CategoryData {
   sortOrder: number;
   isActive: boolean;
   canDelete: boolean;
-  defaultTaxGroupId: string | null;
+  defaultTaxClassId: string | null;
+  defaultTaxClassName: string | null;
   createdAt: string;
 }
 

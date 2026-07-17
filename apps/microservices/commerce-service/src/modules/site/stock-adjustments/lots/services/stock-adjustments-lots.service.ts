@@ -27,7 +27,7 @@ export class StockAdjustmentsLotsService {
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     const adjustment = await this.adjustmentsService.findById(adjustmentId);
-    const trimmed = data.lotNumber?.trim();
+    const trimmed = data.lotNumber;
     if (trimmed) {
       // Reject if a lot with the same number already exists in inventory for this item.
       // OPENING_STOCK can only register new lots — published lots can't be re-registered through a draft.
@@ -48,7 +48,7 @@ export class StockAdjustmentsLotsService {
     data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string; mrp?: bigint | null },
   ): Promise<StockAdjustmentLotDto> {
     if (data.lotNumber !== undefined) {
-      const trimmed = data.lotNumber.trim();
+      const trimmed = data.lotNumber;
       if (trimmed) {
         const adjustment = await this.adjustmentsService.findById(adjustmentId);
         const inventoryDup = await this.inventoryItemLotsService.findByItemAndNumber(

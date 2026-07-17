@@ -1,14 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsCode } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsCode, Trim } from '@vritti/api-sdk/decorators';
+import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateInventoryItemDto {
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Item name' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   name?: string;
 
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Item code' })
   @IsOptional()
   @IsString()
@@ -29,6 +31,7 @@ export class UpdateInventoryItemDto {
   @IsUUID()
   categoryId?: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Description' })
   @IsOptional()
   @IsString()
@@ -49,19 +52,15 @@ export class UpdateInventoryItemDto {
   @IsEnum(['none', 'fifo', 'fefo'])
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
+  @ApiPropertyOptional({ description: 'Tax classification (required on the item; cannot be cleared)' })
+  @IsOptional()
+  @IsUUID()
+  taxClassId?: string;
+
+  @Trim()
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
   @IsOptional()
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
-
-  @ApiPropertyOptional({ description: 'Whether this item is MRP-governed' })
-  @IsOptional()
-  @IsBoolean()
-  hasMrp?: boolean;
-
-  @ApiPropertyOptional({ description: 'UOM the MRP is quoted in (the pack); required when hasMrp.' })
-  @IsOptional()
-  @IsUUID()
-  mrpUomId?: string;
 }

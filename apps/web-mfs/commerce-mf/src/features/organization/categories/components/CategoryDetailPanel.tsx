@@ -92,6 +92,17 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
         ),
       },
       {
+        accessorKey: 'defaultTaxClassName',
+        header: 'Tax Class',
+        cell: ({ row }) =>
+          row.original.defaultTaxClassName ? (
+            <Badge variant="outline">{row.original.defaultTaxClassName}</Badge>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          ),
+        enableSorting: false,
+      },
+      {
         id: 'actions',
         header: '',
         cell: ({ row }) => (
@@ -190,6 +201,14 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
             type="string"
             value={category.path ? formatCategoryPath(category.path) : null}
           />
+          {!isGroup && (
+            <DetailField
+              className="px-4 py-2"
+              label="Tax Class"
+              type="string"
+              value={category.defaultTaxClassName}
+            />
+          )}
         </DetailSection>
       </div>
 

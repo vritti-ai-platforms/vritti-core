@@ -10,11 +10,15 @@ import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/c
 import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
+import { OrgCompaniesModule } from './modules/organization/companies/companies.module';
+import { OrgPeopleModule } from './modules/organization/people/people.module';
 import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
 import { OrgSalesChannelsModule } from './modules/organization/sales-channels/sales-channels.module';
+import { OrgTaxClassesModule } from './modules/organization/tax-classes/tax-classes.module';
+import { OrgTaxComponentsModule } from './modules/organization/tax-components/tax-components.module';
+import { OrgTaxJurisdictionsModule } from './modules/organization/tax-jurisdictions/tax-jurisdictions.module';
 import { OrgUomModule } from './modules/organization/uom/uom.module';
 import { SelectModule } from './modules/select/select.module';
-import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-items/inventory-items.module';
 import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
 import { SiteCustomersModule } from './modules/site/customers/customers.module';
@@ -29,6 +33,7 @@ import { SitePosTerminalsModule } from './modules/site/pos-terminals/pos-termina
 import { SitePurchaseOrdersModule } from './modules/site/purchase-orders/purchase-orders.module';
 import { SiteStockAdjustmentsModule } from './modules/site/stock-adjustments/stock-adjustments.module';
 import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-transfers.module';
+import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-items/inventory-items.module';
 
 @Module({
   imports: [
@@ -78,7 +83,12 @@ import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-t
       },
     }),
     OrgCategoriesModule,
+    OrgPeopleModule,
+    OrgCompaniesModule,
     OrgSalesChannelsModule,
+    OrgTaxClassesModule,
+    OrgTaxComponentsModule,
+    OrgTaxJurisdictionsModule,
     OrgUomModule,
     OrgInventoryItemsModule,
     LeCostCategoriesModule,

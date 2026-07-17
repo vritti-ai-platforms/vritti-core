@@ -106,7 +106,7 @@ export const InvoicesPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-invoices',
+    slug: 'commerce-site-invoices',
     label: 'invoice',
     serverState: response,
     enableRowSelection: false,

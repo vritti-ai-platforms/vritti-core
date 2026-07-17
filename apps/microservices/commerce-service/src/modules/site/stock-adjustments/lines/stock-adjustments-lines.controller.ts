@@ -3,6 +3,10 @@ import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/serv
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import { AddChangeLineDto } from '../root/dto/request/add-change-line.dto';
+import { AddOpeningLineDto } from '../root/dto/request/add-opening-line.dto';
+import { UpdateChangeLineDto } from '../root/dto/request/update-change-line.dto';
+import { UpdateOpeningLineDto } from '../root/dto/request/update-opening-line.dto';
 import { StockAdjustmentsLinesService } from './services/stock-adjustments-lines.service';
 
 @Controller()
@@ -45,51 +49,30 @@ export class StockAdjustmentsLinesController {
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.addOpeningLine' })
-  addOpeningLine(
-    @Payload() data: {
-      adjustmentId: string;
-      locationId: string;
-      stockAdjustmentLotId?: string | null;
-      uomQty: number;
-      uomId: string;
-    },
-  ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
-    this.logger.log(`stockAdjustments.addOpeningLine — adjustment: ${data.adjustmentId}`);
-    const { adjustmentId, ...rest } = data;
+  addOpeningLine(@Payload() dto: AddOpeningLineDto): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
+    this.logger.log(`stockAdjustments.addOpeningLine — adjustment: ${dto.adjustmentId}`);
+    const { adjustmentId, ...rest } = dto;
     return this.appService.addOpeningLine(adjustmentId, rest);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.addChangeLine' })
-  addChangeLine(
-    @Payload() data: { adjustmentId: string; quantId: string; uomQty: number; uomId: string },
-  ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
-    this.logger.log(`stockAdjustments.addChangeLine — adjustment: ${data.adjustmentId}`);
-    const { adjustmentId, ...rest } = data;
+  addChangeLine(@Payload() dto: AddChangeLineDto): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
+    this.logger.log(`stockAdjustments.addChangeLine — adjustment: ${dto.adjustmentId}`);
+    const { adjustmentId, ...rest } = dto;
     return this.appService.addChangeLine(adjustmentId, rest);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.updateOpeningLine' })
-  updateOpeningLine(
-    @Payload() data: {
-      adjustmentId: string;
-      lineId: string;
-      locationId?: string;
-      stockAdjustmentLotId?: string | null;
-      uomQty?: number;
-      uomId?: string;
-    },
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`stockAdjustments.updateOpeningLine — line: ${data.lineId}`);
-    const { adjustmentId, lineId, ...rest } = data;
+  updateOpeningLine(@Payload() dto: UpdateOpeningLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.updateOpeningLine — line: ${dto.lineId}`);
+    const { adjustmentId, lineId, ...rest } = dto;
     return this.appService.updateOpeningLine(adjustmentId, lineId, rest);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.updateChangeLine' })
-  updateChangeLine(
-    @Payload() data: { adjustmentId: string; lineId: string; quantId?: string; uomQty?: number; uomId?: string },
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`stockAdjustments.updateChangeLine — line: ${data.lineId}`);
-    const { adjustmentId, lineId, ...rest } = data;
+  updateChangeLine(@Payload() dto: UpdateChangeLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.updateChangeLine — line: ${dto.lineId}`);
+    const { adjustmentId, lineId, ...rest } = dto;
     return this.appService.updateChangeLine(adjustmentId, lineId, rest);
   }
 

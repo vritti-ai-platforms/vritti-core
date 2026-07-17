@@ -12,8 +12,8 @@ import {
 import { and, asc, eq, inArray, ne, notInArray, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type LocationRole, LocationRoleValues, locations } from '@/db/schema';
-import type { CreateLocationDto } from '@/modules/site/locations/dto/request/create-location.dto';
-import type { UpdateLocationDto } from '@/modules/site/locations/dto/request/update-location.dto';
+import type { CreateLocationDto } from '@/modules/site/locations/root/dto/request/create-location.dto';
+import type { UpdateLocationDto } from '@/modules/site/locations/root/dto/request/update-location.dto';
 import { LocationDto } from '../dto/entity/location.dto';
 import type { LocationCountDto } from '../dto/entity/location-count.dto';
 import type { LocationTreeDto } from '../dto/entity/location-tree.dto';
@@ -249,7 +249,7 @@ export class LocationsService {
         parentId: data.parentId ?? null,
         path: '__pending__',
         sortOrder: data.sortOrder ?? 1,
-        area: data.area || null,
+        area: data.area ?? null,
         managerId: data.managerId ?? null,
         locationRole: data.locationRole,
         isActive: data.isActive,
@@ -307,7 +307,6 @@ export class LocationsService {
       const row = await this.locationsRepository.update(id, {
         ...data,
         parentId: nextParentId,
-        area: data.area !== undefined ? data.area || null : undefined,
       });
 
       if (parentChanged || codeChanged) {

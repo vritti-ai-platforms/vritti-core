@@ -91,6 +91,7 @@ export interface OfferingVariant {
   optionValueIds: string[];
   components: OfferingVariantComponent[];
   isAvailable: boolean;
+  taxClassId: string | null;
   sortOrder: number;
   createdAt: string;
 }
@@ -137,6 +138,7 @@ export function buildVariantFormSchema({
       : z.array(variantComponentSchema).optional(),
     price: zodCurrencyField({ required: 'Price is required', positive: false }),
     isAvailable: z.boolean(),
+    taxClassId: z.string().uuid().optional(),
   });
 
   if (options.length === 0) return base;
@@ -166,6 +168,7 @@ export interface CreateVariantData {
   components?: VariantComponentInput[];
   price: CurrencyAmount;
   isAvailable: boolean;
+  taxClassId?: string;
   sku?: string;
 }
 
@@ -175,6 +178,7 @@ export interface UpdateVariantData {
   price?: CurrencyAmount | null;
   components?: VariantComponentInput[];
   isAvailable?: boolean;
+  taxClassId?: string;
   sortOrder?: number;
 }
 

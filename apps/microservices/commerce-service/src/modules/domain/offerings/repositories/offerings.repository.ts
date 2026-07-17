@@ -221,6 +221,7 @@ export class OfferingsRepository extends PrimaryBaseRepository<typeof offerings>
     price: bigint;
     sortOrder: number;
     isAvailable?: boolean;
+    taxClassId?: string | null;
   }): Promise<OfferingVariant> {
     const [row] = await this.db.insert(offeringVariants).values(data).returning();
     return row;

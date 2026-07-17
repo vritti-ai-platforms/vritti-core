@@ -79,7 +79,7 @@ export class StockAdjustmentLineItemsService {
       throw new BadRequestException('Line items are only allowed on serial-tracked adjustments.');
     }
 
-    const trimmed = data.serialNumber?.trim();
+    const trimmed = data.serialNumber;
     if (!trimmed) {
       throw new ValidationException({
         label: 'Invalid Serial',
@@ -131,7 +131,7 @@ export class StockAdjustmentLineItemsService {
       throw new NotFoundException('Stock adjustment line item not found.');
     }
 
-    const trimmed = data.serialNumber?.trim();
+    const trimmed = data.serialNumber;
     if (!trimmed) {
       throw new ValidationException({
         label: 'Invalid Serial',

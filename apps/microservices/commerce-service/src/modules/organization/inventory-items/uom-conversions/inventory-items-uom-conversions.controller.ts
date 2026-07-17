@@ -5,9 +5,8 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
-import { RpcSiteId } from '@vritti/api-sdk/nats';
-import type { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
-import type { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
+import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
+import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 
 @Controller()
 export class InventoryItemsUomConversionsController {
@@ -22,40 +21,34 @@ export class InventoryItemsUomConversionsController {
   @MessagePattern({ cmd: 'org.inventoryItems.uom.table' })
   async table(
     @Payload() data: { inventoryItemId: string } & TableViewState,
-    @RpcSiteId() siteId: string,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.uom.table — inventoryItemId: ${inventoryItemId}`);
-    return this.service.findForTable(inventoryItemId, state, siteId);
+    return this.service.findForTable(inventoryItemId, state);
   }
 
   // Creates a per-item UOM conversion override
   @MessagePattern({ cmd: 'org.inventoryItems.uom.create' })
   async create(
-    @Payload() data: { inventoryItemId: string } & CreateInventoryItemUomConversionDto,
-    @RpcSiteId() siteId: string,
+    @Payload() data: CreateInventoryItemUomConversionDto,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     const { inventoryItemId, ...dto } = data;
     this.logger.log(`inventoryItems.uom.create — inventoryItemId: ${inventoryItemId}, uomId: ${dto.uomId}`);
     const uomEntity = await this.uomRepository.findById(dto.uomId);
     if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
-    return this.service.create(
-      inventoryItemId,
-      dto,
-      { baseUnitId: uomEntity.baseUnitId, name: uomEntity.name, symbol: uomEntity.symbol },
-      siteId,
-    );
+    return this.service.create(inventoryItemId, dto, {
+      baseUnitId: uomEntity.baseUnitId,
+      name: uomEntity.name,
+      symbol: uomEntity.symbol,
+    });
   }
 
   // Updates the conversion factor of an existing UOM override
   @MessagePattern({ cmd: 'org.inventoryItems.uom.update' })
-  async update(
-    @Payload() data: { id: string } & UpdateInventoryItemUomConversionDto,
-    @RpcSiteId() siteId: string,
-  ): Promise<SuccessResponseDto> {
+  async update(@Payload() data: UpdateInventoryItemUomConversionDto): Promise<SuccessResponseDto> {
     const { id, ...dto } = data;
     this.logger.log(`inventoryItems.uom.update — id: ${id}`);
-    return this.service.update(id, dto, siteId);
+    return this.service.update(id, dto);
   }
 
   // Deletes a UOM conversion override

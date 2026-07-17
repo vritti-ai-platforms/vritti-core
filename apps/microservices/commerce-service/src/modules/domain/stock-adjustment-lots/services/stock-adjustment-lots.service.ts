@@ -66,7 +66,7 @@ export class StockAdjustmentLotsService {
       throw new BadRequestException(`Items with tracking=${adjustment.inventoryItemTracking} cannot have lots.`);
     }
 
-    const lotNumber = data.lotNumber?.trim();
+    const lotNumber = data.lotNumber;
     if (!lotNumber) {
       throw new ValidationException({
         detail: 'Lot number is required.',
@@ -118,7 +118,7 @@ export class StockAdjustmentLotsService {
     const existing = await this.ensureLotBelongsToAdjustment(adjustment.id, lotId);
 
     if (data.lotNumber !== undefined && data.lotNumber !== existing.lotNumber) {
-      const trimmed = data.lotNumber.trim();
+      const trimmed = data.lotNumber;
       if (!trimmed) {
         throw new ValidationException({
           detail: 'Lot number cannot be empty.',
@@ -138,12 +138,7 @@ export class StockAdjustmentLotsService {
     const effectiveExpiryDate = data.expiryDate !== undefined ? data.expiryDate : existing.expiryDate;
     this.validateDateOrder(effectiveMfgDate, effectiveExpiryDate);
 
-    await this.repository.update(lotId, {
-      ...(data.lotNumber !== undefined ? { lotNumber: data.lotNumber.trim() } : {}),
-      ...(data.manufacturingDate !== undefined ? { manufacturingDate: data.manufacturingDate ?? null } : {}),
-      ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate } : {}),
-      ...(data.mrp !== undefined ? { mrp: data.mrp } : {}),
-    });
+    await this.repository.update(lotId, data);
 
     const rowsWithStats = await this.repository.findByAdjustmentId(adjustment.id);
     const refreshed = rowsWithStats.find((r) => r.id === lotId);

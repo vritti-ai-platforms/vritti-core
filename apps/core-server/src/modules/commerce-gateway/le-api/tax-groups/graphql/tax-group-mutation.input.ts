@@ -1,4 +1,5 @@
 import { Field, Float, InputType, PartialType } from '@nestjs/graphql';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -17,6 +18,7 @@ import {
 @InputType()
 export class TaxRateInput {
   @Field(() => String)
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -30,6 +32,7 @@ export class TaxRateInput {
 @InputType()
 export class CreateTaxGroupInput {
   @Field(() => String)
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)

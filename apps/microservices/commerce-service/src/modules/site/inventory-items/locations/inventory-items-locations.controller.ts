@@ -2,6 +2,8 @@ import type { InventoryItemLocationDto } from '@domain/inventory-item-locations/
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import { AddInventoryItemLocationDto } from './dto/request/add-inventory-item-location.dto';
+import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
 import { InventoryItemsLocationsService } from './services/inventory-items-locations.service';
 
 @Controller()
@@ -28,20 +30,17 @@ export class InventoryItemsLocationsController {
   }
 
   @MessagePattern({ cmd: 'site.inventoryItems.addLocation' })
-  async createLocation(
-    @Payload() data: { inventoryItemId: string; locationId: string; reorderLevel: number },
-  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
-    this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.create(data.inventoryItemId, {
-      locationId: data.locationId,
-      reorderLevel: data.reorderLevel,
-    });
+  async createLocation(@Payload() dto: AddInventoryItemLocationDto): Promise<CreateResponseDto<InventoryItemLocationDto>> {
+    const { inventoryItemId, ...rest } = dto;
+    this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${inventoryItemId}`);
+    return this.service.create(inventoryItemId, rest);
   }
 
   @MessagePattern({ cmd: 'site.inventoryItems.updateLocation' })
-  async updateLocation(@Payload() data: { id: string; reorderLevel: number }): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.updateLocation — id: ${data.id}`);
-    return this.service.update(data.id, { reorderLevel: data.reorderLevel });
+  async updateLocation(@Payload() dto: UpdateInventoryItemLocationDto): Promise<SuccessResponseDto> {
+    const { id, reorderLevel } = dto;
+    this.logger.log(`inventoryItems.updateLocation — id: ${id}`);
+    return this.service.update(id, { reorderLevel });
   }
 
   @MessagePattern({ cmd: 'site.inventoryItems.removeLocation' })

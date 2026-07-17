@@ -1,0 +1,18 @@
+import type { UseMutationOptions } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
+import type { AxiosError } from 'axios';
+import { deletePerson } from '@/services/organization/people.service';
+import { PEOPLE_TABLE_KEY } from './keys';
+
+export function useDeletePerson(options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>) {
+  const queryClient = useQueryClient();
+  return useMutation<SuccessResponse, AxiosError, string>({
+    ...options,
+    mutationFn: deletePerson,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: PEOPLE_TABLE_KEY });
+      options?.onSuccess?.(...args);
+    },
+  });
+}

@@ -7,6 +7,7 @@ import {
   goodsReceipts,
   type NewGoodsReceipt,
   type PurchaseOrderStatus,
+  parties,
   purchaseOrderItems,
   purchaseOrders,
   type Supplier,
@@ -65,7 +66,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
         createdAt: goodsReceipts.createdAt,
-        supplierName: suppliers.name,
+        supplierName: parties.displayName,
         poNumber: purchaseOrders.poNumber,
         poOrderDate: purchaseOrders.orderDate,
         poExpectedBy: purchaseOrders.expectedBy,
@@ -74,6 +75,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       },
       leftJoins: [
         { table: suppliers, on: eq(goodsReceipts.supplierId, suppliers.id) },
+        { table: parties, on: eq(suppliers.partyId, parties.id) },
         { table: purchaseOrders, on: eq(goodsReceipts.purchaseOrderId, purchaseOrders.id) },
       ],
       where: options.where,
@@ -105,7 +107,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
         createdAt: goodsReceipts.createdAt,
-        supplierName: suppliers.name,
+        supplierName: parties.displayName,
         poNumber: purchaseOrders.poNumber,
         poOrderDate: purchaseOrders.orderDate,
         poExpectedBy: purchaseOrders.expectedBy,
@@ -114,6 +116,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       },
       leftJoins: [
         { table: suppliers, on: eq(goodsReceipts.supplierId, suppliers.id) },
+        { table: parties, on: eq(suppliers.partyId, parties.id) },
         { table: purchaseOrders, on: eq(goodsReceipts.purchaseOrderId, purchaseOrders.id) },
       ],
       where: and(eq(goodsReceipts.purchaseOrderId, poId), options.where),
@@ -132,7 +135,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     return this.findKeyset<GoodsReceiptWithRefs>({
       select: {
         ...goodsReceipts,
-        supplierName: suppliers.name,
+        supplierName: parties.displayName,
         supplierCurrencyCode: suppliers.currencyCode,
         poNumber: purchaseOrders.poNumber,
         poOrderDate: purchaseOrders.orderDate,
@@ -142,6 +145,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       },
       leftJoins: [
         { table: suppliers, on: eq(goodsReceipts.supplierId, suppliers.id) },
+        { table: parties, on: eq(suppliers.partyId, parties.id) },
         { table: purchaseOrders, on: eq(goodsReceipts.purchaseOrderId, purchaseOrders.id) },
       ],
       where: options.where,
@@ -150,9 +154,14 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     });
   }
 
-  async findSupplierById(id: string): Promise<Supplier | null> {
-    const [row] = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
-    return row ?? null;
+  async findSupplierById(id: string): Promise<(Supplier & { supplierName: string | null }) | null> {
+    const [row] = await this.db
+      .select({ supplier: suppliers, supplierName: parties.displayName })
+      .from(suppliers)
+      .leftJoin(parties, eq(suppliers.partyId, parties.id))
+      .where(eq(suppliers.id, id))
+      .limit(1);
+    return row ? { ...row.supplier, supplierName: row.supplierName ?? null } : null;
   }
 
   async findByIdWithRefs(id: string): Promise<GoodsReceiptWithRefs | null> {
@@ -171,7 +180,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
         createdAt: goodsReceipts.createdAt,
-        supplierName: suppliers.name,
+        supplierName: parties.displayName,
         supplierCurrencyCode: suppliers.currencyCode,
         poNumber: purchaseOrders.poNumber,
         poOrderDate: purchaseOrders.orderDate,
@@ -181,6 +190,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       })
       .from(goodsReceipts)
       .leftJoin(suppliers, eq(goodsReceipts.supplierId, suppliers.id))
+      .leftJoin(parties, eq(suppliers.partyId, parties.id))
       .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
       .where(eq(goodsReceipts.id, id))
       .limit(1);

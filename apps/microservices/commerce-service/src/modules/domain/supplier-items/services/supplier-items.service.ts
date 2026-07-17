@@ -2,20 +2,20 @@ import { InventoryItemSupplierDto, SupplierItemDto } from '@domain/suppliers/dto
 import { Injectable } from '@nestjs/common';
 import {
   type CreateResponseDto,
+  CursorCodec,
   type FieldMap,
   FilterProcessor,
+  type KeysetOrderBy,
+  KeysetProcessor,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
-  CursorCodec,
-  type KeysetOrderBy,
-  KeysetProcessor,
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import { CurrencyAmountDto, type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
-import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
+import { inventoryItems, parties, supplierItems, suppliers, uom } from '@/db/schema';
 import type { AddSupplierItemDto } from '@/modules/legal-entity/suppliers/items/dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from '@/modules/legal-entity/suppliers/items/dto/request/update-supplier-item.dto';
 import { SupplierItemsRepository } from '../repositories/supplier-items.repository';
@@ -36,7 +36,7 @@ export class SupplierItemsService {
 
   // Field map for the inventory-item-rooted "suppliers carrying this item" view (joins suppliers + uom)
   private static readonly SUPPLIERS_FOR_ITEM_FIELD_MAP: FieldMap = {
-    supplierName: { column: suppliers.name, type: 'string' },
+    supplierName: { column: parties.displayName, type: 'string' },
     supplierCode: { column: suppliers.code, type: 'string' },
     supplierItemCode: { column: supplierItems.supplierItemCode, type: 'string' },
     uomSymbol: { column: uom.symbol, type: 'string' },
@@ -173,7 +173,7 @@ export class SupplierItemsService {
 
   async addItem(
     supplierId: string,
-    data: AddSupplierItemDto,
+    data: Omit<AddSupplierItemDto, 'supplierId'>,
     inventoryItemName: string,
   ): Promise<CreateResponseDto<SupplierItemDto>> {
     const supplier = await this.repository.findSupplierById(supplierId);
@@ -237,7 +237,7 @@ export class SupplierItemsService {
   async updateItem(
     supplierId: string,
     supplierItemId: string,
-    data: UpdateSupplierItemDto,
+    data: Omit<UpdateSupplierItemDto, 'supplierId' | 'supplierItemId'>,
   ): Promise<SuccessResponseDto> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
@@ -249,7 +249,7 @@ export class SupplierItemsService {
 
     const update: Record<string, unknown> = {};
 
-    if (data.supplierItemCode !== undefined) update.supplierItemCode = data.supplierItemCode || null;
+    if (data.supplierItemCode !== undefined) update.supplierItemCode = data.supplierItemCode ?? null;
     if (data.uomId !== undefined) update.uomId = data.uomId;
     if (data.minOrderQuantity !== undefined) {
       update.minOrderQuantity = data.minOrderQuantity ?? null;

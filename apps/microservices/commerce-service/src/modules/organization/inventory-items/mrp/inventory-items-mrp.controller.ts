@@ -1,7 +1,7 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { InventoryItemMrpDto } from './dto/entity/inventory-item-mrp.dto';
-import type { UpsertInventoryItemMrpDto } from './dto/request/upsert-inventory-item-mrp.dto';
+import { UpsertInventoryItemMrpDto } from './dto/request/upsert-inventory-item-mrp.dto';
 import { InventoryItemsMrpService } from './services/inventory-items-mrp.service';
 
 @Controller()

@@ -277,7 +277,7 @@ export class UomService {
   }
 
   // Updates a UOM
-  async update(id: string, data: UpdateUomDto): Promise<SuccessResponseDto> {
+  async update(id: string, data: Omit<UpdateUomDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.uomRepository.findById(id);
     if (!existing) throw new NotFoundException('Unit of measure not found.');
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId, id);

@@ -6,12 +6,14 @@ import type {
   CreateResponseDto,
   FilterCondition,
   SearchState,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
   SortCondition,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
-import type { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
+import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
+import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { InventoryItemsRootService } from './services/inventory-items-root.service';
 
 @Controller()
@@ -49,6 +51,16 @@ export class InventoryItemsRootController {
     return this.service.findForFeed(query);
   }
 
+  // Returns inventory item options for select dropdowns
+  @MessagePattern({ cmd: 'org.inventoryItems.select' })
+  async select(
+    @Payload() query: SelectOptionsQueryDto & { excludeOnSupplierId?: string },
+  ): Promise<SelectQueryResult> {
+    this.logger.log('inventoryItems.select');
+    const { excludeOnSupplierId, ...rest } = query;
+    return this.service.findForSelect(rest, { excludeOnSupplierId });
+  }
+
   // Creates a master inventory item (asserts the category is a leaf)
   @MessagePattern({ cmd: 'org.inventoryItems.create' })
   async create(@Payload() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
@@ -65,8 +77,8 @@ export class InventoryItemsRootController {
 
   // Updates a master inventory item
   @MessagePattern({ cmd: 'org.inventoryItems.update' })
-  async update(@Payload() data: { id: string } & UpdateInventoryItemDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = data;
+  async update(@Payload() dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
+    const { id, ...updateData } = dto;
     this.logger.log(`inventoryItems.update — id: ${id}`);
     return this.rootService.update(id, updateData);
   }

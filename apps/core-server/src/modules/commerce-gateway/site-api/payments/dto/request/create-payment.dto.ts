@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreatePaymentDto {
@@ -21,19 +22,21 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   method: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Payment reference number', example: 'TXN-123456' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
-  reference?: string;
+  reference?: string | null;
 
   @ApiPropertyOptional({ description: 'Payment status', enum: ['COMPLETED', 'FAILED', 'REFUNDED'] })
   @IsOptional()
   @IsString()
   status?: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Additional notes' })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 }

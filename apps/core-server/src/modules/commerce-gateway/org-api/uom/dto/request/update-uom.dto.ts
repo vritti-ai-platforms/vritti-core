@@ -1,4 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
@@ -7,6 +8,7 @@ export class UpdateUomDto {
   @IsUUID()
   dimensionId?: string;
 
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Updated unit name' })
   @IsOptional()
   @IsString()
@@ -14,6 +16,7 @@ export class UpdateUomDto {
   @MaxLength(50)
   name?: string;
 
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Updated unit symbol' })
   @IsOptional()
   @IsString()

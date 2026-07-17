@@ -7,15 +7,19 @@ import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/i
 import { InventoryItemSerialsDomainModule } from '@domain/inventory-item-serials/inventory-item-serials.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { LocationsDomainModule } from '@domain/locations/locations.module';
+import { PartiesDomainModule } from '@domain/parties/parties.module';
 import { PosTerminalsDomainModule } from '@domain/pos-terminals/pos-terminals.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
 import { SalesChannelsDomainModule } from '@domain/sales-channels/sales-channels.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
+import { TaxClassesDomainModule } from '@domain/tax-classes/tax-classes.module';
+import { TaxComponentsDomainModule } from '@domain/tax-components/tax-components.module';
 import { TaxGroupsDomainModule } from '@domain/tax-groups/tax-groups.module';
-import { UomDimensionsDomainModule } from '@domain/uom-dimensions/uom-dimensions.module';
+import { TaxJurisdictionsDomainModule } from '@domain/tax-jurisdictions/tax-jurisdictions.module';
 import { UomDomainModule } from '@domain/uom/uom.module';
+import { UomDimensionsDomainModule } from '@domain/uom-dimensions/uom-dimensions.module';
 import { Module } from '@nestjs/common';
 import { SelectController } from './select.controller';
 
@@ -27,6 +31,7 @@ import { SelectController } from './select.controller';
     UomDomainModule,
     UomDimensionsDomainModule,
     CatalogsDomainModule,
+    PartiesDomainModule,
     CustomersDomainModule,
     LocationsDomainModule,
     InventoryItemLotsDomainModule,
@@ -38,7 +43,10 @@ import { SelectController } from './select.controller';
     CostCategoriesDomainModule,
     SupplierItemsDomainModule,
     SuppliersDomainModule,
+    TaxClassesDomainModule,
+    TaxComponentsDomainModule,
     TaxGroupsDomainModule,
+    TaxJurisdictionsDomainModule,
   ],
   controllers: [SelectController],
 })

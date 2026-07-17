@@ -111,7 +111,7 @@ export const SalesChannelsPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-sales-channels',
+    slug: 'commerce-org-sales-channels',
     label: 'sales channel',
     serverState: response,
     enableRowSelection: false,

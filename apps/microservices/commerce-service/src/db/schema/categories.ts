@@ -13,7 +13,7 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { CategoryRoleValues, categoryRoleEnum } from './enums';
-import { taxGroups } from './tax-groups';
+import { taxClasses } from './tax-classes';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
@@ -37,8 +37,9 @@ export const categories = coreSchema.table(
     pathBreadcrumb: text('path_breadcrumb').generatedAlwaysAs(sql`vritti_core.format_ltree_path(path)`),
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
-    // Default tax group applied to items created under this category (sale + purchase suggestion).
-    defaultTaxGroupId: uuid('default_tax_group_id').references(() => taxGroups.id, { onDelete: 'set null' }),
+    // Default tax class applied to items created under this leaf category (resolved to rates per LE).
+    // Nullable: GROUP categories are organizational and carry no tax class; only leaf CATEGORY rows set it.
+    defaultTaxClassId: uuid('default_tax_class_id').references(() => taxClasses.id),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

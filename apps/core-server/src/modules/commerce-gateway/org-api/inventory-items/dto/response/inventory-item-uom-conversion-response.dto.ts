@@ -10,7 +10,6 @@ export class InventoryItemUomConversionResponseDto {
   @ApiProperty({ description: 'Count of this UOM in the ratio.' }) uomQty: number;
   @ApiProperty({ description: 'Derived: 1 UOM unit = factor primary units.' }) toPrimaryConversionFactor: number;
   @ApiProperty({ description: 'Derived: 1 primary unit = factor UOM units.' }) toUomConversionFactor: number;
-  @ApiProperty() canEdit: boolean;
   @ApiProperty() canDelete: boolean;
   @ApiProperty() createdAt: string;
   @ApiProperty() updatedAt: string;

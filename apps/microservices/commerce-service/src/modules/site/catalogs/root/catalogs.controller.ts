@@ -7,8 +7,8 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
-import type { UpdateCatalogDto } from '../dto/request/update-catalog.dto';
+import { CreateCatalogDto } from './dto/request/create-catalog.dto';
+import { UpdateCatalogPayloadDto } from './dto/request/update-catalog.dto';
 
 @Controller()
 export class CatalogsController {
@@ -39,7 +39,7 @@ export class CatalogsController {
 
   // Updates a catalog
   @MessagePattern({ cmd: 'site.catalogs.update' })
-  async update(@Payload() data: { id: string } & UpdateCatalogDto): Promise<SuccessResponseDto> {
+  async update(@Payload() data: UpdateCatalogPayloadDto): Promise<SuccessResponseDto> {
     const { id, ...payload } = data;
     this.logger.log(`catalogs.update — id: ${id}`);
     return this.service.update(id, payload);

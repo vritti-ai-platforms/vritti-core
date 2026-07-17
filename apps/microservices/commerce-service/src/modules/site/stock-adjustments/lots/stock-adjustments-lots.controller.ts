@@ -5,6 +5,8 @@ import { StockAdjustmentLotsService } from '@domain/stock-adjustment-lots/servic
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { AddLotDto } from '../root/dto/request/add-lot.dto';
+import { UpdateLotDto } from '../root/dto/request/update-lot.dto';
 import { StockAdjustmentsLotsService } from './services/stock-adjustments-lots.service';
 
 @Controller()
@@ -35,41 +37,24 @@ export class StockAdjustmentsLotsController {
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.addLot' })
-  addLot(
-    @Payload()
-    data: {
-      adjustmentId: string;
-      lotNumber: string;
-      manufacturingDate?: string | null;
-      expiryDate: string;
-      mrp?: string | null;
-    },
-  ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
-    this.logger.log(`stockAdjustments.addLot — adjustment: ${data.adjustmentId}`);
-    return this.appService.addLot(data.adjustmentId, {
-      ...data,
-      mrp: data.mrp !== undefined ? (data.mrp === null ? null : BigInt(data.mrp)) : undefined,
+  addLot(@Payload() dto: AddLotDto): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
+    this.logger.log(`stockAdjustments.addLot — adjustment: ${dto.adjustmentId}`);
+    return this.appService.addLot(dto.adjustmentId, {
+      lotNumber: dto.lotNumber,
+      manufacturingDate: dto.manufacturingDate,
+      expiryDate: dto.expiryDate,
+      mrp: dto.mrp !== undefined ? (dto.mrp === null ? null : BigInt(dto.mrp)) : undefined,
     });
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.updateLot' })
-  updateLot(
-    @Payload()
-    data: {
-      adjustmentId: string;
-      lotId: string;
-      lotNumber?: string;
-      manufacturingDate?: string | null;
-      expiryDate?: string;
-      mrp?: string | null;
-    },
-  ): Promise<StockAdjustmentLotDto> {
-    this.logger.log(`stockAdjustments.updateLot — lot: ${data.lotId}`);
-    return this.appService.updateLot(data.adjustmentId, data.lotId, {
-      lotNumber: data.lotNumber,
-      manufacturingDate: data.manufacturingDate,
-      expiryDate: data.expiryDate,
-      mrp: data.mrp !== undefined ? (data.mrp === null ? null : BigInt(data.mrp)) : undefined,
+  updateLot(@Payload() dto: UpdateLotDto): Promise<StockAdjustmentLotDto> {
+    this.logger.log(`stockAdjustments.updateLot — lot: ${dto.lotId}`);
+    return this.appService.updateLot(dto.adjustmentId, dto.lotId, {
+      lotNumber: dto.lotNumber ?? undefined,
+      manufacturingDate: dto.manufacturingDate,
+      expiryDate: dto.expiryDate,
+      mrp: dto.mrp !== undefined ? (dto.mrp === null ? null : BigInt(dto.mrp)) : undefined,
     });
   }
 

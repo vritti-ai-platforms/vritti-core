@@ -3,8 +3,8 @@ import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purcha
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
-import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
+import { AddPurchaseOrderItemDto } from '../root/dto/request/add-purchase-order-item.dto';
+import { UpdatePurchaseOrderItemDto } from '../root/dto/request/update-purchase-order-item.dto';
 import { PurchaseOrdersItemsService } from './services/purchase-orders-items.service';
 
 @Controller()
@@ -35,19 +35,15 @@ export class PurchaseOrdersItemsController {
   }
 
   @MessagePattern({ cmd: 'site.purchaseOrders.addItem' })
-  addItem(@Payload() data: { id: string } & AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    this.logger.log(`purchaseOrders.addItem — id: ${data.id}, supplierItemId: ${data.supplierItemId}`);
-    const { id, ...dto } = data;
-    return this.service.addItem(id, dto);
+  addItem(@Payload() dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+    this.logger.log(`purchaseOrders.addItem — id: ${dto.id}, supplierItemId: ${dto.supplierItemId}`);
+    return this.service.addItem(dto.id, dto);
   }
 
   @MessagePattern({ cmd: 'site.purchaseOrders.updateItem' })
-  updateItem(
-    @Payload() data: { id: string; itemId: string } & UpdatePurchaseOrderItemDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`purchaseOrders.updateItem — id: ${data.id}, itemId: ${data.itemId}`);
-    const { id, itemId, ...dto } = data;
-    return this.service.updateItem(id, itemId, dto);
+  updateItem(@Payload() dto: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.updateItem — id: ${dto.id}, itemId: ${dto.itemId}`);
+    return this.service.updateItem(dto.id, dto.itemId, dto);
   }
 
   @MessagePattern({ cmd: 'site.purchaseOrders.removeItem' })

@@ -14,11 +14,6 @@ export const createInventoryItemSchema = z.object({
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
   hsnCode: z.string().max(20).optional(),
-  hasMrp: z.boolean(),
-  mrpUomId: z.string().uuid().optional(),
-  mrpUomConversion: z
-    .object({ uomQty: zodNumericField({ min: 1 }), primaryUomQty: zodNumericField({ min: 1 }) })
-    .optional(),
   defaultMrp: zodCurrencyField({ positive: true }).optional(),
 });
 
@@ -32,8 +27,6 @@ export const updateInventoryItemSchema = z.object({
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
   hsnCode: z.string().max(20).nullable().optional(),
-  hasMrp: z.boolean().optional(),
-  mrpUomId: z.string().uuid().optional(),
   defaultMrp: zodCurrencyField({ positive: true }).optional(),
 });
 
@@ -48,11 +41,7 @@ export const createOrgInventoryItemSchema = z.object({
   uomId: z.string().uuid('Unit of measure is required'),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   hsnCode: z.string().max(20).optional(),
-  hasMrp: z.boolean(),
-  mrpUomId: z.string().uuid().optional(),
-  mrpUomConversion: z
-    .object({ uomQty: zodNumericField({ min: 1 }), primaryUomQty: zodNumericField({ min: 1 }) })
-    .optional(),
+  taxClassId: z.string().uuid('Tax class is required'),
 });
 
 export const updateOrgInventoryItemSchema = z.object({
@@ -64,8 +53,7 @@ export const updateOrgInventoryItemSchema = z.object({
   uomId: z.uuid('Unit of measure is required').optional(),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   hsnCode: z.string().max(20).nullable().optional(),
-  hasMrp: z.boolean().optional(),
-  mrpUomId: z.string().uuid().optional(),
+  taxClassId: z.string().uuid().optional(),
 });
 
 // SITE — enable a master item at the current site with optional stock thresholds
@@ -155,10 +143,8 @@ export interface InventoryItemData {
   uomSymbol: string | null;
   purchaseTaxGroupId: string | null;
   purchaseTaxGroupName: string | null;
+  taxClassId: string | null;
   hsnCode: string | null;
-  hasMrp: boolean;
-  mrpUomId: string | null;
-  mrpUomSymbol: string | null;
   defaultMrp: { currency: string; value: string } | null;
   reorderPoint: number | null;
   maxStockLevel: number | null;

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { purchaseOrderItems, purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
+import { parties, purchaseOrderItems, purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
 
 @Injectable()
 export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purchaseOrders> {
@@ -39,10 +39,11 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
         totalAmount: purchaseOrders.totalAmount,
         createdAt: purchaseOrders.createdAt,
         updatedAt: purchaseOrders.updatedAt,
-        supplierName: suppliers.name,
+        supplierName: parties.displayName,
       })
       .from(purchaseOrders)
       .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
+      .leftJoin(parties, eq(suppliers.partyId, parties.id))
       .where(eq(purchaseOrders.id, id))
       .limit(1);
 
@@ -72,9 +73,12 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
         totalAmount: purchaseOrders.totalAmount,
         createdAt: purchaseOrders.createdAt,
         updatedAt: purchaseOrders.updatedAt,
-        supplierName: suppliers.name,
+        supplierName: parties.displayName,
       },
-      leftJoins: [{ table: suppliers, on: eq(purchaseOrders.supplierId, suppliers.id) }],
+      leftJoins: [
+        { table: suppliers, on: eq(purchaseOrders.supplierId, suppliers.id) },
+        { table: parties, on: eq(suppliers.partyId, parties.id) },
+      ],
       where: options.where,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(purchaseOrders.createdAt)],
       limit: options.limit,

@@ -79,16 +79,10 @@ export class InventoryItemSupplierDto {
 
 export class SupplierDto {
   id: string;
-  name: string;
+  partyId: string;
+  partyName: string;
   code: string;
   currencyCode: string;
-  contactName: string | null;
-  phone: string;
-  email: string | null;
-  website: string | null;
-  address: string | null;
-  taxId: string | null;
-  taxIdType: string | null;
   paymentTerms: string | null;
   leadTimeDays: number | null;
   notes: string | null;
@@ -96,19 +90,13 @@ export class SupplierDto {
   createdAt: string;
   updatedAt: string;
 
-  static from(entity: Supplier): SupplierDto {
+  static from(entity: Supplier, partyName: string | null = null): SupplierDto {
     const dto = new SupplierDto();
     dto.id = entity.id;
-    dto.name = entity.name;
+    dto.partyId = entity.partyId;
+    dto.partyName = partyName ?? '';
     dto.code = entity.code;
     dto.currencyCode = entity.currencyCode;
-    dto.contactName = entity.contactName ?? null;
-    dto.phone = entity.phone;
-    dto.email = entity.email ?? null;
-    dto.website = entity.website ?? null;
-    dto.address = entity.address ?? null;
-    dto.taxId = entity.taxId ?? null;
-    dto.taxIdType = entity.taxIdType ?? null;
     dto.paymentTerms = entity.paymentTerms ?? null;
     dto.leadTimeDays = entity.leadTimeDays ?? null;
     dto.notes = entity.notes ?? null;
@@ -120,9 +108,9 @@ export class SupplierDto {
 }
 
 export class SupplierDetailDto extends SupplierDto {
-  static fromDetail(entity: Supplier): SupplierDetailDto {
+  static fromDetail(entity: Supplier, partyName: string | null = null): SupplierDetailDto {
     const dto = new SupplierDetailDto();
-    Object.assign(dto, SupplierDto.from(entity));
+    Object.assign(dto, SupplierDto.from(entity, partyName));
     return dto;
   }
 }

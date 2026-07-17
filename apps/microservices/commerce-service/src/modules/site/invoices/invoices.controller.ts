@@ -3,8 +3,8 @@ import { InvoicesService } from '@domain/invoices/services/invoices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
-import type { CreateInvoiceDto } from './dto/request/create-invoice.dto';
-import type { UpdateInvoiceDto } from './dto/request/update-invoice.dto';
+import { CreateInvoiceDto } from './dto/request/create-invoice.dto';
+import { UpdateInvoiceDto } from './dto/request/update-invoice.dto';
 
 @Controller()
 export class InvoicesController {
@@ -31,8 +31,8 @@ export class InvoicesController {
   }
 
   @MessagePattern({ cmd: 'site.invoices.update' })
-  async update(@Payload() data: { id: string } & UpdateInvoiceDto): Promise<InvoiceDto> {
-    const { id, ...updateData } = data;
+  async update(@Payload() dto: UpdateInvoiceDto): Promise<InvoiceDto> {
+    const { id, ...updateData } = dto;
     this.logger.log(`invoices.update — id: ${id}`);
     return this.service.update(id, updateData);
   }

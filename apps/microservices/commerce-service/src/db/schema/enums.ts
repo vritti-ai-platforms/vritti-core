@@ -416,3 +416,125 @@ export const CostDistributionMethodValues = {
   EQUAL: 'equal' as const,
 };
 export type CostDistributionMethod = (typeof costDistributionMethodEnum.enumValues)[number];
+
+export const taxAuthorityLevelEnum = coreSchema.enum('tax_authority_level', [
+  'FEDERAL',
+  'STATE',
+  'COUNTY',
+  'CITY',
+  'SPECIAL',
+]);
+export const TaxAuthorityLevelValues = {
+  FEDERAL: 'FEDERAL' as const,
+  STATE: 'STATE' as const,
+  COUNTY: 'COUNTY' as const,
+  CITY: 'CITY' as const,
+  SPECIAL: 'SPECIAL' as const,
+};
+export type TaxAuthorityLevel = (typeof taxAuthorityLevelEnum.enumValues)[number];
+
+export const partyTypeEnum = coreSchema.enum('party_type', ['PERSON', 'ORGANIZATION']);
+export const PartyTypeValues = {
+  PERSON: 'PERSON' as const,
+  ORGANIZATION: 'ORGANIZATION' as const,
+};
+export type PartyType = (typeof partyTypeEnum.enumValues)[number];
+
+export const govtIdTypeEnum = coreSchema.enum('govt_id_type', [
+  'PAN',
+  'AADHAAR',
+  'PASSPORT',
+  'DRIVING_LICENSE',
+  'VOTER_ID',
+  'CIVIL_ID',
+  'NATIONAL_ID',
+]);
+export type GovtIdType = (typeof govtIdTypeEnum.enumValues)[number];
+
+export const partyIdentifierTypeEnum = coreSchema.enum('party_identifier_type', [
+  'PAN',
+  'AADHAAR',
+  'PASSPORT',
+  'DRIVING_LICENSE',
+  'VOTER_ID',
+  'CIVIL_ID',
+  'NATIONAL_ID',
+  'DUNS',
+  'LEI',
+  'CIN',
+]);
+export const PartyIdentifierTypeValues = {
+  PAN: 'PAN' as const,
+  AADHAAR: 'AADHAAR' as const,
+  PASSPORT: 'PASSPORT' as const,
+  DRIVING_LICENSE: 'DRIVING_LICENSE' as const,
+  VOTER_ID: 'VOTER_ID' as const,
+  CIVIL_ID: 'CIVIL_ID' as const,
+  NATIONAL_ID: 'NATIONAL_ID' as const,
+  DUNS: 'DUNS' as const,
+  LEI: 'LEI' as const,
+  CIN: 'CIN' as const,
+};
+export type PartyIdentifierType = (typeof partyIdentifierTypeEnum.enumValues)[number];
+
+export const PersonIdentifierTypes: PartyIdentifierType[] = [
+  'PAN',
+  'AADHAAR',
+  'PASSPORT',
+  'DRIVING_LICENSE',
+  'VOTER_ID',
+  'CIVIL_ID',
+  'NATIONAL_ID',
+];
+export const OrganizationIdentifierTypes: PartyIdentifierType[] = ['PAN', 'CIN', 'LEI', 'DUNS'];
+
+export function isIdentifierTypeApplicable(partyType: PartyType, idType: PartyIdentifierType): boolean {
+  const applicable = partyType === 'PERSON' ? PersonIdentifierTypes : OrganizationIdentifierTypes;
+  return applicable.includes(idType);
+}
+
+export const partyAddressTypeEnum = coreSchema.enum('party_address_type', [
+  'REGISTERED',
+  'BILLING',
+  'SHIPPING',
+  'OTHER',
+]);
+export const PartyAddressTypeValues = {
+  REGISTERED: 'REGISTERED' as const,
+  BILLING: 'BILLING' as const,
+  SHIPPING: 'SHIPPING' as const,
+  OTHER: 'OTHER' as const,
+};
+export type PartyAddressType = (typeof partyAddressTypeEnum.enumValues)[number];
+
+export const taxRegistrationTypeEnum = coreSchema.enum('tax_registration_type', [
+  'GSTIN',
+  'VAT',
+  'TIN',
+  'PAN',
+  'OTHER',
+]);
+export const TaxRegistrationTypeValues = {
+  GSTIN: 'GSTIN' as const,
+  VAT: 'VAT' as const,
+  TIN: 'TIN' as const,
+  PAN: 'PAN' as const,
+  OTHER: 'OTHER' as const,
+};
+export type TaxRegistrationType = (typeof taxRegistrationTypeEnum.enumValues)[number];
+
+export const taxJurisdictionLevelEnum = coreSchema.enum('tax_jurisdiction_level', [
+  'COUNTRY',
+  'STATE',
+  'COUNTY',
+  'CITY',
+  'DISTRICT',
+]);
+export const TaxJurisdictionLevelValues = {
+  COUNTRY: 'COUNTRY' as const,
+  STATE: 'STATE' as const,
+  COUNTY: 'COUNTY' as const,
+  CITY: 'CITY' as const,
+  DISTRICT: 'DISTRICT' as const,
+};
+export type TaxJurisdictionLevel = (typeof taxJurisdictionLevelEnum.enumValues)[number];

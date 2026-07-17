@@ -7,9 +7,9 @@ import { SuppliersRepository } from '@domain/suppliers/repositories/suppliers.re
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import type { ChangePurchaseOrderExchangeRateDto } from '@/modules/site/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
-import type { ChangePurchaseOrderSupplierDto } from '@/modules/site/purchase-orders/dto/request/change-purchase-order-supplier.dto';
-import type { CreatePurchaseOrderDto } from '@/modules/site/purchase-orders/dto/request/create-purchase-order.dto';
+import type { ChangePurchaseOrderExchangeRateDto } from '@/modules/site/purchase-orders/root/dto/request/change-purchase-order-exchange-rate.dto';
+import type { ChangePurchaseOrderSupplierDto } from '@/modules/site/purchase-orders/root/dto/request/change-purchase-order-supplier.dto';
+import type { CreatePurchaseOrderDto } from '@/modules/site/purchase-orders/root/dto/request/create-purchase-order.dto';
 
 @Injectable()
 export class PurchaseOrdersRootService {
@@ -37,7 +37,7 @@ export class PurchaseOrdersRootService {
   }
 
   async changeSupplier(id: string, dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
-    const supplier = await this.suppliersRepository.findById(dto.supplierId);
+    const supplier = await this.suppliersRepository.findByIdWithParty(dto.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
     await this.assertNoGoodsReceipt(id, 'Cannot Change Supplier');
@@ -50,7 +50,7 @@ export class PurchaseOrdersRootService {
       });
     }
 
-    return this.purchaseOrdersService.changeSupplier(id, dto.supplierId, supplier.name);
+    return this.purchaseOrdersService.changeSupplier(id, dto.supplierId, supplier.partyName ?? '');
   }
 
   async changeExchangeRate(

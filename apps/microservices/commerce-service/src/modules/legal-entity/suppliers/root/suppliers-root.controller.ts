@@ -2,14 +2,10 @@ import type { SupplierDetailDto, SupplierDto } from '@domain/suppliers/dto/entit
 import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import type { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
-import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
-import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
+import { CreateSupplierDto } from './dto/request/create-supplier.dto';
+import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 import { SuppliersRootService } from './services/suppliers-root.service';
 
 @Controller()
@@ -29,7 +25,7 @@ export class SuppliersRootController {
 
   @MessagePattern({ cmd: 'le.suppliers.create' })
   async create(@Payload() dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
-    this.logger.log(`suppliers.create — name: ${dto.name}`);
+    this.logger.log(`suppliers.create — partyId: ${dto.partyId}`);
     return this.suppliersRootService.create(dto);
   }
 
@@ -40,8 +36,8 @@ export class SuppliersRootController {
   }
 
   @MessagePattern({ cmd: 'le.suppliers.update' })
-  async update(@Payload() data: { id: string } & UpdateSupplierDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = data;
+  async update(@Payload() dto: UpdateSupplierDto): Promise<SuccessResponseDto> {
+    const { id, ...updateData } = dto;
     this.logger.log('suppliers.update');
     return this.service.update(id, updateData);
   }
@@ -53,7 +49,7 @@ export class SuppliersRootController {
   }
 
   @MessagePattern({ cmd: 'le.suppliers.changeCurrency' })
-  async changeCurrency(@Payload() data: { id: string } & ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
+  async changeCurrency(@Payload() data: ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
     const { id, ...dto } = data;
     this.logger.log(`suppliers.changeCurrency — id: ${id}, currency: ${dto.currencyCode}`);
     return this.suppliersRootService.changeCurrency(id, dto);

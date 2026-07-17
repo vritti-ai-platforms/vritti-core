@@ -4,7 +4,7 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
-import { TaxGroupSelector } from '@vritti/quantum-ui/selects/tax-group';
+import { TaxClassSelector } from '@vritti/quantum-ui/selects/tax-class';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -37,7 +37,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
       categoryRole: CategoryRoleValues.CATEGORY,
       sortOrder: 1,
       isActive: true,
-      defaultTaxGroupId: null,
+      defaultTaxClassId: null,
     },
   });
 
@@ -55,7 +55,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
       transformSubmit={(data: CategoryFormData) => ({
         ...data,
         parentId: data.parentId || null,
-        defaultTaxGroupId: data.defaultTaxGroupId || null,
+        defaultTaxClassId: data.defaultTaxClassId || null,
       })}
     >
       <TextField name="name" label="Name" placeholder="e.g. Electronics" />
@@ -74,14 +74,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
         options={roleOptions}
         description="A Group holds sub-categories; a Category holds inventory items"
       />
-      {isLeaf && (
-        <TaxGroupSelector
-          name="defaultTaxGroupId"
-          label="Default Tax Group"
-          placeholder="None (no default tax group)"
-          clearable
-        />
-      )}
+      {isLeaf && <TaxClassSelector name="defaultTaxClassId" />}
       <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
       <Switch
         name="isActive"

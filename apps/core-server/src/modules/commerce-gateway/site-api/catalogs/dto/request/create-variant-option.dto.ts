@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { ArrayMinSize, IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateVariantOptionDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Variant option name', example: 'Size' })
   @IsString()
   @IsNotEmpty()

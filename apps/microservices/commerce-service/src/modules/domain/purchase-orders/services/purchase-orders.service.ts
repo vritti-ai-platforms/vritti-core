@@ -15,10 +15,10 @@ import {
   ExchangeRateTypeValues,
   type PurchaseOrderStatus,
   PurchaseOrderStatusValues,
+  parties,
   purchaseOrders,
-  suppliers,
 } from '@/db/schema';
-import type { CreatePurchaseOrderDto } from '@/modules/site/purchase-orders/dto/request/create-purchase-order.dto';
+import type { CreatePurchaseOrderDto } from '@/modules/site/purchase-orders/root/dto/request/create-purchase-order.dto';
 import { PurchaseOrderDto } from '../dto/entity/purchase-order.dto';
 import { PurchaseOrdersRepository } from '../repositories/purchase-orders.repository';
 
@@ -28,7 +28,7 @@ export class PurchaseOrdersService {
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     poNumber: { column: purchaseOrders.poNumber, type: 'string' },
-    supplierName: { column: suppliers.name, type: 'string' },
+    supplierName: { column: parties.displayName, type: 'string' },
   };
   private static readonly FILTER_FIELD_MAP: FieldMap = {
     status: { column: purchaseOrders.status, type: 'string' },

@@ -4,6 +4,7 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
+import { TaxClassSelector } from '@vritti/quantum-ui/selects/tax-class';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { type Resolver, useForm } from 'react-hook-form';
@@ -30,6 +31,7 @@ interface VariantFormValues {
   components?: VariantComponentInput[];
   price: CurrencyAmount;
   isAvailable: boolean;
+  taxClassId?: string;
   [optionId: string]: string | CurrencyAmount | boolean | VariantComponentInput[] | undefined;
 }
 
@@ -59,6 +61,7 @@ export const VariantFormDialog: React.FC<VariantFormDialogProps> = ({
       components: variant?.components.map((c) => ({ inventoryItemId: c.inventoryItemId, quantity: c.quantity })) ?? [],
       price: variant?.price ?? { currency: offering.currencyCode, value: '' },
       isAvailable: variant?.isAvailable ?? true,
+      taxClassId: variant?.taxClassId ?? undefined,
     },
   });
 
@@ -83,6 +86,8 @@ export const VariantFormDialog: React.FC<VariantFormDialogProps> = ({
       {showComponents && <VariantComponentsField name="components" />}
 
       <CurrencyField name="price" label="Price" currencyCode={offering.currencyCode} placeholder="0.00" />
+
+      <TaxClassSelector name="taxClassId" clearable />
 
       <Switch
         name="isAvailable"
@@ -116,6 +121,7 @@ export const VariantFormDialog: React.FC<VariantFormDialogProps> = ({
             price: data.price,
             components: showComponents ? (data.components ?? []) : undefined,
             isAvailable: Boolean(data.isAvailable),
+            taxClassId: data.taxClassId || undefined,
           },
         })}
       >
@@ -134,6 +140,7 @@ export const VariantFormDialog: React.FC<VariantFormDialogProps> = ({
       components: showComponents ? (data.components ?? []) : undefined,
       price: data.price,
       isAvailable: Boolean(data.isAvailable),
+      taxClassId: data.taxClassId || undefined,
     };
 
     return { catalogId, offeringId: offering.id, data: payload };

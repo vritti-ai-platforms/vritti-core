@@ -3,6 +3,10 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsOptional, IsUUID } from 'class-validator';
 
 export class UpsertInventoryItemMrpDto {
+  @ApiProperty({ description: 'UOM the MRP is quoted in' })
+  @IsUUID()
+  uomId: string;
+
   @ApiProperty({ type: CurrencyAmountDto, description: 'Suggested MRP amount (with currency)' })
   @IsCurrency()
   amount: CurrencyAmountDto;

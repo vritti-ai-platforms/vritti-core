@@ -7,11 +7,11 @@ import { OfferingsService } from '@domain/offerings/services/offerings.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
-import type { CreateVariantDto } from '../dto/request/create-variant.dto';
-import type { SaveItemModifiersDto } from '../dto/request/save-item-modifiers.dto';
-import type { UpdateOfferingDto } from '../dto/request/update-offering.dto';
-import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
+import { CreateOfferingDto } from '../root/dto/request/create-offering.dto';
+import { CreateVariantDto } from '../root/dto/request/create-variant.dto';
+import { SaveItemModifiersDto } from '../root/dto/request/save-item-modifiers.dto';
+import { UpdateOfferingPayloadDto } from '../root/dto/request/update-offering.dto';
+import { UpdateVariantPayloadDto } from '../root/dto/request/update-variant.dto';
 
 @Controller()
 export class OfferingsController {
@@ -49,7 +49,7 @@ export class OfferingsController {
 
   // Updates an offering's basic info
   @MessagePattern({ cmd: 'site.catalogs.offerings.update' })
-  async offeringsUpdate(@Payload() data: { offeringId: string } & UpdateOfferingDto): Promise<OfferingDto> {
+  async offeringsUpdate(@Payload() data: UpdateOfferingPayloadDto): Promise<OfferingDto> {
     const { offeringId, ...updateData } = data;
     this.logger.log(`catalogs.offerings.update — offeringId: ${offeringId}`);
     if (updateData.categoryId) await this.categoriesService.assertIsLeaf(updateData.categoryId);
@@ -80,7 +80,7 @@ export class OfferingsController {
   // Updates a single variant
   @MessagePattern({ cmd: 'site.catalogs.offerings.variants.update' })
   async offeringsVariantsUpdate(
-    @Payload() data: { variantId: string } & UpdateVariantDto,
+    @Payload() data: UpdateVariantPayloadDto,
   ): Promise<OfferingVariantDto> {
     const { variantId, ...updateData } = data;
     this.logger.log(`catalogs.offerings.variants.update — variantId: ${variantId}`);

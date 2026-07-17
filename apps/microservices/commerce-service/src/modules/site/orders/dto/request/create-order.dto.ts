@@ -25,6 +25,10 @@ export class CreateOrderItemModifierDto {
   @IsNotEmpty()
   @MaxLength(255)
   name: string;
+
+  @IsNumber()
+  @Min(0)
+  additionalPrice: number;
 }
 
 export class CreateOrderItemDto {

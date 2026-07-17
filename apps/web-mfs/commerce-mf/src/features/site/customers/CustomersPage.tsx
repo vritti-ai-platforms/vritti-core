@@ -72,7 +72,7 @@ export const CustomersPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-customers',
+    slug: 'commerce-site-customers',
     label: 'customer',
     serverState: response,
     enableRowSelection: false,

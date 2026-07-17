@@ -5,8 +5,8 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk/database';
-import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
-import { categories, inventoryItems, offerings } from '@/db/schema';
+import { asc, eq, inArray, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type Category, categories, inventoryItems, offerings, taxClasses } from '@/db/schema';
 
 @Injectable()
 export class CategoriesRepository extends PrimaryBaseRepository<typeof categories> {
@@ -302,6 +302,27 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
       .from(inventoryItems)
       .where(eq(inventoryItems.categoryId, categoryId));
     return Number(itemRefs?.count ?? 0) + Number(inventoryItemRefs?.count ?? 0);
+  }
+
+  // Loads a category by id joined with its default tax class name (single round trip)
+  async findByIdWithTaxClass(id: string): Promise<(Category & { defaultTaxClassName: string | null }) | undefined> {
+    const { result } = await this.findAllWithTaxClass({ where: eq(categories.id, id), limit: 1, offset: 0 });
+    return result[0];
+  }
+
+  // Returns paginated categories joined with their default tax class name, plus total count
+  findAllWithTaxClass(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
+    result: (Category & { defaultTaxClassName: string | null })[];
+    count: number;
+  }> {
+    return this.findAllAndCount({
+      select: { ...categories, defaultTaxClassName: taxClasses.name },
+      leftJoin: { table: taxClasses, on: eq(taxClasses.id, categories.defaultTaxClassId) },
+      where: options?.where,
+      orderBy: options?.orderBy,
+      limit: options?.limit,
+      offset: options?.offset,
+    });
   }
 
   // Counts direct children of a category (used by assertIsLeaf)

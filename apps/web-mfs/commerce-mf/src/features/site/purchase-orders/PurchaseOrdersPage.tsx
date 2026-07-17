@@ -91,7 +91,7 @@ export const PurchaseOrdersPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-purchase-orders',
+    slug: 'commerce-site-purchase-orders',
     label: 'purchase order',
     serverState: response,
     enableRowSelection: false,

@@ -1,7 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpdateModifierOptionDto {
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Option name' })
   @IsOptional()
   @IsString()

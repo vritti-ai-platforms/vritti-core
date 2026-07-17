@@ -10,7 +10,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type SalesChannel, type SalesChannelKind, salesChannels } from '@/db/schema';
+import { type SalesChannelKind, salesChannels } from '@/db/schema';
 import { SalesChannelDto } from '../dto/entity/sales-channel.dto';
 import { SalesChannelsRepository } from '../repositories/sales-channels.repository';
 
@@ -80,17 +80,17 @@ export class SalesChannelsService {
 
   // Creates a new sales channel, rejecting duplicate codes
   async create(data: CreateSalesChannelInput): Promise<CreateResponseDto<SalesChannelDto>> {
-    const existing = await this.repository.findByCode(data.code.trim());
+    const existing = await this.repository.findByCode(data.code);
     if (existing) {
       throw new ConflictException({
         label: 'Code already exists',
-        detail: `A sales channel with code "${data.code.trim()}" already exists.`,
+        detail: `A sales channel with code "${data.code}" already exists.`,
       });
     }
 
     const entity = await this.repository.create({
-      code: data.code.trim(),
-      name: data.name.trim(),
+      code: data.code,
+      name: data.name,
       kind: data.kind,
       isActive: data.isActive ?? true,
       isSystem: false,
@@ -117,13 +117,7 @@ export class SalesChannelsService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Sales channel not found.');
 
-    const payload: Partial<SalesChannel> = {};
-    if (data.name !== undefined) payload.name = data.name.trim();
-    if (data.isActive !== undefined) payload.isActive = data.isActive;
-
-    if (Object.keys(payload).length > 0) {
-      await this.repository.update(id, payload);
-    }
+    await this.repository.update(id, data);
 
     this.logger.log(`Updated sales channel: ${existing.code} (${id})`);
     return { success: true, message: `Sales channel "${data.name ?? existing.name}" updated successfully.` };

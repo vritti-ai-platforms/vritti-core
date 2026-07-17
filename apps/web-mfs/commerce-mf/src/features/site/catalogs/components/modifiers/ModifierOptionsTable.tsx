@@ -67,7 +67,7 @@ export const ModifierOptionsTable: React.FC<ModifierOptionsTableProps> = ({
   const { table } = useDataTable({
     columns,
     serverState: { result: options },
-    slug: `commerce-modifier-options-${groupId}`,
+    slug: `commerce-site-modifier-options-${groupId}`,
     label: 'option',
     enableRowSelection: false,
     enableSorting: false,

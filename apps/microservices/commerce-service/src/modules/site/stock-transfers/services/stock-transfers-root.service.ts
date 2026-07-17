@@ -24,7 +24,10 @@ export class StockTransfersRootService {
 
   // Updates transfer status, handling batch operations for IN_TRANSIT and RECEIVED transitions.
   // App-layer resolves lots before calling createQuant so the domain quant service stays independent.
-  async updateStatus(id: string, data: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
+  async updateStatus(
+    id: string,
+    data: Omit<UpdateStockTransferStatusDto, 'id'>,
+  ): Promise<{ success: boolean; message: string }> {
     const { transfer, currentStatus, newStatus } = await this.stockTransfersService.prepareStatusUpdate(id, data);
 
     // On IN_TRANSIT: deduct from source batch

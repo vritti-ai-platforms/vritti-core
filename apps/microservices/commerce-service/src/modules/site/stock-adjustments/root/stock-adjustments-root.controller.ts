@@ -3,7 +3,8 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
-import type { StockAdjustmentType } from '@/db/schema';
+import { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
+import { UpdateStockAdjustmentDto } from './dto/request/update-stock-adjustment.dto';
 import { StockAdjustmentsRootService } from './services/stock-adjustments-root.service';
 
 @Controller()
@@ -31,16 +32,13 @@ export class StockAdjustmentsRootController {
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.create' })
-  create(
-    @Payload()
-    data: { inventoryItemId: string; type: StockAdjustmentType; reason: string; unitCost?: string },
-  ): Promise<CreateResponseDto<StockAdjustmentDto>> {
-    this.logger.log(`stockAdjustments.create — item: ${data.inventoryItemId}, type: ${data.type}`);
+  create(@Payload() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentDto>> {
+    this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
     return this.service.create({
-      inventoryItemId: data.inventoryItemId,
-      type: data.type,
-      reason: data.reason,
-      unitCost: data.unitCost !== undefined ? BigInt(data.unitCost) : undefined,
+      inventoryItemId: dto.inventoryItemId,
+      type: dto.type,
+      reason: dto.reason,
+      unitCost: dto.unitCost !== undefined ? BigInt(dto.unitCost) : undefined,
     });
   }
 
@@ -55,15 +53,15 @@ export class StockAdjustmentsRootController {
 
   @MessagePattern({ cmd: 'site.stockAdjustments.update' })
   update(
-    @Payload() data: { id: string; reason?: string; unitCost?: string },
+    @Payload() dto: UpdateStockAdjustmentDto,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<StockAdjustmentDto> {
-    this.logger.log(`stockAdjustments.update — id: ${data.id}`);
+    this.logger.log(`stockAdjustments.update — id: ${dto.id}`);
     return this.service.update(
-      data.id,
+      dto.id,
       {
-        reason: data.reason,
-        unitCost: data.unitCost !== undefined ? BigInt(data.unitCost) : undefined,
+        reason: dto.reason ?? undefined,
+        unitCost: dto.unitCost !== undefined ? BigInt(dto.unitCost) : undefined,
       },
       siteCurrencyCode,
     );

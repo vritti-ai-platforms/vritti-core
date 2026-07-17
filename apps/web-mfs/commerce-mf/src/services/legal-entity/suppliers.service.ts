@@ -10,33 +10,18 @@ import type {
 } from '@/schemas/suppliers';
 
 export interface CreateSupplierPayload {
-  name: string;
+  partyId: string;
   code: string;
   currencyCode: string;
-  primaryContact: {
-    name: string;
-    phone: string;
-    alternatePhone?: string;
-    email?: string;
-    alternateEmail?: string;
-    designation?: string;
-  };
-  website?: string;
-  address?: string;
-  taxId?: string;
-  taxIdType?: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER';
   paymentTerms?: string;
   leadTimeDays?: number;
   notes?: string;
+  isActive?: boolean;
 }
 
 export interface UpdateSupplierPayload {
-  name?: string;
+  partyId?: string;
   code?: string;
-  website?: string | null;
-  address?: string | null;
-  taxId?: string | null;
-  taxIdType?: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | null;
   paymentTerms?: string | null;
   leadTimeDays?: number | null;
   notes?: string | null;

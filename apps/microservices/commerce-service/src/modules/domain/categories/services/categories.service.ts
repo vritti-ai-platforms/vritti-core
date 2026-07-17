@@ -12,9 +12,9 @@ import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import { type Category, type CategoryRole, CategoryRoleValues, categories } from '@/db/schema';
-import type { CategoriesSelectQueryDto } from '@/modules/organization/categories/dto/request/categories-select-query.dto';
-import type { CreateCategoryDto } from '@/modules/organization/categories/dto/request/create-category.dto';
-import type { UpdateCategoryDto } from '@/modules/organization/categories/dto/request/update-category.dto';
+import type { CategoriesSelectQueryDto } from '@/modules/organization/categories/root/dto/request/categories-select-query.dto';
+import type { CreateCategoryDto } from '@/modules/organization/categories/root/dto/request/create-category.dto';
+import type { UpdateCategoryDto } from '@/modules/organization/categories/root/dto/request/update-category.dto';
 import { CategoryDto } from '../dto/entity/category.dto';
 import type { CategoryCountDto } from '../dto/entity/category-count.dto';
 import type { CategoryTreeDto } from '../dto/entity/category-tree.dto';
@@ -113,7 +113,7 @@ export class CategoriesService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, CategoriesService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result: rows, count } = await this.categoriesRepository.findAllAndCount({
+    const { result: rows, count } = await this.categoriesRepository.findAllWithTaxClass({
       where,
       orderBy: orderBy.length > 0 ? orderBy : [asc(categories.sortOrder), asc(categories.name)],
       limit,
@@ -128,7 +128,7 @@ export class CategoriesService {
 
     return {
       result: rows.map((row) =>
-        CategoryDto.from(row, !referencedIds.has(row.id) && !parentIdsWithChildren.has(row.id)),
+        CategoryDto.from(row, !referencedIds.has(row.id) && !parentIdsWithChildren.has(row.id), row.defaultTaxClassName),
       ),
       count,
     };
@@ -142,6 +142,9 @@ export class CategoriesService {
       this.assertParentAcceptsChildren(parent);
     }
 
+    const role = data.categoryRole ?? CategoryRoleValues.CATEGORY;
+    this.assertTaxClassForLeaf(role, data.defaultTaxClassId ?? null);
+
     const pathLabel = this.toPathLabel(data.name);
     const path = this.buildPath(parent?.path ?? null, pathLabel);
 
@@ -149,12 +152,12 @@ export class CategoriesService {
       this.categoriesRepository.create({
         name: data.name,
         parentId: parent?.id ?? null,
-        categoryRole: data.categoryRole ?? CategoryRoleValues.CATEGORY,
+        categoryRole: role,
         pathLabel,
         path,
         sortOrder: data.sortOrder ?? 1,
         isActive: data.isActive ?? true,
-        defaultTaxGroupId: data.defaultTaxGroupId ?? null,
+        defaultTaxClassId: data.defaultTaxClassId ?? null,
       }),
     );
 
@@ -168,13 +171,14 @@ export class CategoriesService {
 
   // Finds a category by ID or throws NotFoundException
   async findById(id: string): Promise<CategoryDto> {
-    const entity = await this.requireById(id);
+    const entity = await this.categoriesRepository.findByIdWithTaxClass(id);
+    if (!entity) throw new NotFoundException('Category not found.');
     const refs = await this.categoriesRepository.countReferences(id);
-    return CategoryDto.from(entity, this.isUnreferenced(refs));
+    return CategoryDto.from(entity, this.isUnreferenced(refs), entity.defaultTaxClassName);
   }
 
   // Updates a category, recomputing path on rename/move and rewriting the affected subtree
-  async update(id: string, data: UpdateCategoryDto): Promise<CategoryDto> {
+  async update(id: string, data: Omit<UpdateCategoryDto, 'id'>): Promise<CategoryDto> {
     return this.database.runInTransaction(async () => {
       const existing = await this.requireById(id);
 
@@ -194,6 +198,11 @@ export class CategoriesService {
         await this.assertRoleChangeAllowed(existing, data.categoryRole);
       }
 
+      const nextRole = data.categoryRole ?? existing.categoryRole;
+      const nextTaxClassId =
+        data.defaultTaxClassId === undefined ? existing.defaultTaxClassId : data.defaultTaxClassId || null;
+      this.assertTaxClassForLeaf(nextRole, nextTaxClassId);
+
       const nextPathLabel = nameChanged ? this.toPathLabel(nextName) : existing.pathLabel;
 
       const updated = await this.withDuplicateGuard(nextName, () =>
@@ -201,7 +210,7 @@ export class CategoriesService {
           ...data,
           parentId: data.parentId === undefined ? undefined : data.parentId || null,
           pathLabel: nameChanged ? nextPathLabel : undefined,
-          defaultTaxGroupId: data.defaultTaxGroupId === undefined ? undefined : data.defaultTaxGroupId || null,
+          defaultTaxClassId: data.defaultTaxClassId === undefined ? undefined : data.defaultTaxClassId || null,
         }),
       );
 
@@ -303,6 +312,17 @@ export class CategoriesService {
       return nextParentId ? this.loadParent(nextParentId) : null;
     }
     return existing.parentId ? this.loadParent(existing.parentId) : null;
+  }
+
+  // Fail-closed: a leaf CATEGORY must carry a default tax class; GROUP categories skip the check
+  private assertTaxClassForLeaf(role: CategoryRole, taxClassId: string | null): void {
+    if (role === CategoryRoleValues.CATEGORY && !taxClassId) {
+      throw new BadRequestException({
+        label: 'Tax Class Required',
+        detail: 'A tax class is required for item categories.',
+        errors: [{ field: 'defaultTaxClassId', message: 'Select a tax class.' }],
+      });
+    }
   }
 
   // Blocks adding a child unless the parent is a GROUP (a leaf CATEGORY cannot hold sub-categories)

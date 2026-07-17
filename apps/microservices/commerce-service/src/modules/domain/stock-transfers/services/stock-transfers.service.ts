@@ -54,7 +54,7 @@ export class StockTransfersService {
   // Validates a status transition and returns the transfer entity. App-layer handles batch operations before calling applyStatus().
   async prepareStatusUpdate(
     id: string,
-    data: UpdateStockTransferStatusDto,
+    data: Omit<UpdateStockTransferStatusDto, 'id'>,
   ): Promise<{ transfer: StockTransferDto; currentStatus: string; newStatus: string }> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Stock transfer not found.');
@@ -73,7 +73,10 @@ export class StockTransfersService {
   }
 
   // Persists the status change. Call after batch operations have been applied by the app-layer.
-  async applyStatus(id: string, data: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
+  async applyStatus(
+    id: string,
+    data: Omit<UpdateStockTransferStatusDto, 'id'>,
+  ): Promise<{ success: boolean; message: string }> {
     await this.repository.update(id, {
       status: data.status as StockTransferStatus,
       ...(data.receivedBy && { receivedBy: data.receivedBy }),

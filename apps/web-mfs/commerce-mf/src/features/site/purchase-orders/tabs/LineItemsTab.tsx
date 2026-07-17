@@ -180,7 +180,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `commerce-purchase-order-${purchaseOrderId}-items`,
+    slug: `commerce-site-purchase-order-${purchaseOrderId}-items`,
     label: 'line item',
     enableRowSelection: false,
     enableSorting: true,

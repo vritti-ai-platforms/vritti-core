@@ -170,7 +170,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
 
   const { table: linkedItemsTable } = useDataTable({
     columns: linkedItemColumns,
-    slug: `commerce-supplier-${supplierId}-items`,
+    slug: `commerce-le-supplier-${supplierId}-items`,
     label: 'item',
     serverState: response,
     enableRowSelection: true,

@@ -1,6 +1,11 @@
-import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Trim } from '@vritti/api-sdk/decorators';
+import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateSalesChannelDto {
+  @IsUUID()
+  id: string;
+
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @MaxLength(255)

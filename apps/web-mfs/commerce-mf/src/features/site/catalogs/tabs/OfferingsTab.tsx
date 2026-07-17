@@ -48,7 +48,7 @@ export const OfferingsTab: React.FC<OfferingsTabProps> = ({ catalog }) => {
       onView: (offering) => navigate(buildSlug(offering.name, offering.id)),
       onDelete: handleDelete,
     }),
-    slug: 'commerce-offerings',
+    slug: 'commerce-site-offerings',
     label: 'offering',
     serverState: response,
     enableRowSelection: false,

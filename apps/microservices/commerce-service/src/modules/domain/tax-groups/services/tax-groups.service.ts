@@ -119,7 +119,7 @@ export class TaxGroupsService {
   }
 
   // Updates a tax group and replaces its tax rates
-  async update(id: string, data: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
+  async update(id: string, data: Omit<UpdateTaxGroupDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.taxGroupsRepository.findById(id);
     if (!existing) throw new NotFoundException('Tax group not found.');
 

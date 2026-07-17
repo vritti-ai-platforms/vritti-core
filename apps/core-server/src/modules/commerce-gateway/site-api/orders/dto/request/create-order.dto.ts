@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -24,6 +25,7 @@ export class CreateOrderItemModifierDto {
   @IsNotEmpty()
   modifierOptionId: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Modifier display name', example: 'Extra Cheese' })
   @IsString()
   @IsNotEmpty()
@@ -47,10 +49,11 @@ export class CreateOrderItemDto {
   @Min(1)
   quantity: number;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Special instructions for this item' })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 
   @ApiPropertyOptional({ description: 'Modifier selections', type: [CreateOrderItemModifierDto] })
   @IsOptional()
@@ -81,27 +84,31 @@ export class CreateOrderDto {
   @IsUUID()
   customerId?: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Customer name' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
-  customerName?: string;
+  customerName?: string | null;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Customer phone number' })
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  customerPhone?: string;
+  customerPhone?: string | null;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Delivery address (required for DELIVERY type)' })
   @IsOptional()
   @IsString()
-  deliveryAddress?: string;
+  deliveryAddress?: string | null;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Order notes' })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 
   @ApiPropertyOptional({ description: 'Service charge amount', example: 50 })
   @IsOptional()

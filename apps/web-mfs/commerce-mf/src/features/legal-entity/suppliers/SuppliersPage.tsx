@@ -28,24 +28,14 @@ export const SuppliersPage = () => {
         enableSorting: true,
       },
       {
-        accessorKey: 'name',
-        header: 'Name',
+        accessorKey: 'partyName',
+        header: 'Company',
         enableSorting: true,
       },
       {
         accessorKey: 'currencyCode',
         header: 'Currency',
         enableSorting: true,
-      },
-      {
-        accessorKey: 'contactName',
-        header: 'Contact',
-        cell: ({ row }) => <StringCell value={row.original.contactName} />,
-      },
-      {
-        accessorKey: 'phone',
-        header: 'Phone',
-        cell: ({ row }) => <StringCell value={row.original.phone} />,
       },
       {
         accessorKey: 'paymentTerms',
@@ -74,7 +64,7 @@ export const SuppliersPage = () => {
                 id: 'view',
                 icon: Eye,
                 label: 'View',
-                onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
+                onClick: () => navigate(buildSlug(row.original.partyName, row.original.id)),
               },
             ]}
           />
@@ -88,7 +78,7 @@ export const SuppliersPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-suppliers',
+    slug: 'commerce-le-suppliers',
     label: 'supplier',
     serverState: response,
     enableRowSelection: false,
@@ -106,7 +96,7 @@ export const SuppliersPage = () => {
         isLoading={isLoading}
         searchConfig={{
           columns: [
-            { id: 'name', label: 'Name' },
+            { id: 'partyName', label: 'Company' },
             { id: 'code', label: 'Code' },
           ],
           searchAll: true,

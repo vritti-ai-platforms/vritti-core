@@ -7,8 +7,8 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
-import type { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
+import { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
+import { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
 
 @Controller()
 export class TaxGroupsController {
@@ -46,8 +46,8 @@ export class TaxGroupsController {
 
   // Updates a tax group by ID
   @MessagePattern({ cmd: 'le.taxGroups.update' })
-  async update(@Payload() data: { id: string } & UpdateTaxGroupDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = data;
+  async update(@Payload() dto: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
+    const { id, ...updateData } = dto;
     this.logger.log(`taxGroups.update — id: ${id}`);
     return this.taxGroupsService.update(id, updateData);
   }

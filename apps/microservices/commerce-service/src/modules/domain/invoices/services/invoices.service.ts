@@ -107,7 +107,7 @@ export class InvoicesService {
   }
 
   // Updates an invoice
-  async update(id: string, data: UpdateInvoiceDto): Promise<InvoiceDto> {
+  async update(id: string, data: Omit<UpdateInvoiceDto, 'id'>): Promise<InvoiceDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Invoice not found.');
 

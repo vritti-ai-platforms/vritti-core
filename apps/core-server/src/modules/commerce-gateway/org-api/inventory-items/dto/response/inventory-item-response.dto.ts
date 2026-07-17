@@ -34,16 +34,11 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ nullable: true })
   uomSymbol: string | null;
 
+  @ApiPropertyOptional({ description: 'Tax class override, or null when inheriting the category default', nullable: true })
+  taxClassId: string | null;
+
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
   hsnCode: string | null;
-
-  @ApiProperty() hasMrp: boolean;
-
-  @ApiPropertyOptional({ description: 'UOM the MRP is quoted in (the pack)', nullable: true })
-  mrpUomId: string | null;
-
-  @ApiPropertyOptional({ description: 'MRP UOM symbol', nullable: true })
-  mrpUomSymbol: string | null;
 
   @ApiProperty({ description: 'Whether this item can be deleted' })
   canDelete: boolean;

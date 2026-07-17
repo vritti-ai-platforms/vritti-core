@@ -12,8 +12,8 @@ import type {
 } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { LocationRoleValues } from '@/db/schema';
-import type { CreatePosTerminalDto } from './dto/request/create-pos-terminal.dto';
-import type { UpdatePosTerminalDto } from './dto/request/update-pos-terminal.dto';
+import { CreatePosTerminalDto } from './dto/request/create-pos-terminal.dto';
+import { UpdatePosTerminalPayloadDto } from './dto/request/update-pos-terminal-payload.dto';
 
 @Controller()
 export class PosTerminalsController {
@@ -70,7 +70,7 @@ export class PosTerminalsController {
 
   // Updates an existing POS terminal
   @MessagePattern({ cmd: 'site.posTerminals.update' })
-  async update(@Payload() data: { id: string } & UpdatePosTerminalDto): Promise<SuccessResponseDto> {
+  async update(@Payload() data: UpdatePosTerminalPayloadDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
     this.logger.log(`posTerminals.update — id: ${id}`);
     let location: { id: string; locationRole: string; isActive: boolean } | undefined;

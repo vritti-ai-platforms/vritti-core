@@ -1,6 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  boolean,
   codeCheck,
   index,
   jsonb,
@@ -13,6 +12,7 @@ import {
 import { categories } from './categories';
 import { coreSchema } from './core-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';
+import { taxClasses } from './tax-classes';
 import { uom } from './uom';
 
 export const inventoryItems = coreSchema.table(
@@ -28,13 +28,15 @@ export const inventoryItems = coreSchema.table(
     categoryId: uuid('category_id')
       .notNull()
       .references(() => categories.id),
+    // Required tax classification; prefilled from the category's default in the UI but stored per item.
+    taxClassId: uuid('tax_class_id')
+      .notNull()
+      .references(() => taxClasses.id),
     description: varchar('description', { length: 500 }),
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id),
     hsnCode: varchar('hsn_code', { length: 20 }),
-    hasMrp: boolean('has_mrp').notNull().default(false),
-    mrpUomId: uuid('mrp_uom_id').references(() => uom.id),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

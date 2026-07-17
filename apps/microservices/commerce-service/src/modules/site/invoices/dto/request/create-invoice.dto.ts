@@ -1,7 +1,8 @@
-import { IsDateTime } from '@vritti/api-sdk/decorators';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsDateString,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -13,6 +14,7 @@ import {
 } from 'class-validator';
 
 export class CreateInvoiceItemDto {
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
@@ -41,6 +43,7 @@ export class CreateInvoiceDto {
   @IsNotEmpty()
   type: string;
 
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
@@ -54,15 +57,17 @@ export class CreateInvoiceDto {
   @IsUUID()
   partyId?: string;
 
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   partyName: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  referenceType?: string;
+  referenceType?: string | null;
 
   @IsOptional()
   @IsUUID()
@@ -77,22 +82,24 @@ export class CreateInvoiceDto {
   @IsString()
   status?: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  paymentTerms?: string;
+  paymentTerms?: string | null;
 
   @IsOptional()
-  @IsDateTime()
+  @IsDateString()
   issuedDate?: string;
 
   @IsOptional()
-  @IsDateTime()
+  @IsDateString()
   dueDate?: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 
   @IsArray()
   @ValidateNested({ each: true })

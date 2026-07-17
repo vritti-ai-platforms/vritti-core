@@ -499,7 +499,6 @@ input CreateInventoryItemInput {
   uomId: String!
   purchaseTaxGroupId: String!
   hsnCode: String
-  hasMrp: Boolean
 }
 
 input UpdateInventoryItemInput {
@@ -512,7 +511,6 @@ input UpdateInventoryItemInput {
   pickStrategy: String
   purchaseTaxGroupId: String!
   hsnCode: String
-  hasMrp: Boolean
 }
 
 input CreateInventoryItemLocationInput {

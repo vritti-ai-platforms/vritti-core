@@ -11770,70 +11770,6 @@
         ]
       }
     },
-    "/commerce-api/le/suppliers/{id}/contacts": {
-      "get": {
-        "operationId": "SuppliersGatewayController_getSupplierContacts",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      },
-      "post": {
-        "operationId": "SuppliersGatewayController_addContact",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSupplierContactDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
     "/commerce-api/le/suppliers/{id}": {
       "get": {
         "operationId": "SuppliersGatewayController_findById",
@@ -12179,122 +12115,6 @@
         ],
         "responses": {
           "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
-    "/commerce-api/le/suppliers/{id}/contacts/{contactId}": {
-      "patch": {
-        "operationId": "SuppliersGatewayController_updateContact",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "contactId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSupplierContactDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      },
-      "delete": {
-        "operationId": "SuppliersGatewayController_deleteContact",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "contactId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
-    "/commerce-api/le/suppliers/{id}/contacts/{contactId}/mark-primary": {
-      "post": {
-        "operationId": "SuppliersGatewayController_markPrimaryContact",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "contactId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
             "description": ""
           }
         },
@@ -13113,6 +12933,1813 @@
         ],
         "tags": [
           "Commerce - Site Group Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/people/table": {
+      "get": {
+        "operationId": "PeopleGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/select": {
+      "get": {
+        "operationId": "PeopleGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people": {
+      "post": {
+        "operationId": "PeopleGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePersonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/identifiers": {
+      "get": {
+        "operationId": "PeopleGatewayController_listIdentifiers",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "post": {
+        "operationId": "PeopleGatewayController_addIdentifier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPartyIdentifierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/companies": {
+      "get": {
+        "operationId": "PeopleGatewayController_getCompaniesTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/identifiers/{identifierId}": {
+      "delete": {
+        "operationId": "PeopleGatewayController_removeIdentifier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "identifierId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/addresses": {
+      "get": {
+        "operationId": "PeopleGatewayController_listAddresses",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "post": {
+        "operationId": "PeopleGatewayController_addAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPartyAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/addresses/{addressId}": {
+      "patch": {
+        "operationId": "PeopleGatewayController_updateAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "addressId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartyAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "delete": {
+        "operationId": "PeopleGatewayController_removeAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "addressId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}": {
+      "get": {
+        "operationId": "PeopleGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "patch": {
+        "operationId": "PeopleGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePersonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "delete": {
+        "operationId": "PeopleGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/companies/table": {
+      "get": {
+        "operationId": "CompaniesGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/select": {
+      "get": {
+        "operationId": "CompaniesGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies": {
+      "post": {
+        "operationId": "CompaniesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCompanyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/people": {
+      "get": {
+        "operationId": "CompaniesGatewayController_listPeople",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "post": {
+        "operationId": "CompaniesGatewayController_addPerson",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCompanyPersonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/people/{relationshipId}": {
+      "delete": {
+        "operationId": "CompaniesGatewayController_removePerson",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "relationshipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/registrations": {
+      "get": {
+        "operationId": "CompaniesGatewayController_listRegistrations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "post": {
+        "operationId": "CompaniesGatewayController_createRegistration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCompanyRegistrationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/registrations/{regId}": {
+      "patch": {
+        "operationId": "CompaniesGatewayController_updateRegistration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "regId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompanyRegistrationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "delete": {
+        "operationId": "CompaniesGatewayController_deleteRegistration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "regId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/identifiers": {
+      "get": {
+        "operationId": "CompaniesGatewayController_listIdentifiers",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "post": {
+        "operationId": "CompaniesGatewayController_addIdentifier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPartyIdentifierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/identifiers/{identifierId}": {
+      "delete": {
+        "operationId": "CompaniesGatewayController_removeIdentifier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "identifierId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/addresses": {
+      "get": {
+        "operationId": "CompaniesGatewayController_listAddresses",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "post": {
+        "operationId": "CompaniesGatewayController_addAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPartyAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/addresses/{addressId}": {
+      "patch": {
+        "operationId": "CompaniesGatewayController_updateAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "addressId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartyAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "delete": {
+        "operationId": "CompaniesGatewayController_removeAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "addressId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}": {
+      "get": {
+        "operationId": "CompaniesGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "patch": {
+        "operationId": "CompaniesGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompanyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "delete": {
+        "operationId": "CompaniesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/tax-classes/table": {
+      "get": {
+        "operationId": "TaxClassesGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Classes"
+        ]
+      }
+    },
+    "/commerce-api/tax-classes": {
+      "post": {
+        "operationId": "TaxClassesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaxClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Classes"
+        ]
+      }
+    },
+    "/commerce-api/tax-classes/{id}": {
+      "get": {
+        "operationId": "TaxClassesGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Classes"
+        ]
+      },
+      "patch": {
+        "operationId": "TaxClassesGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaxClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Classes"
+        ]
+      },
+      "delete": {
+        "operationId": "TaxClassesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Classes"
+        ]
+      }
+    },
+    "/commerce-api/tax-components/table": {
+      "get": {
+        "operationId": "TaxComponentsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Components"
+        ]
+      }
+    },
+    "/commerce-api/tax-components": {
+      "post": {
+        "operationId": "TaxComponentsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaxComponentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Components"
+        ]
+      }
+    },
+    "/commerce-api/tax-components/{id}": {
+      "get": {
+        "operationId": "TaxComponentsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Components"
+        ]
+      },
+      "patch": {
+        "operationId": "TaxComponentsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaxComponentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Components"
+        ]
+      },
+      "delete": {
+        "operationId": "TaxComponentsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Components"
+        ]
+      }
+    },
+    "/commerce-api/tax-jurisdictions/count": {
+      "get": {
+        "operationId": "TaxJurisdictionsGatewayController_count",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Jurisdictions"
+        ]
+      }
+    },
+    "/commerce-api/tax-jurisdictions/tree": {
+      "get": {
+        "operationId": "TaxJurisdictionsGatewayController_findTree",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by name or code",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Jurisdictions"
+        ]
+      }
+    },
+    "/commerce-api/tax-jurisdictions/{parentId}/children/table": {
+      "get": {
+        "operationId": "TaxJurisdictionsGatewayController_childrenTable",
+        "parameters": [
+          {
+            "name": "parentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Jurisdictions"
+        ]
+      }
+    },
+    "/commerce-api/tax-jurisdictions": {
+      "post": {
+        "operationId": "TaxJurisdictionsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaxJurisdictionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Jurisdictions"
+        ]
+      }
+    },
+    "/commerce-api/tax-jurisdictions/{id}": {
+      "get": {
+        "operationId": "TaxJurisdictionsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Jurisdictions"
+        ]
+      },
+      "patch": {
+        "operationId": "TaxJurisdictionsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaxJurisdictionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Jurisdictions"
+        ]
+      },
+      "delete": {
+        "operationId": "TaxJurisdictionsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Tax Jurisdictions"
         ]
       }
     },
@@ -14420,42 +16047,139 @@
             "required": false,
             "in": "query",
             "description": "Search term to filter by name",
-            "schema": {}
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
           },
           {
             "name": "limit",
             "required": false,
             "in": "query",
             "description": "Maximum number of results",
-            "schema": {}
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
           },
           {
             "name": "offset",
             "required": false,
             "in": "query",
             "description": "Number of results to skip",
-            "schema": {}
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
           },
           {
             "name": "values",
             "required": false,
             "in": "query",
             "description": "Comma-separated IDs to fetch specific options",
-            "schema": {}
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
           },
           {
             "name": "excludeIds",
             "required": false,
             "in": "query",
             "description": "Comma-separated IDs to exclude",
-            "schema": {}
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
           },
           {
             "name": "inventoryItemId",
             "required": true,
             "in": "query",
             "description": "Inventory item whose batches populate the select",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -15988,6 +17712,611 @@
           }
         ],
         "summary": "Get supplier select options",
+        "tags": [
+          "Commerce - Select"
+        ]
+      }
+    },
+    "/commerce-api/select-api/tax-classes": {
+      "get": {
+        "description": "Returns paginated tax class options for the select component.",
+        "operationId": "SelectApiController_selectTaxClasses",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by name",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tax class select options retrieved successfully."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get tax class select options",
+        "tags": [
+          "Commerce - Select"
+        ]
+      }
+    },
+    "/commerce-api/select-api/people": {
+      "get": {
+        "operationId": "SelectApiController_selectPeople",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Select"
+        ]
+      }
+    },
+    "/commerce-api/select-api/companies": {
+      "get": {
+        "operationId": "SelectApiController_selectCompanies",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Select"
+        ]
+      }
+    },
+    "/commerce-api/select-api/tax-jurisdictions": {
+      "get": {
+        "operationId": "SelectApiController_selectTaxJurisdictions",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "Commerce - Select"
         ]
@@ -19179,9 +21508,9 @@
             "description": "Whether the category is active",
             "default": true
           },
-          "defaultTaxGroupId": {
+          "defaultTaxClassId": {
             "type": "object",
-            "description": "Default tax group for items in this category",
+            "description": "Default tax class for items in this category (required for leaf CATEGORY, omit for GROUP)",
             "nullable": true
           }
         },
@@ -19239,9 +21568,14 @@
             "description": "Full ltree path from root to this category",
             "example": "medicines.prescription.antibiotics"
           },
-          "defaultTaxGroupId": {
+          "defaultTaxClassId": {
             "type": "object",
-            "description": "Default tax group ID for items in this category, or null",
+            "description": "Default tax class ID for items in this category (null for GROUP categories)",
+            "nullable": true
+          },
+          "defaultTaxClassName": {
+            "type": "object",
+            "description": "Resolved default tax class name (null for GROUP categories or when unset)",
             "nullable": true
           },
           "createdAt": {
@@ -19260,7 +21594,8 @@
           "parentId",
           "pathLabel",
           "path",
-          "defaultTaxGroupId",
+          "defaultTaxClassId",
+          "defaultTaxClassName",
           "createdAt"
         ]
       },
@@ -19291,10 +21626,9 @@
             "type": "boolean",
             "description": "Updated active status"
           },
-          "defaultTaxGroupId": {
-            "type": "object",
-            "description": "Updated default tax group for items in this category",
-            "nullable": true
+          "defaultTaxClassId": {
+            "type": "string",
+            "description": "Updated default tax class applied to items in this category"
           }
         }
       },
@@ -19304,7 +21638,7 @@
           "code": {
             "type": "string",
             "description": "Unique code within the org",
-            "example": "SUPPLIER_PRICE"
+            "example": "supplier-price"
           },
           "name": {
             "type": "string",
@@ -19385,7 +21719,7 @@
             "example": 2500
           },
           "reason": {
-            "type": "string",
+            "type": "object",
             "description": "Reason for credit note"
           },
           "status": {
@@ -19441,12 +21775,12 @@
             "example": "+919876543210"
           },
           "email": {
-            "type": "string",
+            "type": "object",
             "description": "Customer email address",
             "example": "jane@example.com"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Additional notes"
           }
         },
@@ -19469,12 +21803,12 @@
             "example": "+919876543210"
           },
           "email": {
-            "type": "string",
+            "type": "object",
             "description": "Customer email address",
             "example": "jane@example.com"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Additional notes"
           },
           "isActive": {
@@ -19500,7 +21834,7 @@
             "example": "2026-04-10"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Notes"
           },
           "exchangeRate": {
@@ -19687,7 +22021,7 @@
         "type": "object",
         "properties": {
           "lotNumber": {
-            "type": "string",
+            "type": "object",
             "description": "Lot number"
           },
           "manufacturingDate": {
@@ -19988,7 +22322,7 @@
             "default": 1
           },
           "area": {
-            "type": "string",
+            "type": "object",
             "description": "Location area",
             "example": "Kitchen"
           },
@@ -20039,7 +22373,7 @@
             "description": "Updated display sort order"
           },
           "area": {
-            "type": "string",
+            "type": "object",
             "description": "Updated location area"
           },
           "managerId": {
@@ -20132,7 +22466,7 @@
             "example": "Acme Foods Pvt Ltd"
           },
           "referenceType": {
-            "type": "string",
+            "type": "object",
             "description": "Source reference type",
             "example": "PURCHASE_ORDER"
           },
@@ -20154,7 +22488,7 @@
             ]
           },
           "paymentTerms": {
-            "type": "string",
+            "type": "object",
             "description": "Payment terms",
             "example": "Net 30"
           },
@@ -20169,7 +22503,7 @@
             "example": "2026-05-10"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Additional notes"
           },
           "items": {
@@ -20209,7 +22543,7 @@
             "description": "Updated party display name"
           },
           "referenceType": {
-            "type": "string",
+            "type": "object",
             "description": "Updated reference type"
           },
           "referenceId": {
@@ -20229,7 +22563,7 @@
             ]
           },
           "paymentTerms": {
-            "type": "string",
+            "type": "object",
             "description": "Updated payment terms"
           },
           "issuedDate": {
@@ -20241,7 +22575,7 @@
             "description": "Updated due date (YYYY-MM-DD)"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Updated notes"
           },
           "items": {
@@ -20644,7 +22978,7 @@
             "description": "Offering name"
           },
           "description": {
-            "type": "string",
+            "type": "object",
             "description": "Offering description"
           },
           "salesTaxGroupId": {
@@ -20802,6 +23136,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "taxClassId": {
+            "type": "object",
+            "description": "Tax class override, or null when inheriting the item/category default",
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
@@ -21004,6 +23343,10 @@
           "sku": {
             "type": "string",
             "description": "SKU code (auto-derived when omitted)"
+          },
+          "taxClassId": {
+            "type": "string",
+            "description": "Tax class override; falls back to the item/category default when omitted"
           }
         },
         "required": [
@@ -21044,6 +23387,11 @@
           "sortOrder": {
             "type": "number",
             "description": "Display sort order"
+          },
+          "taxClassId": {
+            "type": "object",
+            "description": "Tax class override; falls back to the item/category default when omitted",
+            "nullable": true
           }
         }
       },
@@ -21584,7 +23932,7 @@
             "example": 2
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Special instructions for this item"
           },
           "modifiers": {
@@ -21631,19 +23979,19 @@
             "description": "Customer ID (links the order to an existing customer record)"
           },
           "customerName": {
-            "type": "string",
+            "type": "object",
             "description": "Customer name"
           },
           "customerPhone": {
-            "type": "string",
+            "type": "object",
             "description": "Customer phone number"
           },
           "deliveryAddress": {
-            "type": "string",
+            "type": "object",
             "description": "Delivery address (required for DELIVERY type)"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Order notes"
           },
           "serviceCharge": {
@@ -21692,7 +24040,7 @@
             ]
           },
           "cancellationReason": {
-            "type": "string",
+            "type": "object",
             "description": "Reason for cancellation (required when cancelling)"
           }
         },
@@ -21823,7 +24171,7 @@
             "description": "Catalog this terminal sells from"
           },
           "description": {
-            "type": "string",
+            "type": "object",
             "description": "Terminal description",
             "nullable": true
           },
@@ -21861,7 +24209,7 @@
             "description": "Catalog this terminal sells from"
           },
           "description": {
-            "type": "string",
+            "type": "object",
             "description": "Terminal description",
             "nullable": true
           },
@@ -21897,7 +24245,7 @@
             "example": "BANK_TRANSFER"
           },
           "reference": {
-            "type": "string",
+            "type": "object",
             "description": "Payment reference number",
             "example": "TXN-123456"
           },
@@ -21911,7 +24259,7 @@
             ]
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Additional notes"
           }
         },
@@ -21939,7 +24287,7 @@
             "example": "2026-04-25T20:00:00.000Z"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Notes"
           },
           "exchangeRateType": {
@@ -22082,7 +24430,7 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string",
+            "type": "object",
             "description": "Override recipient email; defaults to supplier email"
           }
         }
@@ -22121,7 +24469,7 @@
         "type": "object",
         "properties": {
           "lotNumber": {
-            "type": "string",
+            "type": "object",
             "description": "Lot number"
           },
           "manufacturingDate": {
@@ -22178,7 +24526,7 @@
         "type": "object",
         "properties": {
           "reason": {
-            "type": "string",
+            "type": "object",
             "description": "Reason for adjustment"
           },
           "unitCost": {
@@ -22357,7 +24705,7 @@
             "description": "User ID who requested the transfer"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Additional notes"
           }
         },
@@ -22397,47 +24745,12 @@
           "toLocationId"
         ]
       },
-      "CreatePrimarySupplierContactDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Primary contact person name",
-            "example": "John Smith"
-          },
-          "phone": {
-            "type": "string",
-            "description": "Primary contact phone number"
-          },
-          "alternatePhone": {
-            "type": "string",
-            "description": "Primary contact alternate phone number"
-          },
-          "email": {
-            "type": "string",
-            "description": "Primary contact email address"
-          },
-          "alternateEmail": {
-            "type": "string",
-            "description": "Primary contact alternate email address"
-          },
-          "designation": {
-            "type": "string",
-            "description": "Primary contact designation"
-          }
-        },
-        "required": [
-          "name",
-          "phone"
-        ]
-      },
       "CreateSupplierDto": {
         "type": "object",
         "properties": {
-          "name": {
+          "partyId": {
             "type": "string",
-            "description": "Supplier name",
-            "example": "Acme Foods Pvt Ltd"
+            "description": "The party (ORGANIZATION or PERSON) this supplier represents"
           },
           "code": {
             "type": "string",
@@ -22449,40 +24762,8 @@
             "description": "Default supplier currency code (ISO 4217)",
             "example": "INR"
           },
-          "primaryContact": {
-            "description": "Primary contact details",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CreatePrimarySupplierContactDto"
-              }
-            ]
-          },
-          "address": {
-            "type": "string",
-            "description": "Mailing address"
-          },
-          "website": {
-            "type": "string",
-            "description": "Supplier website URL"
-          },
-          "taxId": {
-            "type": "string",
-            "description": "Supplier tax ID",
-            "example": "22AAAAA0000A1Z5"
-          },
-          "taxIdType": {
-            "type": "string",
-            "description": "Tax ID type",
-            "enum": [
-              "GST",
-              "VAT",
-              "EIN",
-              "SALES_TAX",
-              "OTHER"
-            ]
-          },
           "paymentTerms": {
-            "type": "string",
+            "type": "object",
             "description": "Payment terms",
             "example": "Net 30"
           },
@@ -22492,65 +24773,33 @@
             "example": 7
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Additional notes"
           }
         },
         "required": [
-          "name",
+          "partyId",
           "code",
-          "currencyCode",
-          "primaryContact"
+          "currencyCode"
         ]
       },
       "UpdateSupplierDto": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Updated supplier name"
-          },
           "code": {
             "type": "string",
             "description": "Updated supplier code"
           },
-          "currencyCode": {
-            "type": "string",
-            "description": "Updated supplier currency code (ISO 4217)"
-          },
-          "address": {
-            "type": "string",
-            "description": "Updated mailing address"
-          },
-          "website": {
-            "type": "string",
-            "description": "Updated supplier website URL"
-          },
-          "taxId": {
-            "type": "string",
-            "description": "Updated Tax ID"
-          },
-          "taxIdType": {
-            "type": "string",
-            "description": "Updated tax ID type",
-            "enum": [
-              "GST",
-              "VAT",
-              "EIN",
-              "SALES_TAX",
-              "OTHER"
-            ]
-          },
           "paymentTerms": {
-            "type": "string",
+            "type": "object",
             "description": "Updated payment terms"
           },
           "leadTimeDays": {
-            "type": "number",
+            "type": "object",
             "description": "Updated lead time in days"
           },
           "notes": {
-            "type": "string",
+            "type": "object",
             "description": "Updated notes"
           },
           "isActive": {
@@ -22585,7 +24834,7 @@
             "description": "Inventory item ID to link"
           },
           "supplierItemCode": {
-            "type": "string",
+            "type": "object",
             "description": "Supplier-specific item code"
           },
           "unitPrice": {
@@ -22635,6 +24884,7 @@
         },
         "required": [
           "inventoryItemId",
+          "unitPrice",
           "uomId"
         ]
       },
@@ -22745,116 +24995,6 @@
         "type": "object",
         "properties": {}
       },
-      "CreateSupplierContactDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Contact name"
-          },
-          "phone": {
-            "type": "string",
-            "description": "Contact phone number"
-          },
-          "alternatePhone": {
-            "type": "string",
-            "description": "Contact alternate phone number"
-          },
-          "email": {
-            "type": "string",
-            "description": "Contact email address"
-          },
-          "alternateEmail": {
-            "type": "string",
-            "description": "Contact alternate email address"
-          },
-          "designation": {
-            "type": "string",
-            "description": "Contact designation"
-          },
-          "notes": {
-            "type": "string",
-            "description": "Contact notes"
-          },
-          "isPrimary": {
-            "type": "boolean",
-            "description": "Set as primary contact",
-            "default": false
-          }
-        },
-        "required": [
-          "name",
-          "phone"
-        ]
-      },
-      "UpdateSupplierContactDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Contact name"
-          },
-          "phone": {
-            "type": "string",
-            "description": "Contact phone number"
-          },
-          "alternatePhone": {
-            "type": "object",
-            "description": "Contact alternate phone number",
-            "nullable": true
-          },
-          "email": {
-            "type": "object",
-            "description": "Contact email address",
-            "nullable": true
-          },
-          "alternateEmail": {
-            "type": "object",
-            "description": "Contact alternate email address",
-            "nullable": true
-          },
-          "designation": {
-            "type": "object",
-            "description": "Contact designation",
-            "nullable": true
-          },
-          "notes": {
-            "type": "object",
-            "description": "Contact notes",
-            "nullable": true
-          },
-          "isPrimary": {
-            "type": "boolean",
-            "description": "Set this as primary contact"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Set contact active status"
-          }
-        },
-        "required": [
-          "phone"
-        ]
-      },
-      "MrpUomConversionDto": {
-        "type": "object",
-        "properties": {
-          "primaryUomQty": {
-            "type": "number",
-            "description": "Primary units in one MRP unit",
-            "example": 10
-          },
-          "uomQty": {
-            "type": "number",
-            "description": "MRP units (always 1 for a pack)",
-            "example": 1
-          }
-        },
-        "required": [
-          "primaryUomQty",
-          "uomQty"
-        ]
-      },
       "CreateInventoryItemDto": {
         "type": "object",
         "properties": {
@@ -22905,32 +25045,20 @@
             "description": "Category ID"
           },
           "description": {
-            "type": "string",
+            "type": "object",
             "description": "Description"
           },
           "uomId": {
             "type": "string",
             "description": "Unit of measure ID"
           },
+          "taxClassId": {
+            "type": "string",
+            "description": "Tax classification (prefilled from the category default; required)"
+          },
           "hsnCode": {
-            "type": "string",
+            "type": "object",
             "description": "HSN code for tax reporting"
-          },
-          "hasMrp": {
-            "type": "boolean",
-            "description": "Whether this item is MRP-governed"
-          },
-          "mrpUomId": {
-            "type": "string",
-            "description": "UOM the MRP is quoted in (the pack); required when hasMrp."
-          },
-          "mrpUomConversion": {
-            "description": "Bridge when the MRP unit is not derivable from primary",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/MrpUomConversionDto"
-              }
-            ]
           }
         },
         "required": [
@@ -22939,7 +25067,8 @@
           "type",
           "tracking",
           "categoryId",
-          "uomId"
+          "uomId",
+          "taxClassId"
         ]
       },
       "CreateInventoryItemUomConversionDto": {
@@ -22988,6 +25117,10 @@
       "UpsertInventoryItemMrpDto": {
         "type": "object",
         "properties": {
+          "uomId": {
+            "type": "string",
+            "description": "UOM the MRP is quoted in"
+          },
           "amount": {
             "description": "Suggested MRP amount (with currency)",
             "allOf": [
@@ -23003,6 +25136,7 @@
           }
         },
         "required": [
+          "uomId",
           "amount"
         ]
       },
@@ -23050,18 +25184,600 @@
             ],
             "default": "none"
           },
+          "taxClassId": {
+            "type": "string",
+            "description": "Tax classification (required on the item; cannot be cleared)"
+          },
           "hsnCode": {
             "type": "object",
             "description": "HSN code for tax reporting",
             "nullable": true
-          },
-          "hasMrp": {
-            "type": "boolean",
-            "description": "Whether this item is MRP-governed"
-          },
-          "mrpUomId": {
+          }
+        }
+      },
+      "CreatePersonDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
             "type": "string",
-            "description": "UOM the MRP is quoted in (the pack); required when hasMrp."
+            "description": "First name",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "object",
+            "description": "Last name",
+            "example": "Smith"
+          },
+          "email": {
+            "type": "object",
+            "description": "Primary email address"
+          },
+          "phone": {
+            "type": "object",
+            "description": "Primary phone number"
+          },
+          "identifierType": {
+            "type": "string",
+            "description": "Initial identifier type",
+            "enum": [
+              "PAN",
+              "AADHAAR",
+              "PASSPORT",
+              "DRIVING_LICENSE",
+              "VOTER_ID",
+              "CIVIL_ID",
+              "NATIONAL_ID",
+              "DUNS",
+              "LEI",
+              "CIN"
+            ]
+          },
+          "identifierValue": {
+            "type": "string",
+            "description": "Initial identifier value"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the person is selectable"
+          }
+        },
+        "required": [
+          "firstName",
+          "isActive"
+        ]
+      },
+      "AddPartyIdentifierDto": {
+        "type": "object",
+        "properties": {
+          "idType": {
+            "type": "string",
+            "description": "Identifier type",
+            "enum": [
+              "PAN",
+              "AADHAAR",
+              "PASSPORT",
+              "DRIVING_LICENSE",
+              "VOTER_ID",
+              "CIVIL_ID",
+              "NATIONAL_ID",
+              "DUNS",
+              "LEI",
+              "CIN"
+            ]
+          },
+          "idValue": {
+            "type": "string",
+            "description": "Identifier value",
+            "example": "AAAAA0000A"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary identifier"
+          }
+        },
+        "required": [
+          "idType",
+          "idValue"
+        ]
+      },
+      "AddPartyAddressDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Address type",
+            "enum": [
+              "REGISTERED",
+              "BILLING",
+              "SHIPPING",
+              "OTHER"
+            ]
+          },
+          "line1": {
+            "type": "string",
+            "description": "Address line 1",
+            "example": "221B Baker Street"
+          },
+          "line2": {
+            "type": "string",
+            "description": "Address line 2"
+          },
+          "city": {
+            "type": "string",
+            "description": "City"
+          },
+          "region": {
+            "type": "string",
+            "description": "Region, state, or province"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Postal or ZIP code"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code",
+            "example": "IN"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary address"
+          }
+        },
+        "required": [
+          "type",
+          "line1",
+          "countryCode"
+        ]
+      },
+      "UpdatePartyAddressDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Address type",
+            "enum": [
+              "REGISTERED",
+              "BILLING",
+              "SHIPPING",
+              "OTHER"
+            ]
+          },
+          "line1": {
+            "type": "string",
+            "description": "Address line 1",
+            "example": "221B Baker Street"
+          },
+          "line2": {
+            "type": "string",
+            "description": "Address line 2"
+          },
+          "city": {
+            "type": "string",
+            "description": "City"
+          },
+          "region": {
+            "type": "string",
+            "description": "Region, state, or province"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Postal or ZIP code"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code",
+            "example": "IN"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary address"
+          }
+        }
+      },
+      "UpdatePersonDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "First name"
+          },
+          "lastName": {
+            "type": "object",
+            "description": "Last name"
+          },
+          "email": {
+            "type": "object",
+            "description": "Primary email address"
+          },
+          "phone": {
+            "type": "object",
+            "description": "Primary phone number"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the person is selectable"
+          }
+        }
+      },
+      "CreateCompanyDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable display name",
+            "example": "Acme Corp"
+          },
+          "legalName": {
+            "type": "object",
+            "description": "Registered legal name",
+            "example": "Acme Corporation Pvt Ltd"
+          },
+          "email": {
+            "type": "object",
+            "description": "Primary email address"
+          },
+          "phone": {
+            "type": "object",
+            "description": "Primary phone number"
+          },
+          "address": {
+            "type": "object",
+            "description": "Mailing address"
+          },
+          "website": {
+            "type": "object",
+            "description": "Company website URL"
+          },
+          "jurisdictionId": {
+            "type": "string",
+            "description": "Tax jurisdiction ID"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the company is selectable"
+          }
+        },
+        "required": [
+          "displayName",
+          "isActive"
+        ]
+      },
+      "AddCompanyPersonDto": {
+        "type": "object",
+        "properties": {
+          "childPartyId": {
+            "type": "string",
+            "description": "The person (PERSON party) to link to the company"
+          },
+          "jobTitle": {
+            "type": "object",
+            "description": "Job title of the person at the company"
+          },
+          "secondaryPhone": {
+            "type": "object",
+            "description": "Secondary phone number for this relationship"
+          },
+          "secondaryEmail": {
+            "type": "object",
+            "description": "Secondary email for this relationship"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary person"
+          }
+        },
+        "required": [
+          "childPartyId"
+        ]
+      },
+      "CreateCompanyRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "jurisdictionId": {
+            "type": "string",
+            "description": "Tax jurisdiction ID the registration belongs to"
+          },
+          "registrationNumber": {
+            "type": "string",
+            "description": "Registration number",
+            "example": "22AAAAA0000A1Z5"
+          },
+          "registrationType": {
+            "type": "string",
+            "description": "Registration type",
+            "enum": [
+              "GSTIN",
+              "VAT",
+              "TIN",
+              "PAN",
+              "OTHER"
+            ]
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary registration"
+          }
+        },
+        "required": [
+          "jurisdictionId",
+          "registrationNumber",
+          "registrationType"
+        ]
+      },
+      "UpdateCompanyRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "jurisdictionId": {
+            "type": "string",
+            "description": "Tax jurisdiction ID the registration belongs to"
+          },
+          "registrationNumber": {
+            "type": "string",
+            "description": "Registration number"
+          },
+          "registrationType": {
+            "type": "string",
+            "description": "Registration type",
+            "enum": [
+              "GSTIN",
+              "VAT",
+              "TIN",
+              "PAN",
+              "OTHER"
+            ]
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary registration"
+          }
+        }
+      },
+      "UpdateCompanyDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable display name"
+          },
+          "legalName": {
+            "type": "object",
+            "description": "Registered legal name"
+          },
+          "email": {
+            "type": "object",
+            "description": "Primary email address"
+          },
+          "phone": {
+            "type": "object",
+            "description": "Primary phone number"
+          },
+          "address": {
+            "type": "object",
+            "description": "Mailing address"
+          },
+          "website": {
+            "type": "object",
+            "description": "Company website URL"
+          },
+          "jurisdictionId": {
+            "type": "string",
+            "description": "Tax jurisdiction ID"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the company is selectable"
+          }
+        }
+      },
+      "CreateTaxClassDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique code within the org",
+            "example": "gst-standard"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name",
+            "example": "GST Standard"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the tax class is selectable",
+            "default": true
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
+      "UpdateTaxClassDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable name"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the tax class is selectable"
+          }
+        }
+      },
+      "CreateTaxComponentDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique code within the org",
+            "example": "gst-standard"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name",
+            "example": "GST Standard"
+          },
+          "authorityLevel": {
+            "type": "string",
+            "description": "Taxing authority level",
+            "enum": [
+              "FEDERAL",
+              "STATE",
+              "COUNTY",
+              "CITY",
+              "SPECIAL"
+            ],
+            "example": "STATE"
+          },
+          "isRecoverable": {
+            "type": "boolean",
+            "description": "Whether the tax is recoverable (input credit)"
+          },
+          "isWithholding": {
+            "type": "boolean",
+            "description": "Whether the tax is a withholding tax"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the tax component is selectable"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "authorityLevel",
+          "isRecoverable",
+          "isWithholding",
+          "isActive"
+        ]
+      },
+      "UpdateTaxComponentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable name"
+          },
+          "authorityLevel": {
+            "type": "string",
+            "description": "Taxing authority level",
+            "enum": [
+              "FEDERAL",
+              "STATE",
+              "COUNTY",
+              "CITY",
+              "SPECIAL"
+            ]
+          },
+          "isRecoverable": {
+            "type": "boolean",
+            "description": "Whether the tax is recoverable (input credit)"
+          },
+          "isWithholding": {
+            "type": "boolean",
+            "description": "Whether the tax is a withholding tax"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the tax component is selectable"
+          }
+        }
+      },
+      "CreateTaxJurisdictionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique code within the org",
+            "example": "us-ca"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name",
+            "example": "California"
+          },
+          "level": {
+            "type": "string",
+            "description": "Hierarchy level of the jurisdiction",
+            "enum": [
+              "COUNTRY",
+              "STATE",
+              "COUNTY",
+              "CITY",
+              "DISTRICT"
+            ],
+            "example": "STATE"
+          },
+          "parentId": {
+            "type": "object",
+            "description": "Parent jurisdiction ID (for nested jurisdictions)"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code",
+            "example": "US"
+          },
+          "regionCode": {
+            "type": "object",
+            "description": "Region/state code within the country"
+          },
+          "taxUnion": {
+            "type": "object",
+            "description": "Tax union the jurisdiction belongs to (e.g. EU, GCC)"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the jurisdiction is active"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "level",
+          "countryCode",
+          "isActive"
+        ]
+      },
+      "UpdateTaxJurisdictionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable name"
+          },
+          "level": {
+            "type": "string",
+            "description": "Hierarchy level of the jurisdiction",
+            "enum": [
+              "COUNTRY",
+              "STATE",
+              "COUNTY",
+              "CITY",
+              "DISTRICT"
+            ]
+          },
+          "parentId": {
+            "type": "object",
+            "description": "Parent jurisdiction ID (for nested jurisdictions)"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code"
+          },
+          "regionCode": {
+            "type": "object",
+            "description": "Region/state code within the country"
+          },
+          "taxUnion": {
+            "type": "object",
+            "description": "Tax union the jurisdiction belongs to (e.g. EU, GCC)"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the jurisdiction is active"
           }
         }
       },
@@ -23244,7 +25960,7 @@
             "example": "Mass"
           },
           "description": {
-            "type": "string",
+            "type": "object",
             "description": "Optional description"
           }
         },
@@ -23267,7 +25983,7 @@
             "example": "Mass"
           },
           "description": {
-            "type": "string",
+            "type": "object",
             "description": "Optional description"
           }
         }

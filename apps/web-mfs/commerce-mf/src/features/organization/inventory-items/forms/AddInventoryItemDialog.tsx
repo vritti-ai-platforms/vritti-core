@@ -3,14 +3,13 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
-import { Switch } from '@vritti/quantum-ui/Switch';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
+import { TaxClassSelector } from '@vritti/quantum-ui/selects/tax-class';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useCreateInventoryItem } from '@/hooks/organization/inventory-items';
 import {
@@ -50,62 +49,32 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
       description: '',
       uomId: '',
       hsnCode: '',
-      hasMrp: false,
-      mrpUomId: undefined,
-      mrpUomConversion: { uomQty: 1, primaryUomQty: 1 },
     },
   });
 
-  const [primaryUom, setPrimaryUom] = useState<{ id?: string; baseUnitId?: string | null; symbol?: string }>({});
-  const [mrpUom, setMrpUom] = useState<{ id?: string; baseUnitId?: string | null; symbol?: string }>({});
   const tracking = useWatch({ control: form.control, name: 'tracking' });
-  const hasMrp = useWatch({ control: form.control, name: 'hasMrp' });
-  const conversion = useWatch({ control: form.control, name: 'mrpUomConversion' });
-  const needsMrpConversion =
-    hasMrp &&
-    !!primaryUom.id &&
-    !!mrpUom.id &&
-    (primaryUom.baseUnitId ?? primaryUom.id) !== (mrpUom.baseUnitId ?? mrpUom.id);
   const createMutation = useCreateInventoryItem({ onSuccess });
 
   return (
-    <Form
-      form={form}
-      mutation={createMutation}
-      resetOnSuccess
-      onCancel={onCancel}
-      transformSubmit={(data) => ({
-        ...data,
-        mrpUomId: data.hasMrp ? data.mrpUomId : undefined,
-        mrpUomConversion: needsMrpConversion ? data.mrpUomConversion : undefined,
-      })}
-    >
+    <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
       <div className="flex flex-col gap-6">
         <FormSection title="Basic Info" contentClassName="block">
           <div className="grid grid-cols-3 gap-4">
             <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
             <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
             <Select name="type" label="Type" placeholder="Select type" options={inventoryItemTypeOptions} />
-            <UomSelector
-              name="uomId"
-              label="Unit of Measure"
-              placeholder="Select unit"
-              fieldKeys={{
-                valueKey: 'id',
-                labelKey: 'name',
-                groupIdKey: 'dimensionId',
-                additionalKeys: 'symbol,baseUnitId',
-              }}
-              onOptionSelect={(o) =>
-                setPrimaryUom({
-                  id: o?.value as string,
-                  baseUnitId: (o?.additionals?.baseUnitId as string | null) ?? null,
-                  symbol: o?.additionals?.symbol as string,
-                })
-              }
-            />
+            <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
             <div className="col-span-2">
-              <CategorySelector name="categoryId" />
+              <CategorySelector
+                name="categoryId"
+                fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'path', additionalKeys: 'defaultTaxClassId' }}
+                onOptionSelect={(o) => {
+                  const defaultTaxClassId = o?.additionals?.defaultTaxClassId as string | null | undefined;
+                  if (defaultTaxClassId) {
+                    form.setValue('taxClassId', defaultTaxClassId, { shouldValidate: true, shouldDirty: true });
+                  }
+                }}
+              />
             </div>
           </div>
         </FormSection>
@@ -119,61 +88,10 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
           </div>
         </FormSection>
 
-        <FormSection title="MRP & Compliance" contentClassName="block">
+        <FormSection title="Compliance" contentClassName="block">
           <div className="grid grid-cols-2 gap-4">
             <TextField name="hsnCode" label="HSN Code" placeholder="e.g. 1006" />
-            <div className="col-span-2">
-              <Switch
-                name="hasMrp"
-                label="Tracks MRP"
-                description="Enable to capture a printed MRP on this item and its stock."
-              />
-            </div>
-            {hasMrp && (
-              <>
-                <UomSelector
-                  name="mrpUomId"
-                  label="MRP Unit"
-                  placeholder="Select unit"
-                  fieldKeys={{
-                    valueKey: 'id',
-                    labelKey: 'name',
-                    groupIdKey: 'dimensionId',
-                    additionalKeys: 'symbol,baseUnitId',
-                  }}
-                  onOptionSelect={(o) =>
-                    setMrpUom({
-                      id: o?.value as string,
-                      baseUnitId: (o?.additionals?.baseUnitId as string | null) ?? null,
-                      symbol: o?.additionals?.symbol as string,
-                    })
-                  }
-                />
-                {needsMrpConversion && (
-                  <div className="col-span-2 flex flex-col gap-1">
-                    <div className="grid grid-cols-2 gap-3">
-                      <TextField
-                        name="mrpUomConversion.uomQty"
-                        label={`Count of ${mrpUom.symbol ?? 'MRP unit'}`}
-                        type="number"
-                        integer
-                        positive
-                      />
-                      <TextField
-                        name="mrpUomConversion.primaryUomQty"
-                        label={`Count of ${primaryUom.symbol ?? 'primary unit'}`}
-                        type="number"
-                        integer
-                        positive
-                      />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {conversion?.uomQty ?? 1} {mrpUom.symbol} = {conversion?.primaryUomQty ?? 1} {primaryUom.symbol}
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
+            <TaxClassSelector name="taxClassId" />
           </div>
         </FormSection>
 

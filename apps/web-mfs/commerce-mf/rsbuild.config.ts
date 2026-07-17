@@ -64,8 +64,13 @@ export default defineConfig({
       filename: 'remoteEntry.js',
       exposes: {
         './Org/Categories': './src/features/organization/categories/index.tsx',
+        './Org/Companies': './src/features/organization/companies/index.tsx',
         './Org/InventoryItems': './src/features/organization/inventory-items/index.tsx',
+        './Org/People': './src/features/organization/people/index.tsx',
         './Org/SalesChannels': './src/features/organization/sales-channels/index.tsx',
+        './Org/TaxClasses': './src/features/organization/tax-classes/index.tsx',
+        './Org/TaxComponents': './src/features/organization/tax-components/index.tsx',
+        './Org/TaxJurisdictions': './src/features/organization/tax-jurisdictions/index.tsx',
         './Org/UOM': './src/features/organization/uom/index.tsx',
         './Le/CostCategories': './src/features/legal-entity/cost-categories/index.tsx',
         './Le/Suppliers': './src/features/legal-entity/suppliers/index.tsx',

@@ -4,6 +4,8 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import { AddGoodsReceiptLotDto } from './dto/request/add-goods-receipt-lot.dto';
+import { UpdateGoodsReceiptLotDto } from './dto/request/update-goods-receipt-lot.dto';
 
 @Controller()
 export class GoodsReceiptsLotsController {
@@ -22,15 +24,7 @@ export class GoodsReceiptsLotsController {
 
   @MessagePattern({ cmd: 'site.goodsReceipts.addLot' })
   addLot(
-    @Payload()
-    data: {
-      goodsReceiptId: string;
-      itemId: string;
-      lotNumber: string;
-      manufacturingDate?: string | null;
-      expiryDate: string;
-      mrp?: string | null;
-    },
+    @Payload() data: AddGoodsReceiptLotDto,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     this.logger.log(`goodsReceipts.addLot — item: ${data.itemId}`);
@@ -49,16 +43,7 @@ export class GoodsReceiptsLotsController {
 
   @MessagePattern({ cmd: 'site.goodsReceipts.updateLot' })
   updateLot(
-    @Payload()
-    data: {
-      goodsReceiptId: string;
-      itemId: string;
-      lotId: string;
-      lotNumber?: string;
-      manufacturingDate?: string | null;
-      expiryDate?: string;
-      mrp?: string | null;
-    },
+    @Payload() data: UpdateGoodsReceiptLotDto,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<GoodsReceiptLotDto> {
     this.logger.log(`goodsReceipts.updateLot — lot: ${data.lotId}`);

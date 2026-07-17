@@ -5,8 +5,8 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { InvoiceStatusValues } from '@/db/schema';
-import type { ApplyCreditNoteDto } from './dto/request/apply-credit-note.dto';
-import type { CreateCreditNoteDto } from './dto/request/create-credit-note.dto';
+import { ApplyCreditNoteDto } from './dto/request/apply-credit-note.dto';
+import { CreateCreditNoteDto } from './dto/request/create-credit-note.dto';
 
 @Controller()
 export class CreditNotesController {
@@ -30,8 +30,8 @@ export class CreditNotesController {
   }
 
   @MessagePattern({ cmd: 'site.creditNotes.apply' })
-  async apply(@Payload() data: { id: string } & ApplyCreditNoteDto): Promise<{ success: boolean; message: string }> {
-    const { id, ...applyData } = data;
+  async apply(@Payload() dto: ApplyCreditNoteDto): Promise<{ success: boolean; message: string }> {
+    const { id, ...applyData } = dto;
     this.logger.log(`creditNotes.apply — id: ${id}, invoiceId: ${applyData.invoiceId}`);
     const invoice = await this.invoicesRepository.findById(applyData.invoiceId);
     if (!invoice) throw new NotFoundException('Invoice not found.');

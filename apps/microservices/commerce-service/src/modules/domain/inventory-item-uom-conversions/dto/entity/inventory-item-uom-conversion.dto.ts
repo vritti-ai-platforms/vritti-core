@@ -17,12 +17,11 @@ export class InventoryItemUomConversionDto {
   toPrimaryConversionFactor: number;
   // Derived: 1 primary unit = `toUomConversionFactor` UOM units.
   toUomConversionFactor: number;
-  canEdit: boolean;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 
-  static from(row: ConversionRow, currentSiteId: string, isUsedBySupplierItem = false): InventoryItemUomConversionDto {
+  static from(row: ConversionRow, isUsedBySupplierItem = false): InventoryItemUomConversionDto {
     const dto = new InventoryItemUomConversionDto();
     dto.id = row.id;
     dto.inventoryItemId = row.inventoryItemId;
@@ -33,9 +32,7 @@ export class InventoryItemUomConversionDto {
     dto.uomQty = row.uomQty;
     dto.toPrimaryConversionFactor = row.primaryUomQty / row.uomQty;
     dto.toUomConversionFactor = row.uomQty / row.primaryUomQty;
-    const owned = row.siteId === currentSiteId;
-    dto.canEdit = owned;
-    dto.canDelete = owned && !isUsedBySupplierItem;
+    dto.canDelete = !isUsedBySupplierItem;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;

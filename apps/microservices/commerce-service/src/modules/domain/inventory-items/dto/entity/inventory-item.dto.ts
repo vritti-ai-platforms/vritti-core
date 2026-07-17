@@ -9,23 +9,20 @@ export class InventoryItemDto {
   pickStrategy: InventoryPickStrategy;
   categoryId: string;
   categoryName: string | null;
-  mrpUomSymbol: string | null;
+  taxClassId: string | null;
   description: string | null;
   uomId: string;
   uomSymbol: string | null;
   hsnCode: string | null;
-  hasMrp: boolean;
-  mrpUomId: string | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 
   static from(
-    entity: InventoryItem & { mrpUomSymbol?: string | null },
+    entity: InventoryItem,
     uomSymbol?: string | null,
     canDelete = true,
     categoryName?: string | null,
-    _siteCurrencyCode?: string,
   ): InventoryItemDto {
     const dto = new InventoryItemDto();
     dto.id = entity.id;
@@ -36,13 +33,11 @@ export class InventoryItemDto {
     dto.pickStrategy = entity.pickStrategy;
     dto.categoryId = entity.categoryId;
     dto.categoryName = categoryName ?? null;
+    dto.taxClassId = entity.taxClassId ?? null;
     dto.description = entity.description ?? null;
     dto.uomId = entity.uomId;
     dto.uomSymbol = uomSymbol ?? null;
-    dto.mrpUomSymbol = entity.mrpUomSymbol ?? null;
     dto.hsnCode = entity.hsnCode ?? null;
-    dto.hasMrp = entity.hasMrp;
-    dto.mrpUomId = entity.mrpUomId ?? null;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

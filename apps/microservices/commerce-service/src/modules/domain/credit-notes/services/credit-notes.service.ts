@@ -62,7 +62,7 @@ export class CreditNotesService {
   // App-layer is responsible for fetching the invoice, validating its status, and updating it.
   async apply(
     id: string,
-    data: ApplyCreditNoteDto,
+    data: Omit<ApplyCreditNoteDto, 'id'>,
     invoice: InvoiceContext,
   ): Promise<{
     newPaidAmount: bigint;

@@ -3,6 +3,8 @@ import { GoodsReceiptLinesService } from '@domain/goods-receipt-lines/services/g
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import { AddGoodsReceiptLineDto } from './dto/request/add-goods-receipt-line.dto';
+import { UpdateGoodsReceiptLineDto } from './dto/request/update-goods-receipt-line.dto';
 import { GoodsReceiptsLinesService } from './services/goods-receipts-lines.service';
 
 @Controller()
@@ -39,16 +41,7 @@ export class GoodsReceiptsLinesController {
   }
 
   @MessagePattern({ cmd: 'site.goodsReceipts.addLine' })
-  addLine(
-    @Payload()
-    data: {
-      goodsReceiptId: string;
-      itemId: string;
-      goodsReceiptLotId?: string | null;
-      locationId: string;
-      quantity: number;
-    },
-  ): Promise<CreateResponseDto<GoodsReceiptLineDto>> {
+  addLine(@Payload() data: AddGoodsReceiptLineDto): Promise<CreateResponseDto<GoodsReceiptLineDto>> {
     this.logger.log(`goodsReceipts.addLine — item: ${data.itemId}`);
     return this.appService.addLine(data.goodsReceiptId, data.itemId, {
       goodsReceiptLotId: data.goodsReceiptLotId,
@@ -58,17 +51,7 @@ export class GoodsReceiptsLinesController {
   }
 
   @MessagePattern({ cmd: 'site.goodsReceipts.updateLine' })
-  updateLine(
-    @Payload()
-    data: {
-      goodsReceiptId: string;
-      itemId: string;
-      lineId: string;
-      goodsReceiptLotId?: string | null;
-      locationId?: string;
-      quantity?: number;
-    },
-  ): Promise<GoodsReceiptLineDto> {
+  updateLine(@Payload() data: UpdateGoodsReceiptLineDto): Promise<GoodsReceiptLineDto> {
     this.logger.log(`goodsReceipts.updateLine — line: ${data.lineId}`);
     return this.appService.updateLine(data.goodsReceiptId, data.itemId, data.lineId, {
       goodsReceiptLotId: data.goodsReceiptLotId,

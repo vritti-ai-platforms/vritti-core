@@ -9,7 +9,6 @@ export const inventoryItemUomConversions = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
@@ -31,29 +30,12 @@ export const inventoryItemUomConversions = coreSchema.table(
   },
   (table) => [
     uniqueIndex('uq_iiuc_item_uom').on(table.inventoryItemId, table.uomId),
-    index('idx_iiuc_site').on(table.organizationId, table.siteId),
     index('idx_iiuc_item').on(table.inventoryItemId),
     check('chk_iiuc_primary_uom_qty_positive', sql`${table.primaryUomQty} > 0`),
     check('chk_iiuc_uom_qty_positive', sql`${table.uomQty} > 0`),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
     }),
   ],
 );

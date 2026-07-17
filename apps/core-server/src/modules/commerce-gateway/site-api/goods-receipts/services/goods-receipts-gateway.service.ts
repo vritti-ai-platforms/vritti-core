@@ -44,7 +44,7 @@ export class GoodsReceiptsGatewayService {
   }
 
   async findForTable(userId: string): Promise<GoodsReceiptTableResponseDto> {
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-goods-receipts');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-goods-receipts');
     const { result, count } = await this.nats.send<{ result: GoodsReceiptResponseDto[]; count: number }>(
       'commerce',
       'site.goodsReceipts.table',

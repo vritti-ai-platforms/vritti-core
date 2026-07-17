@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateCatalogDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Catalog name' })
   @IsString()
   @IsNotEmpty()

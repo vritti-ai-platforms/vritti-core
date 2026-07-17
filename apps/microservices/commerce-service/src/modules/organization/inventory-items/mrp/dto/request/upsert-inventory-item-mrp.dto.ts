@@ -5,6 +5,9 @@ export class UpsertInventoryItemMrpDto {
   @IsUUID()
   inventoryItemId: string;
 
+  @IsUUID()
+  uomId: string;
+
   @IsCurrency()
   amount: CurrencyAmountDto;
 

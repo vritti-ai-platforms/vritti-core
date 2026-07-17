@@ -19,7 +19,7 @@ export class SuppliersItemsService {
     private readonly inventoryItemsService: InventoryItemsService,
   ) {}
 
-  async addItem(supplierId: string, dto: AddSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
+  async addItem(supplierId: string, dto: Omit<AddSupplierItemDto, 'supplierId'>): Promise<CreateResponseDto<SupplierItemDto>> {
     this.logger.log(`addItem — supplierId=${supplierId}, itemId=${dto.inventoryItemId}, uomId=${dto.uomId}`);
     const inventoryItemName = await this.assertUomAllowed(dto.inventoryItemId, dto.uomId);
     return this.supplierItemsService.addItem(supplierId, dto, inventoryItemName);
@@ -28,7 +28,7 @@ export class SuppliersItemsService {
   async updateItem(
     supplierId: string,
     supplierItemId: string,
-    dto: UpdateSupplierItemDto,
+    dto: Omit<UpdateSupplierItemDto, 'supplierId' | 'supplierItemId'>,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`updateItem — supplierItemId=${supplierItemId}${dto.uomId ? `, uomId=${dto.uomId}` : ''}`);
     if (dto.uomId !== undefined) {

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateStockTransferDto {
@@ -35,8 +36,9 @@ export class CreateStockTransferDto {
   @IsUUID()
   requestedBy?: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Additional notes' })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 }

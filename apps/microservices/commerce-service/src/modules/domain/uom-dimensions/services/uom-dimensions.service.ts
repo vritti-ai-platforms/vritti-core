@@ -81,7 +81,7 @@ export class UomDimensionsService {
   }
 
   // Updates a UOM dimension
-  async update(id: string, data: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
+  async update(id: string, data: Omit<UpdateUomDimensionDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('UOM dimension not found.');
 

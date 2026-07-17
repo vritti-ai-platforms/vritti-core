@@ -6,8 +6,8 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CreateCustomerDto } from './dto/request/create-customer.dto';
-import type { UpdateCustomerDto } from './dto/request/update-customer.dto';
+import { CreateCustomerDto } from './dto/request/create-customer.dto';
+import { UpdateCustomerDto } from './dto/request/update-customer.dto';
 
 @Controller()
 export class CustomersController {
@@ -34,8 +34,8 @@ export class CustomersController {
   }
 
   @MessagePattern({ cmd: 'site.customers.update' })
-  async update(@Payload() data: { id: string } & UpdateCustomerDto): Promise<CustomerDto> {
-    const { id, ...updateData } = data;
+  async update(@Payload() dto: UpdateCustomerDto): Promise<CustomerDto> {
+    const { id, ...updateData } = dto;
     this.logger.log(`customers.update — id: ${id}`);
     return this.service.update(id, updateData);
   }

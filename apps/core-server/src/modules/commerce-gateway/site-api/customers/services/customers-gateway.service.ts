@@ -19,7 +19,7 @@ export class CustomersGatewayService {
   // Returns paginated, filtered, and sorted customers for the data table
   async findForTable(userId: string): Promise<CustomerTableResponseDto> {
     this.logger.log('site.customers.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-customers');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-customers');
 
     const { result, count } = await this.nats.send<{ result: CustomerResponseDto[]; count: number }>(
       'commerce',

@@ -1,8 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class CreateTaxRateDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Tax rate name', example: 'CGST' })
   @IsString()
   @IsNotEmpty()
@@ -14,6 +16,7 @@ export class CreateTaxRateDto {
 }
 
 export class CreateTaxGroupDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Tax group name', example: 'GST 18%' })
   @IsString()
   @IsNotEmpty()

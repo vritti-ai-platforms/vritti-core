@@ -15,20 +15,9 @@ export const OverviewTab = ({ supplier }: OverviewTabProps) => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-6">
-          <DetailField label="Name" type="string" value={supplier.name} />
+          <DetailField label="Company" type="string" value={supplier.partyName} />
           <DetailField label="Code" type="string" mono value={supplier.code} />
           <DetailField label="Currency" type="string" mono value={supplier.currencyCode} />
-          <DetailField label="Contact Name" type="string" value={supplier.contactName} />
-          <DetailField label="Phone" type="string" value={supplier.phone} />
-          <DetailField label="Email" type="string" value={supplier.email} />
-          <DetailField label="Website" type="string" value={supplier.website} />
-          <DetailField label="Address" type="string" value={supplier.address} />
-          <DetailField label="Tax ID" type="string" mono value={supplier.taxId} />
-          <DetailField
-            label="Tax ID Type"
-            type="string"
-            value={supplier.taxIdType ? supplier.taxIdType.replace('_', ' ') : null}
-          />
           <DetailField label="Payment Terms" type="string" value={supplier.paymentTerms} />
           <DetailField
             label="Lead Time"

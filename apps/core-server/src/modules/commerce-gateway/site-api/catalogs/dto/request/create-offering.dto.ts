@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { Type } from 'class-transformer';
 import {
@@ -16,6 +17,7 @@ import {
 import { VariantComponentInput } from './create-variant.dto';
 
 export class DefaultVariantInput {
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'SKU code (auto-derived when omitted)' })
   @IsOptional()
   @IsString()
@@ -56,15 +58,17 @@ export class CreateOfferingDto {
   @IsEnum(['STOCK', 'SERVICE', 'COMPOSITE'])
   fulfilmentType: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Offering name' })
   @IsString()
   @IsNotEmpty()
   name: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Offering description' })
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string | null;
 
   @ApiProperty({ description: 'Sales tax group ID' })
   @IsUUID()

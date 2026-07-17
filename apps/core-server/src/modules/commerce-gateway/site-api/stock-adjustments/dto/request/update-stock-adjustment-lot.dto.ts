@@ -1,13 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateStockAdjustmentLotDto {
+  @Trim()
   @ApiPropertyOptional({ description: 'Lot number' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  lotNumber?: string;
+  lotNumber?: string | null;
 
   @ApiPropertyOptional({ description: 'Manufacturing date' })
   @IsOptional()

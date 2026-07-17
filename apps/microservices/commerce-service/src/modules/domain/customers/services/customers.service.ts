@@ -84,7 +84,7 @@ export class CustomersService {
   }
 
   // Updates a customer
-  async update(id: string, data: UpdateCustomerDto): Promise<CustomerDto> {
+  async update(id: string, data: Omit<UpdateCustomerDto, 'id'>): Promise<CustomerDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Customer not found.');
 

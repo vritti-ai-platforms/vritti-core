@@ -138,7 +138,7 @@ export const PosTerminalsTab = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-pos-terminals',
+    slug: 'commerce-site-pos-terminals',
     label: 'POS terminal',
     serverState: response,
     enableRowSelection: false,

@@ -38,8 +38,17 @@ export class CategoryResponseDto {
   })
   path: string;
 
-  @ApiProperty({ description: 'Default tax group ID for items in this category, or null', nullable: true })
-  defaultTaxGroupId: string | null;
+  @ApiProperty({
+    description: 'Default tax class ID for items in this category (null for GROUP categories)',
+    nullable: true,
+  })
+  defaultTaxClassId: string | null;
+
+  @ApiProperty({
+    description: 'Resolved default tax class name (null for GROUP categories or when unset)',
+    nullable: true,
+  })
+  defaultTaxClassName: string | null;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;

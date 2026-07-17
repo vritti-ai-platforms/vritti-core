@@ -14,8 +14,8 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { taxIdTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
+import { parties } from './parties';
 import { uom } from './uom';
 
 export const suppliers = coreSchema.table(
@@ -23,19 +23,12 @@ export const suppliers = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    legalEntityId: uuid('legal_entity_id')
+    legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
+    partyId: uuid('party_id')
       .notNull()
-      .default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
-    name: varchar('name', { length: 255 }).notNull(),
+      .references(() => parties.id),
     code: varchar('code', { length: 100 }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
-    contactName: varchar('contact_name', { length: 255 }),
-    phone: varchar('phone', { length: 20 }).notNull(),
-    email: varchar('email', { length: 255 }),
-    website: varchar('website', { length: 255 }),
-    address: varchar('address', { length: 500 }),
-    taxId: varchar('tax_id', { length: 15 }),
-    taxIdType: taxIdTypeEnum('tax_id_type'),
     paymentTerms: varchar('payment_terms', { length: 50 }),
     leadTimeDays: integer('lead_time_days'),
     notes: varchar('notes', { length: 500 }),
@@ -53,87 +46,32 @@ export const suppliers = coreSchema.table(
     // requires the FK target column tuple to have a matching UNIQUE / PRIMARY KEY constraint.
     unique('uq_suppliers_id_currency').on(table.id, table.currencyCode),
     index('idx_suppliers_le').on(table.organizationId, table.legalEntityId),
+    index('idx_suppliers_party').on(table.partyId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
     }),
     pgPolicy('le_read', {
       for: 'select',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
+      using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
     }),
     pgPolicy('le_write', {
       for: 'insert',
-      withCheck: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
+      withCheck: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
     }),
     pgPolicy('le_update', {
       for: 'update',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
+      using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
     }),
     pgPolicy('le_delete', {
       for: 'delete',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
+      using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
     }),
   ],
 );
 
 export type Supplier = typeof suppliers.$inferSelect;
 export type NewSupplier = typeof suppliers.$inferInsert;
-
-export const supplierContacts = coreSchema.table(
-  'supplier_contacts',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    legalEntityId: uuid('legal_entity_id')
-      .notNull()
-      .default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
-    supplierId: uuid('supplier_id')
-      .notNull()
-      .references(() => suppliers.id, { onDelete: 'cascade' }),
-    name: varchar('name', { length: 255 }).notNull(),
-    phone: varchar('phone', { length: 20 }).notNull(),
-    alternatePhone: varchar('alternate_phone', { length: 20 }),
-    email: varchar('email', { length: 255 }),
-    alternateEmail: varchar('alternate_email', { length: 255 }),
-    designation: varchar('designation', { length: 100 }),
-    notes: varchar('notes', { length: 500 }),
-    isPrimary: boolean('is_primary').notNull().default(false),
-    isActive: boolean('is_active').notNull().default(true),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .defaultNow()
-      .notNull()
-      .$onUpdate(() => new Date()),
-  },
-  (table) => [
-    index('idx_supplier_contacts_supplier').on(table.supplierId),
-    uniqueIndex('uq_supplier_contacts_primary').on(table.supplierId).where(sql`is_primary = true`),
-    uniqueIndex('uq_supplier_contacts_supplier_email').on(table.supplierId, table.email),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    pgPolicy('le_read', {
-      for: 'select',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
-    }),
-    pgPolicy('le_write', {
-      for: 'insert',
-      withCheck: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
-    }),
-    pgPolicy('le_update', {
-      for: 'update',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
-    }),
-    pgPolicy('le_delete', {
-      for: 'delete',
-      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
-    }),
-  ],
-);
-
-export type SupplierContact = typeof supplierContacts.$inferSelect;
-export type NewSupplierContact = typeof supplierContacts.$inferInsert;
 
 export const supplierItems = coreSchema.table(
   'supplier_items',

@@ -19,7 +19,7 @@ export class SalesChannelsGatewayService {
   // Returns paginated, filtered, and sorted sales channels for the data table
   async findForTable(userId: string): Promise<SalesChannelTableResponseDto> {
     this.logger.log('org.salesChannels.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-sales-channels');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-org-sales-channels');
 
     const { result, count } = await this.nats.send<{ result: SalesChannelResponseDto[]; count: number }>(
       'commerce',

@@ -1,6 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { GroupMatrixQueryDto } from './dto/request/group-matrix-query.dto';
+import { GroupMatrixQueryDto } from './dto/request/group-matrix-query.dto';
 import type {
   SiteGroupInventoryItemDto,
   SiteGroupItemAvailabilityDto,

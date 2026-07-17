@@ -171,7 +171,6 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     | (typeof inventoryItems.$inferSelect & {
         uomSymbol: string | null;
         categoryName: string | null;
-        mrpUomSymbol: string | null;
       })
     | null
   > {
@@ -185,17 +184,15 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         tracking: inventoryItems.tracking,
         pickStrategy: inventoryItems.pickStrategy,
         categoryId: inventoryItems.categoryId,
+        taxClassId: inventoryItems.taxClassId,
         description: inventoryItems.description,
         uomId: inventoryItems.uomId,
         hsnCode: inventoryItems.hsnCode,
-        hasMrp: inventoryItems.hasMrp,
-        mrpUomId: inventoryItems.mrpUomId,
         metadata: inventoryItems.metadata,
         createdAt: inventoryItems.createdAt,
         updatedAt: inventoryItems.updatedAt,
         uomSymbol: uom.symbol,
         categoryName: categories.name,
-        mrpUomSymbol: sql<string | null>`(SELECT u2.symbol FROM ${uom} u2 WHERE u2.id = ${inventoryItems.mrpUomId})`,
       })
       .from(inventoryItems)
       .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
@@ -235,11 +232,10 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         tracking: inventoryItems.tracking,
         pickStrategy: inventoryItems.pickStrategy,
         categoryId: inventoryItems.categoryId,
+        taxClassId: inventoryItems.taxClassId,
         description: inventoryItems.description,
         uomId: inventoryItems.uomId,
         hsnCode: inventoryItems.hsnCode,
-        hasMrp: inventoryItems.hasMrp,
-        mrpUomId: inventoryItems.mrpUomId,
         metadata: inventoryItems.metadata,
         createdAt: inventoryItems.createdAt,
         updatedAt: inventoryItems.updatedAt,

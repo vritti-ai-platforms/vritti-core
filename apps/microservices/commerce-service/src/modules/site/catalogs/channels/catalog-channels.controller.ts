@@ -3,6 +3,7 @@ import { CatalogChannelsService } from '@domain/catalog-channels/services/catalo
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { AssignCatalogChannelDto } from '../root/dto/request/assign-catalog-channel.dto';
 
 @Controller()
 export class CatalogChannelsController {
@@ -19,11 +20,11 @@ export class CatalogChannelsController {
 
   // Assigns a (site, channel) pair to a catalog
   @MessagePattern({ cmd: 'site.catalogs.channels.assign' })
-  async assign(@Payload() data: { catalogId: string; siteId: string; channelId: string }): Promise<CatalogChannelDto> {
+  async assign(@Payload() dto: AssignCatalogChannelDto): Promise<CatalogChannelDto> {
     this.logger.log(
-      `catalogs.channels.assign — catalogId: ${data.catalogId}, siteId: ${data.siteId}, channelId: ${data.channelId}`,
+      `catalogs.channels.assign — catalogId: ${dto.catalogId}, siteId: ${dto.siteId}, channelId: ${dto.channelId}`,
     );
-    return this.service.assign(data);
+    return this.service.assign(dto);
   }
 
   // Removes a catalog-channel assignment

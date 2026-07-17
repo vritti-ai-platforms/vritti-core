@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateUomDto {
@@ -6,12 +7,14 @@ export class CreateUomDto {
   @IsUUID()
   dimensionId: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Unit name', example: 'Kilogram' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
   name: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Unit symbol', example: 'kg' })
   @IsString()
   @IsNotEmpty()

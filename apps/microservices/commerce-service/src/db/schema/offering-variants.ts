@@ -17,6 +17,7 @@ import {
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 import { offerings } from './offerings';
+import { taxClasses } from './tax-classes';
 import { variantOptions, variantOptionValues } from './variant-options';
 
 export const offeringOptions = coreSchema.table(
@@ -49,6 +50,8 @@ export const offeringVariants = coreSchema.table(
     sku: varchar('sku', { length: 100 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     price: bigint('price', { mode: 'bigint' }).notNull(),
+    // Optional tax class override; falls back to the item/category default tax class when null.
+    taxClassId: uuid('tax_class_id').references(() => taxClasses.id),
     isAvailable: boolean('is_available').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
     attributes: jsonb('attributes').notNull().default({}),

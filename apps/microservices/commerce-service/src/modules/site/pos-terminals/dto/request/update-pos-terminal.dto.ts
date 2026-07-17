@@ -1,12 +1,15 @@
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdatePosTerminalDto {
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   name?: string;
 
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
@@ -21,10 +24,11 @@ export class UpdatePosTerminalDto {
   @IsUUID()
   catalogId?: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  description?: string;
+  description?: string | null;
 
   @IsOptional()
   @IsBoolean()

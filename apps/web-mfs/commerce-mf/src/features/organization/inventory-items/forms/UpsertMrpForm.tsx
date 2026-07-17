@@ -3,6 +3,7 @@ import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
+import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -11,6 +12,7 @@ import { type UpsertInventoryItemMrpFormData, upsertInventoryItemMrpSchema } fro
 
 interface UpsertMrpFormProps {
   inventoryItemId: string;
+  currentUomId?: string | null;
   currentAmount?: { currency: string; value: string } | null;
   onSuccess: () => void;
   onCancel: () => void;
@@ -18,6 +20,7 @@ interface UpsertMrpFormProps {
 
 export const UpsertMrpForm: React.FC<UpsertMrpFormProps> = ({
   inventoryItemId,
+  currentUomId,
   currentAmount,
   onSuccess,
   onCancel,
@@ -27,6 +30,7 @@ export const UpsertMrpForm: React.FC<UpsertMrpFormProps> = ({
   const form = useForm<UpsertInventoryItemMrpFormData>({
     resolver: zodResolver(upsertInventoryItemMrpSchema),
     defaultValues: {
+      uomId: currentUomId ?? '',
       amount: currentAmount ?? undefined,
       sourceLotId: null,
     },
@@ -36,6 +40,7 @@ export const UpsertMrpForm: React.FC<UpsertMrpFormProps> = ({
 
   return (
     <Form form={form} mutation={upsertMutation} onCancel={onCancel}>
+      <UomSelector name="uomId" label="Unit" placeholder="Select unit" params={{ inventoryItemId }} />
       <CurrencyField
         name="amount"
         label="MRP Amount"

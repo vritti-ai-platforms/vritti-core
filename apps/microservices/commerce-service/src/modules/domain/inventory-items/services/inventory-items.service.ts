@@ -17,12 +17,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-  ValidationException,
-} from '@vritti/api-sdk/exceptions';
+import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { inventoryItems } from '@/db/schema';
 import type { CreateInventoryItemDto } from '@/modules/organization/inventory-items/root/dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '@/modules/organization/inventory-items/root/dto/request/update-inventory-item.dto';
@@ -55,10 +50,7 @@ export class InventoryItemsService {
   constructor(private readonly repository: InventoryItemsRepository) {}
 
   // Returns paginated, filtered, and sorted inventory items for the data table
-  async findForTable(
-    state: TableViewState,
-    siteCurrencyCode?: string,
-  ): Promise<{ result: InventoryItemDto[]; count: number }> {
+  async findForTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -75,7 +67,7 @@ export class InventoryItemsService {
       offset,
     });
 
-    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, siteCurrencyCode));
+    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName));
 
     return { result: dtos, count };
   }
@@ -84,7 +76,6 @@ export class InventoryItemsService {
   async findForTableByCategory(
     categoryId: string,
     state: TableViewState,
-    siteCurrencyCode?: string,
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
@@ -103,7 +94,7 @@ export class InventoryItemsService {
     });
 
     return {
-      result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, siteCurrencyCode)),
+      result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName)),
       count,
     };
   }
@@ -177,11 +168,8 @@ export class InventoryItemsService {
   }
 
   // Org-wide master list (no site filter). Same table shape as findForTable; RLS scopes to org.
-  async findForOrgTable(
-    state: TableViewState,
-    siteCurrencyCode?: string,
-  ): Promise<{ result: InventoryItemDto[]; count: number }> {
-    return this.findForTable(state, siteCurrencyCode);
+  async findForOrgTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
+    return this.findForTable(state);
   }
 
   // Items enabled at the current site (inventory_item_sites projection) joined to summed stock.
@@ -240,56 +228,7 @@ export class InventoryItemsService {
     );
   }
 
-  private async resolveMrpBridge(
-    data: CreateInventoryItemDto,
-  ): Promise<{ uomId: string; primaryUomQty: number; uomQty: number } | null> {
-    if (!data.hasMrp || !data.mrpUomId) return null;
-    const derivable = (await this.repository.findUomFamilyIds(data.uomId)).includes(data.mrpUomId);
-    if (derivable) return null;
-    if (data.mrpUomId === data.uomId) {
-      throw new ValidationException({
-        detail: 'MRP unit cannot equal the primary unit.',
-        errors: [
-          {
-            field: 'mrpUomId',
-            message: 'Pick a unit different from the primary unit.',
-          },
-        ],
-      });
-    }
-    if (!data.mrpUomConversion) {
-      throw new ValidationException({
-        detail: "MRP unit can't be derived from the primary unit — provide its conversion.",
-        errors: [
-          {
-            field: 'mrpUomConversion',
-            message: 'Provide how many primary units one MRP unit holds.',
-          },
-        ],
-      });
-    }
-    const uomInfo = await this.repository.findUomBaseUnitId(data.mrpUomId);
-    if (!uomInfo) throw new NotFoundException('MRP unit not found.');
-    if (uomInfo.baseUnitId != null) {
-      throw new ValidationException({
-        detail: 'A conversion can only be defined for a base unit.',
-        errors: [
-          {
-            field: 'mrpUomId',
-            message: 'This unit is derived; pick a base unit.',
-          },
-        ],
-      });
-    }
-    return {
-      uomId: data.mrpUomId,
-      primaryUomQty: data.mrpUomConversion.primaryUomQty,
-      uomQty: data.mrpUomConversion.uomQty,
-    };
-  }
-
-  async create(data: CreateInventoryItemDto, siteCurrencyCode?: string): Promise<CreateResponseDto<InventoryItemDto>> {
-    const bridgeConversion = await this.resolveMrpBridge(data);
+  async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     const entity = await this.repository.create({
       name: data.name,
       code: data.code,
@@ -297,15 +236,11 @@ export class InventoryItemsService {
       ...(data.tracking ? { tracking: data.tracking } : {}),
       ...(data.pickStrategy ? { pickStrategy: data.pickStrategy } : {}),
       categoryId: data.categoryId,
-      description: data.description || null,
+      taxClassId: data.taxClassId,
+      description: data.description ?? null,
       uomId: data.uomId,
       hsnCode: data.hsnCode ?? null,
-      hasMrp: data.hasMrp ?? false,
-      mrpUomId: data.hasMrp ? (data.mrpUomId ?? null) : null,
     });
-    if (bridgeConversion) {
-      await this.repository.insertConversion(entity.id, bridgeConversion);
-    }
     const [uomSymbol, categoryName] = await Promise.all([
       this.repository.findUomSymbol(entity.uomId),
       this.repository.findCategoryName(entity.categoryId),
@@ -314,22 +249,16 @@ export class InventoryItemsService {
     return {
       success: true,
       message: `Inventory item "${entity.name}" (${entity.code}) created successfully.`,
-      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName, siteCurrencyCode),
+      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName),
     };
   }
 
   // Returns a single inventory item with UOM symbol and canDelete
-  async findById(id: string, siteCurrencyCode?: string): Promise<InventoryItemDto> {
+  async findById(id: string): Promise<InventoryItemDto> {
     const entity = await this.repository.findByIdWithUomAndCategory(id);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     const referencedIds = await this.repository.findReferencedIds([id]);
-    return InventoryItemDto.from(
-      entity,
-      entity.uomSymbol,
-      !referencedIds.has(id),
-      entity.categoryName,
-      siteCurrencyCode,
-    );
+    return InventoryItemDto.from(entity, entity.uomSymbol, !referencedIds.has(id), entity.categoryName);
   }
 
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family
@@ -341,7 +270,7 @@ export class InventoryItemsService {
   }
 
   // Updates an inventory item. Tracking is set at creation and cannot be changed.
-  async update(id: string, data: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
+  async update(id: string, data: Omit<UpdateInventoryItemDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');
 
@@ -355,29 +284,7 @@ export class InventoryItemsService {
       }
     }
 
-    if (data.description !== undefined) data.description = data.description || null;
-    const { mrpUomId, hasMrp, ...rest } = data;
-    if (hasMrp !== false && mrpUomId) {
-      const allowed = await this.repository.findAllowedUomIds(id);
-      if (!allowed.includes(mrpUomId)) {
-        throw new ValidationException({
-          detail: "MRP unit must be the item's primary unit or one of its conversions.",
-          errors: [
-            {
-              field: 'mrpUomId',
-              message: 'Add a conversion for this unit, or pick an existing one.',
-            },
-          ],
-        });
-      }
-    }
-    const updated = await this.repository.update(id, {
-      ...rest,
-      ...(hasMrp !== undefined ? { hasMrp } : {}),
-      ...(hasMrp === false
-        ? { mrpUomId: null }
-        : { ...(mrpUomId !== undefined ? { mrpUomId: mrpUomId ?? null } : {}) }),
-    });
+    const updated = await this.repository.update(id, data);
     this.logger.log(`Updated inventory item: ${updated.name} (${updated.code})`);
     return {
       success: true,

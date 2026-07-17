@@ -5,8 +5,8 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { InventoryItemSite } from '@/db/schema';
-import type { EnableInventoryItemSiteDto } from './dto/request/enable-inventory-item-site.dto';
-import type { UpdateReorderDto } from './dto/request/update-reorder.dto';
+import { EnableInventoryItemSiteDto } from './dto/request/enable-inventory-item-site.dto';
+import { UpdateReorderDto } from './dto/request/update-reorder.dto';
 import { InventoryItemsRootService } from './services/inventory-items-root.service';
 
 type SiteInventoryItemRow = InventoryItemDto & { reorderPoint: number; isStocked: boolean; stockedQuantity: string };

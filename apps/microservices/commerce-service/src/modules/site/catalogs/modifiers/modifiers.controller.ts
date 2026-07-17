@@ -6,11 +6,12 @@ import type { ModifierOptionDto } from '@domain/modifier-groups/dto/entity/modif
 import { ModifierGroupsService } from '@domain/modifier-groups/services/modifier-groups.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
-import type { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';
-import type { CreateModifierOptionDto } from '../dto/request/create-modifier-option.dto';
-import type { UpdateModifierGroupDto } from '../dto/request/update-modifier-group.dto';
-import type { UpdateModifierOptionDto } from '../dto/request/update-modifier-option.dto';
+import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { CreateModifierGroupDto } from '../root/dto/request/create-modifier-group.dto';
+import { CreateModifierOptionDto } from '../root/dto/request/create-modifier-option.dto';
+import { SelectModifiersDto } from '../root/dto/request/select-modifiers.dto';
+import { UpdateModifierGroupPayloadDto } from '../root/dto/request/update-modifier-group.dto';
+import { UpdateModifierOptionPayloadDto } from '../root/dto/request/update-modifier-option.dto';
 
 @Controller()
 export class ModifiersController {
@@ -27,8 +28,8 @@ export class ModifiersController {
 
   // Returns modifier group select results scoped to a catalog
   @MessagePattern({ cmd: 'site.catalogs.modifiers.select' })
-  async modifiersSelect(@Payload() data: { catalogId: string } & SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    const { catalogId, ...query } = data;
+  async modifiersSelect(@Payload() dto: SelectModifiersDto): Promise<SelectQueryResult> {
+    const { catalogId, ...query } = dto;
     this.logger.log(`catalogs.modifiers.select — catalogId: ${catalogId}`);
     return this.modifierGroupsService.select(catalogId, query);
   }
@@ -49,7 +50,7 @@ export class ModifiersController {
 
   // Updates a modifier group
   @MessagePattern({ cmd: 'site.catalogs.modifiers.update' })
-  async modifiersUpdate(@Payload() data: { groupId: string } & UpdateModifierGroupDto): Promise<ModifierGroupDto> {
+  async modifiersUpdate(@Payload() data: UpdateModifierGroupPayloadDto): Promise<ModifierGroupDto> {
     const { groupId, ...updateData } = data;
     this.logger.log(`catalogs.modifiers.update — groupId: ${groupId}`);
     return this.modifierGroupsService.update(groupId, updateData);
@@ -72,7 +73,7 @@ export class ModifiersController {
   // Updates a modifier option
   @MessagePattern({ cmd: 'site.catalogs.modifiers.options.update' })
   async modifiersOptionsUpdate(
-    @Payload() data: { optionId: string } & UpdateModifierOptionDto,
+    @Payload() data: UpdateModifierOptionPayloadDto,
   ): Promise<ModifierOptionDto> {
     const { optionId, ...updateData } = data;
     this.logger.log(`catalogs.modifiers.options.update — optionId: ${optionId}`);

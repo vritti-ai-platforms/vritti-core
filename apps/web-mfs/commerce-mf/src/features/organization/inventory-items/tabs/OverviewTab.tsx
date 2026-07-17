@@ -21,7 +21,6 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
             <DetailField label="Tracking" type="string" value={inventoryTrackingConfig[item.tracking].label} />
             <DetailField label="Pick Strategy" type="string" value={pickStrategyLabels[item.pickStrategy]} />
             <DetailField label="HSN Code" type="string" value={item.hsnCode} mono />
-            {item.hasMrp && <DetailField label="MRP Unit" type="string" value={item.mrpUomSymbol} />}
             <DetailField label="Description" type="string" value={item.description} className="col-span-full" />
           </div>
         </div>

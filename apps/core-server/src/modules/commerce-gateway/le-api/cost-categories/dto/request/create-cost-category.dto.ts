@@ -1,16 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export const COST_CATEGORY_KINDS = ['ITEM', 'FREIGHT', 'DUTY', 'INSURANCE', 'SERVICE', 'OTHER'] as const;
 export type CostCategoryKind = (typeof COST_CATEGORY_KINDS)[number];
 
 export class CreateCostCategoryDto {
-  @ApiProperty({ description: 'Unique code within the org', example: 'SUPPLIER_PRICE' })
+  @Trim({ nullify: false })
+  @ApiProperty({ description: 'Unique code within the org', example: 'supplier-price' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
+  @IsCode()
   code: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Human-readable name', example: 'Supplier Price' })
   @IsString()
   @IsNotEmpty()

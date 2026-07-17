@@ -15,14 +15,8 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
-import {
-  ExchangeRateTypeValues,
-  GoodsReceiptStatusValues,
-  goodsReceipts,
-  purchaseOrders,
-  suppliers,
-} from '@/db/schema';
-import type { CreateGoodsReceiptDto } from '@/modules/site/goods-receipts/dto/request/create-goods-receipt.dto';
+import { ExchangeRateTypeValues, GoodsReceiptStatusValues, goodsReceipts, parties, purchaseOrders } from '@/db/schema';
+import type { CreateGoodsReceiptDto } from '@/modules/site/goods-receipts/root/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
@@ -32,7 +26,7 @@ export class GoodsReceiptsService {
   private readonly logger = new Logger(GoodsReceiptsService.name);
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     grNumber: { column: goodsReceipts.grNumber, type: 'string' },
-    supplierName: { column: suppliers.name, type: 'string' },
+    supplierName: { column: parties.displayName, type: 'string' },
     poNumber: { column: purchaseOrders.poNumber, type: 'string' },
   };
   private static readonly FILTER_FIELD_MAP: FieldMap = {
@@ -71,7 +65,7 @@ export class GoodsReceiptsService {
       success: true,
       message: `Goods receipt "${entity.grNumber}" created.`,
       data: GoodsReceiptDto.from(entity, {
-        supplierName: supplier.name,
+        supplierName: supplier.supplierName ?? '',
         poId: po?.id ?? null,
         poNumber: po?.poNumber ?? null,
         poOrderDate: po?.orderDate ?? null,
@@ -142,7 +136,10 @@ export class GoodsReceiptsService {
     const { rows, hasMore } = await this.repository.findKeysetForFeed({ where: where || undefined, orderBy, limit });
 
     const edges = rows.map((row) => ({
-      cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]), signature),
+      cursor: CursorCodec.encode(
+        orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
+        signature,
+      ),
       node: GoodsReceiptDto.from(row, {
         supplierName: row.supplierName,
         supplierCurrencyCode: row.supplierCurrencyCode,

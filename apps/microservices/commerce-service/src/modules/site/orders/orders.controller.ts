@@ -3,8 +3,8 @@ import { OrdersService } from '@domain/orders/services/orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
-import type { CreateOrderDto } from './dto/request/create-order.dto';
-import type { UpdateOrderStatusDto } from './dto/request/update-order-status.dto';
+import { CreateOrderDto } from './dto/request/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/request/update-order-status.dto';
 
 @Controller()
 export class OrdersController {
@@ -31,8 +31,8 @@ export class OrdersController {
   }
 
   @MessagePattern({ cmd: 'site.orders.updateStatus' })
-  async updateStatus(@Payload() data: { id: string } & UpdateOrderStatusDto): Promise<OrderDto> {
-    const { id, ...statusData } = data;
+  async updateStatus(@Payload() dto: UpdateOrderStatusDto): Promise<OrderDto> {
+    const { id, ...statusData } = dto;
     this.logger.log(`orders.updateStatus — id: ${id}, status: ${statusData.status}`);
     return this.service.updateStatus(id, statusData);
   }

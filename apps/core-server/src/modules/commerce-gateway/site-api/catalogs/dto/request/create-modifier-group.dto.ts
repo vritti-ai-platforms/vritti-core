@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateModifierGroupDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Modifier group name' })
   @IsString()
   @IsNotEmpty()

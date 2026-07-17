@@ -18,7 +18,7 @@ export class InvoicesGatewayService {
   // Returns paginated, filtered, and sorted invoices for the data table
   async findForTable(userId: string): Promise<InvoiceTableResponseDto> {
     this.logger.log('site.invoices.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-invoices');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-invoices');
 
     const { result, count } = await this.nats.send<{ result: InvoiceResponseDto[]; count: number }>(
       'commerce',

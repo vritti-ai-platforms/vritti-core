@@ -1,82 +1,29 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField, zodPhoneField } from '@vritti/quantum-ui/zod';
 
-export const TAX_ID_TYPE_OPTIONS = [
-  { value: 'GST', label: 'GST' },
-  { value: 'VAT', label: 'VAT' },
-  { value: 'EIN', label: 'EIN' },
-  { value: 'SALES_TAX', label: 'Sales Tax' },
-  { value: 'OTHER', label: 'Other' },
-];
+// A supplier now references a company party — identity lives on the company, not inline.
+export const createSupplierSchema = z.object({
+  partyId: z.uuid('Company is required'),
+  code: z.string().min(1, 'Code is required').max(100),
+  currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
+  paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
+  leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
+  notes: z.string().optional(),
+  isActive: z.boolean(),
+});
 
-const taxIdTypeSchema = z.enum(['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER']);
-
-const enforceTaxIdPair = (
-  taxId: string | null | undefined,
-  taxIdType: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | null | undefined,
-  ctx: z.RefinementCtx,
-) => {
-  const hasTaxId = typeof taxId === 'string' && taxId.trim().length > 0;
-  const hasTaxIdType = typeof taxIdType === 'string' && taxIdType.length > 0;
-
-  if (hasTaxId === hasTaxIdType) return;
-
-  if (hasTaxIdType && !hasTaxId) {
-    ctx.addIssue({
-      code: 'custom',
-      path: ['taxId'],
-      message: 'Tax ID is required when Tax ID Type is selected.',
-    });
-  }
-
-  if (hasTaxId && !hasTaxIdType) {
-    ctx.addIssue({
-      code: 'custom',
-      path: ['taxIdType'],
-      message: 'Tax ID Type is required when Tax ID is provided.',
-    });
-  }
-};
-
-export const createSupplierSchema = z
-  .object({
-    name: z.string().min(1, 'Name is required').max(255),
-    code: z.string().min(1, 'Code is required').max(100),
-    currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
-    contactName: z.string().min(1, 'Primary contact name is required').max(255),
-    phone: zodPhoneField(),
-    alternatePhone: zodPhoneField({ optional: true }),
-    email: z.email('Invalid email').optional().or(z.literal('')),
-    alternateEmail: z.email('Invalid email').optional().or(z.literal('')),
-    designation: z.string().max(100).optional(),
-    website: z.string().max(255).optional(),
-    address: z.string().max(500).optional(),
-    taxId: z.string().max(15, 'Tax ID must be at most 15 characters').optional(),
-    taxIdType: taxIdTypeSchema.optional(),
-    paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
-    leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
-    notes: z.string().optional(),
-  })
-  .superRefine((data, ctx) => enforceTaxIdPair(data.taxId, data.taxIdType, ctx));
-
-export const updateSupplierSchema = z
-  .object({
-    name: z.string().min(1).max(255).optional(),
-    code: z.string().min(1).max(100).optional(),
-    currencyCode: z
-      .string()
-      .regex(/^[A-Z]{3}$/, 'Invalid currency code')
-      .optional(),
-    website: z.string().max(255).nullable().optional(),
-    address: z.string().max(500).nullable().optional(),
-    taxId: z.string().max(15).nullable().optional(),
-    taxIdType: taxIdTypeSchema.nullable().optional(),
-    paymentTerms: z.string().max(50).nullable().optional(),
-    leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-    notes: z.string().nullable().optional(),
-    isActive: z.boolean().optional(),
-  })
-  .superRefine((data, ctx) => enforceTaxIdPair(data.taxId, data.taxIdType, ctx));
+export const updateSupplierSchema = z.object({
+  partyId: z.uuid('Company is required').optional(),
+  code: z.string().min(1).max(100).optional(),
+  currencyCode: z
+    .string()
+    .regex(/^[A-Z]{3}$/, 'Invalid currency code')
+    .optional(),
+  paymentTerms: z.string().max(50).nullable().optional(),
+  leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  notes: z.string().nullable().optional(),
+  isActive: z.boolean().optional(),
+});
 
 export const createSupplierContactSchema = z.object({
   name: z.string().min(1, 'Contact name is required').max(255),
@@ -165,16 +112,10 @@ export type SupplierItemsTableResponse = TableResponse<SupplierItemData>;
 
 export interface SupplierData {
   id: string;
-  name: string;
+  partyId: string;
+  partyName: string;
   code: string;
   currencyCode: string;
-  contactName: string | null;
-  phone: string;
-  email: string | null;
-  website: string | null;
-  address: string | null;
-  taxId: string | null;
-  taxIdType: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | null;
   paymentTerms: string | null;
   leadTimeDays: number | null;
   notes: string | null;

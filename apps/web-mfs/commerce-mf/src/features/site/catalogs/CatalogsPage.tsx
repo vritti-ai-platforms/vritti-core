@@ -95,7 +95,7 @@ export const CatalogsPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-catalogs',
+    slug: 'commerce-site-catalogs',
     label: 'catalog',
     serverState: response,
     enableRowSelection: false,

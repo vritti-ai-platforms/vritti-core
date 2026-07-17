@@ -91,7 +91,7 @@ export class PosTerminalsService {
       code: data.code,
       locationId: data.locationId,
       catalogId: data.catalogId ?? null,
-      description: data.description || null,
+      description: data.description ?? null,
       isActive: data.isActive ?? true,
     });
 
@@ -115,10 +115,7 @@ export class PosTerminalsService {
       this.assertValidLocation(location);
     }
 
-    const updated = await this.repository.update(id, {
-      ...data,
-      description: data.description !== undefined ? data.description || null : undefined,
-    });
+    const updated = await this.repository.update(id, data);
 
     this.logger.log(`Updated POS terminal: ${updated.name} (${id})`);
     return { success: true, message: `POS terminal "${updated.name}" updated successfully.` };

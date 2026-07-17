@@ -27,6 +27,11 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
   const columns = useMemo<ColumnDef<InventoryItemMrpData>[]>(
     () => [
       {
+        accessorKey: 'uomSymbol',
+        header: 'Unit',
+        cell: ({ row }) => row.original.uomSymbol ?? '—',
+      },
+      {
         accessorKey: 'amount',
         header: 'Currency',
         cell: ({ row }) => row.original.amount.currency,
@@ -62,6 +67,7 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
                   content: (close) => (
                     <UpsertMrpForm
                       inventoryItemId={inventoryItemId}
+                      currentUomId={row.original.uomId}
                       currentAmount={row.original.amount}
                       onSuccess={close}
                       onCancel={close}

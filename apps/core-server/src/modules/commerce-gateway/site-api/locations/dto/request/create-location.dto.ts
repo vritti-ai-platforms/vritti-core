@@ -1,15 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 import { type LocationRole, LocationRoleValues } from '../../constants/location-role.constants';
 
 export class CreateLocationDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Location name', example: 'Walk-in Fridge' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   name: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Location code', example: 'WIF' })
   @IsString()
   @IsNotEmpty()
@@ -28,11 +31,12 @@ export class CreateLocationDto {
   @Min(1)
   sortOrder?: number;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Location area', example: 'Kitchen' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  area?: string;
+  area?: string | null;
 
   @ApiPropertyOptional({ description: 'Manager user ID' })
   @IsOptional()

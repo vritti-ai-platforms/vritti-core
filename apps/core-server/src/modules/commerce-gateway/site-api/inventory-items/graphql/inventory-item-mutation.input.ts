@@ -1,6 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsCode } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsCode, Trim } from '@vritti/api-sdk/decorators';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 const ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'];
 const TRACKING_TYPES = ['quantity', 'lot', 'lot_serial', 'serial'];
@@ -9,12 +9,14 @@ const PICK_STRATEGIES = ['none', 'fifo', 'fefo'];
 @InputType()
 export class CreateInventoryItemInput {
   @Field(() => String)
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   name: string;
 
   @Field(() => String)
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -39,10 +41,11 @@ export class CreateInventoryItemInput {
   categoryId: string;
 
   @Field(() => String, { nullable: true })
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  description?: string;
+  description?: string | null;
 
   @Field(() => String)
   @IsUUID()
@@ -53,26 +56,24 @@ export class CreateInventoryItemInput {
   purchaseTaxGroupId: string;
 
   @Field(() => String, { nullable: true })
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  hsnCode?: string;
-
-  @Field(() => Boolean, { nullable: true })
-  @IsOptional()
-  @IsBoolean()
-  hasMrp?: boolean;
+  hsnCode?: string | null;
 }
 
 @InputType()
 export class UpdateInventoryItemInput {
   @Field(() => String, { nullable: true })
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   name?: string;
 
   @Field(() => String, { nullable: true })
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -90,6 +91,7 @@ export class UpdateInventoryItemInput {
   categoryId?: string;
 
   @Field(() => String, { nullable: true })
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(500)
@@ -110,13 +112,9 @@ export class UpdateInventoryItemInput {
   purchaseTaxGroupId: string;
 
   @Field(() => String, { nullable: true })
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
-
-  @Field(() => Boolean, { nullable: true })
-  @IsOptional()
-  @IsBoolean()
-  hasMrp?: boolean;
 }

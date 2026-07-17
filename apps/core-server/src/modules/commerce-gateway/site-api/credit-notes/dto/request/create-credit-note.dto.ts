@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateCreditNoteDto {
@@ -17,12 +18,14 @@ export class CreateCreditNoteDto {
   @IsUUID()
   partyId?: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Party display name', example: 'Acme Foods Pvt Ltd' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   partyName: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Unique credit note number', example: 'CN-2026-001' })
   @IsString()
   @IsNotEmpty()
@@ -34,10 +37,11 @@ export class CreateCreditNoteDto {
   @Min(0.01)
   amount: number;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Reason for credit note' })
   @IsOptional()
   @IsString()
-  reason?: string;
+  reason?: string | null;
 
   @ApiPropertyOptional({ description: 'Initial status override', enum: ['DRAFT', 'ISSUED'] })
   @IsOptional()

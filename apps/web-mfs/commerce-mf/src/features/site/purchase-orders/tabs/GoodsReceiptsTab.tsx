@@ -70,7 +70,7 @@ export const GoodsReceiptsTab = ({ poId }: GoodsReceiptsTabProps) => {
 
   const { table } = useDataTable({
     columns,
-    slug: `commerce-purchase-order-${poId}-goods-receipts`,
+    slug: `commerce-site-purchase-order-${poId}-goods-receipts`,
     label: 'goods receipt',
     serverState: response,
     enableRowSelection: false,

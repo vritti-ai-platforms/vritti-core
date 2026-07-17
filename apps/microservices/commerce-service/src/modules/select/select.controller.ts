@@ -7,19 +7,33 @@ import { InventoryItemQuantsService } from '@domain/inventory-item-quants/servic
 import { InventoryItemSerialsService } from '@domain/inventory-item-serials/services/inventory-item-serials.service';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { LocationsService } from '@domain/locations/services/locations.service';
+import { PartiesService } from '@domain/parties/services/parties.service';
 import { PosTerminalsService } from '@domain/pos-terminals/services/pos-terminals.service';
 import { PurchaseOrderItemsService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { SalesChannelsService } from '@domain/sales-channels/services/sales-channels.service';
 import { SupplierItemsService } from '@domain/supplier-items/services/supplier-items.service';
 import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
+import { TaxClassesService } from '@domain/tax-classes/services/tax-classes.service';
+import { TaxComponentsService } from '@domain/tax-components/services/tax-components.service';
 import { TaxGroupsService } from '@domain/tax-groups/services/tax-groups.service';
-import { UomDimensionsService } from '@domain/uom-dimensions/services/uom-dimensions.service';
+import { TaxJurisdictionsService } from '@domain/tax-jurisdictions/services/tax-jurisdictions.service';
 import { UomService } from '@domain/uom/services/uom.service';
+import { UomDimensionsService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
-import type { CategoriesSelectQueryDto } from '@/modules/organization/categories/dto/request/categories-select-query.dto';
+import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
+import { PartyTypeValues } from '@/db/schema';
+import { CategoriesSelectQueryDto } from '@/modules/organization/categories/root/dto/request/categories-select-query.dto';
+import { InventoryItemLotsSelectQueryDto } from './dto/request/inventory-item-lots-select-query.dto';
+import { InventoryItemQuantsSelectQueryDto } from './dto/request/inventory-item-quants-select-query.dto';
+import { InventoryItemSerialsSelectQueryDto } from './dto/request/inventory-item-serials-select-query.dto';
+import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
+import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
+import { PurchaseOrderItemsSelectQueryDto } from './dto/request/purchase-order-items-select-query.dto';
+import { PurchaseOrdersSelectQueryDto } from './dto/request/purchase-orders-select-query.dto';
+import { SupplierItemsSelectQueryDto } from './dto/request/supplier-items-select-query.dto';
+import { UomSelectQueryDto } from './dto/request/uom-select-query.dto';
 
 @Controller()
 export class SelectController {
@@ -32,6 +46,7 @@ export class SelectController {
     private readonly uomService: UomService,
     private readonly uomDimensionsService: UomDimensionsService,
     private readonly catalogsService: CatalogsService,
+    private readonly partiesService: PartiesService,
     private readonly customersService: CustomersService,
     private readonly locationsService: LocationsService,
     private readonly inventoryItemLotsService: InventoryItemLotsService,
@@ -43,7 +58,10 @@ export class SelectController {
     private readonly costCategoriesService: CostCategoriesService,
     private readonly supplierItemsService: SupplierItemsService,
     private readonly suppliersService: SuppliersService,
+    private readonly taxClassesService: TaxClassesService,
+    private readonly taxComponentsService: TaxComponentsService,
     private readonly taxGroupsService: TaxGroupsService,
+    private readonly taxJurisdictionsService: TaxJurisdictionsService,
   ) {}
 
   // Returns paginated category options for the select component
@@ -55,9 +73,7 @@ export class SelectController {
 
   // Returns paginated inventory item options for the select component
   @MessagePattern({ cmd: 'select.inventoryItems' })
-  async inventoryItems(
-    @Payload() data: SelectOptionsQueryDto & { excludeOnSupplierId?: string },
-  ): Promise<SelectQueryResult> {
+  async inventoryItems(@Payload() data: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
     const { excludeOnSupplierId, ...query } = data;
     this.logger.log('select.inventoryItems');
     return this.inventoryItemsService.findForSelect(query, { excludeOnSupplierId });
@@ -72,17 +88,7 @@ export class SelectController {
 
   // Returns paginated UOM options for the select component
   @MessagePattern({ cmd: 'select.uom' })
-  async uom(
-    @Payload()
-    data: SelectOptionsQueryDto & {
-      derivedOnly?: boolean;
-      baseOnly?: boolean;
-      dimensionId?: string;
-      inventoryItemId?: string;
-      supplierId?: string;
-      purchaseOrderId?: string;
-    },
-  ): Promise<SelectQueryResult> {
+  async uom(@Payload() data: UomSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.uom');
     return this.uomService.findForSelect(data, {
       derivedOnly: data.derivedOnly,
@@ -108,6 +114,20 @@ export class SelectController {
     return this.catalogsService.findForSelect(data);
   }
 
+  // Returns paginated PERSON party options for the people select component
+  @MessagePattern({ cmd: 'select.people' })
+  async people(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.people');
+    return this.partiesService.findForSelect(query, PartyTypeValues.PERSON);
+  }
+
+  // Returns paginated ORGANIZATION party options for the companies select component
+  @MessagePattern({ cmd: 'select.companies' })
+  async companies(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.companies');
+    return this.partiesService.findForSelect(query, PartyTypeValues.ORGANIZATION);
+  }
+
   // Returns paginated customer options for the select component
   @MessagePattern({ cmd: 'select.customers' })
   async customers(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
@@ -117,15 +137,7 @@ export class SelectController {
 
   // Returns paginated location options for the select component
   @MessagePattern({ cmd: 'select.locations' })
-  async locations(
-    @Payload()
-    data: SelectOptionsQueryDto & {
-      locationRoles?: string;
-      inventoryItemId?: string;
-      excludeUsedOnGoodsReceiptItemId?: string;
-      goodsReceiptLotId?: string;
-    },
-  ): Promise<SelectQueryResult> {
+  async locations(@Payload() data: LocationsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(
       `select.locations${data.locationRoles ? ` — locationRoles: ${data.locationRoles}` : ''}${
         data.inventoryItemId ? ` — inventoryItemId: ${data.inventoryItemId}` : ''
@@ -136,27 +148,21 @@ export class SelectController {
 
   // Returns paginated inventory item lot options for the select component
   @MessagePattern({ cmd: 'select.inventoryItemLots' })
-  async inventoryItemLots(
-    @Payload() data: SelectOptionsQueryDto & { inventoryItemId?: string },
-  ): Promise<SelectQueryResult> {
+  async inventoryItemLots(@Payload() data: InventoryItemLotsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`select.inventoryItemLots — inventoryItemId: ${data.inventoryItemId ?? 'all'}`);
     return this.inventoryItemLotsService.findForSelect(data);
   }
 
   // Returns paginated inventory item quant options for the select component
   @MessagePattern({ cmd: 'select.inventoryItemQuants' })
-  async inventoryItemQuants(
-    @Payload() data: SelectOptionsQueryDto & { inventoryItemId?: string },
-  ): Promise<SelectQueryResult> {
+  async inventoryItemQuants(@Payload() data: InventoryItemQuantsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`select.inventoryItemQuants — inventoryItemId: ${data.inventoryItemId}`);
     return this.inventoryItemQuantsService.findForSelect(data);
   }
 
   // Returns paginated inventory item serial options for the select component
   @MessagePattern({ cmd: 'select.inventoryItemSerials' })
-  async inventoryItemSerials(
-    @Payload() data: SelectOptionsQueryDto & { quantId?: string },
-  ): Promise<SelectQueryResult> {
+  async inventoryItemSerials(@Payload() data: InventoryItemSerialsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`select.inventoryItemSerials — quantId: ${data.quantId ?? 'all'}`);
     return this.inventoryItemSerialsService.findForSelect(data);
   }
@@ -170,13 +176,7 @@ export class SelectController {
 
   // Returns paginated purchase order item options for the select component
   @MessagePattern({ cmd: 'select.purchaseOrderItems' })
-  async purchaseOrderItems(
-    @Payload()
-    data: SelectOptionsQueryDto & {
-      purchaseOrderId: string;
-      excludeOnGoodsReceiptId?: string;
-    },
-  ): Promise<SelectQueryResult> {
+  async purchaseOrderItems(@Payload() data: PurchaseOrderItemsSelectQueryDto): Promise<SelectQueryResult> {
     const { purchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
     this.logger.log(`select.purchaseOrderItems — poId: ${purchaseOrderId}`);
     return this.purchaseOrderItemsService.findForSelectByPo(purchaseOrderId, query, { excludeOnGoodsReceiptId });
@@ -184,7 +184,7 @@ export class SelectController {
 
   // Returns paginated purchase order options for the select component
   @MessagePattern({ cmd: 'select.purchaseOrders' })
-  purchaseOrders(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  purchaseOrders(@Payload() data: PurchaseOrdersSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.purchaseOrders');
     return this.purchaseOrdersService.findForSelect(data);
   }
@@ -198,14 +198,7 @@ export class SelectController {
 
   // Returns paginated supplier item options for the select component
   @MessagePattern({ cmd: 'select.supplierItems' })
-  async supplierItems(
-    @Payload()
-    data: SelectOptionsQueryDto & {
-      supplierId?: string;
-      excludeOnPurchaseOrderId?: string;
-      excludeOnGoodsReceiptId?: string;
-    },
-  ): Promise<SelectQueryResult> {
+  async supplierItems(@Payload() data: SupplierItemsSelectQueryDto): Promise<SelectQueryResult> {
     const { supplierId, excludeOnPurchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
     this.logger.log(`select.supplierItems — supplierId: ${supplierId ?? 'all'}`);
     return this.supplierItemsService.findForSelect(query, {
@@ -222,10 +215,31 @@ export class SelectController {
     return this.suppliersService.findForSelect(data);
   }
 
+  // Returns paginated tax class options for the select component
+  @MessagePattern({ cmd: 'select.taxClasses' })
+  async taxClasses(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.taxClasses');
+    return this.taxClassesService.findForSelect(query);
+  }
+
+  // Returns paginated tax component options for the select component
+  @MessagePattern({ cmd: 'select.taxComponents' })
+  async taxComponents(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.taxComponents');
+    return this.taxComponentsService.findForSelect(query);
+  }
+
   // Returns paginated tax group options for the select component
   @MessagePattern({ cmd: 'select.taxGroups' })
   async taxGroups(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.taxGroups');
     return this.taxGroupsService.findForSelect(query);
+  }
+
+  // Returns paginated tax jurisdiction options for the select component
+  @MessagePattern({ cmd: 'select.taxJurisdictions' })
+  async taxJurisdictions(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.taxJurisdictions');
+    return this.taxJurisdictionsService.findForSelect(query);
   }
 }

@@ -1,7 +1,9 @@
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class CreateTaxRateDto {
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -11,6 +13,7 @@ export class CreateTaxRateDto {
 }
 
 export class CreateTaxGroupDto {
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   name: string;

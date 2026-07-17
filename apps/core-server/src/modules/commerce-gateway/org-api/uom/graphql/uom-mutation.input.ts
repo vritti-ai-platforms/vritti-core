@@ -1,4 +1,5 @@
 import { Field, ID, InputType, Int, PartialType } from '@nestjs/graphql';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 // Mirror create-/update-uom.dto.ts so the resolver forwards an input straight to gateway.create/update.
@@ -10,12 +11,14 @@ export class CreateUomInput {
   dimensionId: string;
 
   @Field(() => String)
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
   name: string;
 
   @Field(() => String)
+  @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
   @MaxLength(10)

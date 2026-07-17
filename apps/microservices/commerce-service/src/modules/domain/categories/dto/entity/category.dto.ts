@@ -11,13 +11,14 @@ export class CategoryDto {
   path: string;
   isActive: boolean;
   sortOrder: number;
-  defaultTaxGroupId: string | null;
+  defaultTaxClassId: string | null;
+  defaultTaxClassName: string | null;
   createdAt: string;
   updatedAt: string;
   canDelete: boolean;
 
   // Maps a Category entity to a CategoryDto
-  static from(entity: Category, canDelete = true): CategoryDto {
+  static from(entity: Category, canDelete = true, defaultTaxClassName: string | null = null): CategoryDto {
     const dto = new CategoryDto();
     dto.id = entity.id;
     dto.organizationId = entity.organizationId;
@@ -29,7 +30,8 @@ export class CategoryDto {
     dto.path = entity.path;
     dto.isActive = entity.isActive;
     dto.sortOrder = entity.sortOrder;
-    dto.defaultTaxGroupId = entity.defaultTaxGroupId ?? null;
+    dto.defaultTaxClassId = entity.defaultTaxClassId ?? null;
+    dto.defaultTaxClassName = defaultTaxClassName;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     dto.canDelete = canDelete;

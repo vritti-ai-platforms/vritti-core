@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateTime } from '@vritti/api-sdk/decorators';
+import { IsDateTime, Trim } from '@vritti/api-sdk/decorators';
 import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreatePurchaseOrderDto {
@@ -21,10 +21,11 @@ export class CreatePurchaseOrderDto {
   @IsDateTime()
   expectedBy?: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Notes' })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 
   @ApiPropertyOptional({
     description: 'Exchange rate policy. FIXED locks the rate at PO time; VARIABLE defers to GR/invoice posting.',

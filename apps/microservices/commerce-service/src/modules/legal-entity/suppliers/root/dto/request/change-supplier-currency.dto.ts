@@ -1,7 +1,10 @@
 import { IsCurrencyCode } from '@vritti/api-sdk/money';
-import { IsNumber, IsOptional, IsPositive } from 'class-validator';
+import { IsNumber, IsOptional, IsPositive, IsUUID } from 'class-validator';
 
 export class ChangeSupplierCurrencyDto {
+  @IsUUID()
+  id: string;
+
   @IsCurrencyCode()
   currencyCode: string;
 

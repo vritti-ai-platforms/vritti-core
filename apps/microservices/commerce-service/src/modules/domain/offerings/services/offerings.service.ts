@@ -7,13 +7,13 @@ import { type FulfilmentType, FulfilmentTypeValues, offerings, type VariantOptio
 import type {
   CreateOfferingDto,
   DefaultVariantInput,
-} from '@/modules/site/catalogs/dto/request/create-offering.dto';
+} from '@/modules/site/catalogs/root/dto/request/create-offering.dto';
 import type {
   CreateVariantDto,
   VariantComponentInput,
-} from '@/modules/site/catalogs/dto/request/create-variant.dto';
-import type { UpdateOfferingDto } from '@/modules/site/catalogs/dto/request/update-offering.dto';
-import type { UpdateVariantDto } from '@/modules/site/catalogs/dto/request/update-variant.dto';
+} from '@/modules/site/catalogs/root/dto/request/create-variant.dto';
+import type { UpdateOfferingDto } from '@/modules/site/catalogs/root/dto/request/update-offering.dto';
+import type { UpdateVariantDto } from '@/modules/site/catalogs/root/dto/request/update-variant.dto';
 import { OfferingDto } from '../dto/entity/offering.dto';
 import {
   OfferingDetailDto,
@@ -224,6 +224,7 @@ export class OfferingsService {
       price,
       isAvailable: data.isAvailable ?? true,
       sortOrder: existingVariants.length,
+      taxClassId: data.taxClassId ?? null,
     });
 
     await this.offeringsRepository.createVariantOptionValues(

@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."sites" ADD CONSTRAINT "sites_code_chk" CHECK ("code" ~ '^[a-z][a-z0-9-]*$');

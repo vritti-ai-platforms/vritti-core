@@ -2,6 +2,8 @@ import type { StockAdjustmentLineItemDto } from '@domain/stock-adjustment-line-i
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import { AddLineItemDto } from '../root/dto/request/add-line-item.dto';
+import { UpdateLineItemDto } from '../root/dto/request/update-line-item.dto';
 import { StockAdjustmentsLineItemsTransactionService } from './services/stock-adjustments-line-items-transaction.service';
 
 @Controller()
@@ -19,19 +21,15 @@ export class StockAdjustmentsLineItemsController {
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.addLineItem' })
-  addLineItem(
-    @Payload() data: { adjustmentId: string; lineId: string; serialNumber: string },
-  ): Promise<CreateResponseDto<StockAdjustmentLineItemDto>> {
-    this.logger.log(`stockAdjustments.addLineItem — line: ${data.lineId}`);
-    return this.service.addLineItem(data);
+  addLineItem(@Payload() dto: AddLineItemDto): Promise<CreateResponseDto<StockAdjustmentLineItemDto>> {
+    this.logger.log(`stockAdjustments.addLineItem — line: ${dto.lineId}`);
+    return this.service.addLineItem(dto);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.updateLineItem' })
-  updateLineItem(
-    @Payload() data: { adjustmentId: string; lineId: string; itemId: string; serialNumber: string },
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`stockAdjustments.updateLineItem — item: ${data.itemId}`);
-    return this.service.updateLineItem(data);
+  updateLineItem(@Payload() dto: UpdateLineItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.updateLineItem — item: ${dto.itemId}`);
+    return this.service.updateLineItem(dto);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.removeLineItem' })

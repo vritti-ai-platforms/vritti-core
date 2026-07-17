@@ -131,7 +131,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `commerce-uom-${dimensionId}`,
+    slug: `commerce-org-uom-${dimensionId}`,
     label: 'UOM',
     enableRowSelection: false,
     enableSorting: true,

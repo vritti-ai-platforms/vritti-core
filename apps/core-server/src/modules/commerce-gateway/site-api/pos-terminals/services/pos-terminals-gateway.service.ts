@@ -24,7 +24,7 @@ export class PosTerminalsGatewayService {
   // Returns paginated POS terminals for the data table
   async findForTable(userId: string): Promise<PosTerminalTableResponseDto> {
     this.logger.log('site.posTerminals.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-pos-terminals');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-pos-terminals');
 
     const { result, count } = await this.nats.send<{ result: PosTerminalResponseDto[]; count: number }>(
       'commerce',

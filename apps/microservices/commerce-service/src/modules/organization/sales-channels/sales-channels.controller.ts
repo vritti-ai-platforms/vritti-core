@@ -7,8 +7,8 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CreateSalesChannelDto } from './dto/request/create-sales-channel.dto';
-import type { UpdateSalesChannelDto } from './dto/request/update-sales-channel.dto';
+import { CreateSalesChannelDto } from './dto/request/create-sales-channel.dto';
+import { UpdateSalesChannelDto } from './dto/request/update-sales-channel.dto';
 
 @Controller()
 export class SalesChannelsController {
@@ -35,8 +35,8 @@ export class SalesChannelsController {
   }
 
   @MessagePattern({ cmd: 'org.salesChannels.update' })
-  async update(@Payload() data: { id: string } & UpdateSalesChannelDto): Promise<SuccessResponseDto> {
-    const { id, ...payload } = data;
+  async update(@Payload() dto: UpdateSalesChannelDto): Promise<SuccessResponseDto> {
+    const { id, ...payload } = dto;
     this.logger.log(`salesChannels.update — id: ${id}`);
     return this.service.update(id, payload);
   }

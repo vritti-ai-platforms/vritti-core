@@ -1,6 +1,9 @@
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
+  @IsUUID()
+  id: string;
+
   @IsOptional()
   @IsUUID()
   dimensionId?: string;

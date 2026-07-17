@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 
 export class CreateGoodsReceiptDto {
@@ -16,10 +17,11 @@ export class CreateGoodsReceiptDto {
   @IsNotEmpty()
   receivedDate: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Notes' })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 
   @ApiPropertyOptional({
     description:

@@ -10,7 +10,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, ilike, or } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type CostCategory, type CostCategoryKind, CostCategoryKindValues, costCategories } from '@/db/schema';
+import { type CostCategoryKind, CostCategoryKindValues, costCategories } from '@/db/schema';
 import { CostCategoryDto } from '../dto/entity/cost-category.dto';
 import { CostCategoriesRepository } from '../repositories/cost-categories.repository';
 
@@ -103,8 +103,8 @@ export class CostCategoriesService {
     }
 
     const entity = await this.repository.create({
-      code: data.code.trim(),
-      name: data.name.trim(),
+      code: data.code,
+      name: data.name,
       kind: data.kind,
       isActive: true,
       isSystem: false,
@@ -129,13 +129,7 @@ export class CostCategoriesService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Cost category not found.');
 
-    const payload: Partial<CostCategory> = {};
-    if (data.name !== undefined) payload.name = data.name.trim();
-    if (data.isActive !== undefined) payload.isActive = data.isActive;
-
-    if (Object.keys(payload).length > 0) {
-      await this.repository.update(id, payload);
-    }
+    await this.repository.update(id, data);
 
     this.logger.log(`Updated cost category: ${existing.code} (${id})`);
     return { success: true, message: `Cost category "${data.name ?? existing.name}" updated successfully.` };

@@ -109,10 +109,7 @@ export class StockAdjustmentsService {
       throw new BadRequestException('Only DRAFT adjustments can be edited.');
     }
 
-    await this.repository.update(id, {
-      ...(data.reason !== undefined ? { reason: data.reason } : {}),
-      ...(data.unitCost !== undefined ? { unitCost: data.unitCost } : {}),
-    });
+    await this.repository.update(id, data);
     const updated = await this.repository.findById(id);
     if (!updated) throw new NotFoundException('Stock adjustment not found.');
     return StockAdjustmentDto.from(updated, siteCurrencyCode);

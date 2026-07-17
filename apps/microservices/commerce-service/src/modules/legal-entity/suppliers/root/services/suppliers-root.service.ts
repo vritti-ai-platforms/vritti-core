@@ -1,4 +1,3 @@
-import { SupplierContactsRepository } from '@domain/supplier-contacts/repositories/supplier-contacts.repository';
 import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import type { SupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { SuppliersRepository } from '@domain/suppliers/repositories/suppliers.repository';
@@ -17,34 +16,18 @@ export class SuppliersRootService {
     private readonly database: PrimaryDatabaseService,
     private readonly suppliersService: SuppliersService,
     private readonly suppliersRepository: SuppliersRepository,
-    private readonly supplierContactsRepository: SupplierContactsRepository,
     private readonly supplierItemsRepository: SupplierItemsRepository,
   ) {}
 
-  // Creates a supplier and its primary contact atomically in a transaction
+  // Creates a supplier referencing an existing party for its identity
   async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
-    return this.database.runInTransaction(async () => {
-      const result = await this.suppliersService.create(data);
-
-      await this.supplierContactsRepository.createContact({
-        supplierId: result.data.id,
-        name: data.primaryContact.name,
-        phone: data.primaryContact.phone,
-        alternatePhone: data.primaryContact.alternatePhone ?? null,
-        email: data.primaryContact.email ?? null,
-        alternateEmail: data.primaryContact.alternateEmail ?? null,
-        designation: data.primaryContact.designation ?? null,
-        isPrimary: true,
-        isActive: true,
-      });
-
-      this.logger.log(`Supplier "${result.data.name}" created with primary contact`);
-      return result;
-    });
+    const result = await this.suppliersService.create(data);
+    this.logger.log(`Supplier "${result.data.partyName}" created`);
+    return result;
   }
 
   // Changes supplier currency and reprices all supplier items atomically
-  async changeCurrency(id: string, dto: ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
+  async changeCurrency(id: string, dto: Omit<ChangeSupplierCurrencyDto, 'id'>): Promise<SuccessResponseDto> {
     const supplier = await this.suppliersService.findById(id);
 
     if (supplier.currencyCode === dto.currencyCode) {

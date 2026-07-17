@@ -69,7 +69,6 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
-                disabled: !row.original.canEdit,
                 dialog: {
                   title: 'Edit UOM Conversion',
                   description: `Update the conversion ratio for ${row.original.uomName} (${row.original.uomSymbol}).`,

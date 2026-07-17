@@ -44,14 +44,6 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
   hsnCode: string | null;
 
-  @ApiProperty() hasMrp: boolean;
-
-  @ApiPropertyOptional({ description: 'UOM the MRP is quoted in (the pack)', nullable: true })
-  mrpUomId: string | null;
-
-  @ApiPropertyOptional({ description: 'MRP UOM symbol', nullable: true })
-  mrpUomSymbol: string | null;
-
   @ApiPropertyOptional({ type: () => CurrencyAmountDto, description: 'Default MRP (site currency)', nullable: true })
   defaultMrp: CurrencyAmountDto | null;
 

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -13,6 +14,7 @@ import {
 } from 'class-validator';
 
 export class CreateInvoiceItemDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Line item description', example: 'Basmati Rice 25kg' })
   @IsString()
   @IsNotEmpty()
@@ -47,6 +49,7 @@ export class CreateInvoiceDto {
   @IsNotEmpty()
   type: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Unique invoice number', example: 'INV-2026-001' })
   @IsString()
   @IsNotEmpty()
@@ -63,17 +66,19 @@ export class CreateInvoiceDto {
   @IsUUID()
   partyId?: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Party display name', example: 'Acme Foods Pvt Ltd' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   partyName: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Source reference type', example: 'PURCHASE_ORDER' })
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  referenceType?: string;
+  referenceType?: string | null;
 
   @ApiPropertyOptional({ description: 'Source reference entity ID' })
   @IsOptional()
@@ -91,11 +96,12 @@ export class CreateInvoiceDto {
   @IsString()
   status?: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Payment terms', example: 'Net 30' })
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  paymentTerms?: string;
+  paymentTerms?: string | null;
 
   @ApiPropertyOptional({ description: 'Issue date (YYYY-MM-DD)', example: '2026-04-10' })
   @IsOptional()
@@ -107,10 +113,11 @@ export class CreateInvoiceDto {
   @IsString()
   dueDate?: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Additional notes' })
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 
   @ApiProperty({ description: 'Invoice line items', type: [CreateInvoiceItemDto] })
   @IsArray()

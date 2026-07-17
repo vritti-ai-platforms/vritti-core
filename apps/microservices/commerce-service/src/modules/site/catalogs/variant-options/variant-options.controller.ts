@@ -2,9 +2,10 @@ import type { VariantOptionDto } from '@domain/variant-options/dto/entity/varian
 import { VariantOptionsService } from '@domain/variant-options/services/variant-options.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
-import type { CreateVariantOptionDto } from '../dto/request/create-variant-option.dto';
-import type { UpdateVariantOptionDto } from '../dto/request/update-variant-option.dto';
+import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { CreateVariantOptionDto } from '../root/dto/request/create-variant-option.dto';
+import { SelectVariantOptionsDto } from '../root/dto/request/select-variant-options.dto';
+import { UpdateVariantOptionDto } from '../root/dto/request/update-variant-option.dto';
 
 @Controller()
 export class VariantOptionsController {
@@ -22,9 +23,9 @@ export class VariantOptionsController {
   // Returns variant option select results scoped to a catalog
   @MessagePattern({ cmd: 'site.catalogs.variant-options.select' })
   async variantOptionsSelect(
-    @Payload() data: { catalogId: string } & SelectOptionsQueryDto,
+    @Payload() dto: SelectVariantOptionsDto,
   ): Promise<SelectQueryResult> {
-    const { catalogId, ...query } = data;
+    const { catalogId, ...query } = dto;
     this.logger.log(`catalogs.variant-options.select — catalogId: ${catalogId}`);
     return this.variantOptionsService.findForSelect(catalogId, query);
   }

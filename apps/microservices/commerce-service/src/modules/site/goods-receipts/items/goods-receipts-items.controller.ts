@@ -8,6 +8,9 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import { AddGoodsReceiptItemFromPurchaseOrderItemDto } from './dto/request/add-goods-receipt-item-from-purchase-order-item.dto';
+import { AddGoodsReceiptItemFromSupplierItemDto } from './dto/request/add-goods-receipt-item-from-supplier-item.dto';
+import { UpdateGoodsReceiptItemDto } from './dto/request/update-goods-receipt-item.dto';
 
 @Controller()
 export class GoodsReceiptsItemsController {
@@ -62,19 +65,7 @@ export class GoodsReceiptsItemsController {
 
   @MessagePattern({ cmd: 'site.goodsReceipts.addItemFromSupplierItem' })
   addItemFromSupplierItem(
-    @Payload()
-    data: {
-      goodsReceiptId: string;
-      supplierItemId: string;
-      orderedQty: number;
-      rejectedQuantity?: number;
-      // bigint over NATS is serialized as string by the gateway to dodge JSON precision loss.
-      unitPrice?: string;
-      currencyCode?: string;
-      schemeBuyQty?: number;
-      schemeFreeQty?: number;
-      hasScheme?: boolean;
-    },
+    @Payload() data: AddGoodsReceiptItemFromSupplierItemDto,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromSupplierItem — supplierItem: ${data.supplierItemId}`);
@@ -96,18 +87,7 @@ export class GoodsReceiptsItemsController {
 
   @MessagePattern({ cmd: 'site.goodsReceipts.addItemFromPurchaseOrderItem' })
   addItemFromPurchaseOrderItem(
-    @Payload()
-    data: {
-      goodsReceiptId: string;
-      purchaseOrderItemId: string;
-      orderedQty: number;
-      rejectedQuantity?: number;
-      unitPrice?: string;
-      currencyCode?: string;
-      schemeBuyQty?: number;
-      schemeFreeQty?: number;
-      hasScheme?: boolean;
-    },
+    @Payload() data: AddGoodsReceiptItemFromPurchaseOrderItemDto,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromPurchaseOrderItem — poItem: ${data.purchaseOrderItemId}`);
@@ -128,20 +108,7 @@ export class GoodsReceiptsItemsController {
   }
 
   @MessagePattern({ cmd: 'site.goodsReceipts.updateItem' })
-  updateItem(
-    @Payload()
-    data: {
-      goodsReceiptId: string;
-      itemId: string;
-      orderedQty?: number;
-      rejectedQuantity?: number;
-      unitPrice?: string;
-      currencyCode?: string;
-      schemeBuyQty?: number;
-      schemeFreeQty?: number;
-      hasScheme?: boolean;
-    },
-  ): Promise<SuccessResponseDto> {
+  updateItem(@Payload() data: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.updateItem');
     return this.itemsService.updateItem(data.goodsReceiptId, data.itemId, {
       orderedQty: data.orderedQty,

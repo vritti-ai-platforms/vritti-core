@@ -119,7 +119,7 @@ export const TaxGroupsPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-tax-groups',
+    slug: 'commerce-le-tax-groups',
     label: 'tax group',
     serverState: response,
     enableRowSelection: false,

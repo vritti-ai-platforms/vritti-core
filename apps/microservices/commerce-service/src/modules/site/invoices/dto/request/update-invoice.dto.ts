@@ -1,9 +1,24 @@
-import { IsDateTime } from '@vritti/api-sdk/decorators';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
-import { IsArray, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { CreateInvoiceItemDto } from './create-invoice.dto';
 
 export class UpdateInvoiceDto {
+  @IsUUID()
+  @IsNotEmpty()
+  id: string;
+
   @IsOptional()
   @IsString()
   partyType?: string;
@@ -12,15 +27,17 @@ export class UpdateInvoiceDto {
   @IsUUID()
   partyId?: string;
 
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   partyName?: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  referenceType?: string;
+  referenceType?: string | null;
 
   @IsOptional()
   @IsUUID()
@@ -35,22 +52,24 @@ export class UpdateInvoiceDto {
   @IsString()
   status?: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  paymentTerms?: string;
+  paymentTerms?: string | null;
 
   @IsOptional()
-  @IsDateTime()
+  @IsDateString()
   issuedDate?: string;
 
   @IsOptional()
-  @IsDateTime()
+  @IsDateString()
   dueDate?: string;
 
+  @Trim()
   @IsOptional()
   @IsString()
-  notes?: string;
+  notes?: string | null;
 
   @IsOptional()
   @IsArray()

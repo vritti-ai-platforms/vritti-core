@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
@@ -13,6 +14,7 @@ export class CreateStockAdjustmentDto {
   @IsNotEmpty()
   type: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Reason for adjustment' })
   @IsString()
   @IsNotEmpty()

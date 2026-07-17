@@ -1,7 +1,10 @@
 import { IsCode } from '@vritti/api-sdk/decorators';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateUomDimensionDto {
+  @IsUUID()
+  id: string;
+
   @IsOptional()
   @IsString()
   @MinLength(1)

@@ -4,7 +4,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SearchState, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
-import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
+import { CreateGoodsReceiptDto } from './dto/request/create-goods-receipt.dto';
 import { GoodsReceiptsPublishService } from './services/goods-receipts-publish.service';
 
 @Controller()

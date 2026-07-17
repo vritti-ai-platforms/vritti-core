@@ -9,8 +9,8 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CreateUomDto } from './dto/request/create-uom.dto';
-import type { UpdateUomDto } from './dto/request/update-uom.dto';
+import { CreateUomDto } from './dto/request/create-uom.dto';
+import { UpdateUomDto } from './dto/request/update-uom.dto';
 
 @Controller()
 export class UomController {
@@ -72,8 +72,8 @@ export class UomController {
 
   // Updates a UOM by ID
   @MessagePattern({ cmd: 'org.uom.update' })
-  async update(@Payload() data: { id: string } & UpdateUomDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = data;
+  async update(@Payload() dto: UpdateUomDto): Promise<SuccessResponseDto> {
+    const { id, ...updateData } = dto;
     this.logger.log(`uom.update — id: ${id}`);
     if (updateData.dimensionId) {
       await this.assertDimensionExists(updateData.dimensionId);

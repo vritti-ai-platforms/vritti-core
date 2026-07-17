@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { Type } from 'class-transformer';
 import {
@@ -48,8 +49,14 @@ export class CreateVariantDto {
   @IsBoolean()
   isAvailable?: boolean;
 
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'SKU code (auto-derived when omitted)' })
   @IsOptional()
   @IsString()
   sku?: string;
+
+  @ApiPropertyOptional({ description: 'Tax class override; falls back to the item/category default when omitted' })
+  @IsOptional()
+  @IsUUID()
+  taxClassId?: string;
 }

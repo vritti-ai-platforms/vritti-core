@@ -12,11 +12,8 @@ import { BulkSetSupplierItemSchemeDto } from './dto/request/bulk-set-supplier-it
 import { BulkUnlinkSupplierItemsDto } from './dto/request/bulk-unlink-supplier-items.dto';
 import { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
 import { CreateSupplierDto } from './dto/request/create-supplier.dto';
-import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
-import { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
 import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
-import type { SupplierContactResponseDto } from './dto/response/supplier-contact-response.dto';
 import type { SupplierItemResponseDto } from './dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from './dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from './dto/response/supplier-response.dto';
@@ -77,13 +74,6 @@ export class SuppliersGatewayController {
   getSupplierItemIds(@Param('id') supplierId: string): Promise<string[]> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/items/ids`);
     return this.suppliersGatewayService.findItemIds(supplierId);
-  }
-
-  // Returns contacts for a supplier
-  @Get(':id/contacts')
-  getSupplierContacts(@Param('id') supplierId: string): Promise<SupplierContactResponseDto[]> {
-    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/contacts`);
-    return this.suppliersGatewayService.findContacts(supplierId);
   }
 
   // Returns a single supplier by ID
@@ -174,42 +164,4 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.bulkUnlinkItems(supplierId, dto);
   }
 
-  // Adds a contact to a supplier
-  @Post(':id/contacts')
-  @HttpCode(HttpStatus.CREATED)
-  addContact(
-    @Param('id') supplierId: string,
-    @Body() dto: CreateSupplierContactDto,
-  ): Promise<CreateResponseDto<SupplierContactResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/contacts`);
-    return this.suppliersGatewayService.addContact(supplierId, dto);
-  }
-
-  // Updates a supplier contact
-  @Patch(':id/contacts/:contactId')
-  updateContact(
-    @Param('id') supplierId: string,
-    @Param('contactId') contactId: string,
-    @Body() dto: UpdateSupplierContactDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/contacts/${contactId}`);
-    return this.suppliersGatewayService.updateContact(supplierId, contactId, dto);
-  }
-
-  // Deletes a supplier contact
-  @Delete(':id/contacts/:contactId')
-  deleteContact(@Param('id') supplierId: string, @Param('contactId') contactId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/suppliers/${supplierId}/contacts/${contactId}`);
-    return this.suppliersGatewayService.deleteContact(supplierId, contactId);
-  }
-
-  // Marks a supplier contact as primary
-  @Post(':id/contacts/:contactId/mark-primary')
-  markPrimaryContact(
-    @Param('id') supplierId: string,
-    @Param('contactId') contactId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/contacts/${contactId}/mark-primary`);
-    return this.suppliersGatewayService.markPrimaryContact(supplierId, contactId);
-  }
 }

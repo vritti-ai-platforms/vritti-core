@@ -6,8 +6,8 @@ import {
   CreateResponseDto,
   type SuccessResponseDto,
 } from '@vritti/api-sdk/database';
-import type { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
-import type { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
+import { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
+import { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
 
 @Controller()
 export class UomDimensionsController {
@@ -45,8 +45,8 @@ export class UomDimensionsController {
 
   // Updates a UOM dimension by ID
   @MessagePattern({ cmd: 'org.uom.dimensions.update' })
-  async update(@Payload() data: { id: string } & UpdateUomDimensionDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = data;
+  async update(@Payload() dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
+    const { id, ...updateData } = dto;
     this.logger.log(`uom.dimensions.update — id: ${id}`);
     return this.service.update(id, updateData);
   }

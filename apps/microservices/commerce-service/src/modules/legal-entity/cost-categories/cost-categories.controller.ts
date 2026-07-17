@@ -7,8 +7,8 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CreateCostCategoryDto } from './dto/request/create-cost-category.dto';
-import type { UpdateCostCategoryDto } from './dto/request/update-cost-category.dto';
+import { CreateCostCategoryDto } from './dto/request/create-cost-category.dto';
+import { UpdateCostCategoryDto } from './dto/request/update-cost-category.dto';
 
 @Controller()
 export class CostCategoriesController {
@@ -41,8 +41,8 @@ export class CostCategoriesController {
   }
 
   @MessagePattern({ cmd: 'le.costCategories.update' })
-  async update(@Payload() data: { id: string } & UpdateCostCategoryDto): Promise<SuccessResponseDto> {
-    const { id, ...payload } = data;
+  async update(@Payload() dto: UpdateCostCategoryDto): Promise<SuccessResponseDto> {
+    const { id, ...payload } = dto;
     this.logger.log('costCategories.update');
     return this.service.update(id, payload);
   }

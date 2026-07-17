@@ -3,9 +3,9 @@ import * as schema from './index';
 
 export const relations = defineRelations(schema, (r) => ({
   categories: {
-    defaultTaxGroup: r.one.taxGroups({
-      from: r.categories.defaultTaxGroupId,
-      to: r.taxGroups.id,
+    defaultTaxClass: r.one.taxClasses({
+      from: r.categories.defaultTaxClassId,
+      to: r.taxClasses.id,
     }),
     inventoryItems: r.many.inventoryItems(),
   },
@@ -96,7 +96,6 @@ export const relations = defineRelations(schema, (r) => ({
   taxGroups: {
     taxRates: r.many.taxRates(),
     offerings: r.many.offerings(),
-    categories: r.many.categories(),
   },
   taxRates: {
     taxGroup: r.one.taxGroups({
@@ -207,16 +206,40 @@ export const relations = defineRelations(schema, (r) => ({
     }),
   },
   suppliers: {
-    supplierContacts: r.many.supplierContacts(),
+    party: r.one.parties({
+      from: r.suppliers.partyId,
+      to: r.parties.id,
+    }),
     supplierItems: r.many.supplierItems(),
     purchaseOrders: r.many.purchaseOrders(),
     goodsReceipts: r.many.goodsReceipts(),
     inventoryItemQuants: r.many.inventoryItemQuants(),
   },
-  supplierContacts: {
-    supplier: r.one.suppliers({
-      from: r.supplierContacts.supplierId,
-      to: r.suppliers.id,
+  parties: {
+    jurisdiction: r.one.taxJurisdictions({
+      from: r.parties.jurisdictionId,
+      to: r.taxJurisdictions.id,
+    }),
+    taxRegistrations: r.many.partyTaxRegistrations(),
+  },
+  partyRelationships: {
+    parentParty: r.one.parties({
+      from: r.partyRelationships.parentPartyId,
+      to: r.parties.id,
+    }),
+    childParty: r.one.parties({
+      from: r.partyRelationships.childPartyId,
+      to: r.parties.id,
+    }),
+  },
+  partyTaxRegistrations: {
+    party: r.one.parties({
+      from: r.partyTaxRegistrations.partyId,
+      to: r.parties.id,
+    }),
+    jurisdiction: r.one.taxJurisdictions({
+      from: r.partyTaxRegistrations.jurisdictionId,
+      to: r.taxJurisdictions.id,
     }),
   },
   supplierItems: {

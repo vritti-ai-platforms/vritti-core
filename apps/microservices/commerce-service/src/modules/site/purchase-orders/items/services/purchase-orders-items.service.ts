@@ -15,8 +15,8 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
-import type { AddPurchaseOrderItemDto } from '@/modules/site/purchase-orders/dto/request/add-purchase-order-item.dto';
-import type { UpdatePurchaseOrderItemDto } from '@/modules/site/purchase-orders/dto/request/update-purchase-order-item.dto';
+import type { AddPurchaseOrderItemDto } from '@/modules/site/purchase-orders/root/dto/request/add-purchase-order-item.dto';
+import type { UpdatePurchaseOrderItemDto } from '@/modules/site/purchase-orders/root/dto/request/update-purchase-order-item.dto';
 
 @Injectable()
 export class PurchaseOrdersItemsService {

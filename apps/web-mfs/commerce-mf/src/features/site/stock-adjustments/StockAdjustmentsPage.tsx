@@ -91,7 +91,7 @@ export const StockAdjustmentsPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-stock-adjustments',
+    slug: 'commerce-site-stock-adjustments',
     label: 'stock adjustment',
     serverState: response,
     enableRowSelection: false,

@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { type MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { RpcProblemExceptionFilter } from '@vritti/api-sdk/nats';
@@ -15,6 +16,13 @@ async function bootstrap() {
     },
   });
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
   app.useGlobalFilters(new RpcProblemExceptionFilter());
 
   await app.listen();

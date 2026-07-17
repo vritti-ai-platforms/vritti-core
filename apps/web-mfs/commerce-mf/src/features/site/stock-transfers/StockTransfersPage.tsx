@@ -102,7 +102,7 @@ export const StockTransfersPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-stock-transfers',
+    slug: 'commerce-site-stock-transfers',
     label: 'stock transfer',
     serverState: response,
     enableRowSelection: false,

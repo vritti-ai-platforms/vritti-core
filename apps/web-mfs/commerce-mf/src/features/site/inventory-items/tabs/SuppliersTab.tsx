@@ -87,7 +87,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ inventoryItemId }) =
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `commerce-inventory-item-${inventoryItemId}-suppliers`,
+    slug: `commerce-site-inventory-item-${inventoryItemId}-suppliers`,
     label: 'supplier',
     enableRowSelection: false,
     enableSorting: true,

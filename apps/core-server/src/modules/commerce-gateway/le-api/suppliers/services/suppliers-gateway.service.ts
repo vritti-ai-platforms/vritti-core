@@ -9,11 +9,8 @@ import type { BulkSetSupplierItemSchemeDto } from '../dto/request/bulk-set-suppl
 import type { BulkUnlinkSupplierItemsDto } from '../dto/request/bulk-unlink-supplier-items.dto';
 import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
-import type { CreateSupplierContactDto } from '../dto/request/create-supplier-contact.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
-import type { UpdateSupplierContactDto } from '../dto/request/update-supplier-contact.dto';
 import type { UpdateSupplierItemDto } from '../dto/request/update-supplier-item.dto';
-import type { SupplierContactResponseDto } from '../dto/response/supplier-contact-response.dto';
 import type { SupplierItemResponseDto } from '../dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from '../dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from '../dto/response/supplier-response.dto';
@@ -31,7 +28,7 @@ export class SuppliersGatewayService {
   // Returns paginated, filtered, and sorted suppliers for the data table
   async findForTable(userId: string): Promise<SupplierTableResponseDto> {
     this.logger.log('le.suppliers.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-suppliers');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-le-suppliers');
 
     const { result, count } = await this.nats.send<{ result: SupplierResponseDto[]; count: number }>(
       'commerce',
@@ -44,7 +41,7 @@ export class SuppliersGatewayService {
 
   // Creates a new supplier
   async create(dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierResponseDto>> {
-    this.logger.log(`le.suppliers.create — name: ${dto.name}, code: ${dto.code}`);
+    this.logger.log(`le.suppliers.create — partyId: ${dto.partyId}, code: ${dto.code}`);
     return this.nats.send('commerce', 'le.suppliers.create', dto);
   }
 
@@ -75,12 +72,6 @@ export class SuppliersGatewayService {
   async findItemIds(supplierId: string): Promise<string[]> {
     this.logger.log('le.suppliers.itemIds');
     return this.nats.send('commerce', 'le.suppliers.itemIds', { supplierId });
-  }
-
-  // Returns supplier contacts
-  async findContacts(supplierId: string): Promise<SupplierContactResponseDto[]> {
-    this.logger.log('le.suppliers.contacts');
-    return this.nats.send('commerce', 'le.suppliers.contacts', { supplierId });
   }
 
   // Updates a supplier by ID
@@ -152,37 +143,6 @@ export class SuppliersGatewayService {
       supplierItemIds: dto.supplierItemIds,
       isPreferred: dto.isPreferred,
     });
-  }
-
-  // Adds a contact to a supplier
-  async addContact(
-    supplierId: string,
-    dto: CreateSupplierContactDto,
-  ): Promise<CreateResponseDto<SupplierContactResponseDto>> {
-    this.logger.log('le.suppliers.addContact');
-    return this.nats.send('commerce', 'le.suppliers.addContact', { supplierId, ...dto });
-  }
-
-  // Updates a supplier contact
-  async updateContact(
-    supplierId: string,
-    contactId: string,
-    dto: UpdateSupplierContactDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log('le.suppliers.updateContact');
-    return this.nats.send('commerce', 'le.suppliers.updateContact', { supplierId, contactId, ...dto });
-  }
-
-  // Deletes a supplier contact
-  async deleteContact(supplierId: string, contactId: string): Promise<SuccessResponseDto> {
-    this.logger.log('le.suppliers.deleteContact');
-    return this.nats.send('commerce', 'le.suppliers.deleteContact', { supplierId, contactId });
-  }
-
-  // Marks a supplier contact as primary
-  async markPrimaryContact(supplierId: string, contactId: string): Promise<SuccessResponseDto> {
-    this.logger.log('le.suppliers.markPrimaryContact');
-    return this.nats.send('commerce', 'le.suppliers.markPrimaryContact', { supplierId, contactId });
   }
 
   // Returns the unit price for a supplier-item pair

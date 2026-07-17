@@ -1,8 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class AddStockAdjustmentLotDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Lot number (must not already exist on inventory_item_lots)' })
   @IsString()
   @IsNotEmpty()

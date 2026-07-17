@@ -1,9 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { type CategoryRole, CategoryRoleValues } from '../../constants/category-role.constants';
 
 export class UpdateCategoryDto {
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Updated category name' })
   @IsOptional()
   @IsString()
@@ -34,8 +36,8 @@ export class UpdateCategoryDto {
   @IsBoolean()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ description: 'Updated default tax group for items in this category', nullable: true })
+  @ApiPropertyOptional({ description: 'Updated default tax class applied to items in this category' })
   @IsOptional()
   @IsUUID()
-  defaultTaxGroupId?: string | null;
+  defaultTaxClassId?: string;
 }

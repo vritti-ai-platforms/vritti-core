@@ -3,8 +3,8 @@ import { StockTransfersService } from '@domain/stock-transfers/services/stock-tr
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
-import type { CreateStockTransferDto } from './dto/request/create-stock-transfer.dto';
-import type { UpdateStockTransferStatusDto } from './dto/request/update-stock-transfer-status.dto';
+import { CreateStockTransferDto } from './dto/request/create-stock-transfer.dto';
+import { UpdateStockTransferStatusDto } from './dto/request/update-stock-transfer-status.dto';
 import { StockTransfersRootService } from './services/stock-transfers-root.service';
 
 @Controller()
@@ -30,9 +30,9 @@ export class StockTransfersController {
 
   @MessagePattern({ cmd: 'site.stockTransfers.updateStatus' })
   async updateStatus(
-    @Payload() data: { id: string } & UpdateStockTransferStatusDto,
+    @Payload() dto: UpdateStockTransferStatusDto,
   ): Promise<{ success: boolean; message: string }> {
-    const { id, ...statusData } = data;
+    const { id, ...statusData } = dto;
     this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${statusData.status}`);
     return this.rootService.updateStatus(id, statusData);
   }

@@ -48,6 +48,7 @@ export class OfferingVariantDto {
   components: VariantComponentDto[];
   sortOrder: number;
   optionValueIds: string[];
+  taxClassId: string | null;
   createdAt: string;
   updatedAt: string;
 
@@ -68,6 +69,7 @@ export class OfferingVariantDto {
     dto.components = components;
     dto.sortOrder = entity.sortOrder;
     dto.optionValueIds = optionValueIds;
+    dto.taxClassId = entity.taxClassId ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

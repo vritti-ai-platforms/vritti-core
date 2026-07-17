@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SiteDomainModule } from '@/modules/domain/site/site.module';
 import { UserDomainModule } from '@/modules/domain/user/user.module';
+import { CompaniesGatewayController } from './org-api/companies/companies-gateway.controller';
+import { CompaniesGatewayService } from './org-api/companies/services/companies-gateway.service';
+import { PeopleGatewayController } from './org-api/people/people-gateway.controller';
+import { PeopleGatewayService } from './org-api/people/services/people-gateway.service';
 import { CostCategoriesGatewayController } from './le-api/cost-categories/cost-categories-gateway.controller';
 import { CostCategoriesResolver } from './le-api/cost-categories/cost-categories-gateway.resolver';
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
@@ -17,6 +21,12 @@ import { InventoryItemsGatewayController as OrgInventoryItemsGatewayController }
 import { InventoryItemsGatewayService as OrgInventoryItemsGatewayService } from './org-api/inventory-items/services/inventory-items-gateway.service';
 import { SalesChannelsGatewayController } from './org-api/sales-channels/sales-channels-gateway.controller';
 import { SalesChannelsGatewayService } from './org-api/sales-channels/services/sales-channels-gateway.service';
+import { TaxClassesGatewayService } from './org-api/tax-classes/services/tax-classes-gateway.service';
+import { TaxClassesGatewayController } from './org-api/tax-classes/tax-classes-gateway.controller';
+import { TaxComponentsGatewayService } from './org-api/tax-components/services/tax-components-gateway.service';
+import { TaxComponentsGatewayController } from './org-api/tax-components/tax-components-gateway.controller';
+import { TaxJurisdictionsGatewayService } from './org-api/tax-jurisdictions/services/tax-jurisdictions-gateway.service';
+import { TaxJurisdictionsGatewayController } from './org-api/tax-jurisdictions/tax-jurisdictions-gateway.controller';
 import { UomResolver } from './org-api/uom/uom-gateway.resolver';
 import { UomGatewayService } from './org-api/uom/services/uom-gateway.service';
 import { UomGatewayController } from './org-api/uom/uom-gateway.controller';
@@ -85,6 +95,11 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     SupplierItemsGatewayController,
     OrgInventoryItemsGatewayController,
     SiteGroupInventoryItemsGatewayController,
+    PeopleGatewayController,
+    CompaniesGatewayController,
+    TaxClassesGatewayController,
+    TaxComponentsGatewayController,
+    TaxJurisdictionsGatewayController,
     TaxGroupsGatewayController,
     UomGatewayController,
     SelectApiController,
@@ -111,6 +126,11 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     SupplierItemsGatewayService,
     OrgInventoryItemsGatewayService,
     SiteGroupInventoryItemsGatewayService,
+    PeopleGatewayService,
+    CompaniesGatewayService,
+    TaxClassesGatewayService,
+    TaxComponentsGatewayService,
+    TaxJurisdictionsGatewayService,
     TaxGroupsGatewayService,
     UomGatewayService,
     // Mobile GraphQL resolvers (MOBILE-only @RequireSession; thin forwards to the gateway services above)

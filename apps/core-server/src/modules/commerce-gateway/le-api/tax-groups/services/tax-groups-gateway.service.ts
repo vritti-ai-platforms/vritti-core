@@ -24,7 +24,7 @@ export class TaxGroupsGatewayService {
   // Returns a paginated page of tax groups for the data table (Redis-backed view state)
   async findForTable(userId: string): Promise<TaxGroupTableResponseDto> {
     this.logger.log('le.taxGroups.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-tax-groups');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-le-tax-groups');
     const { result, count } = await this.nats.send<{ result: TaxGroupResponseDto[]; count: number }>(
       'commerce',
       'le.taxGroups.table',

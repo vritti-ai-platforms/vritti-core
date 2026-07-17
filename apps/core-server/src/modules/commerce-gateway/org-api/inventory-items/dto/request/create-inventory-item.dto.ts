@@ -1,38 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsCode } from '@vritti/api-sdk/decorators';
-import { Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUUID,
-  MaxLength,
-  Min,
-  ValidateNested,
-} from 'class-validator';
-
-export class MrpUomConversionDto {
-  @ApiProperty({ description: 'Primary units in one MRP unit', example: 10 })
-  @IsInt()
-  @Min(1)
-  primaryUomQty: number;
-
-  @ApiProperty({ description: 'MRP units (always 1 for a pack)', example: 1 })
-  @IsInt()
-  @Min(1)
-  uomQty: number;
-}
+import { IsCode, Trim } from '@vritti/api-sdk/decorators';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateInventoryItemDto {
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Item name', example: 'Basmati Rice' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   name: string;
 
+  @Trim({ nullify: false })
   @ApiProperty({ description: 'Item code', example: 'RAW-RICE-BAS' })
   @IsString()
   @IsNotEmpty()
@@ -68,38 +46,25 @@ export class CreateInventoryItemDto {
   @IsUUID()
   categoryId: string;
 
+  @Trim()
   @ApiPropertyOptional({ description: 'Description' })
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  description?: string;
+  description?: string | null;
 
   @ApiProperty({ description: 'Unit of measure ID' })
   @IsUUID()
   uomId: string;
 
+  @ApiProperty({ description: 'Tax classification (prefilled from the category default; required)' })
+  @IsUUID()
+  taxClassId: string;
+
+  @Trim()
   @ApiPropertyOptional({ description: 'HSN code for tax reporting' })
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  hsnCode?: string;
-
-  @ApiPropertyOptional({ description: 'Whether this item is MRP-governed' })
-  @IsOptional()
-  @IsBoolean()
-  hasMrp?: boolean;
-
-  @ApiPropertyOptional({ description: 'UOM the MRP is quoted in (the pack); required when hasMrp.' })
-  @IsOptional()
-  @IsUUID()
-  mrpUomId?: string;
-
-  @ApiPropertyOptional({
-    type: MrpUomConversionDto,
-    description: 'Bridge when the MRP unit is not derivable from primary',
-  })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => MrpUomConversionDto)
-  mrpUomConversion?: MrpUomConversionDto;
+  hsnCode?: string | null;
 }

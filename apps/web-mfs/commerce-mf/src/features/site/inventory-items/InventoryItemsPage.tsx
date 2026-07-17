@@ -85,7 +85,7 @@ export const InventoryItemsPage = () => {
 
   const { table } = useDataTable({
     columns,
-    slug: 'commerce-inventory-items',
+    slug: 'commerce-site-inventory-items',
     label: 'inventory item',
     serverState: response,
     enableRowSelection: false,

@@ -143,7 +143,7 @@ export class OrdersService {
   }
 
   // Transitions order to a new status with validation
-  async updateStatus(id: string, data: UpdateOrderStatusDto): Promise<OrderDto> {
+  async updateStatus(id: string, data: Omit<UpdateOrderStatusDto, 'id'>): Promise<OrderDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Order not found.');
 

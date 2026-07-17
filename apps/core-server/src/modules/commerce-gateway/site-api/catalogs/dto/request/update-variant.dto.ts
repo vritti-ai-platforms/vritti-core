@@ -1,15 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { VariantComponentInput } from './create-variant.dto';
 
 export class UpdateVariantDto {
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Updated SKU' })
   @IsOptional()
   @IsString()
   sku?: string;
 
+  @Trim({ nullify: false })
   @ApiPropertyOptional({ description: 'Updated variant name' })
   @IsOptional()
   @IsString()
@@ -43,4 +46,9 @@ export class UpdateVariantDto {
   @IsNumber()
   @Min(0)
   sortOrder?: number;
+
+  @ApiPropertyOptional({ description: 'Tax class override; falls back to the item/category default when omitted', nullable: true })
+  @IsOptional()
+  @IsUUID()
+  taxClassId?: string | null;
 }

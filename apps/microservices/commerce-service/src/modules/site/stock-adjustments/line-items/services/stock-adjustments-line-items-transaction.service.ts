@@ -39,7 +39,7 @@ export class StockAdjustmentsLineItemsTransactionService {
       });
     }
 
-    const trimmed = data.serialNumber?.trim();
+    const trimmed = data.serialNumber;
     if (trimmed) {
       await this.validateSerialForIntent(adjustment, line, trimmed);
     }
@@ -59,7 +59,7 @@ export class StockAdjustmentsLineItemsTransactionService {
   }): Promise<SuccessResponseDto> {
     const { line, adjustment } = await this.getLineContext(data.adjustmentId, data.lineId);
 
-    const trimmed = data.serialNumber?.trim();
+    const trimmed = data.serialNumber;
     if (trimmed) {
       await this.validateSerialForIntent(adjustment, line, trimmed);
     }
