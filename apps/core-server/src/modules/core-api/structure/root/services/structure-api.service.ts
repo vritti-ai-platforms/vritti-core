@@ -1,18 +1,18 @@
-import { LegalEntityService } from '@domain/legal-entity/services/legal-entity.service';
-import { OrganizationService } from '@domain/organization/services/organization.service';
-import { SiteService } from '@domain/site/services/site.service';
-import { SiteGroupService } from '@domain/site-group/services/site-group.service';
+import { LegalEntityDomainService } from '@domain/legal-entity/services/legal-entity.service';
+import { OrganizationDomainService } from '@domain/organization/services/organization.service';
+import { SiteDomainService } from '@domain/site/services/site.service';
+import { SiteGroupDomainService } from '@domain/site-group/services/site-group.service';
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { StructureResponseDto } from '../../dto/response/structure-response.dto';
 
 @Injectable()
-export class StructureApiService {
+export class StructureService {
   constructor(
-    private readonly organizationService: OrganizationService,
-    private readonly legalEntityService: LegalEntityService,
-    private readonly siteService: SiteService,
-    private readonly siteGroupService: SiteGroupService,
+    private readonly organizationService: OrganizationDomainService,
+    private readonly legalEntityService: LegalEntityDomainService,
+    private readonly siteService: SiteDomainService,
+    private readonly siteGroupService: SiteGroupDomainService,
   ) {}
 
   // Returns the organization structure aggregate

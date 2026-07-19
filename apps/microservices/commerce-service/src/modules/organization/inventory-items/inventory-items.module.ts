@@ -8,9 +8,10 @@ import { Module } from '@nestjs/common';
 import { InventoryItemsMrpController } from './mrp/inventory-items-mrp.controller';
 import { InventoryItemsMrpService } from './mrp/services/inventory-items-mrp.service';
 import { InventoryItemsRootController } from './root/inventory-items-root.controller';
-import { InventoryItemsRootService } from './root/services/inventory-items-root.service';
+import { OrgInventoryItemsService } from './root/services/inventory-items-root.service';
 import { InventoryItemsSuppliersController } from './suppliers/inventory-items-suppliers.controller';
 import { InventoryItemsUomConversionsController } from './uom-conversions/inventory-items-uom-conversions.controller';
+import { InventoryItemsUomConversionsService } from './uom-conversions/services/inventory-items-uom-conversions.service';
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
     InventoryItemsMrpController,
     InventoryItemsSuppliersController,
   ],
-  providers: [InventoryItemsRootService, InventoryItemsMrpService],
+  providers: [OrgInventoryItemsService, InventoryItemsMrpService, InventoryItemsUomConversionsService],
 })
 export class OrgInventoryItemsModule {}

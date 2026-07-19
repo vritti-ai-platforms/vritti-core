@@ -4,7 +4,7 @@ import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { type InventoryItemSite, inventoryItemSites } from '@/db/schema';
 
 @Injectable()
-export class InventoryItemSitesRepository extends PrimaryBaseRepository<typeof inventoryItemSites> {
+export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<typeof inventoryItemSites> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemSites);
   }

@@ -1,5 +1,5 @@
 import type { InventoryItemQuantDto } from '@domain/inventory-item-quants/dto/entity/inventory-item-quant.dto';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
@@ -10,7 +10,7 @@ export class InventoryItemsQuantsController {
   private readonly logger = new Logger(InventoryItemsQuantsController.name);
 
   constructor(
-    private readonly service: InventoryItemQuantsService,
+    private readonly service: InventoryItemQuantsDomainService,
     private readonly itemsQuantsService: InventoryItemsQuantsService,
   ) {}
 
@@ -36,5 +36,4 @@ export class InventoryItemsQuantsController {
     this.logger.log(`inventoryItems.findQuantById — id: ${data.id}`);
     return this.service.findQuantById(data.id);
   }
-
 }

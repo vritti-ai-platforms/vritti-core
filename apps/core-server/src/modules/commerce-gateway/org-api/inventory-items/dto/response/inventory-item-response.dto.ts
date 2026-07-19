@@ -34,7 +34,10 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ nullable: true })
   uomSymbol: string | null;
 
-  @ApiPropertyOptional({ description: 'Tax class override, or null when inheriting the category default', nullable: true })
+  @ApiPropertyOptional({
+    description: 'Tax class override, or null when inheriting the category default',
+    nullable: true,
+  })
   taxClassId: string | null;
 
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })

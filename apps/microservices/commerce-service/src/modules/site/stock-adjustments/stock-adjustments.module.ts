@@ -14,7 +14,7 @@ import { StockAdjustmentsLinesService } from './lines/services/stock-adjustments
 import { StockAdjustmentsLinesController } from './lines/stock-adjustments-lines.controller';
 import { StockAdjustmentsLotsService } from './lots/services/stock-adjustments-lots.service';
 import { StockAdjustmentsLotsController } from './lots/stock-adjustments-lots.controller';
-import { StockAdjustmentsRootService } from './root/services/stock-adjustments-root.service';
+import { StockAdjustmentsService } from './root/services/stock-adjustments-root.service';
 import { StockAdjustmentsRootController } from './root/stock-adjustments-root.controller';
 
 @Module({
@@ -36,7 +36,7 @@ import { StockAdjustmentsRootController } from './root/stock-adjustments-root.co
     StockAdjustmentsLineItemsController,
   ],
   providers: [
-    StockAdjustmentsRootService,
+    StockAdjustmentsService,
     StockAdjustmentsLotsService,
     StockAdjustmentsLinesService,
     StockAdjustmentsLineItemsTransactionService,

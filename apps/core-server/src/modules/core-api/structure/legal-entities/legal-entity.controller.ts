@@ -40,7 +40,7 @@ import {
   ApiSetLegalEntityLocks,
   ApiUpdateLegalEntity,
 } from './docs/legal-entity.docs';
-import { LegalEntityApiService } from './services/legal-entity-api.service';
+import { LegalEntityService } from './services/legal-entity-api.service';
 
 @ApiTags('Legal Entities')
 @Controller('legal-entities/internal')
@@ -51,7 +51,7 @@ import { LegalEntityApiService } from './services/legal-entity-api.service';
 export class LegalEntityController {
   private readonly logger = new Logger(LegalEntityController.name);
 
-  constructor(private readonly legalEntityApiService: LegalEntityApiService) {}
+  constructor(private readonly legalEntityApiService: LegalEntityService) {}
 
   // Creates a new legal entity for an organization
   @Post()

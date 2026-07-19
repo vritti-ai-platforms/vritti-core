@@ -1,5 +1,5 @@
 import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
-import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
+import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
@@ -8,7 +8,7 @@ import type { TableViewState } from '@vritti/api-sdk/database';
 export class PurchaseOrdersGoodsReceiptsController {
   private readonly logger = new Logger(PurchaseOrdersGoodsReceiptsController.name);
 
-  constructor(private readonly goodsReceiptsService: GoodsReceiptsService) {}
+  constructor(private readonly goodsReceiptsService: GoodsReceiptsDomainService) {}
 
   @MessagePattern({ cmd: 'site.purchaseOrders.goodsReceipts' })
   goodsReceipts(

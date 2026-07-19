@@ -18,7 +18,7 @@ export interface UomRow {
 }
 
 @Injectable()
-export class UomConversionsRepository extends PrimaryBaseRepository<typeof inventoryItemUomConversions> {
+export class UomConversionsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemUomConversions> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemUomConversions);
   }

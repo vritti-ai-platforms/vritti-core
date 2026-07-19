@@ -1,6 +1,6 @@
-import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
-import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
-import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
+import { PurchaseOrderItemsDomainRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
+import { SupplierItemsDomainRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
@@ -20,12 +20,12 @@ type FreeScheme = { buyQty: number | null; freeQty: number | null; hasScheme: bo
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
 import { GoodsReceiptItemsCostDto } from '../dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
-import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
-import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
+import { GoodsReceiptItemsDomainRepository } from '../repositories/goods-receipt-items.repository';
+import { GoodsReceiptsDomainRepository } from '../repositories/goods-receipts.repository';
 
 @Injectable()
-export class GoodsReceiptItemsService {
-  private readonly logger = new Logger(GoodsReceiptItemsService.name);
+export class GoodsReceiptItemsDomainService {
+  private readonly logger = new Logger(GoodsReceiptItemsDomainService.name);
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     inventoryItemName: { column: inventoryItems.name, type: 'string' },
@@ -36,11 +36,11 @@ export class GoodsReceiptItemsService {
   };
 
   constructor(
-    private readonly receiptsRepository: GoodsReceiptsRepository,
-    private readonly itemsRepository: GoodsReceiptItemsRepository,
-    private readonly poItemsRepository: PurchaseOrderItemsRepository,
-    private readonly supplierItemsRepository: SupplierItemsRepository,
-    private readonly uomConversionsService: UomConversionsService,
+    private readonly receiptsRepository: GoodsReceiptsDomainRepository,
+    private readonly itemsRepository: GoodsReceiptItemsDomainRepository,
+    private readonly poItemsRepository: PurchaseOrderItemsDomainRepository,
+    private readonly supplierItemsRepository: SupplierItemsDomainRepository,
+    private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
   // Converts a unit price from the GR-item's UOM to the inventory item's primary UOM
@@ -77,16 +77,16 @@ export class GoodsReceiptItemsService {
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     await this.ensureReceiptExists(goodsReceiptId);
 
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptItemsService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptItemsService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptItemsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptItemsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.itemsRepository.findForTable(goodsReceiptId, {
       where,
       orderBy: FilterProcessor.buildOrderBy(state.sort, {
-        ...GoodsReceiptItemsService.SEARCH_FIELD_MAP,
-        ...GoodsReceiptItemsService.FILTER_FIELD_MAP,
+        ...GoodsReceiptItemsDomainService.SEARCH_FIELD_MAP,
+        ...GoodsReceiptItemsDomainService.FILTER_FIELD_MAP,
       }),
       limit,
       offset,

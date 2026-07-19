@@ -12,7 +12,7 @@ import {
 import { StockAdjustmentLotDto } from '../dto/entity/stock-adjustment-lot.dto';
 import { StockAdjustmentLotDetailDto } from '../dto/entity/stock-adjustment-lot-detail.dto';
 import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
-import { StockAdjustmentLotsRepository } from '../repositories/stock-adjustment-lots.repository';
+import { StockAdjustmentLotsDomainRepository } from '../repositories/stock-adjustment-lots.repository';
 
 // Minimal adjustment shape required by write methods — passed in from app-layer
 interface AdjustmentContext {
@@ -23,10 +23,10 @@ interface AdjustmentContext {
 }
 
 @Injectable()
-export class StockAdjustmentLotsService {
-  private readonly logger = new Logger(StockAdjustmentLotsService.name);
+export class StockAdjustmentLotsDomainService {
+  private readonly logger = new Logger(StockAdjustmentLotsDomainService.name);
 
-  constructor(private readonly repository: StockAdjustmentLotsRepository) {}
+  constructor(private readonly repository: StockAdjustmentLotsDomainRepository) {}
 
   // Lists all lots for an adjustment — existence check is the app-layer's responsibility
   async listByAdjustment(adjustmentId: string): Promise<StockAdjustmentLotDto[]> {

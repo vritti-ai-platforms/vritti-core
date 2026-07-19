@@ -1,4 +1,7 @@
-import { OrganizationService } from '@domain/organization/services/organization.service';
+import { CreateOrganizationInternalDto } from '@domain/organization/dto/request/create-organization-internal.dto';
+import { ReceiveEntitlementInternalDto } from '@domain/organization/dto/request/receive-entitlement-internal.dto';
+import { UpdateOrganizationInternalDto } from '@domain/organization/dto/request/update-organization-internal.dto';
+import { OrganizationDomainService } from '@domain/organization/services/organization.service';
 import {
   Body,
   Controller,
@@ -27,9 +30,6 @@ import {
   ApiSetOrganizationLocks,
 } from '../docs/organization.docs';
 import { OrganizationDto } from '../dto/entity/organization.dto';
-import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
-import { ReceiveEntitlementInternalDto } from '../dto/request/receive-entitlement-internal.dto';
-import { UpdateOrganizationInternalDto } from '../dto/request/update-organization-internal.dto';
 
 @ApiTags('Organizations')
 @Controller('organizations')
@@ -37,7 +37,7 @@ import { UpdateOrganizationInternalDto } from '../dto/request/update-organizatio
 export class OrganizationController {
   private readonly logger = new Logger(OrganizationController.name);
 
-  constructor(private readonly organizationService: OrganizationService) {}
+  constructor(private readonly organizationService: OrganizationDomainService) {}
 
   // Receives organization creation from cloud-server via the internal API
   @Post('internal')

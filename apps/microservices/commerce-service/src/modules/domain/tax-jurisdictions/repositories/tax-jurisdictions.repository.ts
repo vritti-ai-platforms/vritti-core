@@ -10,7 +10,7 @@ import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import { type TaxJurisdiction, taxJurisdictions } from '@/db/schema';
 
 @Injectable()
-export class TaxJurisdictionsRepository extends PrimaryBaseRepository<typeof taxJurisdictions> {
+export class TaxJurisdictionsDomainRepository extends PrimaryBaseRepository<typeof taxJurisdictions> {
   constructor(database: PrimaryDatabaseService) {
     super(database, taxJurisdictions);
   }

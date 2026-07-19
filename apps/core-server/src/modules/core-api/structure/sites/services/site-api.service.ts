@@ -1,18 +1,18 @@
 import type { SiteDto } from '@domain/site/dto/entity/site.dto';
 import type { CreateSiteInternalDto } from '@domain/site/dto/request/create-site-internal.dto';
 import type { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site-internal.dto';
-import { SiteService } from '@domain/site/services/site.service';
-import { UserRoleService } from '@domain/user-role/services/user-role.service';
+import { SiteDomainService } from '@domain/site/services/site.service';
+import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import { Injectable } from '@nestjs/common';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { UserRoleAssignment } from '@/db/schema';
 import type { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
 
 @Injectable()
-export class SiteApiService {
+export class SiteService {
   constructor(
-    private readonly siteService: SiteService,
-    private readonly userRoleService: UserRoleService,
+    private readonly siteService: SiteDomainService,
+    private readonly userRoleService: UserRoleDomainService,
   ) {}
 
   // Creates a new site

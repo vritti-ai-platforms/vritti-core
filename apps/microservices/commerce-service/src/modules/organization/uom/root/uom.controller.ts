@@ -1,24 +1,20 @@
 import type { UomDto } from '@domain/uom/dto/entity/uom.dto';
-import { UomService } from '@domain/uom/services/uom.service';
+import { CreateUomDto } from '@domain/uom/dto/request/create-uom.dto';
+import { UpdateUomDto } from '@domain/uom/dto/request/update-uom.dto';
+import { UomDomainService } from '@domain/uom/services/uom.service';
 import type { UomDimensionDto } from '@domain/uom-dimensions/dto/entity/uom-dimension.dto';
-import { UomDimensionsService } from '@domain/uom-dimensions/services/uom-dimensions.service';
+import { UomDimensionsDomainService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import { CreateUomDto } from './dto/request/create-uom.dto';
-import { UpdateUomDto } from './dto/request/update-uom.dto';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
 @Controller()
 export class UomController {
   private readonly logger = new Logger(UomController.name);
 
   constructor(
-    private readonly uomService: UomService,
-    private readonly uomDimensionsService: UomDimensionsService,
+    private readonly uomService: UomDomainService,
+    private readonly uomDimensionsService: UomDimensionsDomainService,
   ) {}
 
   // Returns paginated UOMs for the data table (scoped to a dimension)

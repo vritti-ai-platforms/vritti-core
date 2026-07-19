@@ -24,7 +24,6 @@ export const inventoryItemCosts = coreSchema.table(
     unallocatedAmount: bigint('unallocated_amount', { mode: 'bigint' }).notNull().default(0n),
     vendorRef: varchar('vendor_ref', { length: 100 }),
     notes: text('notes'),
-    createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

@@ -112,7 +112,7 @@ export const PersonDetailPage = () => {
         permission={ORG_PEOPLE.delete}
         onClick={handleDelete}
         disabled={!person.canDelete || deleteMutation.isPending}
-        warning="This person is referenced by other records and cannot be deleted."
+        warning="This person is linked to one or more companies (or a supplier) and cannot be deleted. Remove those links first."
         showWarning={!person.canDelete}
       />
 

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { VerificationRepository } from './repositories/verification.repository';
+import { VerificationDomainRepository } from './repositories/verification.repository';
 
 @Module({
-  providers: [VerificationRepository],
-  exports: [VerificationRepository],
+  providers: [VerificationDomainRepository],
+  exports: [VerificationDomainRepository],
 })
 export class VerificationDomainModule {}

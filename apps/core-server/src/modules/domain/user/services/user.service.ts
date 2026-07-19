@@ -1,5 +1,5 @@
-import { OrganizationRepository } from '@domain/organization/repositories/organization.repository';
-import { SessionService } from '@domain/session/services/session.service';
+import { OrganizationDomainRepository } from '@domain/organization/repositories/organization.repository';
+import { SessionDomainService } from '@domain/session/services/session.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -16,13 +16,13 @@ import {
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { EmailService } from '@vritti/api-sdk/email';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/common/events/auth-status.events';
 import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
-import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserInternalDto } from '../dto/request/create-user-internal.dto';
 import { UpdateUserInternalDto } from '../dto/request/update-user-internal.dto';
 import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
-import { UserRepository } from '../repositories/user.repository';
+import { UserDomainRepository } from '../repositories/user.repository';
 
 export interface LookupOrganizationSummary {
   id: string;
@@ -36,8 +36,8 @@ export interface LookupOrganizationsResult {
 }
 
 @Injectable()
-export class UserService {
-  private readonly logger = new Logger(UserService.name);
+export class UserDomainService {
+  private readonly logger = new Logger(UserDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     fullName: { column: users.fullName, type: 'string' },
@@ -47,9 +47,9 @@ export class UserService {
   };
 
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly organizationRepository: OrganizationRepository,
-    private readonly sessionService: SessionService,
+    private readonly userRepository: UserDomainRepository,
+    private readonly organizationRepository: OrganizationDomainRepository,
+    private readonly sessionService: SessionDomainService,
     private readonly emailService: EmailService,
     private readonly config: ConfigService,
     private readonly eventEmitter: EventEmitter2,
@@ -188,10 +188,10 @@ export class UserService {
     limit: number,
     offset: number,
   ): Promise<UsersTableResponseDto> {
-    const filterWhere = FilterProcessor.buildWhere(filters, UserService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(search, UserService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(filters, UserDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(search, UserDomainService.FIELD_MAP);
     const where = and(eq(users.organizationId, orgId), filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(sort, UserService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(sort, UserDomainService.FIELD_MAP);
 
     const { rows, total } = await this.userRepository.findForTable({
       where,

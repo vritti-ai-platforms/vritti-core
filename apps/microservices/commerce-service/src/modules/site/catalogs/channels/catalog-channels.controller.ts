@@ -1,15 +1,15 @@
 import type { CatalogChannelDto } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
-import { CatalogChannelsService } from '@domain/catalog-channels/services/catalog-channels.service';
+import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
+import { AssignCatalogChannelDto } from '@domain/catalogs/dto/request/assign-catalog-channel.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
-import { AssignCatalogChannelDto } from '../root/dto/request/assign-catalog-channel.dto';
 
 @Controller()
 export class CatalogChannelsController {
   private readonly logger = new Logger(CatalogChannelsController.name);
 
-  constructor(private readonly service: CatalogChannelsService) {}
+  constructor(private readonly service: CatalogChannelsDomainService) {}
 
   // Lists a catalog's channel assignments
   @MessagePattern({ cmd: 'site.catalogs.channels.list' })

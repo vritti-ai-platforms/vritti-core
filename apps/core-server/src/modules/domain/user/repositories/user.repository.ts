@@ -4,7 +4,7 @@ import { type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type NewUser, type User, users } from '@/db/schema';
 
 @Injectable()
-export class UserRepository extends PrimaryBaseRepository<typeof users> {
+export class UserDomainRepository extends PrimaryBaseRepository<typeof users> {
   constructor(database: PrimaryDatabaseService) {
     super(database, users);
   }

@@ -24,7 +24,7 @@ type EnrichedItem = PurchaseOrderItem & {
 };
 
 @Injectable()
-export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof purchaseOrderItems> {
+export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<typeof purchaseOrderItems> {
   constructor(database: PrimaryDatabaseService) {
     super(database, purchaseOrderItems);
   }

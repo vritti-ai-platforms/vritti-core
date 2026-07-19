@@ -10,24 +10,15 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, ilike, or } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type CostCategoryKind, CostCategoryKindValues, costCategories } from '@/db/schema';
+import { CostCategoryKindValues, costCategories } from '@/db/schema';
 import { CostCategoryDto } from '../dto/entity/cost-category.dto';
-import { CostCategoriesRepository } from '../repositories/cost-categories.repository';
-
-export interface CreateCostCategoryInput {
-  code: string;
-  name: string;
-  kind: CostCategoryKind;
-}
-
-export interface UpdateCostCategoryInput {
-  name?: string;
-  isActive?: boolean;
-}
+import { CreateCostCategoryDto } from '../dto/request/create-cost-category.dto';
+import { UpdateCostCategoryDto } from '../dto/request/update-cost-category.dto';
+import { CostCategoriesDomainRepository } from '../repositories/cost-categories.repository';
 
 @Injectable()
-export class CostCategoriesService {
-  private readonly logger = new Logger(CostCategoriesService.name);
+export class CostCategoriesDomainService {
+  private readonly logger = new Logger(CostCategoriesDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: costCategories.name, type: 'string' },
@@ -37,13 +28,13 @@ export class CostCategoriesService {
     isSystem: { column: costCategories.isSystem, type: 'boolean' },
   };
 
-  constructor(private readonly repository: CostCategoriesRepository) {}
+  constructor(private readonly repository: CostCategoriesDomainRepository) {}
 
   async findForTable(state: TableViewState): Promise<{ result: CostCategoryDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, CostCategoriesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, CostCategoriesService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, CostCategoriesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, CostCategoriesDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, CostCategoriesService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, CostCategoriesDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({
@@ -91,7 +82,7 @@ export class CostCategoriesService {
     });
   }
 
-  async create(data: CreateCostCategoryInput): Promise<CreateResponseDto<CostCategoryDto>> {
+  async create(data: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryDto>> {
     if (data.kind === CostCategoryKindValues.ITEM) {
       const existing = await this.repository.findByKind(CostCategoryKindValues.ITEM);
       if (existing) {
@@ -125,7 +116,7 @@ export class CostCategoriesService {
     return CostCategoryDto.from(entity, refs.costRows === 0 && !entity.isSystem);
   }
 
-  async update(id: string, data: UpdateCostCategoryInput): Promise<SuccessResponseDto> {
+  async update(id: string, data: Omit<UpdateCostCategoryDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Cost category not found.');
 

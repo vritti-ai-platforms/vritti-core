@@ -1,17 +1,17 @@
 import type { GoodsReceiptLotDto } from '@domain/goods-receipt-lots/dto/entity/goods-receipt-lot.dto';
-import { GoodsReceiptLotsService } from '@domain/goods-receipt-lots/services/goods-receipt-lots.service';
+import { GoodsReceiptLotsDomainService } from '@domain/goods-receipt-lots/services/goods-receipt-lots.service';
+import { AddGoodsReceiptLotDto } from '@domain/goods-receipts/dto/request/add-goods-receipt-lot.dto';
+import { UpdateGoodsReceiptLotDto } from '@domain/goods-receipts/dto/request/update-goods-receipt-lot.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
-import { AddGoodsReceiptLotDto } from './dto/request/add-goods-receipt-lot.dto';
-import { UpdateGoodsReceiptLotDto } from './dto/request/update-goods-receipt-lot.dto';
 
 @Controller()
 export class GoodsReceiptsLotsController {
   private readonly logger = new Logger(GoodsReceiptsLotsController.name);
 
-  constructor(private readonly service: GoodsReceiptLotsService) {}
+  constructor(private readonly service: GoodsReceiptLotsDomainService) {}
 
   @MessagePattern({ cmd: 'site.goodsReceipts.lots' })
   lots(

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { TaxJurisdictionsRepository } from './repositories/tax-jurisdictions.repository';
-import { TaxJurisdictionsService } from './services/tax-jurisdictions.service';
+import { TaxJurisdictionsDomainRepository } from './repositories/tax-jurisdictions.repository';
+import { TaxJurisdictionsDomainService } from './services/tax-jurisdictions.service';
 
 @Module({
-  providers: [TaxJurisdictionsService, TaxJurisdictionsRepository],
-  exports: [TaxJurisdictionsService, TaxJurisdictionsRepository],
+  providers: [TaxJurisdictionsDomainService, TaxJurisdictionsDomainRepository],
+  exports: [TaxJurisdictionsDomainService, TaxJurisdictionsDomainRepository],
 })
 export class TaxJurisdictionsDomainModule {}

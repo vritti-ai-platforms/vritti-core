@@ -10,11 +10,11 @@ import { and } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { inventoryItems, StockAdjustmentStatusValues, type StockAdjustmentType, stockAdjustments } from '@/db/schema';
 import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
-import { StockAdjustmentsRepository } from '../repositories/stock-adjustments.repository';
+import { StockAdjustmentsDomainRepository } from '../repositories/stock-adjustments.repository';
 
 @Injectable()
-export class StockAdjustmentsService {
-  private readonly logger = new Logger(StockAdjustmentsService.name);
+export class StockAdjustmentsDomainService {
+  private readonly logger = new Logger(StockAdjustmentsDomainService.name);
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     code: { column: stockAdjustments.code, type: 'string' },
@@ -26,23 +26,23 @@ export class StockAdjustmentsService {
     status: { column: stockAdjustments.status, type: 'string' },
   };
 
-  constructor(private readonly repository: StockAdjustmentsRepository) {}
+  constructor(private readonly repository: StockAdjustmentsDomainRepository) {}
 
   // Returns paginated stock adjustments for the data table
   async findForTable(
     state: TableViewState,
     siteCurrencyCode?: string,
   ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentsService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentsService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllForTable({
       where: where,
       orderBy: FilterProcessor.buildOrderBy(state.sort, {
-        ...StockAdjustmentsService.SEARCH_FIELD_MAP,
-        ...StockAdjustmentsService.FILTER_FIELD_MAP,
+        ...StockAdjustmentsDomainService.SEARCH_FIELD_MAP,
+        ...StockAdjustmentsDomainService.FILTER_FIELD_MAP,
       }),
       limit,
       offset,

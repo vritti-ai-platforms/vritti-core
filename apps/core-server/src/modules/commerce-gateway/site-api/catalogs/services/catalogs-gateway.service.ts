@@ -7,7 +7,7 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import { SiteService } from '@/modules/domain/site/services/site.service';
+import { SiteDomainService } from '@/modules/domain/site/services/site.service';
 import type { AssignCatalogChannelDto } from '../dto/request/assign-catalog-channel.dto';
 import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
 import type { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';
@@ -42,7 +42,7 @@ export class CatalogsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
-    private readonly siteService: SiteService,
+    private readonly siteService: SiteDomainService,
   ) {}
 
   // Returns paginated, filtered, and sorted catalogs for the data table

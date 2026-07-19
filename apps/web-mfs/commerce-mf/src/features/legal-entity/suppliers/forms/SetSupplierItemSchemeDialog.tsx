@@ -7,8 +7,8 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { type SetSupplierItemSchemeFormData, setSupplierItemSchemeSchema } from '@/schemas/suppliers';
 import { useBulkSetSupplierItemScheme } from '@/hooks/legal-entity/suppliers';
+import { type SetSupplierItemSchemeFormData, setSupplierItemSchemeSchema } from '@/schemas/suppliers';
 
 interface SetSupplierItemSchemeDialogProps {
   supplierId: string;

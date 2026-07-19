@@ -22,7 +22,7 @@ export const goodsReceiptLines = coreSchema.table(
       .references(() => locations.id),
     quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     // Snapshot of `quantity` converted to the inventory item's primary UOM. Computed in the service
-    // via UomConversionsService (Decimal math) at line add/edit and re-derived at publish; never in
+    // via UomConversionsDomainService (Decimal math) at line add/edit and re-derived at publish; never in
     // SQL. Cost-association math reads it so factor changes after publish don't retroactively shift cost.
     primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),

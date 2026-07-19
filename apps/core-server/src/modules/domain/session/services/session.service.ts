@@ -3,14 +3,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { hashToken, TokenService, TokenType } from '@vritti/api-sdk/auth';
 import { UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import { type Session, type SessionType } from '@/db/schema';
-import { SessionRepository } from '../repositories/session.repository';
+import { SessionDomainRepository } from '../repositories/session.repository';
 
 @Injectable()
-export class SessionService {
-  private readonly logger = new Logger(SessionService.name);
+export class SessionDomainService {
+  private readonly logger = new Logger(SessionDomainService.name);
 
   constructor(
-    private readonly sessionRepository: SessionRepository,
+    private readonly sessionRepository: SessionDomainRepository,
     private readonly tokenService: TokenService,
   ) {}
 

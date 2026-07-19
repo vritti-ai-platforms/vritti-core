@@ -2,7 +2,7 @@ import { Controller, Get, Logger } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserId } from '@vritti/api-sdk/auth';
 import type { SiteSelectResponseDto } from '../dto/response/site-select-response.dto';
-import { UserPermissionsApiService } from '../services/user-permissions-api.service';
+import { UserPermissionsService } from '../services/user-permissions-api.service';
 
 @ApiTags('User Permissions')
 @ApiBearerAuth()
@@ -10,7 +10,7 @@ import { UserPermissionsApiService } from '../services/user-permissions-api.serv
 export class UserPermissionsController {
   private readonly logger = new Logger(UserPermissionsController.name);
 
-  constructor(private readonly userPermissionsApiService: UserPermissionsApiService) {}
+  constructor(private readonly userPermissionsApiService: UserPermissionsService) {}
 
   // Returns assigned sites in select dropdown format (site switcher); full sites + resolved features via SSE /auth/status
   @Get('sites/select')

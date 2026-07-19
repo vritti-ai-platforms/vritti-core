@@ -208,14 +208,15 @@ export function getPurchaseOrderGoodsReceiptsTable(poId: string): Promise<GoodsR
     .then((r) => r.data);
 }
 
-// Fetches the unit price for an inventory item from a supplier's pricelist. Backend returns CurrencyAmountDto { currency, value (major units) } | null.
+// Fetches the site-resolved unit price for a supplier item. Backend returns CurrencyAmountDto { currency, value (major units) } | null.
 export function getSupplierItemPrice(
   supplierId: string,
   inventoryItemId: string,
+  uomId: string,
 ): Promise<{ unitPrice: { currency: string; value: string } | null }> {
   return axios
-    .get<{ unitPrice: { currency: string; value: string } | null }>('commerce-api/suppliers/items/price', {
-      params: { supplierId, inventoryItemId },
+    .get<{ unitPrice: { currency: string; value: string } | null }>('commerce-api/site/suppliers/items/price', {
+      params: { supplierId, inventoryItemId, uomId },
       showSuccessToast: false,
     } as Parameters<typeof axios.get>[1])
     .then((r) => r.data);

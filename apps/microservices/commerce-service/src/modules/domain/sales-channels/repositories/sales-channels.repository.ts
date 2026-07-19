@@ -9,7 +9,7 @@ import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { catalogChannels, orders, type SalesChannel, salesChannels } from '@/db/schema';
 
 @Injectable()
-export class SalesChannelsRepository extends PrimaryBaseRepository<typeof salesChannels> {
+export class SalesChannelsDomainRepository extends PrimaryBaseRepository<typeof salesChannels> {
   constructor(database: PrimaryDatabaseService) {
     super(database, salesChannels);
   }

@@ -1,5 +1,5 @@
-import { GoodsReceiptLinesRepository } from '@domain/goods-receipt-lines/repositories/goods-receipt-lines.repository';
-import { GoodsReceiptLinesService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
+import { GoodsReceiptLinesDomainRepository } from '@domain/goods-receipt-lines/repositories/goods-receipt-lines.repository';
+import { GoodsReceiptLinesDomainService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk/database';
 import { and } from '@vritti/api-sdk/drizzle-orm';
@@ -11,20 +11,20 @@ import {
 } from '@vritti/api-sdk/exceptions';
 import { GoodsReceiptStatusValues, goodsReceiptLineItems, InventoryTrackingValues } from '@/db/schema';
 import { GoodsReceiptLineItemDto } from '../dto/entity/goods-receipt-line-item.dto';
-import { GoodsReceiptLineItemsRepository } from '../repositories/goods-receipt-line-items.repository';
+import { GoodsReceiptLineItemsDomainRepository } from '../repositories/goods-receipt-line-items.repository';
 
 @Injectable()
-export class GoodsReceiptLineItemsService {
-  private readonly logger = new Logger(GoodsReceiptLineItemsService.name);
+export class GoodsReceiptLineItemsDomainService {
+  private readonly logger = new Logger(GoodsReceiptLineItemsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     serialNumber: { column: goodsReceiptLineItems.serialNumber, type: 'string' },
   };
 
   constructor(
-    private readonly repository: GoodsReceiptLineItemsRepository,
-    private readonly linesRepository: GoodsReceiptLinesRepository,
-    private readonly linesService: GoodsReceiptLinesService,
+    private readonly repository: GoodsReceiptLineItemsDomainRepository,
+    private readonly linesRepository: GoodsReceiptLinesDomainRepository,
+    private readonly linesService: GoodsReceiptLinesDomainService,
   ) {}
 
   async listByLine(goodsReceiptId: string, itemId: string, lineId: string): Promise<GoodsReceiptLineItemDto[]> {
@@ -40,13 +40,13 @@ export class GoodsReceiptLineItemsService {
     state: TableViewState,
   ): Promise<{ result: GoodsReceiptLineItemDto[]; count: number }> {
     await this.ensureLineBelongsToItem(goodsReceiptId, itemId, lineId);
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptLineItemsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptLineItemsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptLineItemsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptLineItemsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
     const { result, count } = await this.repository.findForTable(lineId, {
       where,
-      orderBy: FilterProcessor.buildOrderBy(state.sort, GoodsReceiptLineItemsService.FIELD_MAP),
+      orderBy: FilterProcessor.buildOrderBy(state.sort, GoodsReceiptLineItemsDomainService.FIELD_MAP),
       limit,
       offset,
     });

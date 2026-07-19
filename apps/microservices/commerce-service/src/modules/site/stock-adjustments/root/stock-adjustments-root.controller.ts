@@ -1,17 +1,17 @@
 import type { StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
+import { CreateStockAdjustmentDto } from '@domain/stock-adjustments/dto/request/create-stock-adjustment.dto';
+import { UpdateStockAdjustmentDto } from '@domain/stock-adjustments/dto/request/update-stock-adjustment.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
-import { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
-import { UpdateStockAdjustmentDto } from './dto/request/update-stock-adjustment.dto';
-import { StockAdjustmentsRootService } from './services/stock-adjustments-root.service';
+import { StockAdjustmentsService } from './services/stock-adjustments-root.service';
 
 @Controller()
 export class StockAdjustmentsRootController {
   private readonly logger = new Logger(StockAdjustmentsRootController.name);
 
-  constructor(private readonly service: StockAdjustmentsRootService) {}
+  constructor(private readonly service: StockAdjustmentsService) {}
 
   @MessagePattern({ cmd: 'site.stockAdjustments.table' })
   table(

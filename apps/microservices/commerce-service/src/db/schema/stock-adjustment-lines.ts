@@ -42,7 +42,7 @@ export const stockAdjustmentLines = coreSchema.table(
     // Line quantity expressed in the line's UOM (paired with primaryQty for the item's primary UOM).
     uomQty: decimal('uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     // Snapshot of the line quantity converted to the item's primary UOM at the time the line was
-    // created/updated. Computed in the service via UomConversionsService (Decimal math); never derived
+    // created/updated. Computed in the service via UomConversionsDomainService (Decimal math); never derived
     // in SQL. Aggregates use SUM(primary_uom_qty) directly.
     primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),

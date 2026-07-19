@@ -10,8 +10,8 @@ import {
   categories,
   type InventoryItem,
   type InventoryItemSite,
-  inventoryItems,
   inventoryItemSites,
+  inventoryItems,
   inventoryItemUomConversions,
   inventoryStockLevels,
   purchaseOrderItems,
@@ -22,7 +22,7 @@ import {
 } from '@/db/schema';
 
 @Injectable()
-export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inventoryItems> {
+export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof inventoryItems> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItems);
   }

@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
@@ -10,8 +11,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Plus, Truck } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { SupplierData } from '@/schemas/suppliers';
 import { SUPPLIERS_TABLE_KEY, useSuppliersTable } from '@/hooks/legal-entity/suppliers';
+import type { SupplierData } from '@/schemas/suppliers';
 import { AddSupplierDialog } from './forms/AddSupplierDialog';
 
 export const SuppliersPage = () => {
@@ -46,10 +47,7 @@ export const SuppliersPage = () => {
         accessorKey: 'isActive',
         header: 'Status',
         cell: ({ row }) => (
-          <Badge
-            variant={row.original.isActive ? 'secondary' : 'outline'}
-            className={row.original.isActive ? 'bg-success/15 text-success' : ''}
-          >
+          <Badge variant={row.original.isActive ? 'success' : 'outline'}>
             {row.original.isActive ? 'Active' : 'Inactive'}
           </Badge>
         ),
@@ -64,6 +62,7 @@ export const SuppliersPage = () => {
                 id: 'view',
                 icon: Eye,
                 label: 'View',
+                permission: LE_SUPPLIERS.view,
                 onClick: () => navigate(buildSlug(row.original.partyName, row.original.id)),
               },
             ]}
@@ -94,6 +93,7 @@ export const SuppliersPage = () => {
       <DataTable
         table={table}
         isLoading={isLoading}
+        permission={LE_SUPPLIERS.view}
         searchConfig={{
           columns: [
             { id: 'partyName', label: 'Company' },
@@ -104,7 +104,7 @@ export const SuppliersPage = () => {
         filters={[<InventoryItemFilter key="inventoryItemId" />]}
         toolbarActions={{
           actions: (
-            <Button size="sm" onClick={addDialog.open}>
+            <Button size="sm" permission={LE_SUPPLIERS.add} onClick={addDialog.open}>
               <Plus className="mr-2 size-4" />
               Add Supplier
             </Button>
@@ -115,7 +115,7 @@ export const SuppliersPage = () => {
           title: 'No suppliers',
           description: 'Add your first supplier to start managing procurement.',
           action: (
-            <Button onClick={addDialog.open}>
+            <Button permission={LE_SUPPLIERS.add} onClick={addDialog.open}>
               <Plus className="mr-2 size-4" />
               Add Supplier
             </Button>

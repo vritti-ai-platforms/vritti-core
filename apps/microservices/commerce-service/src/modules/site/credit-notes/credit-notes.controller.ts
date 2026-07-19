@@ -1,21 +1,15 @@
 import type { CreditNoteDetailDto, CreditNoteDto } from '@domain/credit-notes/dto/entity/credit-note.dto';
-import { CreditNotesService } from '@domain/credit-notes/services/credit-notes.service';
-import { InvoicesRepository } from '@domain/invoices/repositories/invoices.repository';
+import { ApplyCreditNoteDto } from '@domain/credit-notes/dto/request/apply-credit-note.dto';
+import { CreateCreditNoteDto } from '@domain/credit-notes/dto/request/create-credit-note.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { NotFoundException } from '@vritti/api-sdk/exceptions';
-import { InvoiceStatusValues } from '@/db/schema';
-import { ApplyCreditNoteDto } from './dto/request/apply-credit-note.dto';
-import { CreateCreditNoteDto } from './dto/request/create-credit-note.dto';
+import { CreditNotesService } from './services/credit-notes.service';
 
 @Controller()
 export class CreditNotesController {
   private readonly logger = new Logger(CreditNotesController.name);
 
-  constructor(
-    private readonly service: CreditNotesService,
-    private readonly invoicesRepository: InvoicesRepository,
-  ) {}
+  constructor(private readonly service: CreditNotesService) {}
 
   @MessagePattern({ cmd: 'site.creditNotes.create' })
   async create(@Payload() dto: CreateCreditNoteDto): Promise<CreditNoteDto> {
@@ -31,23 +25,7 @@ export class CreditNotesController {
 
   @MessagePattern({ cmd: 'site.creditNotes.apply' })
   async apply(@Payload() dto: ApplyCreditNoteDto): Promise<{ success: boolean; message: string }> {
-    const { id, ...applyData } = dto;
-    this.logger.log(`creditNotes.apply — id: ${id}, invoiceId: ${applyData.invoiceId}`);
-    const invoice = await this.invoicesRepository.findById(applyData.invoiceId);
-    if (!invoice) throw new NotFoundException('Invoice not found.');
-    const invoiceContext = {
-      id: invoice.id,
-      invoiceNumber: invoice.invoiceNumber,
-      status: invoice.status,
-      balance: invoice.balance,
-      paidAmount: invoice.paidAmount,
-    };
-    const result = await this.service.apply(id, applyData, invoiceContext);
-    await this.invoicesRepository.update(invoice.id, {
-      paidAmount: result.newPaidAmount,
-      balance: result.newBalance,
-      status: result.newInvoiceStatus as (typeof InvoiceStatusValues)[keyof typeof InvoiceStatusValues],
-    });
-    return { success: result.success, message: result.message };
+    this.logger.log(`creditNotes.apply — id: ${dto.id}, invoiceId: ${dto.invoiceId}`);
+    return this.service.apply(dto);
   }
 }

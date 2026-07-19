@@ -19,10 +19,10 @@ import {
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { inventoryItems } from '@/db/schema';
-import type { CreateInventoryItemDto } from '@/modules/organization/inventory-items/root/dto/request/create-inventory-item.dto';
-import type { UpdateInventoryItemDto } from '@/modules/organization/inventory-items/root/dto/request/update-inventory-item.dto';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
-import { InventoryItemsRepository } from '../repositories/inventory-items.repository';
+import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
+import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
+import { InventoryItemsDomainRepository } from '../repositories/inventory-items.repository';
 
 interface InventoryItemsFeedQuery {
   filters?: FilterCondition[];
@@ -33,8 +33,8 @@ interface InventoryItemsFeedQuery {
 }
 
 @Injectable()
-export class InventoryItemsService {
-  private readonly logger = new Logger(InventoryItemsService.name);
+export class InventoryItemsDomainService {
+  private readonly logger = new Logger(InventoryItemsDomainService.name);
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     name: { column: inventoryItems.name, type: 'string' },
@@ -47,16 +47,16 @@ export class InventoryItemsService {
     uomId: { column: inventoryItems.uomId, type: 'string' },
   };
 
-  constructor(private readonly repository: InventoryItemsRepository) {}
+  constructor(private readonly repository: InventoryItemsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted inventory items for the data table
   async findForTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...InventoryItemsService.SEARCH_FIELD_MAP,
-      ...InventoryItemsService.FILTER_FIELD_MAP,
+      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
+      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
     });
     const { limit = 20, offset = 0 } = state.pagination;
 
@@ -77,12 +77,12 @@ export class InventoryItemsService {
     categoryId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
     const where = and(eq(inventoryItems.categoryId, categoryId), filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...InventoryItemsService.SEARCH_FIELD_MAP,
-      ...InventoryItemsService.FILTER_FIELD_MAP,
+      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
+      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
     });
     const { limit = 20, offset = 0 } = state.pagination;
 
@@ -104,16 +104,16 @@ export class InventoryItemsService {
     edges: { cursor: string; node: InventoryItemDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
-    const filterWhere = FilterProcessor.buildWhere(query.filters, InventoryItemsService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(query.search, InventoryItemsService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(query.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(query.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
     const baseWhere = and(filterWhere, searchWhere);
 
     // Resolve the requested sort to concrete columns; default to createdAt desc when none given,
     // then always append the unique id tie-breaker so the order is total (required for keyset correctness).
     // Each entry carries the row accessor key so cursor values are read by JS property, not DB column name.
     const fieldMap: FieldMap = {
-      ...InventoryItemsService.SEARCH_FIELD_MAP,
-      ...InventoryItemsService.FILTER_FIELD_MAP,
+      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
+      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
     };
     const sortEntries: (KeysetOrderBy & { key: string })[] = (query.sort ?? []).flatMap((s) => {
       const def = fieldMap[s.field];
@@ -154,7 +154,10 @@ export class InventoryItemsService {
 
     // One opaque keyset cursor per row (Relay edge cursor); values read by JS accessor key.
     const edges = rows.map((row) => ({
-      cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]), signature),
+      cursor: CursorCodec.encode(
+        orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
+        signature,
+      ),
       node: InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName),
     }));
 
@@ -173,15 +176,16 @@ export class InventoryItemsService {
   }
 
   // Items enabled at the current site (inventory_item_sites projection) joined to summed stock.
-  async findForSiteTable(
-    state: TableViewState,
-  ): Promise<{ result: (InventoryItemDto & { reorderPoint: number; isStocked: boolean; stockedQuantity: string })[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
+  async findForSiteTable(state: TableViewState): Promise<{
+    result: (InventoryItemDto & { reorderPoint: number; isStocked: boolean; stockedQuantity: string })[];
+    count: number;
+  }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...InventoryItemsService.SEARCH_FIELD_MAP,
-      ...InventoryItemsService.FILTER_FIELD_MAP,
+      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
+      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
     });
     const { limit = 20, offset = 0 } = state.pagination;
 

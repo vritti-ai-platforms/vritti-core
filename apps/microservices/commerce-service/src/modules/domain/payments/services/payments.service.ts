@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { InvoiceStatusValues, type PaymentMethod, type PaymentStatus } from '@/db/schema';
-import type { CreatePaymentDto } from '@/modules/site/payments/dto/request/create-payment.dto';
 import { PaymentDto } from '../dto/entity/payment.dto';
-import { PaymentsRepository } from '../repositories/payments.repository';
+import type { CreatePaymentDto } from '../dto/request/create-payment.dto';
+import { PaymentsDomainRepository } from '../repositories/payments.repository';
 
 // Invoice context pre-fetched by the app-layer before payment creation
 export type PaymentInvoiceContext = {
@@ -17,10 +17,10 @@ export type PaymentInvoiceContext = {
 };
 
 @Injectable()
-export class PaymentsService {
-  private readonly logger = new Logger(PaymentsService.name);
+export class PaymentsDomainService {
+  private readonly logger = new Logger(PaymentsDomainService.name);
 
-  constructor(private readonly repository: PaymentsRepository) {}
+  constructor(private readonly repository: PaymentsDomainRepository) {}
 
   // Creates a payment record. App-layer fetches the invoice and updates it after payment creation.
   // Returns the payment DTO and invoice balance deltas for the app-layer to apply.

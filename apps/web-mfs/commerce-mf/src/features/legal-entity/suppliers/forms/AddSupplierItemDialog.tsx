@@ -10,8 +10,8 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { type AddSupplierItemFormData, addSupplierItemSchema } from '@/schemas/suppliers';
 import { useAddSupplierItem } from '@/hooks/legal-entity/suppliers';
+import { type AddSupplierItemFormData, addSupplierItemSchema } from '@/schemas/suppliers';
 
 interface AddSupplierItemDialogProps {
   supplierId: string;

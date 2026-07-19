@@ -22,7 +22,7 @@ import {
 } from '@/db/schema';
 
 @Injectable()
-export class CatalogsRepository extends PrimaryBaseRepository<typeof catalogs> {
+export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catalogs> {
   constructor(database: PrimaryDatabaseService) {
     super(database, catalogs);
   }

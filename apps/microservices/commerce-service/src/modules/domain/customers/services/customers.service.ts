@@ -10,14 +10,14 @@ import {
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { customers } from '@/db/schema';
-import type { CreateCustomerDto } from '@/modules/site/customers/dto/request/create-customer.dto';
-import type { UpdateCustomerDto } from '@/modules/site/customers/dto/request/update-customer.dto';
 import { CustomerDto } from '../dto/entity/customer.dto';
-import { CustomersRepository } from '../repositories/customers.repository';
+import type { CreateCustomerDto } from '../dto/request/create-customer.dto';
+import type { UpdateCustomerDto } from '../dto/request/update-customer.dto';
+import { CustomersDomainRepository } from '../repositories/customers.repository';
 
 @Injectable()
-export class CustomersService {
-  private readonly logger = new Logger(CustomersService.name);
+export class CustomersDomainService {
+  private readonly logger = new Logger(CustomersDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: customers.name, type: 'string' },
@@ -26,14 +26,14 @@ export class CustomersService {
     isActive: { column: customers.isActive, type: 'boolean' },
   };
 
-  constructor(private readonly repository: CustomersRepository) {}
+  constructor(private readonly repository: CustomersDomainRepository) {}
 
   // Returns paginated customers for the data table
   async findForTable(state: TableViewState): Promise<{ result: CustomerDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, CustomersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, CustomersService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, CustomersDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, CustomersDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, CustomersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, CustomersDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({

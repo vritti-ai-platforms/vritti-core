@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  PrimaryBaseRepository,
+  PrimaryDatabaseService,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+} from '@vritti/api-sdk/database';
+import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type LegalEntity,
   type LeTaxRegistration,
@@ -13,7 +18,7 @@ import {
 } from '@/db/schema';
 
 @Injectable()
-export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
+export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
   constructor(database: PrimaryDatabaseService) {
     super(database, sites);
   }
@@ -23,6 +28,28 @@ export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
     return this.model.findMany({
       where: { organizationId: orgId },
       orderBy: { sortOrder: 'asc' },
+    });
+  }
+
+  // Returns a legal entity's active sites as select options
+  async findForSelectOptions(legalEntityId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    const conditions: SQL[] = [];
+
+    if (query.search) {
+      const term = `%${query.search}%`;
+      conditions.push(sql`(${sites.name} ilike ${term} or ${sites.code} ilike ${term})`);
+    }
+
+    return this.findForSelect({
+      value: 'id',
+      label: 'name',
+      description: 'code',
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      where: { legalEntityId, isActive: true },
+      orderBy: { sortOrder: 'asc', name: 'asc' },
+      conditions,
     });
   }
 

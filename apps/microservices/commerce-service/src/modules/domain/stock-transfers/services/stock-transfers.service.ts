@@ -3,27 +3,27 @@ import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type StockTransferStatus, StockTransferStatusValues, stockTransfers } from '@/db/schema';
-import type { CreateStockTransferDto } from '@/modules/site/stock-transfers/dto/request/create-stock-transfer.dto';
-import type { UpdateStockTransferStatusDto } from '@/modules/site/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransferDto } from '../dto/entity/stock-transfer.dto';
-import { StockTransfersRepository } from '../repositories/stock-transfers.repository';
+import type { CreateStockTransferDto } from '../dto/request/create-stock-transfer.dto';
+import type { UpdateStockTransferStatusDto } from '../dto/request/update-stock-transfer-status.dto';
+import { StockTransfersDomainRepository } from '../repositories/stock-transfers.repository';
 
 @Injectable()
-export class StockTransfersService {
-  private readonly logger = new Logger(StockTransfersService.name);
+export class StockTransfersDomainService {
+  private readonly logger = new Logger(StockTransfersDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     status: { column: stockTransfers.status, type: 'string' },
   };
 
-  constructor(private readonly repository: StockTransfersRepository) {}
+  constructor(private readonly repository: StockTransfersDomainRepository) {}
 
   // Returns paginated stock transfers for the data table
   async findForTable(state: TableViewState): Promise<{ result: StockTransferDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, StockTransfersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, StockTransfersService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StockTransfersDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockTransfersDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, StockTransfersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, StockTransfersDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllWithItemNames({

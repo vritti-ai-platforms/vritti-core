@@ -1,14 +1,14 @@
-import { SupplierItemsService } from '@domain/supplier-items/services/supplier-items.service';
-import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
+import { AddSupplierItemDto } from '@domain/supplier-items/dto/request/add-supplier-item.dto';
+import { BulkSetSupplierItemPreferredDto } from '@domain/supplier-items/dto/request/bulk-set-supplier-item-preferred.dto';
+import { BulkSetSupplierItemSchemeDto } from '@domain/supplier-items/dto/request/bulk-set-supplier-item-scheme.dto';
+import { BulkUnlinkSupplierItemsDto } from '@domain/supplier-items/dto/request/bulk-unlink-supplier-items.dto';
+import { UpdateSupplierItemDto } from '@domain/supplier-items/dto/request/update-supplier-item.dto';
+import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
+import type { SupplierItemDetailDto, SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
-import { BulkSetSupplierItemPreferredDto } from './dto/request/bulk-set-supplier-item-preferred.dto';
-import { BulkSetSupplierItemSchemeDto } from './dto/request/bulk-set-supplier-item-scheme.dto';
-import { BulkUnlinkSupplierItemsDto } from './dto/request/bulk-unlink-supplier-items.dto';
-import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { SuppliersItemsService } from './services/suppliers-items.service';
 
 @Controller()
@@ -16,7 +16,7 @@ export class SuppliersItemsController {
   private readonly logger = new Logger(SuppliersItemsController.name);
 
   constructor(
-    private readonly domainService: SupplierItemsService,
+    private readonly domainService: SupplierItemsDomainService,
     private readonly localService: SuppliersItemsService,
   ) {}
 
@@ -33,6 +33,12 @@ export class SuppliersItemsController {
   itemIds(@Payload() data: { supplierId: string }): Promise<string[]> {
     this.logger.log('suppliers.itemIds');
     return this.domainService.findItemIds(data.supplierId);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.findItemById' })
+  findItemById(@Payload() data: { supplierItemId: string }): Promise<SupplierItemDetailDto> {
+    this.logger.log(`suppliers.findItemById — id: ${data.supplierItemId}`);
+    return this.domainService.findItemDetail(data.supplierItemId);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.addItem' })
@@ -58,29 +64,25 @@ export class SuppliersItemsController {
   @MessagePattern({ cmd: 'le.suppliers.bulkUnlinkItems' })
   bulkUnlinkItems(@Payload() dto: BulkUnlinkSupplierItemsDto): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.bulkUnlinkItems');
-    return this.domainService.bulkUnlinkItems(dto.supplierId, dto.supplierItemIds);
+    return this.domainService.bulkUnlinkItems(dto);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.bulkSetItemScheme' })
   bulkSetItemScheme(@Payload() dto: BulkSetSupplierItemSchemeDto): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.bulkSetItemScheme');
-    return this.domainService.bulkSetScheme(dto.supplierId, dto.supplierItemIds, {
-      buyQty: dto.schemeBuyQty ?? null,
-      freeQty: dto.schemeFreeQty ?? null,
-      hasScheme: dto.hasScheme ?? false,
-    });
+    return this.domainService.bulkSetScheme(dto);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.bulkSetItemPreferred' })
   bulkSetItemPreferred(@Payload() dto: BulkSetSupplierItemPreferredDto): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.bulkSetItemPreferred');
-    return this.domainService.bulkSetPreferred(dto.supplierId, dto.supplierItemIds, dto.isPreferred);
+    return this.domainService.bulkSetPreferred(dto);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.findItemPrice' })
   findItemPrice(
     @Payload() data: { supplierId: string; inventoryItemId: string; uomId: string },
-  ): Promise<{ unitPrice: CurrencyAmountDto | null }> {
+  ): Promise<{ unitPrice: CurrencyAmountDto | null; schemeBuyQty: number | null; schemeFreeQty: number | null }> {
     this.logger.log('suppliers.findItemPrice');
     return this.domainService.findItemPrice(data.supplierId, data.inventoryItemId, data.uomId);
   }

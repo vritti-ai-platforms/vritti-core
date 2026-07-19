@@ -1,16 +1,16 @@
 import { TaxClassDto } from '@domain/tax-classes/dto/entity/tax-class.dto';
-import { TaxClassesService } from '@domain/tax-classes/services/tax-classes.service';
+import { CreateTaxClassDto } from '@domain/tax-classes/dto/request/create-tax-class.dto';
+import { UpdateTaxClassDto } from '@domain/tax-classes/dto/request/update-tax-class.dto';
+import { TaxClassesDomainService } from '@domain/tax-classes/services/tax-classes.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { CreateTaxClassDto } from './dto/request/create-tax-class.dto';
-import { UpdateTaxClassDto } from './dto/request/update-tax-class.dto';
 
 @Controller()
 export class TaxClassesController {
   private readonly logger = new Logger(TaxClassesController.name);
 
-  constructor(private readonly service: TaxClassesService) {}
+  constructor(private readonly service: TaxClassesDomainService) {}
 
   @MessagePattern({ cmd: 'org.taxClasses.table' })
   async table(@Payload() state: TableViewState): Promise<{ result: TaxClassDto[]; count: number }> {

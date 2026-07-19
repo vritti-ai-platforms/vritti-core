@@ -41,7 +41,7 @@ import {
   ApiSetSiteGroupLocks,
   ApiUpdateSiteGroup,
 } from './docs/site-group.docs';
-import { SiteGroupApiService } from './services/site-group-api.service';
+import { SiteGroupService } from './services/site-group-api.service';
 
 @ApiTags('Site Groups')
 @Controller('site-groups/internal')
@@ -52,7 +52,7 @@ import { SiteGroupApiService } from './services/site-group-api.service';
 export class SiteGroupController {
   private readonly logger = new Logger(SiteGroupController.name);
 
-  constructor(private readonly siteGroupApiService: SiteGroupApiService) {}
+  constructor(private readonly siteGroupApiService: SiteGroupService) {}
 
   // Creates a new site group for an organization
   @Post()

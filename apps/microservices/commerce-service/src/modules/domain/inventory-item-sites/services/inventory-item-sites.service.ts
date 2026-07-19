@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
 import type { InventoryItemSite } from '@/db/schema';
-import { InventoryItemSitesRepository } from '../repositories/inventory-item-sites.repository';
+import { InventoryItemSitesDomainRepository } from '../repositories/inventory-item-sites.repository';
 
 @Injectable()
-export class InventoryItemSitesService {
-  private readonly logger = new Logger(InventoryItemSitesService.name);
+export class InventoryItemSitesDomainService {
+  private readonly logger = new Logger(InventoryItemSitesDomainService.name);
 
-  constructor(private readonly repository: InventoryItemSitesRepository) {}
+  constructor(private readonly repository: InventoryItemSitesDomainRepository) {}
 
   // Enables an item at the current site by inserting its projection row
   async enable(

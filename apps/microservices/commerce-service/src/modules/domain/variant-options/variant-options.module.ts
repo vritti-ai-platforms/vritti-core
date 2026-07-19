@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { VariantOptionsRepository } from './repositories/variant-options.repository';
-import { VariantOptionsService } from './services/variant-options.service';
+import { VariantOptionsDomainRepository } from './repositories/variant-options.repository';
+import { VariantOptionsDomainService } from './services/variant-options.service';
 
 @Module({
-  providers: [VariantOptionsService, VariantOptionsRepository],
-  exports: [VariantOptionsService, VariantOptionsRepository],
+  providers: [VariantOptionsDomainService, VariantOptionsDomainRepository],
+  exports: [VariantOptionsDomainService, VariantOptionsDomainRepository],
 })
 export class VariantOptionsDomainModule {}

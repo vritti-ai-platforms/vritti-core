@@ -1,4 +1,4 @@
-import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
+import { PurchaseOrdersDomainRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
@@ -16,14 +16,14 @@ import {
 import { and, asc, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import { ExchangeRateTypeValues, GoodsReceiptStatusValues, goodsReceipts, parties, purchaseOrders } from '@/db/schema';
-import type { CreateGoodsReceiptDto } from '@/modules/site/goods-receipts/root/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
-import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
-import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
+import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
+import { GoodsReceiptItemsDomainRepository } from '../repositories/goods-receipt-items.repository';
+import { GoodsReceiptsDomainRepository } from '../repositories/goods-receipts.repository';
 
 @Injectable()
-export class GoodsReceiptsService {
-  private readonly logger = new Logger(GoodsReceiptsService.name);
+export class GoodsReceiptsDomainService {
+  private readonly logger = new Logger(GoodsReceiptsDomainService.name);
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     grNumber: { column: goodsReceipts.grNumber, type: 'string' },
     supplierName: { column: parties.displayName, type: 'string' },
@@ -34,9 +34,9 @@ export class GoodsReceiptsService {
   };
 
   constructor(
-    private readonly repository: GoodsReceiptsRepository,
-    private readonly itemsRepository: GoodsReceiptItemsRepository,
-    private readonly poRepository: PurchaseOrdersRepository,
+    private readonly repository: GoodsReceiptsDomainRepository,
+    private readonly itemsRepository: GoodsReceiptItemsDomainRepository,
+    private readonly poRepository: PurchaseOrdersDomainRepository,
   ) {}
 
   async create(data: CreateGoodsReceiptDto, siteCurrencyCode: string): Promise<CreateResponseDto<GoodsReceiptDto>> {
@@ -77,12 +77,12 @@ export class GoodsReceiptsService {
   }
 
   async findForTableByPoId(poId: string, state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...GoodsReceiptsService.SEARCH_FIELD_MAP,
-      ...GoodsReceiptsService.FILTER_FIELD_MAP,
+      ...GoodsReceiptsDomainService.SEARCH_FIELD_MAP,
+      ...GoodsReceiptsDomainService.FILTER_FIELD_MAP,
       receivedDate: { column: goodsReceipts.receivedDate, type: 'string' },
     });
     const { limit = 20, offset = 0 } = state.pagination;
@@ -119,7 +119,7 @@ export class GoodsReceiptsService {
     edges: { cursor: string; node: GoodsReceiptDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
-    const searchWhere = FilterProcessor.buildSearch(query.search, GoodsReceiptsService.SEARCH_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(query.search, GoodsReceiptsDomainService.SEARCH_FIELD_MAP);
 
     const orderByEntries: (KeysetOrderBy & { key: string })[] = [
       { column: goodsReceipts.createdAt, direction: 'desc', key: 'createdAt' },
@@ -159,12 +159,12 @@ export class GoodsReceiptsService {
   }
 
   async findForTable(state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...GoodsReceiptsService.SEARCH_FIELD_MAP,
-      ...GoodsReceiptsService.FILTER_FIELD_MAP,
+      ...GoodsReceiptsDomainService.SEARCH_FIELD_MAP,
+      ...GoodsReceiptsDomainService.FILTER_FIELD_MAP,
       receivedDate: { column: goodsReceipts.receivedDate, type: 'string' },
     });
     const { limit = 20, offset = 0 } = state.pagination;
@@ -295,7 +295,7 @@ export class GoodsReceiptsService {
   // Resolves the supplier→site exchange rate to snapshot on the new GR
   private resolveExchangeRate(
     supplierCurrencyCode: string,
-    po: Awaited<ReturnType<PurchaseOrdersRepository['findById']>> | null,
+    po: Awaited<ReturnType<PurchaseOrdersDomainRepository['findById']>> | null,
     userExchangeRate: number | undefined,
     siteCurrencyCode: string,
   ): number {

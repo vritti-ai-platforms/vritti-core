@@ -1,16 +1,16 @@
 import type { PartyTaxRegistrationDto } from '@domain/parties/dto/entity/party-tax-registration.dto';
-import { PartiesService } from '@domain/parties/services/parties.service';
+import { CreateCompanyRegistrationDto } from '@domain/parties/dto/request/create-company-registration.dto';
+import { UpdateCompanyRegistrationDto } from '@domain/parties/dto/request/update-company-registration.dto';
+import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { CreateCompanyRegistrationDto } from './dto/request/create-company-registration.dto';
-import { UpdateCompanyRegistrationDto } from './dto/request/update-company-registration.dto';
 
 @Controller()
 export class CompanyRegistrationsController {
   private readonly logger = new Logger(CompanyRegistrationsController.name);
 
-  constructor(private readonly service: PartiesService) {}
+  constructor(private readonly service: PartiesDomainService) {}
 
   // Returns the paginated tax registrations of a company
   @MessagePattern({ cmd: 'org.companies.registrations.table' })

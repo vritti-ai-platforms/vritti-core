@@ -1,6 +1,6 @@
-import { GoodsReceiptLotsRepository } from '@domain/goods-receipt-lots/repositories/goods-receipt-lots.repository';
-import { GoodsReceiptItemsRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
-import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
+import { GoodsReceiptLotsDomainRepository } from '@domain/goods-receipt-lots/repositories/goods-receipt-lots.repository';
+import { GoodsReceiptItemsDomainRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
+import { GoodsReceiptsDomainRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
@@ -19,7 +19,7 @@ import {
   locations,
 } from '@/db/schema';
 import { GoodsReceiptLineDto } from '../dto/entity/goods-receipt-line.dto';
-import { GoodsReceiptLinesRepository } from '../repositories/goods-receipt-lines.repository';
+import { GoodsReceiptLinesDomainRepository } from '../repositories/goods-receipt-lines.repository';
 
 export interface ItemContext {
   goodsReceiptId: string;
@@ -31,8 +31,8 @@ export interface ItemContext {
 }
 
 @Injectable()
-export class GoodsReceiptLinesService {
-  private readonly logger = new Logger(GoodsReceiptLinesService.name);
+export class GoodsReceiptLinesDomainService {
+  private readonly logger = new Logger(GoodsReceiptLinesDomainService.name);
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
@@ -44,10 +44,10 @@ export class GoodsReceiptLinesService {
   };
 
   constructor(
-    private readonly repository: GoodsReceiptLinesRepository,
-    private readonly itemsRepository: GoodsReceiptItemsRepository,
-    private readonly receiptsRepository: GoodsReceiptsRepository,
-    private readonly lotsRepository: GoodsReceiptLotsRepository,
+    private readonly repository: GoodsReceiptLinesDomainRepository,
+    private readonly itemsRepository: GoodsReceiptItemsDomainRepository,
+    private readonly receiptsRepository: GoodsReceiptsDomainRepository,
+    private readonly lotsRepository: GoodsReceiptLotsDomainRepository,
   ) {}
 
   async findForTable(
@@ -57,15 +57,15 @@ export class GoodsReceiptLinesService {
     lotId?: string | null,
   ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
     await this.ensureItemBelongsToReceipt(goodsReceiptId, itemId);
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptLinesService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptLinesService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptLinesDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptLinesDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
     const { result, count } = await this.repository.findForTable(itemId, {
       where,
       orderBy: FilterProcessor.buildOrderBy(state.sort, {
-        ...GoodsReceiptLinesService.SEARCH_FIELD_MAP,
-        ...GoodsReceiptLinesService.FILTER_FIELD_MAP,
+        ...GoodsReceiptLinesDomainService.SEARCH_FIELD_MAP,
+        ...GoodsReceiptLinesDomainService.FILTER_FIELD_MAP,
       }),
       limit,
       offset,

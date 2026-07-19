@@ -1,24 +1,24 @@
 import type { GoodsReceiptItemDto } from '@domain/goods-receipts/dto/entity/goods-receipt-item.dto';
 import type { GoodsReceiptItemsCostDto } from '@domain/goods-receipts/dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '@domain/goods-receipts/dto/entity/goods-receipt-tree.dto';
-import { GoodsReceiptItemsService } from '@domain/goods-receipts/services/goods-receipt-items.service';
+import { AddGoodsReceiptItemFromPurchaseOrderItemDto } from '@domain/goods-receipts/dto/request/add-goods-receipt-item-from-purchase-order-item.dto';
+import { AddGoodsReceiptItemFromSupplierItemDto } from '@domain/goods-receipts/dto/request/add-goods-receipt-item-from-supplier-item.dto';
+import { UpdateGoodsReceiptItemDto } from '@domain/goods-receipts/dto/request/update-goods-receipt-item.dto';
+import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/goods-receipt-items.service';
 import type { GoodsReceiptItemQuantsDto } from '@domain/inventory-item-quants/dto/entity/goods-receipt-item-quants.dto';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
-import { AddGoodsReceiptItemFromPurchaseOrderItemDto } from './dto/request/add-goods-receipt-item-from-purchase-order-item.dto';
-import { AddGoodsReceiptItemFromSupplierItemDto } from './dto/request/add-goods-receipt-item-from-supplier-item.dto';
-import { UpdateGoodsReceiptItemDto } from './dto/request/update-goods-receipt-item.dto';
 
 @Controller()
 export class GoodsReceiptsItemsController {
   private readonly logger = new Logger(GoodsReceiptsItemsController.name);
 
   constructor(
-    private readonly itemsService: GoodsReceiptItemsService,
-    private readonly quantsService: InventoryItemQuantsService,
+    private readonly itemsService: GoodsReceiptItemsDomainService,
+    private readonly quantsService: InventoryItemQuantsDomainService,
   ) {}
 
   @MessagePattern({ cmd: 'site.goodsReceipts.tree' })

@@ -29,11 +29,13 @@ import { CategoriesSelectQueryDto } from './dto/categories-select-query.dto';
 import { InventoryItemsSelectQueryDto } from './dto/inventory-items-select-query.dto';
 import { LocationsSelectQueryDto } from './dto/locations-select-query.dto';
 import { LotsSelectQueryDto } from './dto/lots-select-query.dto';
+import { PartySelectQueryDto } from './dto/party-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from './dto/purchase-order-items-select-query.dto';
 import { PurchaseOrderSelectQueryDto } from './dto/purchase-order-select-query.dto';
 import { QuantsSelectQueryDto } from './dto/quants-select-query.dto';
 import { SerialsSelectQueryDto } from './dto/serials-select-query.dto';
 import { SupplierItemsSelectQueryDto } from './dto/supplier-items-select-query.dto';
+import { SuppliersSelectQueryDto } from './dto/suppliers-select-query.dto';
 import { UomSelectQueryDto } from './dto/uom-select-query.dto';
 
 @ApiTags('Commerce - Select')
@@ -129,7 +131,7 @@ export class SelectApiController {
 
   @Get('suppliers')
   @ApiSuppliersSelect()
-  selectSuppliers(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  selectSuppliers(@Query() query: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.suppliers', query);
   }
 
@@ -145,10 +147,22 @@ export class SelectApiController {
     return this.nats.send<SelectQueryResult>('commerce', 'select.people', query);
   }
 
-  // Returns company (ORGANIZATION party) options for select dropdowns
+  // Returns company (COMPANY party) options for select dropdowns
   @Get('companies')
   selectCompanies(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.companies', query);
+  }
+
+  // Returns tax registration options of a party for select dropdowns
+  @Get('party-tax-registrations')
+  selectPartyTaxRegistrations(@Query() query: PartySelectQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.partyTaxRegistrations', query);
+  }
+
+  // Returns bank account options of a party for select dropdowns
+  @Get('party-bank-accounts')
+  selectPartyBankAccounts(@Query() query: PartySelectQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.partyBankAccounts', query);
   }
 
   // Returns tax-jurisdiction options for select dropdowns

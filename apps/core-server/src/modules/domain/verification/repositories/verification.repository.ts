@@ -4,7 +4,7 @@ import { eq } from '@vritti/api-sdk/drizzle-orm';
 import { type NewVerification, type Verification, verifications } from '@/db/schema';
 
 @Injectable()
-export class VerificationRepository extends PrimaryBaseRepository<typeof verifications> {
+export class VerificationDomainRepository extends PrimaryBaseRepository<typeof verifications> {
   constructor(database: PrimaryDatabaseService) {
     super(database, verifications);
   }

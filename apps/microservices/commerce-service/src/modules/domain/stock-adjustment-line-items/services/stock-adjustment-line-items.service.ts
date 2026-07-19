@@ -21,7 +21,7 @@ import {
   stockAdjustmentLineItems,
 } from '@/db/schema';
 import { StockAdjustmentLineItemDto } from '../dto/entity/stock-adjustment-line-item.dto';
-import { StockAdjustmentLineItemsRepository } from '../repositories/stock-adjustment-line-items.repository';
+import { StockAdjustmentLineItemsDomainRepository } from '../repositories/stock-adjustment-line-items.repository';
 
 // Minimal adjustment shape needed by write methods — passed in from app-layer
 interface AdjustmentContext {
@@ -31,26 +31,26 @@ interface AdjustmentContext {
 }
 
 @Injectable()
-export class StockAdjustmentLineItemsService {
-  private readonly logger = new Logger(StockAdjustmentLineItemsService.name);
+export class StockAdjustmentLineItemsDomainService {
+  private readonly logger = new Logger(StockAdjustmentLineItemsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     serialNumber: { column: stockAdjustmentLineItems.serialNumber, type: 'string' },
   };
 
-  constructor(private readonly repository: StockAdjustmentLineItemsRepository) {}
+  constructor(private readonly repository: StockAdjustmentLineItemsDomainRepository) {}
 
   async findForTable(
     lineId: string,
     state: TableViewState,
   ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLineItemsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLineItemsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLineItemsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLineItemsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
     const { result, count } = await this.repository.findForTable(lineId, {
       where,
-      orderBy: FilterProcessor.buildOrderBy(state.sort, StockAdjustmentLineItemsService.FIELD_MAP),
+      orderBy: FilterProcessor.buildOrderBy(state.sort, StockAdjustmentLineItemsDomainService.FIELD_MAP),
       limit,
       offset,
     });

@@ -7,6 +7,7 @@ import { PeopleAddressesController } from './addresses/people-addresses.controll
 import { PeopleCompaniesController } from './companies/people-companies.controller';
 import { PeopleIdentifiersController } from './identifiers/people-identifiers.controller';
 import { PeopleController } from './root/people.controller';
+import { PeopleService } from './root/services/people-root.service';
 
 @Module({
   imports: [
@@ -16,5 +17,6 @@ import { PeopleController } from './root/people.controller';
     PartyAddressesDomainModule,
   ],
   controllers: [PeopleController, PeopleIdentifiersController, PeopleCompaniesController, PeopleAddressesController],
+  providers: [PeopleService],
 })
 export class OrgPeopleModule {}

@@ -4,7 +4,11 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { AddIdentifierPayload, PartyIdentifierRow, PartyIdentifiersTableResponse } from '@/schemas/party-identifiers';
+import type {
+  AddIdentifierPayload,
+  PartyIdentifierRow,
+  PartyIdentifiersTableResponse,
+} from '@/schemas/party-identifiers';
 import {
   addCompanyIdentifier,
   getCompanyIdentifiers,

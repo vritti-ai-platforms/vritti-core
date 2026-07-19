@@ -1,25 +1,25 @@
-import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
+import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { StockAdjustmentLotDto } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-lot.dto';
-import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
-import { StockAdjustmentLotsService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
-import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
+import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
+import { StockAdjustmentLotsDomainService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
+import { StockAdjustmentsDomainService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, PrimaryDatabaseService, type SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import type { InventoryItemLot } from '@/db/schema';
 
 // App-layer orchestrator for stock-adjustment lot writes that need inventory-aggregate awareness.
-// Keeps domain `StockAdjustmentLotsService` self-contained while this layer crosses to inventory-item-lots.
+// Keeps domain `StockAdjustmentLotsDomainService` self-contained while this layer crosses to inventory-item-lots.
 @Injectable()
 export class StockAdjustmentsLotsService {
   private readonly logger = new Logger(StockAdjustmentsLotsService.name);
 
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly adjustmentsService: StockAdjustmentsService,
-    private readonly lotsService: StockAdjustmentLotsService,
-    private readonly lotsRepository: StockAdjustmentLotsRepository,
-    private readonly inventoryItemLotsService: InventoryItemLotsService,
+    private readonly adjustmentsService: StockAdjustmentsDomainService,
+    private readonly lotsService: StockAdjustmentLotsDomainService,
+    private readonly lotsRepository: StockAdjustmentLotsDomainRepository,
+    private readonly inventoryItemLotsService: InventoryItemLotsDomainService,
   ) {}
 
   async addLot(

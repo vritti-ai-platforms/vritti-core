@@ -4,7 +4,7 @@ import { eq } from '@vritti/api-sdk/drizzle-orm';
 import { type Payment, payments } from '@/db/schema';
 
 @Injectable()
-export class PaymentsRepository extends PrimaryBaseRepository<typeof payments> {
+export class PaymentsDomainRepository extends PrimaryBaseRepository<typeof payments> {
   constructor(database: PrimaryDatabaseService) {
     super(database, payments);
   }

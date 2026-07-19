@@ -4,7 +4,7 @@ import { and, eq, lt, ne } from '@vritti/api-sdk/drizzle-orm';
 import { type Session, sessions } from '@/db/schema';
 
 @Injectable()
-export class SessionRepository extends PrimaryBaseRepository<typeof sessions> {
+export class SessionDomainRepository extends PrimaryBaseRepository<typeof sessions> {
   constructor(database: PrimaryDatabaseService) {
     super(database, sessions);
   }

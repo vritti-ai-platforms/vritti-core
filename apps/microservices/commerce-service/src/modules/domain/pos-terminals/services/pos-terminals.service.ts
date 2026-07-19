@@ -11,10 +11,10 @@ import {
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { LocationRoleValues, locations, posTerminals } from '@/db/schema';
-import type { CreatePosTerminalDto } from '@/modules/site/pos-terminals/dto/request/create-pos-terminal.dto';
-import type { UpdatePosTerminalDto } from '@/modules/site/pos-terminals/dto/request/update-pos-terminal.dto';
 import { PosTerminalDto } from '../dto/entity/pos-terminal.dto';
-import { PosTerminalsRepository } from '../repositories/pos-terminals.repository';
+import type { CreatePosTerminalDto } from '../dto/request/create-pos-terminal.dto';
+import type { UpdatePosTerminalDto } from '../dto/request/update-pos-terminal.dto';
+import { PosTerminalsDomainRepository } from '../repositories/pos-terminals.repository';
 
 // Location context pre-fetched by the app-layer before write operations
 export type LocationContext = {
@@ -24,8 +24,8 @@ export type LocationContext = {
 };
 
 @Injectable()
-export class PosTerminalsService {
-  private readonly logger = new Logger(PosTerminalsService.name);
+export class PosTerminalsDomainService {
+  private readonly logger = new Logger(PosTerminalsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: posTerminals.name, type: 'string' },
@@ -34,14 +34,14 @@ export class PosTerminalsService {
     isActive: { column: posTerminals.isActive, type: 'boolean' },
   };
 
-  constructor(private readonly repository: PosTerminalsRepository) {}
+  constructor(private readonly repository: PosTerminalsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted POS terminals for the data table
   async findForTable(state: TableViewState): Promise<{ result: PosTerminalDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PosTerminalsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PosTerminalsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PosTerminalsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PosTerminalsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PosTerminalsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PosTerminalsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findForTable({

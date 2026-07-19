@@ -9,7 +9,7 @@ export type InventoryItemLotWithStock = InventoryItemLot & {
 };
 
 @Injectable()
-export class InventoryItemLotsRepository extends PrimaryBaseRepository<typeof inventoryItemLots> {
+export class InventoryItemLotsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemLots> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemLots);
   }

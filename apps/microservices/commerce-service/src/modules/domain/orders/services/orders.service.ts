@@ -4,14 +4,14 @@ import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type OrderSource, type OrderStatus, OrderStatusValues, type OrderType, orders } from '@/db/schema';
-import type { CreateOrderDto, CreateOrderItemDto } from '@/modules/site/orders/dto/request/create-order.dto';
-import type { UpdateOrderStatusDto } from '@/modules/site/orders/dto/request/update-order-status.dto';
 import { OrderDetailDto, OrderDto, OrderItemDto, OrderItemModifierDto } from '../dto/entity/order.dto';
-import { OrdersRepository } from '../repositories/orders.repository';
+import type { CreateOrderDto, CreateOrderItemDto } from '../dto/request/create-order.dto';
+import type { UpdateOrderStatusDto } from '../dto/request/update-order-status.dto';
+import { OrdersDomainRepository } from '../repositories/orders.repository';
 
 @Injectable()
-export class OrdersService {
-  private readonly logger = new Logger(OrdersService.name);
+export class OrdersDomainService {
+  private readonly logger = new Logger(OrdersDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     orderNumber: { column: orders.orderNumber, type: 'string' },
@@ -30,14 +30,14 @@ export class OrdersService {
     [OrderStatusValues.CANCELLED]: [],
   };
 
-  constructor(private readonly repository: OrdersRepository) {}
+  constructor(private readonly repository: OrdersDomainRepository) {}
 
   // Returns paginated orders for the data table
   async findForTable(state: TableViewState): Promise<{ result: OrderDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, OrdersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, OrdersService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, OrdersDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, OrdersDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, OrdersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, OrdersDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({
@@ -147,7 +147,7 @@ export class OrdersService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Order not found.');
 
-    const allowedNext = OrdersService.STATUS_TRANSITIONS[existing.status] ?? [];
+    const allowedNext = OrdersDomainService.STATUS_TRANSITIONS[existing.status] ?? [];
     if (!allowedNext.includes(data.status)) {
       throw new BadRequestException(`Cannot transition from ${existing.status} to ${data.status}.`);
     }

@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type ConversionPair, UomConversionsRepository, type UomRow } from '../repositories/uom-conversions.repository';
+import {
+  type ConversionPair,
+  UomConversionsDomainRepository,
+  type UomRow,
+} from '../repositories/uom-conversions.repository';
 
 const QTY_DP = 3;
 
 @Injectable()
-export class UomConversionsService {
-  constructor(private readonly repository: UomConversionsRepository) {}
+export class UomConversionsDomainService {
+  constructor(private readonly repository: UomConversionsDomainRepository) {}
 
   async toPrimaryUomQuantity(inventoryItemId: string, uomId: string, qty: number): Promise<number> {
     const factor = await this.resolveFactor(inventoryItemId, uomId);

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { CatalogRepository } from './repositories/catalog.repository';
-import { CatalogService } from './services/catalog.service';
+import { CatalogDomainRepository } from './repositories/catalog.repository';
+import { CatalogDomainService } from './services/catalog.service';
 
 @Module({
-  providers: [CatalogService, CatalogRepository],
-  exports: [CatalogService, CatalogRepository],
+  providers: [CatalogDomainService, CatalogDomainRepository],
+  exports: [CatalogDomainService, CatalogDomainRepository],
 })
 export class CatalogDomainModule {}

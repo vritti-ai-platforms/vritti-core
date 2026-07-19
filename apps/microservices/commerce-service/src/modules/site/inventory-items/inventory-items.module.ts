@@ -14,7 +14,7 @@ import { InventoryItemsLotsService } from './lots/services/inventory-items-lots.
 import { InventoryItemsQuantsController } from './quants/inventory-items-quants.controller';
 import { InventoryItemsQuantsService } from './quants/services/inventory-items-quants.service';
 import { InventoryItemsRootController } from './root/inventory-items-root.controller';
-import { InventoryItemsRootService } from './root/services/inventory-items-root.service';
+import { SiteInventoryItemsService } from './root/services/inventory-items-root.service';
 import { InventoryItemsStocksController } from './stocks/inventory-items-stocks.controller';
 import { InventoryItemsStocksService } from './stocks/services/inventory-items-stocks.service';
 import { InventoryItemsSupplierItemsController } from './supplier-items/inventory-items-supplier-items.controller';
@@ -39,7 +39,7 @@ import { InventoryItemsSupplierItemsController } from './supplier-items/inventor
     InventoryItemsQuantsController,
   ],
   providers: [
-    InventoryItemsRootService,
+    SiteInventoryItemsService,
     InventoryItemsLocationsService,
     InventoryItemsStocksService,
     InventoryItemsQuantsService,

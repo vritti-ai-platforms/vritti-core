@@ -433,10 +433,10 @@ export const TaxAuthorityLevelValues = {
 };
 export type TaxAuthorityLevel = (typeof taxAuthorityLevelEnum.enumValues)[number];
 
-export const partyTypeEnum = coreSchema.enum('party_type', ['PERSON', 'ORGANIZATION']);
+export const partyTypeEnum = coreSchema.enum('party_type', ['PERSON', 'COMPANY']);
 export const PartyTypeValues = {
   PERSON: 'PERSON' as const,
-  ORGANIZATION: 'ORGANIZATION' as const,
+  COMPANY: 'COMPANY' as const,
 };
 export type PartyType = (typeof partyTypeEnum.enumValues)[number];
 
@@ -538,3 +538,20 @@ export const TaxJurisdictionLevelValues = {
   DISTRICT: 'DISTRICT' as const,
 };
 export type TaxJurisdictionLevel = (typeof taxJurisdictionLevelEnum.enumValues)[number];
+
+export const partyLicenseTypeEnum = coreSchema.enum('party_license_type', ['DRUG', 'EXCISE', 'FSSAI', 'OTHER']);
+export const PartyLicenseTypeValues = {
+  DRUG: 'DRUG' as const,
+  EXCISE: 'EXCISE' as const,
+  FSSAI: 'FSSAI' as const,
+  OTHER: 'OTHER' as const,
+};
+export type PartyLicenseType = (typeof partyLicenseTypeEnum.enumValues)[number];
+
+export const supplierPriceSourceEnum = coreSchema.enum('supplier_price_source', ['QUOTATION', 'MANUAL', 'IMPORT']);
+export const SupplierPriceSourceValues = {
+  QUOTATION: 'QUOTATION' as const,
+  MANUAL: 'MANUAL' as const,
+  IMPORT: 'IMPORT' as const,
+};
+export type SupplierPriceSource = (typeof supplierPriceSourceEnum.enumValues)[number];

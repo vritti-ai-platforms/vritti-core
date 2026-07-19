@@ -53,7 +53,7 @@ export const goodsReceiptItems = coreSchema.table(
     // once every code path populates it.
     unitPrice: bigint('unit_price', { mode: 'bigint' }),
     // Snapshot of `unit_price` converted to the inventory item's primary UOM, computed at create/
-    // update time via UomConversionsService (Decimal precise). Cost-association math reads this
+    // update time via UomConversionsDomainService (Decimal precise). Cost-association math reads this
     // directly so factor changes after publish don't retroactively shift the per-quant cost.
     primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }),
     // Effective landed cost per unit after the free-goods scheme, in the item's UOM and supplier

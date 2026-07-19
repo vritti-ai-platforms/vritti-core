@@ -1,9 +1,9 @@
-import { CatalogService } from '@domain/catalog/services/catalog.service';
-import { OrganizationRepository } from '@domain/organization/repositories/organization.repository';
-import { SiteRepository } from '@domain/site/repositories/site.repository';
+import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
+import { OrganizationDomainRepository } from '@domain/organization/repositories/organization.repository';
+import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import {
   type AssignmentRoleGrants,
-  UserRoleAssignmentRepository,
+  UserRoleAssignmentDomainRepository,
 } from '@domain/user-role/repositories/user-role-assignment.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -78,14 +78,14 @@ export interface PermissionContext {
 }
 
 @Injectable()
-export class UserPermissionsService {
-  private readonly logger = new Logger(UserPermissionsService.name);
+export class UserPermissionsDomainService {
+  private readonly logger = new Logger(UserPermissionsDomainService.name);
 
   constructor(
-    private readonly userRoleAssignmentRepository: UserRoleAssignmentRepository,
-    private readonly siteRepository: SiteRepository,
-    private readonly organizationRepository: OrganizationRepository,
-    private readonly catalogService: CatalogService,
+    private readonly userRoleAssignmentRepository: UserRoleAssignmentDomainRepository,
+    private readonly siteRepository: SiteDomainRepository,
+    private readonly organizationRepository: OrganizationDomainRepository,
+    private readonly catalogService: CatalogDomainService,
     private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
 

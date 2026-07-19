@@ -1,9 +1,9 @@
 import type { InventoryItemLocationDto } from '@domain/inventory-item-locations/dto/entity/inventory-item-location.dto';
+import { AddInventoryItemLocationDto } from '@domain/inventory-item-locations/dto/request/add-inventory-item-location.dto';
+import { UpdateInventoryItemLocationDto } from '@domain/inventory-item-locations/dto/request/update-inventory-item-location.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddInventoryItemLocationDto } from './dto/request/add-inventory-item-location.dto';
-import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
 import { InventoryItemsLocationsService } from './services/inventory-items-locations.service';
 
 @Controller()
@@ -30,7 +30,9 @@ export class InventoryItemsLocationsController {
   }
 
   @MessagePattern({ cmd: 'site.inventoryItems.addLocation' })
-  async createLocation(@Payload() dto: AddInventoryItemLocationDto): Promise<CreateResponseDto<InventoryItemLocationDto>> {
+  async createLocation(
+    @Payload() dto: AddInventoryItemLocationDto,
+  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
     const { inventoryItemId, ...rest } = dto;
     this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${inventoryItemId}`);
     return this.service.create(inventoryItemId, rest);

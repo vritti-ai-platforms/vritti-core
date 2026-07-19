@@ -8,35 +8,15 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type PartyAddressType, partyAddresses } from '@/db/schema';
+import { partyAddresses } from '@/db/schema';
 import { PartyAddressDto } from '../dto/entity/party-address.dto';
-import { PartyAddressesRepository } from '../repositories/party-addresses.repository';
-
-export interface AddAddressInput {
-  type: PartyAddressType;
-  line1: string;
-  line2?: string;
-  city?: string;
-  region?: string;
-  postalCode?: string;
-  countryCode: string;
-  isPrimary?: boolean;
-}
-
-export interface UpdateAddressInput {
-  type?: PartyAddressType;
-  line1?: string;
-  line2?: string;
-  city?: string;
-  region?: string;
-  postalCode?: string;
-  countryCode?: string;
-  isPrimary?: boolean;
-}
+import { AddPartyAddressDto } from '../dto/request/add-party-address.dto';
+import { UpdatePartyAddressDto } from '../dto/request/update-party-address.dto';
+import { PartyAddressesDomainRepository } from '../repositories/party-addresses.repository';
 
 @Injectable()
-export class PartyAddressesService {
-  private readonly logger = new Logger(PartyAddressesService.name);
+export class PartyAddressesDomainService {
+  private readonly logger = new Logger(PartyAddressesDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     type: { column: partyAddresses.type, type: 'string' },
@@ -45,14 +25,14 @@ export class PartyAddressesService {
     isPrimary: { column: partyAddresses.isPrimary, type: 'boolean' },
   };
 
-  constructor(private readonly repository: PartyAddressesRepository) {}
+  constructor(private readonly repository: PartyAddressesDomainRepository) {}
 
   // Returns paginated addresses of a party for the data table
   async findForTable(partyId: string, state: TableViewState): Promise<{ result: PartyAddressDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyAddressesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartyAddressesService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyAddressesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PartyAddressesDomainService.FIELD_MAP);
     const where = and(eq(partyAddresses.partyId, partyId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyAddressesService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyAddressesDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findForTable({
@@ -66,7 +46,7 @@ export class PartyAddressesService {
   }
 
   // Adds an address to a party, syncing the party country when it becomes the primary or first address
-  async add(partyId: string, data: AddAddressInput): Promise<CreateResponseDto<PartyAddressDto>> {
+  async add(partyId: string, data: AddPartyAddressDto): Promise<CreateResponseDto<PartyAddressDto>> {
     const { count: existingCount } = await this.repository.findForTable({
       where: eq(partyAddresses.partyId, partyId),
       limit: 1,
@@ -88,27 +68,33 @@ export class PartyAddressesService {
       isPrimary: data.isPrimary ?? isFirst,
     });
 
-    if (data.isPrimary || isFirst) await this.repository.setPartyCountry(partyId, data.countryCode);
-
     this.logger.log(`Added address to party ${partyId}`);
     return { success: true, message: 'Address added successfully.', data: PartyAddressDto.from(entity) };
   }
 
-  // Updates an address, re-syncing the party country when the resulting address is primary
-  async update(id: string, data: UpdateAddressInput): Promise<SuccessResponseDto> {
+  // Updates an address
+  async update(id: string, data: UpdatePartyAddressDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Address not found.');
 
     if (data.isPrimary) await this.repository.clearPrimary(existing.partyId);
 
-    const updated = await this.repository.update(id, data);
-
-    const becamePrimary = data.isPrimary === true;
-    const countryChanged = updated.isPrimary && data.countryCode !== undefined && data.countryCode !== existing.countryCode;
-    if (becamePrimary || countryChanged) await this.repository.setPartyCountry(updated.partyId, updated.countryCode);
+    await this.repository.update(id, data);
 
     this.logger.log(`Updated address: ${id}`);
     return { success: true, message: 'Address updated successfully.' };
+  }
+
+  // Creates or updates a party's single primary address (used by company create/edit)
+  async upsertPrimary(partyId: string, data: AddPartyAddressDto): Promise<PartyAddressDto> {
+    const existing = await this.repository.findPrimaryByPartyId(partyId);
+    if (existing) {
+      await this.update(existing.id, { ...data, isPrimary: true });
+      const updated = await this.repository.findById(existing.id);
+      return PartyAddressDto.from(updated as NonNullable<typeof updated>);
+    }
+    const created = await this.add(partyId, { ...data, isPrimary: true });
+    return created.data;
   }
 
   // Removes an address by ID

@@ -3,21 +3,21 @@ import type {
   ModifierGroupWithOptionsDto,
 } from '@domain/modifier-groups/dto/entity/modifier-group.dto';
 import type { ModifierOptionDto } from '@domain/modifier-groups/dto/entity/modifier-option.dto';
-import { ModifierGroupsService } from '@domain/modifier-groups/services/modifier-groups.service';
+import { CreateModifierGroupDto } from '@domain/modifier-groups/dto/request/create-modifier-group.dto';
+import { CreateModifierOptionDto } from '@domain/modifier-groups/dto/request/create-modifier-option.dto';
+import { SelectModifiersDto } from '@domain/modifier-groups/dto/request/select-modifiers.dto';
+import { UpdateModifierGroupPayloadDto } from '@domain/modifier-groups/dto/request/update-modifier-group.dto';
+import { UpdateModifierOptionPayloadDto } from '@domain/modifier-groups/dto/request/update-modifier-option.dto';
+import { ModifierGroupsDomainService } from '@domain/modifier-groups/services/modifier-groups.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { CreateModifierGroupDto } from '../root/dto/request/create-modifier-group.dto';
-import { CreateModifierOptionDto } from '../root/dto/request/create-modifier-option.dto';
-import { SelectModifiersDto } from '../root/dto/request/select-modifiers.dto';
-import { UpdateModifierGroupPayloadDto } from '../root/dto/request/update-modifier-group.dto';
-import { UpdateModifierOptionPayloadDto } from '../root/dto/request/update-modifier-option.dto';
 
 @Controller()
 export class ModifiersController {
   private readonly logger = new Logger(ModifiersController.name);
 
-  constructor(private readonly modifierGroupsService: ModifierGroupsService) {}
+  constructor(private readonly modifierGroupsService: ModifierGroupsDomainService) {}
 
   // Lists modifier groups within a catalog
   @MessagePattern({ cmd: 'site.catalogs.modifiers.list' })
@@ -72,9 +72,7 @@ export class ModifiersController {
 
   // Updates a modifier option
   @MessagePattern({ cmd: 'site.catalogs.modifiers.options.update' })
-  async modifiersOptionsUpdate(
-    @Payload() data: UpdateModifierOptionPayloadDto,
-  ): Promise<ModifierOptionDto> {
+  async modifiersOptionsUpdate(@Payload() data: UpdateModifierOptionPayloadDto): Promise<ModifierOptionDto> {
     const { optionId, ...updateData } = data;
     this.logger.log(`catalogs.modifiers.options.update — optionId: ${optionId}`);
     return this.modifierGroupsService.updateOption(optionId, updateData);

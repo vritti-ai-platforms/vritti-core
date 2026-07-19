@@ -21,7 +21,7 @@ export type StockAdjustmentLotDetailRow = StockAdjustmentLot & {
 };
 
 @Injectable()
-export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof stockAdjustmentLots> {
+export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<typeof stockAdjustmentLots> {
   constructor(database: PrimaryDatabaseService) {
     super(database, stockAdjustmentLots);
   }

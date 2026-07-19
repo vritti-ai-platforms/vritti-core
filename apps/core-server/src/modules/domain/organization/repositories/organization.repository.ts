@@ -4,7 +4,7 @@ import { eq } from '@vritti/api-sdk/drizzle-orm';
 import { type Organization, organizations, sites } from '@/db/schema';
 
 @Injectable()
-export class OrganizationRepository extends PrimaryBaseRepository<typeof organizations> {
+export class OrganizationDomainRepository extends PrimaryBaseRepository<typeof organizations> {
   constructor(database: PrimaryDatabaseService) {
     super(database, organizations);
   }

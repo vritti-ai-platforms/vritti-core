@@ -9,7 +9,18 @@ export class PartyIdentifierResponseDto {
 
   @ApiProperty({
     description: 'Identifier type',
-    enum: ['PAN', 'AADHAAR', 'PASSPORT', 'DRIVING_LICENSE', 'VOTER_ID', 'CIVIL_ID', 'NATIONAL_ID', 'DUNS', 'LEI', 'CIN'],
+    enum: [
+      'PAN',
+      'AADHAAR',
+      'PASSPORT',
+      'DRIVING_LICENSE',
+      'VOTER_ID',
+      'CIVIL_ID',
+      'NATIONAL_ID',
+      'DUNS',
+      'LEI',
+      'CIN',
+    ],
   })
   idType: string;
 

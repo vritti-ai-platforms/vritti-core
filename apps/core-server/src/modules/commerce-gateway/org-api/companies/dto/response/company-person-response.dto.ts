@@ -4,7 +4,7 @@ export class CompanyPersonResponseDto {
   @ApiProperty({ description: 'Party relationship ID' })
   id: string;
 
-  @ApiProperty({ description: 'The company (parent ORGANIZATION party) ID' })
+  @ApiProperty({ description: 'The company (parent COMPANY party) ID' })
   parentPartyId: string;
 
   @ApiProperty({ description: 'The linked person (child PERSON party) ID' })

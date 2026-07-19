@@ -11,16 +11,16 @@ import {
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type TaxJurisdiction, type TaxJurisdictionLevel, taxJurisdictions } from '@/db/schema';
-import type { CreateTaxJurisdictionDto } from '@/modules/organization/tax-jurisdictions/dto/request/create-tax-jurisdiction.dto';
-import type { UpdateTaxJurisdictionDto } from '@/modules/organization/tax-jurisdictions/dto/request/update-tax-jurisdiction.dto';
 import { TaxJurisdictionDto } from '../dto/entity/tax-jurisdiction.dto';
 import type { TaxJurisdictionCountDto } from '../dto/entity/tax-jurisdiction-count.dto';
 import type { TaxJurisdictionTreeDto } from '../dto/entity/tax-jurisdiction-tree.dto';
-import { TaxJurisdictionsRepository } from '../repositories/tax-jurisdictions.repository';
+import type { CreateTaxJurisdictionDto } from '../dto/request/create-tax-jurisdiction.dto';
+import type { UpdateTaxJurisdictionDto } from '../dto/request/update-tax-jurisdiction.dto';
+import { TaxJurisdictionsDomainRepository } from '../repositories/tax-jurisdictions.repository';
 
 @Injectable()
-export class TaxJurisdictionsService {
-  private readonly logger = new Logger(TaxJurisdictionsService.name);
+export class TaxJurisdictionsDomainService {
+  private readonly logger = new Logger(TaxJurisdictionsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: taxJurisdictions.name, type: 'string' },
@@ -30,7 +30,7 @@ export class TaxJurisdictionsService {
     isActive: { column: taxJurisdictions.isActive, type: 'boolean' },
   };
 
-  constructor(private readonly repository: TaxJurisdictionsRepository) {}
+  constructor(private readonly repository: TaxJurisdictionsDomainRepository) {}
 
   // Returns total tax-jurisdiction count
   async count(): Promise<TaxJurisdictionCountDto> {
@@ -76,10 +76,10 @@ export class TaxJurisdictionsService {
     parentId: string,
     state: TableViewState,
   ): Promise<{ result: TaxJurisdictionDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, TaxJurisdictionsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, TaxJurisdictionsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, TaxJurisdictionsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, TaxJurisdictionsDomainService.FIELD_MAP);
     const where = and(eq(taxJurisdictions.parentId, parentId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxJurisdictionsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxJurisdictionsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findChildren({

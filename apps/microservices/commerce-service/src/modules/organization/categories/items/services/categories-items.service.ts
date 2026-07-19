@@ -1,5 +1,5 @@
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
-import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { TableViewState } from '@vritti/api-sdk/database';
 
@@ -7,7 +7,7 @@ import type { TableViewState } from '@vritti/api-sdk/database';
 export class CategoriesItemsService {
   private readonly logger = new Logger(CategoriesItemsService.name);
 
-  constructor(private readonly inventoryItemsService: InventoryItemsService) {}
+  constructor(private readonly inventoryItemsService: InventoryItemsDomainService) {}
 
   // Returns the inventory items linked to a leaf category, table-shaped (delegates to the inventory-items domain)
   async findItemsForTable(

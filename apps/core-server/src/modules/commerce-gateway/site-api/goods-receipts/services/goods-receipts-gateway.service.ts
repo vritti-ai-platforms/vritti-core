@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SearchState, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
+import { majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type {
   AddGoodsReceiptItemFromPurchaseOrderItemDto,
@@ -44,7 +44,10 @@ export class GoodsReceiptsGatewayService {
   }
 
   async findForTable(userId: string): Promise<GoodsReceiptTableResponseDto> {
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-goods-receipts');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      'commerce-site-goods-receipts',
+    );
     const { result, count } = await this.nats.send<{ result: GoodsReceiptResponseDto[]; count: number }>(
       'commerce',
       'site.goodsReceipts.table',
@@ -133,9 +136,7 @@ export class GoodsReceiptsGatewayService {
     dto: AddGoodsReceiptItemFromSupplierItemDto,
   ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
     const { unitPrice, ...rest } = dto;
-    const unitPriceMinor = unitPrice
-      ? majorToMinor(unitPrice.value, unitPrice.currency as CurrencyCode).toString()
-      : undefined;
+    const unitPriceMinor = unitPrice ? majorToMinor(unitPrice.value, unitPrice.currency).toString() : undefined;
     return this.nats.send('commerce', 'site.goodsReceipts.addItemFromSupplierItem', {
       goodsReceiptId,
       ...rest,
@@ -149,9 +150,7 @@ export class GoodsReceiptsGatewayService {
     dto: AddGoodsReceiptItemFromPurchaseOrderItemDto,
   ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
     const { unitPrice, ...rest } = dto;
-    const unitPriceMinor = unitPrice
-      ? majorToMinor(unitPrice.value, unitPrice.currency as CurrencyCode).toString()
-      : undefined;
+    const unitPriceMinor = unitPrice ? majorToMinor(unitPrice.value, unitPrice.currency).toString() : undefined;
     return this.nats.send('commerce', 'site.goodsReceipts.addItemFromPurchaseOrderItem', {
       goodsReceiptId,
       ...rest,
@@ -162,9 +161,7 @@ export class GoodsReceiptsGatewayService {
 
   updateItem(goodsReceiptId: string, itemId: string, dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
     const { unitPrice, ...rest } = dto;
-    const unitPriceMinor = unitPrice
-      ? majorToMinor(unitPrice.value, unitPrice.currency as CurrencyCode).toString()
-      : undefined;
+    const unitPriceMinor = unitPrice ? majorToMinor(unitPrice.value, unitPrice.currency).toString() : undefined;
     return this.nats.send('commerce', 'site.goodsReceipts.updateItem', {
       goodsReceiptId,
       itemId,
@@ -194,7 +191,7 @@ export class GoodsReceiptsGatewayService {
       goodsReceiptId,
       itemId,
       ...rest,
-      mrp: mrp ? majorToMinor(mrp.value, mrp.currency as CurrencyCode).toString() : (mrp as null | undefined),
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency).toString() : (mrp as null | undefined),
     });
   }
 
@@ -210,7 +207,7 @@ export class GoodsReceiptsGatewayService {
       itemId,
       lotId,
       ...rest,
-      mrp: mrp ? majorToMinor(mrp.value, mrp.currency as CurrencyCode).toString() : (mrp as null | undefined),
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency).toString() : (mrp as null | undefined),
     });
   }
 

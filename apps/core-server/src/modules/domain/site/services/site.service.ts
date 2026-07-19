@@ -1,11 +1,11 @@
-import { CatalogService } from '@domain/catalog/services/catalog.service';
+import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type SiteFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import { type LegalEntity, type SiteMetadata, type SiteType } from '@/db/schema';
-import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
@@ -13,18 +13,18 @@ import { sequentialSortOrders } from '@/utils/sort-order';
 import { SiteDto } from '../dto/entity/site.dto';
 import type { CreateSiteInternalDto } from '../dto/request/create-site-internal.dto';
 import type { UpdateSiteInternalDto } from '../dto/request/update-site-internal.dto';
-import { SiteRepository } from '../repositories/site.repository';
+import { SiteDomainRepository } from '../repositories/site.repository';
 
 @Injectable()
-export class SiteService {
-  private readonly logger = new Logger(SiteService.name);
+export class SiteDomainService {
+  private readonly logger = new Logger(SiteDomainService.name);
 
   constructor(
-    private readonly siteRepository: SiteRepository,
+    private readonly siteRepository: SiteDomainRepository,
     private readonly siteContextCache: SiteContextCacheService,
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly catalogService: CatalogService,
+    private readonly catalogService: CatalogDomainService,
   ) {}
 
   // Creates a site after validating its links

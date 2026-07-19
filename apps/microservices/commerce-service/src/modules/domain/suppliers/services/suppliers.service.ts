@@ -11,19 +11,22 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, desc, sql } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import _ from '@vritti/api-sdk/lodash';
 import { parties, supplierItems, suppliers } from '@/db/schema';
-import type { CreateSupplierDto } from '@/modules/legal-entity/suppliers/root/dto/request/create-supplier.dto';
-import type { UpdateSupplierDto } from '@/modules/legal-entity/suppliers/root/dto/request/update-supplier.dto';
 import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
-import { SuppliersRepository } from '../repositories/suppliers.repository';
+import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
+import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
+import { SuppliersDomainRepository } from '../repositories/suppliers.repository';
 
 @Injectable()
-export class SuppliersService {
-  private readonly logger = new Logger(SuppliersService.name);
+export class SuppliersDomainService {
+  private readonly logger = new Logger(SuppliersDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: parties.displayName, type: 'string' },
     code: { column: suppliers.code, type: 'string' },
+    purchasingBlocked: { column: suppliers.purchasingBlocked, type: 'boolean' },
+    paymentBlocked: { column: suppliers.paymentBlocked, type: 'boolean' },
     isActive: { column: suppliers.isActive, type: 'boolean' },
     inventoryItemId: {
       expression: (value, operator) =>
@@ -34,14 +37,14 @@ export class SuppliersService {
     },
   };
 
-  constructor(private readonly repository: SuppliersRepository) {}
+  constructor(private readonly repository: SuppliersDomainRepository) {}
 
   // Returns paginated suppliers for the data table with the joined party name
   async findForTable(state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, SuppliersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, SuppliersService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, SuppliersDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, SuppliersDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, SuppliersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, SuppliersDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllWithParty({
@@ -54,34 +57,50 @@ export class SuppliersService {
     return { result: rows.map((row) => SupplierDto.from(row, row.partyName)), count };
   }
 
-  // Returns paginated supplier options for select dropdowns
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
+  // Returns paginated supplier options for select dropdowns — site context scoped to enrolled suppliers
+  findForSelect(query: SelectOptionsQueryDto, options?: { enrollable?: boolean }): Promise<SelectQueryResult> {
+    return this.repository.findForSelect(
+      {
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey,
+        additionalKeys: query.additionalKeys,
+        groupIdKey: query.groupIdKey,
+        search: query.search,
+        limit: query.limit,
+        offset: query.offset,
+        values: query.values,
+        excludeIds: query.excludeIds,
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      options,
+    );
   }
 
   // Creates a new supplier referencing an existing party for its identity
   async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
-    const entity = await this.repository.create({
-      partyId: data.partyId,
-      code: data.code,
-      currencyCode: data.currencyCode,
-      paymentTerms: data.paymentTerms ?? null,
-      leadTimeDays: data.leadTimeDays ?? null,
-      notes: data.notes ?? null,
-    });
+    let entity: Awaited<ReturnType<SuppliersDomainRepository['create']>>;
+    try {
+      entity = await this.repository.create({
+        partyId: data.partyId,
+        code: data.code,
+        currencyCode: data.currencyCode,
+        paymentTerms: data.paymentTerms ?? null,
+        leadTimeDays: data.leadTimeDays ?? null,
+        notes: data.notes ?? null,
+        purchasingBlocked: data.purchasingBlocked ?? false,
+        paymentBlocked: data.paymentBlocked ?? false,
+        orderEmail: data.orderEmail ?? null,
+        orderPhone: data.orderPhone ?? null,
+        isActive: data.isActive ?? true,
+      });
+    } catch (error: unknown) {
+      if (_.get(error, 'code') === '23505' && _.get(error, 'constraint') === 'uq_suppliers_le_party') {
+        throw new ConflictException('This company is already a supplier for this legal entity.');
+      }
+      throw error;
+    }
 
     const withParty = await this.repository.findByIdWithParty(entity.id);
     this.logger.log(`Created supplier: ${entity.code}`);
@@ -92,14 +111,18 @@ export class SuppliersService {
     };
   }
 
-  // Returns supplier detail with the joined party name
+  // Returns supplier detail with party name, registrations, licenses, and active enrollment count
   async findById(id: string): Promise<SupplierDetailDto> {
-    const entity = await this.repository.findByIdWithParty(id);
+    const entity = await this.repository.findDetailById(id);
     if (!entity) throw new NotFoundException('Supplier not found.');
-    return SupplierDetailDto.fromDetail(entity, entity.partyName);
+    return SupplierDetailDto.fromDetail(entity, entity.partyName, {
+      registrations: entity.registrations,
+      licenses: entity.licenses,
+      enrolledSiteCount: entity.enrolledSiteCount,
+    });
   }
 
-  // Updates a supplier's commercial terms
+  // Updates a supplier's commercial terms and block flags
   async update(id: string, data: Omit<UpdateSupplierDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Supplier not found.');

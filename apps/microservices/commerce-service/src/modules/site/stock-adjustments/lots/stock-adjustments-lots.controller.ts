@@ -1,12 +1,12 @@
 import type { StockAdjustmentLotDto } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-lot.dto';
 import type { StockAdjustmentLotDetailDto } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-lot-detail.dto';
 import type { StockAdjustmentTreeNode } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-tree.dto';
-import { StockAdjustmentLotsService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
+import { AddLotDto } from '@domain/stock-adjustment-lots/dto/request/add-lot.dto';
+import { UpdateLotDto } from '@domain/stock-adjustment-lots/dto/request/update-lot.dto';
+import { StockAdjustmentLotsDomainService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { AddLotDto } from '../root/dto/request/add-lot.dto';
-import { UpdateLotDto } from '../root/dto/request/update-lot.dto';
 import { StockAdjustmentsLotsService } from './services/stock-adjustments-lots.service';
 
 @Controller()
@@ -14,7 +14,7 @@ export class StockAdjustmentsLotsController {
   private readonly logger = new Logger(StockAdjustmentsLotsController.name);
 
   constructor(
-    private readonly service: StockAdjustmentLotsService,
+    private readonly service: StockAdjustmentLotsDomainService,
     private readonly appService: StockAdjustmentsLotsService,
   ) {}
 

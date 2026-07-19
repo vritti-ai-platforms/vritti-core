@@ -27,6 +27,10 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
       paymentTerms: supplier.paymentTerms ?? '',
       leadTimeDays: supplier.leadTimeDays ?? undefined,
       notes: supplier.notes ?? '',
+      orderEmail: supplier.orderEmail ?? '',
+      orderPhone: supplier.orderPhone ?? '',
+      purchasingBlocked: supplier.purchasingBlocked,
+      paymentBlocked: supplier.paymentBlocked,
       isActive: supplier.isActive,
     },
   });
@@ -43,6 +47,8 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
         data: {
           ...data,
           leadTimeDays: data.leadTimeDays ?? null,
+          orderEmail: data.orderEmail || null,
+          orderPhone: data.orderPhone || null,
         },
       })}
     >
@@ -54,8 +60,16 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
         <TextField name="currencyCode" label="Currency" disabled />
         <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
         <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" integer positive />
+        <TextField name="orderEmail" label="Order Email" placeholder="e.g. orders@acme.com" />
+        <TextField name="orderPhone" label="Order Phone" placeholder="e.g. +91 98765 43210" />
         <TextArea name="notes" label="Notes" placeholder="Optional notes" rows={3} className="w-full sm:col-span-2" />
         <Switch name="isActive" label="Active" description="Inactive suppliers are hidden from procurement" />
+        <Switch
+          name="purchasingBlocked"
+          label="Purchasing Blocked"
+          description="Prevents new purchase orders to this supplier"
+        />
+        <Switch name="paymentBlocked" label="Payment Blocked" description="Prevents payments to this supplier" />
       </div>
       <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>

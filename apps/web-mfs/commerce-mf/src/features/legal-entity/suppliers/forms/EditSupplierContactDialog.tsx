@@ -8,9 +8,9 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
+import { useUpdateSupplierContact } from '@/hooks/legal-entity/suppliers';
 import type { SupplierContactData, UpdateSupplierContactFormData } from '@/schemas/suppliers';
 import { updateSupplierContactSchema } from '@/schemas/suppliers';
-import { useUpdateSupplierContact } from '@/hooks/legal-entity/suppliers';
 
 interface EditSupplierContactDialogProps {
   supplierId: string;

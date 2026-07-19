@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
@@ -13,9 +14,10 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ClipboardList, Gift, Pencil, Plus, Star, Trash2, Truck } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
-import type { SupplierItemData } from '@/schemas/suppliers';
+import { Link } from 'react-router-dom';
 import {
   SUPPLIER_ITEMS_TABLE_KEY,
   useBulkSetSupplierItemPreferred,
@@ -23,6 +25,7 @@ import {
   useSupplierItemsTable,
   useUnlinkSupplierItem,
 } from '@/hooks/legal-entity/suppliers';
+import type { SupplierItemData } from '@/schemas/suppliers';
 import { AddSupplierItemDialog } from '../forms/AddSupplierItemDialog';
 import { SetSupplierItemSchemeDialog } from '../forms/SetSupplierItemSchemeDialog';
 import { UpdateSupplierItemDialog } from '../forms/UpdateSupplierItemDialog';
@@ -77,7 +80,14 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       {
         accessorKey: 'inventoryItemName',
         header: 'Inventory Item',
-        cell: ({ row }) => row.original.inventoryItemName,
+        cell: ({ row }) => (
+          <Link
+            to={`items/${buildSlug(row.original.inventoryItemName, row.original.id)}`}
+            className="font-medium text-primary hover:underline"
+          >
+            {row.original.inventoryItemName}
+          </Link>
+        ),
       },
       {
         accessorKey: 'supplierItemCode',
@@ -103,14 +113,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       {
         accessorKey: 'isPreferred',
         header: 'Preferred',
-        cell: ({ row }) =>
-          row.original.isPreferred ? (
-            <Badge variant="secondary" className="bg-success/15 text-success">
-              Yes
-            </Badge>
-          ) : (
-            '—'
-          ),
+        cell: ({ row }) => (row.original.isPreferred ? <Badge variant="success">Yes</Badge> : '—'),
       },
       {
         accessorKey: 'hasScheme',
@@ -136,6 +139,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
+                permission: LE_SUPPLIERS.items.edit,
                 dialog: {
                   title: 'Edit Supplier Item',
                   description: 'Update pricing, UOM, and terms for this linked item.',
@@ -156,6 +160,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
                 icon: Trash2,
                 label: 'Unlink',
                 variant: 'destructive',
+                permission: LE_SUPPLIERS.items.delete,
                 onClick: () => handleUnlinkItem(row.original.id, row.original.inventoryItemName ?? 'item'),
               },
             ]}
@@ -170,7 +175,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
 
   const { table: linkedItemsTable } = useDataTable({
     columns: linkedItemColumns,
-    slug: `commerce-le-supplier-${supplierId}-items`,
+    slug: `commerce-supplier-${supplierId}-items`,
     label: 'item',
     serverState: response,
     enableRowSelection: true,
@@ -182,11 +187,13 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       <DataTable
         table={linkedItemsTable}
         isLoading={isLoading}
+        permission={LE_SUPPLIERS.items.view}
         selectActions={(rows) => (
           <>
             <Button
               size="sm"
               variant="outline"
+              permission={LE_SUPPLIERS.items.edit}
               startAdornment={<Star className="size-4" />}
               isLoading={bulkSetPreferredMutation.isPending}
               onClick={() =>
@@ -201,6 +208,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
             <Button
               size="sm"
               variant="outline"
+              permission={LE_SUPPLIERS.items.edit}
               startAdornment={<Gift className="size-4" />}
               onClick={() => {
                 setSchemeTargetIds(rows.map((r) => r.original.id));
@@ -212,6 +220,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
             <Button
               size="sm"
               variant="destructive"
+              permission={LE_SUPPLIERS.items.delete}
               startAdornment={<Trash2 className="size-4" />}
               isLoading={bulkUnlinkMutation.isPending}
               onClick={() => {
@@ -227,7 +236,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
         )}
         toolbarActions={{
           actions: (
-            <Button size="sm" onClick={addItemDialog.open}>
+            <Button size="sm" permission={LE_SUPPLIERS.items.add} onClick={addItemDialog.open}>
               <Plus className="mr-2 size-4" />
               Add Item
             </Button>

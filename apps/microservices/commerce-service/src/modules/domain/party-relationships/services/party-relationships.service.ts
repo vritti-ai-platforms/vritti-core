@@ -11,20 +11,12 @@ import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { parties, partyRelationships } from '@/db/schema';
 import { PartyRelationshipDto } from '../dto/entity/party-relationship.dto';
 import { PersonCompanyDto } from '../dto/entity/person-company.dto';
-import { PartyRelationshipsRepository } from '../repositories/party-relationships.repository';
-
-export interface AddRelationshipInput {
-  childPartyId: string;
-  jobTitle?: string | null;
-  secondaryPhone?: string | null;
-  secondaryEmail?: string | null;
-  isPrimary?: boolean;
-  isActive?: boolean;
-}
+import type { AddCompanyPersonDto } from '../dto/request/add-company-person.dto';
+import { PartyRelationshipsDomainRepository } from '../repositories/party-relationships.repository';
 
 @Injectable()
-export class PartyRelationshipsService {
-  private readonly logger = new Logger(PartyRelationshipsService.name);
+export class PartyRelationshipsDomainService {
+  private readonly logger = new Logger(PartyRelationshipsDomainService.name);
 
   private static readonly RELATIONSHIP_FIELD_MAP: FieldMap = {
     childName: { column: parties.displayName, type: 'string' },
@@ -38,28 +30,27 @@ export class PartyRelationshipsService {
     isPrimary: { column: partyRelationships.isPrimary, type: 'boolean' },
   };
 
-  constructor(private readonly repository: PartyRelationshipsRepository) {}
+  constructor(private readonly repository: PartyRelationshipsDomainRepository) {}
 
   // Returns paginated companies a person party is linked to for the data table
   async findCompaniesForPerson(
     personId: string,
     state: TableViewState,
   ): Promise<{ result: PersonCompanyDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyRelationshipsService.COMPANY_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartyRelationshipsService.COMPANY_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyRelationshipsDomainService.COMPANY_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PartyRelationshipsDomainService.COMPANY_FIELD_MAP);
     const where = and(eq(partyRelationships.childPartyId, personId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyRelationshipsService.COMPANY_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyRelationshipsDomainService.COMPANY_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findCompaniesForTable({
       where,
-      orderBy:
-        orderBy.length > 0 ? orderBy : [desc(partyRelationships.isPrimary), asc(partyRelationships.createdAt)],
+      orderBy: orderBy.length > 0 ? orderBy : [desc(partyRelationships.isPrimary), asc(partyRelationships.createdAt)],
       limit,
       offset,
     });
 
-    return { result: rows.map((row) => PersonCompanyDto.from(row, row.companyName, row.countryCode)), count };
+    return { result: rows.map((row) => PersonCompanyDto.from(row, row.companyName)), count };
   }
 
   // Returns paginated people linked to a company party for the data table
@@ -67,16 +58,21 @@ export class PartyRelationshipsService {
     companyPartyId: string,
     state: TableViewState,
   ): Promise<{ result: PartyRelationshipDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyRelationshipsService.RELATIONSHIP_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartyRelationshipsService.RELATIONSHIP_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(
+      state.filters,
+      PartyRelationshipsDomainService.RELATIONSHIP_FIELD_MAP,
+    );
+    const searchWhere = FilterProcessor.buildSearch(
+      state.search,
+      PartyRelationshipsDomainService.RELATIONSHIP_FIELD_MAP,
+    );
     const where = and(eq(partyRelationships.parentPartyId, companyPartyId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyRelationshipsService.RELATIONSHIP_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyRelationshipsDomainService.RELATIONSHIP_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findRelationshipsForTable({
       where,
-      orderBy:
-        orderBy.length > 0 ? orderBy : [desc(partyRelationships.isPrimary), asc(partyRelationships.createdAt)],
+      orderBy: orderBy.length > 0 ? orderBy : [desc(partyRelationships.isPrimary), asc(partyRelationships.createdAt)],
       limit,
       offset,
     });
@@ -87,7 +83,7 @@ export class PartyRelationshipsService {
   // Links a person party to a company party
   async addRelationship(
     companyPartyId: string,
-    data: AddRelationshipInput,
+    data: Omit<AddCompanyPersonDto, 'companyId'>,
   ): Promise<CreateResponseDto<PartyRelationshipDto>> {
     await this.requirePartyExists(companyPartyId);
     await this.requirePartyExists(data.childPartyId, 'Person not found.');

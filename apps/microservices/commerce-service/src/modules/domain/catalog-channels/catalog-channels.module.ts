@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { CatalogChannelsRepository } from './repositories/catalog-channels.repository';
-import { CatalogChannelsService } from './services/catalog-channels.service';
+import { CatalogChannelsDomainRepository } from './repositories/catalog-channels.repository';
+import { CatalogChannelsDomainService } from './services/catalog-channels.service';
 
 @Module({
-  providers: [CatalogChannelsService, CatalogChannelsRepository],
-  exports: [CatalogChannelsService, CatalogChannelsRepository],
+  providers: [CatalogChannelsDomainService, CatalogChannelsDomainRepository],
+  exports: [CatalogChannelsDomainService, CatalogChannelsDomainRepository],
 })
 export class CatalogChannelsDomainModule {}

@@ -3,7 +3,7 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/d
 import { inventoryItemSerials } from '@/db/schema';
 
 @Injectable()
-export class InventoryItemSerialsRepository extends PrimaryBaseRepository<typeof inventoryItemSerials> {
+export class InventoryItemSerialsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemSerials> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemSerials);
   }

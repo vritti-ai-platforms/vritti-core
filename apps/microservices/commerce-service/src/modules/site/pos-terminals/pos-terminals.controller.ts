@@ -1,6 +1,6 @@
-import { LocationsRepository } from '@domain/locations/repositories/locations.repository';
 import type { PosTerminalDto } from '@domain/pos-terminals/dto/entity/pos-terminal.dto';
-import { PosTerminalsService } from '@domain/pos-terminals/services/pos-terminals.service';
+import { CreatePosTerminalDto } from '@domain/pos-terminals/dto/request/create-pos-terminal.dto';
+import { UpdatePosTerminalPayloadDto } from '@domain/pos-terminals/dto/request/update-pos-terminal-payload.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
@@ -10,82 +10,53 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import { NotFoundException } from '@vritti/api-sdk/exceptions';
-import { LocationRoleValues } from '@/db/schema';
-import { CreatePosTerminalDto } from './dto/request/create-pos-terminal.dto';
-import { UpdatePosTerminalPayloadDto } from './dto/request/update-pos-terminal-payload.dto';
+import { PosTerminalsService } from './services/pos-terminals.service';
 
 @Controller()
 export class PosTerminalsController {
   private readonly logger = new Logger(PosTerminalsController.name);
 
-  constructor(
-    private readonly posTerminalsService: PosTerminalsService,
-    private readonly locationsRepository: LocationsRepository,
-  ) {}
+  constructor(private readonly service: PosTerminalsService) {}
 
   // Returns paginated POS terminals for the data table
   @MessagePattern({ cmd: 'site.posTerminals.table' })
   async table(@Payload() state: TableViewState): Promise<{ result: PosTerminalDto[]; count: number }> {
     this.logger.log('posTerminals.table');
-    return this.posTerminalsService.findForTable(state);
+    return this.service.findForTable(state);
   }
 
   // Returns POS-role storage location options for select dropdowns
   @MessagePattern({ cmd: 'site.posTerminals.locationsSelect' })
   async locationsSelect(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('posTerminals.locationsSelect');
-    return this.locationsRepository.findForSelect({
-      value: data.valueKey || 'id',
-      label: data.labelKey || 'name',
-      description: data.descriptionKey,
-      additionalKeys: data.additionalKeys,
-      groupIdKey: data.groupIdKey,
-      search: data.search,
-      limit: data.limit,
-      offset: data.offset,
-      values: data.values,
-      excludeIds: data.excludeIds,
-      where: { locationRole: LocationRoleValues.RESERVED_STORAGE },
-      orderByKey: data.orderByKey || 'name',
-      orderDirection: data.orderDirection || 'asc',
-    });
+    return this.service.findLocationsForSelect(data);
   }
 
   // Returns a single POS terminal by ID
   @MessagePattern({ cmd: 'site.posTerminals.findById' })
   async findById(@Payload() data: { id: string }): Promise<PosTerminalDto> {
     this.logger.log(`posTerminals.findById — id: ${data.id}`);
-    return this.posTerminalsService.findById(data.id);
+    return this.service.findById(data.id);
   }
 
   // Creates a new POS terminal
   @MessagePattern({ cmd: 'site.posTerminals.create' })
   async create(@Payload() dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
     this.logger.log(`posTerminals.create — name: ${dto.name}, code: ${dto.code}`);
-    const location = await this.locationsRepository.findById(dto.locationId);
-    if (!location) throw new NotFoundException('Storage location not found.');
-    return this.posTerminalsService.create(dto, location);
+    return this.service.create(dto);
   }
 
   // Updates an existing POS terminal
   @MessagePattern({ cmd: 'site.posTerminals.update' })
   async update(@Payload() data: UpdatePosTerminalPayloadDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = data;
-    this.logger.log(`posTerminals.update — id: ${id}`);
-    let location: { id: string; locationRole: string; isActive: boolean } | undefined;
-    if (updateData.locationId) {
-      const loc = await this.locationsRepository.findById(updateData.locationId);
-      if (!loc) throw new NotFoundException('Storage location not found.');
-      location = loc;
-    }
-    return this.posTerminalsService.update(id, updateData, location);
+    this.logger.log(`posTerminals.update — id: ${data.id}`);
+    return this.service.update(data);
   }
 
   // Deletes a POS terminal
   @MessagePattern({ cmd: 'site.posTerminals.delete' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`posTerminals.delete — id: ${data.id}`);
-    return this.posTerminalsService.delete(data.id);
+    return this.service.delete(data.id);
   }
 }

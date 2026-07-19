@@ -1,3 +1,4 @@
+import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
@@ -13,6 +14,7 @@ import { EditSupplierForm } from './forms/EditSupplierForm';
 import { ContactsTab } from './tabs/ContactsTab';
 import { ItemsTab } from './tabs/ItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
+import { SitesTab } from './tabs/SitesTab';
 
 export const SupplierDetailPage = () => {
   const { id } = useSlugParams('supplierSlug');
@@ -47,6 +49,7 @@ export const SupplierDetailPage = () => {
             <Button
               variant="outline"
               size="sm"
+              permission={LE_SUPPLIERS.edit}
               startAdornment={<RefreshCw className="size-4" />}
               onClick={changeCurrencyDialog.open}
             >
@@ -55,6 +58,7 @@ export const SupplierDetailPage = () => {
             <Button
               variant="outline"
               size="sm"
+              permission={LE_SUPPLIERS.edit}
               startAdornment={<Pencil className="size-4" />}
               onClick={editDialog.open}
             >
@@ -69,16 +73,25 @@ export const SupplierDetailPage = () => {
           {
             value: 'overview',
             label: 'Overview',
+            permission: LE_SUPPLIERS.view,
             content: <OverviewTab supplier={supplier} />,
           },
           {
             value: 'items',
             label: `Items (${supplierInventoryItemIds.length})`,
+            permission: LE_SUPPLIERS.items.view,
             content: <ItemsTab supplierId={supplier.id} supplierCurrencyCode={supplier.currencyCode} />,
+          },
+          {
+            value: 'sites',
+            label: `Sites (${supplier.enrolledSiteCount})`,
+            permission: LE_SUPPLIERS.sites.view,
+            content: <SitesTab supplierId={supplier.id} partyId={supplier.partyId} />,
           },
           {
             value: 'contacts',
             label: 'Contacts',
+            permission: LE_SUPPLIERS.view,
             content: <ContactsTab supplierId={supplier.id} />,
           },
         ]}
@@ -114,6 +127,7 @@ export const SupplierDetailPage = () => {
         title="Delete this supplier"
         description="This action cannot be undone. The supplier and its linked supplier items and contacts will be permanently removed."
         buttonText="Delete Supplier"
+        permission={LE_SUPPLIERS.delete}
         onClick={handleDelete}
         isLoading={deleteMutation.isPending}
         disabled={deleteMutation.isPending}

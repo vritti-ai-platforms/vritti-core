@@ -12,16 +12,16 @@ import {
 import { and, asc, eq, inArray, ne, notInArray, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type LocationRole, LocationRoleValues, locations } from '@/db/schema';
-import type { CreateLocationDto } from '@/modules/site/locations/root/dto/request/create-location.dto';
-import type { UpdateLocationDto } from '@/modules/site/locations/root/dto/request/update-location.dto';
 import { LocationDto } from '../dto/entity/location.dto';
 import type { LocationCountDto } from '../dto/entity/location-count.dto';
 import type { LocationTreeDto } from '../dto/entity/location-tree.dto';
-import { LocationsRepository } from '../repositories/locations.repository';
+import type { CreateLocationDto } from '../dto/request/create-location.dto';
+import type { UpdateLocationDto } from '../dto/request/update-location.dto';
+import { LocationsDomainRepository } from '../repositories/locations.repository';
 
 @Injectable()
-export class LocationsService {
-  private readonly logger = new Logger(LocationsService.name);
+export class LocationsDomainService {
+  private readonly logger = new Logger(LocationsDomainService.name);
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: locations.name, type: 'string' },
     code: { column: locations.code, type: 'string' },
@@ -33,7 +33,7 @@ export class LocationsService {
 
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly locationsRepository: LocationsRepository,
+    private readonly locationsRepository: LocationsDomainRepository,
   ) {}
 
   private static toPathLabel(code: string): string {
@@ -45,7 +45,7 @@ export class LocationsService {
   }
 
   private static buildPath(parentPath: string | null, code: string): string {
-    const label = LocationsService.toPathLabel(code);
+    const label = LocationsDomainService.toPathLabel(code);
     return parentPath ? `${parentPath}.${label}` : label;
   }
 
@@ -68,10 +68,10 @@ export class LocationsService {
     parentId: string,
     state: TableViewState,
   ): Promise<{ result: LocationDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, LocationsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, LocationsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, LocationsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, LocationsDomainService.FIELD_MAP);
     const where = and(eq(locations.parentId, parentId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, LocationsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, LocationsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.locationsRepository.findAllAndCount({
@@ -171,9 +171,9 @@ export class LocationsService {
       groupIdKey: query.groupIdKey,
       groups:
         query.groupIdKey === 'locationRole' && roles.length > 0
-          ? LocationsService.LOCATION_ROLE_GROUP_ORDER.filter((role) => roles.includes(role)).map((role) => ({
+          ? LocationsDomainService.LOCATION_ROLE_GROUP_ORDER.filter((role) => roles.includes(role)).map((role) => ({
               id: role,
-              name: LocationsService.LOCATION_ROLE_LABELS[role],
+              name: LocationsDomainService.LOCATION_ROLE_LABELS[role],
             }))
           : undefined,
       search: query.search,
@@ -255,7 +255,7 @@ export class LocationsService {
         isActive: data.isActive,
       });
 
-      const path = LocationsService.buildPath(parentPath, entity.code);
+      const path = LocationsDomainService.buildPath(parentPath, entity.code);
       await this.locationsRepository.update(entity.id, { path });
       const fresh = await this.locationsRepository.findById(entity.id);
       if (!fresh) throw new NotFoundException('Storage location not found.');
@@ -310,7 +310,7 @@ export class LocationsService {
       });
 
       if (parentChanged || codeChanged) {
-        const nextPath = LocationsService.buildPath(nextParentPath, nextCode);
+        const nextPath = LocationsDomainService.buildPath(nextParentPath, nextCode);
         await this.locationsRepository.rewriteSubtreePath(existing.path, nextPath);
       }
       return row;

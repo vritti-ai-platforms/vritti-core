@@ -1,9 +1,9 @@
 import type { StockAdjustmentLineItemDto } from '@domain/stock-adjustment-line-items/dto/entity/stock-adjustment-line-item.dto';
+import { AddLineItemDto } from '@domain/stock-adjustment-line-items/dto/request/add-line-item.dto';
+import { UpdateLineItemDto } from '@domain/stock-adjustment-line-items/dto/request/update-line-item.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddLineItemDto } from '../root/dto/request/add-line-item.dto';
-import { UpdateLineItemDto } from '../root/dto/request/update-line-item.dto';
 import { StockAdjustmentsLineItemsTransactionService } from './services/stock-adjustments-line-items-transaction.service';
 
 @Controller()

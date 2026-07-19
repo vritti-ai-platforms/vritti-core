@@ -16,10 +16,10 @@ import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems
 
 export type FreeScheme = { buyQty: number | null; freeQty: number | null; hasScheme: boolean };
 
-import type { AddPurchaseOrderItemDto } from '@/modules/site/purchase-orders/root/dto/request/add-purchase-order-item.dto';
-import type { UpdatePurchaseOrderItemDto } from '@/modules/site/purchase-orders/root/dto/request/update-purchase-order-item.dto';
 import { PurchaseOrderItemDto } from '../dto/entity/purchase-order-item.dto';
-import { PurchaseOrderItemsRepository } from '../repositories/purchase-order-items.repository';
+import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
+import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
+import { PurchaseOrderItemsDomainRepository } from '../repositories/purchase-order-items.repository';
 
 export interface PurchaseOrderContext {
   id: string;
@@ -31,8 +31,8 @@ export interface PurchaseOrderContext {
 }
 
 @Injectable()
-export class PurchaseOrderItemsService {
-  private readonly logger = new Logger(PurchaseOrderItemsService.name);
+export class PurchaseOrderItemsDomainService {
+  private readonly logger = new Logger(PurchaseOrderItemsDomainService.name);
 
   private static readonly EDITABLE_STATUSES: PurchaseOrderStatus[] = [
     PurchaseOrderStatusValues.DRAFT,
@@ -49,7 +49,7 @@ export class PurchaseOrderItemsService {
     totalPrice: { column: purchaseOrderItems.totalPrice, type: 'number' },
   };
 
-  constructor(private readonly repository: PurchaseOrderItemsRepository) {}
+  constructor(private readonly repository: PurchaseOrderItemsDomainRepository) {}
 
   // Returns paginated PO line options for the GR AddItem selector
   findForSelectByPo(
@@ -78,7 +78,7 @@ export class PurchaseOrderItemsService {
   }
 
   private assertEditable(po: PurchaseOrderContext): void {
-    if (!PurchaseOrderItemsService.EDITABLE_STATUSES.includes(po.status)) {
+    if (!PurchaseOrderItemsDomainService.EDITABLE_STATUSES.includes(po.status)) {
       throw new BadRequestException({
         label: 'Cannot Edit Items',
         detail: 'Line items cannot be changed once the purchase order is received, closed, or cancelled.',
@@ -99,10 +99,10 @@ export class PurchaseOrderItemsService {
 
   // Returns paginated line items for a PO table
   async findForTable(poId: string, state: TableViewState): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrderItemsService.ITEM_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrderItemsService.ITEM_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrderItemsDomainService.ITEM_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrderItemsDomainService.ITEM_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrderItemsService.ITEM_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrderItemsDomainService.ITEM_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findItemsForTable(poId, {

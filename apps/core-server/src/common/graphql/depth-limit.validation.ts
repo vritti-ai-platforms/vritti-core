@@ -6,7 +6,7 @@ import {
   type OperationDefinitionNode,
   type SelectionSetNode,
   type ValidationContext,
-} from "graphql";
+} from 'graphql';
 
 // Rejects operations whose selection nesting exceeds `maxDepth` — defense-in-depth against abusive,
 // deeply-nested queries (complements the keyset page-size clamp, which bounds breadth). Fragment spreads
@@ -16,19 +16,16 @@ export function depthLimit(maxDepth: number): (context: ValidationContext) => AS
   return (context: ValidationContext): ASTVisitor => {
     const fragments: Record<string, FragmentDefinitionNode> = {};
     for (const def of context.getDocument().definitions) {
-      if (def.kind === "FragmentDefinition") fragments[def.name.value] = def;
+      if (def.kind === 'FragmentDefinition') fragments[def.name.value] = def;
     }
 
-    const depthOf = (
-      node: { selectionSet?: SelectionSetNode },
-      seenFragments: ReadonlySet<string>,
-    ): number => {
+    const depthOf = (node: { selectionSet?: SelectionSetNode }, seenFragments: ReadonlySet<string>): number => {
       let max = 0;
       for (const selection of node.selectionSet?.selections ?? []) {
-        if (selection.kind === "Field") {
+        if (selection.kind === 'Field') {
           const childDepth = selection.selectionSet ? 1 + depthOf(selection, seenFragments) : 1;
           if (childDepth > max) max = childDepth;
-        } else if (selection.kind === "InlineFragment") {
+        } else if (selection.kind === 'InlineFragment') {
           const childDepth = depthOf(selection as InlineFragmentNode, seenFragments);
           if (childDepth > max) max = childDepth;
         } else {

@@ -7,7 +7,11 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { CheckCircle2, Pencil, Trash2, Truck, UserCircle2 } from 'lucide-react';
 import { useMemo } from 'react';
-import { useDeleteSupplierContact, useMarkPrimarySupplierContact, useSupplierContacts } from '@/hooks/legal-entity/suppliers';
+import {
+  useDeleteSupplierContact,
+  useMarkPrimarySupplierContact,
+  useSupplierContacts,
+} from '@/hooks/legal-entity/suppliers';
 import { EditSupplierContactDialog } from '../forms/EditSupplierContactDialog';
 
 interface SupplierContactsContentProps {

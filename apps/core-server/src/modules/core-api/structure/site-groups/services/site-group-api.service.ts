@@ -1,9 +1,9 @@
 import type { SiteGroupDto } from '@domain/site-group/dto/entity/site-group.dto';
 import type { CreateSiteGroupInternalDto } from '@domain/site-group/dto/request/create-site-group-internal.dto';
 import type { UpdateSiteGroupInternalDto } from '@domain/site-group/dto/request/update-site-group-internal.dto';
-import { SiteGroupService } from '@domain/site-group/services/site-group.service';
+import { SiteGroupDomainService } from '@domain/site-group/services/site-group.service';
 import type { AssignmentWithNames } from '@domain/user-role/repositories/user-role-assignment.repository';
-import { UserRoleService } from '@domain/user-role/services/user-role.service';
+import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import { Injectable } from '@nestjs/common';
 import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { OrgStructureSelectQueryDto } from '../../dto/request/org-structure-select-query.dto';
@@ -11,10 +11,10 @@ import type { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-l
 import type { FeatureLocksResponseDto } from '../../dto/response/feature-locks-response.dto';
 
 @Injectable()
-export class SiteGroupApiService {
+export class SiteGroupService {
   constructor(
-    private readonly siteGroupService: SiteGroupService,
-    private readonly userRoleService: UserRoleService,
+    private readonly siteGroupService: SiteGroupDomainService,
+    private readonly userRoleService: UserRoleDomainService,
   ) {}
 
   // Returns site groups as select options with subtree exclusion

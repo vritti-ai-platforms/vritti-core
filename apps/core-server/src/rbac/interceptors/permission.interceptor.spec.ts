@@ -10,7 +10,7 @@ const mockGetRequest = jest.fn();
 jest.mock('@/utils/request-context', () => ({ getRequest: (...args: unknown[]) => mockGetRequest(...args) }));
 jest.mock('@/db/schema', () => ({ SessionTypeValues: { WEB: 'WEB', MOBILE: 'MOBILE' } }));
 jest.mock('@/modules/domain/user-permissions/services/user-permissions.service', () => ({
-  UserPermissionsService: class {},
+  UserPermissionsDomainService: class {},
 }));
 
 import { PermissionInterceptor } from './permission.interceptor';

@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { Media } from '@/db/schema';
 import { MediaStatusValues } from '@/db/schema';
-import { MediaRepository } from '../repositories/media.repository';
+import { MediaDomainRepository } from '../repositories/media.repository';
 import { StorageFactory } from '../storage/storage.factory';
 
 const DEFAULT_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
@@ -30,15 +30,15 @@ export interface MediaResult {
 }
 
 @Injectable()
-export class MediaService {
-  private readonly logger = new Logger(MediaService.name);
+export class MediaDomainService {
+  private readonly logger = new Logger(MediaDomainService.name);
   private readonly defaultBucket: string;
   private readonly maxFileSize: number;
   private readonly signedUrlExpiry: number;
   private readonly defaultProvider: string;
 
   constructor(
-    private readonly mediaRepository: MediaRepository,
+    private readonly mediaRepository: MediaDomainRepository,
     private readonly storageFactory: StorageFactory,
     private readonly configService: ConfigService,
   ) {

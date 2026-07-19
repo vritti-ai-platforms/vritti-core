@@ -1,6 +1,5 @@
 import { Card, CardContent } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
-import { countryFlag } from '@vritti/quantum-ui/selects/iso-country';
 import type { PersonData } from '@/schemas/people';
 
 interface OverviewTabProps {
@@ -8,6 +7,13 @@ interface OverviewTabProps {
 }
 
 export const OverviewTab = ({ person }: OverviewTabProps) => {
+  const address = person.primaryAddress;
+  const addressText = address
+    ? [address.line1, address.line2, address.city, address.region, address.postalCode, address.countryCode]
+        .filter(Boolean)
+        .join(', ')
+    : null;
+
   return (
     <Card>
       <CardContent className="flex flex-col gap-8 pt-6">
@@ -18,12 +24,8 @@ export const OverviewTab = ({ person }: OverviewTabProps) => {
             <DetailField label="Last Name" type="string" value={person.lastName} />
             <DetailField label="Email" type="string" value={person.email} />
             <DetailField label="Phone" type="string" value={person.phone} mono />
-            <DetailField
-              label="Country"
-              type="string"
-              value={person.countryCode ? `${countryFlag(person.countryCode)} ${person.countryCode}` : null}
-            />
             <DetailField label="Created" type="dateTime" value={person.createdAt} />
+            <DetailField label="Address" type="string" className="col-span-2 md:col-span-3" value={addressText} />
           </div>
         </div>
       </CardContent>

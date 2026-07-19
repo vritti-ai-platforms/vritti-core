@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class PersonCompanyResponseDto {
   @ApiProperty({ description: 'Person-company link ID' })
@@ -12,9 +12,6 @@ export class PersonCompanyResponseDto {
 
   @ApiProperty({ description: 'The job title of the person at the company' })
   jobTitle: string;
-
-  @ApiPropertyOptional({ description: 'The company ISO-2 country code', nullable: true })
-  countryCode: string | null;
 
   @ApiProperty({ description: 'Whether this is the primary company' })
   isPrimary: boolean;

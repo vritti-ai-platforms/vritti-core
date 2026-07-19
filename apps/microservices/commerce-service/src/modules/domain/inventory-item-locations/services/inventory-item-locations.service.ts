@@ -13,28 +13,28 @@ import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { inventoryItemLocations, locations } from '@/db/schema';
 import { InventoryItemLocationDto } from '../dto/entity/inventory-item-location.dto';
-import { InventoryItemLocationsRepository } from '../repositories/inventory-item-locations.repository';
+import { InventoryItemLocationsDomainRepository } from '../repositories/inventory-item-locations.repository';
 
 @Injectable()
-export class InventoryItemLocationsService {
-  private readonly logger = new Logger(InventoryItemLocationsService.name);
+export class InventoryItemLocationsDomainService {
+  private readonly logger = new Logger(InventoryItemLocationsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
     reorderLevel: { column: inventoryItemLocations.minLevel, type: 'string' },
   };
 
-  constructor(private readonly repository: InventoryItemLocationsRepository) {}
+  constructor(private readonly repository: InventoryItemLocationsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted configs for an inventory item
   async findForTable(
     inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLocationsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLocationsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLocationsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLocationsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLocationsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLocationsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findByInventoryItemId(inventoryItemId, {

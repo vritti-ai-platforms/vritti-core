@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { PosTerminalsRepository } from './repositories/pos-terminals.repository';
-import { PosTerminalsService } from './services/pos-terminals.service';
+import { PosTerminalsDomainRepository } from './repositories/pos-terminals.repository';
+import { PosTerminalsDomainService } from './services/pos-terminals.service';
 
 @Module({
-  providers: [PosTerminalsService, PosTerminalsRepository],
-  exports: [PosTerminalsService, PosTerminalsRepository],
+  providers: [PosTerminalsDomainService, PosTerminalsDomainRepository],
+  exports: [PosTerminalsDomainService, PosTerminalsDomainRepository],
 })
 export class PosTerminalsDomainModule {}

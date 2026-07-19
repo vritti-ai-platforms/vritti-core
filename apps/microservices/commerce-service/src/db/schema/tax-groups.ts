@@ -7,9 +7,7 @@ export const taxGroups = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    legalEntityId: uuid('legal_entity_id')
-      .notNull()
-      .default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
+    legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
     name: varchar('name', { length: 100 }).notNull(),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

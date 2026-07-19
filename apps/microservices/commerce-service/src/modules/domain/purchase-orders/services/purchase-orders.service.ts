@@ -18,13 +18,13 @@ import {
   parties,
   purchaseOrders,
 } from '@/db/schema';
-import type { CreatePurchaseOrderDto } from '@/modules/site/purchase-orders/root/dto/request/create-purchase-order.dto';
 import { PurchaseOrderDto } from '../dto/entity/purchase-order.dto';
-import { PurchaseOrdersRepository } from '../repositories/purchase-orders.repository';
+import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
+import { PurchaseOrdersDomainRepository } from '../repositories/purchase-orders.repository';
 
 @Injectable()
-export class PurchaseOrdersService {
-  private readonly logger = new Logger(PurchaseOrdersService.name);
+export class PurchaseOrdersDomainService {
+  private readonly logger = new Logger(PurchaseOrdersDomainService.name);
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     poNumber: { column: purchaseOrders.poNumber, type: 'string' },
@@ -62,7 +62,7 @@ export class PurchaseOrdersService {
     [PurchaseOrderStatusValues.REJECTED]: [],
   };
 
-  constructor(private readonly repository: PurchaseOrdersRepository) {}
+  constructor(private readonly repository: PurchaseOrdersDomainRepository) {}
 
   // Returns paginated purchase order options for select dropdowns
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
@@ -99,12 +99,12 @@ export class PurchaseOrdersService {
 
   // Returns paginated POs for the data table
   async findForTable(state: TableViewState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrdersService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrdersService.SEARCH_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrdersDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrdersDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...PurchaseOrdersService.SEARCH_FIELD_MAP,
-      ...PurchaseOrdersService.FILTER_FIELD_MAP,
+      ...PurchaseOrdersDomainService.SEARCH_FIELD_MAP,
+      ...PurchaseOrdersDomainService.FILTER_FIELD_MAP,
       orderDate: { column: purchaseOrders.orderDate, type: 'string' },
     });
     const { limit = 20, offset = 0 } = state.pagination;
@@ -209,7 +209,7 @@ export class PurchaseOrdersService {
   async updateStatus(id: string, status: PurchaseOrderStatus): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
-    const allowedNext = PurchaseOrdersService.STATUS_TRANSITIONS[existing.status] ?? [];
+    const allowedNext = PurchaseOrdersDomainService.STATUS_TRANSITIONS[existing.status] ?? [];
     if (!allowedNext.includes(status)) {
       throw new BadRequestException(`Cannot transition purchase order status from ${existing.status} to ${status}.`);
     }

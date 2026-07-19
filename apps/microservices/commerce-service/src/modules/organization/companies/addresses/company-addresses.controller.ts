@@ -1,16 +1,16 @@
 import { PartyAddressDto } from '@domain/party-addresses/dto/entity/party-address.dto';
-import { PartyAddressesService } from '@domain/party-addresses/services/party-addresses.service';
+import { AddCompanyAddressDto } from '@domain/party-addresses/dto/request/add-company-address.dto';
+import { UpdateAddressDto } from '@domain/party-addresses/dto/request/update-address.dto';
+import { PartyAddressesDomainService } from '@domain/party-addresses/services/party-addresses.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddCompanyAddressDto } from './dto/request/add-company-address.dto';
-import { UpdateAddressDto } from './dto/request/update-address.dto';
 
 @Controller()
 export class CompanyAddressesController {
   private readonly logger = new Logger(CompanyAddressesController.name);
 
-  constructor(private readonly service: PartyAddressesService) {}
+  constructor(private readonly service: PartyAddressesDomainService) {}
 
   // Returns the paginated addresses of a company
   @MessagePattern({ cmd: 'org.companies.addresses.table' })

@@ -11,14 +11,14 @@ import {
 import { and, asc, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { taxGroups } from '@/db/schema';
-import type { CreateTaxGroupDto } from '@/modules/legal-entity/tax-groups/dto/request/create-tax-group.dto';
-import type { UpdateTaxGroupDto } from '@/modules/legal-entity/tax-groups/dto/request/update-tax-group.dto';
 import { TaxGroupDto } from '../dto/entity/tax-group.dto';
-import { TaxGroupsRepository } from '../repositories/tax-groups.repository';
+import type { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
+import type { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
+import { TaxGroupsDomainRepository } from '../repositories/tax-groups.repository';
 
 @Injectable()
-export class TaxGroupsService {
-  private readonly logger = new Logger(TaxGroupsService.name);
+export class TaxGroupsDomainService {
+  private readonly logger = new Logger(TaxGroupsDomainService.name);
 
   // Whitelist of fields the frontend may filter/search/sort on
   private static readonly FIELD_MAP: FieldMap = {
@@ -26,15 +26,15 @@ export class TaxGroupsService {
     isActive: { column: taxGroups.isActive, type: 'boolean' },
   };
 
-  constructor(private readonly taxGroupsRepository: TaxGroupsRepository) {}
+  constructor(private readonly taxGroupsRepository: TaxGroupsDomainRepository) {}
 
   // Returns a paginated page of tax groups (with rates + canDelete) for the data table
   async findForTable(state: TableViewState): Promise<{ result: TaxGroupDto[]; count: number }> {
     const where = and(
-      FilterProcessor.buildWhere(state.filters, TaxGroupsService.FIELD_MAP),
-      FilterProcessor.buildSearch(state.search, TaxGroupsService.FIELD_MAP),
+      FilterProcessor.buildWhere(state.filters, TaxGroupsDomainService.FIELD_MAP),
+      FilterProcessor.buildSearch(state.search, TaxGroupsDomainService.FIELD_MAP),
     );
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxGroupsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxGroupsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result: groups, count } = await this.taxGroupsRepository.findAllForTable({

@@ -1,11 +1,11 @@
-import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
-import { SupplierItemsService } from '@domain/supplier-items/services/supplier-items.service';
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
+import type { AddSupplierItemDto } from '@domain/supplier-items/dto/request/add-supplier-item.dto';
+import type { UpdateSupplierItemDto } from '@domain/supplier-items/dto/request/update-supplier-item.dto';
+import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
-import type { UpdateSupplierItemDto } from '../dto/request/update-supplier-item.dto';
 
 // Top-level service used by the items sub-controller for the two write paths that
 // need cross-domain validation: a supplier_item's UOM must be in the inventory
@@ -15,11 +15,14 @@ export class SuppliersItemsService {
   private readonly logger = new Logger(SuppliersItemsService.name);
 
   constructor(
-    private readonly supplierItemsService: SupplierItemsService,
-    private readonly inventoryItemsService: InventoryItemsService,
+    private readonly supplierItemsService: SupplierItemsDomainService,
+    private readonly inventoryItemsService: InventoryItemsDomainService,
   ) {}
 
-  async addItem(supplierId: string, dto: Omit<AddSupplierItemDto, 'supplierId'>): Promise<CreateResponseDto<SupplierItemDto>> {
+  async addItem(
+    supplierId: string,
+    dto: Omit<AddSupplierItemDto, 'supplierId'>,
+  ): Promise<CreateResponseDto<SupplierItemDto>> {
     this.logger.log(`addItem — supplierId=${supplierId}, itemId=${dto.inventoryItemId}, uomId=${dto.uomId}`);
     const inventoryItemName = await this.assertUomAllowed(dto.inventoryItemId, dto.uomId);
     return this.supplierItemsService.addItem(supplierId, dto, inventoryItemName);

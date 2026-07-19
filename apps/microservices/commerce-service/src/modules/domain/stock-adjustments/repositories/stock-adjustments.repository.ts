@@ -30,7 +30,7 @@ export type StockAdjustmentWithItem = StockAdjustment & {
 };
 
 @Injectable()
-export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof stockAdjustments> {
+export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<typeof stockAdjustments> {
   constructor(database: PrimaryDatabaseService) {
     super(database, stockAdjustments, { sequence: stockAdjustmentCodeSeq });
   }

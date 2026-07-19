@@ -10,7 +10,7 @@ import {
 } from '@/db/schema';
 
 @Injectable()
-export class InventoryItemCostsRepository extends PrimaryBaseRepository<typeof inventoryItemCosts> {
+export class InventoryItemCostsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemCosts> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemCosts);
   }

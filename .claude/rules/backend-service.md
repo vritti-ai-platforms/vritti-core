@@ -52,6 +52,21 @@ export class AuthService {
 
 Use `forwardRef()` only for circular dependencies.
 
+## Input and output DTOs come from the service's OWN domain module
+
+A domain service accepts request DTOs from its own `../dto/request/` and returns entity DTOs
+from its own `../dto/entity/`. NEVER import a request DTO up from an API layer
+(`@/modules/site/...`, `@/modules/organization/...`, gateway, `*-api`) — that inverts the
+dependency direction. See `backend-module-structure.md` → "Dependency direction".
+
+```typescript
+// WRONG — service reaches up into the API layer for its input type
+import type { CreateXDto } from '@/modules/site/x/dto/request/create-x.dto';
+
+// CORRECT — the DTO lives in this domain; import it locally
+import type { CreateXDto } from '../dto/request/create-x.dto';
+```
+
 ## Return DTOs for API-facing methods
 
 ```typescript

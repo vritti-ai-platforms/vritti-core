@@ -13,7 +13,7 @@ type CatalogChannelRow = {
 };
 
 @Injectable()
-export class CatalogChannelsRepository extends PrimaryBaseRepository<typeof catalogChannels> {
+export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeof catalogChannels> {
   constructor(database: PrimaryDatabaseService) {
     super(database, catalogChannels);
   }

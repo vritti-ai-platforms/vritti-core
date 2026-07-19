@@ -35,8 +35,8 @@ import { GoodsReceiptItemQuantsDto } from '../dto/entity/goods-receipt-item-quan
 import { InventoryItemQuantDto, LocationStockDto } from '../dto/entity/inventory-item-quant.dto';
 import { LocationItemDto } from '../dto/entity/location-item.dto';
 import { LocationItemQuantDto } from '../dto/entity/location-item-quant.dto';
-import { InventoryItemCostsRepository } from '../repositories/inventory-item-costs.repository';
-import { InventoryItemQuantsRepository } from '../repositories/inventory-item-quants.repository';
+import { InventoryItemCostsDomainRepository } from '../repositories/inventory-item-costs.repository';
+import { InventoryItemQuantsDomainRepository } from '../repositories/inventory-item-quants.repository';
 
 export type CreateQuantParams = {
   inventoryItemId: string;
@@ -66,8 +66,8 @@ export type AdjustQuantParams =
   | { tracking: 'serial' | 'lot_serial'; serials: string[] };
 
 @Injectable()
-export class InventoryItemQuantsService {
-  private readonly logger = new Logger(InventoryItemQuantsService.name);
+export class InventoryItemQuantsDomainService {
+  private readonly logger = new Logger(InventoryItemQuantsDomainService.name);
 
   private static readonly QUANTS_FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
@@ -82,8 +82,8 @@ export class InventoryItemQuantsService {
 
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly repository: InventoryItemQuantsRepository,
-    private readonly costsRepository: InventoryItemCostsRepository,
+    private readonly repository: InventoryItemQuantsDomainRepository,
+    private readonly costsRepository: InventoryItemCostsDomainRepository,
   ) {}
 
   // Rounds unit_cost × qty to whole minor units (ROUND_HALF_UP).
@@ -108,10 +108,16 @@ export class InventoryItemQuantsService {
     state: TableViewState,
   ): Promise<{ result: LocationItemDto[]; count: number }> {
     this.logger.log(`findItemsForLocationTable — locationId=${locationId}`);
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsService.LOCATION_ITEMS_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemQuantsService.LOCATION_ITEMS_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(
+      state.filters,
+      InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP,
+    );
+    const searchWhere = FilterProcessor.buildSearch(
+      state.search,
+      InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP,
+    );
     const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsService.LOCATION_ITEMS_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findItemsForLocation(locationId, {
@@ -445,10 +451,10 @@ export class InventoryItemQuantsService {
     inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsService.QUANTS_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemQuantsService.QUANTS_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsDomainService.QUANTS_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemQuantsDomainService.QUANTS_FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsService.QUANTS_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsDomainService.QUANTS_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findQuantsForTable(inventoryItemId, {

@@ -19,7 +19,10 @@ export class TaxJurisdictionResponseDto {
   @ApiProperty({ description: 'Parent jurisdiction ID, or null for root-level jurisdictions', nullable: true })
   parentId: string | null;
 
-  @ApiProperty({ description: 'Resolved parent jurisdiction name, or null for root-level jurisdictions', nullable: true })
+  @ApiProperty({
+    description: 'Resolved parent jurisdiction name, or null for root-level jurisdictions',
+    nullable: true,
+  })
   parentName: string | null;
 
   @ApiProperty({ description: 'ISO 3166-1 alpha-2 country code', example: 'US' })

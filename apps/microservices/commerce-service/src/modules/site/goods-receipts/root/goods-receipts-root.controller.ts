@@ -1,28 +1,31 @@
 import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
-import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
+import { CreateGoodsReceiptDto } from '@domain/goods-receipts/dto/request/create-goods-receipt.dto';
+import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SearchState, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
-import { CreateGoodsReceiptDto } from './dto/request/create-goods-receipt.dto';
+import { RpcSiteCurrencyCode, RpcSiteId } from '@vritti/api-sdk/nats';
 import { GoodsReceiptsPublishService } from './services/goods-receipts-publish.service';
+import { GoodsReceiptsService } from './services/goods-receipts-root.service';
 
 @Controller()
 export class GoodsReceiptsRootController {
   private readonly logger = new Logger(GoodsReceiptsRootController.name);
 
   constructor(
-    private readonly service: GoodsReceiptsService,
+    private readonly service: GoodsReceiptsDomainService,
+    private readonly rootService: GoodsReceiptsService,
     private readonly publishService: GoodsReceiptsPublishService,
   ) {}
 
   @MessagePattern({ cmd: 'site.goodsReceipts.create' })
   create(
     @Payload() dto: CreateGoodsReceiptDto,
+    @RpcSiteId() siteId: string,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptDto>> {
     this.logger.log(`goodsReceipts.create — supplier: ${dto.supplierId}`);
-    return this.service.create(dto, siteCurrencyCode);
+    return this.rootService.create(dto, siteId, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'site.goodsReceipts.table' })

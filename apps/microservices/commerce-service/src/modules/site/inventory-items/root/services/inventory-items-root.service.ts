@@ -1,16 +1,16 @@
-import { InventoryItemSitesService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
+import type { EnableInventoryItemSiteDto } from '@domain/inventory-item-sites/dto/request/enable-inventory-item-site.dto';
+import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { InventoryItemSite } from '@/db/schema';
-import type { EnableInventoryItemSiteDto } from '../dto/request/enable-inventory-item-site.dto';
 
 // Site-scope service for the physical projection writes: enabling a master item at the
 // current site and adjusting its reorder point. Reads go straight to the domain service.
 @Injectable()
-export class InventoryItemsRootService {
-  private readonly logger = new Logger(InventoryItemsRootService.name);
+export class SiteInventoryItemsService {
+  private readonly logger = new Logger(SiteInventoryItemsService.name);
 
-  constructor(private readonly sitesService: InventoryItemSitesService) {}
+  constructor(private readonly sitesService: InventoryItemSitesDomainService) {}
 
   // Enables a master item at the current site
   async enable(siteId: string, dto: EnableInventoryItemSiteDto): Promise<CreateResponseDto<InventoryItemSite>> {

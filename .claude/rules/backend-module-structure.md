@@ -67,6 +67,50 @@ async addLine(adjustmentId: string, data: AddLineData) {
 }
 ```
 
+## Dependency direction — the domain owns its boundary DTOs
+
+The dependency arrow points **one way**: API layer → domain. The domain layer must **never**
+import from an API layer (`modules/organization/`, `modules/site/`, `modules/le/`,
+`modules/site-group/`, `modules/*-api/`, gateway, etc.).
+
+A domain module **owns every type that crosses its own boundary** — both its **input**
+(request) DTOs and its **output** (entity) DTOs. They live inside the domain:
+
+```
+modules/domain/<x>/
+├── dto/
+│   ├── request/     # input contract — what the domain service accepts
+│   └── entity/      # output contract — static from(), returned by the domain service
+├── services/
+└── repositories/
+```
+
+- **Domain service** imports its own DTOs locally: `import { CreateXDto } from '../dto/request/create-x.dto'`.
+- **API-layer controller** imports them **downward** from the domain: `import { CreateXDto } from '@domain/<x>/dto/request/create-x.dto'` (commerce-service) or `'../../../domain/<x>/dto/request/...'` (core-server). This is allowed — the arrow points down.
+- The message-pattern / HTTP controller stays a thin passthrough; the ValidationPipe still validates the DTO regardless of which folder the class lives in.
+
+```typescript
+// WRONG — domain service reaches UP into the API layer for its input type
+// file: modules/domain/inventory-items/services/inventory-items.service.ts
+import type { CreateInventoryItemDto } from '@/modules/organization/inventory-items/root/dto/request/create-inventory-item.dto';
+
+// CORRECT — the DTO lives in the domain; the service imports it locally
+// file: modules/domain/inventory-items/dto/request/create-inventory-item.dto.ts   ← DTO lives here
+// file: modules/domain/inventory-items/services/inventory-items.service.ts
+import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
+
+// CORRECT — the API-layer controller imports the SAME DTO downward
+// file: modules/organization/inventory-items/root/inventory-items-root.controller.ts
+import { CreateInventoryItemDto } from '@domain/inventory-items/dto/request/create-inventory-item.dto';
+```
+
+Reference implementation: core-server's `domain/<x>/dto/request/*-internal.dto.ts` — the domain
+owns the input DTO and every API-layer controller imports it downward.
+
+Consequence: an API-layer feature folder holds **only** response-shaping DTOs it introduces
+itself (e.g. gateway `*ResponseDto`). If the domain service needs a type, that type belongs in
+the domain, not the API layer.
+
 ## DTOs organized in subfolders
 
 ```

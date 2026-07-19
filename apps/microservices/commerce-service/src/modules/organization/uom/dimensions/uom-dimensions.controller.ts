@@ -1,19 +1,16 @@
 import type { UomDimensionDto } from '@domain/uom-dimensions/dto/entity/uom-dimension.dto';
-import { UomDimensionsService } from '@domain/uom-dimensions/services/uom-dimensions.service';
+import { CreateUomDimensionDto } from '@domain/uom-dimensions/dto/request/create-uom-dimension.dto';
+import { UpdateUomDimensionDto } from '@domain/uom-dimensions/dto/request/update-uom-dimension.dto';
+import { UomDimensionsDomainService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import {
-  CreateResponseDto,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk/database';
-import { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
-import { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
+import { CreateResponseDto, type SuccessResponseDto } from '@vritti/api-sdk/database';
 
 @Controller()
 export class UomDimensionsController {
   private readonly logger = new Logger(UomDimensionsController.name);
 
-  constructor(private readonly service: UomDimensionsService) {}
+  constructor(private readonly service: UomDimensionsDomainService) {}
 
   // Returns total UOM dimension count
   @MessagePattern({ cmd: 'org.uom.dimensions.count' })

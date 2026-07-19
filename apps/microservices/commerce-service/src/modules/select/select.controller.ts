@@ -1,38 +1,41 @@
-import { CatalogsService } from '@domain/catalogs/services/catalogs.service';
-import { CategoriesService } from '@domain/categories/services/categories.service';
-import { CostCategoriesService } from '@domain/cost-categories/services/cost-categories.service';
-import { CustomersService } from '@domain/customers/services/customers.service';
-import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { InventoryItemSerialsService } from '@domain/inventory-item-serials/services/inventory-item-serials.service';
-import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
-import { LocationsService } from '@domain/locations/services/locations.service';
-import { PartiesService } from '@domain/parties/services/parties.service';
-import { PosTerminalsService } from '@domain/pos-terminals/services/pos-terminals.service';
-import { PurchaseOrderItemsService } from '@domain/purchase-order-items/services/purchase-order-items.service';
-import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
-import { SalesChannelsService } from '@domain/sales-channels/services/sales-channels.service';
-import { SupplierItemsService } from '@domain/supplier-items/services/supplier-items.service';
-import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
-import { TaxClassesService } from '@domain/tax-classes/services/tax-classes.service';
-import { TaxComponentsService } from '@domain/tax-components/services/tax-components.service';
-import { TaxGroupsService } from '@domain/tax-groups/services/tax-groups.service';
-import { TaxJurisdictionsService } from '@domain/tax-jurisdictions/services/tax-jurisdictions.service';
-import { UomService } from '@domain/uom/services/uom.service';
-import { UomDimensionsService } from '@domain/uom-dimensions/services/uom-dimensions.service';
+import { CatalogsDomainService } from '@domain/catalogs/services/catalogs.service';
+import { CategoriesSelectQueryDto } from '@domain/categories/dto/request/categories-select-query.dto';
+import { CategoriesDomainService } from '@domain/categories/services/categories.service';
+import { CostCategoriesDomainService } from '@domain/cost-categories/services/cost-categories.service';
+import { CustomersDomainService } from '@domain/customers/services/customers.service';
+import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
+import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import { InventoryItemSerialsDomainService } from '@domain/inventory-item-serials/services/inventory-item-serials.service';
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
+import { LocationsDomainService } from '@domain/locations/services/locations.service';
+import { PartiesDomainService } from '@domain/parties/services/parties.service';
+import { PartyBankAccountsDomainService } from '@domain/party-bank-accounts/services/party-bank-accounts.service';
+import { PosTerminalsDomainService } from '@domain/pos-terminals/services/pos-terminals.service';
+import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
+import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
+import { SalesChannelsDomainService } from '@domain/sales-channels/services/sales-channels.service';
+import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
+import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
+import { TaxClassesDomainService } from '@domain/tax-classes/services/tax-classes.service';
+import { TaxComponentsDomainService } from '@domain/tax-components/services/tax-components.service';
+import { TaxGroupsDomainService } from '@domain/tax-groups/services/tax-groups.service';
+import { TaxJurisdictionsDomainService } from '@domain/tax-jurisdictions/services/tax-jurisdictions.service';
+import { UomDomainService } from '@domain/uom/services/uom.service';
+import { UomDimensionsDomainService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { PartyTypeValues } from '@/db/schema';
-import { CategoriesSelectQueryDto } from '@/modules/organization/categories/root/dto/request/categories-select-query.dto';
 import { InventoryItemLotsSelectQueryDto } from './dto/request/inventory-item-lots-select-query.dto';
 import { InventoryItemQuantsSelectQueryDto } from './dto/request/inventory-item-quants-select-query.dto';
 import { InventoryItemSerialsSelectQueryDto } from './dto/request/inventory-item-serials-select-query.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
+import { PartySelectQueryDto } from './dto/request/party-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from './dto/request/purchase-order-items-select-query.dto';
 import { PurchaseOrdersSelectQueryDto } from './dto/request/purchase-orders-select-query.dto';
 import { SupplierItemsSelectQueryDto } from './dto/request/supplier-items-select-query.dto';
+import { SuppliersSelectQueryDto } from './dto/request/suppliers-select-query.dto';
 import { UomSelectQueryDto } from './dto/request/uom-select-query.dto';
 
 @Controller()
@@ -40,28 +43,29 @@ export class SelectController {
   private readonly logger = new Logger(SelectController.name);
 
   constructor(
-    private readonly categoriesService: CategoriesService,
-    private readonly inventoryItemsService: InventoryItemsService,
-    private readonly salesChannelsService: SalesChannelsService,
-    private readonly uomService: UomService,
-    private readonly uomDimensionsService: UomDimensionsService,
-    private readonly catalogsService: CatalogsService,
-    private readonly partiesService: PartiesService,
-    private readonly customersService: CustomersService,
-    private readonly locationsService: LocationsService,
-    private readonly inventoryItemLotsService: InventoryItemLotsService,
-    private readonly inventoryItemQuantsService: InventoryItemQuantsService,
-    private readonly inventoryItemSerialsService: InventoryItemSerialsService,
-    private readonly posTerminalsService: PosTerminalsService,
-    private readonly purchaseOrderItemsService: PurchaseOrderItemsService,
-    private readonly purchaseOrdersService: PurchaseOrdersService,
-    private readonly costCategoriesService: CostCategoriesService,
-    private readonly supplierItemsService: SupplierItemsService,
-    private readonly suppliersService: SuppliersService,
-    private readonly taxClassesService: TaxClassesService,
-    private readonly taxComponentsService: TaxComponentsService,
-    private readonly taxGroupsService: TaxGroupsService,
-    private readonly taxJurisdictionsService: TaxJurisdictionsService,
+    private readonly categoriesService: CategoriesDomainService,
+    private readonly inventoryItemsService: InventoryItemsDomainService,
+    private readonly salesChannelsService: SalesChannelsDomainService,
+    private readonly uomService: UomDomainService,
+    private readonly uomDimensionsService: UomDimensionsDomainService,
+    private readonly catalogsService: CatalogsDomainService,
+    private readonly partiesService: PartiesDomainService,
+    private readonly customersService: CustomersDomainService,
+    private readonly locationsService: LocationsDomainService,
+    private readonly inventoryItemLotsService: InventoryItemLotsDomainService,
+    private readonly inventoryItemQuantsService: InventoryItemQuantsDomainService,
+    private readonly inventoryItemSerialsService: InventoryItemSerialsDomainService,
+    private readonly posTerminalsService: PosTerminalsDomainService,
+    private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
+    private readonly purchaseOrdersService: PurchaseOrdersDomainService,
+    private readonly costCategoriesService: CostCategoriesDomainService,
+    private readonly supplierItemsService: SupplierItemsDomainService,
+    private readonly suppliersService: SuppliersDomainService,
+    private readonly taxClassesService: TaxClassesDomainService,
+    private readonly taxComponentsService: TaxComponentsDomainService,
+    private readonly taxGroupsService: TaxGroupsDomainService,
+    private readonly taxJurisdictionsService: TaxJurisdictionsDomainService,
+    private readonly partyBankAccountsService: PartyBankAccountsDomainService,
   ) {}
 
   // Returns paginated category options for the select component
@@ -121,11 +125,27 @@ export class SelectController {
     return this.partiesService.findForSelect(query, PartyTypeValues.PERSON);
   }
 
-  // Returns paginated ORGANIZATION party options for the companies select component
+  // Returns paginated COMPANY party options for the companies select component
   @MessagePattern({ cmd: 'select.companies' })
   async companies(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.companies');
-    return this.partiesService.findForSelect(query, PartyTypeValues.ORGANIZATION);
+    return this.partiesService.findForSelect(query, PartyTypeValues.COMPANY);
+  }
+
+  // Returns paginated tax registration options of a party for the select component
+  @MessagePattern({ cmd: 'select.partyTaxRegistrations' })
+  async partyTaxRegistrations(@Payload() data: PartySelectQueryDto): Promise<SelectQueryResult> {
+    const { partyId, ...query } = data;
+    this.logger.log(`select.partyTaxRegistrations — partyId: ${partyId}`);
+    return this.partiesService.findRegistrationsForSelect(query, partyId);
+  }
+
+  // Returns paginated bank account options of a party for the select component
+  @MessagePattern({ cmd: 'select.partyBankAccounts' })
+  async partyBankAccounts(@Payload() data: PartySelectQueryDto): Promise<SelectQueryResult> {
+    const { partyId, ...query } = data;
+    this.logger.log(`select.partyBankAccounts — partyId: ${partyId}`);
+    return this.partyBankAccountsService.findForSelect(query, partyId);
   }
 
   // Returns paginated customer options for the select component
@@ -210,9 +230,10 @@ export class SelectController {
 
   // Returns paginated supplier options for the select component
   @MessagePattern({ cmd: 'select.suppliers' })
-  async suppliers(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  async suppliers(@Payload() data: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
+    const { enrollable, ...query } = data;
     this.logger.log('select.suppliers');
-    return this.suppliersService.findForSelect(data);
+    return this.suppliersService.findForSelect(query, { enrollable });
   }
 
   // Returns paginated tax class options for the select component

@@ -99,7 +99,7 @@ export const purchaseOrderItems = coreSchema.table(
     hasScheme: boolean('has_scheme').notNull().default(false),
     freeQty: decimal('free_qty', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     // Snapshot of `uom_qty` converted to the item's primary UOM at create/update time. Computed in
-    // the service via UomConversionsService (Decimal math); never derived in SQL.
+    // the service via UomConversionsDomainService (Decimal math); never derived in SQL.
     primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }).notNull(),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),

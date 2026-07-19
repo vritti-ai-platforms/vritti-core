@@ -1,13 +1,15 @@
-import { OrganizationService } from '@domain/organization/services/organization.service';
-import { SessionService } from '@domain/session/services/session.service';
-import { UserService } from '@domain/user/services/user.service';
-import { UserPermissionsService } from '@domain/user-permissions/services/user-permissions.service';
-import { Injectable, Logger } from '@nestjs/common';
+import { OrganizationDomainService } from '@domain/organization/services/organization.service';
+import { SessionDomainService } from '@domain/session/services/session.service';
+import { UserDomainService } from '@domain/user/services/user.service';
+import { UserPermissionsDomainService } from '@domain/user-permissions/services/user-permissions.service';
+import { Injectable, Logger, type MessageEvent } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TokenService, TokenType } from '@vritti/api-sdk/auth';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException, UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import * as argon2 from 'argon2';
+import { concat, merge, NEVER, type Observable, of } from 'rxjs';
+import { AUTH_STATUS_EVENTS, SessionRevokedEvent } from '@/common/events/auth-status.events';
 import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
@@ -16,20 +18,21 @@ import { AuthResponseDto } from '../dto/response/auth-response.dto';
 import { MessageResponseDto } from '../dto/response/message-response.dto';
 import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.dto';
 import { TokenResponseDto } from '../dto/response/token-response.dto';
-import { AUTH_STATUS_EVENTS, SessionRevokedEvent } from '../events/auth-status.events';
+import { AuthStatusSseService } from './auth-status-sse.service';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    private readonly userService: UserService,
-    private readonly sessionService: SessionService,
+    private readonly userService: UserDomainService,
+    private readonly sessionService: SessionDomainService,
     private readonly tokenService: TokenService,
-    private readonly organizationService: OrganizationService,
-    private readonly userPermissionsService: UserPermissionsService,
+    private readonly organizationService: OrganizationDomainService,
+    private readonly userPermissionsService: UserPermissionsDomainService,
     private readonly primaryDb: PrimaryDatabaseService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly sseService: AuthStatusSseService,
   ) {}
 
   // Resolves the user's structure + per-scope features within an RLS context so org_isolation sees app.org_id
@@ -38,14 +41,14 @@ export class AuthService {
     orgId: string,
     platform: 'web' | 'ios' | 'android',
   ): Promise<{
-    sites: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['sites'];
-    legalEntities: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['legalEntities'];
-    siteGroups: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['siteGroups'];
-    assignments: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['assignments'];
-    featuresBySiteId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>;
-    featuresByGroupId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>;
-    featuresByLeId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>;
-    orgFeatures: Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features'];
+    sites: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['sites'];
+    legalEntities: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['legalEntities'];
+    siteGroups: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['siteGroups'];
+    assignments: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['assignments'];
+    featuresBySiteId: Record<string, Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features']>;
+    featuresByGroupId: Record<string, Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features']>;
+    featuresByLeId: Record<string, Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features']>;
+    orgFeatures: Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features'];
   }> {
     return this.primaryDb.runWithRlsContext({ orgId }, async () => {
       const { sites, legalEntities, siteGroups, assignments } = await this.userPermissionsService.getAssignedStructure(
@@ -79,7 +82,7 @@ export class AuthService {
     nodes: { id: string }[],
     scope: 'SITE' | 'SITE_GROUP' | 'LE',
     platform: 'web' | 'ios' | 'android',
-  ): Promise<Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>> {
+  ): Promise<Record<string, Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features']>> {
     return Object.fromEntries(
       await Promise.all(
         nodes.map(async (node) => {
@@ -292,17 +295,18 @@ export class AuthService {
             }
           : orgData;
 
-        let sites: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['sites'] = [];
-        let legalEntities: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['legalEntities'] = [];
-        let siteGroups: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['siteGroups'] = [];
-        let assignments: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['assignments'] = [];
+        let sites: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['sites'] = [];
+        let legalEntities: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['legalEntities'] =
+          [];
+        let siteGroups: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['siteGroups'] = [];
+        let assignments: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['assignments'] = [];
         let featuresBySiteId: Record<
           string,
-          Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']
+          Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features']
         > = {};
         let featuresByGroupId: typeof featuresBySiteId = {};
         let featuresByLeId: typeof featuresBySiteId = {};
-        let orgFeatures: Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features'] = [];
+        let orgFeatures: Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features'] = [];
 
         if (resolvedOrg) {
           try {
@@ -355,15 +359,18 @@ export class AuthService {
       const user = await this.userService.findById(userId);
 
       // Web connects via refresh cookie (no bearer header), so enrich sites + features here too from the subdomain-resolved org
-      let sites: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['sites'] = [];
-      let legalEntities: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['legalEntities'] = [];
-      let siteGroups: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['siteGroups'] = [];
-      let assignments: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['assignments'] = [];
-      let featuresBySiteId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> =
-        {};
+      let sites: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['sites'] = [];
+      let legalEntities: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['legalEntities'] =
+        [];
+      let siteGroups: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['siteGroups'] = [];
+      let assignments: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['assignments'] = [];
+      let featuresBySiteId: Record<
+        string,
+        Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features']
+      > = {};
       let featuresByGroupId: typeof featuresBySiteId = {};
       let featuresByLeId: typeof featuresBySiteId = {};
-      let orgFeatures: Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features'] = [];
+      let orgFeatures: Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features'] = [];
       if (org) {
         try {
           ({
@@ -412,6 +419,29 @@ export class AuthService {
     } catch {
       return new AuthResponseDto({ isAuthenticated: false, org: orgData });
     }
+  }
+
+  // Builds the SSE auth-status stream — an initial state event, then live connection updates when authenticated
+  async getStatusStream(
+    refreshToken: string | undefined,
+    subdomain: string | undefined,
+    bearerAccessToken: string,
+    platform: 'web' | 'ios' | 'android',
+  ): Promise<Observable<MessageEvent>> {
+    const authResponse = await this.getStatus(refreshToken, subdomain, bearerAccessToken, platform);
+    const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
+
+    if (!authResponse.isAuthenticated || !authResponse.sessionId || !authResponse.user || !authResponse.org) {
+      return concat(initial$, NEVER);
+    }
+
+    const connection$ = this.sseService.addConnection(
+      authResponse.user.id,
+      authResponse.sessionId,
+      platform,
+      authResponse.org.id,
+    );
+    return merge(initial$, connection$.asObservable());
   }
 
   // Builds a state-only auth payload for an SSE re-push — no accessToken, never rotates tokens

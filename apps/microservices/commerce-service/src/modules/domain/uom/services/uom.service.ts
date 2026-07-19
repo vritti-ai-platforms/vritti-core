@@ -16,14 +16,14 @@ import {
 import { and, asc, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { inventoryItemUomConversions, purchaseOrderItems, supplierItems, uom, uomDimensions } from '@/db/schema';
-import type { CreateUomDto } from '@/modules/organization/uom/root/dto/request/create-uom.dto';
-import type { UpdateUomDto } from '@/modules/organization/uom/root/dto/request/update-uom.dto';
 import { UomDto } from '../dto/entity/uom.dto';
-import { UomRepository } from '../repositories/uom.repository';
+import type { CreateUomDto } from '../dto/request/create-uom.dto';
+import type { UpdateUomDto } from '../dto/request/update-uom.dto';
+import { UomDomainRepository } from '../repositories/uom.repository';
 
 @Injectable()
-export class UomService {
-  private readonly logger = new Logger(UomService.name);
+export class UomDomainService {
+  private readonly logger = new Logger(UomDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: uom.name, type: 'string' },
@@ -38,15 +38,15 @@ export class UomService {
     uomQty: { column: uom.uomQty, type: 'number' },
   };
 
-  constructor(private readonly uomRepository: UomRepository) {}
+  constructor(private readonly uomRepository: UomDomainRepository) {}
 
   // Returns paginated UOMs for the data table, scoped to a dimension; joined with base unit symbol
   async findForTable(state: TableViewState & { dimensionId: string }): Promise<{ result: UomDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, UomService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, UomService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, UomDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, UomDomainService.FIELD_MAP);
     const dimensionWhere = eq(uom.dimensionId, state.dimensionId);
     const where = and(dimensionWhere, filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, UomService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, UomDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.uomRepository.findForTableWithBase({
@@ -126,7 +126,7 @@ export class UomService {
   }
 
   // Returns paginated UOM options for select dropdowns. When `inventoryItemId` is set, the
-  // result is restricted to that item's allowed-UOMs set (see UomRepository.allowedUomIdsForItemSubquery).
+  // result is restricted to that item's allowed-UOMs set (see UomDomainRepository.allowedUomIdsForItemSubquery).
   // When `supplierId` is also set (no purchaseOrderId): restricts to UOMs the supplier offers for this item,
   //   excluding UOMs already linked to the supplier for this item.
   // When `supplierId` + `purchaseOrderId` are both set: restricts to UOMs in supplier_items for this

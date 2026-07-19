@@ -1,3 +1,4 @@
+export { LegalEntityId } from './legal-entity-id.decorator';
 export { OrgId } from './org-id.decorator';
 export { OrgIdHeader } from './org-id-header.decorator';
 export { OrgSubdomain } from './org-subdomain.decorator';

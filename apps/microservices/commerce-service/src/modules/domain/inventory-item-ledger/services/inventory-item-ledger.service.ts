@@ -11,11 +11,11 @@ import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import type { InventoryItemLedgerEntry, NewInventoryItemLedgerEntry } from '@/db/schema';
 import { inventoryItemLedger, inventoryItems } from '@/db/schema';
 import { InventoryItemLedgerDto } from '../dto/entity/inventory-item-ledger.dto';
-import { InventoryItemLedgerRepository } from '../repositories/inventory-item-ledger.repository';
+import { InventoryItemLedgerDomainRepository } from '../repositories/inventory-item-ledger.repository';
 
 @Injectable()
-export class InventoryItemLedgerService {
-  private readonly logger = new Logger(InventoryItemLedgerService.name);
+export class InventoryItemLedgerDomainService {
+  private readonly logger = new Logger(InventoryItemLedgerDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     type: { column: inventoryItemLedger.type, type: 'string' },
@@ -24,7 +24,7 @@ export class InventoryItemLedgerService {
     inventoryItemName: { column: inventoryItems.name, type: 'string' },
   };
 
-  constructor(private readonly repository: InventoryItemLedgerRepository) {}
+  constructor(private readonly repository: InventoryItemLedgerDomainRepository) {}
 
   // Creates a new ledger entry and returns the raw entity
   async createEntry(data: NewInventoryItemLedgerEntry): Promise<InventoryItemLedgerEntry> {
@@ -68,10 +68,10 @@ export class InventoryItemLedgerService {
     inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLedgerService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLedgerService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLedgerDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLedgerDomainService.FIELD_MAP);
     const where = and(eq(inventoryItemLedger.inventoryItemId, inventoryItemId), filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLedgerService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLedgerDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findAllForTable({

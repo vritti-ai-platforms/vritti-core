@@ -8,19 +8,14 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { isIdentifierTypeApplicable, type PartyIdentifierType, partyIdentifiers } from '@/db/schema';
+import { isIdentifierTypeApplicable, partyIdentifiers } from '@/db/schema';
 import { PartyIdentifierDto } from '../dto/entity/party-identifier.dto';
-import { PartyIdentifiersRepository } from '../repositories/party-identifiers.repository';
-
-export interface AddIdentifierInput {
-  idType: PartyIdentifierType;
-  idValue: string;
-  isPrimary?: boolean;
-}
+import { AddPartyIdentifierDto } from '../dto/request/add-party-identifier.dto';
+import { PartyIdentifiersDomainRepository } from '../repositories/party-identifiers.repository';
 
 @Injectable()
-export class PartyIdentifiersService {
-  private readonly logger = new Logger(PartyIdentifiersService.name);
+export class PartyIdentifiersDomainService {
+  private readonly logger = new Logger(PartyIdentifiersDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     idType: { column: partyIdentifiers.idType, type: 'string' },
@@ -29,17 +24,14 @@ export class PartyIdentifiersService {
     isActive: { column: partyIdentifiers.isActive, type: 'boolean' },
   };
 
-  constructor(private readonly repository: PartyIdentifiersRepository) {}
+  constructor(private readonly repository: PartyIdentifiersDomainRepository) {}
 
   // Returns paginated identifiers of a party for the data table
-  async findForTable(
-    partyId: string,
-    state: TableViewState,
-  ): Promise<{ result: PartyIdentifierDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyIdentifiersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartyIdentifiersService.FIELD_MAP);
+  async findForTable(partyId: string, state: TableViewState): Promise<{ result: PartyIdentifierDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyIdentifiersDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PartyIdentifiersDomainService.FIELD_MAP);
     const where = and(eq(partyIdentifiers.partyId, partyId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyIdentifiersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyIdentifiersDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findForTable({
@@ -53,7 +45,7 @@ export class PartyIdentifiersService {
   }
 
   // Adds an identifier to a party, rejecting duplicates of the same type and value
-  async add(partyId: string, data: AddIdentifierInput): Promise<CreateResponseDto<PartyIdentifierDto>> {
+  async add(partyId: string, data: AddPartyIdentifierDto): Promise<CreateResponseDto<PartyIdentifierDto>> {
     const partyType = await this.repository.getPartyType(partyId);
     if (!partyType) throw new NotFoundException('Party not found.');
     if (!isIdentifierTypeApplicable(partyType, data.idType)) {

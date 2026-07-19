@@ -1,6 +1,6 @@
 import type { GoodsReceiptLineDto } from '@domain/goods-receipt-lines/dto/entity/goods-receipt-line.dto';
-import { GoodsReceiptLinesService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
-import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
+import { GoodsReceiptLinesDomainService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 
@@ -9,8 +9,8 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 @Injectable()
 export class GoodsReceiptsLinesService {
   constructor(
-    private readonly linesService: GoodsReceiptLinesService,
-    private readonly uomConversionsService: UomConversionsService,
+    private readonly linesService: GoodsReceiptLinesDomainService,
+    private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
   async addLine(

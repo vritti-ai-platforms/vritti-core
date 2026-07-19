@@ -1,6 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+import { CompanyAddressInputDto } from './company-address-input.dto';
 
 export class UpdateCompanyDto {
   @Trim({ nullify: false })
@@ -31,12 +33,11 @@ export class UpdateCompanyDto {
   @MaxLength(20)
   phone?: string | null;
 
-  @Trim()
-  @ApiPropertyOptional({ description: 'Mailing address' })
+  @ApiPropertyOptional({ type: CompanyAddressInputDto, description: 'Primary (registered) address' })
   @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  address?: string | null;
+  @ValidateNested()
+  @Type(() => CompanyAddressInputDto)
+  address?: CompanyAddressInputDto;
 
   @Trim()
   @ApiPropertyOptional({ description: 'Company website URL' })

@@ -1,19 +1,19 @@
 import type { StockTransferDto } from '@domain/stock-transfers/dto/entity/stock-transfer.dto';
-import { StockTransfersService } from '@domain/stock-transfers/services/stock-transfers.service';
+import { CreateStockTransferDto } from '@domain/stock-transfers/dto/request/create-stock-transfer.dto';
+import { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/request/update-stock-transfer-status.dto';
+import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
-import { CreateStockTransferDto } from './dto/request/create-stock-transfer.dto';
-import { UpdateStockTransferStatusDto } from './dto/request/update-stock-transfer-status.dto';
-import { StockTransfersRootService } from './services/stock-transfers-root.service';
+import { StockTransfersService } from './services/stock-transfers-root.service';
 
 @Controller()
 export class StockTransfersController {
   private readonly logger = new Logger(StockTransfersController.name);
 
   constructor(
-    private readonly service: StockTransfersService,
-    private readonly rootService: StockTransfersRootService,
+    private readonly service: StockTransfersDomainService,
+    private readonly rootService: StockTransfersService,
   ) {}
 
   @MessagePattern({ cmd: 'site.stockTransfers.table' })
@@ -29,9 +29,7 @@ export class StockTransfersController {
   }
 
   @MessagePattern({ cmd: 'site.stockTransfers.updateStatus' })
-  async updateStatus(
-    @Payload() dto: UpdateStockTransferStatusDto,
-  ): Promise<{ success: boolean; message: string }> {
+  async updateStatus(@Payload() dto: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
     const { id, ...statusData } = dto;
     this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${statusData.status}`);
     return this.rootService.updateStatus(id, statusData);

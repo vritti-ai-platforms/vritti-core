@@ -9,7 +9,7 @@ import { eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { locations, type PosTerminal, posTerminals } from '@/db/schema';
 
 @Injectable()
-export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerminals> {
+export class PosTerminalsDomainRepository extends PrimaryBaseRepository<typeof posTerminals> {
   constructor(database: PrimaryDatabaseService) {
     super(database, posTerminals);
   }

@@ -16,7 +16,7 @@ import {
 } from '@/db/schema';
 
 @Injectable()
-export class ModifierGroupsRepository extends PrimaryBaseRepository<typeof modifierGroups> {
+export class ModifierGroupsDomainRepository extends PrimaryBaseRepository<typeof modifierGroups> {
   constructor(database: PrimaryDatabaseService) {
     super(database, modifierGroups);
   }

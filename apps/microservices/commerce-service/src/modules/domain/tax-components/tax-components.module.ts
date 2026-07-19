@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { TaxComponentsRepository } from './repositories/tax-components.repository';
-import { TaxComponentsService } from './services/tax-components.service';
+import { TaxComponentsDomainRepository } from './repositories/tax-components.repository';
+import { TaxComponentsDomainService } from './services/tax-components.service';
 
 @Module({
-  providers: [TaxComponentsService, TaxComponentsRepository],
-  exports: [TaxComponentsService, TaxComponentsRepository],
+  providers: [TaxComponentsDomainService, TaxComponentsDomainRepository],
+  exports: [TaxComponentsDomainService, TaxComponentsDomainRepository],
 })
 export class TaxComponentsDomainModule {}

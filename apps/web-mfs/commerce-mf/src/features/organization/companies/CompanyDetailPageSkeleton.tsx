@@ -6,7 +6,7 @@ export const CompanyDetailPageSkeleton = () => (
   <div className="flex flex-col gap-6">
     <PageHeaderSkeleton showDescription showActions />
 
-    <TabsSkeleton count={5} tabWidths={['w-20', 'w-24', 'w-24', 'w-32', 'w-24']} />
+    <TabsSkeleton count={7} tabWidths={['w-20', 'w-24', 'w-24', 'w-32', 'w-20', 'w-28', 'w-24']} />
 
     <div className="space-y-3 rounded-lg border border-border p-6">
       <Skeleton className="h-5 w-44" />

@@ -1,16 +1,16 @@
 import { PartyAddressDto } from '@domain/party-addresses/dto/entity/party-address.dto';
-import { PartyAddressesService } from '@domain/party-addresses/services/party-addresses.service';
+import { AddPersonAddressDto } from '@domain/party-addresses/dto/request/add-person-address.dto';
+import { UpdatePersonAddressDto } from '@domain/party-addresses/dto/request/update-person-address.dto';
+import { PartyAddressesDomainService } from '@domain/party-addresses/services/party-addresses.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddPersonAddressDto } from './dto/request/add-person-address.dto';
-import { UpdateAddressDto } from './dto/request/update-address.dto';
 
 @Controller()
 export class PeopleAddressesController {
   private readonly logger = new Logger(PeopleAddressesController.name);
 
-  constructor(private readonly service: PartyAddressesService) {}
+  constructor(private readonly service: PartyAddressesDomainService) {}
 
   // Returns the paginated addresses of a person
   @MessagePattern({ cmd: 'org.people.addresses.table' })
@@ -32,7 +32,7 @@ export class PeopleAddressesController {
 
   // Updates an address by ID
   @MessagePattern({ cmd: 'org.people.addresses.update' })
-  async update(@Payload() dto: UpdateAddressDto): Promise<SuccessResponseDto> {
+  async update(@Payload() dto: UpdatePersonAddressDto): Promise<SuccessResponseDto> {
     const { id, ...data } = dto;
     this.logger.log(`people.addresses.update — id: ${id}`);
     return this.service.update(id, data);

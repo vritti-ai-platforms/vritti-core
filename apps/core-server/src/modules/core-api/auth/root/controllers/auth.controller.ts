@@ -26,7 +26,7 @@ import {
   UserId,
 } from '@vritti/api-sdk/auth';
 import type { FastifyReply } from 'fastify';
-import { concat, merge, NEVER, type Observable, of } from 'rxjs';
+import type { Observable } from 'rxjs';
 import { SessionTypeValues } from '@/db/schema';
 import {
   ApiAcceptInvite,
@@ -53,7 +53,6 @@ import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.
 import { MobileTokenResponseDto } from '../dto/response/mobile-token-response.dto';
 import { TokenResponseDto } from '../dto/response/token-response.dto';
 import { AuthService } from '../services/auth.service';
-import { AuthStatusSseService } from '../services/auth-status-sse.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -63,7 +62,6 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly config: ConfigService,
-    private readonly sseService: AuthStatusSseService,
   ) {}
 
   // Authenticates user credentials and creates a NEXUS session
@@ -199,22 +197,7 @@ export class AuthController {
 
     this.logger.log(`SSE /auth/status — subdomain: ${subdomain ?? 'none'}, platform: ${platform}`);
 
-    const authResponse = await this.authService.getStatus(refreshToken, subdomain, accessToken, platform);
-    const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
-
-    // Not authenticated — send initial state and hold open to prevent rapid reconnect loop
-    if (!authResponse.isAuthenticated || !authResponse.sessionId || !authResponse.user || !authResponse.org) {
-      return concat(initial$, NEVER);
-    }
-
-    // Register SSE connection for real-time updates, keyed by sessionId, platform, and orgId
-    const connection$ = this.sseService.addConnection(
-      authResponse.user.id,
-      authResponse.sessionId,
-      platform,
-      authResponse.org.id,
-    );
-    return merge(initial$, connection$.asObservable());
+    return this.authService.getStatusStream(refreshToken, subdomain, accessToken, platform);
   }
 
   // Rotates refresh token and issues a new access token

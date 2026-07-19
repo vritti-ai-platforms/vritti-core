@@ -94,12 +94,7 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({ partyId }) => {
                   description: 'Update the postal address for this party.',
                   className: 'max-w-3xl',
                   content: (close) => (
-                    <EditAddressDialog
-                      partyId={partyId}
-                      address={row.original}
-                      onSuccess={close}
-                      onCancel={close}
-                    />
+                    <EditAddressDialog partyId={partyId} address={row.original} onSuccess={close} onCancel={close} />
                   ),
                 },
               },

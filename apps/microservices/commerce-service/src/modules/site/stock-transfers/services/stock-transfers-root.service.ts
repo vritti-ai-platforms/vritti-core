@@ -1,7 +1,8 @@
-import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
-import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { StockTransfersService } from '@domain/stock-transfers/services/stock-transfers.service';
+import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
+import { InventoryItemQuantsDomainRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
+import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import type { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/request/update-stock-transfer-status.dto';
+import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import {
@@ -9,17 +10,16 @@ import {
   InventoryItemLedgerTypeValues,
   StockTransferStatusValues,
 } from '@/db/schema';
-import type { UpdateStockTransferStatusDto } from '../dto/request/update-stock-transfer-status.dto';
 
 @Injectable()
-export class StockTransfersRootService {
-  private readonly logger = new Logger(StockTransfersRootService.name);
+export class StockTransfersService {
+  private readonly logger = new Logger(StockTransfersService.name);
 
   constructor(
-    private readonly stockTransfersService: StockTransfersService,
-    private readonly batchesService: InventoryItemQuantsService,
-    private readonly quantsRepository: InventoryItemQuantsRepository,
-    private readonly lotsService: InventoryItemLotsService,
+    private readonly stockTransfersService: StockTransfersDomainService,
+    private readonly batchesService: InventoryItemQuantsDomainService,
+    private readonly quantsRepository: InventoryItemQuantsDomainRepository,
+    private readonly lotsService: InventoryItemLotsDomainService,
   ) {}
 
   // Updates transfer status, handling batch operations for IN_TRANSIT and RECEIVED transitions.

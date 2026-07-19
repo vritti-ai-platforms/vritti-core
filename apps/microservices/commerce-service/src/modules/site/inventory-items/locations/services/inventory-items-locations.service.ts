@@ -1,6 +1,6 @@
 import type { InventoryItemLocationDto } from '@domain/inventory-item-locations/dto/entity/inventory-item-location.dto';
-import { InventoryItemLocationsService } from '@domain/inventory-item-locations/services/inventory-item-locations.service';
-import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
+import { InventoryItemLocationsDomainService } from '@domain/inventory-item-locations/services/inventory-item-locations.service';
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
@@ -12,8 +12,8 @@ export class InventoryItemsLocationsService {
   private readonly logger = new Logger(InventoryItemsLocationsService.name);
 
   constructor(
-    private readonly inventoryItemsService: InventoryItemsService,
-    private readonly itemLocationsService: InventoryItemLocationsService,
+    private readonly inventoryItemsService: InventoryItemsDomainService,
+    private readonly itemLocationsService: InventoryItemLocationsDomainService,
   ) {}
 
   async findForTable(

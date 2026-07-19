@@ -3,9 +3,9 @@ import type { LegalEntityDto } from '@domain/legal-entity/dto/entity/legal-entit
 import type { CreateLeTaxRegistrationInternalDto } from '@domain/legal-entity/dto/request/create-le-tax-registration-internal.dto';
 import type { CreateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/create-legal-entity-internal.dto';
 import type { UpdateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/update-legal-entity-internal.dto';
-import { LegalEntityService } from '@domain/legal-entity/services/legal-entity.service';
+import { LegalEntityDomainService } from '@domain/legal-entity/services/legal-entity.service';
 import type { AssignmentWithNames } from '@domain/user-role/repositories/user-role-assignment.repository';
-import { UserRoleService } from '@domain/user-role/services/user-role.service';
+import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import { Injectable } from '@nestjs/common';
 import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { OrgStructureSelectQueryDto } from '../../dto/request/org-structure-select-query.dto';
@@ -13,10 +13,10 @@ import type { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-l
 import type { FeatureLocksResponseDto } from '../../dto/response/feature-locks-response.dto';
 
 @Injectable()
-export class LegalEntityApiService {
+export class LegalEntityService {
   constructor(
-    private readonly legalEntityService: LegalEntityService,
-    private readonly userRoleService: UserRoleService,
+    private readonly legalEntityService: LegalEntityDomainService,
+    private readonly userRoleService: UserRoleDomainService,
   ) {}
 
   // Returns legal entities as select options with subtree exclusion

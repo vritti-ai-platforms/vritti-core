@@ -1,26 +1,26 @@
-import { CategoriesService } from '@domain/categories/services/categories.service';
+import { CategoriesDomainService } from '@domain/categories/services/categories.service';
 import type { ModifierGroupWithOptionsDto } from '@domain/modifier-groups/dto/entity/modifier-group.dto';
-import { ModifierGroupsService } from '@domain/modifier-groups/services/modifier-groups.service';
+import { SaveItemModifiersDto } from '@domain/modifier-groups/dto/request/save-item-modifiers.dto';
+import { ModifierGroupsDomainService } from '@domain/modifier-groups/services/modifier-groups.service';
 import type { OfferingDto } from '@domain/offerings/dto/entity/offering.dto';
 import type { OfferingDetailDto, OfferingVariantDto } from '@domain/offerings/dto/entity/offering-detail.dto';
-import { OfferingsService } from '@domain/offerings/services/offerings.service';
+import { CreateOfferingDto } from '@domain/offerings/dto/request/create-offering.dto';
+import { CreateVariantDto } from '@domain/offerings/dto/request/create-variant.dto';
+import { UpdateOfferingPayloadDto } from '@domain/offerings/dto/request/update-offering.dto';
+import { UpdateVariantPayloadDto } from '@domain/offerings/dto/request/update-variant.dto';
+import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { CreateOfferingDto } from '../root/dto/request/create-offering.dto';
-import { CreateVariantDto } from '../root/dto/request/create-variant.dto';
-import { SaveItemModifiersDto } from '../root/dto/request/save-item-modifiers.dto';
-import { UpdateOfferingPayloadDto } from '../root/dto/request/update-offering.dto';
-import { UpdateVariantPayloadDto } from '../root/dto/request/update-variant.dto';
 
 @Controller()
 export class OfferingsController {
   private readonly logger = new Logger(OfferingsController.name);
 
   constructor(
-    private readonly offeringsService: OfferingsService,
-    private readonly modifierGroupsService: ModifierGroupsService,
-    private readonly categoriesService: CategoriesService,
+    private readonly offeringsService: OfferingsDomainService,
+    private readonly modifierGroupsService: ModifierGroupsDomainService,
+    private readonly categoriesService: CategoriesDomainService,
   ) {}
 
   // Returns paginated offerings within a catalog
@@ -79,9 +79,7 @@ export class OfferingsController {
 
   // Updates a single variant
   @MessagePattern({ cmd: 'site.catalogs.offerings.variants.update' })
-  async offeringsVariantsUpdate(
-    @Payload() data: UpdateVariantPayloadDto,
-  ): Promise<OfferingVariantDto> {
+  async offeringsVariantsUpdate(@Payload() data: UpdateVariantPayloadDto): Promise<OfferingVariantDto> {
     const { variantId, ...updateData } = data;
     this.logger.log(`catalogs.offerings.variants.update — variantId: ${variantId}`);
     return this.offeringsService.updateVariant(variantId, updateData);

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type NewPartyAddress, parties, type PartyAddress, partyAddresses } from '@/db/schema';
+import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { type NewPartyAddress, type PartyAddress, partyAddresses } from '@/db/schema';
 
 @Injectable()
-export class PartyAddressesRepository extends PrimaryBaseRepository<typeof partyAddresses> {
+export class PartyAddressesDomainRepository extends PrimaryBaseRepository<typeof partyAddresses> {
   constructor(database: PrimaryDatabaseService) {
     super(database, partyAddresses);
   }
@@ -34,6 +34,17 @@ export class PartyAddressesRepository extends PrimaryBaseRepository<typeof party
     return row as PartyAddress | undefined;
   }
 
+  // Loads a party's primary address, falling back to its most recent address
+  async findPrimaryByPartyId(partyId: string): Promise<PartyAddress | undefined> {
+    const [row] = await this.db
+      .select()
+      .from(partyAddresses)
+      .where(eq(partyAddresses.partyId, partyId))
+      .orderBy(desc(partyAddresses.isPrimary), desc(partyAddresses.createdAt))
+      .limit(1);
+    return row as PartyAddress | undefined;
+  }
+
   // Updates a party address row
   async update(id: string, data: Partial<NewPartyAddress>): Promise<PartyAddress> {
     const [row] = await this.db.update(partyAddresses).set(data).where(eq(partyAddresses.id, id)).returning();
@@ -43,11 +54,6 @@ export class PartyAddressesRepository extends PrimaryBaseRepository<typeof party
   // Deletes an address row
   async remove(id: string): Promise<void> {
     await this.db.delete(partyAddresses).where(eq(partyAddresses.id, id));
-  }
-
-  // Updates the owning party's country code
-  async setPartyCountry(partyId: string, countryCode: string): Promise<void> {
-    await this.db.update(parties).set({ countryCode }).where(eq(parties.id, partyId));
   }
 
   // Clears the primary flag on all of a party's addresses

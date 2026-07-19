@@ -1,14 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  codeCheck,
-  index,
-  jsonb,
-  pgPolicy,
-  timestamp,
-  unique,
-  uuid,
-  varchar,
-} from '@vritti/api-sdk/drizzle-pg-core';
+import { codeCheck, index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { categories } from './categories';
 import { coreSchema } from './core-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';

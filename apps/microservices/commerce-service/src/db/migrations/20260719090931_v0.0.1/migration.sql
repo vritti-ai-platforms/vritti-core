@@ -1,0 +1,1 @@
+ALTER TYPE "vritti_core"."party_type" RENAME VALUE 'ORGANIZATION' TO 'COMPANY';

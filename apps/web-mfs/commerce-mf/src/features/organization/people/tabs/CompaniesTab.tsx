@@ -1,7 +1,6 @@
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { type ColumnDef, DataTable, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { countryFlag } from '@vritti/quantum-ui/selects/iso-country';
 import { Building2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -21,18 +20,6 @@ export const CompaniesTab: React.FC<CompaniesTabProps> = ({ partyId }) => {
         accessorKey: 'companyName',
         header: 'Company',
         cell: ({ row }) => <StringCell value={row.original.companyName} />,
-      },
-      {
-        accessorKey: 'countryCode',
-        header: 'Country',
-        cell: ({ row }) =>
-          row.original.countryCode ? (
-            <Badge variant="secondary">
-              {countryFlag(row.original.countryCode)} {row.original.countryCode}
-            </Badge>
-          ) : (
-            '—'
-          ),
       },
       {
         accessorKey: 'jobTitle',

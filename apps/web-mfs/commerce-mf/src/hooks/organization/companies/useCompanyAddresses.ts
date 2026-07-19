@@ -4,7 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { AddAddressPayload, PartyAddressRow, PartyAddressesTableResponse } from '@/schemas/party-addresses';
+import type { AddAddressPayload, PartyAddressesTableResponse, PartyAddressRow } from '@/schemas/party-addresses';
 import {
   addCompanyAddress,
   getCompanyAddresses,

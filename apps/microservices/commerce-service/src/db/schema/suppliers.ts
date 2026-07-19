@@ -1,6 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  bigint,
   boolean,
   decimal,
   foreignKey,
@@ -32,6 +31,11 @@ export const suppliers = coreSchema.table(
     paymentTerms: varchar('payment_terms', { length: 50 }),
     leadTimeDays: integer('lead_time_days'),
     notes: varchar('notes', { length: 500 }),
+    // Purchasing block stops new POs/RFQs; payment block stops outgoing payments. Independent of isActive.
+    purchasingBlocked: boolean('purchasing_blocked').notNull().default(false),
+    paymentBlocked: boolean('payment_blocked').notNull().default(false),
+    orderEmail: varchar('order_email', { length: 255 }),
+    orderPhone: varchar('order_phone', { length: 20 }),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -41,6 +45,7 @@ export const suppliers = coreSchema.table(
   },
   (table) => [
     uniqueIndex('uq_suppliers_le_code').on(table.legalEntityId, table.code),
+    uniqueIndex('uq_suppliers_le_party').on(table.legalEntityId, table.partyId),
     // Composite uniqueness on (id, currency_code) exists purely as a target for the composite FK
     // on supplier_items below. `id` is already PK so this adds no new uniqueness, but Postgres
     // requires the FK target column tuple to have a matching UNIQUE / PRIMARY KEY constraint.
@@ -85,7 +90,7 @@ export const supplierItems = coreSchema.table(
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     supplierItemCode: varchar('supplier_item_code', { length: 100 }),
-    unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
+    // Price lives in supplier_item_prices (validity timeline); currency stays anchored here via the composite FK.
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     uomId: uuid('uom_id')
       .notNull()

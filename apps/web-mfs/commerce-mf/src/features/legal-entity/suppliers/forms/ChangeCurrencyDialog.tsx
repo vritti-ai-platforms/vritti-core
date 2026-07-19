@@ -6,8 +6,8 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { type ChangeSupplierCurrencyFormData, changeSupplierCurrencySchema } from '@/schemas/suppliers';
 import { useChangeSupplierCurrency } from '@/hooks/legal-entity/suppliers';
+import { type ChangeSupplierCurrencyFormData, changeSupplierCurrencySchema } from '@/schemas/suppliers';
 
 interface ChangeCurrencyDialogProps {
   supplierId: string;

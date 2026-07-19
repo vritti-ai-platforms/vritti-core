@@ -47,6 +47,39 @@ Repository setters/args are typed `bigint`, not `number`:
 async updateAmount(id: string, amount: bigint): Promise<Entity> { ... }
 ```
 
+### Convert inside the (domain) service, never in the controller
+
+`majorToMinor` is business logic — it belongs in the **domain service**, not the controller,
+message-pattern handler, or app-layer service. The controller stays a thin passthrough: it hands
+the wire DTO (with `CurrencyAmountDto`) straight to the domain service, which converts internally.
+Because the money request DTO is thus the domain's real input, it lives in the **domain**
+(`@domain/<x>/dto/request/`) and the controller imports it downward — same as any other domain DTO.
+
+```typescript
+// WRONG — controller/message-pattern handler converts before calling the service
+@MessagePattern({ cmd: 'le.suppliers.addItemPrice' })
+addItemPrice(@Payload() dto: AddSupplierItemPriceDto) {
+  return this.service.addPrice(dto.supplierItemId, {
+    unitPrice: majorToMinor(dto.unitPrice.value, dto.unitPrice.currency as CurrencyCode, 'unitPrice'),
+  });
+}
+
+// CORRECT — controller is a passthrough; the domain service converts
+@MessagePattern({ cmd: 'le.suppliers.addItemPrice' })
+addItemPrice(@Payload() dto: AddSupplierItemPriceDto) {
+  return this.service.addPrice(dto); // dto imported from @domain/supplier-items/dto/request
+}
+
+// domain service — the conversion lives here
+async addPrice(dto: AddSupplierItemPriceDto): Promise<CreateResponseDto<...>> {
+  const unitPrice = majorToMinor(dto.unitPrice.value, dto.unitPrice.currency as CurrencyCode, 'unitPrice');
+  ...
+}
+```
+
+Scope context (`siteId`) still flows from the controller as a separate arg — that is context
+injection, not money conversion. Commerce does NOT capture created-by/`userId` on records.
+
 ## Read path: `CurrencyAmountDto.from(bigint, currencyCode)`
 
 ```typescript
@@ -91,6 +124,7 @@ price: row.amount != null ? CurrencyAmountDto.from(row.amount, currencyCode) : n
 - **Columns**: money → `bigint('col', { mode: 'bigint' })`; defaults are bigint literals (`0n`).
 - **Never `Number(...)`** around `majorToMinor`/`minorToMajor` — carry the `bigint`.
 - **Write**: `majorToMinor(value, currency, 'field')` → store the returned `bigint` directly.
+- **Convert in the domain service, never the controller**: controllers pass the `CurrencyAmountDto` DTO through; the domain service calls `majorToMinor`. The money request DTO therefore lives in `@domain/<x>/dto/request/`.
 - **Read**: `CurrencyAmountDto.from(entity.amount, currencyCode)` — no `BigInt()` wrap for `mode:'bigint'` columns.
 - **Request DTOs**: `@IsCurrency() amount: CurrencyAmountDto`, never a minor-unit `number`.
 - **Response DTOs**: money fields are `CurrencyAmountDto`, never nullable — use `?? 0n`.

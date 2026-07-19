@@ -9,7 +9,7 @@ import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-or
 import { type SiteGroup, siteGroups, sites } from '@/db/schema';
 
 @Injectable()
-export class SiteGroupRepository extends PrimaryBaseRepository<typeof siteGroups> {
+export class SiteGroupDomainRepository extends PrimaryBaseRepository<typeof siteGroups> {
   constructor(database: PrimaryDatabaseService) {
     super(database, siteGroups);
   }

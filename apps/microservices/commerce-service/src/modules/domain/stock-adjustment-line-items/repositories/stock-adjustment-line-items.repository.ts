@@ -4,7 +4,7 @@ import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-or
 import { type StockAdjustmentLineItem, stockAdjustmentLineItems, stockAdjustmentLines } from '@/db/schema';
 
 @Injectable()
-export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<typeof stockAdjustmentLineItems> {
+export class StockAdjustmentLineItemsDomainRepository extends PrimaryBaseRepository<typeof stockAdjustmentLineItems> {
   constructor(database: PrimaryDatabaseService) {
     super(database, stockAdjustmentLineItems);
   }

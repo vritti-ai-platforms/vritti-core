@@ -1,5 +1,5 @@
 import type { PersonCompanyDto } from '@domain/party-relationships/dto/entity/person-company.dto';
-import { PartyRelationshipsService } from '@domain/party-relationships/services/party-relationships.service';
+import { PartyRelationshipsDomainService } from '@domain/party-relationships/services/party-relationships.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
@@ -8,7 +8,7 @@ import type { TableViewState } from '@vritti/api-sdk/database';
 export class PeopleCompaniesController {
   private readonly logger = new Logger(PeopleCompaniesController.name);
 
-  constructor(private readonly service: PartyRelationshipsService) {}
+  constructor(private readonly service: PartyRelationshipsDomainService) {}
 
   // Returns paginated companies a person is linked to for the person's companies table
   @MessagePattern({ cmd: 'org.people.companies.table' })

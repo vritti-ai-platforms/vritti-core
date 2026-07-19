@@ -6,14 +6,14 @@ import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CatalogLicense, hashSnapshot, type SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
-import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
-import { CatalogRepository } from '../repositories/catalog.repository';
+import { CatalogDomainRepository } from '../repositories/catalog.repository';
 
 @Injectable()
-export class CatalogService {
-  private readonly logger = new Logger(CatalogService.name);
+export class CatalogDomainService {
+  private readonly logger = new Logger(CatalogDomainService.name);
   private readonly publicKey: string;
   private readonly deploymentId: string | undefined;
   // Verified snapshot cached per active row — re-verification is skipped while the same row stays active
@@ -21,7 +21,7 @@ export class CatalogService {
   private warnedUnboundDeployment = false;
 
   constructor(
-    private readonly catalogRepository: CatalogRepository,
+    private readonly catalogRepository: CatalogDomainRepository,
     private readonly siteContextCache: SiteContextCacheService,
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,

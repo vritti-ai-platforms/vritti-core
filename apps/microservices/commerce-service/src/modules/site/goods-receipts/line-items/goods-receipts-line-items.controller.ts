@@ -1,15 +1,15 @@
 import type { GoodsReceiptLineItemDto } from '@domain/goods-receipt-line-items/dto/entity/goods-receipt-line-item.dto';
-import { GoodsReceiptLineItemsService } from '@domain/goods-receipt-line-items/services/goods-receipt-line-items.service';
+import { GoodsReceiptLineItemsDomainService } from '@domain/goods-receipt-line-items/services/goods-receipt-line-items.service';
+import { AddGoodsReceiptLineItemDto } from '@domain/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddGoodsReceiptLineItemDto } from './dto/request/add-goods-receipt-line-item.dto';
 
 @Controller()
 export class GoodsReceiptsLineItemsController {
   private readonly logger = new Logger(GoodsReceiptsLineItemsController.name);
 
-  constructor(private readonly service: GoodsReceiptLineItemsService) {}
+  constructor(private readonly service: GoodsReceiptLineItemsDomainService) {}
 
   @MessagePattern({ cmd: 'site.goodsReceipts.lineItemsTable' })
   lineItemsTable(

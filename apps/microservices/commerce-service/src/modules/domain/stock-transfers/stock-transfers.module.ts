@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { StockTransfersRepository } from './repositories/stock-transfers.repository';
-import { StockTransfersService } from './services/stock-transfers.service';
+import { StockTransfersDomainRepository } from './repositories/stock-transfers.repository';
+import { StockTransfersDomainService } from './services/stock-transfers.service';
 
 @Module({
-  providers: [StockTransfersService, StockTransfersRepository],
-  exports: [StockTransfersService, StockTransfersRepository],
+  providers: [StockTransfersDomainService, StockTransfersDomainRepository],
+  exports: [StockTransfersDomainService, StockTransfersDomainRepository],
 })
 export class StockTransfersDomainModule {}

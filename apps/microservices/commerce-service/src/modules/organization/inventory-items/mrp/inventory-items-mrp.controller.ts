@@ -1,9 +1,9 @@
+import type { InventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/entity/inventory-item-mrp.dto';
+import { AddInventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/request/add-inventory-item-mrp.dto';
+import { UpdateInventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/request/update-inventory-item-mrp.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
-import type { InventoryItemMrpDto } from './dto/entity/inventory-item-mrp.dto';
-import { AddInventoryItemMrpDto } from './dto/request/add-inventory-item-mrp.dto';
-import { UpdateInventoryItemMrpDto } from './dto/request/update-inventory-item-mrp.dto';
 import { InventoryItemsMrpService } from './services/inventory-items-mrp.service';
 
 @Controller()

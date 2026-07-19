@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { CategoriesRepository } from './repositories/categories.repository';
-import { CategoriesService } from './services/categories.service';
+import { CategoriesDomainRepository } from './repositories/categories.repository';
+import { CategoriesDomainService } from './services/categories.service';
 
 @Module({
-  providers: [CategoriesService, CategoriesRepository],
-  exports: [CategoriesService, CategoriesRepository],
+  providers: [CategoriesDomainService, CategoriesDomainRepository],
+  exports: [CategoriesDomainService, CategoriesDomainRepository],
 })
 export class CategoriesDomainModule {}

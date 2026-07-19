@@ -30,7 +30,7 @@ export type GoodsReceiptWithRefs = GoodsReceipt & {
 export type GoodsReceiptTableRow = Omit<GoodsReceiptWithRefs, 'supplierCurrencyCode'>;
 
 @Injectable()
-export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsReceipts> {
+export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof goodsReceipts> {
   constructor(database: PrimaryDatabaseService) {
     super(database, goodsReceipts, { sequence: goodsReceiptNumberSeq });
   }

@@ -1,15 +1,15 @@
 import type { PartyRelationshipDto } from '@domain/party-relationships/dto/entity/party-relationship.dto';
-import { PartyRelationshipsService } from '@domain/party-relationships/services/party-relationships.service';
+import { AddCompanyPersonDto } from '@domain/party-relationships/dto/request/add-company-person.dto';
+import { PartyRelationshipsDomainService } from '@domain/party-relationships/services/party-relationships.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddCompanyPersonDto } from './dto/request/add-company-person.dto';
 
 @Controller()
 export class CompanyPeopleController {
   private readonly logger = new Logger(CompanyPeopleController.name);
 
-  constructor(private readonly service: PartyRelationshipsService) {}
+  constructor(private readonly service: PartyRelationshipsDomainService) {}
 
   // Returns the paginated people (person relationships) of a company
   @MessagePattern({ cmd: 'org.companies.people.table' })

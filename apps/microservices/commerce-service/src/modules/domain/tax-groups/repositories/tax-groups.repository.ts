@@ -4,7 +4,7 @@ import { eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { offerings, type TaxGroup, type TaxRate, taxGroups, taxRates } from '@/db/schema';
 
 @Injectable()
-export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups> {
+export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxGroups> {
   constructor(database: PrimaryDatabaseService) {
     super(database, taxGroups);
   }

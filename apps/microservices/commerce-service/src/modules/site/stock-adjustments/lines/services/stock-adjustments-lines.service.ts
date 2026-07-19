@@ -1,9 +1,9 @@
-import { InventoryItemsRepository } from '@domain/inventory-items/repositories/inventory-items.repository';
+import { InventoryItemsDomainRepository } from '@domain/inventory-items/repositories/inventory-items.repository';
 import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/entity/stock-adjustment-line.dto';
-import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
-import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
-import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
-import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
+import { StockAdjustmentLinesDomainService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
+import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
+import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
@@ -17,11 +17,11 @@ export class StockAdjustmentsLinesService {
   private readonly logger = new Logger(StockAdjustmentsLinesService.name);
 
   constructor(
-    private readonly linesService: StockAdjustmentLinesService,
-    private readonly adjustmentsRepository: StockAdjustmentsRepository,
-    private readonly lotsRepository: StockAdjustmentLotsRepository,
-    private readonly inventoryItemsRepository: InventoryItemsRepository,
-    private readonly uomConversionsService: UomConversionsService,
+    private readonly linesService: StockAdjustmentLinesDomainService,
+    private readonly adjustmentsRepository: StockAdjustmentsDomainRepository,
+    private readonly lotsRepository: StockAdjustmentLotsDomainRepository,
+    private readonly inventoryItemsRepository: InventoryItemsDomainRepository,
+    private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
   async addOpeningLine(

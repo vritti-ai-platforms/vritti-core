@@ -9,17 +9,14 @@ import {
   type InvoiceType,
   invoices,
 } from '@/db/schema';
-import type {
-  CreateInvoiceDto,
-  CreateInvoiceItemDto,
-} from '@/modules/site/invoices/dto/request/create-invoice.dto';
-import type { UpdateInvoiceDto } from '@/modules/site/invoices/dto/request/update-invoice.dto';
 import { InvoiceDetailDto, InvoiceDto, InvoiceItemDto } from '../dto/entity/invoice.dto';
-import { InvoicesRepository } from '../repositories/invoices.repository';
+import type { CreateInvoiceDto, CreateInvoiceItemDto } from '../dto/request/create-invoice.dto';
+import type { UpdateInvoiceDto } from '../dto/request/update-invoice.dto';
+import { InvoicesDomainRepository } from '../repositories/invoices.repository';
 
 @Injectable()
-export class InvoicesService {
-  private readonly logger = new Logger(InvoicesService.name);
+export class InvoicesDomainService {
+  private readonly logger = new Logger(InvoicesDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     invoiceNumber: { column: invoices.invoiceNumber, type: 'string' },
@@ -31,14 +28,14 @@ export class InvoicesService {
     balance: { column: invoices.balance, type: 'number' },
   };
 
-  constructor(private readonly repository: InvoicesRepository) {}
+  constructor(private readonly repository: InvoicesDomainRepository) {}
 
   // Returns paginated invoices for the data table
   async findForTable(state: TableViewState): Promise<{ result: InvoiceDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InvoicesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InvoicesService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InvoicesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InvoicesDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InvoicesService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InvoicesDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({

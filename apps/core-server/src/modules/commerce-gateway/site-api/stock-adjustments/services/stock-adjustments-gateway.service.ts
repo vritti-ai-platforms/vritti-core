@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
+import { majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddChangeStockAdjustmentLineDto } from '../dto/request/add-change-stock-adjustment-line.dto';
 import type { AddOpeningStockAdjustmentLineDto } from '../dto/request/add-opening-stock-adjustment-line.dto';
@@ -114,7 +114,7 @@ export class StockAdjustmentsGatewayService {
     return this.nats.send('commerce', 'site.stockAdjustments.addLot', {
       adjustmentId,
       ...rest,
-      mrp: mrp ? majorToMinor(mrp.value, mrp.currency as CurrencyCode).toString() : (mrp as null | undefined),
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency).toString() : (mrp as null | undefined),
     });
   }
 
@@ -129,7 +129,7 @@ export class StockAdjustmentsGatewayService {
       adjustmentId,
       lotId,
       ...rest,
-      mrp: mrp ? majorToMinor(mrp.value, mrp.currency as CurrencyCode).toString() : (mrp as null | undefined),
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency).toString() : (mrp as null | undefined),
     });
   }
 
@@ -148,7 +148,7 @@ export class StockAdjustmentsGatewayService {
     const { unitCost, ...rest } = dto;
     return this.nats.send('commerce', 'site.stockAdjustments.create', {
       ...rest,
-      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency as CurrencyCode).toString() : undefined,
+      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency).toString() : undefined,
     });
   }
 
@@ -158,7 +158,7 @@ export class StockAdjustmentsGatewayService {
     return this.nats.send('commerce', 'site.stockAdjustments.update', {
       id,
       ...rest,
-      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency as CurrencyCode).toString() : undefined,
+      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency).toString() : undefined,
     });
   }
 

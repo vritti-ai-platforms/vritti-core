@@ -1,4 +1,5 @@
-import { UserRoleService } from '@domain/user-role/services/user-role.service';
+import { AssignRoleInternalDto } from '@domain/user-role/dto/request/assign-role-internal.dto';
+import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import {
   Body,
   Controller,
@@ -19,7 +20,6 @@ import type { UserRoleAssignment } from '@/db/schema';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import { ApiAssignRole, ApiListUserRoles, ApiRemoveRoleAssignment } from '../docs/user-role.docs';
-import { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';
 
 @ApiTags('User Roles')
 @Controller('users/internal')
@@ -30,7 +30,7 @@ import { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';
 export class UserRoleController {
   private readonly logger = new Logger(UserRoleController.name);
 
-  constructor(private readonly userRoleService: UserRoleService) {}
+  constructor(private readonly userRoleService: UserRoleDomainService) {}
 
   // Assigns a role to a user within a site
   @Post(':id/roles')

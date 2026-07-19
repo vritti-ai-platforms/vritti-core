@@ -1,31 +1,31 @@
-import { CatalogService } from '@domain/catalog/services/catalog.service';
-import { OrganizationRepository } from '@domain/organization/repositories/organization.repository';
-import { RoleRepository } from '@domain/organization/repositories/role.repository';
-import { SiteRepository } from '@domain/site/repositories/site.repository';
+import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
+import { OrganizationDomainRepository } from '@domain/organization/repositories/organization.repository';
+import { RoleDomainRepository } from '@domain/organization/repositories/role.repository';
+import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/common/events/auth-status.events';
 import type { AssignmentType, Role, Site, UserRoleAssignment } from '@/db/schema';
-import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { templateAssignableAtSite } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import type { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';
 import {
   type AssignmentWithNames,
-  UserRoleAssignmentRepository,
+  UserRoleAssignmentDomainRepository,
 } from '../repositories/user-role-assignment.repository';
 
 @Injectable()
-export class UserRoleService {
-  private readonly logger = new Logger(UserRoleService.name);
+export class UserRoleDomainService {
+  private readonly logger = new Logger(UserRoleDomainService.name);
 
   constructor(
-    private readonly userRoleAssignmentRepository: UserRoleAssignmentRepository,
-    private readonly roleRepository: RoleRepository,
-    private readonly organizationRepository: OrganizationRepository,
-    private readonly siteRepository: SiteRepository,
-    private readonly catalogService: CatalogService,
+    private readonly userRoleAssignmentRepository: UserRoleAssignmentDomainRepository,
+    private readonly roleRepository: RoleDomainRepository,
+    private readonly organizationRepository: OrganizationDomainRepository,
+    private readonly siteRepository: SiteDomainRepository,
+    private readonly catalogService: CatalogDomainService,
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
   ) {}

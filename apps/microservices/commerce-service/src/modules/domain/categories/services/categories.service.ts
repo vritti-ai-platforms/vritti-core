@@ -12,17 +12,17 @@ import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import { type Category, type CategoryRole, CategoryRoleValues, categories } from '@/db/schema';
-import type { CategoriesSelectQueryDto } from '@/modules/organization/categories/root/dto/request/categories-select-query.dto';
-import type { CreateCategoryDto } from '@/modules/organization/categories/root/dto/request/create-category.dto';
-import type { UpdateCategoryDto } from '@/modules/organization/categories/root/dto/request/update-category.dto';
 import { CategoryDto } from '../dto/entity/category.dto';
 import type { CategoryCountDto } from '../dto/entity/category-count.dto';
 import type { CategoryTreeDto } from '../dto/entity/category-tree.dto';
-import { CategoriesRepository } from '../repositories/categories.repository';
+import type { CategoriesSelectQueryDto } from '../dto/request/categories-select-query.dto';
+import type { CreateCategoryDto } from '../dto/request/create-category.dto';
+import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
+import { CategoriesDomainRepository } from '../repositories/categories.repository';
 
 @Injectable()
-export class CategoriesService {
-  private readonly logger = new Logger(CategoriesService.name);
+export class CategoriesDomainService {
+  private readonly logger = new Logger(CategoriesDomainService.name);
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: categories.name, type: 'string' },
     isActive: { column: categories.isActive, type: 'boolean' },
@@ -31,7 +31,7 @@ export class CategoriesService {
 
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly categoriesRepository: CategoriesRepository,
+    private readonly categoriesRepository: CategoriesDomainRepository,
   ) {}
 
   // Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce leaf-only links
@@ -107,10 +107,10 @@ export class CategoriesService {
     parentId: string,
     state: TableViewState,
   ): Promise<{ result: CategoryDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, CategoriesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, CategoriesService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, CategoriesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, CategoriesDomainService.FIELD_MAP);
     const where = and(eq(categories.parentId, parentId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, CategoriesService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, CategoriesDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.categoriesRepository.findAllWithTaxClass({
@@ -128,7 +128,11 @@ export class CategoriesService {
 
     return {
       result: rows.map((row) =>
-        CategoryDto.from(row, !referencedIds.has(row.id) && !parentIdsWithChildren.has(row.id), row.defaultTaxClassName),
+        CategoryDto.from(
+          row,
+          !referencedIds.has(row.id) && !parentIdsWithChildren.has(row.id),
+          row.defaultTaxClassName,
+        ),
       ),
       count,
     };

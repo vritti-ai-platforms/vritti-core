@@ -1,12 +1,14 @@
-import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
+import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import type { PurchaseOrderItemDto } from '@domain/purchase-order-items/dto/entity/purchase-order-item.dto';
-import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
-import { PurchaseOrderItemsService } from '@domain/purchase-order-items/services/purchase-order-items.service';
+import type { AddPurchaseOrderItemDto } from '@domain/purchase-order-items/dto/request/add-purchase-order-item.dto';
+import type { UpdatePurchaseOrderItemDto } from '@domain/purchase-order-items/dto/request/update-purchase-order-item.dto';
+import { PurchaseOrderItemsDomainRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
+import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrderDto as PurchaseOrderDtoClass } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
-import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
-import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
-import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
+import { PurchaseOrdersDomainRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
+import { SupplierItemsDomainRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
@@ -15,21 +17,19 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
-import type { AddPurchaseOrderItemDto } from '@/modules/site/purchase-orders/root/dto/request/add-purchase-order-item.dto';
-import type { UpdatePurchaseOrderItemDto } from '@/modules/site/purchase-orders/root/dto/request/update-purchase-order-item.dto';
 
 @Injectable()
 export class PurchaseOrdersItemsService {
   private readonly logger = new Logger(PurchaseOrdersItemsService.name);
 
   constructor(
-    private readonly itemsService: PurchaseOrderItemsService,
-    private readonly itemsRepository: PurchaseOrderItemsRepository,
-    private readonly repository: PurchaseOrdersRepository,
-    private readonly supplierItemsRepository: SupplierItemsRepository,
-    private readonly uomConversionsService: UomConversionsService,
+    private readonly itemsService: PurchaseOrderItemsDomainService,
+    private readonly itemsRepository: PurchaseOrderItemsDomainRepository,
+    private readonly repository: PurchaseOrdersDomainRepository,
+    private readonly supplierItemsRepository: SupplierItemsDomainRepository,
+    private readonly uomConversionsService: UomConversionsDomainService,
     private readonly database: PrimaryDatabaseService,
-    private readonly goodsReceiptsService: GoodsReceiptsService,
+    private readonly goodsReceiptsService: GoodsReceiptsDomainService,
   ) {}
 
   async findItems(poId: string): Promise<PurchaseOrderItemDto[]> {

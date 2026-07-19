@@ -4,16 +4,6 @@ import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CurrencyAmountDto, type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { type FulfilmentType, FulfilmentTypeValues, offerings, type VariantOptionValue } from '@/db/schema';
-import type {
-  CreateOfferingDto,
-  DefaultVariantInput,
-} from '@/modules/site/catalogs/root/dto/request/create-offering.dto';
-import type {
-  CreateVariantDto,
-  VariantComponentInput,
-} from '@/modules/site/catalogs/root/dto/request/create-variant.dto';
-import type { UpdateOfferingDto } from '@/modules/site/catalogs/root/dto/request/update-offering.dto';
-import type { UpdateVariantDto } from '@/modules/site/catalogs/root/dto/request/update-variant.dto';
 import { OfferingDto } from '../dto/entity/offering.dto';
 import {
   OfferingDetailDto,
@@ -21,11 +11,19 @@ import {
   OfferingVariantDto,
   type VariantComponentDto,
 } from '../dto/entity/offering-detail.dto';
-import { type OfferingAxis, OfferingsRepository, type VariantComponentRow } from '../repositories/offerings.repository';
+import type { CreateOfferingDto, DefaultVariantInput } from '../dto/request/create-offering.dto';
+import type { CreateVariantDto, VariantComponentInput } from '../dto/request/create-variant.dto';
+import type { UpdateOfferingDto } from '../dto/request/update-offering.dto';
+import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
+import {
+  type OfferingAxis,
+  OfferingsDomainRepository,
+  type VariantComponentRow,
+} from '../repositories/offerings.repository';
 
 @Injectable()
-export class OfferingsService {
-  private readonly logger = new Logger(OfferingsService.name);
+export class OfferingsDomainService {
+  private readonly logger = new Logger(OfferingsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: offerings.name, type: 'string' },
@@ -34,14 +32,14 @@ export class OfferingsService {
     categoryId: { column: offerings.categoryId, type: 'string' },
   };
 
-  constructor(private readonly offeringsRepository: OfferingsRepository) {}
+  constructor(private readonly offeringsRepository: OfferingsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted offerings for a catalog (RLS scopes to org + site ancestors)
   async findForTable(catalogId: string, state: TableViewState): Promise<{ result: OfferingDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsDomainService.FIELD_MAP);
     const where = and(eq(offerings.catalogId, catalogId), filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, OfferingsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, OfferingsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.offeringsRepository.findForTable({

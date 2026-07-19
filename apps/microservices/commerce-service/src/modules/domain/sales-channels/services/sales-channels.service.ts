@@ -10,25 +10,15 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type SalesChannelKind, salesChannels } from '@/db/schema';
+import { salesChannels } from '@/db/schema';
 import { SalesChannelDto } from '../dto/entity/sales-channel.dto';
-import { SalesChannelsRepository } from '../repositories/sales-channels.repository';
-
-export interface CreateSalesChannelInput {
-  code: string;
-  name: string;
-  kind: SalesChannelKind;
-  isActive?: boolean;
-}
-
-export interface UpdateSalesChannelInput {
-  name?: string;
-  isActive?: boolean;
-}
+import { CreateSalesChannelDto } from '../dto/request/create-sales-channel.dto';
+import { UpdateSalesChannelDto } from '../dto/request/update-sales-channel.dto';
+import { SalesChannelsDomainRepository } from '../repositories/sales-channels.repository';
 
 @Injectable()
-export class SalesChannelsService {
-  private readonly logger = new Logger(SalesChannelsService.name);
+export class SalesChannelsDomainService {
+  private readonly logger = new Logger(SalesChannelsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: salesChannels.name, type: 'string' },
@@ -38,14 +28,14 @@ export class SalesChannelsService {
     isSystem: { column: salesChannels.isSystem, type: 'boolean' },
   };
 
-  constructor(private readonly repository: SalesChannelsRepository) {}
+  constructor(private readonly repository: SalesChannelsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted sales channels for the data table
   async findForTable(state: TableViewState): Promise<{ result: SalesChannelDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, SalesChannelsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, SalesChannelsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, SalesChannelsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, SalesChannelsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, SalesChannelsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, SalesChannelsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({
@@ -79,7 +69,7 @@ export class SalesChannelsService {
   }
 
   // Creates a new sales channel, rejecting duplicate codes
-  async create(data: CreateSalesChannelInput): Promise<CreateResponseDto<SalesChannelDto>> {
+  async create(data: CreateSalesChannelDto): Promise<CreateResponseDto<SalesChannelDto>> {
     const existing = await this.repository.findByCode(data.code);
     if (existing) {
       throw new ConflictException({
@@ -113,7 +103,7 @@ export class SalesChannelsService {
   }
 
   // Updates a sales channel's name and active flag
-  async update(id: string, data: UpdateSalesChannelInput): Promise<SuccessResponseDto> {
+  async update(id: string, data: Omit<UpdateSalesChannelDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Sales channel not found.');
 

@@ -7,3 +7,11 @@ export const SUPPLIER_ITEMS_TABLE_KEY = (supplierId: string) =>
 export const SUPPLIER_ITEMS_IDS_KEY = (supplierId: string) => [...SUPPLIER_KEY(supplierId), 'items', 'ids'] as const;
 export const SUPPLIER_ITEM_IDS_KEY = SUPPLIER_ITEMS_IDS_KEY;
 export const SUPPLIER_CONTACTS_KEY = (supplierId: string) => [...SUPPLIER_KEY(supplierId), 'contacts'] as const;
+export const SUPPLIER_SITES_TABLE_KEY = (supplierId: string) => [...SUPPLIER_KEY(supplierId), 'sites'] as const;
+
+export const SUPPLIER_ITEM_KEY = (supplierId: string, itemId: string) =>
+  [...SUPPLIER_KEY(supplierId), 'items', itemId] as const;
+export const SUPPLIER_ITEM_PRICES_TABLE_KEY = (supplierId: string, itemId: string) =>
+  [...SUPPLIER_ITEM_KEY(supplierId, itemId), 'prices'] as const;
+export const SUPPLIER_ITEM_SITES_TABLE_KEY = (supplierId: string, itemId: string) =>
+  [...SUPPLIER_ITEM_KEY(supplierId, itemId), 'sites'] as const;

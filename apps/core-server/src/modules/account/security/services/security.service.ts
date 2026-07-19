@@ -1,13 +1,13 @@
-import { SessionService } from '@domain/session/services/session.service';
-import { UserRepository } from '@domain/user/repositories/user.repository';
-import { UserService } from '@domain/user/services/user.service';
+import { SessionDomainService } from '@domain/session/services/session.service';
+import { UserDomainRepository } from '@domain/user/repositories/user.repository';
+import { UserDomainService } from '@domain/user/services/user.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { hashToken } from '@vritti/api-sdk/auth';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import * as argon2 from 'argon2';
-import { AUTH_STATUS_EVENTS, SessionRevokedEvent } from '../../../core-api/auth/root/events/auth-status.events';
+import { AUTH_STATUS_EVENTS, SessionRevokedEvent } from '@/common/events/auth-status.events';
 import { SessionResponseDto } from '../dto/response/session-response.dto';
 
 @Injectable()
@@ -15,9 +15,9 @@ export class SecurityService {
   private readonly logger = new Logger(SecurityService.name);
 
   constructor(
-    private readonly userService: UserService,
-    private readonly userRepository: UserRepository,
-    private readonly sessionService: SessionService,
+    private readonly userService: UserDomainService,
+    private readonly userRepository: UserDomainRepository,
+    private readonly sessionService: SessionDomainService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 

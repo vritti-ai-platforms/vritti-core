@@ -39,7 +39,7 @@ export type StockAdjustmentLineWithRefs = StockAdjustmentLine & {
 };
 
 @Injectable()
-export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof stockAdjustmentLines> {
+export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<typeof stockAdjustmentLines> {
   constructor(database: PrimaryDatabaseService) {
     super(database, stockAdjustmentLines);
   }

@@ -1,10 +1,10 @@
 import type { GoodsReceiptLineDto } from '@domain/goods-receipt-lines/dto/entity/goods-receipt-line.dto';
-import { GoodsReceiptLinesService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
+import { GoodsReceiptLinesDomainService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
+import { AddGoodsReceiptLineDto } from '@domain/goods-receipts/dto/request/add-goods-receipt-line.dto';
+import { UpdateGoodsReceiptLineDto } from '@domain/goods-receipts/dto/request/update-goods-receipt-line.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddGoodsReceiptLineDto } from './dto/request/add-goods-receipt-line.dto';
-import { UpdateGoodsReceiptLineDto } from './dto/request/update-goods-receipt-line.dto';
 import { GoodsReceiptsLinesService } from './services/goods-receipts-lines.service';
 
 @Controller()
@@ -12,7 +12,7 @@ export class GoodsReceiptsLinesController {
   private readonly logger = new Logger(GoodsReceiptsLinesController.name);
 
   constructor(
-    private readonly service: GoodsReceiptLinesService,
+    private readonly service: GoodsReceiptLinesDomainService,
     private readonly appService: GoodsReceiptsLinesService,
   ) {}
 

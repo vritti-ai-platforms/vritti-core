@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
-import { InventoryItemCostsRepository } from './repositories/inventory-item-costs.repository';
-import { InventoryItemQuantsRepository } from './repositories/inventory-item-quants.repository';
-import { InventoryItemQuantsService } from './services/inventory-item-quants.service';
+import { InventoryItemCostsDomainRepository } from './repositories/inventory-item-costs.repository';
+import { InventoryItemQuantsDomainRepository } from './repositories/inventory-item-quants.repository';
+import { InventoryItemQuantsDomainService } from './services/inventory-item-quants.service';
 
 @Module({
-  providers: [InventoryItemQuantsService, InventoryItemQuantsRepository, InventoryItemCostsRepository],
-  exports: [InventoryItemQuantsService, InventoryItemQuantsRepository, InventoryItemCostsRepository],
+  providers: [
+    InventoryItemQuantsDomainService,
+    InventoryItemQuantsDomainRepository,
+    InventoryItemCostsDomainRepository,
+  ],
+  exports: [InventoryItemQuantsDomainService, InventoryItemQuantsDomainRepository, InventoryItemCostsDomainRepository],
 })
 export class InventoryItemQuantsDomainModule {}

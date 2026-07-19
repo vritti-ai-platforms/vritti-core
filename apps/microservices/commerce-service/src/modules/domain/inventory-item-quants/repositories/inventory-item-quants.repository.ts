@@ -60,7 +60,7 @@ export interface GrItemQuantCostRow {
 }
 
 @Injectable()
-export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof inventoryItemQuants> {
+export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemQuants> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemQuants);
   }

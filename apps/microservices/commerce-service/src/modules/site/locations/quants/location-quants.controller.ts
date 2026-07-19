@@ -1,6 +1,6 @@
 import type { LocationItemDto } from '@domain/inventory-item-quants/dto/entity/location-item.dto';
 import type { LocationItemQuantDto } from '@domain/inventory-item-quants/dto/entity/location-item-quant.dto';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
@@ -9,7 +9,7 @@ import type { TableViewState } from '@vritti/api-sdk/database';
 export class LocationQuantsController {
   private readonly logger = new Logger(LocationQuantsController.name);
 
-  constructor(private readonly service: InventoryItemQuantsService) {}
+  constructor(private readonly service: InventoryItemQuantsDomainService) {}
 
   @MessagePattern({ cmd: 'site.locations.itemsTable' })
   async itemsTable(

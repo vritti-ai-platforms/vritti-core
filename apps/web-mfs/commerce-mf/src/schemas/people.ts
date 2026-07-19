@@ -30,11 +30,20 @@ export interface PersonData {
   displayName: string;
   email: string | null;
   phone: string | null;
-  countryCode: string | null;
   isActive: boolean;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
+  primaryAddress: {
+    id: string;
+    type: string;
+    line1: string;
+    line2: string | null;
+    city: string | null;
+    region: string | null;
+    postalCode: string | null;
+    countryCode: string;
+  } | null;
 }
 
 export type PeopleTableResponse = TableResponse<PersonData>;
@@ -43,7 +52,6 @@ export interface PersonCompanyRow {
   id: string;
   companyId: string;
   companyName: string;
-  countryCode: string | null;
   jobTitle: string | null;
   isPrimary: boolean;
   isActive: boolean;

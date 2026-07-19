@@ -32,7 +32,7 @@ export type OfferingRow = Offering & { categoryName: string | null; currencyCode
 export type OfferingAxis = VariantOption & { axisSortOrder: number };
 
 @Injectable()
-export class OfferingsRepository extends PrimaryBaseRepository<typeof offerings> {
+export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offerings> {
   constructor(database: PrimaryDatabaseService) {
     super(database, offerings);
   }

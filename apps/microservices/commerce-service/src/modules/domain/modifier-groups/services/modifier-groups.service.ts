@@ -2,20 +2,20 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { ModifierGroup } from '@/db/schema';
-import type { CreateModifierGroupDto } from '@/modules/site/catalogs/root/dto/request/create-modifier-group.dto';
-import type { CreateModifierOptionDto } from '@/modules/site/catalogs/root/dto/request/create-modifier-option.dto';
-import type { SaveItemModifiersDto } from '@/modules/site/catalogs/root/dto/request/save-item-modifiers.dto';
-import type { UpdateModifierGroupDto } from '@/modules/site/catalogs/root/dto/request/update-modifier-group.dto';
-import type { UpdateModifierOptionDto } from '@/modules/site/catalogs/root/dto/request/update-modifier-option.dto';
 import { ModifierGroupDto, ModifierGroupWithOptionsDto } from '../dto/entity/modifier-group.dto';
 import { ModifierOptionDto } from '../dto/entity/modifier-option.dto';
-import { ModifierGroupsRepository } from '../repositories/modifier-groups.repository';
+import type { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';
+import type { CreateModifierOptionDto } from '../dto/request/create-modifier-option.dto';
+import type { SaveItemModifiersDto } from '../dto/request/save-item-modifiers.dto';
+import type { UpdateModifierGroupDto } from '../dto/request/update-modifier-group.dto';
+import type { UpdateModifierOptionDto } from '../dto/request/update-modifier-option.dto';
+import { ModifierGroupsDomainRepository } from '../repositories/modifier-groups.repository';
 
 @Injectable()
-export class ModifierGroupsService {
-  private readonly logger = new Logger(ModifierGroupsService.name);
+export class ModifierGroupsDomainService {
+  private readonly logger = new Logger(ModifierGroupsDomainService.name);
 
-  constructor(private readonly modifierGroupsRepository: ModifierGroupsRepository) {}
+  constructor(private readonly modifierGroupsRepository: ModifierGroupsDomainRepository) {}
 
   // Returns all modifier groups for a catalog (RLS scopes to org + site ancestors)
   async list(catalogId: string): Promise<ModifierGroupDto[]> {

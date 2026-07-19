@@ -1,23 +1,19 @@
 import type { CategoryDto } from '@domain/categories/dto/entity/category.dto';
 import type { CategoryCountDto } from '@domain/categories/dto/entity/category-count.dto';
 import type { CategoryTreeDto } from '@domain/categories/dto/entity/category-tree.dto';
-import { CategoriesService } from '@domain/categories/services/categories.service';
+import { CreateCategoryDto } from '@domain/categories/dto/request/create-category.dto';
+import { ReorderCategoriesDto } from '@domain/categories/dto/request/reorder-categories.dto';
+import { UpdateCategoryDto } from '@domain/categories/dto/request/update-category.dto';
+import { CategoriesDomainService } from '@domain/categories/services/categories.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import { CreateCategoryDto } from './dto/request/create-category.dto';
-import { ReorderCategoriesDto } from './dto/request/reorder-categories.dto';
-import { UpdateCategoryDto } from './dto/request/update-category.dto';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
 @Controller()
 export class CategoriesRootController {
   private readonly logger = new Logger(CategoriesRootController.name);
 
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesDomainService) {}
 
   // Returns total categories count
   @MessagePattern({ cmd: 'org.categories.count' })

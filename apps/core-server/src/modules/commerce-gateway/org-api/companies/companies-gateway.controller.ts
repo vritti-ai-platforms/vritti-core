@@ -24,9 +24,13 @@ import { AddPartyAddressDto } from './dto/request/add-party-address.dto';
 import { AddPartyIdentifierDto } from './dto/request/add-party-identifier.dto';
 import { CreateCompanyDto } from './dto/request/create-company.dto';
 import { CreateCompanyRegistrationDto } from './dto/request/create-company-registration.dto';
+import { CreatePartyBankAccountDto } from './dto/request/create-party-bank-account.dto';
+import { CreatePartyLicenseDto } from './dto/request/create-party-license.dto';
 import { UpdateCompanyDto } from './dto/request/update-company.dto';
 import { UpdateCompanyRegistrationDto } from './dto/request/update-company-registration.dto';
 import { UpdatePartyAddressDto } from './dto/request/update-party-address.dto';
+import { UpdatePartyBankAccountDto } from './dto/request/update-party-bank-account.dto';
+import { UpdatePartyLicenseDto } from './dto/request/update-party-license.dto';
 import type { CompanyPersonResponseDto } from './dto/response/company-person-response.dto';
 import type { CompanyPersonTableResponseDto } from './dto/response/company-person-table-response.dto';
 import type { CompanyRegistrationResponseDto } from './dto/response/company-registration-response.dto';
@@ -35,8 +39,12 @@ import type { CompanyResponseDto } from './dto/response/company-response.dto';
 import type { CompanyTableResponseDto } from './dto/response/company-table-response.dto';
 import type { PartyAddressResponseDto } from './dto/response/party-address-response.dto';
 import type { PartyAddressTableResponseDto } from './dto/response/party-address-table-response.dto';
+import type { PartyBankAccountResponseDto } from './dto/response/party-bank-account-response.dto';
+import type { PartyBankAccountTableResponseDto } from './dto/response/party-bank-account-table-response.dto';
 import type { PartyIdentifierResponseDto } from './dto/response/party-identifier-response.dto';
 import type { PartyIdentifierTableResponseDto } from './dto/response/party-identifier-table-response.dto';
+import type { PartyLicenseResponseDto } from './dto/response/party-license-response.dto';
+import type { PartyLicenseTableResponseDto } from './dto/response/party-license-table-response.dto';
 import { CompaniesGatewayService } from './services/companies-gateway.service';
 
 @ApiTags('Commerce - Companies')
@@ -232,6 +240,98 @@ export class CompaniesGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/companies/${id}/addresses/${addressId}`);
     return this.service.removeAddress(addressId);
+  }
+
+  // Returns the licenses of a company for the data table
+  @Get(':id/licenses/table')
+  @RequirePermission(ORG_COMPANIES.licenses.view)
+  listLicenses(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartyLicenseTableResponseDto> {
+    this.logger.log(`GET /commerce-api/companies/${id}/licenses/table`);
+    return this.service.listLicenses(id, userId);
+  }
+
+  // Creates a license for a company
+  @Post(':id/licenses')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.licenses.add)
+  createLicense(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreatePartyLicenseDto,
+  ): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
+    this.logger.log(`POST /commerce-api/companies/${id}/licenses`);
+    return this.service.createLicense(id, dto);
+  }
+
+  // Updates a company license
+  @Patch(':id/licenses/:licenseId')
+  @RequirePermission(ORG_COMPANIES.licenses.edit)
+  updateLicense(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
+    @Body() dto: UpdatePartyLicenseDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/companies/${id}/licenses/${licenseId}`);
+    return this.service.updateLicense(licenseId, dto);
+  }
+
+  // Deletes a company license
+  @Delete(':id/licenses/:licenseId')
+  @RequirePermission(ORG_COMPANIES.licenses.delete)
+  deleteLicense(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/companies/${id}/licenses/${licenseId}`);
+    return this.service.deleteLicense(licenseId);
+  }
+
+  // Returns the bank accounts of a company for the data table
+  @Get(':id/bank-accounts/table')
+  @RequirePermission(ORG_COMPANIES.bankAccounts.view)
+  listBankAccounts(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartyBankAccountTableResponseDto> {
+    this.logger.log(`GET /commerce-api/companies/${id}/bank-accounts/table`);
+    return this.service.listBankAccounts(id, userId);
+  }
+
+  // Creates a bank account for a company
+  @Post(':id/bank-accounts')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.bankAccounts.add)
+  createBankAccount(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreatePartyBankAccountDto,
+  ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
+    this.logger.log(`POST /commerce-api/companies/${id}/bank-accounts`);
+    return this.service.createBankAccount(id, dto);
+  }
+
+  // Updates a company bank account
+  @Patch(':id/bank-accounts/:accountId')
+  @RequirePermission(ORG_COMPANIES.bankAccounts.edit)
+  updateBankAccount(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('accountId', new ParseUUIDPipe()) accountId: string,
+    @Body() dto: UpdatePartyBankAccountDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/companies/${id}/bank-accounts/${accountId}`);
+    return this.service.updateBankAccount(accountId, dto);
+  }
+
+  // Deletes a company bank account
+  @Delete(':id/bank-accounts/:accountId')
+  @RequirePermission(ORG_COMPANIES.bankAccounts.delete)
+  deleteBankAccount(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('accountId', new ParseUUIDPipe()) accountId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/companies/${id}/bank-accounts/${accountId}`);
+    return this.service.deleteBankAccount(accountId);
   }
 
   // Returns a company by ID

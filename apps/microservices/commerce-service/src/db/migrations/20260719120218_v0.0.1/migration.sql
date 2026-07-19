@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."parties" DROP COLUMN "country_code";

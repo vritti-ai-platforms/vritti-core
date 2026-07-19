@@ -1,18 +1,18 @@
 import type { TaxJurisdictionDto } from '@domain/tax-jurisdictions/dto/entity/tax-jurisdiction.dto';
 import type { TaxJurisdictionCountDto } from '@domain/tax-jurisdictions/dto/entity/tax-jurisdiction-count.dto';
 import type { TaxJurisdictionTreeDto } from '@domain/tax-jurisdictions/dto/entity/tax-jurisdiction-tree.dto';
-import { TaxJurisdictionsService } from '@domain/tax-jurisdictions/services/tax-jurisdictions.service';
+import { CreateTaxJurisdictionDto } from '@domain/tax-jurisdictions/dto/request/create-tax-jurisdiction.dto';
+import { UpdateTaxJurisdictionDto } from '@domain/tax-jurisdictions/dto/request/update-tax-jurisdiction.dto';
+import { TaxJurisdictionsDomainService } from '@domain/tax-jurisdictions/services/tax-jurisdictions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { CreateTaxJurisdictionDto } from './dto/request/create-tax-jurisdiction.dto';
-import { UpdateTaxJurisdictionDto } from './dto/request/update-tax-jurisdiction.dto';
 
 @Controller()
 export class TaxJurisdictionsController {
   private readonly logger = new Logger(TaxJurisdictionsController.name);
 
-  constructor(private readonly service: TaxJurisdictionsService) {}
+  constructor(private readonly service: TaxJurisdictionsDomainService) {}
 
   // Returns total tax-jurisdiction count
   @MessagePattern({ cmd: 'org.taxJurisdictions.count' })

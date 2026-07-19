@@ -62,7 +62,10 @@ export class OfferingVariantResponseDto {
   @ApiProperty({ description: 'Linked option value IDs', type: [String] })
   optionValueIds: string[];
 
-  @ApiPropertyOptional({ description: 'Tax class override, or null when inheriting the item/category default', nullable: true })
+  @ApiPropertyOptional({
+    description: 'Tax class override, or null when inheriting the item/category default',
+    nullable: true,
+  })
   taxClassId: string | null;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })

@@ -47,7 +47,10 @@ export class UpdateVariantDto {
   @Min(0)
   sortOrder?: number;
 
-  @ApiPropertyOptional({ description: 'Tax class override; falls back to the item/category default when omitted', nullable: true })
+  @ApiPropertyOptional({
+    description: 'Tax class override; falls back to the item/category default when omitted',
+    nullable: true,
+  })
   @IsOptional()
   @IsUUID()
   taxClassId?: string | null;

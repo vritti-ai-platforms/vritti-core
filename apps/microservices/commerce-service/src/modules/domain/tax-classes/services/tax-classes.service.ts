@@ -12,22 +12,13 @@ import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { taxClasses } from '@/db/schema';
 import { TaxClassDto } from '../dto/entity/tax-class.dto';
-import { TaxClassesRepository } from '../repositories/tax-classes.repository';
-
-export interface CreateTaxClassInput {
-  code: string;
-  name: string;
-  isActive?: boolean;
-}
-
-export interface UpdateTaxClassInput {
-  name?: string;
-  isActive?: boolean;
-}
+import { CreateTaxClassDto } from '../dto/request/create-tax-class.dto';
+import { UpdateTaxClassDto } from '../dto/request/update-tax-class.dto';
+import { TaxClassesDomainRepository } from '../repositories/tax-classes.repository';
 
 @Injectable()
-export class TaxClassesService {
-  private readonly logger = new Logger(TaxClassesService.name);
+export class TaxClassesDomainService {
+  private readonly logger = new Logger(TaxClassesDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: taxClasses.name, type: 'string' },
@@ -36,14 +27,14 @@ export class TaxClassesService {
     isSystem: { column: taxClasses.isSystem, type: 'boolean' },
   };
 
-  constructor(private readonly repository: TaxClassesRepository) {}
+  constructor(private readonly repository: TaxClassesDomainRepository) {}
 
   // Returns paginated, filtered, and sorted tax classes for the data table
   async findForTable(state: TableViewState): Promise<{ result: TaxClassDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, TaxClassesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, TaxClassesService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, TaxClassesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, TaxClassesDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxClassesService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxClassesDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({
@@ -76,7 +67,7 @@ export class TaxClassesService {
   }
 
   // Creates a new tax class, rejecting duplicate codes
-  async create(data: CreateTaxClassInput): Promise<CreateResponseDto<TaxClassDto>> {
+  async create(data: CreateTaxClassDto): Promise<CreateResponseDto<TaxClassDto>> {
     const existing = await this.repository.findByCode(data.code);
     if (existing) {
       throw new ConflictException({
@@ -108,7 +99,7 @@ export class TaxClassesService {
   }
 
   // Updates a tax class's name and active flag
-  async update(id: string, data: UpdateTaxClassInput): Promise<SuccessResponseDto> {
+  async update(id: string, data: Omit<UpdateTaxClassDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Tax class not found.');
 

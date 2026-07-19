@@ -1,20 +1,16 @@
 import { CostCategoryDto } from '@domain/cost-categories/dto/entity/cost-category.dto';
-import { CostCategoriesService } from '@domain/cost-categories/services/cost-categories.service';
+import { CreateCostCategoryDto } from '@domain/cost-categories/dto/request/create-cost-category.dto';
+import { UpdateCostCategoryDto } from '@domain/cost-categories/dto/request/update-cost-category.dto';
+import { CostCategoriesDomainService } from '@domain/cost-categories/services/cost-categories.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import { CreateCostCategoryDto } from './dto/request/create-cost-category.dto';
-import { UpdateCostCategoryDto } from './dto/request/update-cost-category.dto';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
 @Controller()
 export class CostCategoriesController {
   private readonly logger = new Logger(CostCategoriesController.name);
 
-  constructor(private readonly service: CostCategoriesService) {}
+  constructor(private readonly service: CostCategoriesDomainService) {}
 
   @MessagePattern({ cmd: 'le.costCategories.table' })
   async table(@Payload() state: TableViewState): Promise<{ result: CostCategoryDto[]; count: number }> {

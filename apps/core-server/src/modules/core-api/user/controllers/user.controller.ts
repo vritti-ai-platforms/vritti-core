@@ -1,4 +1,6 @@
-import { UserService } from '@domain/user/services/user.service';
+import { CreateUserInternalDto } from '@domain/user/dto/request/create-user-internal.dto';
+import { UpdateUserInternalDto } from '@domain/user/dto/request/update-user-internal.dto';
+import { UserDomainService } from '@domain/user/services/user.service';
 import {
   Body,
   Controller,
@@ -26,9 +28,7 @@ import {
   ApiResendInvite,
   ApiUpdateUser,
 } from '../docs/user.docs';
-import { CreateUserInternalDto } from '../dto/request/create-user-internal.dto';
 import { GetUsersInternalDto } from '../dto/request/get-users-internal.dto';
-import { UpdateUserInternalDto } from '../dto/request/update-user-internal.dto';
 import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 
 @ApiTags('Users')
@@ -37,7 +37,7 @@ import type { UsersTableResponseDto } from '../dto/response/users-table-response
 export class UserController {
   private readonly logger = new Logger(UserController.name);
 
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserDomainService) {}
 
   @Get('organizations-by-email')
   @Public()

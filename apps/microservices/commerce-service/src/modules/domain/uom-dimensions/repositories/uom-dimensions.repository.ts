@@ -4,7 +4,7 @@ import { eq, ilike, inArray, or, sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, supplierItems, type UomDimension, uom, uomDimensions } from '@/db/schema';
 
 @Injectable()
-export class UomDimensionsRepository extends PrimaryBaseRepository<typeof uomDimensions> {
+export class UomDimensionsDomainRepository extends PrimaryBaseRepository<typeof uomDimensions> {
   constructor(database: PrimaryDatabaseService) {
     super(database, uomDimensions);
   }

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEmail, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class UpdateSupplierDto {
   @Trim({ nullify: false })
@@ -34,4 +34,28 @@ export class UpdateSupplierDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ description: 'Block new purchase orders for this supplier' })
+  @IsOptional()
+  @IsBoolean()
+  purchasingBlocked?: boolean;
+
+  @ApiPropertyOptional({ description: 'Block payments to this supplier' })
+  @IsOptional()
+  @IsBoolean()
+  paymentBlocked?: boolean;
+
+  @Trim()
+  @ApiPropertyOptional({ description: 'Email for sending purchase orders', example: 'orders@acme.com' })
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(255)
+  orderEmail?: string | null;
+
+  @Trim()
+  @ApiPropertyOptional({ description: 'Phone for order communication', example: '+91 98765 43210' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  orderPhone?: string | null;
 }

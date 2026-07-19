@@ -7,7 +7,7 @@ import type { Observable } from 'rxjs';
 import { SessionTypeValues } from '@/db/schema';
 import {
   type PermissionContext,
-  UserPermissionsService,
+  UserPermissionsDomainService,
 } from '@/modules/domain/user-permissions/services/user-permissions.service';
 import { getRequest } from '@/utils/request-context';
 import { REQUIRE_FEATURE_KEY, SKIP_FEATURE_KEY } from '../decorators/require-feature.decorator';
@@ -19,7 +19,7 @@ export class PermissionInterceptor implements NestInterceptor {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly userPermissionsService: UserPermissionsService,
+    private readonly userPermissionsService: UserPermissionsDomainService,
     private readonly primaryDb: PrimaryDatabaseService,
   ) {}
 

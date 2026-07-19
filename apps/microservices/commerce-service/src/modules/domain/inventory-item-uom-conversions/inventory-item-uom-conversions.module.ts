@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { InventoryItemUomConversionsRepository } from './repositories/inventory-item-uom-conversions.repository';
-import { InventoryItemUomConversionsService } from './services/inventory-item-uom-conversions.service';
+import { InventoryItemUomConversionsDomainRepository } from './repositories/inventory-item-uom-conversions.repository';
+import { InventoryItemUomConversionsDomainService } from './services/inventory-item-uom-conversions.service';
 
 @Module({
-  providers: [InventoryItemUomConversionsService, InventoryItemUomConversionsRepository],
-  exports: [InventoryItemUomConversionsService, InventoryItemUomConversionsRepository],
+  providers: [InventoryItemUomConversionsDomainService, InventoryItemUomConversionsDomainRepository],
+  exports: [InventoryItemUomConversionsDomainService, InventoryItemUomConversionsDomainRepository],
 })
 export class InventoryItemUomConversionsDomainModule {}

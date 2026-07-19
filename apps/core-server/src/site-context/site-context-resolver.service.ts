@@ -1,4 +1,4 @@
-import { SiteRepository } from '@domain/site/repositories/site.repository';
+import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type SiteContext, SiteContextCacheService } from './site-context-cache.service';
@@ -7,7 +7,7 @@ import { type SiteContext, SiteContextCacheService } from './site-context-cache.
 export class SiteContextResolverService {
   constructor(
     private readonly cache: SiteContextCacheService,
-    private readonly siteRepository: SiteRepository,
+    private readonly siteRepository: SiteDomainRepository,
   ) {}
 
   // Resolves a site's context (timezone, LE currency, legal entity) through the cache

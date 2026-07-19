@@ -4,7 +4,7 @@ import { and, eq, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type Media, MediaStatusValues, media } from '@/db/schema';
 
 @Injectable()
-export class MediaRepository extends PrimaryBaseRepository<typeof media> {
+export class MediaDomainRepository extends PrimaryBaseRepository<typeof media> {
   constructor(database: PrimaryDatabaseService) {
     super(database, media);
   }

@@ -7,10 +7,7 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Fingerprint, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
-import {
-  useCompanyIdentifiers,
-  useRemoveCompanyIdentifier,
-} from '@/hooks/organization/companies';
+import { useCompanyIdentifiers, useRemoveCompanyIdentifier } from '@/hooks/organization/companies';
 import { IDENTIFIER_TYPE_LABELS, type PartyIdentifierRow } from '@/schemas/party-identifiers';
 import { AddIdentifierDialog } from '../forms/AddIdentifierDialog';
 

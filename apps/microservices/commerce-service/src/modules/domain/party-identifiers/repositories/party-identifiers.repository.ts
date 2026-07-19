@@ -5,13 +5,13 @@ import {
   type NewPartyIdentifier,
   type PartyIdentifier,
   type PartyIdentifierType,
-  parties,
   type PartyType,
+  parties,
   partyIdentifiers,
 } from '@/db/schema';
 
 @Injectable()
-export class PartyIdentifiersRepository extends PrimaryBaseRepository<typeof partyIdentifiers> {
+export class PartyIdentifiersDomainRepository extends PrimaryBaseRepository<typeof partyIdentifiers> {
   constructor(database: PrimaryDatabaseService) {
     super(database, partyIdentifiers);
   }

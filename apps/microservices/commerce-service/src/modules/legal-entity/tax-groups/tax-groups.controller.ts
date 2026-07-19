@@ -1,20 +1,16 @@
 import type { TaxGroupDto } from '@domain/tax-groups/dto/entity/tax-group.dto';
-import { TaxGroupsService } from '@domain/tax-groups/services/tax-groups.service';
+import { CreateTaxGroupDto } from '@domain/tax-groups/dto/request/create-tax-group.dto';
+import { UpdateTaxGroupDto } from '@domain/tax-groups/dto/request/update-tax-group.dto';
+import { TaxGroupsDomainService } from '@domain/tax-groups/services/tax-groups.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
-import { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
 @Controller()
 export class TaxGroupsController {
   private readonly logger = new Logger(TaxGroupsController.name);
 
-  constructor(private readonly taxGroupsService: TaxGroupsService) {}
+  constructor(private readonly taxGroupsService: TaxGroupsDomainService) {}
 
   // Returns a paginated page of tax groups for the data table
   @MessagePattern({ cmd: 'le.taxGroups.table' })

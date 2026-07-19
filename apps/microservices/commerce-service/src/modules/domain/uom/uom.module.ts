@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { UomRepository } from './repositories/uom.repository';
-import { UomService } from './services/uom.service';
+import { UomDomainRepository } from './repositories/uom.repository';
+import { UomDomainService } from './services/uom.service';
 
 @Module({
-  providers: [UomService, UomRepository],
-  exports: [UomService, UomRepository],
+  providers: [UomDomainService, UomDomainRepository],
+  exports: [UomDomainService, UomDomainRepository],
 })
 export class UomDomainModule {}

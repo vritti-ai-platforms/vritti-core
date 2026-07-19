@@ -1,23 +1,23 @@
-import { GoodsReceiptItemsService } from '@domain/goods-receipts/services/goods-receipt-items.service';
-import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
-import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
+import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/goods-receipt-items.service';
+import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
+import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, PrimaryDatabaseService, type SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import { GoodsReceiptStatusValues, type InventoryItemLot, InventoryTrackingValues } from '@/db/schema';
 import { GoodsReceiptLotDto } from '../dto/entity/goods-receipt-lot.dto';
-import { GoodsReceiptLotsRepository } from '../repositories/goods-receipt-lots.repository';
+import { GoodsReceiptLotsDomainRepository } from '../repositories/goods-receipt-lots.repository';
 
 @Injectable()
-export class GoodsReceiptLotsService {
-  private readonly logger = new Logger(GoodsReceiptLotsService.name);
+export class GoodsReceiptLotsDomainService {
+  private readonly logger = new Logger(GoodsReceiptLotsDomainService.name);
 
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly repository: GoodsReceiptLotsRepository,
-    private readonly itemsService: GoodsReceiptItemsService,
-    private readonly receiptsService: GoodsReceiptsService,
-    private readonly inventoryItemLotsService: InventoryItemLotsService,
+    private readonly repository: GoodsReceiptLotsDomainRepository,
+    private readonly itemsService: GoodsReceiptItemsDomainService,
+    private readonly receiptsService: GoodsReceiptsDomainService,
+    private readonly inventoryItemLotsService: InventoryItemLotsDomainService,
   ) {}
 
   async listByItem(goodsReceiptId: string, itemId: string, siteCurrencyCode?: string): Promise<GoodsReceiptLotDto[]> {

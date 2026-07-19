@@ -4,7 +4,7 @@ import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { parties, purchaseOrderItems, purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
 
 @Injectable()
-export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purchaseOrders> {
+export class PurchaseOrdersDomainRepository extends PrimaryBaseRepository<typeof purchaseOrders> {
   constructor(database: PrimaryDatabaseService) {
     super(database, purchaseOrders, { sequence: purchaseOrderNumberSeq });
   }

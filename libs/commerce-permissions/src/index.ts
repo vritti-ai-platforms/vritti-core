@@ -11,7 +11,7 @@ export {
 } from './inventory-items';
 export { SITE_LOCATIONS } from './locations';
 export { ORG_SALES_CHANNELS } from './sales-channels';
-export { LE_SUPPLIERS } from './suppliers';
+export { LE_SUPPLIERS, SITE_SUPPLIERS } from './suppliers';
 export { ORG_TAX_CLASSES } from './tax-classes';
 export { ORG_TAX_COMPONENTS } from './tax-components';
 export { ORG_TAX_JURISDICTIONS } from './tax-jurisdictions';

@@ -10,8 +10,8 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { type SupplierItemData, type UpdateSupplierItemFormData, updateSupplierItemSchema } from '@/schemas/suppliers';
 import { useUpdateSupplierItem } from '@/hooks/legal-entity/suppliers';
+import { type SupplierItemData, type UpdateSupplierItemFormData, updateSupplierItemSchema } from '@/schemas/suppliers';
 
 interface UpdateSupplierItemDialogProps {
   supplierId: string;
@@ -32,7 +32,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
     resolver: zodResolver(updateSupplierItemSchema),
     defaultValues: {
       supplierItemCode: item.supplierItemCode ?? '',
-      unitPrice: item.unitPrice,
+      unitPrice: item.unitPrice ?? undefined,
       uomId: item.uomId,
       minOrderQuantity: item.minOrderQuantity ?? undefined,
       leadTimeDays: item.leadTimeDays ?? undefined,

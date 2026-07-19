@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { SuppliersRepository } from './repositories/suppliers.repository';
-import { SuppliersService } from './services/suppliers.service';
+import { SuppliersDomainRepository } from './repositories/suppliers.repository';
+import { SuppliersDomainService } from './services/suppliers.service';
 
 @Module({
-  providers: [SuppliersService, SuppliersRepository],
-  exports: [SuppliersService, SuppliersRepository],
+  providers: [SuppliersDomainService, SuppliersDomainRepository],
+  exports: [SuppliersDomainService, SuppliersDomainRepository],
 })
 export class SuppliersDomainModule {}

@@ -9,7 +9,7 @@ import { eq } from '@vritti/api-sdk/drizzle-orm';
 import { type TaxClass, taxClasses } from '@/db/schema';
 
 @Injectable()
-export class TaxClassesRepository extends PrimaryBaseRepository<typeof taxClasses> {
+export class TaxClassesDomainRepository extends PrimaryBaseRepository<typeof taxClasses> {
   constructor(database: PrimaryDatabaseService) {
     super(database, taxClasses);
   }

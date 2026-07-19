@@ -16,7 +16,7 @@ import {
 } from '@/db/schema';
 
 @Injectable()
-export class VariantOptionsRepository extends PrimaryBaseRepository<typeof variantOptions> {
+export class VariantOptionsDomainRepository extends PrimaryBaseRepository<typeof variantOptions> {
   constructor(database: PrimaryDatabaseService) {
     super(database, variantOptions);
   }

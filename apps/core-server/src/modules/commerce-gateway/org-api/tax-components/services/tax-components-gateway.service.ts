@@ -19,7 +19,10 @@ export class TaxComponentsGatewayService {
   // Returns paginated, filtered, and sorted tax components for the data table
   async findForTable(userId: string): Promise<TaxComponentTableResponseDto> {
     this.logger.log('org.taxComponents.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-org-tax-components');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      'commerce-org-tax-components',
+    );
 
     const { result, count } = await this.nats.send<{ result: TaxComponentResponseDto[]; count: number }>(
       'commerce',

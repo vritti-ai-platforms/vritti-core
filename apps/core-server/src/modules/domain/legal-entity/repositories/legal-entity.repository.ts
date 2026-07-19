@@ -9,7 +9,7 @@ import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-or
 import { type LegalEntity, legalEntities, sites } from '@/db/schema';
 
 @Injectable()
-export class LegalEntityRepository extends PrimaryBaseRepository<typeof legalEntities> {
+export class LegalEntityDomainRepository extends PrimaryBaseRepository<typeof legalEntities> {
   constructor(database: PrimaryDatabaseService) {
     super(database, legalEntities);
   }

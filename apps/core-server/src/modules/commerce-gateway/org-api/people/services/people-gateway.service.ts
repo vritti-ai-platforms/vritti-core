@@ -109,10 +109,7 @@ export class PeopleGatewayService {
   }
 
   // Adds an identifier to a person
-  addIdentifier(
-    personId: string,
-    dto: AddPartyIdentifierDto,
-  ): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
+  addIdentifier(personId: string, dto: AddPartyIdentifierDto): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
     this.logger.log(`org.people.identifiers.add — personId: ${personId}, idType: ${dto.idType}`);
     return this.nats.send('commerce', 'org.people.identifiers.add', { personId, ...dto });
   }

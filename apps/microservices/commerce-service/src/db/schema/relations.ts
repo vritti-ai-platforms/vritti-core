@@ -211,9 +211,24 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.parties.id,
     }),
     supplierItems: r.many.supplierItems(),
+    supplierSites: r.many.supplierSites(),
     purchaseOrders: r.many.purchaseOrders(),
     goodsReceipts: r.many.goodsReceipts(),
     inventoryItemQuants: r.many.inventoryItemQuants(),
+  },
+  supplierSites: {
+    supplier: r.one.suppliers({
+      from: r.supplierSites.supplierId,
+      to: r.suppliers.id,
+    }),
+    taxRegistration: r.one.partyTaxRegistrations({
+      from: r.supplierSites.partyTaxRegistrationId,
+      to: r.partyTaxRegistrations.id,
+    }),
+    bankAccount: r.one.partyBankAccounts({
+      from: r.supplierSites.partyBankAccountId,
+      to: r.partyBankAccounts.id,
+    }),
   },
   parties: {
     jurisdiction: r.one.taxJurisdictions({
@@ -221,6 +236,20 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.taxJurisdictions.id,
     }),
     taxRegistrations: r.many.partyTaxRegistrations(),
+    licenses: r.many.partyLicenses(),
+    bankAccounts: r.many.partyBankAccounts(),
+  },
+  partyLicenses: {
+    party: r.one.parties({
+      from: r.partyLicenses.partyId,
+      to: r.parties.id,
+    }),
+  },
+  partyBankAccounts: {
+    party: r.one.parties({
+      from: r.partyBankAccounts.partyId,
+      to: r.parties.id,
+    }),
   },
   partyRelationships: {
     parentParty: r.one.parties({
@@ -254,6 +283,20 @@ export const relations = defineRelations(schema, (r) => ({
     uom: r.one.uom({
       from: r.supplierItems.uomId,
       to: r.uom.id,
+    }),
+    prices: r.many.supplierItemPrices(),
+    siteOverrides: r.many.supplierItemSites(),
+  },
+  supplierItemPrices: {
+    supplierItem: r.one.supplierItems({
+      from: r.supplierItemPrices.supplierItemId,
+      to: r.supplierItems.id,
+    }),
+  },
+  supplierItemSites: {
+    supplierItem: r.one.supplierItems({
+      from: r.supplierItemSites.supplierItemId,
+      to: r.supplierItems.id,
     }),
   },
   purchaseOrders: {

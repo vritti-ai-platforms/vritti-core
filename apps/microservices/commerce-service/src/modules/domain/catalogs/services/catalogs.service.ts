@@ -1,4 +1,4 @@
-import { CatalogChannelsService } from '@domain/catalog-channels/services/catalog-channels.service';
+import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
@@ -12,14 +12,14 @@ import {
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type Catalog, catalogs } from '@/db/schema';
-import type { CreateCatalogDto } from '@/modules/site/catalogs/root/dto/request/create-catalog.dto';
-import type { UpdateCatalogDto } from '@/modules/site/catalogs/root/dto/request/update-catalog.dto';
 import { CatalogDto } from '../dto/entity/catalog.dto';
-import { CatalogsRepository } from '../repositories/catalogs.repository';
+import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
+import type { UpdateCatalogDto } from '../dto/request/update-catalog.dto';
+import { CatalogsDomainRepository } from '../repositories/catalogs.repository';
 
 @Injectable()
-export class CatalogsService {
-  private readonly logger = new Logger(CatalogsService.name);
+export class CatalogsDomainService {
+  private readonly logger = new Logger(CatalogsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: catalogs.name, type: 'string' },
@@ -27,16 +27,16 @@ export class CatalogsService {
   };
 
   constructor(
-    private readonly repository: CatalogsRepository,
-    private readonly catalogChannelsService: CatalogChannelsService,
+    private readonly repository: CatalogsDomainRepository,
+    private readonly catalogChannelsService: CatalogChannelsDomainService,
   ) {}
 
   // Returns paginated, filtered, and sorted catalogs for the data table
   async findForTable(state: TableViewState): Promise<{ result: CatalogDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, CatalogsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, CatalogsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, CatalogsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, CatalogsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, CatalogsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, CatalogsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findForTable({

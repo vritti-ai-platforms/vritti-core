@@ -2,13 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
 import { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
-import { CatalogChannelsRepository } from '../repositories/catalog-channels.repository';
+import { CatalogChannelsDomainRepository } from '../repositories/catalog-channels.repository';
 
 @Injectable()
-export class CatalogChannelsService {
-  private readonly logger = new Logger(CatalogChannelsService.name);
+export class CatalogChannelsDomainService {
+  private readonly logger = new Logger(CatalogChannelsDomainService.name);
 
-  constructor(private readonly repository: CatalogChannelsRepository) {}
+  constructor(private readonly repository: CatalogChannelsDomainRepository) {}
 
   // Lists a catalog's channel assignments
   async listByCatalog(catalogId: string): Promise<CatalogChannelDto[]> {

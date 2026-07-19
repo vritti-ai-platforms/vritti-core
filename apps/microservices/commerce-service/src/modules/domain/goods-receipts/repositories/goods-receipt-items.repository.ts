@@ -31,7 +31,7 @@ export type GoodsReceiptItemWithRefs = GoodsReceiptItem & {
 };
 
 @Injectable()
-export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof goodsReceiptItems> {
+export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typeof goodsReceiptItems> {
   constructor(database: PrimaryDatabaseService) {
     super(database, goodsReceiptItems);
   }

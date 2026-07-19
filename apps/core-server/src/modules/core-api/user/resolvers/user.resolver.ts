@@ -1,4 +1,4 @@
-import { UserService } from '@domain/user/services/user.service';
+import { UserDomainService } from '@domain/user/services/user.service';
 import { Logger } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
@@ -11,7 +11,7 @@ import { SelectOptions } from '../../../commerce-gateway/_shared/graphql/select.
 export class UserResolver {
   private readonly logger = new Logger(UserResolver.name);
 
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserDomainService) {}
 
   @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'usersOptions' })

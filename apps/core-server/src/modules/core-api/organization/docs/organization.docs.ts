@@ -1,11 +1,11 @@
+import { CreateOrganizationInternalDto } from '@domain/organization/dto/request/create-organization-internal.dto';
+import { ReceiveEntitlementInternalDto } from '@domain/organization/dto/request/receive-entitlement-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SetFeatureLocksInternalDto } from '../../structure/dto/request/set-feature-locks-internal.dto';
 import { FeatureLocksResponseDto } from '../../structure/dto/response/feature-locks-response.dto';
 import { OrganizationDto } from '../dto/entity/organization.dto';
-import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
-import { ReceiveEntitlementInternalDto } from '../dto/request/receive-entitlement-internal.dto';
 
 export function ApiCreateOrganization() {
   return applyDecorators(

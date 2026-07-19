@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { SalesChannelsRepository } from './repositories/sales-channels.repository';
-import { SalesChannelsService } from './services/sales-channels.service';
+import { SalesChannelsDomainRepository } from './repositories/sales-channels.repository';
+import { SalesChannelsDomainService } from './services/sales-channels.service';
 
 @Module({
-  providers: [SalesChannelsService, SalesChannelsRepository],
-  exports: [SalesChannelsService, SalesChannelsRepository],
+  providers: [SalesChannelsDomainService, SalesChannelsDomainRepository],
+  exports: [SalesChannelsDomainService, SalesChannelsDomainRepository],
 })
 export class SalesChannelsDomainModule {}

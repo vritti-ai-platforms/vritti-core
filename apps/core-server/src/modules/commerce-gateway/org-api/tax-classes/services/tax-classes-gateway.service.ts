@@ -19,7 +19,10 @@ export class TaxClassesGatewayService {
   // Returns paginated, filtered, and sorted tax classes for the data table
   async findForTable(userId: string): Promise<TaxClassTableResponseDto> {
     this.logger.log('org.taxClasses.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-org-tax-classes');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      'commerce-org-tax-classes',
+    );
 
     const { result, count } = await this.nats.send<{ result: TaxClassResponseDto[]; count: number }>(
       'commerce',

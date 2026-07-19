@@ -9,19 +9,21 @@ import type {
   CompanyRegistrationFormData,
   CompanyRegistrationsTableResponse,
   CompanyTaxRegistrationRow,
-  CreateCompanyFormData,
-  UpdateCompanyFormData,
+  CreateCompanyPayload,
+  UpdateCompanyPayload,
 } from '@/schemas/companies';
+import type { AddAddressPayload, PartyAddressesTableResponse, PartyAddressRow } from '@/schemas/party-addresses';
 import type {
-  AddAddressPayload,
-  PartyAddressesTableResponse,
-  PartyAddressRow,
-} from '@/schemas/party-addresses';
+  PartyBankAccountPayload,
+  PartyBankAccountRow,
+  PartyBankAccountsTableResponse,
+} from '@/schemas/party-bank-accounts';
 import type {
   AddIdentifierPayload,
   PartyIdentifierRow,
   PartyIdentifiersTableResponse,
 } from '@/schemas/party-identifiers';
+import type { PartyLicensePayload, PartyLicenseRow, PartyLicensesTableResponse } from '@/schemas/party-licenses';
 
 const BASE = 'commerce-api/companies';
 
@@ -33,11 +35,11 @@ export function getCompany(id: string): Promise<CompanyData> {
   return axios.get<CompanyData>(`${BASE}/${id}`).then((r) => r.data);
 }
 
-export function createCompany(data: CreateCompanyFormData): Promise<CreateResponse<CompanyData>> {
+export function createCompany(data: CreateCompanyPayload): Promise<CreateResponse<CompanyData>> {
   return axios.post<CreateResponse<CompanyData>>(BASE, data).then((r) => r.data);
 }
 
-export function updateCompany({ id, data }: { id: string; data: UpdateCompanyFormData }): Promise<SuccessResponse> {
+export function updateCompany({ id, data }: { id: string; data: UpdateCompanyPayload }): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${BASE}/${id}`, data).then((r) => r.data);
 }
 
@@ -144,9 +146,7 @@ export function addCompanyAddress({
   partyId: string;
   data: AddAddressPayload;
 }): Promise<PartyAddressRow> {
-  return axios
-    .post<CreateResponse<PartyAddressRow>>(`${BASE}/${partyId}/addresses`, data)
-    .then((r) => r.data.data);
+  return axios.post<CreateResponse<PartyAddressRow>>(`${BASE}/${partyId}/addresses`, data).then((r) => r.data.data);
 }
 
 export function updateCompanyAddress({
@@ -169,4 +169,82 @@ export function removeCompanyAddress({
   addressId: string;
 }): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/${partyId}/addresses/${addressId}`).then((r) => r.data);
+}
+
+export function getCompanyLicenses(id: string): Promise<PartyLicensesTableResponse> {
+  return axios
+    .get<PartyLicensesTableResponse>(`${BASE}/${id}/licenses`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function createCompanyLicense({
+  companyId,
+  data,
+}: {
+  companyId: string;
+  data: PartyLicensePayload;
+}): Promise<PartyLicenseRow> {
+  return axios.post<CreateResponse<PartyLicenseRow>>(`${BASE}/${companyId}/licenses`, data).then((r) => r.data.data);
+}
+
+export function updateCompanyLicense({
+  companyId,
+  licenseId,
+  data,
+}: {
+  companyId: string;
+  licenseId: string;
+  data: PartyLicensePayload;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${companyId}/licenses/${licenseId}`, data).then((r) => r.data);
+}
+
+export function deleteCompanyLicense({
+  companyId,
+  licenseId,
+}: {
+  companyId: string;
+  licenseId: string;
+}): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${companyId}/licenses/${licenseId}`).then((r) => r.data);
+}
+
+export function getCompanyBankAccounts(id: string): Promise<PartyBankAccountsTableResponse> {
+  return axios
+    .get<PartyBankAccountsTableResponse>(`${BASE}/${id}/bank-accounts`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function createCompanyBankAccount({
+  companyId,
+  data,
+}: {
+  companyId: string;
+  data: PartyBankAccountPayload;
+}): Promise<PartyBankAccountRow> {
+  return axios
+    .post<CreateResponse<PartyBankAccountRow>>(`${BASE}/${companyId}/bank-accounts`, data)
+    .then((r) => r.data.data);
+}
+
+export function updateCompanyBankAccount({
+  companyId,
+  bankAccountId,
+  data,
+}: {
+  companyId: string;
+  bankAccountId: string;
+  data: PartyBankAccountPayload;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${companyId}/bank-accounts/${bankAccountId}`, data).then((r) => r.data);
+}
+
+export function deleteCompanyBankAccount({
+  companyId,
+  bankAccountId,
+}: {
+  companyId: string;
+  bankAccountId: string;
+}): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${companyId}/bank-accounts/${bankAccountId}`).then((r) => r.data);
 }

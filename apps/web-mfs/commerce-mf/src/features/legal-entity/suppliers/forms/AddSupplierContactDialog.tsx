@@ -8,8 +8,8 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { type CreateSupplierContactFormData, createSupplierContactSchema } from '@/schemas/suppliers';
 import { useAddSupplierContact } from '@/hooks/legal-entity/suppliers';
+import { type CreateSupplierContactFormData, createSupplierContactSchema } from '@/schemas/suppliers';
 
 interface AddSupplierContactDialogProps {
   supplierId: string;

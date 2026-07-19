@@ -4,7 +4,7 @@ import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type LeTaxRegistration, leTaxRegistrations, sites } from '@/db/schema';
 
 @Injectable()
-export class LeTaxRegistrationRepository extends PrimaryBaseRepository<typeof leTaxRegistrations> {
+export class LeTaxRegistrationDomainRepository extends PrimaryBaseRepository<typeof leTaxRegistrations> {
   constructor(database: PrimaryDatabaseService) {
     super(database, leTaxRegistrations);
   }

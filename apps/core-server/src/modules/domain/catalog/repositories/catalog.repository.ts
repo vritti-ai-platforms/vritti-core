@@ -4,7 +4,7 @@ import { desc, eq, inArray } from '@vritti/api-sdk/drizzle-orm';
 import { type Catalog, catalogs, type NewCatalog, sites } from '@/db/schema';
 
 @Injectable()
-export class CatalogRepository extends PrimaryBaseRepository<typeof catalogs> {
+export class CatalogDomainRepository extends PrimaryBaseRepository<typeof catalogs> {
   constructor(database: PrimaryDatabaseService) {
     super(database, catalogs);
   }

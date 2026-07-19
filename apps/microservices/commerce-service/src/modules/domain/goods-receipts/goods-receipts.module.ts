@@ -5,10 +5,10 @@ import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-ord
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { forwardRef, Module } from '@nestjs/common';
-import { GoodsReceiptItemsRepository } from './repositories/goods-receipt-items.repository';
-import { GoodsReceiptsRepository } from './repositories/goods-receipts.repository';
-import { GoodsReceiptItemsService } from './services/goods-receipt-items.service';
-import { GoodsReceiptsService } from './services/goods-receipts.service';
+import { GoodsReceiptItemsDomainRepository } from './repositories/goods-receipt-items.repository';
+import { GoodsReceiptsDomainRepository } from './repositories/goods-receipts.repository';
+import { GoodsReceiptItemsDomainService } from './services/goods-receipt-items.service';
+import { GoodsReceiptsDomainService } from './services/goods-receipts.service';
 
 @Module({
   imports: [
@@ -19,8 +19,18 @@ import { GoodsReceiptsService } from './services/goods-receipts.service';
     InventoryItemLedgerDomainModule,
     UomConversionsDomainModule,
   ],
-  providers: [GoodsReceiptsService, GoodsReceiptItemsService, GoodsReceiptsRepository, GoodsReceiptItemsRepository],
-  exports: [GoodsReceiptsService, GoodsReceiptItemsService, GoodsReceiptsRepository, GoodsReceiptItemsRepository],
+  providers: [
+    GoodsReceiptsDomainService,
+    GoodsReceiptItemsDomainService,
+    GoodsReceiptsDomainRepository,
+    GoodsReceiptItemsDomainRepository,
+  ],
+  exports: [
+    GoodsReceiptsDomainService,
+    GoodsReceiptItemsDomainService,
+    GoodsReceiptsDomainRepository,
+    GoodsReceiptItemsDomainRepository,
+  ],
 })
 export class GoodsReceiptsDomainModule {}
 

@@ -1,23 +1,19 @@
 import type { LocationDto } from '@domain/locations/dto/entity/location.dto';
 import type { LocationCountDto } from '@domain/locations/dto/entity/location-count.dto';
 import type { LocationTreeDto } from '@domain/locations/dto/entity/location-tree.dto';
-import { LocationsService } from '@domain/locations/services/locations.service';
+import { CreateLocationDto } from '@domain/locations/dto/request/create-location.dto';
+import { ReorderLocationsDto } from '@domain/locations/dto/request/reorder-locations.dto';
+import { UpdateLocationPayloadDto } from '@domain/locations/dto/request/update-location-payload.dto';
+import { LocationsDomainService } from '@domain/locations/services/locations.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import { CreateLocationDto } from './dto/request/create-location.dto';
-import { ReorderLocationsDto } from './dto/request/reorder-locations.dto';
-import { UpdateLocationPayloadDto } from './dto/request/update-location-payload.dto';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
 @Controller()
 export class LocationsController {
   private readonly logger = new Logger(LocationsController.name);
 
-  constructor(private readonly locationsService: LocationsService) {}
+  constructor(private readonly locationsService: LocationsDomainService) {}
 
   // Returns total storage location count
   @MessagePattern({ cmd: 'site.locations.count' })

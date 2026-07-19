@@ -1,7 +1,7 @@
-import { OrganizationService } from '@domain/organization/services/organization.service';
-import { SessionService } from '@domain/session/services/session.service';
-import { UserService } from '@domain/user/services/user.service';
-import { VerificationRepository } from '@domain/verification/repositories/verification.repository';
+import { OrganizationDomainService } from '@domain/organization/services/organization.service';
+import { SessionDomainService } from '@domain/session/services/session.service';
+import { UserDomainService } from '@domain/user/services/user.service';
+import { VerificationDomainRepository } from '@domain/verification/repositories/verification.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '@vritti/api-sdk/email';
@@ -23,10 +23,10 @@ export class PasswordResetService {
   private readonly RESET_MESSAGE = 'If an account exists, a reset code has been sent.';
 
   constructor(
-    private readonly userService: UserService,
-    private readonly organizationService: OrganizationService,
-    private readonly sessionService: SessionService,
-    private readonly verificationRepository: VerificationRepository,
+    private readonly userService: UserDomainService,
+    private readonly organizationService: OrganizationDomainService,
+    private readonly sessionService: SessionDomainService,
+    private readonly verificationRepository: VerificationDomainRepository,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {}

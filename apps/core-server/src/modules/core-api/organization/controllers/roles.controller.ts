@@ -1,4 +1,7 @@
-import { RoleService, type RolesByScope } from '@domain/organization/services/role.service';
+import { CreateRoleInternalDto } from '@domain/organization/dto/request/create-role-internal.dto';
+import { ProvisionRolesInternalDto } from '@domain/organization/dto/request/provision-roles-internal.dto';
+import { UpdateRoleInternalDto } from '@domain/organization/dto/request/update-role-internal.dto';
+import { RoleDomainService, type RolesByScope } from '@domain/organization/services/role.service';
 import {
   Body,
   Controller,
@@ -31,10 +34,7 @@ import {
   ApiSelectRoles,
   ApiUpdateRole,
 } from '../docs/roles.docs';
-import { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
-import { ProvisionRolesInternalDto } from '../dto/request/provision-roles-internal.dto';
 import { SelectRolesInternalDto } from '../dto/request/select-roles-internal.dto';
-import { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
 
 @ApiTags('Organization Roles')
 @Controller('organizations/internal/roles')
@@ -45,7 +45,7 @@ import { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
 export class RolesController {
   private readonly logger = new Logger(RolesController.name);
 
-  constructor(private readonly roleService: RoleService) {}
+  constructor(private readonly roleService: RoleDomainService) {}
 
   // Bulk provisions roles and their feature mappings for an organization
   @Post()

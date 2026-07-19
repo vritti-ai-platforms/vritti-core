@@ -18,7 +18,7 @@ import {
 } from '@/db/schema';
 
 @Injectable()
-export class OrdersRepository extends PrimaryBaseRepository<typeof orders> {
+export class OrdersDomainRepository extends PrimaryBaseRepository<typeof orders> {
   constructor(database: PrimaryDatabaseService) {
     super(database, orders, { sequence: orderNumberSeq });
   }

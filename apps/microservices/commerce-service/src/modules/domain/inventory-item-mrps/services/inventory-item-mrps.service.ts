@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { majorToMinor } from '@vritti/api-sdk/money';
 import type { InventoryItemMrp } from '@/db/schema';
+import type { AddInventoryItemMrpDto } from '../dto/request/add-inventory-item-mrp.dto';
+import type { UpdateInventoryItemMrpDto } from '../dto/request/update-inventory-item-mrp.dto';
 import {
+  InventoryItemMrpsDomainRepository,
   type InventoryItemMrpWithUom,
-  InventoryItemMrpsRepository,
 } from '../repositories/inventory-item-mrps.repository';
 
 @Injectable()
-export class InventoryItemMrpsService {
-  constructor(private readonly repository: InventoryItemMrpsRepository) {}
+export class InventoryItemMrpsDomainService {
+  constructor(private readonly repository: InventoryItemMrpsDomainRepository) {}
 
   // Records the latest suggested MRP for an (item, uom, currency); called when a goods receipt is published.
   upsert(
@@ -21,13 +24,16 @@ export class InventoryItemMrpsService {
   }
 
   // Inserts a new suggested MRP for an (item, uom, currency); the unique constraint surfaces conflicts
-  create(inventoryItemId: string, uomId: string, currencyCode: string, amount: bigint): Promise<InventoryItemMrp> {
-    return this.repository.createMrp(inventoryItemId, uomId, currencyCode, amount);
+  create(dto: AddInventoryItemMrpDto): Promise<InventoryItemMrp> {
+    const currencyCode = dto.amount.currency;
+    const amount = majorToMinor(dto.amount.value, currencyCode, 'amount');
+    return this.repository.createMrp(dto.inventoryItemId, dto.uomId, currencyCode, amount);
   }
 
   // Updates an existing MRP row's amount by id; resolves undefined when no row matched
-  updateAmount(id: string, amount: bigint): Promise<InventoryItemMrp | undefined> {
-    return this.repository.updateAmount(id, amount);
+  updateAmount(dto: UpdateInventoryItemMrpDto): Promise<InventoryItemMrp | undefined> {
+    const amount = majorToMinor(dto.amount.value, dto.amount.currency, 'amount');
+    return this.repository.updateAmount(dto.id, amount);
   }
 
   // Deletes an MRP row by id; resolves the deleted row or undefined when none matched

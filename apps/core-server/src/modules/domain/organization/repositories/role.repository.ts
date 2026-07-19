@@ -13,7 +13,7 @@ export type RoleWithCount = Role & { assignedUserCount: number };
 export type GroupedRoleRow = { scope: ScopeType; siteType: SiteType | null; roles: RoleWithCount[] };
 
 @Injectable()
-export class RoleRepository extends PrimaryBaseRepository<typeof roles> {
+export class RoleDomainRepository extends PrimaryBaseRepository<typeof roles> {
   constructor(database: PrimaryDatabaseService) {
     super(database, roles);
   }

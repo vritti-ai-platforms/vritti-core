@@ -12,7 +12,9 @@ import { useNavigate } from 'react-router-dom';
 import { COMPANY_IDENTIFIERS_TABLE_KEY, useCompanyById, useDeleteCompany } from '@/hooks/organization/companies';
 import { EditCompanyDialog } from './forms/EditCompanyDialog';
 import { AddressesTab } from './tabs/AddressesTab';
+import { BankAccountsTab } from './tabs/BankAccountsTab';
 import { IdentifiersTab } from './tabs/IdentifiersTab';
+import { LicensesTab } from './tabs/LicensesTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { PeopleTab } from './tabs/PeopleTab';
 import { RegistrationsTab } from './tabs/RegistrationsTab';
@@ -88,6 +90,18 @@ export const CompanyDetailPage = () => {
             content: <RegistrationsTab companyId={company.id} />,
           },
           {
+            value: 'licenses',
+            label: 'Licenses',
+            permission: ORG_COMPANIES.licenses.view,
+            content: <LicensesTab companyId={company.id} />,
+          },
+          {
+            value: 'bank-accounts',
+            label: 'Bank Accounts',
+            permission: ORG_COMPANIES.bankAccounts.view,
+            content: <BankAccountsTab companyId={company.id} />,
+          },
+          {
             value: 'identifiers',
             label: 'Identifiers',
             permission: ORG_COMPANIES.identifiers.view,
@@ -114,7 +128,7 @@ export const CompanyDetailPage = () => {
         onClick={handleDelete}
         disabled={!company.canDelete || deleteMutation.isPending}
         isLoading={deleteMutation.isPending}
-        warning="This company is referenced by suppliers or other records and cannot be deleted."
+        warning="This company is linked to a supplier and cannot be deleted. Remove the supplier record first."
         showWarning={!company.canDelete}
       />
 

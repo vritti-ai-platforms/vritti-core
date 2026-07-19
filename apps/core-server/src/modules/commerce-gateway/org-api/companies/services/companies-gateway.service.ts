@@ -1,15 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddCompanyPersonDto } from '../dto/request/add-company-person.dto';
 import type { AddPartyAddressDto } from '../dto/request/add-party-address.dto';
 import type { AddPartyIdentifierDto } from '../dto/request/add-party-identifier.dto';
 import type { CreateCompanyDto } from '../dto/request/create-company.dto';
 import type { CreateCompanyRegistrationDto } from '../dto/request/create-company-registration.dto';
+import type { CreatePartyBankAccountDto } from '../dto/request/create-party-bank-account.dto';
+import type { CreatePartyLicenseDto } from '../dto/request/create-party-license.dto';
 import type { UpdateCompanyDto } from '../dto/request/update-company.dto';
 import type { UpdateCompanyRegistrationDto } from '../dto/request/update-company-registration.dto';
 import type { UpdatePartyAddressDto } from '../dto/request/update-party-address.dto';
+import type { UpdatePartyBankAccountDto } from '../dto/request/update-party-bank-account.dto';
+import type { UpdatePartyLicenseDto } from '../dto/request/update-party-license.dto';
 import type { CompanyPersonResponseDto } from '../dto/response/company-person-response.dto';
 import type { CompanyPersonTableResponseDto } from '../dto/response/company-person-table-response.dto';
 import type { CompanyRegistrationResponseDto } from '../dto/response/company-registration-response.dto';
@@ -18,8 +27,12 @@ import type { CompanyResponseDto } from '../dto/response/company-response.dto';
 import type { CompanyTableResponseDto } from '../dto/response/company-table-response.dto';
 import type { PartyAddressResponseDto } from '../dto/response/party-address-response.dto';
 import type { PartyAddressTableResponseDto } from '../dto/response/party-address-table-response.dto';
+import type { PartyBankAccountResponseDto } from '../dto/response/party-bank-account-response.dto';
+import type { PartyBankAccountTableResponseDto } from '../dto/response/party-bank-account-table-response.dto';
 import type { PartyIdentifierResponseDto } from '../dto/response/party-identifier-response.dto';
 import type { PartyIdentifierTableResponseDto } from '../dto/response/party-identifier-table-response.dto';
+import type { PartyLicenseResponseDto } from '../dto/response/party-license-response.dto';
+import type { PartyLicenseTableResponseDto } from '../dto/response/party-license-table-response.dto';
 
 @Injectable()
 export class CompaniesGatewayService {
@@ -159,10 +172,7 @@ export class CompaniesGatewayService {
   }
 
   // Adds an identifier to a company
-  addIdentifier(
-    companyId: string,
-    dto: AddPartyIdentifierDto,
-  ): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
+  addIdentifier(companyId: string, dto: AddPartyIdentifierDto): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
     this.logger.log(`org.companies.identifiers.add — companyId: ${companyId}, idType: ${dto.idType}`);
     return this.nats.send('commerce', 'org.companies.identifiers.add', { companyId, ...dto });
   }
@@ -206,5 +216,78 @@ export class CompaniesGatewayService {
   removeAddress(addressId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.companies.addresses.remove — id: ${addressId}`);
     return this.nats.send('commerce', 'org.companies.addresses.remove', { id: addressId });
+  }
+
+  // Returns the licenses of a company for the data table
+  async listLicenses(companyId: string, userId: string): Promise<PartyLicenseTableResponseDto> {
+    this.logger.log(`org.companies.licenses.table — companyId: ${companyId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-org-company-${companyId}-licenses`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: PartyLicenseResponseDto[]; count: number }>(
+      'commerce',
+      'org.companies.licenses.table',
+      { companyId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Creates a license for a company
+  createLicense(companyId: string, dto: CreatePartyLicenseDto): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
+    this.logger.log(`org.companies.licenses.create — companyId: ${companyId}, licenseType: ${dto.licenseType}`);
+    return this.nats.send('commerce', 'org.companies.licenses.create', { companyId, ...dto });
+  }
+
+  // Updates a license by ID
+  updateLicense(licenseId: string, dto: UpdatePartyLicenseDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.companies.licenses.update — id: ${licenseId}`);
+    return this.nats.send('commerce', 'org.companies.licenses.update', { id: licenseId, ...dto });
+  }
+
+  // Deletes a license by ID
+  deleteLicense(licenseId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.companies.licenses.delete — id: ${licenseId}`);
+    return this.nats.send('commerce', 'org.companies.licenses.delete', { id: licenseId });
+  }
+
+  // Returns the bank accounts of a company for the data table
+  async listBankAccounts(companyId: string, userId: string): Promise<PartyBankAccountTableResponseDto> {
+    this.logger.log(`org.companies.bankAccounts.table — companyId: ${companyId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-org-company-${companyId}-bank-accounts`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: PartyBankAccountResponseDto[]; count: number }>(
+      'commerce',
+      'org.companies.bankAccounts.table',
+      { companyId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Creates a bank account for a company
+  createBankAccount(
+    companyId: string,
+    dto: CreatePartyBankAccountDto,
+  ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
+    this.logger.log(`org.companies.bankAccounts.create — companyId: ${companyId}, accountName: ${dto.accountName}`);
+    return this.nats.send('commerce', 'org.companies.bankAccounts.create', { companyId, ...dto });
+  }
+
+  // Updates a bank account by ID
+  updateBankAccount(accountId: string, dto: UpdatePartyBankAccountDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.companies.bankAccounts.update — id: ${accountId}`);
+    return this.nats.send('commerce', 'org.companies.bankAccounts.update', { id: accountId, ...dto });
+  }
+
+  // Deletes a bank account by ID
+  deleteBankAccount(accountId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.companies.bankAccounts.delete — id: ${accountId}`);
+    return this.nats.send('commerce', 'org.companies.bankAccounts.delete', { id: accountId });
   }
 }

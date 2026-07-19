@@ -1,16 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type NewPartyRelationship,
-  parties,
-  type PartyRelationship,
-  partyRelationships,
-  taxJurisdictions,
-} from '@/db/schema';
+import { type NewPartyRelationship, type PartyRelationship, parties, partyRelationships } from '@/db/schema';
 
 @Injectable()
-export class PartyRelationshipsRepository extends PrimaryBaseRepository<typeof partyRelationships> {
+export class PartyRelationshipsDomainRepository extends PrimaryBaseRepository<typeof partyRelationships> {
   constructor(database: PrimaryDatabaseService) {
     super(database, partyRelationships);
   }
@@ -45,24 +39,17 @@ export class PartyRelationshipsRepository extends PrimaryBaseRepository<typeof p
   }
 
   // Returns paginated relationships joined with the parent company's display name
-  async findCompaniesForTable(options: {
-    where?: SQL;
-    orderBy?: SQL[];
-    limit: number;
-    offset: number;
-  }): Promise<{
-    result: (PartyRelationship & { companyName: string | null; countryCode: string | null })[];
+  async findCompaniesForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
+    result: (PartyRelationship & { companyName: string | null })[];
     count: number;
   }> {
     const rowsPromise = this.db
       .select({
         relationship: partyRelationships,
         companyName: parties.displayName,
-        countryCode: taxJurisdictions.countryCode,
       })
       .from(partyRelationships)
       .leftJoin(parties, eq(parties.id, partyRelationships.parentPartyId))
-      .leftJoin(taxJurisdictions, eq(taxJurisdictions.id, parties.jurisdictionId))
       .where(options.where)
       .orderBy(...(options.orderBy ?? []))
       .limit(options.limit)
@@ -79,7 +66,6 @@ export class PartyRelationshipsRepository extends PrimaryBaseRepository<typeof p
       result: rows.map((row) => ({
         ...row.relationship,
         companyName: row.companyName ?? null,
-        countryCode: row.countryCode ?? null,
       })),
       count: countResult[0]?.count ?? 0,
     };

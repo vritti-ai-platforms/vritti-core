@@ -1,8 +1,8 @@
-import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
+import { InventoryItemQuantsDomainRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import type { StockAdjustmentLineItemDto } from '@domain/stock-adjustment-line-items/dto/entity/stock-adjustment-line-item.dto';
-import { StockAdjustmentLineItemsService } from '@domain/stock-adjustment-line-items/services/stock-adjustment-line-items.service';
-import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
-import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
+import { StockAdjustmentLineItemsDomainService } from '@domain/stock-adjustment-line-items/services/stock-adjustment-line-items.service';
+import { StockAdjustmentLinesDomainRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
+import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
@@ -11,10 +11,10 @@ import { SerialStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 @Injectable()
 export class StockAdjustmentsLineItemsTransactionService {
   constructor(
-    private readonly lineItemsService: StockAdjustmentLineItemsService,
-    private readonly adjustmentsRepository: StockAdjustmentsRepository,
-    private readonly linesRepository: StockAdjustmentLinesRepository,
-    private readonly quantsRepository: InventoryItemQuantsRepository,
+    private readonly lineItemsService: StockAdjustmentLineItemsDomainService,
+    private readonly adjustmentsRepository: StockAdjustmentsDomainRepository,
+    private readonly linesRepository: StockAdjustmentLinesDomainRepository,
+    private readonly quantsRepository: InventoryItemQuantsDomainRepository,
   ) {}
 
   async lineItemsTable(

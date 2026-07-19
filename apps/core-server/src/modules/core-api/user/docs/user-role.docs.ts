@@ -1,7 +1,7 @@
+import { AssignRoleInternalDto } from '@domain/user-role/dto/request/assign-role-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
-import { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';
 
 export function ApiAssignRole() {
   return applyDecorators(

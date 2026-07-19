@@ -22,7 +22,7 @@ export type HierarchyRow = {
 };
 
 @Injectable()
-export class LocationsRepository extends PrimaryBaseRepository<typeof locations> {
+export class LocationsDomainRepository extends PrimaryBaseRepository<typeof locations> {
   constructor(database: PrimaryDatabaseService) {
     super(database, locations);
   }

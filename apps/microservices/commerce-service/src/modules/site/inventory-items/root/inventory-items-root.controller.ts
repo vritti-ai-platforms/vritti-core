@@ -1,13 +1,13 @@
+import { EnableInventoryItemSiteDto } from '@domain/inventory-item-sites/dto/request/enable-inventory-item-site.dto';
+import { UpdateReorderDto } from '@domain/inventory-item-sites/dto/request/update-reorder.dto';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
-import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { InventoryItemSite } from '@/db/schema';
-import { EnableInventoryItemSiteDto } from './dto/request/enable-inventory-item-site.dto';
-import { UpdateReorderDto } from './dto/request/update-reorder.dto';
-import { InventoryItemsRootService } from './services/inventory-items-root.service';
+import { SiteInventoryItemsService } from './services/inventory-items-root.service';
 
 type SiteInventoryItemRow = InventoryItemDto & { reorderPoint: number; isStocked: boolean; stockedQuantity: string };
 
@@ -16,8 +16,8 @@ export class InventoryItemsRootController {
   private readonly logger = new Logger(InventoryItemsRootController.name);
 
   constructor(
-    private readonly service: InventoryItemsService,
-    private readonly rootService: InventoryItemsRootService,
+    private readonly service: InventoryItemsDomainService,
+    private readonly rootService: SiteInventoryItemsService,
   ) {}
 
   // Items enabled at the current site, with per-site reorder + stock levels

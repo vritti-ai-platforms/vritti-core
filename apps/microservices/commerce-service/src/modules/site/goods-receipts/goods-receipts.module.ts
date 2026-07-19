@@ -8,6 +8,8 @@ import { InventoryItemMrpsDomainModule } from '@domain/inventory-item-mrps/inven
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
+import { SupplierSitesDomainModule } from '@domain/supplier-sites/supplier-sites.module';
+import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
 import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { Module } from '@nestjs/common';
 import { GoodsReceiptsItemsController } from './items/goods-receipts-items.controller';
@@ -17,6 +19,7 @@ import { GoodsReceiptsLinesService } from './lines/services/goods-receipts-lines
 import { GoodsReceiptsLotsController } from './lots/goods-receipts-lots.controller';
 import { GoodsReceiptsRootController } from './root/goods-receipts-root.controller';
 import { GoodsReceiptsPublishService } from './root/services/goods-receipts-publish.service';
+import { GoodsReceiptsService } from './root/services/goods-receipts-root.service';
 
 @Module({
   imports: [
@@ -30,6 +33,8 @@ import { GoodsReceiptsPublishService } from './root/services/goods-receipts-publ
     InventoryItemLotsDomainModule,
     InventoryItemMrpsDomainModule,
     PurchaseOrderItemsDomainModule,
+    SuppliersDomainModule,
+    SupplierSitesDomainModule,
     UomConversionsDomainModule,
   ],
   controllers: [
@@ -39,6 +44,6 @@ import { GoodsReceiptsPublishService } from './root/services/goods-receipts-publ
     GoodsReceiptsLinesController,
     GoodsReceiptsLineItemsController,
   ],
-  providers: [GoodsReceiptsPublishService, GoodsReceiptsLinesService],
+  providers: [GoodsReceiptsService, GoodsReceiptsPublishService, GoodsReceiptsLinesService],
 })
 export class SiteGoodsReceiptsModule {}

@@ -9,7 +9,7 @@ export type GoodsReceiptLotWithStats = GoodsReceiptLot & {
 };
 
 @Injectable()
-export class GoodsReceiptLotsRepository extends PrimaryBaseRepository<typeof goodsReceiptLots> {
+export class GoodsReceiptLotsDomainRepository extends PrimaryBaseRepository<typeof goodsReceiptLots> {
   constructor(database: PrimaryDatabaseService) {
     super(database, goodsReceiptLots);
   }

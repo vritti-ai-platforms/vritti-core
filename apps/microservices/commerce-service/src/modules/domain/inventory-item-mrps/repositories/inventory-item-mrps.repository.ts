@@ -6,7 +6,7 @@ import { type InventoryItemMrp, inventoryItemMrps, inventoryItems, uom } from '@
 export type InventoryItemMrpWithUom = InventoryItemMrp & { uomSymbol: string | null };
 
 @Injectable()
-export class InventoryItemMrpsRepository extends PrimaryBaseRepository<typeof inventoryItemMrps> {
+export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemMrps> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemMrps);
   }

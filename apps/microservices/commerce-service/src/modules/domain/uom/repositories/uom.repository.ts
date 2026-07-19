@@ -6,7 +6,7 @@ import { inventoryItems, inventoryItemUomConversions, supplierItems, type Uom, u
 export type UomWithBase = Uom & { baseUnitSymbol: string | null };
 
 @Injectable()
-export class UomRepository extends PrimaryBaseRepository<typeof uom> {
+export class UomDomainRepository extends PrimaryBaseRepository<typeof uom> {
   constructor(database: PrimaryDatabaseService) {
     super(database, uom);
   }

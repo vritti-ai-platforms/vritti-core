@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { PurchaseOrdersRepository } from './repositories/purchase-orders.repository';
-import { PurchaseOrdersService } from './services/purchase-orders.service';
+import { PurchaseOrdersDomainRepository } from './repositories/purchase-orders.repository';
+import { PurchaseOrdersDomainService } from './services/purchase-orders.service';
 
 @Module({
-  providers: [PurchaseOrdersService, PurchaseOrdersRepository],
-  exports: [PurchaseOrdersService, PurchaseOrdersRepository],
+  providers: [PurchaseOrdersDomainService, PurchaseOrdersDomainRepository],
+  exports: [PurchaseOrdersDomainService, PurchaseOrdersDomainRepository],
 })
 export class PurchaseOrdersDomainModule {}

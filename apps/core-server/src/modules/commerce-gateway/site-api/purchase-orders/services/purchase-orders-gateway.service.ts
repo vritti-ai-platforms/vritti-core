@@ -8,7 +8,7 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { GoodsReceiptResponseDto } from '@/modules/commerce-gateway/site-api/goods-receipts/dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/site-api/goods-receipts/dto/response/goods-receipt-table-response.dto';
-import { SiteService } from '@/modules/domain/site/services/site.service';
+import { SiteDomainService } from '@/modules/domain/site/services/site.service';
 import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
 import type { ChangePurchaseOrderExchangeRateDto } from '../dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
@@ -38,7 +38,7 @@ export class PurchaseOrdersGatewayService {
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
     private readonly configService: ConfigService,
-    private readonly siteService: SiteService,
+    private readonly siteService: SiteDomainService,
   ) {
     const apiKey = this.configService.get<string>('BREVO_API_KEY');
     const senderEmail = this.configService.get<string>('SENDER_EMAIL');

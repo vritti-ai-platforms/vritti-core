@@ -1,4 +1,4 @@
-import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   SiteGroupInventoryItemDto,
@@ -12,7 +12,7 @@ import {
 export class SiteGroupInventoryItemsService {
   private readonly logger = new Logger(SiteGroupInventoryItemsService.name);
 
-  constructor(private readonly inventoryItemsService: InventoryItemsService) {}
+  constructor(private readonly inventoryItemsService: InventoryItemsDomainService) {}
 
   // Full item × site matrix (one cell per enabled pair)
   async findMatrix(siteIds: string[]): Promise<SiteGroupInventoryItemDto[]> {

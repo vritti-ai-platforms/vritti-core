@@ -30,7 +30,9 @@ function buildJoinedSelect() {
 }
 
 @Injectable()
-export class InventoryItemUomConversionsRepository extends PrimaryBaseRepository<typeof inventoryItemUomConversions> {
+export class InventoryItemUomConversionsDomainRepository extends PrimaryBaseRepository<
+  typeof inventoryItemUomConversions
+> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemUomConversions);
   }

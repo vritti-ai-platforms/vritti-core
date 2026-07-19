@@ -9,7 +9,7 @@ import {
 } from '@/db/schema';
 
 @Injectable()
-export class CreditNotesRepository extends PrimaryBaseRepository<typeof creditNotes> {
+export class CreditNotesDomainRepository extends PrimaryBaseRepository<typeof creditNotes> {
   constructor(database: PrimaryDatabaseService) {
     super(database, creditNotes);
   }

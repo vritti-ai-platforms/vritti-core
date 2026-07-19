@@ -6,6 +6,13 @@ paths:
 
 # Backend DTO Structure
 
+## DTOs are owned by the layer whose boundary they describe
+
+A **domain** module owns both its input (`dto/request/`) and output (`dto/entity/`) DTOs — the
+domain service accepts and returns its own types. API-layer controllers import those DTOs
+**downward** from the domain; the domain must **never** import a DTO from an API layer. See
+`backend-module-structure.md` → "Dependency direction — the domain owns its boundary DTOs".
+
 ## Three categories inside `dto/`
 
 ```

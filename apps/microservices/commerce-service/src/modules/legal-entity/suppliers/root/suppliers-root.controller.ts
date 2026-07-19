@@ -1,20 +1,20 @@
 import type { SupplierDetailDto, SupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
-import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
+import { ChangeSupplierCurrencyDto } from '@domain/suppliers/dto/request/change-supplier-currency.dto';
+import { CreateSupplierDto } from '@domain/suppliers/dto/request/create-supplier.dto';
+import { UpdateSupplierDto } from '@domain/suppliers/dto/request/update-supplier.dto';
+import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
-import { CreateSupplierDto } from './dto/request/create-supplier.dto';
-import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
-import { SuppliersRootService } from './services/suppliers-root.service';
+import { SuppliersService } from './services/suppliers-root.service';
 
 @Controller()
 export class SuppliersRootController {
   private readonly logger = new Logger(SuppliersRootController.name);
 
   constructor(
-    private readonly service: SuppliersService,
-    private readonly suppliersRootService: SuppliersRootService,
+    private readonly service: SuppliersDomainService,
+    private readonly suppliersService: SuppliersService,
   ) {}
 
   @MessagePattern({ cmd: 'le.suppliers.table' })
@@ -26,7 +26,7 @@ export class SuppliersRootController {
   @MessagePattern({ cmd: 'le.suppliers.create' })
   async create(@Payload() dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
     this.logger.log(`suppliers.create — partyId: ${dto.partyId}`);
-    return this.suppliersRootService.create(dto);
+    return this.suppliersService.create(dto);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.findById' })
@@ -52,6 +52,6 @@ export class SuppliersRootController {
   async changeCurrency(@Payload() data: ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
     const { id, ...dto } = data;
     this.logger.log(`suppliers.changeCurrency — id: ${id}, currency: ${dto.currencyCode}`);
-    return this.suppliersRootService.changeCurrency(id, dto);
+    return this.suppliersService.changeCurrency(id, dto);
   }
 }

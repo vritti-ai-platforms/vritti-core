@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { PartyRelationshipsRepository } from './repositories/party-relationships.repository';
-import { PartyRelationshipsService } from './services/party-relationships.service';
+import { PartyRelationshipsDomainRepository } from './repositories/party-relationships.repository';
+import { PartyRelationshipsDomainService } from './services/party-relationships.service';
 
 @Module({
-  providers: [PartyRelationshipsService, PartyRelationshipsRepository],
-  exports: [PartyRelationshipsService, PartyRelationshipsRepository],
+  providers: [PartyRelationshipsDomainService, PartyRelationshipsDomainRepository],
+  exports: [PartyRelationshipsDomainService, PartyRelationshipsDomainRepository],
 })
 export class PartyRelationshipsDomainModule {}

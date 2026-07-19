@@ -1,4 +1,4 @@
-import { UserRoleService } from '@domain/user-role/services/user-role.service';
+import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import { Injectable, Logger, type MessageEvent } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import {
@@ -9,7 +9,7 @@ import {
   type SiteGroupUpdatedEvent,
   type SiteUpdatedEvent,
   type UserUpdatedEvent,
-} from '../events/auth-status.events';
+} from '@/common/events/auth-status.events';
 import { AuthService } from '../services/auth.service';
 import { AuthStatusSseService } from '../services/auth-status-sse.service';
 
@@ -20,7 +20,7 @@ export class AuthStatusEventListener {
   constructor(
     private readonly authService: AuthService,
     private readonly sseService: AuthStatusSseService,
-    private readonly userRoleService: UserRoleService,
+    private readonly userRoleService: UserRoleDomainService,
   ) {}
 
   // Pushes auth-state { isAuthenticated: false } to the revoked session or all sessions

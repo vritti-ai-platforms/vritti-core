@@ -1,12 +1,12 @@
 import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/entity/stock-adjustment-line.dto';
-import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
+import { AddChangeLineDto } from '@domain/stock-adjustment-lines/dto/request/add-change-line.dto';
+import { AddOpeningLineDto } from '@domain/stock-adjustment-lines/dto/request/add-opening-line.dto';
+import { UpdateChangeLineDto } from '@domain/stock-adjustment-lines/dto/request/update-change-line.dto';
+import { UpdateOpeningLineDto } from '@domain/stock-adjustment-lines/dto/request/update-opening-line.dto';
+import { StockAdjustmentLinesDomainService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddChangeLineDto } from '../root/dto/request/add-change-line.dto';
-import { AddOpeningLineDto } from '../root/dto/request/add-opening-line.dto';
-import { UpdateChangeLineDto } from '../root/dto/request/update-change-line.dto';
-import { UpdateOpeningLineDto } from '../root/dto/request/update-opening-line.dto';
 import { StockAdjustmentsLinesService } from './services/stock-adjustments-lines.service';
 
 @Controller()
@@ -14,7 +14,7 @@ export class StockAdjustmentsLinesController {
   private readonly logger = new Logger(StockAdjustmentsLinesController.name);
 
   constructor(
-    private readonly service: StockAdjustmentLinesService,
+    private readonly service: StockAdjustmentLinesDomainService,
     private readonly appService: StockAdjustmentsLinesService,
   ) {}
 

@@ -1,17 +1,17 @@
-import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
-import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
+import { InventoryItemLedgerDomainService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
+import { InventoryItemQuantsDomainRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import {
   type CreateQuantParams,
-  InventoryItemQuantsService,
+  InventoryItemQuantsDomainService,
 } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
+import { StockAdjustmentLineItemsDomainRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
 import type { StockAdjustmentLineWithRefs } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
-import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
-import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
-import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
+import { StockAdjustmentLinesDomainRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
+import { StockAdjustmentLinesDomainService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
+import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
 import { type StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
-import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
-import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
+import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
+import { StockAdjustmentsDomainService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
@@ -38,21 +38,21 @@ import {
 import { StockAdjustmentsLotsService } from '../../lots/services/stock-adjustments-lots.service';
 
 @Injectable()
-export class StockAdjustmentsRootService {
-  private readonly logger = new Logger(StockAdjustmentsRootService.name);
+export class StockAdjustmentsService {
+  private readonly logger = new Logger(StockAdjustmentsService.name);
 
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly repository: StockAdjustmentsRepository,
-    private readonly linesRepository: StockAdjustmentLinesRepository,
-    private readonly lineItemsRepository: StockAdjustmentLineItemsRepository,
-    private readonly lotsRepository: StockAdjustmentLotsRepository,
+    private readonly repository: StockAdjustmentsDomainRepository,
+    private readonly linesRepository: StockAdjustmentLinesDomainRepository,
+    private readonly lineItemsRepository: StockAdjustmentLineItemsDomainRepository,
+    private readonly lotsRepository: StockAdjustmentLotsDomainRepository,
     private readonly lotsService: StockAdjustmentsLotsService,
-    private readonly linesService: StockAdjustmentLinesService,
-    private readonly batchesService: InventoryItemQuantsService,
-    private readonly quantsRepository: InventoryItemQuantsRepository,
-    private readonly ledgerService: InventoryItemLedgerService,
-    private readonly adjustmentsService: StockAdjustmentsService,
+    private readonly linesService: StockAdjustmentLinesDomainService,
+    private readonly batchesService: InventoryItemQuantsDomainService,
+    private readonly quantsRepository: InventoryItemQuantsDomainRepository,
+    private readonly ledgerService: InventoryItemLedgerDomainService,
+    private readonly adjustmentsService: StockAdjustmentsDomainService,
   ) {}
 
   table(state: TableViewState, siteCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {

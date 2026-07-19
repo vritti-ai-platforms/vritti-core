@@ -8,10 +8,10 @@ import {
   type InvoicePartyType,
   InvoiceStatusValues,
 } from '@/db/schema';
-import type { ApplyCreditNoteDto } from '@/modules/site/credit-notes/dto/request/apply-credit-note.dto';
-import type { CreateCreditNoteDto } from '@/modules/site/credit-notes/dto/request/create-credit-note.dto';
 import { CreditNoteApplicationDto, CreditNoteDetailDto, CreditNoteDto } from '../dto/entity/credit-note.dto';
-import { CreditNotesRepository } from '../repositories/credit-notes.repository';
+import type { ApplyCreditNoteDto } from '../dto/request/apply-credit-note.dto';
+import type { CreateCreditNoteDto } from '../dto/request/create-credit-note.dto';
+import { CreditNotesDomainRepository } from '../repositories/credit-notes.repository';
 
 // Invoice context pre-fetched by the app-layer before apply operations
 export type InvoiceContext = {
@@ -23,10 +23,10 @@ export type InvoiceContext = {
 };
 
 @Injectable()
-export class CreditNotesService {
-  private readonly logger = new Logger(CreditNotesService.name);
+export class CreditNotesDomainService {
+  private readonly logger = new Logger(CreditNotesDomainService.name);
 
-  constructor(private readonly repository: CreditNotesRepository) {}
+  constructor(private readonly repository: CreditNotesDomainRepository) {}
 
   // Creates a new credit note
   async create(data: CreateCreditNoteDto): Promise<CreditNoteDto> {

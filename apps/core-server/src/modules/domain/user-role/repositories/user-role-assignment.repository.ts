@@ -26,7 +26,7 @@ export interface AssignmentRoleGrants {
 export type AssignmentWithNames = UserRoleAssignment & { userName: string; userEmail: string; roleName: string };
 
 @Injectable()
-export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof userRoleAssignments> {
+export class UserRoleAssignmentDomainRepository extends PrimaryBaseRepository<typeof userRoleAssignments> {
   constructor(database: PrimaryDatabaseService) {
     super(database, userRoleAssignments);
   }

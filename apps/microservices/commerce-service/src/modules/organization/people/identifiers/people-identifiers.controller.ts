@@ -1,15 +1,15 @@
 import { PartyIdentifierDto } from '@domain/party-identifiers/dto/entity/party-identifier.dto';
-import { PartyIdentifiersService } from '@domain/party-identifiers/services/party-identifiers.service';
+import { AddPersonIdentifierDto } from '@domain/party-identifiers/dto/request/add-person-identifier.dto';
+import { PartyIdentifiersDomainService } from '@domain/party-identifiers/services/party-identifiers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddPersonIdentifierDto } from './dto/request/add-person-identifier.dto';
 
 @Controller()
 export class PeopleIdentifiersController {
   private readonly logger = new Logger(PeopleIdentifiersController.name);
 
-  constructor(private readonly service: PartyIdentifiersService) {}
+  constructor(private readonly service: PartyIdentifiersDomainService) {}
 
   // Returns the paginated identifiers of a person
   @MessagePattern({ cmd: 'org.people.identifiers.table' })

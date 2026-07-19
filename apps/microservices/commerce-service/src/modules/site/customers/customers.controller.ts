@@ -1,19 +1,16 @@
 import type { CustomerDto } from '@domain/customers/dto/entity/customer.dto';
-import { CustomersService } from '@domain/customers/services/customers.service';
+import { CreateCustomerDto } from '@domain/customers/dto/request/create-customer.dto';
+import { UpdateCustomerDto } from '@domain/customers/dto/request/update-customer.dto';
+import { CustomersDomainService } from '@domain/customers/services/customers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import { CreateCustomerDto } from './dto/request/create-customer.dto';
-import { UpdateCustomerDto } from './dto/request/update-customer.dto';
+import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
 @Controller()
 export class CustomersController {
   private readonly logger = new Logger(CustomersController.name);
 
-  constructor(private readonly service: CustomersService) {}
+  constructor(private readonly service: CustomersDomainService) {}
 
   @MessagePattern({ cmd: 'site.customers.table' })
   async table(@Payload() state: TableViewState): Promise<{ result: CustomerDto[]; count: number }> {

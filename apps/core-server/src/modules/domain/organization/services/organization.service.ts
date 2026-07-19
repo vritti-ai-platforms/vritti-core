@@ -1,4 +1,4 @@
-import { CatalogService } from '@domain/catalog/services/catalog.service';
+import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -7,31 +7,27 @@ import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
+import { AUTH_STATUS_EVENTS, OrgUpdatedEvent, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import type { OrgSize } from '@/db/schema';
-import {
-  AUTH_STATUS_EVENTS,
-  OrgUpdatedEvent,
-  SiteUpdatedEvent,
-} from '@/modules/core-api/auth/root/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
 import { OrganizationDto } from '../dto/entity/organization.dto';
 import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
 import type { UpdateOrganizationInternalDto } from '../dto/request/update-organization-internal.dto';
-import { OrganizationRepository } from '../repositories/organization.repository';
+import { OrganizationDomainRepository } from '../repositories/organization.repository';
 
 @Injectable()
-export class OrganizationService {
-  private readonly logger = new Logger(OrganizationService.name);
+export class OrganizationDomainService {
+  private readonly logger = new Logger(OrganizationDomainService.name);
   private readonly licensePublicKey: string;
   private readonly deploymentId: string | undefined;
   private warnedUnboundDeployment = false;
 
   constructor(
-    private readonly organizationRepository: OrganizationRepository,
+    private readonly organizationRepository: OrganizationDomainRepository,
     private readonly siteContextCache: SiteContextCacheService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly catalogService: CatalogService,
+    private readonly catalogService: CatalogDomainService,
     configService: ConfigService,
   ) {
     this.licensePublicKey = configService.getOrThrow<string>('CLOUD_PUBLIC_KEY');

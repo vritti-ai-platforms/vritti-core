@@ -33,7 +33,7 @@ import {
   ApiSetSiteLocks,
   ApiUpdateSite,
 } from './docs/site.docs';
-import { SiteApiService } from './services/site-api.service';
+import { SiteService } from './services/site-api.service';
 
 @ApiTags('Sites')
 @Controller('sites/internal')
@@ -44,7 +44,7 @@ import { SiteApiService } from './services/site-api.service';
 export class SiteController {
   private readonly logger = new Logger(SiteController.name);
 
-  constructor(private readonly siteApiService: SiteApiService) {}
+  constructor(private readonly siteApiService: SiteService) {}
 
   // Creates a new site for an organization
   @Post()

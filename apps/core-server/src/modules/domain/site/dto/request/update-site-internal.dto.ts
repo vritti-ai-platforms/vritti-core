@@ -1,5 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, Min, ValidateIf } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 import { SiteTypeValues } from '@/db/schema';
 
 export class UpdateSiteInternalDto {

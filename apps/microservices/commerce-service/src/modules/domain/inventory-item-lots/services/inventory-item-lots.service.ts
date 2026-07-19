@@ -9,27 +9,27 @@ import {
 import { and, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { type InventoryItemLot, inventoryItemLots } from '@/db/schema';
 import { InventoryItemLotDto } from '../dto/entity/inventory-item-lot.dto';
-import { InventoryItemLotsRepository } from '../repositories/inventory-item-lots.repository';
+import { InventoryItemLotsDomainRepository } from '../repositories/inventory-item-lots.repository';
 
 @Injectable()
-export class InventoryItemLotsService {
+export class InventoryItemLotsDomainService {
   private static readonly LOTS_FIELD_MAP: FieldMap = {
     lotNumber: { column: inventoryItemLots.lotNumber, type: 'string' },
     expiryDate: { column: inventoryItemLots.expiryDate, type: 'string' },
     manufacturingDate: { column: inventoryItemLots.manufacturingDate, type: 'string' },
   };
 
-  constructor(private readonly repository: InventoryItemLotsRepository) {}
+  constructor(private readonly repository: InventoryItemLotsDomainRepository) {}
 
   async findLotsForTable(
     inventoryItemId: string,
     state: TableViewState,
     siteCurrencyCode?: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsService.LOTS_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLotsService.LOTS_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsDomainService.LOTS_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLotsDomainService.LOTS_FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLotsService.LOTS_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLotsDomainService.LOTS_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findLotsForTable(inventoryItemId, {

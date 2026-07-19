@@ -1,23 +1,23 @@
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
-import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
+import { ChangePurchaseOrderExchangeRateDto } from '@domain/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
+import { ChangePurchaseOrderSupplierDto } from '@domain/purchase-orders/dto/request/change-purchase-order-supplier.dto';
+import { CreatePurchaseOrderDto } from '@domain/purchase-orders/dto/request/create-purchase-order.dto';
+import { UpdatePurchaseOrderNotesDto } from '@domain/purchase-orders/dto/request/update-purchase-order-notes.dto';
+import { UpdatePurchaseOrderStatusDto } from '@domain/purchase-orders/dto/request/update-purchase-order-status.dto';
+import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
-import { ChangePurchaseOrderExchangeRateDto } from './dto/request/change-purchase-order-exchange-rate.dto';
-import { ChangePurchaseOrderSupplierDto } from './dto/request/change-purchase-order-supplier.dto';
-import { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
-import { UpdatePurchaseOrderNotesDto } from './dto/request/update-purchase-order-notes.dto';
-import { UpdatePurchaseOrderStatusDto } from './dto/request/update-purchase-order-status.dto';
-import { PurchaseOrdersRootService } from './services/purchase-orders-root.service';
+import { RpcSiteCurrencyCode, RpcSiteId } from '@vritti/api-sdk/nats';
+import { PurchaseOrdersService } from './services/purchase-orders-root.service';
 
 @Controller()
 export class PurchaseOrdersRootController {
   private readonly logger = new Logger(PurchaseOrdersRootController.name);
 
   constructor(
-    private readonly service: PurchaseOrdersService,
-    private readonly appService: PurchaseOrdersRootService,
+    private readonly service: PurchaseOrdersDomainService,
+    private readonly appService: PurchaseOrdersService,
   ) {}
 
   @MessagePattern({ cmd: 'site.purchaseOrders.table' })
@@ -35,10 +35,11 @@ export class PurchaseOrdersRootController {
   @MessagePattern({ cmd: 'site.purchaseOrders.create' })
   create(
     @Payload() dto: CreatePurchaseOrderDto,
+    @RpcSiteId() siteId: string,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}`);
-    return this.appService.create(dto, siteCurrencyCode);
+    return this.appService.create(dto, siteId, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'site.purchaseOrders.updateNotes' })
@@ -48,9 +49,12 @@ export class PurchaseOrdersRootController {
   }
 
   @MessagePattern({ cmd: 'site.purchaseOrders.changeSupplier' })
-  changeSupplier(@Payload() dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
+  changeSupplier(
+    @Payload() dto: ChangePurchaseOrderSupplierDto,
+    @RpcSiteId() siteId: string,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeSupplier — id: ${dto.id}, supplier: ${dto.supplierId}`);
-    return this.appService.changeSupplier(dto.id, dto);
+    return this.appService.changeSupplier(dto.id, dto, siteId);
   }
 
   @MessagePattern({ cmd: 'site.purchaseOrders.changeExchangeRate' })

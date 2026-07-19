@@ -1,5 +1,5 @@
-import { CatalogService } from '@domain/catalog/services/catalog.service';
-import { SiteRepository } from '@domain/site/repositories/site.repository';
+import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
+import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import type { FeatureUnlocks, ScopeType, SiteType, VersionSnapshot } from '@vritti/api-sdk/catalog-resolver';
 import {
@@ -16,8 +16,8 @@ import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.
 import type { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
 import type { RoleItemDto } from '../dto/request/provision-roles-internal.dto';
 import type { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
-import { OrganizationRepository } from '../repositories/organization.repository';
-import { RoleRepository } from '../repositories/role.repository';
+import { OrganizationDomainRepository } from '../repositories/organization.repository';
+import { RoleDomainRepository } from '../repositories/role.repository';
 
 export type RoleWithCanDelete = Role & { assignedUserCount: number; canDelete: boolean };
 
@@ -29,16 +29,16 @@ export interface RolesByScope {
 }
 
 @Injectable()
-export class RoleService {
-  private readonly logger = new Logger(RoleService.name);
+export class RoleDomainService {
+  private readonly logger = new Logger(RoleDomainService.name);
 
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly roleRepository: RoleRepository,
-    private readonly organizationRepository: OrganizationRepository,
-    private readonly siteRepository: SiteRepository,
+    private readonly roleRepository: RoleDomainRepository,
+    private readonly organizationRepository: OrganizationDomainRepository,
+    private readonly siteRepository: SiteDomainRepository,
     private readonly permissionSetCache: PermissionSetCacheService,
-    private readonly catalogService: CatalogService,
+    private readonly catalogService: CatalogDomainService,
   ) {}
 
   // Rejects grants that enable a dependent permission without its prerequisite, against the active snapshot

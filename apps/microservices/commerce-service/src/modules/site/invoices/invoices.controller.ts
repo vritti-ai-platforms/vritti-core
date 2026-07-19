@@ -1,16 +1,16 @@
 import type { InvoiceDetailDto, InvoiceDto } from '@domain/invoices/dto/entity/invoice.dto';
-import { InvoicesService } from '@domain/invoices/services/invoices.service';
+import { CreateInvoiceDto } from '@domain/invoices/dto/request/create-invoice.dto';
+import { UpdateInvoiceDto } from '@domain/invoices/dto/request/update-invoice.dto';
+import { InvoicesDomainService } from '@domain/invoices/services/invoices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/database';
-import { CreateInvoiceDto } from './dto/request/create-invoice.dto';
-import { UpdateInvoiceDto } from './dto/request/update-invoice.dto';
 
 @Controller()
 export class InvoicesController {
   private readonly logger = new Logger(InvoicesController.name);
 
-  constructor(private readonly service: InvoicesService) {}
+  constructor(private readonly service: InvoicesDomainService) {}
 
   @MessagePattern({ cmd: 'site.invoices.table' })
   async table(@Payload() state: TableViewState): Promise<{ result: InvoiceDto[]; count: number }> {

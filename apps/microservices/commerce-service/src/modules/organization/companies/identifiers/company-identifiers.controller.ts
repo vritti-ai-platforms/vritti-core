@@ -1,15 +1,15 @@
 import { PartyIdentifierDto } from '@domain/party-identifiers/dto/entity/party-identifier.dto';
-import { PartyIdentifiersService } from '@domain/party-identifiers/services/party-identifiers.service';
+import { AddCompanyIdentifierDto } from '@domain/party-identifiers/dto/request/add-company-identifier.dto';
+import { PartyIdentifiersDomainService } from '@domain/party-identifiers/services/party-identifiers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { AddCompanyIdentifierDto } from './dto/request/add-company-identifier.dto';
 
 @Controller()
 export class CompanyIdentifiersController {
   private readonly logger = new Logger(CompanyIdentifiersController.name);
 
-  constructor(private readonly service: PartyIdentifiersService) {}
+  constructor(private readonly service: PartyIdentifiersDomainService) {}
 
   // Returns the paginated identifiers of a company
   @MessagePattern({ cmd: 'org.companies.identifiers.table' })

@@ -88,6 +88,7 @@ export default defineConfig({
         './Site/PurchaseOrders': './src/features/site/purchase-orders/index.tsx',
         './Site/StockAdjustments': './src/features/site/stock-adjustments/index.tsx',
         './Site/StockTransfers': './src/features/site/stock-transfers/index.tsx',
+        './Site/Suppliers': './src/features/site/suppliers/index.tsx',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },

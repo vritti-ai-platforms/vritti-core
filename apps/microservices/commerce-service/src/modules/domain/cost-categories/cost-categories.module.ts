@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { CostCategoriesRepository } from './repositories/cost-categories.repository';
-import { CostCategoriesService } from './services/cost-categories.service';
+import { CostCategoriesDomainRepository } from './repositories/cost-categories.repository';
+import { CostCategoriesDomainService } from './services/cost-categories.service';
 
 @Module({
-  providers: [CostCategoriesService, CostCategoriesRepository],
-  exports: [CostCategoriesService, CostCategoriesRepository],
+  providers: [CostCategoriesDomainService, CostCategoriesDomainRepository],
+  exports: [CostCategoriesDomainService, CostCategoriesDomainRepository],
 })
 export class CostCategoriesDomainModule {}

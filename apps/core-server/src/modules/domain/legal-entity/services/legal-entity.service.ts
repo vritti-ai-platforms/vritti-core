@@ -1,11 +1,11 @@
-import { CatalogService } from '@domain/catalog/services/catalog.service';
+import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { type SelectOptionsQueryDto, type SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { AUTH_STATUS_EVENTS, LegalEntityUpdatedEvent } from '@/common/events/auth-status.events';
 import type { TaxRegime } from '@/db/schema';
-import { AUTH_STATUS_EVENTS, LegalEntityUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { sequentialSortOrders } from '@/utils/sort-order';
 import { LeTaxRegistrationDto } from '../dto/entity/le-tax-registration.dto';
@@ -13,17 +13,17 @@ import { LegalEntityDto } from '../dto/entity/legal-entity.dto';
 import type { CreateLeTaxRegistrationInternalDto } from '../dto/request/create-le-tax-registration-internal.dto';
 import type { CreateLegalEntityInternalDto } from '../dto/request/create-legal-entity-internal.dto';
 import type { UpdateLegalEntityInternalDto } from '../dto/request/update-legal-entity-internal.dto';
-import { LeTaxRegistrationRepository } from '../repositories/le-tax-registration.repository';
-import { LegalEntityRepository } from '../repositories/legal-entity.repository';
+import { LeTaxRegistrationDomainRepository } from '../repositories/le-tax-registration.repository';
+import { LegalEntityDomainRepository } from '../repositories/legal-entity.repository';
 
 @Injectable()
-export class LegalEntityService {
-  private readonly logger = new Logger(LegalEntityService.name);
+export class LegalEntityDomainService {
+  private readonly logger = new Logger(LegalEntityDomainService.name);
 
   constructor(
-    private readonly legalEntityRepository: LegalEntityRepository,
-    private readonly leTaxRegistrationRepository: LeTaxRegistrationRepository,
-    private readonly catalogService: CatalogService,
+    private readonly legalEntityRepository: LegalEntityDomainRepository,
+    private readonly leTaxRegistrationRepository: LeTaxRegistrationDomainRepository,
+    private readonly catalogService: CatalogDomainService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 

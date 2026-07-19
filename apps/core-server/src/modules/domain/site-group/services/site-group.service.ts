@@ -1,24 +1,24 @@
-import { CatalogService } from '@domain/catalog/services/catalog.service';
+import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { type SelectOptionsQueryDto, type SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { AUTH_STATUS_EVENTS, SiteGroupUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { AUTH_STATUS_EVENTS, SiteGroupUpdatedEvent } from '@/common/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { sequentialSortOrders } from '@/utils/sort-order';
 import { SiteGroupDto } from '../dto/entity/site-group.dto';
 import type { CreateSiteGroupInternalDto } from '../dto/request/create-site-group-internal.dto';
 import type { UpdateSiteGroupInternalDto } from '../dto/request/update-site-group-internal.dto';
-import { SiteGroupRepository } from '../repositories/site-group.repository';
+import { SiteGroupDomainRepository } from '../repositories/site-group.repository';
 
 @Injectable()
-export class SiteGroupService {
-  private readonly logger = new Logger(SiteGroupService.name);
+export class SiteGroupDomainService {
+  private readonly logger = new Logger(SiteGroupDomainService.name);
 
   constructor(
-    private readonly siteGroupRepository: SiteGroupRepository,
-    private readonly catalogService: CatalogService,
+    private readonly siteGroupRepository: SiteGroupDomainRepository,
+    private readonly catalogService: CatalogDomainService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 

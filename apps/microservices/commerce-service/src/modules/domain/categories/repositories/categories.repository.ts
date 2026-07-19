@@ -9,7 +9,7 @@ import { asc, eq, inArray, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle
 import { type Category, categories, inventoryItems, offerings, taxClasses } from '@/db/schema';
 
 @Injectable()
-export class CategoriesRepository extends PrimaryBaseRepository<typeof categories> {
+export class CategoriesDomainRepository extends PrimaryBaseRepository<typeof categories> {
   constructor(database: PrimaryDatabaseService) {
     super(database, categories);
   }

@@ -11,8 +11,8 @@ import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.mo
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
 import { OrgCompaniesModule } from './modules/organization/companies/companies.module';
-import { OrgPeopleModule } from './modules/organization/people/people.module';
 import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
+import { OrgPeopleModule } from './modules/organization/people/people.module';
 import { OrgSalesChannelsModule } from './modules/organization/sales-channels/sales-channels.module';
 import { OrgTaxClassesModule } from './modules/organization/tax-classes/tax-classes.module';
 import { OrgTaxComponentsModule } from './modules/organization/tax-components/tax-components.module';
@@ -33,6 +33,7 @@ import { SitePosTerminalsModule } from './modules/site/pos-terminals/pos-termina
 import { SitePurchaseOrdersModule } from './modules/site/purchase-orders/purchase-orders.module';
 import { SiteStockAdjustmentsModule } from './modules/site/stock-adjustments/stock-adjustments.module';
 import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-transfers.module';
+import { SiteSuppliersModule } from './modules/site/suppliers/suppliers.module';
 import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-items/inventory-items.module';
 
 @Module({
@@ -109,6 +110,7 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     SiteCreditNotesModule,
     SiteCustomersModule,
     SiteOrdersModule,
+    SiteSuppliersModule,
     SelectModule,
   ],
   providers: [

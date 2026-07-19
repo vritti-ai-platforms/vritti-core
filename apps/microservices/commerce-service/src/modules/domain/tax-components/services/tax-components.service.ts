@@ -10,30 +10,15 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type TaxAuthorityLevel, taxComponents } from '@/db/schema';
+import { taxComponents } from '@/db/schema';
 import { TaxComponentDto } from '../dto/entity/tax-component.dto';
-import { TaxComponentsRepository } from '../repositories/tax-components.repository';
-
-export interface CreateTaxComponentInput {
-  code: string;
-  name: string;
-  authorityLevel: TaxAuthorityLevel;
-  isRecoverable: boolean;
-  isWithholding: boolean;
-  isActive: boolean;
-}
-
-export interface UpdateTaxComponentInput {
-  name?: string;
-  authorityLevel?: TaxAuthorityLevel;
-  isRecoverable?: boolean;
-  isWithholding?: boolean;
-  isActive?: boolean;
-}
+import { CreateTaxComponentDto } from '../dto/request/create-tax-component.dto';
+import { UpdateTaxComponentDto } from '../dto/request/update-tax-component.dto';
+import { TaxComponentsDomainRepository } from '../repositories/tax-components.repository';
 
 @Injectable()
-export class TaxComponentsService {
-  private readonly logger = new Logger(TaxComponentsService.name);
+export class TaxComponentsDomainService {
+  private readonly logger = new Logger(TaxComponentsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: taxComponents.name, type: 'string' },
@@ -45,14 +30,14 @@ export class TaxComponentsService {
     isSystem: { column: taxComponents.isSystem, type: 'boolean' },
   };
 
-  constructor(private readonly repository: TaxComponentsRepository) {}
+  constructor(private readonly repository: TaxComponentsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted tax components for the data table
   async findForTable(state: TableViewState): Promise<{ result: TaxComponentDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, TaxComponentsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, TaxComponentsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, TaxComponentsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, TaxComponentsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxComponentsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxComponentsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({
@@ -85,7 +70,7 @@ export class TaxComponentsService {
   }
 
   // Creates a new tax component, rejecting duplicate codes
-  async create(data: CreateTaxComponentInput): Promise<CreateResponseDto<TaxComponentDto>> {
+  async create(data: CreateTaxComponentDto): Promise<CreateResponseDto<TaxComponentDto>> {
     const existing = await this.repository.findByCode(data.code);
     if (existing) {
       throw new ConflictException({
@@ -120,7 +105,7 @@ export class TaxComponentsService {
   }
 
   // Updates a tax component's editable fields
-  async update(id: string, data: UpdateTaxComponentInput): Promise<SuccessResponseDto> {
+  async update(id: string, data: Omit<UpdateTaxComponentDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Tax component not found.');
 

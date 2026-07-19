@@ -16,11 +16,11 @@ interface ConversionPair {
 }
 
 import { InventoryItemUomConversionDto } from '../dto/entity/inventory-item-uom-conversion.dto';
-import { InventoryItemUomConversionsRepository } from '../repositories/inventory-item-uom-conversions.repository';
+import { InventoryItemUomConversionsDomainRepository } from '../repositories/inventory-item-uom-conversions.repository';
 
 @Injectable()
-export class InventoryItemUomConversionsService {
-  private readonly logger = new Logger(InventoryItemUomConversionsService.name);
+export class InventoryItemUomConversionsDomainService {
+  private readonly logger = new Logger(InventoryItemUomConversionsDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
     uomName: { column: uom.name, type: 'string' },
@@ -29,17 +29,17 @@ export class InventoryItemUomConversionsService {
     uomQty: { column: inventoryItemUomConversions.uomQty, type: 'number' },
   };
 
-  constructor(private readonly repository: InventoryItemUomConversionsRepository) {}
+  constructor(private readonly repository: InventoryItemUomConversionsDomainRepository) {}
 
   // Returns paginated, filtered, sorted UOM conversions for an inventory item
   async findForTable(
     inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemUomConversionsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemUomConversionsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemUomConversionsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemUomConversionsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemUomConversionsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemUomConversionsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findForTable(inventoryItemId, {

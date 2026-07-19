@@ -1,5 +1,7 @@
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
-import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
+import { CreateInventoryItemDto } from '@domain/inventory-items/dto/request/create-inventory-item.dto';
+import { UpdateInventoryItemDto } from '@domain/inventory-items/dto/request/update-inventory-item.dto';
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
@@ -12,17 +14,15 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
-import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
-import { InventoryItemsRootService } from './services/inventory-items-root.service';
+import { OrgInventoryItemsService } from './services/inventory-items-root.service';
 
 @Controller()
 export class InventoryItemsRootController {
   private readonly logger = new Logger(InventoryItemsRootController.name);
 
   constructor(
-    private readonly service: InventoryItemsService,
-    private readonly rootService: InventoryItemsRootService,
+    private readonly service: InventoryItemsDomainService,
+    private readonly rootService: OrgInventoryItemsService,
   ) {}
 
   // Org-wide master list of inventory items
@@ -53,9 +53,7 @@ export class InventoryItemsRootController {
 
   // Returns inventory item options for select dropdowns
   @MessagePattern({ cmd: 'org.inventoryItems.select' })
-  async select(
-    @Payload() query: SelectOptionsQueryDto & { excludeOnSupplierId?: string },
-  ): Promise<SelectQueryResult> {
+  async select(@Payload() query: SelectOptionsQueryDto & { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {
     this.logger.log('inventoryItems.select');
     const { excludeOnSupplierId, ...rest } = query;
     return this.service.findForSelect(rest, { excludeOnSupplierId });

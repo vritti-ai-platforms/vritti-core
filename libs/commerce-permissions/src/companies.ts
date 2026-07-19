@@ -27,4 +27,16 @@ export const ORG_COMPANIES = {
     edit: 'org.companies.addresses.edit',
     delete: 'org.companies.addresses.delete',
   },
+  licenses: {
+    view: 'org.companies.licenses.view',
+    add: 'org.companies.licenses.add',
+    edit: 'org.companies.licenses.edit',
+    delete: 'org.companies.licenses.delete',
+  },
+  bankAccounts: {
+    view: 'org.companies.bank-accounts.view',
+    add: 'org.companies.bank-accounts.add',
+    edit: 'org.companies.bank-accounts.edit',
+    delete: 'org.companies.bank-accounts.delete',
+  },
 } as const;

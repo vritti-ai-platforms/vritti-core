@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import type { CreateVariantOptionDto } from '@/modules/site/catalogs/root/dto/request/create-variant-option.dto';
-import type { UpdateVariantOptionDto } from '@/modules/site/catalogs/root/dto/request/update-variant-option.dto';
 import { VariantOptionDto } from '../dto/entity/variant-option.dto';
-import { VariantOptionsRepository } from '../repositories/variant-options.repository';
+import type { CreateVariantOptionDto } from '../dto/request/create-variant-option.dto';
+import type { UpdateVariantOptionDto } from '../dto/request/update-variant-option.dto';
+import { VariantOptionsDomainRepository } from '../repositories/variant-options.repository';
 
 @Injectable()
-export class VariantOptionsService {
-  private readonly logger = new Logger(VariantOptionsService.name);
+export class VariantOptionsDomainService {
+  private readonly logger = new Logger(VariantOptionsDomainService.name);
 
-  constructor(private readonly repository: VariantOptionsRepository) {}
+  constructor(private readonly repository: VariantOptionsDomainRepository) {}
 
   // Returns all variant options with their values for a catalog
   async list(catalogId: string): Promise<VariantOptionDto[]> {

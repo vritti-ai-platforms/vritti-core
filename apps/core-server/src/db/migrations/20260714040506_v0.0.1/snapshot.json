@@ -2,105 +2,62 @@
   "version": "8",
   "dialect": "postgres",
   "id": "d2b3f277-e9d5-4971-9e72-893a0f75cc25",
-  "prevIds": [
-    "b45f343e-04a5-42d3-ae5a-6ece00b26528"
-  ],
+  "prevIds": ["b45f343e-04a5-42d3-ae5a-6ece00b26528"],
   "ddl": [
     {
       "name": "vritti_core",
       "entityType": "schemas"
     },
     {
-      "values": [
-        "DIRECT",
-        "INHERITED"
-      ],
+      "values": ["DIRECT", "INHERITED"],
       "name": "assignment_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "pending",
-        "ready",
-        "failed",
-        "deleted"
-      ],
+      "values": ["pending", "ready", "failed", "deleted"],
       "name": "media_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "free",
-        "pro",
-        "enterprise"
-      ],
+      "values": ["free", "pro", "enterprise"],
       "name": "org_plan",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "0-10",
-        "10-20",
-        "20-50",
-        "50-100",
-        "100-500",
-        "500+"
-      ],
+      "values": ["0-10", "10-20", "20-50", "50-100", "100-500", "500+"],
       "name": "org_size",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "FEFO",
-        "FIFO",
-        "LIFO"
-      ],
+      "values": ["FEFO", "FIFO", "LIFO"],
       "name": "pick_strategy",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "WEB",
-        "SET_PASSWORD",
-        "RESET",
-        "MOBILE"
-      ],
+      "values": ["WEB", "SET_PASSWORD", "RESET", "MOBILE"],
       "name": "session_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "OUTLET",
-        "WAREHOUSE",
-        "PRODUCTION"
-      ],
+      "values": ["OUTLET", "WAREHOUSE", "PRODUCTION"],
       "name": "site_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "GST",
-        "VAT",
-        "SALES_TAX",
-        "NONE"
-      ],
+      "values": ["GST", "VAT", "SALES_TAX", "NONE"],
       "name": "tax_regime",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "PENDING",
-        "ACTIVE",
-        "SUSPENDED"
-      ],
+      "values": ["PENDING", "ACTIVE", "SUSPENDED"],
       "name": "user_status",
       "entityType": "enums",
       "schema": "vritti_core"
@@ -2642,14 +2599,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "organization_id"
-      ],
+      "columns": ["organization_id"],
       "schemaTo": "vritti_core",
       "tableTo": "organizations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "users_organization_id_organizations_id_fkey",
@@ -2659,14 +2612,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "vritti_core",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sessions_user_id_users_id_fkey",
@@ -2676,14 +2625,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "vritti_core",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "verifications_user_id_users_id_fkey",
@@ -2693,14 +2638,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "vritti_core",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "table_views_user_id_users_id_fkey",
@@ -2710,14 +2651,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "organization_id"
-      ],
+      "columns": ["organization_id"],
       "schemaTo": "vritti_core",
       "tableTo": "organizations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "legal_entities_organization_id_organizations_id_fkey",
@@ -2727,14 +2664,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parent_id"
-      ],
+      "columns": ["parent_id"],
       "schemaTo": "vritti_core",
       "tableTo": "legal_entities",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "legal_entities_parent_id_legal_entities_id_fkey",
@@ -2744,14 +2677,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "organization_id"
-      ],
+      "columns": ["organization_id"],
       "schemaTo": "vritti_core",
       "tableTo": "organizations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "le_tax_registrations_organization_id_organizations_id_fkey",
@@ -2761,14 +2690,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "legal_entity_id"
-      ],
+      "columns": ["legal_entity_id"],
       "schemaTo": "vritti_core",
       "tableTo": "legal_entities",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "le_tax_registrations_legal_entity_id_legal_entities_id_fkey",
@@ -2778,14 +2703,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "organization_id"
-      ],
+      "columns": ["organization_id"],
       "schemaTo": "vritti_core",
       "tableTo": "organizations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "site_groups_organization_id_organizations_id_fkey",
@@ -2795,14 +2716,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parent_id"
-      ],
+      "columns": ["parent_id"],
       "schemaTo": "vritti_core",
       "tableTo": "site_groups",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "site_groups_parent_id_site_groups_id_fkey",
@@ -2812,14 +2729,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "organization_id"
-      ],
+      "columns": ["organization_id"],
       "schemaTo": "vritti_core",
       "tableTo": "organizations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sites_organization_id_organizations_id_fkey",
@@ -2829,14 +2742,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "group_id"
-      ],
+      "columns": ["group_id"],
       "schemaTo": "vritti_core",
       "tableTo": "site_groups",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "sites_group_id_site_groups_id_fkey",
@@ -2846,14 +2755,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "legal_entity_id"
-      ],
+      "columns": ["legal_entity_id"],
       "schemaTo": "vritti_core",
       "tableTo": "legal_entities",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "sites_legal_entity_id_legal_entities_id_fkey",
@@ -2863,14 +2768,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "registration_id"
-      ],
+      "columns": ["registration_id"],
       "schemaTo": "vritti_core",
       "tableTo": "le_tax_registrations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "sites_registration_id_le_tax_registrations_id_fkey",
@@ -2880,14 +2781,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "organization_id"
-      ],
+      "columns": ["organization_id"],
       "schemaTo": "vritti_core",
       "tableTo": "organizations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "org_roles_organization_id_organizations_id_fkey",
@@ -2897,14 +2794,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "vritti_core",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_role_assignments_user_id_users_id_fkey",
@@ -2914,14 +2807,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "role_id"
-      ],
+      "columns": ["role_id"],
       "schemaTo": "vritti_core",
       "tableTo": "roles",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_role_assignments_org_role_id_org_roles_id_fkey",
@@ -2931,14 +2820,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "site_id"
-      ],
+      "columns": ["site_id"],
       "schemaTo": "vritti_core",
       "tableTo": "sites",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_role_assignments_site_id_sites_id_fkey",
@@ -2948,14 +2833,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "site_group_id"
-      ],
+      "columns": ["site_group_id"],
       "schemaTo": "vritti_core",
       "tableTo": "site_groups",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_role_assignments_site_group_id_site_groups_id_fkey",
@@ -2965,14 +2846,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "legal_entity_id"
-      ],
+      "columns": ["legal_entity_id"],
       "schemaTo": "vritti_core",
       "tableTo": "legal_entities",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_role_assignments_legal_entity_id_legal_entities_id_fkey",
@@ -2982,14 +2859,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "granted_by"
-      ],
+      "columns": ["granted_by"],
       "schemaTo": "vritti_core",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "user_role_assignments_granted_by_users_id_fkey",
@@ -2998,9 +2871,7 @@
       "table": "user_role_assignments"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "media_pkey",
       "schema": "vritti_core",
@@ -3008,9 +2879,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "vritti_core",
@@ -3018,9 +2887,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sessions_pkey",
       "schema": "vritti_core",
@@ -3028,9 +2895,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "verifications_pkey",
       "schema": "vritti_core",
@@ -3038,9 +2903,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "organizations_pkey",
       "schema": "vritti_core",
@@ -3048,9 +2911,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "catalogs_pkey",
       "schema": "vritti_core",
@@ -3058,9 +2919,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "table_views_pkey",
       "schema": "vritti_core",
@@ -3068,9 +2927,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "legal_entities_pkey",
       "schema": "vritti_core",
@@ -3078,9 +2935,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "le_tax_registrations_pkey",
       "schema": "vritti_core",
@@ -3088,9 +2943,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "site_groups_pkey",
       "schema": "vritti_core",
@@ -3098,9 +2951,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sites_pkey",
       "schema": "vritti_core",
@@ -3108,9 +2959,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "org_roles_pkey",
       "schema": "vritti_core",
@@ -3118,9 +2967,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "user_role_assignments_pkey",
       "schema": "vritti_core",
@@ -3129,12 +2976,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "user_id",
-        "site_id",
-        "site_group_id",
-        "legal_entity_id"
-      ],
+      "columns": ["user_id", "site_id", "site_group_id", "legal_entity_id"],
       "nullsNotDistinct": true,
       "name": "user_role_assignments_user_target_unique",
       "entityType": "uniques",
@@ -3143,9 +2985,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "subdomain"
-      ],
+      "columns": ["subdomain"],
       "nullsNotDistinct": false,
       "name": "organizations_subdomain_key",
       "schema": "vritti_core",
@@ -3162,9 +3002,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -3175,9 +3013,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -3188,9 +3024,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -3201,9 +3035,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid)",
       "withCheck": null,
       "name": "org_isolation",

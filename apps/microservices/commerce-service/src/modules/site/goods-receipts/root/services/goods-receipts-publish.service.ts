@@ -1,21 +1,21 @@
-import { GoodsReceiptLineItemsRepository } from '@domain/goods-receipt-line-items/repositories/goods-receipt-line-items.repository';
+import { GoodsReceiptLineItemsDomainRepository } from '@domain/goods-receipt-line-items/repositories/goods-receipt-line-items.repository';
 import {
-  GoodsReceiptLinesRepository,
+  GoodsReceiptLinesDomainRepository,
   type GoodsReceiptLineWithRefs,
 } from '@domain/goods-receipt-lines/repositories/goods-receipt-lines.repository';
-import { GoodsReceiptLotsRepository } from '@domain/goods-receipt-lots/repositories/goods-receipt-lots.repository';
+import { GoodsReceiptLotsDomainRepository } from '@domain/goods-receipt-lots/repositories/goods-receipt-lots.repository';
 import { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
-import { GoodsReceiptItemsRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
+import { GoodsReceiptItemsDomainRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
 import {
-  GoodsReceiptsRepository,
+  GoodsReceiptsDomainRepository,
   type GoodsReceiptWithRefs,
 } from '@domain/goods-receipts/repositories/goods-receipts.repository';
-import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
-import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
-import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
-import { InventoryItemCostsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-costs.repository';
-import { InventoryItemMrpsService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
+import { InventoryItemLedgerDomainService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
+import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
+import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
+import { InventoryItemCostsDomainRepository } from '@domain/inventory-item-quants/repositories/inventory-item-costs.repository';
+import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Injectable } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
@@ -37,7 +37,7 @@ const SERIAL_TRACKINGS = new Set<InventoryTracking>([
   InventoryTrackingValues.LOT_SERIAL,
 ]);
 
-type PublishItem = Awaited<ReturnType<GoodsReceiptItemsRepository['findByReceiptIdForPublish']>>[number];
+type PublishItem = Awaited<ReturnType<GoodsReceiptItemsDomainRepository['findByReceiptIdForPublish']>>[number];
 
 // Lot snapshot for quant creation; a lot line missing its expiry is a hard error.
 function toLotInfo(line: GoodsReceiptLineWithRefs) {
@@ -59,17 +59,17 @@ function toLotInfo(line: GoodsReceiptLineWithRefs) {
 export class GoodsReceiptsPublishService {
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly goodsReceiptsRepository: GoodsReceiptsRepository,
-    private readonly grItemsRepository: GoodsReceiptItemsRepository,
-    private readonly grLotsRepository: GoodsReceiptLotsRepository,
-    private readonly grLinesRepository: GoodsReceiptLinesRepository,
-    private readonly grLineItemsRepository: GoodsReceiptLineItemsRepository,
-    private readonly quantsService: InventoryItemQuantsService,
-    private readonly costsRepository: InventoryItemCostsRepository,
-    private readonly inventoryLotsService: InventoryItemLotsService,
-    private readonly ledgerService: InventoryItemLedgerService,
-    private readonly goodsReceiptsService: GoodsReceiptsService,
-    private readonly inventoryItemMrpsService: InventoryItemMrpsService,
+    private readonly goodsReceiptsRepository: GoodsReceiptsDomainRepository,
+    private readonly grItemsRepository: GoodsReceiptItemsDomainRepository,
+    private readonly grLotsRepository: GoodsReceiptLotsDomainRepository,
+    private readonly grLinesRepository: GoodsReceiptLinesDomainRepository,
+    private readonly grLineItemsRepository: GoodsReceiptLineItemsDomainRepository,
+    private readonly quantsService: InventoryItemQuantsDomainService,
+    private readonly costsRepository: InventoryItemCostsDomainRepository,
+    private readonly inventoryLotsService: InventoryItemLotsDomainService,
+    private readonly ledgerService: InventoryItemLedgerDomainService,
+    private readonly goodsReceiptsService: GoodsReceiptsDomainService,
+    private readonly inventoryItemMrpsService: InventoryItemMrpsDomainService,
   ) {}
 
   async publish(id: string, siteCurrencyCode: string): Promise<GoodsReceiptDto> {

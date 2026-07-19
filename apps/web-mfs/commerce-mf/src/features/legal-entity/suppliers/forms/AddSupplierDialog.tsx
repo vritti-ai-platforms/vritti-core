@@ -2,8 +2,8 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { CompanySelector } from '@vritti/quantum-ui/CompanySelector';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { Switch } from '@vritti/quantum-ui/Switch';
+import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -27,6 +27,10 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
       paymentTerms: '',
       leadTimeDays: undefined,
       notes: '',
+      purchasingBlocked: false,
+      paymentBlocked: false,
+      orderEmail: '',
+      orderPhone: '',
       isActive: true,
     },
   });
@@ -46,6 +50,10 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
         paymentTerms: data.paymentTerms || undefined,
         leadTimeDays: data.leadTimeDays ?? undefined,
         notes: data.notes || undefined,
+        purchasingBlocked: data.purchasingBlocked,
+        paymentBlocked: data.paymentBlocked,
+        orderEmail: data.orderEmail || undefined,
+        orderPhone: data.orderPhone || undefined,
         isActive: data.isActive,
       })}
     >
@@ -71,6 +79,24 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
               <TextArea name="notes" label="Notes" placeholder="Optional notes" />
             </div>
             <Switch name="isActive" label="Active" description="Inactive suppliers are hidden from procurement" />
+          </div>
+        </FormSection>
+
+        <FormSection title="Ordering" contentClassName="block">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField name="orderEmail" label="Order Email" placeholder="e.g. orders@acme.com" />
+            <TextField name="orderPhone" label="Order Phone" placeholder="e.g. +91 98765 43210" />
+          </div>
+        </FormSection>
+
+        <FormSection title="Blocks" contentClassName="block">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Switch
+              name="purchasingBlocked"
+              label="Purchasing Blocked"
+              description="Prevents new purchase orders to this supplier"
+            />
+            <Switch name="paymentBlocked" label="Payment Blocked" description="Prevents payments to this supplier" />
           </div>
         </FormSection>
       </div>

@@ -6,7 +6,7 @@ import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import { StructureResponseDto } from '../dto/response/structure-response.dto';
 import { ApiGetStructure } from './docs/structure.docs';
-import { StructureApiService } from './services/structure-api.service';
+import { StructureService } from './services/structure-api.service';
 
 @ApiTags('Structure')
 @Controller('structure/internal')
@@ -17,7 +17,7 @@ import { StructureApiService } from './services/structure-api.service';
 export class StructureController {
   private readonly logger = new Logger(StructureController.name);
 
-  constructor(private readonly structureApiService: StructureApiService) {}
+  constructor(private readonly structureApiService: StructureService) {}
 
   // Returns the organization structure aggregate
   @Get()

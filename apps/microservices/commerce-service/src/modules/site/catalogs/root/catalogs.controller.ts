@@ -1,20 +1,16 @@
 import { CatalogDto } from '@domain/catalogs/dto/entity/catalog.dto';
-import { CatalogsService } from '@domain/catalogs/services/catalogs.service';
+import { CreateCatalogDto } from '@domain/catalogs/dto/request/create-catalog.dto';
+import { UpdateCatalogPayloadDto } from '@domain/catalogs/dto/request/update-catalog.dto';
+import { CatalogsDomainService } from '@domain/catalogs/services/catalogs.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import { CreateCatalogDto } from './dto/request/create-catalog.dto';
-import { UpdateCatalogPayloadDto } from './dto/request/update-catalog.dto';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
 @Controller()
 export class CatalogsController {
   private readonly logger = new Logger(CatalogsController.name);
 
-  constructor(private readonly service: CatalogsService) {}
+  constructor(private readonly service: CatalogsDomainService) {}
 
   // Returns paginated catalogs for the data table
   @MessagePattern({ cmd: 'site.catalogs.table' })

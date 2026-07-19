@@ -41,11 +41,7 @@ export const SupplierContactsSidePanel = ({
           <Empty icon={<ClipboardList />} title="No contacts" description="Add your first supplier contact." />
         }
         actions={
-          <Button
-            size="sm"
-            onClick={addContactDialog.open}
-            startAdornment={<Plus className="size-4" />}
-          >
+          <Button size="sm" onClick={addContactDialog.open} startAdornment={<Plus className="size-4" />}>
             Add Contact
           </Button>
         }

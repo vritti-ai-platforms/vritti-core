@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
 import { IsCurrencyCode } from '@vritti/api-sdk/money';
-import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateSupplierDto {
-  @ApiProperty({ description: 'The party (ORGANIZATION or PERSON) this supplier represents' })
+  @ApiProperty({ description: 'The party (COMPANY or PERSON) this supplier represents' })
   @IsUUID()
   partyId: string;
 
@@ -39,4 +39,33 @@ export class CreateSupplierDto {
   @IsString()
   @MaxLength(500)
   notes?: string | null;
+
+  @ApiPropertyOptional({ description: 'Block new purchase orders for this supplier', default: false })
+  @IsOptional()
+  @IsBoolean()
+  purchasingBlocked?: boolean;
+
+  @ApiPropertyOptional({ description: 'Block payments to this supplier', default: false })
+  @IsOptional()
+  @IsBoolean()
+  paymentBlocked?: boolean;
+
+  @Trim()
+  @ApiPropertyOptional({ description: 'Email for sending purchase orders', example: 'orders@acme.com' })
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(255)
+  orderEmail?: string | null;
+
+  @Trim()
+  @ApiPropertyOptional({ description: 'Phone for order communication', example: '+91 98765 43210' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  orderPhone?: string | null;
+
+  @ApiPropertyOptional({ description: 'Whether supplier is active', default: true })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

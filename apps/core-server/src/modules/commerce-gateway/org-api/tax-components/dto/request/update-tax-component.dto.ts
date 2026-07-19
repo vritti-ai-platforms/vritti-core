@@ -11,7 +11,10 @@ export class UpdateTaxComponentDto {
   @MaxLength(255)
   name?: string;
 
-  @ApiPropertyOptional({ description: 'Taxing authority level', enum: ['FEDERAL', 'STATE', 'COUNTY', 'CITY', 'SPECIAL'] })
+  @ApiPropertyOptional({
+    description: 'Taxing authority level',
+    enum: ['FEDERAL', 'STATE', 'COUNTY', 'CITY', 'SPECIAL'],
+  })
   @IsOptional()
   @IsString()
   @IsIn(['FEDERAL', 'STATE', 'COUNTY', 'CITY', 'SPECIAL'])
