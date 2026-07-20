@@ -29,7 +29,7 @@ export default function OrdersScreen() {
             value={orderDate}
             onChange={(date) => {
               console.log('[orders] order date change', date);
-              setOrderDate(date);
+              setOrderDate(date ?? undefined);
             }}
           />
           <DateRangePicker

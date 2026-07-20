@@ -29,6 +29,7 @@ export class SupplierSitesController {
     return this.service.enroll(dto.supplierId, dto.siteId, {
       partyTaxRegistrationId: dto.partyTaxRegistrationId ?? null,
       partyBankAccountId: dto.partyBankAccountId ?? null,
+      orderContactId: dto.orderContactId ?? null,
     });
   }
 

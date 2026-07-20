@@ -63,7 +63,7 @@ export const createInvoiceSchema = z.object({
   partyType: z.enum(['SUPPLIER', 'CUSTOMER', 'AGGREGATOR'], { message: 'Party type is required' }),
   partyName: z.string().min(1, 'Party name is required'),
   issuedDate: z.string().min(1, 'Issued date is required'),
-  dueDate: z.string().optional(),
+  dueDate: z.string().nullable().optional(),
   paymentTerms: z.string().optional(),
   notes: z.string().optional(),
 });

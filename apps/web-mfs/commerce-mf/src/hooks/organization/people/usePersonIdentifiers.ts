@@ -4,8 +4,16 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { AddIdentifierPayload, PartyIdentifierRow, PartyIdentifiersTableResponse } from '@/schemas/party-identifiers';
-import { addPersonIdentifier, getPersonIdentifiers, removePersonIdentifier } from '@/services/organization/people.service';
+import type {
+  AddIdentifierPayload,
+  PartyIdentifierRow,
+  PartyIdentifiersTableResponse,
+} from '@/schemas/party-identifiers';
+import {
+  addPersonIdentifier,
+  getPersonIdentifiers,
+  removePersonIdentifier,
+} from '@/services/organization/people.service';
 import { PERSON_IDENTIFIERS_KEY, PERSON_KEY } from './keys';
 
 // Fetches a person's identifiers; self-gates on the identifiers view permission

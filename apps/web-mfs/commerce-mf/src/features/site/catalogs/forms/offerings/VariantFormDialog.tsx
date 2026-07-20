@@ -121,7 +121,7 @@ export const VariantFormDialog: React.FC<VariantFormDialogProps> = ({
             price: data.price,
             components: showComponents ? (data.components ?? []) : undefined,
             isAvailable: Boolean(data.isAvailable),
-            taxClassId: data.taxClassId || undefined,
+            taxClassId: data.taxClassId,
           },
         })}
       >
@@ -140,7 +140,7 @@ export const VariantFormDialog: React.FC<VariantFormDialogProps> = ({
       components: showComponents ? (data.components ?? []) : undefined,
       price: data.price,
       isAvailable: Boolean(data.isAvailable),
-      taxClassId: data.taxClassId || undefined,
+      taxClassId: data.taxClassId,
     };
 
     return { catalogId, offeringId: offering.id, data: payload };

@@ -141,7 +141,7 @@ export const PosBillingPage = () => {
     });
   }, [sellableItems, activeCategory, search]);
 
-  const handleCustomerSelect = (value: string | number | boolean) => {
+  const handleCustomerSelect = (value: string | number | boolean | null) => {
     setCustomerId(typeof value === 'string' && value ? value : null);
   };
 

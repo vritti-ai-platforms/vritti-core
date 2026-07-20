@@ -26,8 +26,8 @@ interface UomConversionFormSheetProps {
 
 const EMPTY: CreateUomConversionFormValues = {
   uomId: '',
-  primaryUomQty: '',
-  uomQty: '',
+  primaryUomQty: Number.NaN,
+  uomQty: Number.NaN,
 };
 
 // Create/edit a UOM conversion in a bottom sheet (opened by the tab's FAB / a card press). Create shows the
@@ -60,8 +60,8 @@ export const UomConversionFormSheet = forwardRef<BottomSheetRef, UomConversionFo
         editing
           ? {
               uomId: editing.uomId,
-              primaryUomQty: String(editing.primaryUomQty),
-              uomQty: String(editing.uomQty),
+              primaryUomQty: editing.primaryUomQty,
+              uomQty: editing.uomQty,
             }
           : EMPTY,
       );
@@ -80,8 +80,8 @@ export const UomConversionFormSheet = forwardRef<BottomSheetRef, UomConversionFo
     };
 
     const handleSubmit = async (values: CreateUomConversionFormValues) => {
-      const primaryUomQty = Number(values.primaryUomQty);
-      const uomQty = Number(values.uomQty);
+      const primaryUomQty = values.primaryUomQty;
+      const uomQty = values.uomQty;
       if (isEdit && editing) {
         const result = await updateConversion({
           variables: { id: editing.id, input: { primaryUomQty, uomQty } },
@@ -131,12 +131,8 @@ export const UomConversionFormSheet = forwardRef<BottomSheetRef, UomConversionFo
                 onOptionSelect={(opt) => setSelectedSymbol((opt?.additionals?.symbol as string | undefined) ?? null)}
               />
             )}
-            <TextField name="uomQty" label={`Count of ${altSymbol ?? 'alt UOM'}`} keyboardType="number-pad" />
-            <TextField
-              name="primaryUomQty"
-              label={`Count of ${primaryUomSymbol ?? 'primary'}`}
-              keyboardType="number-pad"
-            />
+            <TextField name="uomQty" label={`Count of ${altSymbol ?? 'alt UOM'}`} integer positive />
+            <TextField name="primaryUomQty" label={`Count of ${primaryUomSymbol ?? 'primary'}`} integer positive />
             <Button isLoading={creating || updating} onPress={form.handleSubmit(handleSubmit)}>
               <Text>{isEdit ? 'Save changes' : 'Add conversion'}</Text>
             </Button>

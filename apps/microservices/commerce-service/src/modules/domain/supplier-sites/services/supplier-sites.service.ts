@@ -9,13 +9,21 @@ import {
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
-import { parties, partyBankAccounts, partyTaxRegistrations, supplierSites, suppliers } from '@/db/schema';
+import {
+  PartyContactPurposeValues,
+  parties,
+  partyBankAccounts,
+  partyTaxRegistrations,
+  supplierSites,
+  suppliers,
+} from '@/db/schema';
 import { SiteSupplierDto, SupplierSiteDto } from '../dto/entity/supplier-site.dto';
 import { SupplierSitesDomainRepository } from '../repositories/supplier-sites.repository';
 
 export interface EnrollmentPicks {
   partyTaxRegistrationId?: string | null;
   partyBankAccountId?: string | null;
+  orderContactId?: string | null;
 }
 
 @Injectable()
@@ -92,8 +100,19 @@ export class SupplierSitesDomainService {
       await this.assertBankAccountBelongsToParty(partyBankAccountId, supplier.partyId);
     }
 
+    const orderContactId = picks?.orderContactId ?? null;
+    if (orderContactId) {
+      await this.assertOrderContactBelongsToParty(orderContactId, supplier.partyId);
+    }
+
     try {
-      const entity = await this.repository.create({ supplierId, siteId, partyTaxRegistrationId, partyBankAccountId });
+      const entity = await this.repository.create({
+        supplierId,
+        siteId,
+        partyTaxRegistrationId,
+        partyBankAccountId,
+        orderContactId,
+      });
       this.logger.log(`Enrolled supplier ${supplierId} for site ${siteId}`);
       return { success: true, message: 'Supplier enrolled for this site.', data: SupplierSiteDto.from(entity) };
     } catch (error: unknown) {
@@ -114,6 +133,9 @@ export class SupplierSitesDomainService {
     }
     if (data.partyBankAccountId) {
       await this.assertBankAccountBelongsToParty(data.partyBankAccountId, existing.partyId ?? '');
+    }
+    if (data.orderContactId) {
+      await this.assertOrderContactBelongsToParty(data.orderContactId, existing.partyId ?? '');
     }
 
     if (Object.keys(data).length > 0) {
@@ -178,6 +200,18 @@ export class SupplierSitesDomainService {
         label: 'Invalid Bank Account',
         detail: "The selected bank account does not belong to this supplier's company.",
         errors: [{ field: 'partyBankAccountId', message: 'Not an account of this company' }],
+      });
+    }
+  }
+
+  // Rejects order-contact picks that belong to a different party or are not ORDER-purpose
+  private async assertOrderContactBelongsToParty(contactId: string, partyId: string): Promise<void> {
+    const contact = await this.repository.findContactById(contactId);
+    if (!contact || contact.partyId !== partyId || contact.purpose !== PartyContactPurposeValues.ORDER) {
+      throw new BadRequestException({
+        label: 'Invalid Order Contact',
+        detail: "The selected order contact does not belong to this supplier's company.",
+        errors: [{ field: 'orderContactId', message: 'Not an order contact of this company' }],
       });
     }
   }

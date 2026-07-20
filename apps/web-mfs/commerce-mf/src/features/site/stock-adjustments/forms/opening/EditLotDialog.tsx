@@ -49,9 +49,9 @@ const EditLotForm = ({
       mutation={mutation}
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        lotNumber: data.lotNumber.trim(),
-        manufacturingDate: data.manufacturingDate?.trim() || null,
-        expiryDate: data.expiryDate.trim(),
+        lotNumber: data.lotNumber,
+        manufacturingDate: data.manufacturingDate,
+        expiryDate: data.expiryDate,
       })}
     >
       <TextField name="lotNumber" label="Lot Number" placeholder="e.g. ABC-2024-001" />

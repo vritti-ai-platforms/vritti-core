@@ -10,6 +10,11 @@ export class SupplierSiteDto {
   registrationType: TaxRegistrationType | null;
   bankAccountName: string | null;
   bankName: string | null;
+  orderContactId: string | null;
+  orderContactLabel: string | null;
+  orderContactName: string | null;
+  orderContactEmail: string | null;
+  orderContactPhone: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -21,6 +26,10 @@ export class SupplierSiteDto {
       registrationType?: TaxRegistrationType | null;
       bankAccountName?: string | null;
       bankName?: string | null;
+      orderContactLabel?: string | null;
+      orderContactName?: string | null;
+      orderContactEmail?: string | null;
+      orderContactPhone?: string | null;
     },
   ): SupplierSiteDto {
     const dto = new SupplierSiteDto();
@@ -33,6 +42,11 @@ export class SupplierSiteDto {
     dto.registrationType = entity.registrationType ?? null;
     dto.bankAccountName = entity.bankAccountName ?? null;
     dto.bankName = entity.bankName ?? null;
+    dto.orderContactId = entity.orderContactId ?? null;
+    dto.orderContactLabel = entity.orderContactLabel ?? null;
+    dto.orderContactName = entity.orderContactName ?? null;
+    dto.orderContactEmail = entity.orderContactEmail ?? null;
+    dto.orderContactPhone = entity.orderContactPhone ?? null;
     dto.isActive = entity.isActive;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

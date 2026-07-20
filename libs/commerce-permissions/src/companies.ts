@@ -39,4 +39,10 @@ export const ORG_COMPANIES = {
     edit: 'org.companies.bank-accounts.edit',
     delete: 'org.companies.bank-accounts.delete',
   },
+  contacts: {
+    view: 'org.companies.contacts.view',
+    add: 'org.companies.contacts.add',
+    edit: 'org.companies.contacts.edit',
+    delete: 'org.companies.contacts.delete',
+  },
 } as const;

@@ -87,7 +87,7 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({
   };
 
   const buildDefaultVariant = (data: CreateOfferingFormData): CreateOfferingDefaultVariant | undefined => {
-    const sku = data.sku?.trim() ? data.sku.trim() : undefined;
+    const sku = data.sku;
     const price = { currency: data.price?.currency ?? currencyCode, value: data.price?.value || '0' };
 
     if (kind === 'STOCK_SINGLE') {
@@ -105,9 +105,9 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({
       catalogId,
       fulfilmentType: kindToFulfilment(kind),
       name: data.name,
-      description: data.description?.trim() ? data.description.trim() : undefined,
-      categoryId: data.categoryId || undefined,
-      salesTaxGroupId: data.salesTaxGroupId || undefined,
+      description: data.description,
+      categoryId: data.categoryId,
+      salesTaxGroupId: data.salesTaxGroupId,
       isAvailable: data.isAvailable,
       variantOptionIds: data.variantOptionIds?.length ? data.variantOptionIds : undefined,
       defaultVariant: buildDefaultVariant(data),

@@ -58,7 +58,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
-        supplierItemCode: data.supplierItemCode || undefined,
+        supplierItemCode: data.supplierItemCode,
         unitPrice: data.unitPrice,
         uomId: data.uomId,
         minOrderQuantity: data.minOrderQuantity ?? undefined,

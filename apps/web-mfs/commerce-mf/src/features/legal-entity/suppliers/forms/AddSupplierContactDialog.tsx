@@ -47,11 +47,11 @@ export const AddSupplierContactDialog: React.FC<AddSupplierContactDialogProps> =
       transformSubmit={(data) => ({
         name: data.name,
         phone: data.phone,
-        alternatePhone: data.alternatePhone || undefined,
-        email: data.email || undefined,
-        alternateEmail: data.alternateEmail || undefined,
-        designation: data.designation || undefined,
-        notes: data.notes || undefined,
+        alternatePhone: data.alternatePhone,
+        email: data.email,
+        alternateEmail: data.alternateEmail,
+        designation: data.designation,
+        notes: data.notes,
         isPrimary: data.isPrimary,
       })}
     >

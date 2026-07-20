@@ -19,7 +19,7 @@ export const createOfferingSchema = z.object({
   fulfilmentType: z.enum(['STOCK', 'SERVICE', 'COMPOSITE']),
   name: z.string().min(1, 'Name is required').max(255),
   description: z.string().optional(),
-  categoryId: z.string().optional(),
+  categoryId: z.string().nullable().optional(),
   salesTaxGroupId: z.uuid('Sales tax group is required'),
   isAvailable: z.boolean().optional(),
   variantOptionIds: z.array(z.string()).optional(),
@@ -138,7 +138,7 @@ export function buildVariantFormSchema({
       : z.array(variantComponentSchema).optional(),
     price: zodCurrencyField({ required: 'Price is required', positive: false }),
     isAvailable: z.boolean(),
-    taxClassId: z.string().uuid().optional(),
+    taxClassId: z.uuid().nullable().optional(),
   });
 
   if (options.length === 0) return base;

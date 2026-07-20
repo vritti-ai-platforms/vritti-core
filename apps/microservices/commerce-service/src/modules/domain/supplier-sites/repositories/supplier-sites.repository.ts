@@ -3,9 +3,11 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/d
 import { and, desc, eq, getTableColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type PartyBankAccount,
+  type PartyContact,
   type PartyTaxRegistration,
   parties,
   partyBankAccounts,
+  partyContacts,
   partyTaxRegistrations,
   type Supplier,
   type SupplierSite,
@@ -19,6 +21,10 @@ type SupplierSiteWithPicks = SupplierSite & {
   registrationType: TaxRegistrationType | null;
   bankAccountName: string | null;
   bankName: string | null;
+  orderContactLabel: string | null;
+  orderContactName: string | null;
+  orderContactEmail: string | null;
+  orderContactPhone: string | null;
 };
 
 type SiteSupplierRow = SupplierSite & {
@@ -48,10 +54,15 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
         registrationType: partyTaxRegistrations.registrationType,
         bankAccountName: partyBankAccounts.accountName,
         bankName: partyBankAccounts.bankName,
+        orderContactLabel: partyContacts.label,
+        orderContactName: partyContacts.name,
+        orderContactEmail: partyContacts.email,
+        orderContactPhone: partyContacts.phone,
       },
       leftJoins: [
         { table: partyTaxRegistrations, on: eq(partyTaxRegistrations.id, supplierSites.partyTaxRegistrationId) },
         { table: partyBankAccounts, on: eq(partyBankAccounts.id, supplierSites.partyBankAccountId) },
+        { table: partyContacts, on: eq(partyContacts.id, supplierSites.orderContactId) },
       ],
       where,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierSites.createdAt)],
@@ -114,6 +125,12 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     return row as PartyBankAccount | undefined;
   }
 
+  // Loads a contact for order-contact pick validation
+  async findContactById(id: string): Promise<PartyContact | undefined> {
+    const [row] = await this.db.select().from(partyContacts).where(eq(partyContacts.id, id)).limit(1);
+    return row as PartyContact | undefined;
+  }
+
   // Loads an enrollment joined with the owning supplier's party for pick validation
   async findByIdWithPartyId(id: string): Promise<(SupplierSite & { partyId: string | null }) | undefined> {
     const [row] = await this.db
@@ -134,10 +151,15 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
         registrationType: partyTaxRegistrations.registrationType,
         bankAccountName: partyBankAccounts.accountName,
         bankName: partyBankAccounts.bankName,
+        orderContactLabel: partyContacts.label,
+        orderContactName: partyContacts.name,
+        orderContactEmail: partyContacts.email,
+        orderContactPhone: partyContacts.phone,
       })
       .from(supplierSites)
       .leftJoin(partyTaxRegistrations, eq(partyTaxRegistrations.id, supplierSites.partyTaxRegistrationId))
       .leftJoin(partyBankAccounts, eq(partyBankAccounts.id, supplierSites.partyBankAccountId))
+      .leftJoin(partyContacts, eq(partyContacts.id, supplierSites.orderContactId))
       .where(and(eq(supplierSites.supplierId, supplierId), eq(supplierSites.siteId, siteId)))
       .limit(1);
     return row as SupplierSiteWithPicks | undefined;

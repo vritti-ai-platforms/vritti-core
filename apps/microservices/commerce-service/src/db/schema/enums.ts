@@ -555,3 +555,11 @@ export const SupplierPriceSourceValues = {
   IMPORT: 'IMPORT' as const,
 };
 export type SupplierPriceSource = (typeof supplierPriceSourceEnum.enumValues)[number];
+
+export const partyContactPurposeEnum = coreSchema.enum('party_contact_purpose', ['ORDER', 'ACCOUNTS', 'ESCALATION']);
+export const PartyContactPurposeValues = {
+  ORDER: 'ORDER' as const,
+  ACCOUNTS: 'ACCOUNTS' as const,
+  ESCALATION: 'ESCALATION' as const,
+};
+export type PartyContactPurpose = (typeof partyContactPurposeEnum.enumValues)[number];

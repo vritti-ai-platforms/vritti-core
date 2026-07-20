@@ -45,9 +45,9 @@ export const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ onSucc
         partyType: data.partyType,
         partyName: data.partyName,
         issuedDate: data.issuedDate,
-        dueDate: data.dueDate || undefined,
-        paymentTerms: data.paymentTerms || undefined,
-        notes: data.notes || undefined,
+        dueDate: data.dueDate,
+        paymentTerms: data.paymentTerms,
+        notes: data.notes,
       })}
     >
       <Select

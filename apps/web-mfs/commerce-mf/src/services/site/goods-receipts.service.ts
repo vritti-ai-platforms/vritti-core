@@ -17,7 +17,7 @@ import type {
 
 export interface CreateGoodsReceiptPayload {
   supplierId: string;
-  purchaseOrderId?: string;
+  purchaseOrderId?: string | null;
   receivedDate: string;
   notes?: string;
   exchangeRate?: number;

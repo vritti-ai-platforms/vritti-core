@@ -40,7 +40,7 @@ export const UpdatePurchaseOrderNotesDialog: React.FC<UpdatePurchaseOrderNotesDi
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
-        notes: data.notes?.trim() || null,
+        notes: data.notes,
       })}
     >
       <TextArea name="notes" label="Notes" placeholder="Add notes" />

@@ -41,9 +41,9 @@ export const AddPersonDialog: React.FC<AddPersonDialogProps> = ({ onSuccess, onC
       onCancel={onCancel}
       transformSubmit={(data) => ({
         firstName: data.firstName,
-        lastName: data.lastName || undefined,
-        email: data.email || undefined,
-        phone: data.phone || undefined,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
         identifierType: data.identifierValue ? data.identifierType || undefined : undefined,
         identifierValue: data.identifierValue || undefined,
         isActive: data.isActive,

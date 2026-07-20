@@ -20,7 +20,7 @@ export const goodsReceiptStatusConfig: Record<GoodsReceiptStatus, { label: strin
 
 export const createGoodsReceiptSchema = z.object({
   supplierId: z.string().min(1, 'Supplier is required'),
-  purchaseOrderId: z.string().optional(),
+  purchaseOrderId: z.string().nullable().optional(),
   receivedDate: z.string({ error: 'Received date is required' }).min(1, 'Received date is required'),
   notes: z.string().optional(),
   // Required only when supplier currency != BU currency and not inherited from a FIXED PO.
@@ -272,7 +272,7 @@ export type UpdateGoodsReceiptItemFormData = z.infer<ReturnType<typeof buildUpda
 export const addGoodsReceiptLotSchema = z
   .object({
     lotNumber: z.string().min(1, 'Lot number is required').max(100),
-    manufacturingDate: z.string().optional(),
+    manufacturingDate: z.string().nullable().optional(),
     expiryDate: z.string().min(1, 'Expiry date is required'),
     mrp: zodCurrencyField({ positive: true }).optional(),
   })

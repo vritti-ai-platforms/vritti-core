@@ -26,7 +26,7 @@ interface ItemLocationFormSheetProps {
 
 const EMPTY: CreateItemLocationFormValues = {
   locationId: '',
-  reorderLevel: '',
+  reorderLevel: Number.NaN,
 };
 
 // Create/edit an item-location config in a bottom sheet (opened by the tab's FAB / a card's edit). Create shows
@@ -46,7 +46,7 @@ export const ItemLocationFormSheet = forwardRef<BottomSheetRef, ItemLocationForm
     // Seed from the current target on every open (onPresent) so reopening restores original values and clears
     // any stale mutation error. On edit the location is fixed (prefilled so the schema passes).
     const seedForm = useCallback(() => {
-      form.reset(editing ? { locationId: editing.locationId, reorderLevel: String(editing.reorderLevel) } : EMPTY);
+      form.reset(editing ? { locationId: editing.locationId, reorderLevel: editing.reorderLevel } : EMPTY);
       resetCreate();
       resetUpdate();
     }, [editing, form, resetCreate, resetUpdate]);
@@ -60,7 +60,7 @@ export const ItemLocationFormSheet = forwardRef<BottomSheetRef, ItemLocationForm
     };
 
     const handleSubmit = async (values: CreateItemLocationFormValues) => {
-      const reorderLevel = Number(values.reorderLevel);
+      const reorderLevel = values.reorderLevel;
       if (isEdit && editing) {
         const result = await updateLocation({ variables: { id: editing.id, input: { reorderLevel } } });
         if (!result.error) close();
@@ -104,11 +104,7 @@ export const ItemLocationFormSheet = forwardRef<BottomSheetRef, ItemLocationForm
                 params={{ locationRoles: 'RESERVED_STORAGE' }}
               />
             )}
-            <TextField
-              name="reorderLevel"
-              label={`Min. Stock Level (${uomSymbol ?? 'units'})`}
-              keyboardType="decimal-pad"
-            />
+            <TextField name="reorderLevel" label={`Min. Stock Level (${uomSymbol ?? 'units'})`} min={0} />
             <Button isLoading={creating || updating} onPress={form.handleSubmit(handleSubmit)}>
               <Text>{isEdit ? 'Save changes' : 'Add location'}</Text>
             </Button>

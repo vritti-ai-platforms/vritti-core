@@ -23,7 +23,7 @@ export const partyLicenseSchema = z.object({
   licenseType: licenseTypeSchema,
   licenseNumber: z.string().min(1, 'License number is required').max(100),
   region: z.string().max(100).optional(),
-  validTo: z.string().optional(),
+  validTo: z.string().nullable().optional(),
   notes: z.string().optional(),
   isActive: z.boolean().optional(),
 });

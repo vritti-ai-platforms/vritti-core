@@ -49,7 +49,7 @@ export const AddSitePriceDialog: React.FC<AddSitePriceDialogProps> = ({
         schemeBuyQty: data.schemeBuyQty ?? undefined,
         schemeFreeQty: data.schemeFreeQty ?? undefined,
         validFrom: data.validFrom,
-        validTo: data.validTo || undefined,
+        validTo: data.validTo,
       })}
     >
       <FormSection title="Site Price" contentClassName="block">

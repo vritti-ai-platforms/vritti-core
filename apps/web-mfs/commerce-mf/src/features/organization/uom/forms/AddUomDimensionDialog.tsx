@@ -30,7 +30,7 @@ export const AddUomDimensionDialog: React.FC<AddUomDimensionDialogProps> = ({ on
       transformSubmit={(data) => ({
         code: data.code,
         name: data.name,
-        description: data.description?.trim() ? data.description : undefined,
+        description: data.description,
       })}
     >
       <TextField name="code" label="Code" placeholder="e.g. weight" />

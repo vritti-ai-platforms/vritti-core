@@ -47,7 +47,9 @@ export type TaxJurisdictionFormData = {
 };
 
 // Pre-typed resolver — casts once here so no `as any` leaks into components
-export const taxJurisdictionFormResolver = zodResolver(_taxJurisdictionSchema) as unknown as Resolver<TaxJurisdictionFormData>;
+export const taxJurisdictionFormResolver = zodResolver(
+  _taxJurisdictionSchema,
+) as unknown as Resolver<TaxJurisdictionFormData>;
 
 export interface TaxJurisdictionData {
   id: string;

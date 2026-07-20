@@ -10,7 +10,7 @@ export const createPurchaseOrderSchema = z.object({
   exchangeRateType: ExchangeRateTypeEnum,
   exchangeRate: zodNumericField({ positive: true, nonZero: true }).optional(),
   orderDate: z.string().min(1, 'Order date is required'),
-  expectedBy: z.string().optional(),
+  expectedBy: z.string().nullable().optional(),
   notes: z.string().optional(),
 });
 

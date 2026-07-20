@@ -13,6 +13,10 @@ export class UpdateSupplierSiteDto {
   partyBankAccountId?: string | null;
 
   @IsOptional()
+  @IsUUID()
+  orderContactId?: string | null;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }

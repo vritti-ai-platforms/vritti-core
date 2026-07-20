@@ -37,8 +37,8 @@ export const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({ onSuccess,
       transformSubmit={(data) => ({
         name: data.name,
         phone: data.phone,
-        email: data.email || undefined,
-        notes: data.notes || undefined,
+        email: data.email,
+        notes: data.notes,
       })}
     >
       <div className="space-y-6">

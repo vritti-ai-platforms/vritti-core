@@ -57,7 +57,7 @@ export const CatalogForm: React.FC<CatalogFormProps> = ({ catalog, onSuccess, on
       return updateMutation.mutateAsync({
         id: catalog.id,
         data: {
-          name: data.name.trim(),
+          name: data.name,
           taxInclusive: data.taxInclusive,
           isActive: data.isActive,
           channelIds: data.channelIds ?? [],
@@ -65,7 +65,7 @@ export const CatalogForm: React.FC<CatalogFormProps> = ({ catalog, onSuccess, on
       });
     }
     return createMutation.mutateAsync({
-      name: data.name.trim(),
+      name: data.name,
       taxInclusive: data.taxInclusive,
       isActive: data.isActive,
       channelIds: data.channelIds ?? [],

@@ -39,9 +39,9 @@ export const AddCompanyPersonDialog: React.FC<AddCompanyPersonDialogProps> = ({ 
       onCancel={onCancel}
       transformSubmit={(data) => ({
         childPartyId: data.personId,
-        jobTitle: data.jobTitle || undefined,
-        secondaryPhone: data.secondaryPhone || undefined,
-        secondaryEmail: data.secondaryEmail || undefined,
+        jobTitle: data.jobTitle,
+        secondaryPhone: data.secondaryPhone,
+        secondaryEmail: data.secondaryEmail,
         isPrimary: data.isPrimary,
       })}
     >

@@ -40,7 +40,7 @@ export const SendPurchaseOrderEmailDialog: React.FC<SendPurchaseOrderEmailDialog
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
-        email: data.email?.trim() || undefined,
+        email: data.email,
       })}
     >
       <TextField

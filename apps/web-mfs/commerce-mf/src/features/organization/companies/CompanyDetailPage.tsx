@@ -2,22 +2,24 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
-import { DetailHeader } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Building2, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { COMPANY_IDENTIFIERS_TABLE_KEY, useCompanyById, useDeleteCompany } from '@/hooks/organization/companies';
+import { useCompanyById, useDeleteCompany } from '@/hooks/organization/companies';
+import { AddressesTab } from '../party/tabs/AddressesTab';
+import { BankAccountsTab } from '../party/tabs/BankAccountsTab';
+import { ContactsTab } from '../party/tabs/ContactsTab';
+import { IdentifiersTab } from '../party/tabs/IdentifiersTab';
+import { LicensesTab } from '../party/tabs/LicensesTab';
+import { RegistrationsTab } from '../party/tabs/RegistrationsTab';
 import { EditCompanyDialog } from './forms/EditCompanyDialog';
-import { AddressesTab } from './tabs/AddressesTab';
-import { BankAccountsTab } from './tabs/BankAccountsTab';
-import { IdentifiersTab } from './tabs/IdentifiersTab';
-import { LicensesTab } from './tabs/LicensesTab';
+import { companyBindings } from './party-bindings';
 import { OverviewTab } from './tabs/OverviewTab';
 import { PeopleTab } from './tabs/PeopleTab';
-import { RegistrationsTab } from './tabs/RegistrationsTab';
 
 export const CompanyDetailPage = () => {
   const { id } = useSlugParams('companySlug');
@@ -40,15 +42,11 @@ export const CompanyDetailPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <DetailHeader
+      <PageHeader
         title={company.displayName}
-        badges={
-          <Badge
-            variant={company.isActive ? 'secondary' : 'outline'}
-            className={company.isActive ? 'bg-success/15 text-success' : ''}
-          >
-            {company.isActive ? 'Active' : 'Inactive'}
-          </Badge>
+        description={company.legalName ?? undefined}
+        titleSlot={
+          <Badge variant={company.isActive ? 'success' : 'outline'}>{company.isActive ? 'Active' : 'Inactive'}</Badge>
         }
         actions={
           <Button
@@ -75,7 +73,7 @@ export const CompanyDetailPage = () => {
             value: 'addresses',
             label: 'Addresses',
             permission: ORG_COMPANIES.addresses.view,
-            content: <AddressesTab partyId={company.id} />,
+            content: <AddressesTab partyId={company.id} binding={companyBindings.addresses} />,
           },
           {
             value: 'people',
@@ -87,33 +85,31 @@ export const CompanyDetailPage = () => {
             value: 'registrations',
             label: 'Tax Registrations',
             permission: ORG_COMPANIES.registrations.view,
-            content: <RegistrationsTab companyId={company.id} />,
+            content: <RegistrationsTab partyId={company.id} binding={companyBindings.registrations} />,
           },
           {
             value: 'licenses',
             label: 'Licenses',
             permission: ORG_COMPANIES.licenses.view,
-            content: <LicensesTab companyId={company.id} />,
+            content: <LicensesTab partyId={company.id} binding={companyBindings.licenses} />,
           },
           {
             value: 'bank-accounts',
             label: 'Bank Accounts',
             permission: ORG_COMPANIES.bankAccounts.view,
-            content: <BankAccountsTab companyId={company.id} />,
+            content: <BankAccountsTab partyId={company.id} binding={companyBindings.bankAccounts} />,
+          },
+          {
+            value: 'contacts',
+            label: 'Contacts',
+            permission: ORG_COMPANIES.contacts.view,
+            content: <ContactsTab partyId={company.id} binding={companyBindings.contacts} />,
           },
           {
             value: 'identifiers',
             label: 'Identifiers',
             permission: ORG_COMPANIES.identifiers.view,
-            content: (
-              <IdentifiersTab
-                partyId={company.id}
-                permissions={ORG_COMPANIES.identifiers}
-                slug={`commerce-org-company-${company.id}-identifiers`}
-                queryKey={COMPANY_IDENTIFIERS_TABLE_KEY(company.id)}
-                emptyDescription="Record this company's identifiers like CIN, LEI, or DUNS."
-              />
-            ),
+            content: <IdentifiersTab partyId={company.id} binding={companyBindings.identifiers} />,
           },
         ]}
         value={activeTab}

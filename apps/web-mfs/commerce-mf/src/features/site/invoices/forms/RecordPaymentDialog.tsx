@@ -56,8 +56,8 @@ export const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({
         invoiceId: data.invoiceId,
         amount: data.amount,
         method: data.method,
-        reference: data.reference || undefined,
-        notes: data.notes || undefined,
+        reference: data.reference,
+        notes: data.notes,
       })}
     >
       <TextField name="amount" label="Amount" type="number" placeholder={`Max: ${balance.toFixed(2)}`} />

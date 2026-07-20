@@ -52,8 +52,8 @@ export const EditJurisdictionDialog: React.FC<EditJurisdictionDialogProps> = ({
         data: {
           ...data,
           parentId: data.parentId || null,
-          regionCode: data.regionCode || undefined,
-          taxUnion: data.taxUnion || undefined,
+          regionCode: data.regionCode,
+          taxUnion: data.taxUnion,
         },
       })}
     >

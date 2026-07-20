@@ -52,12 +52,12 @@ export const CostCategoryFormSheet = forwardRef<BottomSheetRef, CostCategoryForm
   const handleSubmit = async (values: CostCategoryFormValues) => {
     if (isEdit && editing) {
       // Rename only — code + kind are immutable server-side.
-      const result = await updateCategory({ variables: { id: editing.id, input: { name: values.name.trim() } } });
+      const result = await updateCategory({ variables: { id: editing.id, input: { name: values.name } } });
       if (!result.error) close();
       return;
     }
     const result = await createCategory({
-      variables: { input: { code: values.code.trim(), name: values.name.trim(), kind: values.kind } },
+      variables: { input: { code: values.code, name: values.name, kind: values.kind } },
     });
     if (!result.error) close();
   };

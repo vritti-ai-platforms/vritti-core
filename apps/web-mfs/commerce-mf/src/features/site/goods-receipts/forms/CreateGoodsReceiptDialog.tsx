@@ -101,7 +101,7 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
       onCancel={onCancel}
       transformSubmit={(data) => ({
         supplierId: data.supplierId,
-        purchaseOrderId: data.purchaseOrderId || undefined,
+        purchaseOrderId: data.purchaseOrderId,
         receivedDate: data.receivedDate,
         notes: data.notes,
         // Only send the user-supplied rate when applicable; hidden + FIXED-from-PO let the server resolve it.

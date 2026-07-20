@@ -10,6 +10,7 @@ import { InventoryItemsDomainService } from '@domain/inventory-items/services/in
 import { LocationsDomainService } from '@domain/locations/services/locations.service';
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { PartyBankAccountsDomainService } from '@domain/party-bank-accounts/services/party-bank-accounts.service';
+import { PartyContactsDomainService } from '@domain/party-contacts/services/party-contacts.service';
 import { PosTerminalsDomainService } from '@domain/pos-terminals/services/pos-terminals.service';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
@@ -31,6 +32,7 @@ import { InventoryItemQuantsSelectQueryDto } from './dto/request/inventory-item-
 import { InventoryItemSerialsSelectQueryDto } from './dto/request/inventory-item-serials-select-query.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
+import { PartyContactSelectQueryDto } from './dto/request/party-contact-select-query.dto';
 import { PartySelectQueryDto } from './dto/request/party-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from './dto/request/purchase-order-items-select-query.dto';
 import { PurchaseOrdersSelectQueryDto } from './dto/request/purchase-orders-select-query.dto';
@@ -66,6 +68,7 @@ export class SelectController {
     private readonly taxGroupsService: TaxGroupsDomainService,
     private readonly taxJurisdictionsService: TaxJurisdictionsDomainService,
     private readonly partyBankAccountsService: PartyBankAccountsDomainService,
+    private readonly partyContactsService: PartyContactsDomainService,
   ) {}
 
   // Returns paginated category options for the select component
@@ -146,6 +149,14 @@ export class SelectController {
     const { partyId, ...query } = data;
     this.logger.log(`select.partyBankAccounts — partyId: ${partyId}`);
     return this.partyBankAccountsService.findForSelect(query, partyId);
+  }
+
+  // Returns paginated contact options of a party for the select component
+  @MessagePattern({ cmd: 'select.partyContacts' })
+  async partyContacts(@Payload() data: PartyContactSelectQueryDto): Promise<SelectQueryResult> {
+    const { partyId, purpose, ...query } = data;
+    this.logger.log(`select.partyContacts — partyId: ${partyId}`);
+    return this.partyContactsService.findForSelect(query, partyId, purpose);
   }
 
   // Returns paginated customer options for the select component

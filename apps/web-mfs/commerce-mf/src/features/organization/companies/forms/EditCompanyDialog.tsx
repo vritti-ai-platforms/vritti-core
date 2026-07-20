@@ -49,20 +49,20 @@ export const EditCompanyDialog: React.FC<EditCompanyDialogProps> = ({ company, o
         id: company.id,
         data: {
           displayName: data.displayName,
-          legalName: data.legalName || undefined,
-          email: data.email || undefined,
-          phone: data.phone || undefined,
-          website: data.website || undefined,
+          legalName: data.legalName,
+          email: data.email,
+          phone: data.phone,
+          website: data.website,
           jurisdictionId: data.jurisdictionId || null,
           isActive: data.isActive,
           address:
             data.line1 && data.countryCode
               ? {
                   line1: data.line1,
-                  line2: data.line2 || undefined,
-                  city: data.city || undefined,
-                  region: data.region || undefined,
-                  postalCode: data.postalCode || undefined,
+                  line2: data.line2,
+                  city: data.city,
+                  region: data.region,
+                  postalCode: data.postalCode,
                   countryCode: data.countryCode,
                 }
               : undefined,

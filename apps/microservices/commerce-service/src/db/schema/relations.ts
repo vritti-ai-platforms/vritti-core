@@ -229,6 +229,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.supplierSites.partyBankAccountId,
       to: r.partyBankAccounts.id,
     }),
+    orderContact: r.one.partyContacts({
+      from: r.supplierSites.orderContactId,
+      to: r.partyContacts.id,
+    }),
   },
   parties: {
     jurisdiction: r.one.taxJurisdictions({
@@ -238,6 +242,7 @@ export const relations = defineRelations(schema, (r) => ({
     taxRegistrations: r.many.partyTaxRegistrations(),
     licenses: r.many.partyLicenses(),
     bankAccounts: r.many.partyBankAccounts(),
+    contacts: r.many.partyContacts(),
   },
   partyLicenses: {
     party: r.one.parties({
@@ -248,6 +253,12 @@ export const relations = defineRelations(schema, (r) => ({
   partyBankAccounts: {
     party: r.one.parties({
       from: r.partyBankAccounts.partyId,
+      to: r.parties.id,
+    }),
+  },
+  partyContacts: {
+    party: r.one.parties({
+      from: r.partyContacts.partyId,
       to: r.parties.id,
     }),
   },

@@ -40,7 +40,7 @@ const AddSerialForm = ({
       form={form}
       mutation={mutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({ serialNumber: data.serialNumber.trim() })}
+      transformSubmit={(data) => ({ serialNumber: data.serialNumber })}
     >
       <TextField name="serialNumber" label="Serial Number" placeholder="e.g. BOT-001" autoFocus />
       <DialogActions>

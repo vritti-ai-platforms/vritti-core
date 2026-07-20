@@ -45,7 +45,7 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
         fromLocationId: data.fromLocationId,
         toLocationId: data.toLocationId,
         quantity: data.quantity,
-        notes: data.notes || undefined,
+        notes: data.notes,
       })}
     >
       <InventoryItemSelector name="inventoryItemId" label="Inventory Item" placeholder="Select item" />

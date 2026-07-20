@@ -50,9 +50,9 @@ const EditLotForm = ({
       mutation={mutation}
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        lotNumber: data.lotNumber.trim(),
-        manufacturingDate: data.manufacturingDate?.trim() || null,
-        expiryDate: data.expiryDate.trim(),
+        lotNumber: data.lotNumber,
+        manufacturingDate: data.manufacturingDate,
+        expiryDate: data.expiryDate,
         mrp: data.mrp?.value ? data.mrp : null,
       })}
     >

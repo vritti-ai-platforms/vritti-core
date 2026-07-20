@@ -25,11 +25,13 @@ import { AddPartyIdentifierDto } from './dto/request/add-party-identifier.dto';
 import { CreateCompanyDto } from './dto/request/create-company.dto';
 import { CreateCompanyRegistrationDto } from './dto/request/create-company-registration.dto';
 import { CreatePartyBankAccountDto } from './dto/request/create-party-bank-account.dto';
+import { CreatePartyContactDto } from './dto/request/create-party-contact.dto';
 import { CreatePartyLicenseDto } from './dto/request/create-party-license.dto';
 import { UpdateCompanyDto } from './dto/request/update-company.dto';
 import { UpdateCompanyRegistrationDto } from './dto/request/update-company-registration.dto';
 import { UpdatePartyAddressDto } from './dto/request/update-party-address.dto';
 import { UpdatePartyBankAccountDto } from './dto/request/update-party-bank-account.dto';
+import { UpdatePartyContactDto } from './dto/request/update-party-contact.dto';
 import { UpdatePartyLicenseDto } from './dto/request/update-party-license.dto';
 import type { CompanyPersonResponseDto } from './dto/response/company-person-response.dto';
 import type { CompanyPersonTableResponseDto } from './dto/response/company-person-table-response.dto';
@@ -41,6 +43,8 @@ import type { PartyAddressResponseDto } from './dto/response/party-address-respo
 import type { PartyAddressTableResponseDto } from './dto/response/party-address-table-response.dto';
 import type { PartyBankAccountResponseDto } from './dto/response/party-bank-account-response.dto';
 import type { PartyBankAccountTableResponseDto } from './dto/response/party-bank-account-table-response.dto';
+import type { PartyContactResponseDto } from './dto/response/party-contact-response.dto';
+import type { PartyContactTableResponseDto } from './dto/response/party-contact-table-response.dto';
 import type { PartyIdentifierResponseDto } from './dto/response/party-identifier-response.dto';
 import type { PartyIdentifierTableResponseDto } from './dto/response/party-identifier-table-response.dto';
 import type { PartyLicenseResponseDto } from './dto/response/party-license-response.dto';
@@ -83,13 +87,13 @@ export class CompaniesGatewayController {
   }
 
   // Returns the linked people of a company for the data table
-  @Get(':id/people')
+  @Get(':id/people/table')
   @RequirePermission(ORG_COMPANIES.people.view)
   listPeople(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<CompanyPersonTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/people`);
+    this.logger.log(`GET /commerce-api/companies/${id}/people/table`);
     return this.service.listPeople(id, userId);
   }
 
@@ -117,13 +121,13 @@ export class CompaniesGatewayController {
   }
 
   // Returns the tax registrations of a company for the data table
-  @Get(':id/registrations')
+  @Get(':id/registrations/table')
   @RequirePermission(ORG_COMPANIES.registrations.view)
   listRegistrations(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<CompanyRegistrationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/registrations`);
+    this.logger.log(`GET /commerce-api/companies/${id}/registrations/table`);
     return this.service.listRegistrations(id, userId);
   }
 
@@ -163,13 +167,13 @@ export class CompaniesGatewayController {
   }
 
   // Returns the identifiers of a company for the data table
-  @Get(':id/identifiers')
+  @Get(':id/identifiers/table')
   @RequirePermission(ORG_COMPANIES.identifiers.view)
   listIdentifiers(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyIdentifierTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/identifiers`);
+    this.logger.log(`GET /commerce-api/companies/${id}/identifiers/table`);
     return this.service.listIdentifiers(id, userId);
   }
 
@@ -197,13 +201,13 @@ export class CompaniesGatewayController {
   }
 
   // Returns the addresses of a company for the data table
-  @Get(':id/addresses')
+  @Get(':id/addresses/table')
   @RequirePermission(ORG_COMPANIES.addresses.view)
   listAddresses(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyAddressTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/addresses`);
+    this.logger.log(`GET /commerce-api/companies/${id}/addresses/table`);
     return this.service.listAddresses(id, userId);
   }
 
@@ -332,6 +336,52 @@ export class CompaniesGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/companies/${id}/bank-accounts/${accountId}`);
     return this.service.deleteBankAccount(accountId);
+  }
+
+  // Returns the contacts of a company for the data table
+  @Get(':id/contacts/table')
+  @RequirePermission(ORG_COMPANIES.contacts.view)
+  listContacts(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartyContactTableResponseDto> {
+    this.logger.log(`GET /commerce-api/companies/${id}/contacts/table`);
+    return this.service.listContacts(id, userId);
+  }
+
+  // Creates a contact for a company
+  @Post(':id/contacts')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.contacts.add)
+  createContact(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreatePartyContactDto,
+  ): Promise<CreateResponseDto<PartyContactResponseDto>> {
+    this.logger.log(`POST /commerce-api/companies/${id}/contacts`);
+    return this.service.createContact(id, dto);
+  }
+
+  // Updates a company contact
+  @Patch(':id/contacts/:contactId')
+  @RequirePermission(ORG_COMPANIES.contacts.edit)
+  updateContact(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('contactId', new ParseUUIDPipe()) contactId: string,
+    @Body() dto: UpdatePartyContactDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/companies/${id}/contacts/${contactId}`);
+    return this.service.updateContact(contactId, dto);
+  }
+
+  // Deletes a company contact
+  @Delete(':id/contacts/:contactId')
+  @RequirePermission(ORG_COMPANIES.contacts.delete)
+  deleteContact(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('contactId', new ParseUUIDPipe()) contactId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/companies/${id}/contacts/${contactId}`);
+    return this.service.deleteContact(contactId);
   }
 
   // Returns a company by ID

@@ -53,8 +53,8 @@ export const AddJurisdictionDialog: React.FC<AddJurisdictionDialogProps> = ({
       transformSubmit={(data: TaxJurisdictionFormData) => ({
         ...data,
         parentId: data.parentId || null,
-        regionCode: data.regionCode || undefined,
-        taxUnion: data.taxUnion || undefined,
+        regionCode: data.regionCode,
+        taxUnion: data.taxUnion,
       })}
     >
       <TextField name="code" label="Code" placeholder="e.g. us-ca" />

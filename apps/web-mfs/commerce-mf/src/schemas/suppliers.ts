@@ -243,8 +243,8 @@ export type SupplierSitesTableResponse = TableResponse<SupplierSiteRow>;
 
 export const addSupplierSiteSchema = z.object({
   siteId: z.uuid('Site is required'),
-  partyTaxRegistrationId: z.string().optional(),
-  partyBankAccountId: z.string().optional(),
+  partyTaxRegistrationId: z.string().nullable().optional(),
+  partyBankAccountId: z.string().nullable().optional(),
 });
 
 export const updateSupplierSiteSchema = z.object({
@@ -285,7 +285,7 @@ export const addSupplierItemPriceSchema = z
     schemeBuyQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
     schemeFreeQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
     validFrom: z.string().min(1, 'Valid from is required'),
-    validTo: z.string().optional(),
+    validTo: z.string().nullable().optional(),
   })
   .refine((data) => !data.validTo || new Date(data.validTo) >= new Date(data.validFrom), {
     message: 'Valid to must be on or after valid from',

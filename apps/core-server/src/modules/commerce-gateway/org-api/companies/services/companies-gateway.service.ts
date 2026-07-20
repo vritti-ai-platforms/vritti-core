@@ -13,11 +13,13 @@ import type { AddPartyIdentifierDto } from '../dto/request/add-party-identifier.
 import type { CreateCompanyDto } from '../dto/request/create-company.dto';
 import type { CreateCompanyRegistrationDto } from '../dto/request/create-company-registration.dto';
 import type { CreatePartyBankAccountDto } from '../dto/request/create-party-bank-account.dto';
+import type { CreatePartyContactDto } from '../dto/request/create-party-contact.dto';
 import type { CreatePartyLicenseDto } from '../dto/request/create-party-license.dto';
 import type { UpdateCompanyDto } from '../dto/request/update-company.dto';
 import type { UpdateCompanyRegistrationDto } from '../dto/request/update-company-registration.dto';
 import type { UpdatePartyAddressDto } from '../dto/request/update-party-address.dto';
 import type { UpdatePartyBankAccountDto } from '../dto/request/update-party-bank-account.dto';
+import type { UpdatePartyContactDto } from '../dto/request/update-party-contact.dto';
 import type { UpdatePartyLicenseDto } from '../dto/request/update-party-license.dto';
 import type { CompanyPersonResponseDto } from '../dto/response/company-person-response.dto';
 import type { CompanyPersonTableResponseDto } from '../dto/response/company-person-table-response.dto';
@@ -29,6 +31,8 @@ import type { PartyAddressResponseDto } from '../dto/response/party-address-resp
 import type { PartyAddressTableResponseDto } from '../dto/response/party-address-table-response.dto';
 import type { PartyBankAccountResponseDto } from '../dto/response/party-bank-account-response.dto';
 import type { PartyBankAccountTableResponseDto } from '../dto/response/party-bank-account-table-response.dto';
+import type { PartyContactResponseDto } from '../dto/response/party-contact-response.dto';
+import type { PartyContactTableResponseDto } from '../dto/response/party-contact-table-response.dto';
 import type { PartyIdentifierResponseDto } from '../dto/response/party-identifier-response.dto';
 import type { PartyIdentifierTableResponseDto } from '../dto/response/party-identifier-table-response.dto';
 import type { PartyLicenseResponseDto } from '../dto/response/party-license-response.dto';
@@ -289,5 +293,40 @@ export class CompaniesGatewayService {
   deleteBankAccount(accountId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.companies.bankAccounts.delete — id: ${accountId}`);
     return this.nats.send('commerce', 'org.companies.bankAccounts.delete', { id: accountId });
+  }
+
+  // Returns the contacts of a company for the data table
+  async listContacts(companyId: string, userId: string): Promise<PartyContactTableResponseDto> {
+    this.logger.log(`org.companies.contacts.table — companyId: ${companyId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-org-company-${companyId}-contacts`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: PartyContactResponseDto[]; count: number }>(
+      'commerce',
+      'org.companies.contacts.table',
+      { companyId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Creates a contact for a company
+  createContact(companyId: string, dto: CreatePartyContactDto): Promise<CreateResponseDto<PartyContactResponseDto>> {
+    this.logger.log(`org.companies.contacts.create — companyId: ${companyId}, purpose: ${dto.purpose}`);
+    return this.nats.send('commerce', 'org.companies.contacts.create', { companyId, ...dto });
+  }
+
+  // Updates a company contact by ID
+  updateContact(contactId: string, dto: UpdatePartyContactDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.companies.contacts.update — id: ${contactId}`);
+    return this.nats.send('commerce', 'org.companies.contacts.update', { id: contactId, ...dto });
+  }
+
+  // Deletes a company contact by ID
+  deleteContact(contactId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.companies.contacts.delete — id: ${contactId}`);
+    return this.nats.send('commerce', 'org.companies.contacts.delete', { id: contactId });
   }
 }

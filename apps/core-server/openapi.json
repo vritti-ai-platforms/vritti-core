@@ -14179,7 +14179,7 @@
         ]
       }
     },
-    "/commerce-api/people/{id}/identifiers": {
+    "/commerce-api/people/{id}/identifiers/table": {
       "get": {
         "operationId": "PeopleGatewayController_listIdentifiers",
         "parameters": [
@@ -14205,7 +14205,37 @@
         "tags": [
           "Commerce - People"
         ]
-      },
+      }
+    },
+    "/commerce-api/people/{id}/companies/table": {
+      "get": {
+        "operationId": "PeopleGatewayController_getCompaniesTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/identifiers": {
       "post": {
         "operationId": "PeopleGatewayController_addIdentifier",
         "parameters": [
@@ -14230,34 +14260,6 @@
         },
         "responses": {
           "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - People"
-        ]
-      }
-    },
-    "/commerce-api/people/{id}/companies": {
-      "get": {
-        "operationId": "PeopleGatewayController_getCompaniesTable",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
             "description": ""
           }
         },
@@ -14307,7 +14309,7 @@
         ]
       }
     },
-    "/commerce-api/people/{id}/addresses": {
+    "/commerce-api/people/{id}/addresses/table": {
       "get": {
         "operationId": "PeopleGatewayController_listAddresses",
         "parameters": [
@@ -14333,7 +14335,9 @@
         "tags": [
           "Commerce - People"
         ]
-      },
+      }
+    },
+    "/commerce-api/people/{id}/addresses": {
       "post": {
         "operationId": "PeopleGatewayController_addAddress",
         "parameters": [
@@ -14429,6 +14433,590 @@
           },
           {
             "name": "addressId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/registrations/table": {
+      "get": {
+        "operationId": "PeopleGatewayController_listRegistrations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/registrations": {
+      "post": {
+        "operationId": "PeopleGatewayController_createRegistration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePersonRegistrationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/registrations/{registrationId}": {
+      "patch": {
+        "operationId": "PeopleGatewayController_updateRegistration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "registrationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePersonRegistrationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "delete": {
+        "operationId": "PeopleGatewayController_deleteRegistration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "registrationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/licenses/table": {
+      "get": {
+        "operationId": "PeopleGatewayController_listLicenses",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/licenses": {
+      "post": {
+        "operationId": "PeopleGatewayController_createLicense",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartyLicenseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/licenses/{licenseId}": {
+      "patch": {
+        "operationId": "PeopleGatewayController_updateLicense",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartyLicenseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "delete": {
+        "operationId": "PeopleGatewayController_deleteLicense",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/bank-accounts/table": {
+      "get": {
+        "operationId": "PeopleGatewayController_listBankAccounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/bank-accounts": {
+      "post": {
+        "operationId": "PeopleGatewayController_createBankAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartyBankAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/bank-accounts/{accountId}": {
+      "patch": {
+        "operationId": "PeopleGatewayController_updateBankAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accountId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartyBankAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "delete": {
+        "operationId": "PeopleGatewayController_deleteBankAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accountId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/contacts/table": {
+      "get": {
+        "operationId": "PeopleGatewayController_listContacts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/contacts": {
+      "post": {
+        "operationId": "PeopleGatewayController_createContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartyContactDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/contacts/{contactId}": {
+      "patch": {
+        "operationId": "PeopleGatewayController_updateContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contactId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartyContactDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "delete": {
+        "operationId": "PeopleGatewayController_deleteContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contactId",
             "required": true,
             "in": "path",
             "schema": {
@@ -14739,7 +15327,7 @@
         ]
       }
     },
-    "/commerce-api/companies/{id}/people": {
+    "/commerce-api/companies/{id}/people/table": {
       "get": {
         "operationId": "CompaniesGatewayController_listPeople",
         "parameters": [
@@ -14765,7 +15353,9 @@
         "tags": [
           "Commerce - Companies"
         ]
-      },
+      }
+    },
+    "/commerce-api/companies/{id}/people": {
       "post": {
         "operationId": "CompaniesGatewayController_addPerson",
         "parameters": [
@@ -14839,7 +15429,7 @@
         ]
       }
     },
-    "/commerce-api/companies/{id}/registrations": {
+    "/commerce-api/companies/{id}/registrations/table": {
       "get": {
         "operationId": "CompaniesGatewayController_listRegistrations",
         "parameters": [
@@ -14865,7 +15455,9 @@
         "tags": [
           "Commerce - Companies"
         ]
-      },
+      }
+    },
+    "/commerce-api/companies/{id}/registrations": {
       "post": {
         "operationId": "CompaniesGatewayController_createRegistration",
         "parameters": [
@@ -14983,7 +15575,7 @@
         ]
       }
     },
-    "/commerce-api/companies/{id}/identifiers": {
+    "/commerce-api/companies/{id}/identifiers/table": {
       "get": {
         "operationId": "CompaniesGatewayController_listIdentifiers",
         "parameters": [
@@ -15009,7 +15601,9 @@
         "tags": [
           "Commerce - Companies"
         ]
-      },
+      }
+    },
+    "/commerce-api/companies/{id}/identifiers": {
       "post": {
         "operationId": "CompaniesGatewayController_addIdentifier",
         "parameters": [
@@ -15083,7 +15677,7 @@
         ]
       }
     },
-    "/commerce-api/companies/{id}/addresses": {
+    "/commerce-api/companies/{id}/addresses/table": {
       "get": {
         "operationId": "CompaniesGatewayController_listAddresses",
         "parameters": [
@@ -15109,7 +15703,9 @@
         "tags": [
           "Commerce - Companies"
         ]
-      },
+      }
+    },
+    "/commerce-api/companies/{id}/addresses": {
       "post": {
         "operationId": "CompaniesGatewayController_addAddress",
         "parameters": [
@@ -15497,6 +16093,152 @@
           },
           {
             "name": "accountId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/contacts/table": {
+      "get": {
+        "operationId": "CompaniesGatewayController_listContacts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/contacts": {
+      "post": {
+        "operationId": "CompaniesGatewayController_createContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartyContactDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/contacts/{contactId}": {
+      "patch": {
+        "operationId": "CompaniesGatewayController_updateContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contactId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartyContactDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "delete": {
+        "operationId": "CompaniesGatewayController_deleteContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contactId",
             "required": true,
             "in": "path",
             "schema": {
@@ -27331,6 +28073,334 @@
           }
         }
       },
+      "CreatePersonRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "jurisdictionId": {
+            "type": "string",
+            "description": "Tax jurisdiction ID the registration belongs to"
+          },
+          "registrationNumber": {
+            "type": "string",
+            "description": "Registration number",
+            "example": "22AAAAA0000A1Z5"
+          },
+          "registrationType": {
+            "type": "string",
+            "description": "Registration type",
+            "enum": [
+              "GSTIN",
+              "VAT",
+              "TIN",
+              "PAN",
+              "OTHER"
+            ]
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary registration"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the registration is active",
+            "default": true
+          }
+        },
+        "required": [
+          "jurisdictionId",
+          "registrationNumber",
+          "registrationType"
+        ]
+      },
+      "UpdatePersonRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "jurisdictionId": {
+            "type": "string",
+            "description": "Tax jurisdiction ID the registration belongs to"
+          },
+          "registrationNumber": {
+            "type": "string",
+            "description": "Registration number"
+          },
+          "registrationType": {
+            "type": "string",
+            "description": "Registration type",
+            "enum": [
+              "GSTIN",
+              "VAT",
+              "TIN",
+              "PAN",
+              "OTHER"
+            ]
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary registration"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the registration is active"
+          }
+        }
+      },
+      "CreatePartyLicenseDto": {
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "description": "License type",
+            "enum": [
+              "DRUG",
+              "EXCISE",
+              "FSSAI",
+              "OTHER"
+            ]
+          },
+          "licenseNumber": {
+            "type": "string",
+            "description": "License number",
+            "example": "DL-20B-123456"
+          },
+          "region": {
+            "type": "object",
+            "description": "Region or state the license covers",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "object",
+            "description": "License expiry date (ISO date)",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "description": "Additional notes",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the license is active",
+            "default": true
+          }
+        },
+        "required": [
+          "licenseType",
+          "licenseNumber"
+        ]
+      },
+      "UpdatePartyLicenseDto": {
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "description": "License type",
+            "enum": [
+              "DRUG",
+              "EXCISE",
+              "FSSAI",
+              "OTHER"
+            ]
+          },
+          "licenseNumber": {
+            "type": "string",
+            "description": "License number",
+            "example": "DL-20B-123456"
+          },
+          "region": {
+            "type": "object",
+            "description": "Region or state the license covers",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "object",
+            "description": "License expiry date (ISO date)",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "description": "Additional notes",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the license is active"
+          }
+        }
+      },
+      "CreatePartyBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "accountName": {
+            "type": "string",
+            "description": "Account holder name",
+            "example": "Acme Foods Pvt Ltd"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Bank account number",
+            "example": "50100123456789"
+          },
+          "ifscCode": {
+            "type": "object",
+            "description": "IFSC code",
+            "example": "HDFC0001234",
+            "nullable": true
+          },
+          "upiId": {
+            "type": "object",
+            "description": "UPI ID",
+            "example": "acme@hdfcbank",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "object",
+            "description": "Bank name",
+            "example": "HDFC Bank",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary account for the party"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the account is active",
+            "default": true
+          }
+        },
+        "required": [
+          "accountName",
+          "accountNumber"
+        ]
+      },
+      "UpdatePartyBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "accountName": {
+            "type": "string",
+            "description": "Account holder name",
+            "example": "Acme Foods Pvt Ltd"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Bank account number",
+            "example": "50100123456789"
+          },
+          "ifscCode": {
+            "type": "object",
+            "description": "IFSC code",
+            "example": "HDFC0001234",
+            "nullable": true
+          },
+          "upiId": {
+            "type": "object",
+            "description": "UPI ID",
+            "example": "acme@hdfcbank",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "object",
+            "description": "Bank name",
+            "example": "HDFC Bank",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary account for the party"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the account is active"
+          }
+        }
+      },
+      "CreatePartyContactDto": {
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "description": "Contact purpose",
+            "enum": [
+              "ORDER",
+              "ACCOUNTS",
+              "ESCALATION"
+            ]
+          },
+          "label": {
+            "type": "object",
+            "description": "Contact label",
+            "example": "Primary sales desk",
+            "nullable": true
+          },
+          "name": {
+            "type": "object",
+            "description": "Contact person name",
+            "example": "Priya Sharma",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "description": "Contact email",
+            "example": "orders@acmefoods.com",
+            "nullable": true
+          },
+          "phone": {
+            "type": "object",
+            "description": "Contact phone",
+            "example": "+91 98765 43210",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary contact for the party"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the contact is active",
+            "default": true
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "UpdatePartyContactDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "object",
+            "description": "Contact label",
+            "example": "Primary sales desk",
+            "nullable": true
+          },
+          "name": {
+            "type": "object",
+            "description": "Contact person name",
+            "example": "Priya Sharma",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "description": "Contact email",
+            "example": "orders@acmefoods.com",
+            "nullable": true
+          },
+          "phone": {
+            "type": "object",
+            "description": "Contact phone",
+            "example": "+91 98765 43210",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary contact for the party"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the contact is active"
+          }
+        }
+      },
       "UpdatePersonDto": {
         "type": "object",
         "properties": {
@@ -27525,176 +28595,6 @@
           "isPrimary": {
             "type": "boolean",
             "description": "Whether this is the primary registration"
-          }
-        }
-      },
-      "CreatePartyLicenseDto": {
-        "type": "object",
-        "properties": {
-          "licenseType": {
-            "type": "string",
-            "description": "License type",
-            "enum": [
-              "DRUG",
-              "EXCISE",
-              "FSSAI",
-              "OTHER"
-            ]
-          },
-          "licenseNumber": {
-            "type": "string",
-            "description": "License number",
-            "example": "DL-20B-123456"
-          },
-          "region": {
-            "type": "object",
-            "description": "Region or state the license covers",
-            "nullable": true
-          },
-          "validTo": {
-            "type": "object",
-            "description": "License expiry date (ISO date)",
-            "nullable": true
-          },
-          "notes": {
-            "type": "object",
-            "description": "Additional notes",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the license is active",
-            "default": true
-          }
-        },
-        "required": [
-          "licenseType",
-          "licenseNumber"
-        ]
-      },
-      "UpdatePartyLicenseDto": {
-        "type": "object",
-        "properties": {
-          "licenseType": {
-            "type": "string",
-            "description": "License type",
-            "enum": [
-              "DRUG",
-              "EXCISE",
-              "FSSAI",
-              "OTHER"
-            ]
-          },
-          "licenseNumber": {
-            "type": "string",
-            "description": "License number",
-            "example": "DL-20B-123456"
-          },
-          "region": {
-            "type": "object",
-            "description": "Region or state the license covers",
-            "nullable": true
-          },
-          "validTo": {
-            "type": "object",
-            "description": "License expiry date (ISO date)",
-            "nullable": true
-          },
-          "notes": {
-            "type": "object",
-            "description": "Additional notes",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the license is active"
-          }
-        }
-      },
-      "CreatePartyBankAccountDto": {
-        "type": "object",
-        "properties": {
-          "accountName": {
-            "type": "string",
-            "description": "Account holder name",
-            "example": "Acme Foods Pvt Ltd"
-          },
-          "accountNumber": {
-            "type": "string",
-            "description": "Bank account number",
-            "example": "50100123456789"
-          },
-          "ifscCode": {
-            "type": "object",
-            "description": "IFSC code",
-            "example": "HDFC0001234",
-            "nullable": true
-          },
-          "upiId": {
-            "type": "object",
-            "description": "UPI ID",
-            "example": "acme@hdfcbank",
-            "nullable": true
-          },
-          "bankName": {
-            "type": "object",
-            "description": "Bank name",
-            "example": "HDFC Bank",
-            "nullable": true
-          },
-          "isPrimary": {
-            "type": "boolean",
-            "description": "Whether this is the primary account for the party"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the account is active",
-            "default": true
-          }
-        },
-        "required": [
-          "accountName",
-          "accountNumber"
-        ]
-      },
-      "UpdatePartyBankAccountDto": {
-        "type": "object",
-        "properties": {
-          "accountName": {
-            "type": "string",
-            "description": "Account holder name",
-            "example": "Acme Foods Pvt Ltd"
-          },
-          "accountNumber": {
-            "type": "string",
-            "description": "Bank account number",
-            "example": "50100123456789"
-          },
-          "ifscCode": {
-            "type": "object",
-            "description": "IFSC code",
-            "example": "HDFC0001234",
-            "nullable": true
-          },
-          "upiId": {
-            "type": "object",
-            "description": "UPI ID",
-            "example": "acme@hdfcbank",
-            "nullable": true
-          },
-          "bankName": {
-            "type": "object",
-            "description": "Bank name",
-            "example": "HDFC Bank",
-            "nullable": true
-          },
-          "isPrimary": {
-            "type": "boolean",
-            "description": "Whether this is the primary account for the party"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the account is active"
           }
         }
       },

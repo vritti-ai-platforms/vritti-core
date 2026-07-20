@@ -26,7 +26,7 @@ export interface CreateOfferingPayload {
   name: string;
   description?: string;
   salesTaxGroupId?: string;
-  categoryId?: string;
+  categoryId?: string | null;
   isAvailable?: boolean;
   variantOptionIds?: string[];
   defaultVariant?: CreateOfferingDefaultVariant;

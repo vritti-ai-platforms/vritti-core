@@ -26,8 +26,8 @@ const EMPTY: UomFormValues = {
   name: '',
   symbol: '',
   baseUnitId: '',
-  uomQty: '',
-  baseUomQty: '',
+  uomQty: undefined,
+  baseUomQty: undefined,
 };
 
 const KIND_OPTIONS = [
@@ -62,8 +62,8 @@ export const UomUnitFormSheet = forwardRef<BottomSheetRef, UomUnitFormSheetProps
             name: editing.name,
             symbol: editing.symbol,
             baseUnitId: editing.baseUnitId ?? '',
-            uomQty: String(editing.uomQty),
-            baseUomQty: String(editing.baseUomQty),
+            uomQty: editing.uomQty,
+            baseUomQty: editing.baseUomQty,
           }
         : EMPTY,
     );
@@ -86,9 +86,9 @@ export const UomUnitFormSheet = forwardRef<BottomSheetRef, UomUnitFormSheetProps
     if (isEdit && editing) {
       // Kind + base unit are fixed on edit; only name/symbol/ratio change.
       const input = {
-        name: values.name.trim(),
-        symbol: values.symbol.trim(),
-        ...(isDerived ? { uomQty: Number(values.uomQty), baseUomQty: Number(values.baseUomQty) } : {}),
+        name: values.name,
+        symbol: values.symbol,
+        ...(isDerived ? { uomQty: values.uomQty, baseUomQty: values.baseUomQty } : {}),
       };
       const result = await updateUom({ variables: { id: editing.id, input } });
       if (!result.error) close();
@@ -96,11 +96,11 @@ export const UomUnitFormSheet = forwardRef<BottomSheetRef, UomUnitFormSheetProps
     }
     const input = {
       dimensionId,
-      name: values.name.trim(),
-      symbol: values.symbol.trim(),
+      name: values.name,
+      symbol: values.symbol,
       allowDecimal,
       ...(isDerived
-        ? { baseUnitId: values.baseUnitId, uomQty: Number(values.uomQty), baseUomQty: Number(values.baseUomQty) }
+        ? { baseUnitId: values.baseUnitId, uomQty: values.uomQty, baseUomQty: values.baseUomQty }
         : {}),
     };
     const result = await createUom({ variables: { input } });
@@ -158,8 +158,8 @@ export const UomUnitFormSheet = forwardRef<BottomSheetRef, UomUnitFormSheetProps
                   }
                 />
               )}
-              <TextField name="uomQty" label={`Count of ${symbol || 'this unit'}`} keyboardType="number-pad" />
-              <TextField name="baseUomQty" label={`Count of ${baseSymbol ?? 'base unit'}`} keyboardType="number-pad" />
+              <TextField name="uomQty" label={`Count of ${symbol || 'this unit'}`} integer positive />
+              <TextField name="baseUomQty" label={`Count of ${baseSymbol ?? 'base unit'}`} integer positive />
             </>
           ) : null}
 

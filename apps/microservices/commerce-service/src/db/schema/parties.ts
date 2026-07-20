@@ -13,6 +13,7 @@ import {
 import { coreSchema } from './core-schema';
 import {
   partyAddressTypeEnum,
+  partyContactPurposeEnum,
   partyIdentifierTypeEnum,
   partyLicenseTypeEnum,
   partyTypeEnum,
@@ -258,3 +259,37 @@ export const partyBankAccounts = coreSchema.table(
 
 export type PartyBankAccount = typeof partyBankAccounts.$inferSelect;
 export type NewPartyBankAccount = typeof partyBankAccounts.$inferInsert;
+
+export const partyContacts = coreSchema.table(
+  'party_contacts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    partyId: uuid('party_id')
+      .notNull()
+      .references(() => parties.id, { onDelete: 'cascade' }),
+    purpose: partyContactPurposeEnum('purpose').notNull(),
+    label: varchar('label', { length: 120 }),
+    name: varchar('name', { length: 150 }),
+    email: varchar('email', { length: 255 }),
+    phone: varchar('phone', { length: 20 }),
+    isPrimary: boolean('is_primary').notNull().default(false),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex('uq_party_contacts_primary').on(table.partyId, table.purpose).where(sql`is_primary = true`),
+    index('idx_party_contacts_party').on(table.partyId),
+    pgPolicy('org_isolation', {
+      for: 'all',
+      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
+    }),
+  ],
+);
+
+export type PartyContact = typeof partyContacts.$inferSelect;
+export type NewPartyContact = typeof partyContacts.$inferInsert;

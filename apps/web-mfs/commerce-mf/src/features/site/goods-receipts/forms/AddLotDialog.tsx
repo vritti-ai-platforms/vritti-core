@@ -38,9 +38,9 @@ const AddLotForm = ({
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        lotNumber: data.lotNumber.trim(),
-        manufacturingDate: data.manufacturingDate?.trim() || undefined,
-        expiryDate: data.expiryDate.trim(),
+        lotNumber: data.lotNumber,
+        manufacturingDate: data.manufacturingDate,
+        expiryDate: data.expiryDate,
         mrp: data.mrp?.value ? data.mrp : undefined,
       })}
     >

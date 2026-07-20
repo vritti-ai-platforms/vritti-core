@@ -8,7 +8,7 @@ export interface CreateInvoicePayload {
   partyType: string;
   partyName: string;
   issuedDate: string;
-  dueDate?: string;
+  dueDate?: string | null;
   paymentTerms?: string;
   notes?: string;
 }

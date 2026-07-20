@@ -164,7 +164,7 @@ export type UpdateStockAdjustmentFormData = z.infer<typeof updateStockAdjustment
 export const addStockAdjustmentLotSchema = z
   .object({
     lotNumber: z.string().min(1, 'Lot number is required').max(100),
-    manufacturingDate: z.string().optional(),
+    manufacturingDate: z.string().nullable().optional(),
     expiryDate: z.string().min(1, 'Expiry date is required'),
   })
   .refine((data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate), {

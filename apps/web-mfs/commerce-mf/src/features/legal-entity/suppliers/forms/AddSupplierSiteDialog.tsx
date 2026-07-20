@@ -41,8 +41,8 @@ export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({
         siteId: data.siteId,
-        partyTaxRegistrationId: data.partyTaxRegistrationId || undefined,
-        partyBankAccountId: data.partyBankAccountId || undefined,
+        partyTaxRegistrationId: data.partyTaxRegistrationId,
+        partyBankAccountId: data.partyBankAccountId,
       })}
     >
       <FormSection title="Enrollment" contentClassName="block">

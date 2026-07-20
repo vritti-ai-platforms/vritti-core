@@ -14,4 +14,8 @@ export class AddSupplierSiteDto {
   @IsOptional()
   @IsUUID()
   partyBankAccountId?: string | null;
+
+  @IsOptional()
+  @IsUUID()
+  orderContactId?: string | null;
 }

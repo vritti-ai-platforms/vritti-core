@@ -98,7 +98,7 @@ const QuickCreateCustomerForm: React.FC<QuickCreateCustomerFormProps> = ({
       transformSubmit={(data) => ({
         name: data.name,
         phone: data.phone,
-        email: data.email || undefined,
+        email: data.email,
       })}
     >
       <div className="grid grid-cols-1 gap-4">

@@ -58,9 +58,9 @@ export const UomDimensionFormSheet = forwardRef<BottomSheetRef, UomDimensionForm
 
   const handleSubmit = async (values: UomDimensionFormValues) => {
     const input = {
-      code: values.code.trim(),
-      name: values.name.trim(),
-      description: values.description?.trim() || undefined,
+      code: values.code,
+      name: values.name,
+      description: values.description,
     };
     if (isEdit && editing) {
       const result = await updateDimension({

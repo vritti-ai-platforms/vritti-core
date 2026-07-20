@@ -9,17 +9,16 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  PERSON_IDENTIFIERS_KEY,
-  useDeletePerson,
-  usePersonById,
-  usePersonCompanies,
-  usePersonIdentifiers,
-} from '@/hooks/organization/people';
+import { useDeletePerson, usePersonById, usePersonCompanies, usePersonIdentifiers } from '@/hooks/organization/people';
+import { AddressesTab } from '../party/tabs/AddressesTab';
+import { BankAccountsTab } from '../party/tabs/BankAccountsTab';
+import { ContactsTab } from '../party/tabs/ContactsTab';
+import { IdentifiersTab } from '../party/tabs/IdentifiersTab';
+import { LicensesTab } from '../party/tabs/LicensesTab';
+import { RegistrationsTab } from '../party/tabs/RegistrationsTab';
 import { EditPersonDialog } from './forms/EditPersonDialog';
-import { AddressesTab } from './tabs/AddressesTab';
+import { personBindings } from './party-bindings';
 import { CompaniesTab } from './tabs/CompaniesTab';
-import { IdentifiersTab } from './tabs/IdentifiersTab';
 import { OverviewTab } from './tabs/OverviewTab';
 
 export const PersonDetailPage = () => {
@@ -78,27 +77,43 @@ export const PersonDetailPage = () => {
             value: 'addresses',
             label: 'Addresses',
             permission: ORG_PEOPLE.addresses.view,
-            content: <AddressesTab partyId={person.id} />,
+            content: <AddressesTab partyId={person.id} binding={personBindings.addresses} />,
           },
           {
             value: 'companies',
             label: 'Companies',
-            permission: ORG_PEOPLE.view,
+            permission: ORG_PEOPLE.companies.view,
             content: <CompaniesTab partyId={person.id} />,
+          },
+          {
+            value: 'registrations',
+            label: 'Tax Registrations',
+            permission: ORG_PEOPLE.registrations.view,
+            content: <RegistrationsTab partyId={person.id} binding={personBindings.registrations} />,
+          },
+          {
+            value: 'licenses',
+            label: 'Licenses',
+            permission: ORG_PEOPLE.licenses.view,
+            content: <LicensesTab partyId={person.id} binding={personBindings.licenses} />,
+          },
+          {
+            value: 'bank-accounts',
+            label: 'Bank Accounts',
+            permission: ORG_PEOPLE.bankAccounts.view,
+            content: <BankAccountsTab partyId={person.id} binding={personBindings.bankAccounts} />,
+          },
+          {
+            value: 'contacts',
+            label: 'Contacts',
+            permission: ORG_PEOPLE.contacts.view,
+            content: <ContactsTab partyId={person.id} binding={personBindings.contacts} />,
           },
           {
             value: 'identifiers',
             label: 'Identifiers',
             permission: ORG_PEOPLE.identifiers.view,
-            content: (
-              <IdentifiersTab
-                partyId={person.id}
-                permissions={ORG_PEOPLE.identifiers}
-                slug={`commerce-org-person-${person.id}-identifiers`}
-                queryKey={PERSON_IDENTIFIERS_KEY(person.id)}
-                emptyDescription="Record this person's identity documents like PAN, Aadhaar, or passport."
-              />
-            ),
+            content: <IdentifiersTab partyId={person.id} binding={personBindings.identifiers} />,
           },
         ]}
         value={activeTab}

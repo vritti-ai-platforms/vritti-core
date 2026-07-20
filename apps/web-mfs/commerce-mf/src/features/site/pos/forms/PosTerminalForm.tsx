@@ -52,7 +52,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
           name: data.name,
           locationId: data.locationId,
           catalogId: data.catalogId,
-          description: data.description?.trim() ? data.description.trim() : null,
+          description: data.description,
           isActive: data.isActive,
         },
       });
@@ -63,7 +63,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
       code: data.code,
       locationId: data.locationId,
       catalogId: data.catalogId,
-      description: data.description?.trim() ? data.description.trim() : undefined,
+      description: data.description,
     });
   };
 

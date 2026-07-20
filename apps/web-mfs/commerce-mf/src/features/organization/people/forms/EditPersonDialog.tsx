@@ -39,9 +39,9 @@ export const EditPersonDialog: React.FC<EditPersonDialogProps> = ({ person, onSu
         id: person.id,
         data: {
           firstName: data.firstName,
-          lastName: data.lastName || undefined,
-          email: data.email || undefined,
-          phone: data.phone || undefined,
+          lastName: data.lastName,
+          email: data.email,
+          phone: data.phone,
           isActive: data.isActive,
         },
       })}

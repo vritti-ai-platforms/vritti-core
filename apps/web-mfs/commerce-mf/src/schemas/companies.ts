@@ -1,26 +1,13 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
+import {
+  type PartyRegistrationFormData,
+  type PartyRegistrationsTableResponse,
+  type PartyTaxRegistrationRow,
+  partyRegistrationSchema,
+} from './party-registrations';
 
-const REGISTRATION_TYPES = ['GST', 'VAT', 'EIN', 'TIN', 'PAN', 'SALES_TAX', 'OTHER'] as const;
-
-export type RegistrationType = (typeof REGISTRATION_TYPES)[number];
-
-const registrationTypeSchema = z.enum(REGISTRATION_TYPES);
-
-export const REGISTRATION_TYPE_LABELS: Record<RegistrationType, string> = {
-  GST: 'GST',
-  VAT: 'VAT',
-  EIN: 'EIN',
-  TIN: 'TIN',
-  PAN: 'PAN',
-  SALES_TAX: 'Sales Tax',
-  OTHER: 'Other',
-};
-
-export const REGISTRATION_TYPE_OPTIONS = REGISTRATION_TYPES.map((value) => ({
-  value,
-  label: REGISTRATION_TYPE_LABELS[value],
-}));
+export { REGISTRATION_TYPE_LABELS, REGISTRATION_TYPE_OPTIONS, type RegistrationType } from './party-registrations';
 
 export const createCompanySchema = z
   .object({
@@ -29,7 +16,7 @@ export const createCompanySchema = z
     email: z.string().email('Enter a valid email').max(255).optional().or(z.literal('')),
     phone: z.string().max(20).optional(),
     website: z.string().max(255).optional(),
-    jurisdictionId: z.uuid('Select a valid jurisdiction').optional(),
+    jurisdictionId: z.uuid('Select a valid jurisdiction').nullable().optional(),
     isActive: z.boolean(),
     line1: z.string().max(255).optional(),
     line2: z.string().optional(),
@@ -82,12 +69,7 @@ export const addCompanyPersonSchema = z.object({
   isPrimary: z.boolean().optional(),
 });
 
-export const companyRegistrationSchema = z.object({
-  jurisdictionId: z.uuid('Jurisdiction is required'),
-  registrationNumber: z.string().min(1, 'Registration number is required').max(100),
-  registrationType: registrationTypeSchema,
-  isPrimary: z.boolean().optional(),
-});
+export const companyRegistrationSchema = partyRegistrationSchema;
 
 export type CreateCompanyFormData = z.infer<typeof createCompanySchema>;
 export type UpdateCompanyFormData = z.infer<typeof updateCompanySchema>;
@@ -108,17 +90,17 @@ export interface CreateCompanyPayload {
   email?: string;
   phone?: string;
   website?: string;
-  jurisdictionId?: string;
+  jurisdictionId?: string | null;
   isActive: boolean;
   address?: CompanyAddressInput;
 }
 
 export interface UpdateCompanyPayload {
   displayName?: string;
-  legalName?: string;
+  legalName?: string | null;
   email?: string;
-  phone?: string;
-  website?: string;
+  phone?: string | null;
+  website?: string | null;
   jurisdictionId?: string | null;
   isActive?: boolean;
   address?: CompanyAddressInput;
@@ -131,7 +113,7 @@ export interface AddCompanyPersonPayload {
   secondaryEmail?: string;
   isPrimary?: boolean;
 }
-export type CompanyRegistrationFormData = z.infer<typeof companyRegistrationSchema>;
+export type CompanyRegistrationFormData = PartyRegistrationFormData;
 
 export interface CompanyData {
   id: string;
@@ -168,15 +150,8 @@ export interface CompanyPersonRow {
   isPrimary: boolean;
 }
 
-export interface CompanyTaxRegistrationRow {
-  id: string;
-  jurisdictionId: string;
-  jurisdictionName: string | null;
-  registrationNumber: string;
-  registrationType: RegistrationType;
-  isPrimary: boolean;
-}
+export type CompanyTaxRegistrationRow = PartyTaxRegistrationRow;
 
 export type CompaniesTableResponse = TableResponse<CompanyData>;
 export type CompanyPeopleTableResponse = TableResponse<CompanyPersonRow>;
-export type CompanyRegistrationsTableResponse = TableResponse<CompanyTaxRegistrationRow>;
+export type CompanyRegistrationsTableResponse = PartyRegistrationsTableResponse;

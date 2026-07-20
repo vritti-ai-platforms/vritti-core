@@ -76,7 +76,7 @@ const orderItemSchema = z.object({
 export const createOrderSchema = z.object({
   type: z.enum(['DINE_IN', 'TAKEAWAY', 'DELIVERY'], { message: 'Order type is required' }),
   channel: z.enum(['ONLINE', 'WALK_IN'], { message: 'Channel is required' }),
-  channelId: z.string().optional(),
+  channelId: z.string().nullable().optional(),
   customerName: z.string().optional(),
   customerPhone: z.string().optional(),
   deliveryAddress: z.string().optional(),

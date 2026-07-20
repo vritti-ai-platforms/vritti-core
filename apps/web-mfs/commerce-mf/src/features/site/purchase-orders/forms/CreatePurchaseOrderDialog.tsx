@@ -73,8 +73,8 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
         exchangeRateType: data.exchangeRateType,
         exchangeRate: data.exchangeRateType === 'FIXED' ? (data.exchangeRate ?? undefined) : null,
         orderDate: data.orderDate,
-        expectedBy: data.expectedBy || undefined,
-        notes: data.notes || undefined,
+        expectedBy: data.expectedBy,
+        notes: data.notes,
       })}
     >
       <SupplierSelector name="supplierId" onOptionSelect={handleSupplierSelect} />

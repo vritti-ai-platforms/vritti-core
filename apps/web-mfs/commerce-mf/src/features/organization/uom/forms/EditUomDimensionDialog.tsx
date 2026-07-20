@@ -40,7 +40,7 @@ export const EditUomDimensionDialog: React.FC<EditUomDimensionDialogProps> = ({ 
         data: {
           code: data.code,
           name: data.name,
-          description: data.description?.trim() ? data.description : undefined,
+          description: data.description,
         },
       })}
     >

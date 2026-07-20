@@ -19,7 +19,7 @@ interface TaxGroupFormSheetProps {
   editing: TaxGroup | null;
 }
 
-const EMPTY: TaxGroupFormValues = { name: '', taxRates: [{ name: '', rate: '' }] };
+const EMPTY: TaxGroupFormValues = { name: '', taxRates: [{ name: '', rate: 0 }] };
 const TRASH_ICON = { sfSymbol: 'trash', materialSymbol: 'delete' } as const;
 const PLUS_ICON = { sfSymbol: 'plus', materialSymbol: 'add' } as const;
 
@@ -35,7 +35,7 @@ export const TaxGroupFormSheet = forwardRef<BottomSheetRef, TaxGroupFormSheetPro
   const form = useForm<TaxGroupFormValues>({ resolver: zodResolver(taxGroupSchema), defaultValues: EMPTY });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'taxRates' });
   const watchedRates = form.watch('taxRates');
-  const combinedTotal = (watchedRates ?? []).reduce((sum, r) => sum + (Number(r?.rate) || 0), 0);
+  const combinedTotal = (watchedRates ?? []).reduce((sum, r) => sum + (r?.rate || 0), 0);
 
   // isActive is edit-only; local state, default active (a plain Switch, not Form-wired — create is always active).
   const [isActive, setIsActive] = useState(true);
@@ -46,8 +46,8 @@ export const TaxGroupFormSheet = forwardRef<BottomSheetRef, TaxGroupFormSheetPro
         ? {
             name: editing.name,
             taxRates: editing.taxRates.length
-              ? editing.taxRates.map((r) => ({ name: r.name, rate: String(r.rate) }))
-              : [{ name: '', rate: '' }],
+              ? editing.taxRates.map((r) => ({ name: r.name, rate: r.rate }))
+              : [{ name: '', rate: 0 }],
           }
         : EMPTY,
     );
@@ -65,17 +65,17 @@ export const TaxGroupFormSheet = forwardRef<BottomSheetRef, TaxGroupFormSheetPro
   };
 
   const handleSubmit = async (values: TaxGroupFormValues) => {
-    const taxRates = values.taxRates.map((r) => ({ name: r.name.trim(), rate: Number(r.rate) }));
+    const taxRates = values.taxRates.map((r) => ({ name: r.name, rate: r.rate }));
     if (isEdit && editing) {
       // Update sends the FULL rates array (the server replaces all) + the active toggle.
       const result = await updateTaxGroup({
-        variables: { id: editing.id, input: { name: values.name.trim(), isActive, taxRates } },
+        variables: { id: editing.id, input: { name: values.name, isActive, taxRates } },
       });
       if (!result.error) close();
       return;
     }
     // Create is always active server-side (no isActive on the create input).
-    const result = await createTaxGroup({ variables: { input: { name: values.name.trim(), taxRates } } });
+    const result = await createTaxGroup({ variables: { input: { name: values.name, taxRates } } });
     if (!result.error) close();
   };
 
@@ -112,7 +112,7 @@ export const TaxGroupFormSheet = forwardRef<BottomSheetRef, TaxGroupFormSheetPro
                   />
                 </View>
                 <View className="w-24">
-                  <TextField name={`taxRates.${index}.rate`} placeholder="0" keyboardType="decimal-pad" />
+                  <TextField name={`taxRates.${index}.rate`} placeholder="0" positive />
                 </View>
                 <Button
                   variant="ghost"
@@ -127,7 +127,7 @@ export const TaxGroupFormSheet = forwardRef<BottomSheetRef, TaxGroupFormSheetPro
                 </Button>
               </View>
             ))}
-            <Button variant="outline" onPress={() => append({ name: '', rate: '' })}>
+            <Button variant="outline" onPress={() => append({ name: '', rate: 0 })}>
               <DynamicIcon icon={PLUS_ICON} size={16} className="text-foreground" />
               <Text>Add rate</Text>
             </Button>

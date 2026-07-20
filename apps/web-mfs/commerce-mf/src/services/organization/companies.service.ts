@@ -19,6 +19,12 @@ import type {
   PartyBankAccountsTableResponse,
 } from '@/schemas/party-bank-accounts';
 import type {
+  PartyContactPayload,
+  PartyContactRow,
+  PartyContactsTableResponse,
+  PartyContactUpdatePayload,
+} from '@/schemas/party-contacts';
+import type {
   AddIdentifierPayload,
   PartyIdentifierRow,
   PartyIdentifiersTableResponse,
@@ -48,7 +54,7 @@ export function deleteCompany(id: string): Promise<SuccessResponse> {
 }
 
 export function getCompanyPeople(id: string): Promise<CompanyPeopleTableResponse> {
-  return axios.get<CompanyPeopleTableResponse>(`${BASE}/${id}/people`).then((r) => r.data);
+  return axios.get<CompanyPeopleTableResponse>(`${BASE}/${id}/people/table`).then((r) => r.data);
 }
 
 export function addCompanyPerson({
@@ -72,7 +78,7 @@ export function removeCompanyPerson({
 }
 
 export function getCompanyRegistrations(id: string): Promise<CompanyRegistrationsTableResponse> {
-  return axios.get<CompanyRegistrationsTableResponse>(`${BASE}/${id}/registrations`).then((r) => r.data);
+  return axios.get<CompanyRegistrationsTableResponse>(`${BASE}/${id}/registrations/table`).then((r) => r.data);
 }
 
 export function createCompanyRegistration({
@@ -110,7 +116,7 @@ export function deleteCompanyRegistration({
 }
 
 export function getCompanyIdentifiers(id: string): Promise<PartyIdentifiersTableResponse> {
-  return axios.get<PartyIdentifiersTableResponse>(`${BASE}/${id}/identifiers`).then((r) => r.data);
+  return axios.get<PartyIdentifiersTableResponse>(`${BASE}/${id}/identifiers/table`).then((r) => r.data);
 }
 
 export function addCompanyIdentifier({
@@ -136,7 +142,7 @@ export function removeCompanyIdentifier({
 }
 
 export function getCompanyAddresses(id: string): Promise<PartyAddressesTableResponse> {
-  return axios.get<PartyAddressesTableResponse>(`${BASE}/${id}/addresses`).then((r) => r.data);
+  return axios.get<PartyAddressesTableResponse>(`${BASE}/${id}/addresses/table`).then((r) => r.data);
 }
 
 export function addCompanyAddress({
@@ -173,7 +179,7 @@ export function removeCompanyAddress({
 
 export function getCompanyLicenses(id: string): Promise<PartyLicensesTableResponse> {
   return axios
-    .get<PartyLicensesTableResponse>(`${BASE}/${id}/licenses`, { showSuccessToast: false })
+    .get<PartyLicensesTableResponse>(`${BASE}/${id}/licenses/table`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
@@ -211,7 +217,7 @@ export function deleteCompanyLicense({
 
 export function getCompanyBankAccounts(id: string): Promise<PartyBankAccountsTableResponse> {
   return axios
-    .get<PartyBankAccountsTableResponse>(`${BASE}/${id}/bank-accounts`, { showSuccessToast: false })
+    .get<PartyBankAccountsTableResponse>(`${BASE}/${id}/bank-accounts/table`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
@@ -247,4 +253,40 @@ export function deleteCompanyBankAccount({
   bankAccountId: string;
 }): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/${companyId}/bank-accounts/${bankAccountId}`).then((r) => r.data);
+}
+
+export function getCompanyContacts(id: string): Promise<PartyContactsTableResponse> {
+  return axios.get<PartyContactsTableResponse>(`${BASE}/${id}/contacts/table`).then((r) => r.data);
+}
+
+export function createCompanyContact({
+  companyId,
+  data,
+}: {
+  companyId: string;
+  data: PartyContactPayload;
+}): Promise<PartyContactRow> {
+  return axios.post<CreateResponse<PartyContactRow>>(`${BASE}/${companyId}/contacts`, data).then((r) => r.data.data);
+}
+
+export function updateCompanyContact({
+  companyId,
+  contactId,
+  data,
+}: {
+  companyId: string;
+  contactId: string;
+  data: PartyContactUpdatePayload;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${companyId}/contacts/${contactId}`, data).then((r) => r.data);
+}
+
+export function deleteCompanyContact({
+  companyId,
+  contactId,
+}: {
+  companyId: string;
+  contactId: string;
+}): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${companyId}/contacts/${contactId}`).then((r) => r.data);
 }

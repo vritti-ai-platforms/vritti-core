@@ -14,7 +14,7 @@ export interface CreatePurchaseOrderPayload {
   exchangeRateType: ExchangeRateType;
   exchangeRate?: number | null;
   orderDate: string;
-  expectedBy?: string;
+  expectedBy?: string | null;
   notes?: string;
 }
 
@@ -57,7 +57,7 @@ export interface ChangePurchaseOrderExchangeRatePayload {
 
 export interface SendPurchaseOrderEmailPayload {
   id: string;
-  email?: string;
+  email?: string | null;
 }
 
 // Fetches purchase orders for the data table
