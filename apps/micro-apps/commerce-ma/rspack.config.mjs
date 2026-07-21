@@ -262,6 +262,13 @@ export default (rspackEnv) => {
           './Site/Suppliers': './src/features/site/suppliers/index.tsx',
           './Le/TaxGroups': './src/features/legal-entity/tax-groups/index.tsx',
           './Org/UOM': './src/features/organization/uom/index.tsx',
+          './Org/Companies': './src/features/organization/companies/index.tsx',
+          './Org/People': './src/features/organization/people/index.tsx',
+          './Org/TaxClasses': './src/features/organization/tax-classes/index.tsx',
+          './Org/TaxComponents': './src/features/organization/tax-components/index.tsx',
+          './Org/TaxJurisdictions': './src/features/organization/tax-jurisdictions/index.tsx',
+          './Org/SalesChannels': './src/features/organization/sales-channels/index.tsx',
+          './Org/InventoryItems': './src/features/organization/inventory-items/index.tsx',
         },
         shared: {
           react: { singleton: true, eager: false, import: false, requiredVersion: '19.2.3' },
