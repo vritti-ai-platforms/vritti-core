@@ -50,6 +50,7 @@ const rnCssComponentsPath = path.join(rnCssRoot, 'dist/commonjs/components/index
 // ---------------------------------------------------------------------------
 
 const componentDirs = [
+  'ActionCard',
   'Avatar',
   'Badge',
   'BottomNavigation',
@@ -160,6 +161,9 @@ export default (rspackEnv) => {
       alias: {
         ...quantumAliases,
         ...rnCssAliases,
+        // Repack disables package `exports` (Metro parity), so the workspace lib's subpaths
+        // (@vritti/commerce-permissions/uom, …) need a prefix alias onto its built dist.
+        '@vritti/commerce-permissions': path.resolve(workspaceRoot, 'libs/commerce-permissions/dist'),
         'react-native-css/components': path.join(rnCssRoot, 'dist/commonjs/components'),
         'colorjs.io/fn': require.resolve('colorjs.io/fn'),
         '@react-navigation/elements/internal': path.join(

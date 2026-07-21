@@ -8,7 +8,7 @@ import { zodResolver } from '@vritti/quantum-ui-native/zod';
 import { forwardRef, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
-import { useCreateUomDimension, useUpdateUomDimension } from '../../../../hooks/site/uom-dimensions';
+import { useCreateUomDimension, useUpdateUomDimension } from '../../../../hooks/organization/uom-dimensions';
 import { type UomDimensionFormValues, uomDimensionSchema } from '../../../../schemas/uom-dimensions/uom-dimension';
 import type { UomDimension } from '../../../../types/uom-dimensions';
 

@@ -1,4 +1,3 @@
-import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { Fab } from '@vritti/quantum-ui-native/Fab';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
 import { useConfirm, useCreateEditSheet } from '@vritti/quantum-ui-native/hooks';
@@ -8,8 +7,6 @@ import type { InventoryItem } from '../../../../../../types/inventory-items';
 import type { UomConversion } from '../../../../../../types/uom-conversions';
 import { UomConversionCard } from '../../../components/UomConversionCard';
 import { UomConversionFormSheet } from '../../../forms/UomConversionFormSheet';
-
-const PLUS_ICON = { sfSymbol: 'plus', materialSymbol: 'add' } as const;
 
 // UOM Conversions tab — lists an item's conversion overrides; the FAB opens a bottom sheet to add one, and
 // tapping an editable conversion opens the same sheet prefilled. Delete is confirm-first (canDelete-gated).
@@ -51,9 +48,7 @@ export function UomConversionsTab({ item }: { item: InventoryItem }) {
           />
         )}
       />
-      <Fab onPress={openCreate} accessibilityLabel="Add UOM conversion">
-        <DynamicIcon icon={PLUS_ICON} size={24} />
-      </Fab>
+      <Fab onPress={openCreate} accessibilityLabel="Add UOM conversion" />
       <UomConversionFormSheet
         ref={sheetRef}
         inventoryItemId={item.id}

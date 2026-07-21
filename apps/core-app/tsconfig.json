@@ -12,6 +12,7 @@
     "types": ["react-native", "@rspack/core/module"],
     "paths": {
       "@vritti/quantum-ui-native": ["../../../quantum-ui-native/dist/typescript/lib/index.d.ts"],
+      "@vritti/quantum-ui-native/context": ["../../../quantum-ui-native/lib/context/index.ts"],
       "@vritti/quantum-ui-native/*": [
         "../../../quantum-ui-native/dist/typescript/lib/*",
         "../../../quantum-ui-native/dist/typescript/lib/components/*/index.d.ts",

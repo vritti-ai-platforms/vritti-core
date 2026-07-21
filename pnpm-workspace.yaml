@@ -31,3 +31,4 @@ overrides:
 patchedDependencies:
   '@gorhom/bottom-sheet@5.2.13': patches/@gorhom__bottom-sheet@5.2.13.patch
   react-native-css@3.0.6: patches/react-native-css@3.0.6.patch
+  zeego@3.0.6: patches/zeego@3.0.6.patch

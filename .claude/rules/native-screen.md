@@ -50,6 +50,13 @@ export const MyScreen = () => {
 - Forms live in a `form/` subdirectory as a separate component; screens don't own form JSX directly
 - Screens call hooks, never services directly
 - `export const`, never `export function` for components
+- **One component per screen file.** Screen-local presentational components (chips, section heads,
+  status lines, card fragments, …) are NEVER defined inline in the screen file — each goes in its own
+  `components/<Name>.tsx` beside the screen, even when tiny.
+- **No inline hooks or shared constants either.** A hook defined in a screen file (even a small one
+  like a ticking-clock `useNow`) moves to `hooks/<domain>/<useHook>.ts` (+ barrel); icon descriptors
+  and other shared constants move to the feature's `utils.ts`. The screen file holds ONLY the screen
+  component. (Hooks are NOT services — `services/` stays axios-only per `native-service.md`.)
 
 ## Form component structure
 

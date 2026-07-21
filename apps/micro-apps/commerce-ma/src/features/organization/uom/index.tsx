@@ -1,3 +1,4 @@
+import { ORG_UOM } from '@vritti/commerce-permissions/uom';
 import { PushNavigator, type PushScreenConfig } from '@vritti/quantum-ui-native/PushNavigator';
 import { ScreenHeader } from '@vritti/quantum-ui-native/ScreenHeader';
 // Side-effect: registers this feature's Apollo cache policies (uomDimension by-id read redirect) at module eval.
@@ -17,6 +18,7 @@ const screens: ReadonlyArray<PushScreenConfig<UomRoute>> = [
         searchable
         searchPlaceholder="Search dimensions"
         createLabel="Add dimension"
+        createPermission={ORG_UOM.dim.add}
       />
     ),
   },
@@ -24,7 +26,7 @@ const screens: ReadonlyArray<PushScreenConfig<UomRoute>> = [
     name: 'UomDimensionDetail',
     component: UomDimensionDetail,
     headerShown: true,
-    title: 'Dimension',
+    title: 'Dimension ',
   },
 ];
 

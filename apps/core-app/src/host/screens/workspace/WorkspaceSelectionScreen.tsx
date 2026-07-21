@@ -1,12 +1,12 @@
-import { useNavigation } from '@react-navigation/native';
 import { Badge } from '@vritti/quantum-ui-native/Badge';
 import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
-import { useLocale, usePushNavigator } from '@vritti/quantum-ui-native/hooks';
+import { useLocale, useNavigationHeader, usePushNavigator } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Text';
-import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 import { getSelectedWorkspace } from '../../config/storage';
+import { useNow } from '../../hooks/workspace';
 import { useAuth } from '../../providers/AuthProvider';
 import { usePermissionContext } from '../../providers/PermissionProvider';
 import type { HostAppRoute } from '../../routes';
@@ -17,80 +17,27 @@ import type {
   AssignedSite,
   AssignedSiteGroup,
 } from '../../types/permissions';
+import { BadgeRow } from './components/BadgeRow';
+import { CardTitle } from './components/CardTitle';
 import { ContinueCard } from './components/ContinueCard';
+import { MetaChip } from './components/MetaChip';
+import { RoleChip } from './components/RoleChip';
+import { SectionHead } from './components/SectionHead';
+import { StatusLine } from './components/StatusLine';
 import { WorkspaceCard } from './components/WorkspaceCard';
 import {
+  ACCOUNT_ICON,
   countryFlag,
   currencyLabel,
-  firstNameOf,
   formatSiteTime,
+  greetingFor,
   iconForWorkspace,
   plural,
   SCOPE_ACCENTS,
   SCOPE_ICON,
   SITE_TYPE_LABELS,
-  timeOfDayGreeting,
+  workspaceOverview,
 } from './utils';
-
-const ACCOUNT_ICON = { sfSymbol: 'person.crop.circle', materialSymbol: 'account_circle' } as const;
-
-// A ticking clock so the per-site local time stays fresh; re-renders on the given interval.
-function useNow(intervalMs: number): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), intervalMs);
-    return () => clearInterval(id);
-  }, [intervalMs]);
-  return now;
-}
-
-const SectionHead = ({ label, count }: { label: string; count?: number }) => (
-  <View className="mb-2 mt-2 flex-row items-center gap-3">
-    <Text className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</Text>
-    {count !== undefined ? (
-      <View className="rounded-full border border-border bg-card px-2">
-        <Text className="text-xs text-muted-foreground">{count}</Text>
-      </View>
-    ) : null}
-    <View className="h-px flex-1 bg-border" />
-  </View>
-);
-
-const CardTitle = ({ name, code }: { name: string; code?: string | null }) => (
-  <View className="flex-row flex-wrap items-baseline gap-x-2">
-    <Text className="text-sm font-semibold text-foreground">{name}</Text>
-    {code ? <Text className="text-xs text-muted-foreground">{code}</Text> : null}
-  </View>
-);
-
-// Role chip is always primary-tinted, independent of the card's scope accent (matches web).
-const RoleChip = ({ role }: { role: string }) => (
-  <Badge variant="outline" className="border-primary/25 bg-primary/10">
-    <Text className="font-semibold text-primary">{role}</Text>
-  </Badge>
-);
-
-const MetaChip = ({ children }: { children: ReactNode }) => (
-  <Badge variant="outline">
-    <Text className="text-muted-foreground">{children}</Text>
-  </Badge>
-);
-
-const BadgeRow = ({ children }: { children: ReactNode }) => (
-  <View className="mt-1.5 flex-row flex-wrap items-center gap-1.5">{children}</View>
-);
-
-// Decorative "open" indicator + the site's current local time and timezone (like web).
-const StatusLine = ({ time, timezone }: { time: string; timezone: string }) => (
-  <View className="mt-1.5 flex-row items-center gap-1.5">
-    <View className="h-1.5 w-1.5 rounded-full bg-success" />
-    <Text className="text-xs text-muted-foreground">Open</Text>
-    <Text className="text-xs text-muted-foreground">{time}</Text>
-    <Text numberOfLines={1} className="min-w-0 flex-1 text-xs text-muted-foreground">
-      {timezone}
-    </Text>
-  </View>
-);
 
 // Post-login gate that asks which workspace to work in, grouped by scope (sites, groups, companies, org).
 export const WorkspaceSelectionScreen = () => {
@@ -100,20 +47,17 @@ export const WorkspaceSelectionScreen = () => {
   const locale = useLocale();
   const now = useNow(30_000);
   const lastWorkspace = getSelectedWorkspace();
-  const navigation = useNavigation();
 
   // Account button in the native header — opens the Account screen (not otherwise reachable for multi-workspace users).
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      // A plain Pressable (not quantum Button) — the native-stack header subview can't host the Button's
-      // native LiquidGlassView, but a core Pressable + DynamicIcon (Image on iOS / glyph on Android) paints reliably.
-      headerRight: () => (
-        <Pressable onPress={() => push('Account')} accessibilityRole="button" accessibilityLabel="Account" hitSlop={8}>
-          <DynamicIcon icon={ACCOUNT_ICON} size={26} className="text-foreground" />
-        </Pressable>
-      ),
-    });
-  }, [navigation, push]);
+  // A plain Pressable (not quantum Button) — the native-stack header subview can't host the Button's
+  // native LiquidGlassView, but a core Pressable + DynamicIcon (Image on iOS / glyph on Android) paints reliably.
+  useNavigationHeader({
+    right: (
+      <Pressable onPress={() => push('Account')} accessibilityRole="button" accessibilityLabel="Account" hitSlop={8}>
+        <DynamicIcon icon={ACCOUNT_ICON} size={26} className="text-foreground" />
+      </Pressable>
+    ),
+  });
 
   // Apply the workspace, then slide back to the tabs: pop when pushed over HomeTabs (the switch flow), or
   // navigate to HomeTabs when this is the initial route (fresh login — nothing to pop back to).
@@ -169,30 +113,15 @@ export const WorkspaceSelectionScreen = () => {
   const hasGroups = groupCards.length > 0;
   const hasLes = leCards.length > 0;
   const hasOrg = orgAssignments.length > 0 && !!org;
-  const kindCount = [hasSites, hasGroups, hasLes, hasOrg].filter(Boolean).length;
 
-  const lede =
-    kindCount > 1
-      ? 'Where are you working today?'
-      : hasSites
-        ? 'Pick your site'
-        : hasGroups
-          ? 'Pick a site group'
-          : hasLes
-            ? 'Pick a company'
-            : 'Your workspace';
-
-  const summary = [
-    hasSites ? plural(siteCards.length, 'site') : null,
-    hasGroups ? plural(groupCards.length, 'site group') : null,
-    hasLes ? plural(leCards.length, 'company', 'companies') : null,
-    hasOrg ? 'organization' : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
-  const first = firstNameOf(user?.fullName);
-  const greeting = `${timeOfDayGreeting(now.getHours())}${first ? `, ${first.toUpperCase()}` : ''}`;
+  // Hero copy derived from the per-kind counts (config-driven — see workspaceOverview in utils).
+  const { lede, summary } = workspaceOverview({
+    sites: siteCards.length,
+    groups: groupCards.length,
+    les: leCards.length,
+    org: hasOrg,
+  });
+  const greeting = greetingFor(now.getHours(), user?.fullName);
 
   // Resolve the last-used workspace into a Continue card (any kind — mobile persists all kinds).
   const continueEntry = useMemo(() => {

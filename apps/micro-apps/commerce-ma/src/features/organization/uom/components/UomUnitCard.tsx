@@ -1,14 +1,13 @@
+import { ORG_UOM } from '@vritti/commerce-permissions/uom';
+import { ActionCard } from '@vritti/quantum-ui-native/ActionCard';
 import { Badge } from '@vritti/quantum-ui-native/Badge';
-import { Button } from '@vritti/quantum-ui-native/Button';
-import { Card } from '@vritti/quantum-ui-native/Card';
 import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { useUnstableNativeVariable } from 'nativewind';
 import { View } from 'react-native';
+import { useDeleteUom } from '../../../../hooks/organization/uom';
 import type { Uom } from '../../../../types/uom';
 
-const EDIT_ICON = { sfSymbol: 'pencil', materialSymbol: 'edit' } as const;
-const TRASH_ICON = { sfSymbol: 'trash', materialSymbol: 'delete' } as const;
 const CONVERT_ICON = {
   sfSymbol: 'arrow.left.arrow.right',
   materialSymbol: 'swap_horiz',
@@ -25,13 +24,14 @@ const useThemeVar = useUnstableNativeVariable as unknown as (name: string) => st
 interface UomUnitCardProps {
   unit: Uom;
   onEdit?: (unit: Uom) => void;
-  onDelete?: (unit: Uom) => void;
 }
 
-// Unit card: a symbol tile + name + Base/Derived badge with edit/delete actions, then a conversion row —
-// the derived formula (uomQty symbol = baseUomQty baseSymbol) or a "no conversion" note for base units.
-// Edit/delete are gated on canEdit/canDelete (the list computes both).
-export function UomUnitCard({ unit, onEdit, onDelete }: UomUnitCardProps) {
+// Unit card on the shared ActionCard shell: symbol tile + name + edit/delete (plan-locked → amber lock),
+// then a conversion row — the derived formula (uomQty symbol = baseUomQty baseSymbol) or a "no conversion"
+// note for base units. Edit/delete visibility is gated on canEdit/canDelete (the list computes both).
+// Delete is owned here (mutation + ActionCard's confirm); edit opens the screen-owned sheet via onEdit.
+export function UomUnitCard({ unit, onEdit }: UomUnitCardProps) {
+  const [deleteUom] = useDeleteUom();
   const isBase = unit.baseUnitId == null;
   // Base = success (green), Derived = info (teal). The Badge variants' faded fills (bg-<token>/NN) don't
   // render on these hsl(var()) tokens, so tint both from the resolved theme var: a faded fill + a solid
@@ -41,44 +41,17 @@ export function UomUnitCard({ unit, onEdit, onDelete }: UomUnitCardProps) {
   const kindColor = kindHsl ? `hsl(${kindHsl})` : undefined;
   const kindBg = kindHsl ? `hsla(${kindHsl}, 0.18)` : undefined;
   return (
-    <Card className="gap-0 overflow-hidden p-0">
-      <View className="flex-row items-center gap-3 px-4 pb-0 pt-4">
-        <View className="h-14 w-14 items-center justify-center rounded-xl bg-secondary">
-          <Text className="text-xl font-bold text-primary" numberOfLines={1}>
-            {unit.symbol}
-          </Text>
-        </View>
-        <Text className="min-w-0 flex-1 text-lg font-bold text-foreground" numberOfLines={1}>
-          {unit.name}
-        </Text>
-        <View className="flex-row items-center gap-2">
-          {onEdit && unit.canEdit ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 rounded-sm border border-border"
-              onPress={() => onEdit(unit)}
-              accessibilityLabel="Edit unit"
-              hitSlop={8}
-            >
-              <DynamicIcon icon={EDIT_ICON} size={14} className="text-foreground" />
-            </Button>
-          ) : null}
-          {onDelete && unit.canDelete ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 rounded-sm border border-destructive"
-              onPress={() => onDelete(unit)}
-              accessibilityLabel="Delete unit"
-              hitSlop={8}
-            >
-              <DynamicIcon icon={TRASH_ICON} size={14} className="text-destructive" />
-            </Button>
-          ) : null}
-        </View>
-      </View>
-
+    <ActionCard
+      title={unit.name}
+      leading={unit.symbol}
+      onEdit={onEdit && unit.canEdit ? () => onEdit(unit) : undefined}
+      editPermission={ORG_UOM.edit}
+      editAccessibilityLabel="Edit unit"
+      onDelete={unit.canDelete ? () => deleteUom({ variables: { id: unit.id } }) : undefined}
+      deletePermission={ORG_UOM.delete}
+      deleteAccessibilityLabel="Delete unit"
+      deleteMessage={`Unit "${unit.name}" (${unit.symbol}) will be removed. This can't be undone.`}
+    >
       <View className="flex-row items-center gap-2 px-4 pb-2">
         <View className="min-w-0 flex-1 flex-row items-center gap-2 rounded-lg bg-muted px-3 py-3">
           <DynamicIcon icon={isBase ? ANCHOR_ICON : CONVERT_ICON} size={16} className="text-muted-foreground" />
@@ -101,6 +74,6 @@ export function UomUnitCard({ unit, onEdit, onDelete }: UomUnitCardProps) {
           </View>
         </Badge>
       </View>
-    </Card>
+    </ActionCard>
   );
 }

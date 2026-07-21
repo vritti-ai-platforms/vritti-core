@@ -50,6 +50,7 @@ const rnCssComponentsPath = path.join(rnCssRoot, 'dist/commonjs/components/index
 // ---------------------------------------------------------------------------
 
 const componentDirs = [
+  'ActionCard',
   'Avatar',
   'Badge',
   'BottomSheet',

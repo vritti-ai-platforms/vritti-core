@@ -1,0 +1,110 @@
+diff --git a/lib/commonjs/menu/create-android-menu/index.android.js b/lib/commonjs/menu/create-android-menu/index.android.js
+index ba7ef46a2032d0390ff846e7dad88995c6ff2eaf..a5814702234ba1973c118f40a538768fb9c22d2a 100644
+--- a/lib/commonjs/menu/create-android-menu/index.android.js
++++ b/lib/commonjs/menu/create-android-menu/index.android.js
+@@ -188,6 +188,7 @@ If you want to use a custom component as your <Content />, you can use the creat
+       }
+ 
+       let icon;
++      let imageColor;
+ 
+       if (typeof child.props.children == 'string') {
+         title = child.props.children;
+@@ -247,6 +248,10 @@ If you want to use a custom component as your <Content />, you can use the creat
+         if (iconChildren !== null && iconChildren !== void 0 && (_iconChildren$ = iconChildren[0]) !== null && _iconChildren$ !== void 0 && _iconChildren$.props.androidIconName) {
+           icon = iconChildren[0].props.androidIconName;
+         }
++
++        if (iconChildren !== null && iconChildren !== void 0 && iconChildren[0] && iconChildren[0].props.androidImageColor) {
++          imageColor = iconChildren[0].props.androidImageColor;
++        }
+       }
+ 
+       if (title) {
+@@ -278,7 +283,9 @@ If you want to use a custom component as your <Content />, you can use the creat
+           title,
+           subtitle,
+           menuAttributes,
+-          icon
++          icon,
++          imageColor,
++          titleColor: child.props.titleColor
+         };
+       }
+ 
+@@ -304,14 +311,18 @@ If you want to use a custom component as your <Content />, you can use the creat
+               title,
+               key,
+               menuAttributes,
+-              subtitle
++              subtitle,
++              titleColor,
++              imageColor
+             } = item;
+             const finalItem = {
+               id: key,
+               title,
+               image: icon,
+               attributes: menuAttributes,
+-              subtitle
++              subtitle,
++              titleColor,
++              imageColor
+             };
+             return finalItem;
+           }
+diff --git a/lib/module/menu/create-android-menu/index.android.js b/lib/module/menu/create-android-menu/index.android.js
+index 5f47781720006ac1c797b6a5d31ac903108cec17..51037cc201a14fee02ea79e4824fa300520fe31a 100644
+--- a/lib/module/menu/create-android-menu/index.android.js
++++ b/lib/module/menu/create-android-menu/index.android.js
+@@ -172,6 +172,7 @@ If you want to use a custom component as your <Content />, you can use the creat
+       }
+ 
+       let icon;
++      let imageColor;
+ 
+       if (typeof child.props.children == 'string') {
+         title = child.props.children;
+@@ -231,6 +232,10 @@ If you want to use a custom component as your <Content />, you can use the creat
+         if (iconChildren !== null && iconChildren !== void 0 && (_iconChildren$ = iconChildren[0]) !== null && _iconChildren$ !== void 0 && _iconChildren$.props.androidIconName) {
+           icon = iconChildren[0].props.androidIconName;
+         }
++
++        if (iconChildren !== null && iconChildren !== void 0 && iconChildren[0] && iconChildren[0].props.androidImageColor) {
++          imageColor = iconChildren[0].props.androidImageColor;
++        }
+       }
+ 
+       if (title) {
+@@ -262,7 +267,9 @@ If you want to use a custom component as your <Content />, you can use the creat
+           title,
+           subtitle,
+           menuAttributes,
+-          icon
++          icon,
++          imageColor,
++          titleColor: child.props.titleColor
+         };
+       }
+ 
+@@ -288,14 +295,18 @@ If you want to use a custom component as your <Content />, you can use the creat
+               title,
+               key,
+               menuAttributes,
+-              subtitle
++              subtitle,
++              titleColor,
++              imageColor
+             } = item;
+             const finalItem = {
+               id: key,
+               title,
+               image: icon,
+               attributes: menuAttributes,
+-              subtitle
++              subtitle,
++              titleColor,
++              imageColor
+             };
+             return finalItem;
+           }

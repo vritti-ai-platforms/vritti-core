@@ -1,24 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
-import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
-import { useConfirm, usePlatformInfo } from '@vritti/quantum-ui-native/hooks';
+import { useConfirm } from '@vritti/quantum-ui-native/hooks';
 import { type MenuAction, MenuButton } from '@vritti/quantum-ui-native/MenuButton';
 import { Alert } from 'react-native';
 import { useDeleteInventoryItem } from '../../../../hooks/site/inventory-items';
 import type { InventoryItem } from '../../../../types/inventory-items';
 import type { InventoryNavigation } from '../types';
 
-// iOS 26's liquid-glass trigger carries the bare dots; pre-iOS 26 + Android (flat ghost trigger) use an
-// outlined (circled) icon so it reads as a button on the flat background.
-const MENU_ICON_GLASS = { sfSymbol: 'ellipsis', materialSymbol: 'more_vert' } as const;
-const MENU_ICON_OUTLINED = { sfSymbol: 'ellipsis.circle', materialSymbol: 'more_vert' } as const;
-
 // Detail-header overflow menu: Edit / Delete for the item, rendered as a native menu (MenuButton).
 // Replaces the in-body Edit button + Danger-zone delete card now that the tabs header has a rightActions slot.
 export function ItemActionsMenu({ item }: { item: InventoryItem }) {
   const navigation = useNavigation() as unknown as InventoryNavigation;
   const confirm = useConfirm();
-  const platform = usePlatformInfo();
-  const menuIcon = platform.os === 'ios' && platform.version >= 26 ? MENU_ICON_GLASS : MENU_ICON_OUTLINED;
   const [deleteItem, { loading: deleting }] = useDeleteInventoryItem();
 
   const handleDelete = async () => {
@@ -56,9 +48,5 @@ export function ItemActionsMenu({ item }: { item: InventoryItem }) {
     },
   ];
 
-  return (
-    <MenuButton actions={actions} accessibilityLabel="Item actions">
-      <DynamicIcon icon={menuIcon} size={24} />
-    </MenuButton>
-  );
+  return <MenuButton actions={actions} accessibilityLabel="Item actions" />;
 }

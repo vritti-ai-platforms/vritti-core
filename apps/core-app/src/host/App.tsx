@@ -3,6 +3,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { PortalHost } from '@rn-primitives/portal';
 import { BottomSheetBackgroundScalerProvider, BottomSheetScaledScreen } from '@vritti/quantum-ui-native/BottomSheet';
 import { ThemeProvider } from '@vritti/quantum-ui-native/theme';
+import { UpsellSheetHost } from '@vritti/quantum-ui-native/Upsell';
 import { use } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initialWindowMetrics, SafeAreaProvider } from 'react-native-safe-area-context';
@@ -28,6 +29,8 @@ export default function App() {
                   <BottomSheetScaledScreen>
                     <AppRender />
                   </BottomSheetScaledScreen>
+                  {/* Global upsell sheet for plan-locked actions — presented imperatively via presentUpsellSheet */}
+                  <UpsellSheetHost />
                 </BottomSheetModalProvider>
               </BottomSheetBackgroundScalerProvider>
             </AuthProvider>

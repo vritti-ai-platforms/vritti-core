@@ -1,10 +1,11 @@
 import { NetworkStatus } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
+import { ORG_UOM } from '@vritti/commerce-permissions/uom';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
 import { useCreateEditSheet } from '@vritti/quantum-ui-native/hooks';
 import { useDebouncedScreenSearch } from '@vritti/quantum-ui-native/ScreenContainer';
 import { RefreshControl, View } from 'react-native';
-import { useUomDimensions } from '../../../../hooks/site/uom-dimensions';
+import { useUomDimensions } from '../../../../hooks/organization/uom-dimensions';
 import type { UomDimension } from '../../../../types/uom-dimensions';
 import { UomDimensionCard } from '../components/UomDimensionCard';
 import { UomDimensionFormSheet } from '../forms/UomDimensionFormSheet';
@@ -22,12 +23,18 @@ export function UomDimensionsList() {
   const dimensions = ((data ?? previousData)?.uomDimensions ?? []) as UomDimension[];
 
   // Create-only sheet, opened by the header (+) via the registry (edit lives on the detail screen).
-  const { sheetRef } = useCreateEditSheet<UomDimension>({ registerCreateAction: true });
+  // Plan-locked create presents the upsell sheet instead of the form.
+  const { sheetRef } = useCreateEditSheet<UomDimension>({
+    registerCreateAction: true,
+    createPermission: ORG_UOM.dim.add,
+    editPermission: ORG_UOM.dim.edit,
+  });
 
   return (
     <View className="flex-1">
       <FlashList
         screenScroll
+        permission={ORG_UOM.dim.view}
         data={dimensions}
         isLoading={loading}
         skeletonVariant="card"

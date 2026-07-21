@@ -5,13 +5,13 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  '@react-native-menu/menu': 2.0.0
   '@vritti/api-sdk': link:../api-sdk
   '@vritti/quantum-ui': link:../quantum-ui
   '@vritti/quantum-ui-native': link:../quantum-ui-native
   lightningcss: 1.30.1
   react-native-ios-context-menu: 3.2.1
   react-native-ios-utilities: 5.2.0
-  '@react-native-menu/menu': 2.0.0
 
 patchedDependencies:
   '@gorhom/bottom-sheet@5.2.13':
@@ -20,6 +20,9 @@ patchedDependencies:
   react-native-css@3.0.6:
     hash: 3fc7d7a87ccf3a950c097cb32412abc6866a731dabfbdf0a013fd0773e35851e
     path: patches/react-native-css@3.0.6.patch
+  zeego@3.0.6:
+    hash: e356cc4894bd369154adf26afb7b5cb134e6cff5fa7b2ecff485758a3a7430cf
+    path: patches/zeego@3.0.6.patch
 
 importers:
 
@@ -558,7 +561,7 @@ importers:
         version: 4.2.2
       zeego:
         specifier: ^3.0.6
-        version: 3.0.6(2b16375600710570b40a01d2e205a48c)
+        version: 3.0.6(patch_hash=e356cc4894bd369154adf26afb7b5cb134e6cff5fa7b2ecff485758a3a7430cf)(2b16375600710570b40a01d2e205a48c)
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -25116,7 +25119,7 @@ snapshots:
 
   yoctocolors@2.1.2: {}
 
-  zeego@3.0.6(2b16375600710570b40a01d2e205a48c):
+  zeego@3.0.6(patch_hash=e356cc4894bd369154adf26afb7b5cb134e6cff5fa7b2ecff485758a3a7430cf)(2b16375600710570b40a01d2e205a48c):
     dependencies:
       '@radix-ui/react-context-menu': 2.3.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-dropdown-menu': 2.1.17(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

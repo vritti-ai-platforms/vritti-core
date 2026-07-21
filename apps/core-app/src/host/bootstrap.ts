@@ -13,11 +13,17 @@ import 'react-native-bottom-tabs';
 import '@bottom-tabs/react-navigation';
 import { registerRemotes } from '@module-federation/enhanced/runtime';
 import { configureMobileAxios } from '@vritti/quantum-ui-native/utils';
+import { configureReanimatedLogger } from 'react-native-reanimated';
 import { enableScreens } from 'react-native-screens';
 import mobileAxiosConfig from '../../quantum-ui-native.config';
 import { ALL_REMOTES } from './config/remotes.config';
 
 enableScreens();
+
+// Reanimated strict mode false-positives on useAnimatedStyle's initial updater run ("Reading from `value`
+// during component render") — every ScreenHeader render spams it. The reads are legitimate worklet reads;
+// disable strict per the Reanimated logger docs (warnings for real errors still log).
+configureReanimatedLogger({ strict: false });
 
 // Register the Keychain storage adapter + base axios config eagerly, before any screen renders.
 configureMobileAxios(mobileAxiosConfig);

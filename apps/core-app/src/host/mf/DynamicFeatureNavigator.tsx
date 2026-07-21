@@ -2,7 +2,7 @@ import { BottomNavigation, type RouteConfig, type TabIcon } from '@vritti/quantu
 import { usePushNavigator } from '@vritti/quantum-ui-native/hooks';
 import { ScreenHeader } from '@vritti/quantum-ui-native/ScreenHeader';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
-import { Upsell } from '@vritti/quantum-ui-native/Upsell';
+import { lockVariant, Upsell } from '@vritti/quantum-ui-native/Upsell';
 import { useMemo } from 'react';
 import { View } from 'react-native';
 import { resolveRemoteName } from '../config/remotes.config';
@@ -22,12 +22,14 @@ export const DynamicFeatureNavigator = () => {
         const remoteEntry = feature.route.remoteEntry;
         const remoteName = resolveRemoteName(remoteEntry);
         const moduleName = feature.route.exposedModule;
-        // Plan-locked features render the upsell screen instead of loading the micro-app (mirrors web DynamicFeatureRoutes).
-        const planLocked = feature.locked && feature.lockReason === 'PLAN';
+        // Locked features render the lock screen instead of loading the micro-app — PLAN → amber upsell,
+        // SITE (any non-PLAN reason) → destructive "Not enabled for this site" (via the Upsell variant).
+        const locked = feature.locked;
+        const variant = lockVariant(feature.lockReason);
         return {
           name: feature.route.routePrefix,
-          component: planLocked
-            ? () => <Upsell featureName={feature.name} unlockPlans={feature.unlockPlans} />
+          component: locked
+            ? () => <Upsell featureName={feature.name} unlockPlans={feature.unlockPlans} variant={variant} />
             : RemoteScreen,
           params: { remoteName, remoteEntry, moduleName },
           // Icon names arrive as plain strings from the API; cast to TabIcon since they're validated at write time and trusted at runtime.
@@ -38,7 +40,7 @@ export const DynamicFeatureNavigator = () => {
           label: feature.name,
           locked: feature.locked,
           header: () =>
-            planLocked ? (
+            locked ? (
               <ScreenHeader title={feature.name} />
             ) : (
               <RemoteHeader remoteName={remoteName} remoteEntry={remoteEntry} moduleName={moduleName} />

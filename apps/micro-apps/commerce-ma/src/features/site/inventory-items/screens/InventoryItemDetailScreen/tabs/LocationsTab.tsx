@@ -1,4 +1,3 @@
-import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { Fab } from '@vritti/quantum-ui-native/Fab';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
 import { useConfirm, useCreateEditSheet } from '@vritti/quantum-ui-native/hooks';
@@ -9,8 +8,6 @@ import type { InventoryItem } from '../../../../../../types/inventory-items';
 import type { ItemLocation } from '../../../../../../types/item-locations';
 import { ItemLocationCard } from '../../../components/ItemLocationCard';
 import { ItemLocationFormSheet } from '../../../forms/ItemLocationFormSheet';
-
-const PLUS_ICON = { sfSymbol: 'plus', materialSymbol: 'add' } as const;
 
 // Locations tab — per-item location configs (reorder thresholds) with Relay infinite scroll. The FAB opens a
 // bottom sheet to add one, a card's edit opens it prefilled, delete is confirm-first.
@@ -58,9 +55,7 @@ export function LocationsTab({ item }: { item: InventoryItem }) {
           <ItemLocationCard location={location} uomSymbol={item.uomSymbol} onEdit={openEdit} onDelete={handleDelete} />
         )}
       />
-      <Fab onPress={openCreate} accessibilityLabel="Add location">
-        <DynamicIcon icon={PLUS_ICON} size={24} />
-      </Fab>
+      <Fab onPress={openCreate} accessibilityLabel="Add location" />
       <ItemLocationFormSheet ref={sheetRef} inventoryItemId={item.id} uomSymbol={item.uomSymbol} editing={editing} />
     </View>
   );

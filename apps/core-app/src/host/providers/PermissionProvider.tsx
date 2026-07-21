@@ -1,4 +1,4 @@
-import { FormatProvider } from '@vritti/quantum-ui-native/context';
+import { FormatProvider, PermissionGateProvider } from '@vritti/quantum-ui-native/context';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { apolloClient, purgeApolloPersisted } from '../config/apollo';
 import { getSelectedWorkspace, setSelectedWorkspace } from '../config/storage';
@@ -289,13 +289,16 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
 
   return (
     <PermissionContext.Provider value={value}>
-      <FormatProvider
-        timeZone={activeSite?.timezone ?? null}
-        currency={activeSite?.currencyCode ?? activeLe?.currencyCode ?? null}
-        locale={userLocale}
-      >
-        {children}
-      </FormatProvider>
+      {/* Shares checkPermission with quantum components across the MF boundary (globalThis-keyed context) */}
+      <PermissionGateProvider gate={checkPermission}>
+        <FormatProvider
+          timeZone={activeSite?.timezone ?? null}
+          currency={activeSite?.currencyCode ?? activeLe?.currencyCode ?? null}
+          locale={userLocale}
+        >
+          {children}
+        </FormatProvider>
+      </PermissionGateProvider>
     </PermissionContext.Provider>
   );
 };

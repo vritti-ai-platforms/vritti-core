@@ -1,18 +1,16 @@
-import { useQuery } from '@apollo/client/react';
-import { type RouteProp, useNavigation } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import { ORG_UOM } from '@vritti/commerce-permissions/uom';
 import type { BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
-import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { Fab } from '@vritti/quantum-ui-native/Fab';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
-import { useConfirm, useCreateEditSheet } from '@vritti/quantum-ui-native/hooks';
+import { useCreateEditSheet, useNavigationHeader } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { Text } from '@vritti/quantum-ui-native/Text';
-import { type ReactNode, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { RefreshControl, View } from 'react-native';
-import { UOM_DIMENSION_QUERY } from '../../../../graphql/uom-dimensions';
-import { useDeleteUom, useUomsFeed } from '../../../../hooks/organization/uom';
-import { useDeleteUomDimension } from '../../../../hooks/site/uom-dimensions';
+import { useUomsFeed } from '../../../../hooks/organization/uom';
+import { useUomDimension } from '../../../../hooks/organization/uom-dimensions';
 import type { Uom } from '../../../../types/uom';
 import type { UomDimension } from '../../../../types/uom-dimensions';
 import { UomDimensionActionsMenu } from '../components/UomDimensionActionsMenu';
@@ -20,15 +18,6 @@ import { UomUnitCard } from '../components/UomUnitCard';
 import { UomDimensionFormSheet } from '../forms/UomDimensionFormSheet';
 import { UomUnitFormSheet } from '../forms/UomUnitFormSheet';
 import type { UomDimensionDetailParams } from '../types';
-
-const PLUS_ICON = { sfSymbol: 'plus', materialSymbol: 'add' } as const;
-
-// Minimal navigation surface: setOptions (inject the header title + dimension actions menu) + goBack (after
-// deleting the dimension). Avoids a @react-navigation/native-stack type dep.
-type DetailNavigation = {
-  setOptions: (options: { title?: string; headerRight?: () => ReactNode }) => void;
-  goBack: () => void;
-};
 
 // Per-dimension detail — the mobile equivalent of the web's right panel: the dimension header (name + a "⋯"
 // menu that edits/deletes the DIMENSION) over its list of UNITS (base + derived). Units are created/edited
@@ -39,63 +28,32 @@ export function UomDimensionDetail({
 }: {
   route: RouteProp<{ UomDimensionDetail: UomDimensionDetailParams }, 'UomDimensionDetail'>;
 }) {
-  const navigation = useNavigation() as unknown as DetailNavigation;
   const id = route.params?.id;
 
-  const { data, loading } = useQuery(UOM_DIMENSION_QUERY, {
-    variables: { id: id ?? '' },
-    skip: !id,
-    fetchPolicy: 'cache-and-network',
-  });
+  const { data, loading } = useUomDimension(id);
   const dimension = data?.uomDimension as UomDimension | undefined;
 
   const feed = useUomsFeed(id ?? '');
 
-  // Dimension-level actions (header menu).
-  const [deleteDimension] = useDeleteUomDimension();
-  const confirm = useConfirm();
+  // Dimension edit opens the screen-owned sheet; delete lives in the ⋯ menu component (mutation + goBack).
   const dimensionSheetRef = useRef<BottomSheetRef>(null);
 
   const openEditDimension = useCallback(() => {
     dimensionSheetRef.current?.present();
   }, []);
 
-  const handleDeleteDimension = useCallback(async () => {
-    if (!dimension) return;
-    const confirmed = await confirm({
-      title: `Delete ${dimension.name}?`,
-      description: `The "${dimension.name}" dimension will be removed. This can't be undone.`,
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (!confirmed) return;
-    const result = await deleteDimension({ variables: { id: dimension.id } });
-    if (!result.error) navigation.goBack();
-  }, [dimension, confirm, deleteDimension, navigation]);
+  // Header title + "⋯" actions menu, applied pre-paint (no post-render pop-in).
+  useNavigationHeader({
+    title: dimension?.name,
+    right: dimension ? <UomDimensionActionsMenu dimension={dimension} onEdit={openEditDimension} /> : undefined,
+  });
 
-  useEffect(() => {
-    if (!dimension) return;
-    navigation.setOptions({
-      title: dimension.name,
-      headerRight: () => (
-        <UomDimensionActionsMenu dimension={dimension} onEdit={openEditDimension} onDelete={handleDeleteDimension} />
-      ),
-    });
-  }, [dimension, navigation, openEditDimension, handleDeleteDimension]);
-
-  // Unit-level actions (FAB + per-card edit/delete).
-  const [deleteUom] = useDeleteUom();
-  const unitSheet = useCreateEditSheet<Uom>();
-
-  const handleDeleteUnit = async (unit: Uom) => {
-    const confirmed = await confirm({
-      title: `Delete ${unit.name}?`,
-      description: `Unit "${unit.name}" (${unit.symbol}) will be removed. This can't be undone.`,
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteUom({ variables: { id: unit.id } });
-  };
+  // Unit-level actions: FAB create + per-card edit open the screen-owned sheet; delete is owned by the
+  // card (mutation + ActionCard's confirm). Plan-locked create/edit presents the upsell sheet.
+  const unitSheet = useCreateEditSheet<Uom>({
+    createPermission: ORG_UOM.add,
+    editPermission: ORG_UOM.edit,
+  });
 
   if (loading && !dimension) {
     return (
@@ -116,6 +74,7 @@ export function UomDimensionDetail({
   return (
     <View className="flex-1 bg-background">
       <FlashList
+        permission={ORG_UOM.view}
         data={feed.items}
         isLoading={feed.isLoading}
         skeletonVariant="card"
@@ -135,12 +94,10 @@ export function UomDimensionDetail({
         contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
         ItemSeparatorComponent={() => <View className="h-3" />}
         emptyText={feed.isError ? "Couldn't load units." : 'No units yet. Tap + to add one.'}
-        renderItem={({ item }) => <UomUnitCard unit={item} onEdit={unitSheet.openEdit} onDelete={handleDeleteUnit} />}
+        renderItem={({ item }) => <UomUnitCard unit={item} onEdit={unitSheet.openEdit} />}
       />
 
-      <Fab onPress={unitSheet.openCreate} accessibilityLabel="Add unit">
-        <DynamicIcon icon={PLUS_ICON} size={24} />
-      </Fab>
+      <Fab onPress={unitSheet.openCreate} accessibilityLabel="Add unit" permission={ORG_UOM.add} />
 
       <UomDimensionFormSheet ref={dimensionSheetRef} editing={dimension} />
       <UomUnitFormSheet ref={unitSheet.sheetRef} dimensionId={dimension.id} editing={unitSheet.editing} />
