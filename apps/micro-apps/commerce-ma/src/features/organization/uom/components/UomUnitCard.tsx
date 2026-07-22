@@ -52,7 +52,7 @@ export function UomUnitCard({ unit, onEdit }: UomUnitCardProps) {
       deleteAccessibilityLabel="Delete unit"
       deleteMessage={`Unit "${unit.name}" (${unit.symbol}) will be removed. This can't be undone.`}
     >
-      <View className="flex-row items-center gap-2 px-4 pb-2">
+      <View className="flex-row items-center gap-2 px-4 pt-3 pb-4">
         <View className="min-w-0 flex-1 flex-row items-center gap-2 rounded-lg bg-muted px-3 py-3">
           <DynamicIcon icon={isBase ? ANCHOR_ICON : CONVERT_ICON} size={16} className="text-muted-foreground" />
           {isBase ? (

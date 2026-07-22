@@ -1,7 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useConfirm } from '@vritti/quantum-ui-native/hooks';
 import { type MenuAction, MenuButton } from '@vritti/quantum-ui-native/MenuButton';
-import { Alert } from 'react-native';
 import { useDeleteInventoryItem } from '../../../../hooks/site/inventory-items';
 import type { InventoryItem } from '../../../../types/inventory-items';
 import type { InventoryNavigation } from '../types';
@@ -24,7 +23,7 @@ export function ItemActionsMenu({ item }: { item: InventoryItem }) {
     // cache.evict drops the row from the list automatically; return to it on success.
     const result = await deleteItem({ variables: { id: item.id } });
     if (result.error) {
-      Alert.alert('Delete failed', result.error.message);
+      await confirm({ title: 'Delete failed', description: result.error.message, confirmLabel: 'OK', alert: true });
       return;
     }
     navigation.goBack();

@@ -12,13 +12,31 @@ import 'react-native-pager-view';
 import 'react-native-bottom-tabs';
 import '@bottom-tabs/react-navigation';
 import { registerRemotes } from '@module-federation/enhanced/runtime';
+import { setConfirmPresenter } from '@vritti/quantum-ui-native/hooks';
 import { configureMobileAxios } from '@vritti/quantum-ui-native/utils';
+import { NativeModules, Platform } from 'react-native';
 import { configureReanimatedLogger } from 'react-native-reanimated';
 import { enableScreens } from 'react-native-screens';
 import mobileAxiosConfig from '../../quantum-ui-native.config';
 import { ALL_REMOTES } from './config/remotes.config';
 
 enableScreens();
+
+// Android: route quantum's confirms/alerts through the native MaterialAlertDialogBuilder module so they
+// render the modern Material 3 (Android 16) dialog instead of RN Alert.alert's dated one. iOS keeps the
+// native iOS alert (no presenter). See android/.../MaterialDialogModule.kt.
+if (Platform.OS === 'android' && NativeModules.MaterialDialog) {
+  setConfirmPresenter((o) =>
+    NativeModules.MaterialDialog.showDialog({
+      title: o.title,
+      message: o.description,
+      confirmLabel: o.confirmLabel,
+      cancelLabel: o.alert ? null : o.cancelLabel,
+      destructive: o.variant === 'destructive',
+      alert: !!o.alert,
+    }),
+  );
+}
 
 // Reanimated strict mode false-positives on useAnimatedStyle's initial updater run ("Reading from `value`
 // during component render") — every ScreenHeader render spams it. The reads are legitimate worklet reads;

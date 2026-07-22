@@ -1,0 +1,13 @@
+diff --git a/android/src/main/java/com/reactnativemenu/MenuView.kt b/android/src/main/java/com/reactnativemenu/MenuView.kt
+index c45f5cc8ee16db610686fe5b6bef9f3372c6944b..ed3f3db9ff4a1606b64a42ba6b4c6619c407714b 100644
+--- a/android/src/main/java/com/reactnativemenu/MenuView.kt
++++ b/android/src/main/java/com/reactnativemenu/MenuView.kt
+@@ -9,7 +9,7 @@ import android.text.Spannable
+ import android.text.SpannableStringBuilder
+ import android.text.style.ForegroundColorSpan
+ import android.view.*
+-import android.widget.PopupMenu
++import androidx.appcompat.widget.PopupMenu
+ import com.facebook.react.bridge.*
+ import com.facebook.react.uimanager.UIManagerHelper
+ import com.facebook.react.views.view.ReactViewGroup

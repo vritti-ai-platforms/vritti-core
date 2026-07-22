@@ -2,14 +2,14 @@ import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/Bott
 import { Card } from '@vritti/quantum-ui-native/Card';
 import { CardPressable } from '@vritti/quantum-ui-native/CardPressable';
 import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
-import { usePushNavigator, useTheme } from '@vritti/quantum-ui-native/hooks';
+import { useConfirm, usePushNavigator, useTheme } from '@vritti/quantum-ui-native/hooks';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { ListItem } from '@vritti/quantum-ui-native/ListItem';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { useRef } from 'react';
-import { Alert as NativeAlert, View } from 'react-native';
+import { View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
 import type { HostAppRoute } from '../../routes';
 import { SiteSwitcher } from './components/SiteSwitcher';
@@ -20,6 +20,7 @@ type ThemePreferenceValue = 'system' | 'light' | 'dark';
 export const AccountScreen = () => {
   const { user, org, logout } = useAuth();
   const { push } = usePushNavigator<HostAppRoute>();
+  const confirm = useConfirm();
   const { isDark, colorScheme, themePreference, setThemePreference } = useTheme();
   const themeSheetRef = useRef<BottomSheetRef>(null);
   const pendingThemeRef = useRef<ThemePreferenceValue | null>(null);
@@ -37,17 +38,14 @@ export const AccountScreen = () => {
     void setThemePreference(pending);
   };
 
-  const handleLogout = () => {
-    NativeAlert.alert('Sign out', 'Are you sure you want to sign out of this session?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: () => {
-          void logout();
-        },
-      },
-    ]);
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: 'Sign out',
+      description: 'Are you sure you want to sign out of this session?',
+      confirmLabel: 'Sign out',
+      variant: 'destructive',
+    });
+    if (ok) void logout();
   };
 
   return (

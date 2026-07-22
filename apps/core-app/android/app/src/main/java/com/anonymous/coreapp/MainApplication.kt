@@ -10,7 +10,13 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 class MainApplication : Application(), ReactApplication {
 
   override val reactHost: ReactHost by lazy {
-    getDefaultReactHost(applicationContext, PackageList(this).packages)
+    getDefaultReactHost(
+      applicationContext,
+      PackageList(this).packages.apply {
+        // Native Material 3 dialog module (backs quantum's confirms/alerts on Android).
+        add(MaterialDialogPackage())
+      },
+    )
   }
 
   override fun onCreate() {

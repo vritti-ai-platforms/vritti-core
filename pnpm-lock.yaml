@@ -17,6 +17,9 @@ patchedDependencies:
   '@gorhom/bottom-sheet@5.2.13':
     hash: 2b7e8a2ab7e90e91e30d2705f037c7ba641e96fee04d116327bcdcc8a704489c
     path: patches/@gorhom__bottom-sheet@5.2.13.patch
+  '@react-native-menu/menu@2.0.0':
+    hash: 15d6faed41db5103546d8b315e9ccb924c9ef5b1a96af583372c40626bbc6209
+    path: patches/@react-native-menu__menu@2.0.0.patch
   react-native-css@3.0.6:
     hash: 3fc7d7a87ccf3a950c097cb32412abc6866a731dabfbdf0a013fd0773e35851e
     path: patches/react-native-css@3.0.6.patch
@@ -66,7 +69,7 @@ importers:
         version: 12.0.1(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@react-native-menu/menu':
         specifier: 2.0.0
-        version: 2.0.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
+        version: 2.0.0(patch_hash=15d6faed41db5103546d8b315e9ccb924c9ef5b1a96af583372c40626bbc6209)(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@react-navigation/elements':
         specifier: 3.0.0-alpha.20
         version: 3.0.0-alpha.20(c691e0f8f9586fc551eeb8478e0236f4)
@@ -413,13 +416,13 @@ importers:
     dependencies:
       '@module-federation/enhanced':
         specifier: ^2.4.0
-        version: 2.4.0(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(@swc/helpers@0.5.21))(node-fetch@2.7.0(encoding@0.1.13))(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
+        version: 2.4.0(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(@swc/helpers@0.5.21))(node-fetch@3.3.2)(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
       '@module-federation/rsbuild-plugin':
         specifier: ^2.4.0
-        version: 2.4.0(@rsbuild/core@2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(core-js@3.47.0))(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(@swc/helpers@0.5.21))(node-fetch@2.7.0(encoding@0.1.13))(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
+        version: 2.4.0(@rsbuild/core@2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(core-js@3.47.0))(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(@swc/helpers@0.5.21))(node-fetch@3.3.2)(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
       '@module-federation/runtime':
         specifier: ^2.4.0
-        version: 2.4.0(node-fetch@2.7.0(encoding@0.1.13))
+        version: 2.4.0(node-fetch@3.3.2)
       '@tanstack/query-broadcast-client-experimental':
         specifier: ^5.100.10
         version: 5.100.10
@@ -456,10 +459,10 @@ importers:
         version: 2.4.2
       '@rsbuild/core':
         specifier: 2.0.6
-        version: 2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(core-js@3.47.0)
+        version: 2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(core-js@3.47.0)
       '@rsbuild/plugin-react':
         specifier: 2.0.0
-        version: 2.0.0(@rsbuild/core@2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(core-js@3.47.0))(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(@swc/helpers@0.5.21))
+        version: 2.0.0(@rsbuild/core@2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(core-js@3.47.0))(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(@swc/helpers@0.5.21))
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.2.1
@@ -561,7 +564,7 @@ importers:
         version: 4.2.2
       zeego:
         specifier: ^3.0.6
-        version: 3.0.6(patch_hash=e356cc4894bd369154adf26afb7b5cb134e6cff5fa7b2ecff485758a3a7430cf)(2b16375600710570b40a01d2e205a48c)
+        version: 3.0.6(patch_hash=e356cc4894bd369154adf26afb7b5cb134e6cff5fa7b2ecff485758a3a7430cf)(e9ff812a78a370f4703530095137b507)
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -713,13 +716,13 @@ importers:
     dependencies:
       '@module-federation/enhanced':
         specifier: ^2.4.0
-        version: 2.4.0(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(@swc/helpers@0.5.21))(node-fetch@3.3.2)(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
+        version: 2.4.0(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(@swc/helpers@0.5.21))(node-fetch@2.7.0(encoding@0.1.13))(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
       '@module-federation/rsbuild-plugin':
         specifier: ^2.4.0
-        version: 2.4.0(@rsbuild/core@2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(core-js@3.47.0))(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(@swc/helpers@0.5.21))(node-fetch@3.3.2)(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
+        version: 2.4.0(@rsbuild/core@2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(core-js@3.47.0))(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(@swc/helpers@0.5.21))(node-fetch@2.7.0(encoding@0.1.13))(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
       '@module-federation/runtime':
         specifier: ^2.4.0
-        version: 2.4.0(node-fetch@3.3.2)
+        version: 2.4.0(node-fetch@2.7.0(encoding@0.1.13))
       '@tanstack/react-query':
         specifier: ^5.100.10
         version: 5.100.10(react@19.2.3)
@@ -753,10 +756,10 @@ importers:
         version: 2.4.2
       '@rsbuild/core':
         specifier: 2.0.6
-        version: 2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(core-js@3.47.0)
+        version: 2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(core-js@3.47.0)
       '@rsbuild/plugin-react':
         specifier: 2.0.0
-        version: 2.0.0(@rsbuild/core@2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(core-js@3.47.0))(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@3.3.2))(@swc/helpers@0.5.21))
+        version: 2.0.0(@rsbuild/core@2.0.6(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(core-js@3.47.0))(@rspack/core@2.0.3(@module-federation/runtime-tools@2.4.0(node-fetch@2.7.0(encoding@0.1.13)))(@swc/helpers@0.5.21))
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.2.1
@@ -17348,7 +17351,7 @@ snapshots:
       react: 19.2.3
       react-native: 0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3)
 
-  '@react-native-menu/menu@2.0.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)':
+  '@react-native-menu/menu@2.0.0(patch_hash=15d6faed41db5103546d8b315e9ccb924c9ef5b1a96af583372c40626bbc6209)(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)':
     dependencies:
       react: 19.2.3
       react-native: 0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3)
@@ -25119,11 +25122,11 @@ snapshots:
 
   yoctocolors@2.1.2: {}
 
-  zeego@3.0.6(patch_hash=e356cc4894bd369154adf26afb7b5cb134e6cff5fa7b2ecff485758a3a7430cf)(2b16375600710570b40a01d2e205a48c):
+  zeego@3.0.6(patch_hash=e356cc4894bd369154adf26afb7b5cb134e6cff5fa7b2ecff485758a3a7430cf)(e9ff812a78a370f4703530095137b507):
     dependencies:
       '@radix-ui/react-context-menu': 2.3.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-dropdown-menu': 2.1.17(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@react-native-menu/menu': 2.0.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
+      '@react-native-menu/menu': 2.0.0(patch_hash=15d6faed41db5103546d8b315e9ccb924c9ef5b1a96af583372c40626bbc6209)(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       react: 19.2.3
       react-native: 0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3)
       react-native-ios-context-menu: 3.2.1(react-native-ios-utilities@5.2.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
