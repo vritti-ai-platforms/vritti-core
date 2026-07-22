@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+import { PartyFunctionAssignmentDto } from '@/modules/commerce-gateway/_shared/dto/party-function-assignment.dto';
 
 export class AddCompanyPersonDto {
   @ApiProperty({ description: 'The person (PERSON party) to link to the company' })
@@ -14,22 +16,10 @@ export class AddCompanyPersonDto {
   @MaxLength(100)
   jobTitle?: string | null;
 
-  @Trim()
-  @ApiPropertyOptional({ description: 'Secondary phone number for this relationship' })
+  @ApiPropertyOptional({ type: [PartyFunctionAssignmentDto], description: 'Contact functions assigned to this person' })
   @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  secondaryPhone?: string | null;
-
-  @Trim()
-  @ApiPropertyOptional({ description: 'Secondary email for this relationship' })
-  @IsOptional()
-  @IsEmail()
-  @MaxLength(255)
-  secondaryEmail?: string | null;
-
-  @ApiPropertyOptional({ description: 'Whether this is the primary person' })
-  @IsOptional()
-  @IsBoolean()
-  isPrimary?: boolean;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartyFunctionAssignmentDto)
+  functions?: PartyFunctionAssignmentDto[];
 }

@@ -12,6 +12,11 @@ export class UpdateSupplierSiteDto {
   @IsUUID()
   partyBankAccountId?: string | null;
 
+  @ApiPropertyOptional({ description: 'Company-person relationship pick for the order contact at this site', nullable: true })
+  @IsOptional()
+  @IsUUID()
+  orderRelationshipId?: string | null;
+
   @ApiPropertyOptional({ description: 'Whether the site enrollment is active' })
   @IsOptional()
   @IsBoolean()

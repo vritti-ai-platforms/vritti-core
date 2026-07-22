@@ -37,6 +37,18 @@ export const ORG_PEOPLE = {
     edit: 'org.people.bank-accounts.edit',
     delete: 'org.people.bank-accounts.delete',
   },
+  communications: {
+    view: 'org.people.communications.view',
+    add: 'org.people.communications.add',
+    edit: 'org.people.communications.edit',
+    delete: 'org.people.communications.delete',
+  },
+  socialProfiles: {
+    view: 'org.people.social-profiles.view',
+    add: 'org.people.social-profiles.add',
+    edit: 'org.people.social-profiles.edit',
+    delete: 'org.people.social-profiles.delete',
+  },
   contacts: {
     view: 'org.people.contacts.view',
     add: 'org.people.contacts.add',

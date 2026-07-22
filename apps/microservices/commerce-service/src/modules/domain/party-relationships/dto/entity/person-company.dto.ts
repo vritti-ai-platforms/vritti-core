@@ -5,7 +5,6 @@ export class PersonCompanyDto {
   companyId: string;
   companyName: string | null;
   jobTitle: string | null;
-  isPrimary: boolean;
   isActive: boolean;
 
   // Maps a PartyRelationship entity (person as child) to a PersonCompanyDto
@@ -15,7 +14,6 @@ export class PersonCompanyDto {
     dto.companyId = entity.parentPartyId;
     dto.companyName = companyName;
     dto.jobTitle = entity.jobTitle ?? null;
-    dto.isPrimary = entity.isPrimary;
     dto.isActive = entity.isActive;
     return dto;
   }

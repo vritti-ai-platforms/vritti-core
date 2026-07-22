@@ -229,9 +229,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.supplierSites.partyBankAccountId,
       to: r.partyBankAccounts.id,
     }),
-    orderContact: r.one.partyContacts({
-      from: r.supplierSites.orderContactId,
-      to: r.partyContacts.id,
+    orderRelationship: r.one.partyRelationships({
+      from: r.supplierSites.orderRelationshipId,
+      to: r.partyRelationships.id,
     }),
   },
   parties: {
@@ -242,7 +242,7 @@ export const relations = defineRelations(schema, (r) => ({
     taxRegistrations: r.many.partyTaxRegistrations(),
     licenses: r.many.partyLicenses(),
     bankAccounts: r.many.partyBankAccounts(),
-    contacts: r.many.partyContacts(),
+    communications: r.many.partyCommunications(),
   },
   partyLicenses: {
     party: r.one.parties({
@@ -256,10 +256,37 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.parties.id,
     }),
   },
-  partyContacts: {
+  partyCommunications: {
     party: r.one.parties({
-      from: r.partyContacts.partyId,
+      from: r.partyCommunications.partyId,
       to: r.parties.id,
+    }),
+    apps: r.many.partyCommunicationApps(),
+  },
+  partyCommunicationApps: {
+    communication: r.one.partyCommunications({
+      from: r.partyCommunicationApps.communicationId,
+      to: r.partyCommunications.id,
+    }),
+  },
+  partySocialProfiles: {
+    party: r.one.parties({
+      from: r.partySocialProfiles.partyId,
+      to: r.parties.id,
+    }),
+  },
+  partyFunctions: {
+    party: r.one.parties({
+      from: r.partyFunctions.partyId,
+      to: r.parties.id,
+    }),
+    address: r.one.partyAddresses({
+      from: r.partyFunctions.partyAddressId,
+      to: r.partyAddresses.id,
+    }),
+    relationship: r.one.partyRelationships({
+      from: r.partyFunctions.partyRelationshipId,
+      to: r.partyRelationships.id,
     }),
   },
   partyRelationships: {

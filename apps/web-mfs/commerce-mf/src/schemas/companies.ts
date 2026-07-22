@@ -1,6 +1,12 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 import {
+  type PartyFunctionAssignment,
+  type PartyFunctionOption,
+  type PartyFunctionResponse,
+  partyFunctionAssignmentSchema,
+} from './party-functions';
+import {
   type PartyRegistrationFormData,
   type PartyRegistrationsTableResponse,
   type PartyTaxRegistrationRow,
@@ -8,6 +14,22 @@ import {
 } from './party-registrations';
 
 export { REGISTRATION_TYPE_LABELS, REGISTRATION_TYPE_OPTIONS, type RegistrationType } from './party-registrations';
+
+const CONTACT_FUNCTIONS = ['ORDER', 'ACCOUNTS', 'LOGISTICS', 'ESCALATION'] as const;
+
+export type ContactFunction = (typeof CONTACT_FUNCTIONS)[number];
+
+export const CONTACT_FUNCTION_LABELS: Record<ContactFunction, string> = {
+  ORDER: 'Order',
+  ACCOUNTS: 'Accounts',
+  LOGISTICS: 'Logistics',
+  ESCALATION: 'Escalation',
+};
+
+export const CONTACT_FUNCTION_OPTIONS: PartyFunctionOption[] = CONTACT_FUNCTIONS.map((value) => ({
+  value,
+  label: CONTACT_FUNCTION_LABELS[value],
+}));
 
 export const createCompanySchema = z
   .object({
@@ -64,9 +86,12 @@ export const updateCompanySchema = z
 export const addCompanyPersonSchema = z.object({
   personId: z.uuid('Person is required'),
   jobTitle: z.string().max(100).optional(),
-  secondaryPhone: z.string().max(20).optional(),
-  secondaryEmail: z.string().email('Enter a valid email').max(255).optional().or(z.literal('')),
-  isPrimary: z.boolean().optional(),
+  functions: z.array(partyFunctionAssignmentSchema),
+});
+
+export const updateCompanyPersonSchema = z.object({
+  jobTitle: z.string().max(100).optional(),
+  functions: z.array(partyFunctionAssignmentSchema),
 });
 
 export const companyRegistrationSchema = partyRegistrationSchema;
@@ -74,6 +99,7 @@ export const companyRegistrationSchema = partyRegistrationSchema;
 export type CreateCompanyFormData = z.infer<typeof createCompanySchema>;
 export type UpdateCompanyFormData = z.infer<typeof updateCompanySchema>;
 export type AddCompanyPersonFormData = z.infer<typeof addCompanyPersonSchema>;
+export type UpdateCompanyPersonFormData = z.infer<typeof updateCompanyPersonSchema>;
 
 export interface CompanyAddressInput {
   line1: string;
@@ -108,10 +134,13 @@ export interface UpdateCompanyPayload {
 
 export interface AddCompanyPersonPayload {
   childPartyId: string;
-  jobTitle?: string;
-  secondaryPhone?: string;
-  secondaryEmail?: string;
-  isPrimary?: boolean;
+  jobTitle?: string | null;
+  functions?: PartyFunctionAssignment[];
+}
+
+export interface UpdateCompanyPersonPayload {
+  jobTitle?: string | null;
+  functions?: PartyFunctionAssignment[];
 }
 export type CompanyRegistrationFormData = PartyRegistrationFormData;
 
@@ -130,7 +159,6 @@ export interface CompanyData {
   updatedAt: string;
   primaryAddress: {
     id: string;
-    type: string;
     line1: string;
     line2: string | null;
     city: string | null;
@@ -144,10 +172,10 @@ export interface CompanyPersonRow {
   id: string;
   childPartyId: string;
   childName: string | null;
+  childEmail: string | null;
+  childPhone: string | null;
   jobTitle: string | null;
-  secondaryPhone: string | null;
-  secondaryEmail: string | null;
-  isPrimary: boolean;
+  functions: PartyFunctionResponse[];
 }
 
 export type CompanyTaxRegistrationRow = PartyTaxRegistrationRow;

@@ -10,7 +10,7 @@ export class SupplierSiteDto {
   registrationType: TaxRegistrationType | null;
   bankAccountName: string | null;
   bankName: string | null;
-  orderContactId: string | null;
+  orderRelationshipId: string | null;
   orderContactLabel: string | null;
   orderContactName: string | null;
   orderContactEmail: string | null;
@@ -42,7 +42,7 @@ export class SupplierSiteDto {
     dto.registrationType = entity.registrationType ?? null;
     dto.bankAccountName = entity.bankAccountName ?? null;
     dto.bankName = entity.bankName ?? null;
-    dto.orderContactId = entity.orderContactId ?? null;
+    dto.orderRelationshipId = entity.orderRelationshipId ?? null;
     dto.orderContactLabel = entity.orderContactLabel ?? null;
     dto.orderContactName = entity.orderContactName ?? null;
     dto.orderContactEmail = entity.orderContactEmail ?? null;

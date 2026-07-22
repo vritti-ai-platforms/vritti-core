@@ -1,7 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, foreignKey, index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { partyBankAccounts, partyContacts, partyTaxRegistrations } from './parties';
+import { partyBankAccounts, partyRelationships, partyTaxRegistrations } from './parties';
 import { suppliers } from './suppliers';
 
 export const supplierSites = coreSchema.table(
@@ -19,8 +19,8 @@ export const supplierSites = coreSchema.table(
     partyTaxRegistrationId: uuid('party_tax_registration_id'),
     // Branch payee; null falls back to the party's primary bank account.
     partyBankAccountId: uuid('party_bank_account_id'),
-    // Ordering desk (party_contacts, purpose ORDER) for this site; null falls back to the supplier default.
-    orderContactId: uuid('order_contact_id'),
+    // Ordering desk (party_relationships, purpose ORDER) for this site; null falls back to the supplier default.
+    orderRelationshipId: uuid('order_relationship_id'),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -43,9 +43,9 @@ export const supplierSites = coreSchema.table(
       name: 'fk_supplier_sites_bank_account',
     }).onDelete('set null'),
     foreignKey({
-      columns: [table.orderContactId],
-      foreignColumns: [partyContacts.id],
-      name: 'fk_supplier_sites_order_contact',
+      columns: [table.orderRelationshipId],
+      foreignColumns: [partyRelationships.id],
+      name: 'fk_supplier_sites_order_relationship',
     }).onDelete('set null'),
     pgPolicy('org_isolation', {
       for: 'all',

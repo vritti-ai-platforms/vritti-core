@@ -7,11 +7,11 @@ import type {
   PartyBankAccountsTableResponse,
 } from '@/schemas/party-bank-accounts';
 import type {
-  PartyContactPayload,
-  PartyContactRow,
-  PartyContactsTableResponse,
-  PartyContactUpdatePayload,
-} from '@/schemas/party-contacts';
+  PartyCommunicationPayload,
+  PartyCommunicationRow,
+  PartyCommunicationsTableResponse,
+  PartyCommunicationUpdatePayload,
+} from '@/schemas/party-communications';
 import type {
   AddIdentifierPayload,
   IdentifierType,
@@ -24,6 +24,11 @@ import type {
   PartyRegistrationsTableResponse,
   PartyTaxRegistrationRow,
 } from '@/schemas/party-registrations';
+import type {
+  PartySocialProfilePayload,
+  PartySocialProfileRow,
+  PartySocialProfilesTableResponse,
+} from '@/schemas/party-social-profiles';
 import type { PeopleTableResponse, PersonCompaniesTableResponse, PersonData } from '@/schemas/people';
 
 export interface CreatePersonPayload {
@@ -34,6 +39,14 @@ export interface CreatePersonPayload {
   identifierType?: IdentifierType;
   identifierValue?: string;
   isActive: boolean;
+  address?: {
+    line1: string;
+    line2?: string;
+    city?: string;
+    region?: string;
+    postalCode?: string;
+    countryCode: string;
+  };
 }
 
 export interface UpdatePersonPayload {
@@ -262,42 +275,90 @@ export function deletePersonBankAccount({
     .then((r) => r.data);
 }
 
-export function getPersonContacts(id: string): Promise<PartyContactsTableResponse> {
-  return axios.get<PartyContactsTableResponse>(`commerce-api/people/${id}/contacts/table`).then((r) => r.data);
-}
-
-export function createPersonContact({
-  personId,
-  data,
-}: {
-  personId: string;
-  data: PartyContactPayload;
-}): Promise<PartyContactRow> {
+export function getPersonCommunications(id: string): Promise<PartyCommunicationsTableResponse> {
   return axios
-    .post<CreateResponse<PartyContactRow>>(`commerce-api/people/${personId}/contacts`, data)
-    .then((r) => r.data.data);
-}
-
-export function updatePersonContact({
-  personId,
-  contactId,
-  data,
-}: {
-  personId: string;
-  contactId: string;
-  data: PartyContactUpdatePayload;
-}): Promise<SuccessResponse> {
-  return axios
-    .patch<SuccessResponse>(`commerce-api/people/${personId}/contacts/${contactId}`, data)
+    .get<PartyCommunicationsTableResponse>(`commerce-api/people/${id}/communications/table`)
     .then((r) => r.data);
 }
 
-export function deletePersonContact({
+export function createPersonCommunication({
   personId,
-  contactId,
+  data,
 }: {
   personId: string;
-  contactId: string;
+  data: PartyCommunicationPayload;
+}): Promise<PartyCommunicationRow> {
+  return axios
+    .post<CreateResponse<PartyCommunicationRow>>(`commerce-api/people/${personId}/communications`, data)
+    .then((r) => r.data.data);
+}
+
+export function updatePersonCommunication({
+  personId,
+  communicationId,
+  data,
+}: {
+  personId: string;
+  communicationId: string;
+  data: PartyCommunicationUpdatePayload;
 }): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/people/${personId}/contacts/${contactId}`).then((r) => r.data);
+  return axios
+    .patch<SuccessResponse>(`commerce-api/people/${personId}/communications/${communicationId}`, data)
+    .then((r) => r.data);
+}
+
+export function deletePersonCommunication({
+  personId,
+  communicationId,
+}: {
+  personId: string;
+  communicationId: string;
+}): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`commerce-api/people/${personId}/communications/${communicationId}`)
+    .then((r) => r.data);
+}
+
+export function getPersonSocialProfiles(id: string): Promise<PartySocialProfilesTableResponse> {
+  return axios
+    .get<PartySocialProfilesTableResponse>(`commerce-api/people/${id}/social-profiles/table`)
+    .then((r) => r.data);
+}
+
+export function createPersonSocialProfile({
+  personId,
+  data,
+}: {
+  personId: string;
+  data: PartySocialProfilePayload;
+}): Promise<PartySocialProfileRow> {
+  return axios
+    .post<CreateResponse<PartySocialProfileRow>>(`commerce-api/people/${personId}/social-profiles`, data)
+    .then((r) => r.data.data);
+}
+
+export function updatePersonSocialProfile({
+  personId,
+  profileId,
+  data,
+}: {
+  personId: string;
+  profileId: string;
+  data: PartySocialProfilePayload;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/people/${personId}/social-profiles/${profileId}`, data)
+    .then((r) => r.data);
+}
+
+export function deletePersonSocialProfile({
+  personId,
+  profileId,
+}: {
+  personId: string;
+  profileId: string;
+}): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`commerce-api/people/${personId}/social-profiles/${profileId}`)
+    .then((r) => r.data);
 }

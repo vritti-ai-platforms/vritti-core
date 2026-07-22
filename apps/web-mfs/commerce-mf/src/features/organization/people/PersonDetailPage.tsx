@@ -12,10 +12,11 @@ import { useNavigate } from 'react-router-dom';
 import { useDeletePerson, usePersonById, usePersonCompanies, usePersonIdentifiers } from '@/hooks/organization/people';
 import { AddressesTab } from '../party/tabs/AddressesTab';
 import { BankAccountsTab } from '../party/tabs/BankAccountsTab';
-import { ContactsTab } from '../party/tabs/ContactsTab';
+import { CommunicationsTab } from '../party/tabs/CommunicationsTab';
 import { IdentifiersTab } from '../party/tabs/IdentifiersTab';
 import { LicensesTab } from '../party/tabs/LicensesTab';
 import { RegistrationsTab } from '../party/tabs/RegistrationsTab';
+import { SocialProfilesTab } from '../party/tabs/SocialProfilesTab';
 import { EditPersonDialog } from './forms/EditPersonDialog';
 import { personBindings } from './party-bindings';
 import { CompaniesTab } from './tabs/CompaniesTab';
@@ -80,6 +81,18 @@ export const PersonDetailPage = () => {
             content: <AddressesTab partyId={person.id} binding={personBindings.addresses} />,
           },
           {
+            value: 'communications',
+            label: 'Communications',
+            permission: ORG_PEOPLE.communications.view,
+            content: <CommunicationsTab partyId={person.id} binding={personBindings.communications} />,
+          },
+          {
+            value: 'social-profiles',
+            label: 'Social Profiles',
+            permission: ORG_PEOPLE.socialProfiles.view,
+            content: <SocialProfilesTab partyId={person.id} binding={personBindings.socialProfiles} />,
+          },
+          {
             value: 'companies',
             label: 'Companies',
             permission: ORG_PEOPLE.companies.view,
@@ -102,12 +115,6 @@ export const PersonDetailPage = () => {
             label: 'Bank Accounts',
             permission: ORG_PEOPLE.bankAccounts.view,
             content: <BankAccountsTab partyId={person.id} binding={personBindings.bankAccounts} />,
-          },
-          {
-            value: 'contacts',
-            label: 'Contacts',
-            permission: ORG_PEOPLE.contacts.view,
-            content: <ContactsTab partyId={person.id} binding={personBindings.contacts} />,
           },
           {
             value: 'identifiers',

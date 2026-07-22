@@ -73,6 +73,17 @@ export const SitesTab: React.FC<SitesTabProps> = ({ supplierId, partyId }) => {
           ),
       },
       {
+        accessorKey: 'orderContactName',
+        header: 'Order Contact',
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.orderContactName || row.original.orderContactLabel ? (
+            <StringCell value={row.original.orderContactName ?? row.original.orderContactLabel} />
+          ) : (
+            <Badge variant="outline">Not set</Badge>
+          ),
+      },
+      {
         accessorKey: 'isActive',
         header: 'Status',
         cell: ({ row }) => (

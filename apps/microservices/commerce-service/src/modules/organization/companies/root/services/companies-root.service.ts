@@ -5,7 +5,7 @@ import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { PartyAddressesDomainService } from '@domain/party-addresses/services/party-addresses.service';
 import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { PartyAddressTypeValues, PartyTypeValues } from '@/db/schema';
+import { PartyTypeValues } from '@/db/schema';
 
 @Injectable()
 export class CompaniesService {
@@ -32,10 +32,7 @@ export class CompaniesService {
       isActive: dto.isActive,
     });
     if (dto.address) {
-      await this.addressesService.upsertPrimary(result.data.id, {
-        type: PartyAddressTypeValues.REGISTERED,
-        ...dto.address,
-      });
+      await this.addressesService.upsertPrimary(result.data.id, { ...dto.address });
     }
     return result;
   }
@@ -50,7 +47,7 @@ export class CompaniesService {
     const { id, address, ...payload } = dto;
     const result = await this.partiesService.update(id, payload);
     if (address) {
-      await this.addressesService.upsertPrimary(id, { type: PartyAddressTypeValues.REGISTERED, ...address });
+      await this.addressesService.upsertPrimary(id, { ...address });
     }
     return result;
   }

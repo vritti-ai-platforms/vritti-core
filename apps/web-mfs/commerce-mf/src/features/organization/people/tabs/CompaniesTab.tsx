@@ -1,5 +1,4 @@
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { type ColumnDef, DataTable, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Building2 } from 'lucide-react';
 import type React from 'react';
@@ -25,18 +24,6 @@ export const CompaniesTab: React.FC<CompaniesTabProps> = ({ partyId }) => {
         accessorKey: 'jobTitle',
         header: 'Job Title',
         cell: ({ row }) => <StringCell value={row.original.jobTitle ?? '—'} />,
-      },
-      {
-        accessorKey: 'isPrimary',
-        header: 'Primary',
-        cell: ({ row }) =>
-          row.original.isPrimary ? (
-            <Badge variant="secondary" className="bg-success/15 text-success">
-              Primary
-            </Badge>
-          ) : (
-            '—'
-          ),
       },
     ],
     [],

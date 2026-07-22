@@ -78,8 +78,17 @@ export class PartyBankAccountsDomainService {
       });
     }
 
+    const isPrimary = data.isPrimary ?? false;
+    const isActive = data.isActive ?? true;
+    if (isPrimary && !isActive) {
+      throw new ConflictException({
+        label: 'Invalid State',
+        detail: 'A primary account must be active — an inactive account cannot be the primary payee.',
+      });
+    }
+
     const entity = await this.database.runInTransaction(async () => {
-      if (data.isPrimary === true) {
+      if (isPrimary) {
         await this.repository.clearPrimaryForParty(partyId);
       }
       return this.repository.create({
@@ -89,8 +98,8 @@ export class PartyBankAccountsDomainService {
         ifscCode: data.ifscCode ?? null,
         upiId: data.upiId ?? null,
         bankName: data.bankName ?? null,
-        isPrimary: data.isPrimary ?? false,
-        isActive: data.isActive ?? true,
+        isPrimary,
+        isActive,
       });
     });
 
@@ -111,6 +120,16 @@ export class PartyBankAccountsDomainService {
           detail: 'A bank account with this number is already on record for this company.',
         });
       }
+    }
+
+    // A primary account must stay active — blocks retiring the current primary payee or promoting an inactive account
+    const nextPrimary = data.isPrimary ?? existing.isPrimary;
+    const nextActive = data.isActive ?? existing.isActive;
+    if (nextPrimary && !nextActive) {
+      throw new ConflictException({
+        label: 'Primary In Use',
+        detail: 'The primary account must stay active. Set another account as primary before retiring this one.',
+      });
     }
 
     if (Object.keys(data).length > 0) {

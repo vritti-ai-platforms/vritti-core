@@ -17,5 +17,5 @@ export class AddSupplierSiteDto {
 
   @IsOptional()
   @IsUUID()
-  orderContactId?: string | null;
+  orderRelationshipId?: string | null;
 }

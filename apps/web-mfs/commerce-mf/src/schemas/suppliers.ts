@@ -34,29 +34,6 @@ export const updateSupplierSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export const createSupplierContactSchema = z.object({
-  name: z.string().min(1, 'Contact name is required').max(255),
-  phone: zodPhoneField(),
-  alternatePhone: zodPhoneField({ optional: true }),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
-  alternateEmail: z.string().email('Invalid email').optional().or(z.literal('')),
-  designation: z.string().max(100).optional(),
-  notes: z.string().max(500).optional(),
-  isPrimary: z.boolean().optional(),
-});
-
-export const updateSupplierContactSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  phone: zodPhoneField(),
-  alternatePhone: z.union([zodPhoneField({ optional: true }), z.null()]).optional(),
-  email: z.string().email('Invalid email').nullable().optional().or(z.literal('')),
-  alternateEmail: z.string().email('Invalid email').nullable().optional().or(z.literal('')),
-  designation: z.string().max(100).nullable().optional(),
-  notes: z.string().max(500).nullable().optional(),
-  isPrimary: z.boolean().optional(),
-  isActive: z.boolean().optional(),
-});
-
 // Standing free-goods scheme (buy + free ratio) carried on a supplier item.
 const supplierSchemeShape = {
   schemeBuyQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
@@ -112,8 +89,6 @@ export const updateSupplierItemSchema = z
 
 export type CreateSupplierFormData = z.infer<typeof createSupplierSchema>;
 export type UpdateSupplierFormData = z.infer<typeof updateSupplierSchema>;
-export type CreateSupplierContactFormData = z.infer<typeof createSupplierContactSchema>;
-export type UpdateSupplierContactFormData = z.infer<typeof updateSupplierContactSchema>;
 export type AddSupplierItemFormData = z.infer<typeof addSupplierItemSchema>;
 export type UpdateSupplierItemFormData = z.infer<typeof updateSupplierItemSchema>;
 export type SuppliersTableResponse = TableResponse<SupplierData>;
@@ -123,6 +98,7 @@ export interface SupplierData {
   id: string;
   partyId: string;
   partyName: string;
+  partyType: 'COMPANY' | 'PERSON';
   code: string;
   currencyCode: string;
   paymentTerms: string | null;
@@ -201,22 +177,6 @@ export interface SupplierDetail extends SupplierData {
   enrolledSiteCount: number;
 }
 
-export interface SupplierContactData {
-  id: string;
-  supplierId: string;
-  name: string;
-  phone: string;
-  alternatePhone: string | null;
-  email: string | null;
-  alternateEmail: string | null;
-  designation: string | null;
-  notes: string | null;
-  isPrimary: boolean;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export const changeSupplierCurrencySchema = z.object({
   currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
   conversionRate: zodNumericField({ required: 'Conversion rate is required', positive: true, nonZero: true }),
@@ -235,6 +195,9 @@ export interface SupplierSiteRow {
   registrationNumber: string | null;
   partyBankAccountId: string | null;
   bankAccountName: string | null;
+  orderRelationshipId: string | null;
+  orderContactLabel: string | null;
+  orderContactName: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -245,11 +208,13 @@ export const addSupplierSiteSchema = z.object({
   siteId: z.uuid('Site is required'),
   partyTaxRegistrationId: z.string().nullable().optional(),
   partyBankAccountId: z.string().nullable().optional(),
+  orderRelationshipId: z.string().nullable().optional(),
 });
 
 export const updateSupplierSiteSchema = z.object({
   partyTaxRegistrationId: z.string().nullable().optional(),
   partyBankAccountId: z.string().nullable().optional(),
+  orderRelationshipId: z.string().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 

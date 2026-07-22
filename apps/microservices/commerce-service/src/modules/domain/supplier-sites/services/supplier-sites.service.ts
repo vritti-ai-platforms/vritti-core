@@ -1,3 +1,4 @@
+import { PartyFunctionsDomainService } from '@domain/party-functions/services/party-functions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
@@ -10,7 +11,7 @@ import { and } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import {
-  PartyContactPurposeValues,
+  PartyFunctionTypeValues,
   parties,
   partyBankAccounts,
   partyTaxRegistrations,
@@ -23,7 +24,7 @@ import { SupplierSitesDomainRepository } from '../repositories/supplier-sites.re
 export interface EnrollmentPicks {
   partyTaxRegistrationId?: string | null;
   partyBankAccountId?: string | null;
-  orderContactId?: string | null;
+  orderRelationshipId?: string | null;
 }
 
 @Injectable()
@@ -45,7 +46,10 @@ export class SupplierSitesDomainService {
     isActive: { column: supplierSites.isActive, type: 'boolean' },
   };
 
-  constructor(private readonly repository: SupplierSitesDomainRepository) {}
+  constructor(
+    private readonly repository: SupplierSitesDomainRepository,
+    private readonly functionsService: PartyFunctionsDomainService,
+  ) {}
 
   // Returns paginated site enrollments of a supplier for the LE Sites tab
   async findForSupplierTable(
@@ -100,9 +104,16 @@ export class SupplierSitesDomainService {
       await this.assertBankAccountBelongsToParty(partyBankAccountId, supplier.partyId);
     }
 
-    const orderContactId = picks?.orderContactId ?? null;
-    if (orderContactId) {
-      await this.assertOrderContactBelongsToParty(orderContactId, supplier.partyId);
+    let orderRelationshipId = picks?.orderRelationshipId ?? null;
+    if (orderRelationshipId) {
+      await this.assertOrderRelationshipBelongsToParty(orderRelationshipId, supplier.partyId);
+    } else {
+      // Default to the party's primary ORDER relationship when the caller does not pick one
+      const primaryOrder = await this.functionsService.findPrimaryRelationship(
+        supplier.partyId,
+        PartyFunctionTypeValues.ORDER,
+      );
+      if (primaryOrder) orderRelationshipId = primaryOrder.id;
     }
 
     try {
@@ -111,7 +122,7 @@ export class SupplierSitesDomainService {
         siteId,
         partyTaxRegistrationId,
         partyBankAccountId,
-        orderContactId,
+        orderRelationshipId,
       });
       this.logger.log(`Enrolled supplier ${supplierId} for site ${siteId}`);
       return { success: true, message: 'Supplier enrolled for this site.', data: SupplierSiteDto.from(entity) };
@@ -134,8 +145,8 @@ export class SupplierSitesDomainService {
     if (data.partyBankAccountId) {
       await this.assertBankAccountBelongsToParty(data.partyBankAccountId, existing.partyId ?? '');
     }
-    if (data.orderContactId) {
-      await this.assertOrderContactBelongsToParty(data.orderContactId, existing.partyId ?? '');
+    if (data.orderRelationshipId) {
+      await this.assertOrderRelationshipBelongsToParty(data.orderRelationshipId, existing.partyId ?? '');
     }
 
     if (Object.keys(data).length > 0) {
@@ -204,14 +215,25 @@ export class SupplierSitesDomainService {
     }
   }
 
-  // Rejects order-contact picks that belong to a different party or are not ORDER-purpose
-  private async assertOrderContactBelongsToParty(contactId: string, partyId: string): Promise<void> {
-    const contact = await this.repository.findContactById(contactId);
-    if (!contact || contact.partyId !== partyId || contact.purpose !== PartyContactPurposeValues.ORDER) {
+  // Rejects order-contact picks that are not a relationship of this party or do not hold the ORDER function
+  private async assertOrderRelationshipBelongsToParty(relationshipId: string, partyId: string): Promise<void> {
+    const relationship = await this.repository.findRelationshipById(relationshipId);
+    if (!relationship || relationship.parentPartyId !== partyId) {
       throw new BadRequestException({
         label: 'Invalid Order Contact',
         detail: "The selected order contact does not belong to this supplier's company.",
-        errors: [{ field: 'orderContactId', message: 'Not an order contact of this company' }],
+        errors: [{ field: 'orderRelationshipId', message: 'Not a contact of this company' }],
+      });
+    }
+    const hasOrderFunction = await this.functionsService.relationshipHasFunction(
+      relationshipId,
+      PartyFunctionTypeValues.ORDER,
+    );
+    if (!hasOrderFunction) {
+      throw new BadRequestException({
+        label: 'Invalid Order Contact',
+        detail: 'The selected contact is not marked as an order contact.',
+        errors: [{ field: 'orderRelationshipId', message: 'Not an order contact of this company' }],
       });
     }
   }

@@ -10,26 +10,30 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddPartyAddressDto } from '../dto/request/add-party-address.dto';
 import type { AddPartyIdentifierDto } from '../dto/request/add-party-identifier.dto';
 import type { CreatePartyBankAccountDto } from '../dto/request/create-party-bank-account.dto';
-import type { CreatePartyContactDto } from '../dto/request/create-party-contact.dto';
+import type { CreatePartyCommunicationDto } from '../dto/request/create-party-communication.dto';
 import type { CreatePartyLicenseDto } from '../dto/request/create-party-license.dto';
+import type { CreatePartySocialProfileDto } from '../dto/request/create-party-social-profile.dto';
 import type { CreatePersonDto } from '../dto/request/create-person.dto';
 import type { CreatePersonRegistrationDto } from '../dto/request/create-person-registration.dto';
 import type { UpdatePartyAddressDto } from '../dto/request/update-party-address.dto';
 import type { UpdatePartyBankAccountDto } from '../dto/request/update-party-bank-account.dto';
-import type { UpdatePartyContactDto } from '../dto/request/update-party-contact.dto';
+import type { UpdatePartyCommunicationDto } from '../dto/request/update-party-communication.dto';
 import type { UpdatePartyLicenseDto } from '../dto/request/update-party-license.dto';
+import type { UpdatePartySocialProfileDto } from '../dto/request/update-party-social-profile.dto';
 import type { UpdatePersonDto } from '../dto/request/update-person.dto';
 import type { UpdatePersonRegistrationDto } from '../dto/request/update-person-registration.dto';
 import type { PartyAddressResponseDto } from '../dto/response/party-address-response.dto';
 import type { PartyAddressTableResponseDto } from '../dto/response/party-address-table-response.dto';
 import type { PartyBankAccountResponseDto } from '../dto/response/party-bank-account-response.dto';
 import type { PartyBankAccountTableResponseDto } from '../dto/response/party-bank-account-table-response.dto';
-import type { PartyContactResponseDto } from '../dto/response/party-contact-response.dto';
-import type { PartyContactTableResponseDto } from '../dto/response/party-contact-table-response.dto';
+import type { PartyCommunicationResponseDto } from '../dto/response/party-communication-response.dto';
+import type { PartyCommunicationTableResponseDto } from '../dto/response/party-communication-table-response.dto';
 import type { PartyIdentifierResponseDto } from '../dto/response/party-identifier-response.dto';
 import type { PartyIdentifierTableResponseDto } from '../dto/response/party-identifier-table-response.dto';
 import type { PartyLicenseResponseDto } from '../dto/response/party-license-response.dto';
 import type { PartyLicenseTableResponseDto } from '../dto/response/party-license-table-response.dto';
+import type { PartySocialProfileResponseDto } from '../dto/response/party-social-profile-response.dto';
+import type { PartySocialProfileTableResponseDto } from '../dto/response/party-social-profile-table-response.dto';
 import type { PersonCompanyResponseDto } from '../dto/response/person-company-response.dto';
 import type { PersonCompanyTableResponseDto } from '../dto/response/person-company-table-response.dto';
 import type { PersonRegistrationResponseDto } from '../dto/response/person-registration-response.dto';
@@ -155,7 +159,7 @@ export class PeopleGatewayService {
 
   // Adds an address to a person
   addAddress(personId: string, dto: AddPartyAddressDto): Promise<CreateResponseDto<PartyAddressResponseDto>> {
-    this.logger.log(`org.people.addresses.add — personId: ${personId}, type: ${dto.type}`);
+    this.logger.log(`org.people.addresses.add — personId: ${personId}`);
     return this.nats.send('commerce', 'org.people.addresses.add', { personId, ...dto });
   }
 
@@ -282,38 +286,79 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.bankAccounts.delete', { id: accountId });
   }
 
-  // Returns the contacts of a person for the data table
-  async listContacts(personId: string, userId: string): Promise<PartyContactTableResponseDto> {
-    this.logger.log(`org.people.contacts.table — personId: ${personId}`);
+  // Returns paginated communications of a person for the data table
+  async listCommunications(personId: string, userId: string): Promise<PartyCommunicationTableResponseDto> {
+    this.logger.log(`org.people.communications.table — personId: ${personId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      `commerce-org-person-${personId}-contacts`,
+      `commerce-org-person-${personId}-communications`,
     );
 
-    const { result, count } = await this.nats.send<{ result: PartyContactResponseDto[]; count: number }>(
+    const { result, count } = await this.nats.send<{ result: PartyCommunicationResponseDto[]; count: number }>(
       'commerce',
-      'org.people.contacts.table',
+      'org.people.communications.table',
       { personId, ...state },
     );
 
     return { result, count, state, activeViewId };
   }
 
-  // Creates a contact for a person
-  createContact(personId: string, dto: CreatePartyContactDto): Promise<CreateResponseDto<PartyContactResponseDto>> {
-    this.logger.log(`org.people.contacts.create — personId: ${personId}, purpose: ${dto.purpose}`);
-    return this.nats.send('commerce', 'org.people.contacts.create', { personId, ...dto });
+  // Creates a communication for a person
+  createCommunication(
+    personId: string,
+    dto: CreatePartyCommunicationDto,
+  ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
+    this.logger.log(`org.people.communications.create — personId: ${personId}, channel: ${dto.channel}`);
+    return this.nats.send('commerce', 'org.people.communications.create', { personId, ...dto });
   }
 
-  // Updates a person contact by ID
-  updateContact(contactId: string, dto: UpdatePartyContactDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.contacts.update — id: ${contactId}`);
-    return this.nats.send('commerce', 'org.people.contacts.update', { id: contactId, ...dto });
+  // Updates a person communication by ID
+  updateCommunication(communicationId: string, dto: UpdatePartyCommunicationDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.communications.update — id: ${communicationId}`);
+    return this.nats.send('commerce', 'org.people.communications.update', { id: communicationId, ...dto });
   }
 
-  // Deletes a person contact by ID
-  deleteContact(contactId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.contacts.delete — id: ${contactId}`);
-    return this.nats.send('commerce', 'org.people.contacts.delete', { id: contactId });
+  // Deletes a person communication by ID
+  deleteCommunication(communicationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.communications.delete — id: ${communicationId}`);
+    return this.nats.send('commerce', 'org.people.communications.delete', { id: communicationId });
+  }
+
+  // Returns paginated social profiles of a person for the data table
+  async listSocialProfiles(personId: string, userId: string): Promise<PartySocialProfileTableResponseDto> {
+    this.logger.log(`org.people.socialProfiles.table — personId: ${personId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-org-person-${personId}-social-profiles`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: PartySocialProfileResponseDto[]; count: number }>(
+      'commerce',
+      'org.people.socialProfiles.table',
+      { personId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Creates a social profile for a person
+  createSocialProfile(
+    personId: string,
+    dto: CreatePartySocialProfileDto,
+  ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
+    this.logger.log(`org.people.socialProfiles.create — personId: ${personId}, platform: ${dto.platform}`);
+    return this.nats.send('commerce', 'org.people.socialProfiles.create', { personId, ...dto });
+  }
+
+  // Updates a person social profile by ID
+  updateSocialProfile(profileId: string, dto: UpdatePartySocialProfileDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.socialProfiles.update — id: ${profileId}`);
+    return this.nats.send('commerce', 'org.people.socialProfiles.update', { id: profileId, ...dto });
+  }
+
+  // Deletes a person social profile by ID
+  deleteSocialProfile(profileId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.socialProfiles.delete — id: ${profileId}`);
+    return this.nats.send('commerce', 'org.people.socialProfiles.delete', { id: profileId });
   }
 }

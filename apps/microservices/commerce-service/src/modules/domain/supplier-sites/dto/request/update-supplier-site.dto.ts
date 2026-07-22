@@ -14,7 +14,7 @@ export class UpdateSupplierSiteDto {
 
   @IsOptional()
   @IsUUID()
-  orderContactId?: string | null;
+  orderRelationshipId?: string | null;
 
   @IsOptional()
   @IsBoolean()

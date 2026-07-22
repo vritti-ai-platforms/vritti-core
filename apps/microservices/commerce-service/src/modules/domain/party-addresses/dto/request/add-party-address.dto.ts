@@ -1,11 +1,9 @@
+import { PartyFunctionAssignmentInput } from '@domain/party-functions/dto/request/party-function-assignment-input.dto';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, Length, MaxLength } from 'class-validator';
-import { type PartyAddressType, PartyAddressTypeValues } from '@/db/schema';
+import { Type } from 'class-transformer';
+import { IsArray, IsNotEmpty, IsOptional, IsString, Length, MaxLength, ValidateNested } from 'class-validator';
 
 export class AddPartyAddressDto {
-  @IsEnum(PartyAddressTypeValues)
-  type: PartyAddressType;
-
   @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
@@ -37,6 +35,8 @@ export class AddPartyAddressDto {
   countryCode: string;
 
   @IsOptional()
-  @IsBoolean()
-  isPrimary?: boolean;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartyFunctionAssignmentInput)
+  functions?: PartyFunctionAssignmentInput[];
 }

@@ -1,11 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { Plus, Trash2, Users } from 'lucide-react';
+import { Pencil, Plus, Trash2, Users } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -13,8 +12,10 @@ import {
   useCompanyPeopleTable,
   useRemoveCompanyPerson,
 } from '@/hooks/organization/companies';
-import type { CompanyPersonRow } from '@/schemas/companies';
+import { CONTACT_FUNCTION_LABELS, type CompanyPersonRow } from '@/schemas/companies';
+import { FunctionChips } from '../../party/FunctionChips';
 import { AddCompanyPersonDialog } from '../forms/AddCompanyPersonDialog';
+import { EditCompanyPersonDialog } from '../forms/EditCompanyPersonDialog';
 
 interface PeopleTabProps {
   companyId: string;
@@ -53,26 +54,20 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
         cell: ({ row }) => <StringCell value={row.original.jobTitle} />,
       },
       {
-        accessorKey: 'secondaryPhone',
-        header: 'Secondary Phone',
-        cell: ({ row }) => <StringCell value={row.original.secondaryPhone} />,
+        accessorKey: 'childEmail',
+        header: 'Email',
+        cell: ({ row }) => <StringCell value={row.original.childEmail} />,
       },
       {
-        accessorKey: 'secondaryEmail',
-        header: 'Secondary Email',
-        cell: ({ row }) => <StringCell value={row.original.secondaryEmail} />,
+        accessorKey: 'childPhone',
+        header: 'Phone',
+        cell: ({ row }) => <StringCell value={row.original.childPhone} mono />,
       },
       {
-        accessorKey: 'isPrimary',
-        header: 'Primary',
-        cell: ({ row }) =>
-          row.original.isPrimary ? (
-            <Badge variant="secondary" className="bg-success/15 text-success">
-              Primary
-            </Badge>
-          ) : (
-            '—'
-          ),
+        accessorKey: 'functions',
+        header: 'Handles',
+        enableSorting: false,
+        cell: ({ row }) => <FunctionChips functions={row.original.functions} labels={CONTACT_FUNCTION_LABELS} />,
       },
       {
         id: 'actions',
@@ -80,6 +75,24 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
         cell: ({ row }) => (
           <RowActions
             actions={[
+              {
+                id: 'edit',
+                icon: Pencil,
+                label: 'Edit',
+                permission: ORG_COMPANIES.people.edit,
+                dialog: {
+                  title: 'Edit Person',
+                  description: 'Update the role and contact functions for this person.',
+                  content: (close) => (
+                    <EditCompanyPersonDialog
+                      companyId={companyId}
+                      person={row.original}
+                      onSuccess={close}
+                      onCancel={close}
+                    />
+                  ),
+                },
+              },
               {
                 id: 'remove',
                 icon: Trash2,
@@ -95,7 +108,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
         enableHiding: false,
       },
     ],
-    [handleRemove],
+    [handleRemove, companyId],
   );
 
   const { table } = useDataTable({
@@ -147,7 +160,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
         handle={addDialog}
         icon={Users}
         title="Add Person"
-        description="Link a person to this company with their role and secondary details."
+        description="Link a person to this company with their role and contact functions."
         content={(close) => <AddCompanyPersonDialog companyId={companyId} onSuccess={close} onCancel={close} />}
       />
     </>

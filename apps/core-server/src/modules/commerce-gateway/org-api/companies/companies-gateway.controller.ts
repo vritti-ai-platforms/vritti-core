@@ -25,14 +25,17 @@ import { AddPartyIdentifierDto } from './dto/request/add-party-identifier.dto';
 import { CreateCompanyDto } from './dto/request/create-company.dto';
 import { CreateCompanyRegistrationDto } from './dto/request/create-company-registration.dto';
 import { CreatePartyBankAccountDto } from './dto/request/create-party-bank-account.dto';
-import { CreatePartyContactDto } from './dto/request/create-party-contact.dto';
+import { CreatePartyCommunicationDto } from './dto/request/create-party-communication.dto';
 import { CreatePartyLicenseDto } from './dto/request/create-party-license.dto';
+import { CreatePartySocialProfileDto } from './dto/request/create-party-social-profile.dto';
 import { UpdateCompanyDto } from './dto/request/update-company.dto';
+import { UpdateCompanyPersonDto } from './dto/request/update-company-person.dto';
 import { UpdateCompanyRegistrationDto } from './dto/request/update-company-registration.dto';
 import { UpdatePartyAddressDto } from './dto/request/update-party-address.dto';
 import { UpdatePartyBankAccountDto } from './dto/request/update-party-bank-account.dto';
-import { UpdatePartyContactDto } from './dto/request/update-party-contact.dto';
+import { UpdatePartyCommunicationDto } from './dto/request/update-party-communication.dto';
 import { UpdatePartyLicenseDto } from './dto/request/update-party-license.dto';
+import { UpdatePartySocialProfileDto } from './dto/request/update-party-social-profile.dto';
 import type { CompanyPersonResponseDto } from './dto/response/company-person-response.dto';
 import type { CompanyPersonTableResponseDto } from './dto/response/company-person-table-response.dto';
 import type { CompanyRegistrationResponseDto } from './dto/response/company-registration-response.dto';
@@ -43,12 +46,14 @@ import type { PartyAddressResponseDto } from './dto/response/party-address-respo
 import type { PartyAddressTableResponseDto } from './dto/response/party-address-table-response.dto';
 import type { PartyBankAccountResponseDto } from './dto/response/party-bank-account-response.dto';
 import type { PartyBankAccountTableResponseDto } from './dto/response/party-bank-account-table-response.dto';
-import type { PartyContactResponseDto } from './dto/response/party-contact-response.dto';
-import type { PartyContactTableResponseDto } from './dto/response/party-contact-table-response.dto';
+import type { PartyCommunicationResponseDto } from './dto/response/party-communication-response.dto';
+import type { PartyCommunicationTableResponseDto } from './dto/response/party-communication-table-response.dto';
 import type { PartyIdentifierResponseDto } from './dto/response/party-identifier-response.dto';
 import type { PartyIdentifierTableResponseDto } from './dto/response/party-identifier-table-response.dto';
 import type { PartyLicenseResponseDto } from './dto/response/party-license-response.dto';
 import type { PartyLicenseTableResponseDto } from './dto/response/party-license-table-response.dto';
+import type { PartySocialProfileResponseDto } from './dto/response/party-social-profile-response.dto';
+import type { PartySocialProfileTableResponseDto } from './dto/response/party-social-profile-table-response.dto';
 import { CompaniesGatewayService } from './services/companies-gateway.service';
 
 @ApiTags('Commerce - Companies')
@@ -107,6 +112,18 @@ export class CompaniesGatewayController {
   ): Promise<CreateResponseDto<CompanyPersonResponseDto>> {
     this.logger.log(`POST /commerce-api/companies/${id}/people`);
     return this.service.addPerson(id, dto);
+  }
+
+  // Updates a company-person relationship
+  @Patch(':id/people/:relationshipId')
+  @RequirePermission(ORG_COMPANIES.people.edit)
+  updatePerson(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('relationshipId', new ParseUUIDPipe()) relationshipId: string,
+    @Body() dto: UpdateCompanyPersonDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/companies/${id}/people/${relationshipId}`);
+    return this.service.updatePerson(relationshipId, dto);
   }
 
   // Removes a company-person relationship
@@ -338,50 +355,96 @@ export class CompaniesGatewayController {
     return this.service.deleteBankAccount(accountId);
   }
 
-  // Returns the contacts of a company for the data table
-  @Get(':id/contacts/table')
-  @RequirePermission(ORG_COMPANIES.contacts.view)
-  listContacts(
+  // Returns the communications of a company for the data table
+  @Get(':id/communications/table')
+  @RequirePermission(ORG_COMPANIES.communications.view)
+  listCommunications(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
-  ): Promise<PartyContactTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/contacts/table`);
-    return this.service.listContacts(id, userId);
+  ): Promise<PartyCommunicationTableResponseDto> {
+    this.logger.log(`GET /commerce-api/companies/${id}/communications/table`);
+    return this.service.listCommunications(id, userId);
   }
 
-  // Creates a contact for a company
-  @Post(':id/contacts')
+  // Creates a communication for a company
+  @Post(':id/communications')
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_COMPANIES.contacts.add)
-  createContact(
+  @RequirePermission(ORG_COMPANIES.communications.add)
+  createCommunication(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreatePartyContactDto,
-  ): Promise<CreateResponseDto<PartyContactResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/contacts`);
-    return this.service.createContact(id, dto);
+    @Body() dto: CreatePartyCommunicationDto,
+  ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
+    this.logger.log(`POST /commerce-api/companies/${id}/communications`);
+    return this.service.createCommunication(id, dto);
   }
 
-  // Updates a company contact
-  @Patch(':id/contacts/:contactId')
-  @RequirePermission(ORG_COMPANIES.contacts.edit)
-  updateContact(
+  // Updates a company communication
+  @Patch(':id/communications/:communicationId')
+  @RequirePermission(ORG_COMPANIES.communications.edit)
+  updateCommunication(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('contactId', new ParseUUIDPipe()) contactId: string,
-    @Body() dto: UpdatePartyContactDto,
+    @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
+    @Body() dto: UpdatePartyCommunicationDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/contacts/${contactId}`);
-    return this.service.updateContact(contactId, dto);
+    this.logger.log(`PATCH /commerce-api/companies/${id}/communications/${communicationId}`);
+    return this.service.updateCommunication(communicationId, dto);
   }
 
-  // Deletes a company contact
-  @Delete(':id/contacts/:contactId')
-  @RequirePermission(ORG_COMPANIES.contacts.delete)
-  deleteContact(
+  // Deletes a company communication
+  @Delete(':id/communications/:communicationId')
+  @RequirePermission(ORG_COMPANIES.communications.delete)
+  deleteCommunication(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('contactId', new ParseUUIDPipe()) contactId: string,
+    @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/contacts/${contactId}`);
-    return this.service.deleteContact(contactId);
+    this.logger.log(`DELETE /commerce-api/companies/${id}/communications/${communicationId}`);
+    return this.service.deleteCommunication(communicationId);
+  }
+
+  // Returns the social profiles of a company for the data table
+  @Get(':id/social-profiles/table')
+  @RequirePermission(ORG_COMPANIES.socialProfiles.view)
+  listSocialProfiles(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartySocialProfileTableResponseDto> {
+    this.logger.log(`GET /commerce-api/companies/${id}/social-profiles/table`);
+    return this.service.listSocialProfiles(id, userId);
+  }
+
+  // Creates a social profile for a company
+  @Post(':id/social-profiles')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.socialProfiles.add)
+  createSocialProfile(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreatePartySocialProfileDto,
+  ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
+    this.logger.log(`POST /commerce-api/companies/${id}/social-profiles`);
+    return this.service.createSocialProfile(id, dto);
+  }
+
+  // Updates a company social profile
+  @Patch(':id/social-profiles/:profileId')
+  @RequirePermission(ORG_COMPANIES.socialProfiles.edit)
+  updateSocialProfile(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+    @Body() dto: UpdatePartySocialProfileDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/companies/${id}/social-profiles/${profileId}`);
+    return this.service.updateSocialProfile(profileId, dto);
+  }
+
+  // Deletes a company social profile
+  @Delete(':id/social-profiles/:profileId')
+  @RequirePermission(ORG_COMPANIES.socialProfiles.delete)
+  deleteSocialProfile(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/companies/${id}/social-profiles/${profileId}`);
+    return this.service.deleteSocialProfile(profileId);
   }
 
   // Returns a company by ID

@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, desc, eq, getTableColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   type PartyBankAccount,
-  type PartyContact,
+  type PartyRelationship,
   type PartyTaxRegistration,
+  PartyCommunicationChannelValues,
   parties,
   partyBankAccounts,
-  partyContacts,
+  partyCommunications,
+  partyRelationships,
   partyTaxRegistrations,
   type Supplier,
   type SupplierSite,
@@ -15,6 +18,39 @@ import {
   suppliers,
   type TaxRegistrationType,
 } from '@/db/schema';
+
+const orderRel = alias(partyRelationships, 'order_rel');
+const orderParty = alias(parties, 'order_party');
+const orderEmail = alias(partyCommunications, 'order_email');
+const orderPhone = alias(partyCommunications, 'order_phone');
+
+const orderContactJoins = [
+  { table: orderRel, on: eq(orderRel.id, supplierSites.orderRelationshipId) },
+  { table: orderParty, on: eq(orderParty.id, orderRel.childPartyId) },
+  {
+    table: orderEmail,
+    on: and(
+      eq(orderEmail.partyId, orderRel.childPartyId),
+      eq(orderEmail.channel, PartyCommunicationChannelValues.EMAIL),
+      eq(orderEmail.isPrimary, true),
+    ),
+  },
+  {
+    table: orderPhone,
+    on: and(
+      eq(orderPhone.partyId, orderRel.childPartyId),
+      eq(orderPhone.channel, PartyCommunicationChannelValues.PHONE),
+      eq(orderPhone.isPrimary, true),
+    ),
+  },
+];
+
+const orderContactSelect = {
+  orderContactLabel: orderRel.jobTitle,
+  orderContactName: orderParty.displayName,
+  orderContactEmail: orderEmail.value,
+  orderContactPhone: orderPhone.value,
+};
 
 type SupplierSiteWithPicks = SupplierSite & {
   registrationNumber: string | null;
@@ -40,7 +76,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     super(database, supplierSites);
   }
 
-  // Returns paginated enrollments of a supplier joined with the picked registration and bank account
+  // Returns paginated enrollments of a supplier joined with the picked registration, bank account, and order contact
   findForSupplierTable(
     supplierId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
@@ -54,15 +90,12 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
         registrationType: partyTaxRegistrations.registrationType,
         bankAccountName: partyBankAccounts.accountName,
         bankName: partyBankAccounts.bankName,
-        orderContactLabel: partyContacts.label,
-        orderContactName: partyContacts.name,
-        orderContactEmail: partyContacts.email,
-        orderContactPhone: partyContacts.phone,
+        ...orderContactSelect,
       },
       leftJoins: [
         { table: partyTaxRegistrations, on: eq(partyTaxRegistrations.id, supplierSites.partyTaxRegistrationId) },
         { table: partyBankAccounts, on: eq(partyBankAccounts.id, supplierSites.partyBankAccountId) },
-        { table: partyContacts, on: eq(partyContacts.id, supplierSites.orderContactId) },
+        ...orderContactJoins,
       ],
       where,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierSites.createdAt)],
@@ -125,10 +158,10 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     return row as PartyBankAccount | undefined;
   }
 
-  // Loads a contact for order-contact pick validation
-  async findContactById(id: string): Promise<PartyContact | undefined> {
-    const [row] = await this.db.select().from(partyContacts).where(eq(partyContacts.id, id)).limit(1);
-    return row as PartyContact | undefined;
+  // Loads a relationship for order-contact pick validation
+  async findRelationshipById(id: string): Promise<PartyRelationship | undefined> {
+    const [row] = await this.db.select().from(partyRelationships).where(eq(partyRelationships.id, id)).limit(1);
+    return row as PartyRelationship | undefined;
   }
 
   // Loads an enrollment joined with the owning supplier's party for pick validation
@@ -142,7 +175,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     return row as (SupplierSite & { partyId: string | null }) | undefined;
   }
 
-  // Loads an enrollment by supplier and site joined with the picked registration and bank account
+  // Loads an enrollment by supplier and site joined with the picked registration, bank account, and order contact
   async findBySupplierAndSite(supplierId: string, siteId: string): Promise<SupplierSiteWithPicks | undefined> {
     const [row] = await this.db
       .select({
@@ -151,15 +184,29 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
         registrationType: partyTaxRegistrations.registrationType,
         bankAccountName: partyBankAccounts.accountName,
         bankName: partyBankAccounts.bankName,
-        orderContactLabel: partyContacts.label,
-        orderContactName: partyContacts.name,
-        orderContactEmail: partyContacts.email,
-        orderContactPhone: partyContacts.phone,
+        ...orderContactSelect,
       })
       .from(supplierSites)
       .leftJoin(partyTaxRegistrations, eq(partyTaxRegistrations.id, supplierSites.partyTaxRegistrationId))
       .leftJoin(partyBankAccounts, eq(partyBankAccounts.id, supplierSites.partyBankAccountId))
-      .leftJoin(partyContacts, eq(partyContacts.id, supplierSites.orderContactId))
+      .leftJoin(orderRel, eq(orderRel.id, supplierSites.orderRelationshipId))
+      .leftJoin(orderParty, eq(orderParty.id, orderRel.childPartyId))
+      .leftJoin(
+        orderEmail,
+        and(
+          eq(orderEmail.partyId, orderRel.childPartyId),
+          eq(orderEmail.channel, PartyCommunicationChannelValues.EMAIL),
+          eq(orderEmail.isPrimary, true),
+        ),
+      )
+      .leftJoin(
+        orderPhone,
+        and(
+          eq(orderPhone.partyId, orderRel.childPartyId),
+          eq(orderPhone.channel, PartyCommunicationChannelValues.PHONE),
+          eq(orderPhone.isPrimary, true),
+        ),
+      )
       .where(and(eq(supplierSites.supplierId, supplierId), eq(supplierSites.siteId, siteId)))
       .limit(1);
     return row as SupplierSiteWithPicks | undefined;

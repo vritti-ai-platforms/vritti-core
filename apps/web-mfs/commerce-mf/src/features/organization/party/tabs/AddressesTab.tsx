@@ -8,8 +8,9 @@ import { countryFlag } from '@vritti/quantum-ui/selects/iso-country';
 import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
-import { ADDRESS_TYPE_LABELS, type PartyAddressRow } from '@/schemas/party-addresses';
+import { ADDRESS_FUNCTION_LABELS, type PartyAddressRow } from '@/schemas/party-addresses';
 import type { AddressesBinding } from '../bindings';
+import { FunctionChips } from '../FunctionChips';
 import { AddAddressDialog } from '../forms/AddAddressDialog';
 import { EditAddressDialog } from '../forms/EditAddressDialog';
 
@@ -29,7 +30,7 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({ partyId, binding }) 
     async (row: PartyAddressRow) => {
       const confirmed = await confirm({
         title: 'Remove address?',
-        description: `Remove the "${ADDRESS_TYPE_LABELS[row.type]}" address at ${row.line1}?`,
+        description: `Remove the address at ${row.line1}?`,
         confirmLabel: 'Remove',
         variant: 'destructive',
       });
@@ -41,15 +42,10 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({ partyId, binding }) 
   const columns = useMemo<ColumnDef<PartyAddressRow>[]>(
     () => [
       {
-        accessorKey: 'type',
-        header: 'Type',
-        cell: ({ row }) => <Badge variant="outline">{ADDRESS_TYPE_LABELS[row.original.type]}</Badge>,
-      },
-      {
         accessorKey: 'line1',
         header: 'Address',
         cell: ({ row }) => {
-          const secondary = [row.original.city, row.original.region, row.original.postalCode]
+          const secondary = [row.original.line2, row.original.city, row.original.region, row.original.postalCode]
             .filter(Boolean)
             .join(', ');
           return (
@@ -70,9 +66,10 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({ partyId, binding }) 
         ),
       },
       {
-        accessorKey: 'isPrimary',
-        header: 'Primary',
-        cell: ({ row }) => (row.original.isPrimary ? <Badge variant="success">Primary</Badge> : '—'),
+        accessorKey: 'functions',
+        header: 'Handles',
+        enableSorting: false,
+        cell: ({ row }) => <FunctionChips functions={row.original.functions} labels={ADDRESS_FUNCTION_LABELS} />,
       },
       {
         id: 'actions',

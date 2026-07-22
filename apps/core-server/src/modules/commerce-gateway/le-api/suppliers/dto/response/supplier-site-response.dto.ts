@@ -28,6 +28,21 @@ export class SupplierSiteResponseDto {
   @ApiPropertyOptional({ description: 'Account name of the picked bank account', nullable: true })
   bankAccountName: string | null;
 
+  @ApiPropertyOptional({ description: 'Company-person relationship pick for the order contact', nullable: true })
+  orderRelationshipId: string | null;
+
+  @ApiPropertyOptional({ description: 'Label of the picked order-contact relationship', nullable: true })
+  orderContactLabel: string | null;
+
+  @ApiPropertyOptional({ description: 'Name of the order-contact person', nullable: true })
+  orderContactName: string | null;
+
+  @ApiPropertyOptional({ description: 'Email of the order-contact person', nullable: true })
+  orderContactEmail: string | null;
+
+  @ApiPropertyOptional({ description: 'Phone of the order-contact person', nullable: true })
+  orderContactPhone: string | null;
+
   @ApiProperty({ description: 'Whether the site enrollment is active' })
   isActive: boolean;
 

@@ -8,11 +8,11 @@ import type {
   PartyBankAccountsTableResponse,
 } from '@/schemas/party-bank-accounts';
 import type {
-  PartyContactPayload,
-  PartyContactRow,
-  PartyContactsTableResponse,
-  PartyContactUpdatePayload,
-} from '@/schemas/party-contacts';
+  PartyCommunicationPayload,
+  PartyCommunicationRow,
+  PartyCommunicationsTableResponse,
+  PartyCommunicationUpdatePayload,
+} from '@/schemas/party-communications';
 import type {
   AddIdentifierPayload,
   IdentifierType,
@@ -20,6 +20,11 @@ import type {
   PartyIdentifiersTableResponse,
 } from '@/schemas/party-identifiers';
 import type { PartyLicensePayload, PartyLicenseRow, PartyLicensesTableResponse } from '@/schemas/party-licenses';
+import type {
+  PartySocialProfilePayload,
+  PartySocialProfileRow,
+  PartySocialProfilesTableResponse,
+} from '@/schemas/party-social-profiles';
 import type {
   PartyRegistrationFormData,
   PartyRegistrationsTableResponse,
@@ -79,9 +84,16 @@ export interface BankAccountsBinding extends BaseBinding {
   useRemove: MutationHook<SuccessResponse, string>;
 }
 
-export interface ContactsBinding extends BaseBinding {
-  useList: QueryHook<PartyContactsTableResponse>;
-  useCreate: MutationHook<PartyContactRow, PartyContactPayload>;
-  useUpdate: MutationHook<SuccessResponse, { contactId: string; data: PartyContactUpdatePayload }>;
+export interface CommunicationsBinding extends BaseBinding {
+  useList: QueryHook<PartyCommunicationsTableResponse>;
+  useCreate: MutationHook<PartyCommunicationRow, PartyCommunicationPayload>;
+  useUpdate: MutationHook<SuccessResponse, { communicationId: string; data: PartyCommunicationUpdatePayload }>;
+  useRemove: MutationHook<SuccessResponse, string>;
+}
+
+export interface SocialProfilesBinding extends BaseBinding {
+  useList: QueryHook<PartySocialProfilesTableResponse>;
+  useCreate: MutationHook<PartySocialProfileRow, PartySocialProfilePayload>;
+  useUpdate: MutationHook<SuccessResponse, { profileId: string; data: PartySocialProfilePayload }>;
   useRemove: MutationHook<SuccessResponse, string>;
 }

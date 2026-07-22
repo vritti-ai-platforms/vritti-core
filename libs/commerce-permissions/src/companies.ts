@@ -8,6 +8,7 @@ export const ORG_COMPANIES = {
   people: {
     view: 'org.companies.people.view',
     add: 'org.companies.people.add',
+    edit: 'org.companies.people.edit',
     delete: 'org.companies.people.delete',
   },
   registrations: {
@@ -38,6 +39,18 @@ export const ORG_COMPANIES = {
     add: 'org.companies.bank-accounts.add',
     edit: 'org.companies.bank-accounts.edit',
     delete: 'org.companies.bank-accounts.delete',
+  },
+  communications: {
+    view: 'org.companies.communications.view',
+    add: 'org.companies.communications.add',
+    edit: 'org.companies.communications.edit',
+    delete: 'org.companies.communications.delete',
+  },
+  socialProfiles: {
+    view: 'org.companies.social-profiles.view',
+    add: 'org.companies.social-profiles.add',
+    edit: 'org.companies.social-profiles.edit',
+    delete: 'org.companies.social-profiles.delete',
   },
   contacts: {
     view: 'org.companies.contacts.view',

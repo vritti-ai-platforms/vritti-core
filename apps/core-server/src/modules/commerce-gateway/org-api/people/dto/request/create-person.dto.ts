@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { PARTY_IDENTIFIER_TYPES, type PartyIdentifierTypeValue } from './add-party-identifier.dto';
+import { PersonAddressInputDto } from './person-address-input.dto';
 
 export class CreatePersonDto {
   @Trim({ nullify: false })
@@ -47,4 +49,10 @@ export class CreatePersonDto {
   @ApiProperty({ description: 'Whether the person is selectable' })
   @IsBoolean()
   isActive: boolean;
+
+  @ApiPropertyOptional({ type: PersonAddressInputDto, description: 'Optional initial address' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => PersonAddressInputDto)
+  address?: PersonAddressInputDto;
 }

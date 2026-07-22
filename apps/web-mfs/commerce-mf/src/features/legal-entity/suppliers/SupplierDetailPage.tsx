@@ -1,3 +1,4 @@
+import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
@@ -8,10 +9,10 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, RefreshCw, Truck } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PeopleTab } from '@/features/organization/companies/tabs/PeopleTab';
 import { useDeleteSupplier, useSupplier, useSupplierInventoryItemIds } from '@/hooks/legal-entity/suppliers';
 import { ChangeCurrencyDialog } from './forms/ChangeCurrencyDialog';
 import { EditSupplierForm } from './forms/EditSupplierForm';
-import { ContactsTab } from './tabs/ContactsTab';
 import { ItemsTab } from './tabs/ItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { SitesTab } from './tabs/SitesTab';
@@ -30,7 +31,7 @@ export const SupplierDetailPage = () => {
   const handleDelete = useCallback(async () => {
     const confirmed = await confirm({
       title: `Delete "${supplier.partyName}"?`,
-      description: 'This supplier and all linked supplier items and contacts will be permanently removed.',
+      description: 'This supplier and all its linked supplier items will be permanently removed.',
       confirmLabel: 'Delete',
       variant: 'destructive',
     });
@@ -88,12 +89,16 @@ export const SupplierDetailPage = () => {
             permission: LE_SUPPLIERS.sites.view,
             content: <SitesTab supplierId={supplier.id} partyId={supplier.partyId} />,
           },
-          {
-            value: 'contacts',
-            label: 'Contacts',
-            permission: LE_SUPPLIERS.view,
-            content: <ContactsTab supplierId={supplier.id} />,
-          },
+          ...(supplier.partyType === 'COMPANY'
+            ? [
+                {
+                  value: 'persons',
+                  label: 'Persons',
+                  permission: ORG_COMPANIES.people.view,
+                  content: <PeopleTab companyId={supplier.partyId} />,
+                },
+              ]
+            : []),
         ]}
         value={activeTab}
         onValueChange={setActiveTab}
@@ -125,7 +130,7 @@ export const SupplierDetailPage = () => {
 
       <DangerZone
         title="Delete this supplier"
-        description="This action cannot be undone. The supplier and its linked supplier items and contacts will be permanently removed."
+        description="This action cannot be undone. The supplier and its linked supplier items will be permanently removed."
         buttonText="Delete Supplier"
         permission={LE_SUPPLIERS.delete}
         onClick={handleDelete}

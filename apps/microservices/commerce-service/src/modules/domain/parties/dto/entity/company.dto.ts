@@ -1,6 +1,12 @@
 import type { Party, PartyAddress, PartyType } from '@/db/schema';
 import { type PartyPrimaryAddressDto, toPrimaryAddressDto } from './party.dto';
 
+export interface PartyMainLineContact {
+  email: string | null;
+  phone: string | null;
+  website?: string | null;
+}
+
 export class CompanyDto {
   id: string;
   partyType: PartyType;
@@ -16,16 +22,21 @@ export class CompanyDto {
   createdAt: string;
   updatedAt: string;
 
-  // Maps a COMPANY party entity to a CompanyDto; primaryAddress + canDelete are populated only on detail reads
-  static from(entity: Party, primaryAddress?: PartyAddress | null, canDelete = true): CompanyDto {
+  // Maps a COMPANY party entity to a CompanyDto; email/phone come from the primary EMAIL/PHONE communications
+  static from(
+    entity: Party,
+    contact?: PartyMainLineContact | null,
+    primaryAddress?: PartyAddress | null,
+    canDelete = true,
+  ): CompanyDto {
     const dto = new CompanyDto();
     dto.id = entity.id;
     dto.partyType = entity.partyType;
     dto.displayName = entity.displayName;
     dto.legalName = entity.legalName ?? null;
-    dto.email = entity.email ?? null;
-    dto.phone = entity.phone ?? null;
-    dto.website = entity.website ?? null;
+    dto.email = contact?.email ?? null;
+    dto.phone = contact?.phone ?? null;
+    dto.website = contact?.website ?? null;
     dto.jurisdictionId = entity.jurisdictionId ?? null;
     dto.isActive = entity.isActive;
     dto.canDelete = canDelete;

@@ -29,6 +29,7 @@ import { CategoriesSelectQueryDto } from './dto/categories-select-query.dto';
 import { InventoryItemsSelectQueryDto } from './dto/inventory-items-select-query.dto';
 import { LocationsSelectQueryDto } from './dto/locations-select-query.dto';
 import { LotsSelectQueryDto } from './dto/lots-select-query.dto';
+import { PartyContactSelectQueryDto } from './dto/party-contact-select-query.dto';
 import { PartySelectQueryDto } from './dto/party-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from './dto/purchase-order-items-select-query.dto';
 import { PurchaseOrderSelectQueryDto } from './dto/purchase-order-select-query.dto';
@@ -163,6 +164,12 @@ export class SelectApiController {
   @Get('party-bank-accounts')
   selectPartyBankAccounts(@Query() query: PartySelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.partyBankAccounts', query);
+  }
+
+  // Returns contact options of a party for select dropdowns, optionally filtered by function
+  @Get('party-contacts')
+  selectPartyContacts(@Query() query: PartyContactSelectQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.partyContacts', query);
   }
 
   // Returns tax-jurisdiction options for select dropdowns

@@ -13,9 +13,6 @@ export class PersonCompanyResponseDto {
   @ApiProperty({ description: 'The job title of the person at the company' })
   jobTitle: string;
 
-  @ApiProperty({ description: 'Whether this is the primary company' })
-  isPrimary: boolean;
-
   @ApiProperty({ description: 'Whether the link is active' })
   isActive: boolean;
 }

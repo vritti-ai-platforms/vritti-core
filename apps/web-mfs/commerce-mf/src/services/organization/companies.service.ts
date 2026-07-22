@@ -11,6 +11,7 @@ import type {
   CompanyTaxRegistrationRow,
   CreateCompanyPayload,
   UpdateCompanyPayload,
+  UpdateCompanyPersonPayload,
 } from '@/schemas/companies';
 import type { AddAddressPayload, PartyAddressesTableResponse, PartyAddressRow } from '@/schemas/party-addresses';
 import type {
@@ -19,17 +20,22 @@ import type {
   PartyBankAccountsTableResponse,
 } from '@/schemas/party-bank-accounts';
 import type {
-  PartyContactPayload,
-  PartyContactRow,
-  PartyContactsTableResponse,
-  PartyContactUpdatePayload,
-} from '@/schemas/party-contacts';
+  PartyCommunicationPayload,
+  PartyCommunicationRow,
+  PartyCommunicationsTableResponse,
+  PartyCommunicationUpdatePayload,
+} from '@/schemas/party-communications';
 import type {
   AddIdentifierPayload,
   PartyIdentifierRow,
   PartyIdentifiersTableResponse,
 } from '@/schemas/party-identifiers';
 import type { PartyLicensePayload, PartyLicenseRow, PartyLicensesTableResponse } from '@/schemas/party-licenses';
+import type {
+  PartySocialProfilePayload,
+  PartySocialProfileRow,
+  PartySocialProfilesTableResponse,
+} from '@/schemas/party-social-profiles';
 
 const BASE = 'commerce-api/companies';
 
@@ -65,6 +71,18 @@ export function addCompanyPerson({
   data: AddCompanyPersonPayload;
 }): Promise<CompanyPersonRow> {
   return axios.post<CreateResponse<CompanyPersonRow>>(`${BASE}/${companyId}/people`, data).then((r) => r.data.data);
+}
+
+export function updateCompanyPerson({
+  companyId,
+  companyPersonId,
+  data,
+}: {
+  companyId: string;
+  companyPersonId: string;
+  data: UpdateCompanyPersonPayload;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${companyId}/people/${companyPersonId}`, data).then((r) => r.data);
 }
 
 export function removeCompanyPerson({
@@ -255,38 +273,84 @@ export function deleteCompanyBankAccount({
   return axios.delete<SuccessResponse>(`${BASE}/${companyId}/bank-accounts/${bankAccountId}`).then((r) => r.data);
 }
 
-export function getCompanyContacts(id: string): Promise<PartyContactsTableResponse> {
-  return axios.get<PartyContactsTableResponse>(`${BASE}/${id}/contacts/table`).then((r) => r.data);
+export function getCompanyCommunications(id: string): Promise<PartyCommunicationsTableResponse> {
+  return axios
+    .get<PartyCommunicationsTableResponse>(`${BASE}/${id}/communications/table`, { showSuccessToast: false })
+    .then((r) => r.data);
 }
 
-export function createCompanyContact({
+export function createCompanyCommunication({
   companyId,
   data,
 }: {
   companyId: string;
-  data: PartyContactPayload;
-}): Promise<PartyContactRow> {
-  return axios.post<CreateResponse<PartyContactRow>>(`${BASE}/${companyId}/contacts`, data).then((r) => r.data.data);
+  data: PartyCommunicationPayload;
+}): Promise<PartyCommunicationRow> {
+  return axios
+    .post<CreateResponse<PartyCommunicationRow>>(`${BASE}/${companyId}/communications`, data)
+    .then((r) => r.data.data);
 }
 
-export function updateCompanyContact({
+export function updateCompanyCommunication({
   companyId,
-  contactId,
+  communicationId,
   data,
 }: {
   companyId: string;
-  contactId: string;
-  data: PartyContactUpdatePayload;
+  communicationId: string;
+  data: PartyCommunicationUpdatePayload;
 }): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`${BASE}/${companyId}/contacts/${contactId}`, data).then((r) => r.data);
+  return axios
+    .patch<SuccessResponse>(`${BASE}/${companyId}/communications/${communicationId}`, data)
+    .then((r) => r.data);
 }
 
-export function deleteCompanyContact({
+export function deleteCompanyCommunication({
   companyId,
-  contactId,
+  communicationId,
 }: {
   companyId: string;
-  contactId: string;
+  communicationId: string;
 }): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`${BASE}/${companyId}/contacts/${contactId}`).then((r) => r.data);
+  return axios.delete<SuccessResponse>(`${BASE}/${companyId}/communications/${communicationId}`).then((r) => r.data);
+}
+
+export function getCompanySocialProfiles(id: string): Promise<PartySocialProfilesTableResponse> {
+  return axios
+    .get<PartySocialProfilesTableResponse>(`${BASE}/${id}/social-profiles/table`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function createCompanySocialProfile({
+  companyId,
+  data,
+}: {
+  companyId: string;
+  data: PartySocialProfilePayload;
+}): Promise<PartySocialProfileRow> {
+  return axios
+    .post<CreateResponse<PartySocialProfileRow>>(`${BASE}/${companyId}/social-profiles`, data)
+    .then((r) => r.data.data);
+}
+
+export function updateCompanySocialProfile({
+  companyId,
+  profileId,
+  data,
+}: {
+  companyId: string;
+  profileId: string;
+  data: PartySocialProfilePayload;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${companyId}/social-profiles/${profileId}`, data).then((r) => r.data);
+}
+
+export function deleteCompanySocialProfile({
+  companyId,
+  profileId,
+}: {
+  companyId: string;
+  profileId: string;
+}): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${companyId}/social-profiles/${profileId}`).then((r) => r.data);
 }

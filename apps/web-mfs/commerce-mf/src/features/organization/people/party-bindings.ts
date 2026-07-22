@@ -2,42 +2,48 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import {
   PERSON_ADDRESSES_TABLE_KEY,
   PERSON_BANK_ACCOUNTS_TABLE_KEY,
-  PERSON_CONTACTS_TABLE_KEY,
+  PERSON_COMMUNICATIONS_TABLE_KEY,
   PERSON_IDENTIFIERS_KEY,
   PERSON_LICENSES_TABLE_KEY,
   PERSON_REGISTRATIONS_TABLE_KEY,
+  PERSON_SOCIAL_PROFILES_TABLE_KEY,
   useAddPersonAddress,
   useAddPersonIdentifier,
   useCreatePersonBankAccount,
-  useCreatePersonContact,
+  useCreatePersonCommunication,
   useCreatePersonLicense,
   useCreatePersonRegistration,
+  useCreatePersonSocialProfile,
   useDeletePersonBankAccount,
-  useDeletePersonContact,
+  useDeletePersonCommunication,
   useDeletePersonLicense,
   useDeletePersonRegistration,
+  useDeletePersonSocialProfile,
   usePersonAddresses,
   usePersonBankAccountsTable,
-  usePersonContactsTable,
+  usePersonCommunicationsTable,
   usePersonIdentifiers,
   usePersonLicensesTable,
   usePersonRegistrationsTable,
+  usePersonSocialProfilesTable,
   useRemovePersonAddress,
   useRemovePersonIdentifier,
   useUpdatePersonAddress,
   useUpdatePersonBankAccount,
-  useUpdatePersonContact,
+  useUpdatePersonCommunication,
   useUpdatePersonLicense,
   useUpdatePersonRegistration,
+  useUpdatePersonSocialProfile,
 } from '@/hooks/organization/people';
 import { PERSON_IDENTIFIER_TYPE_OPTIONS } from '@/schemas/party-identifiers';
 import type {
   AddressesBinding,
   BankAccountsBinding,
-  ContactsBinding,
+  CommunicationsBinding,
   IdentifiersBinding,
   LicensesBinding,
   RegistrationsBinding,
+  SocialProfilesBinding,
 } from '../party/bindings';
 
 export const personBindings: {
@@ -46,7 +52,8 @@ export const personBindings: {
   registrations: RegistrationsBinding;
   licenses: LicensesBinding;
   bankAccounts: BankAccountsBinding;
-  contacts: ContactsBinding;
+  communications: CommunicationsBinding;
+  socialProfiles: SocialProfilesBinding;
 } = {
   identifiers: {
     permissions: ORG_PEOPLE.identifiers,
@@ -100,14 +107,24 @@ export const personBindings: {
     useUpdate: useUpdatePersonBankAccount,
     useRemove: useDeletePersonBankAccount,
   },
-  contacts: {
-    permissions: ORG_PEOPLE.contacts,
-    slug: (id) => `commerce-org-person-${id}-contacts`,
-    queryKey: PERSON_CONTACTS_TABLE_KEY,
-    emptyDescription: 'Record points of contact for this person like ordering, accounts, or escalation.',
-    useList: usePersonContactsTable,
-    useCreate: useCreatePersonContact,
-    useUpdate: useUpdatePersonContact,
-    useRemove: useDeletePersonContact,
+  communications: {
+    permissions: ORG_PEOPLE.communications,
+    slug: (id) => `commerce-org-person-${id}-communications`,
+    queryKey: PERSON_COMMUNICATIONS_TABLE_KEY,
+    emptyDescription: "Record this person's email addresses and phone numbers.",
+    useList: usePersonCommunicationsTable,
+    useCreate: useCreatePersonCommunication,
+    useUpdate: useUpdatePersonCommunication,
+    useRemove: useDeletePersonCommunication,
+  },
+  socialProfiles: {
+    permissions: ORG_PEOPLE.socialProfiles,
+    slug: (id) => `commerce-org-person-${id}-social-profiles`,
+    queryKey: PERSON_SOCIAL_PROFILES_TABLE_KEY,
+    emptyDescription: "Record this person's social and web profiles.",
+    useList: usePersonSocialProfilesTable,
+    useCreate: useCreatePersonSocialProfile,
+    useUpdate: useUpdatePersonSocialProfile,
+    useRemove: useDeletePersonSocialProfile,
   },
 };

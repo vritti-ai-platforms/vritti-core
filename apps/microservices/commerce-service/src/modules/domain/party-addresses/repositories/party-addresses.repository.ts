@@ -1,7 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type NewPartyAddress, type PartyAddress, partyAddresses } from '@/db/schema';
+import { and, desc, eq, getTableColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  type NewPartyAddress,
+  type PartyAddress,
+  PartyFunctionTypeValues,
+  partyAddresses,
+  partyFunctions,
+} from '@/db/schema';
+import type { PartyAddressFunction, PartyAddressWithFunctions } from '../dto/entity/party-address.dto';
+
+const functionsAgg = sql<PartyAddressFunction[]>`COALESCE(
+  json_agg(json_build_object('function', ${partyFunctions.function}, 'isPrimary', ${partyFunctions.isPrimary}))
+    FILTER (WHERE ${partyFunctions.id} IS NOT NULL),
+  '[]'::json
+)`;
 
 @Injectable()
 export class PartyAddressesDomainRepository extends PrimaryBaseRepository<typeof partyAddresses> {
@@ -9,16 +22,19 @@ export class PartyAddressesDomainRepository extends PrimaryBaseRepository<typeof
     super(database, partyAddresses);
   }
 
-  // Returns paginated addresses filtered by an already-built where clause
+  // Returns paginated addresses (with aggregated functions) filtered by an already-built where clause
   findForTable(options: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
-    result: PartyAddress[];
+    result: PartyAddressWithFunctions[];
     count: number;
   }> {
-    return this.findAllAndCount({
+    return this.findAllAndCount<PartyAddressWithFunctions>({
+      select: { ...getTableColumns(partyAddresses), functions: functionsAgg },
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
       offset: options.offset,
+      leftJoins: [{ table: partyFunctions, on: eq(partyFunctions.partyAddressId, partyAddresses.id) }],
+      groupBy: [partyAddresses.id],
     });
   }
 
@@ -34,15 +50,31 @@ export class PartyAddressesDomainRepository extends PrimaryBaseRepository<typeof
     return row as PartyAddress | undefined;
   }
 
-  // Loads a party's primary address, falling back to its most recent address
-  async findPrimaryByPartyId(partyId: string): Promise<PartyAddress | undefined> {
+  // Returns the number of addresses a party has
+  async countByParty(partyId: string): Promise<number> {
     const [row] = await this.db
-      .select()
+      .select({ count: sql<number>`count(*)::int` })
       .from(partyAddresses)
-      .where(eq(partyAddresses.partyId, partyId))
-      .orderBy(desc(partyAddresses.isPrimary), desc(partyAddresses.createdAt))
+      .where(eq(partyAddresses.partyId, partyId));
+    return row?.count ?? 0;
+  }
+
+  // Loads a party's primary REGISTERED address (its main postal address), if one exists
+  async findPrimaryRegisteredByPartyId(partyId: string): Promise<PartyAddress | undefined> {
+    const [row] = await this.db
+      .select({ address: partyAddresses })
+      .from(partyAddresses)
+      .innerJoin(partyFunctions, eq(partyFunctions.partyAddressId, partyAddresses.id))
+      .where(
+        and(
+          eq(partyAddresses.partyId, partyId),
+          eq(partyFunctions.function, PartyFunctionTypeValues.REGISTERED),
+          eq(partyFunctions.isPrimary, true),
+        ),
+      )
+      .orderBy(desc(partyAddresses.createdAt))
       .limit(1);
-    return row as PartyAddress | undefined;
+    return row?.address as PartyAddress | undefined;
   }
 
   // Updates a party address row
@@ -54,10 +86,5 @@ export class PartyAddressesDomainRepository extends PrimaryBaseRepository<typeof
   // Deletes an address row
   async remove(id: string): Promise<void> {
     await this.db.delete(partyAddresses).where(eq(partyAddresses.id, id));
-  }
-
-  // Clears the primary flag on all of a party's addresses
-  async clearPrimary(partyId: string): Promise<void> {
-    await this.db.update(partyAddresses).set({ isPrimary: false }).where(eq(partyAddresses.partyId, partyId));
   }
 }

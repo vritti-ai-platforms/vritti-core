@@ -10,6 +10,9 @@ export class SupplierResponseDto {
   @ApiProperty({ description: 'Display name of the linked party', example: 'Acme Foods Pvt Ltd' })
   partyName: string;
 
+  @ApiPropertyOptional({ description: 'Type of the linked party (COMPANY or PERSON)', nullable: true })
+  partyType?: string | null;
+
   @ApiProperty({ description: 'Unique supplier code', example: 'SUP-001' })
   code: string;
 

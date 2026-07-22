@@ -2,42 +2,48 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import {
   COMPANY_ADDRESSES_TABLE_KEY,
   COMPANY_BANK_ACCOUNTS_TABLE_KEY,
-  COMPANY_CONTACTS_TABLE_KEY,
+  COMPANY_COMMUNICATIONS_TABLE_KEY,
   COMPANY_IDENTIFIERS_TABLE_KEY,
   COMPANY_LICENSES_TABLE_KEY,
   COMPANY_REGISTRATIONS_TABLE_KEY,
+  COMPANY_SOCIAL_PROFILES_TABLE_KEY,
   useAddCompanyAddress,
   useAddCompanyIdentifier,
   useCompanyAddresses,
   useCompanyBankAccountsTable,
-  useCompanyContactsTable,
+  useCompanyCommunicationsTable,
   useCompanyIdentifiers,
   useCompanyLicensesTable,
   useCompanyRegistrationsTable,
+  useCompanySocialProfilesTable,
   useCreateCompanyBankAccount,
-  useCreateCompanyContact,
+  useCreateCompanyCommunication,
   useCreateCompanyLicense,
   useCreateCompanyRegistration,
+  useCreateCompanySocialProfile,
   useDeleteCompanyBankAccount,
-  useDeleteCompanyContact,
+  useDeleteCompanyCommunication,
   useDeleteCompanyLicense,
   useDeleteCompanyRegistration,
+  useDeleteCompanySocialProfile,
   useRemoveCompanyAddress,
   useRemoveCompanyIdentifier,
   useUpdateCompanyAddress,
   useUpdateCompanyBankAccount,
-  useUpdateCompanyContact,
+  useUpdateCompanyCommunication,
   useUpdateCompanyLicense,
   useUpdateCompanyRegistration,
+  useUpdateCompanySocialProfile,
 } from '@/hooks/organization/companies';
 import { COMPANY_IDENTIFIER_TYPE_OPTIONS } from '@/schemas/party-identifiers';
 import type {
   AddressesBinding,
   BankAccountsBinding,
-  ContactsBinding,
+  CommunicationsBinding,
   IdentifiersBinding,
   LicensesBinding,
   RegistrationsBinding,
+  SocialProfilesBinding,
 } from '../party/bindings';
 
 export const companyBindings: {
@@ -46,7 +52,8 @@ export const companyBindings: {
   registrations: RegistrationsBinding;
   licenses: LicensesBinding;
   bankAccounts: BankAccountsBinding;
-  contacts: ContactsBinding;
+  communications: CommunicationsBinding;
+  socialProfiles: SocialProfilesBinding;
 } = {
   identifiers: {
     permissions: ORG_COMPANIES.identifiers,
@@ -100,14 +107,24 @@ export const companyBindings: {
     useUpdate: useUpdateCompanyBankAccount,
     useRemove: useDeleteCompanyBankAccount,
   },
-  contacts: {
-    permissions: ORG_COMPANIES.contacts,
-    slug: (id) => `commerce-org-company-${id}-contacts`,
-    queryKey: COMPANY_CONTACTS_TABLE_KEY,
-    emptyDescription: 'Record points of contact for this company like ordering, accounts, or escalation.',
-    useList: useCompanyContactsTable,
-    useCreate: useCreateCompanyContact,
-    useUpdate: useUpdateCompanyContact,
-    useRemove: useDeleteCompanyContact,
+  communications: {
+    permissions: ORG_COMPANIES.communications,
+    slug: (id) => `commerce-org-company-${id}-communications`,
+    queryKey: COMPANY_COMMUNICATIONS_TABLE_KEY,
+    emptyDescription: "Record this company's email addresses and phone numbers.",
+    useList: useCompanyCommunicationsTable,
+    useCreate: useCreateCompanyCommunication,
+    useUpdate: useUpdateCompanyCommunication,
+    useRemove: useDeleteCompanyCommunication,
+  },
+  socialProfiles: {
+    permissions: ORG_COMPANIES.socialProfiles,
+    slug: (id) => `commerce-org-company-${id}-social-profiles`,
+    queryKey: COMPANY_SOCIAL_PROFILES_TABLE_KEY,
+    emptyDescription: "Record this company's social and web profiles.",
+    useList: useCompanySocialProfilesTable,
+    useCreate: useCreateCompanySocialProfile,
+    useUpdate: useUpdateCompanySocialProfile,
+    useRemove: useDeleteCompanySocialProfile,
   },
 };

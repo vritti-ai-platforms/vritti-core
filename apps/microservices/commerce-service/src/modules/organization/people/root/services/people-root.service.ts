@@ -2,6 +2,7 @@ import type { PersonDto } from '@domain/parties/dto/entity/person.dto';
 import type { CreatePersonDto } from '@domain/parties/dto/request/create-person.dto';
 import type { UpdatePersonDto } from '@domain/parties/dto/request/update-person.dto';
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
+import { PartyAddressesDomainService } from '@domain/party-addresses/services/party-addresses.service';
 import { PartyIdentifiersDomainService } from '@domain/party-identifiers/services/party-identifiers.service';
 import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
@@ -12,6 +13,7 @@ export class PeopleService {
   constructor(
     private readonly partiesService: PartiesDomainService,
     private readonly identifiersService: PartyIdentifiersDomainService,
+    private readonly addressesService: PartyAddressesDomainService,
   ) {}
 
   // Returns paginated PERSON parties for the people table
@@ -35,6 +37,9 @@ export class PeopleService {
         idValue: dto.identifierValue,
         isPrimary: true,
       });
+    }
+    if (dto.address) {
+      await this.addressesService.upsertPrimary(result.data.id, { ...dto.address });
     }
     return result;
   }

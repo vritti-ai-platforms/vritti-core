@@ -2,14 +2,13 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { PersonSelector } from '@vritti/quantum-ui/PersonSelector';
-import { PhoneField } from '@vritti/quantum-ui/PhoneField';
-import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddCompanyPerson } from '@/hooks/organization/companies';
-import { type AddCompanyPersonFormData, addCompanyPersonSchema } from '@/schemas/companies';
+import { type AddCompanyPersonFormData, addCompanyPersonSchema, CONTACT_FUNCTION_OPTIONS } from '@/schemas/companies';
+import { FunctionsEditor } from '../../party/forms/FunctionsEditor';
 
 interface AddCompanyPersonDialogProps {
   companyId: string;
@@ -23,9 +22,7 @@ export const AddCompanyPersonDialog: React.FC<AddCompanyPersonDialogProps> = ({ 
     defaultValues: {
       personId: '',
       jobTitle: '',
-      secondaryPhone: '',
-      secondaryEmail: '',
-      isPrimary: false,
+      functions: [],
     },
   });
 
@@ -40,22 +37,18 @@ export const AddCompanyPersonDialog: React.FC<AddCompanyPersonDialogProps> = ({ 
       transformSubmit={(data) => ({
         childPartyId: data.personId,
         jobTitle: data.jobTitle,
-        secondaryPhone: data.secondaryPhone,
-        secondaryEmail: data.secondaryEmail,
-        isPrimary: data.isPrimary,
+        functions: data.functions,
       })}
     >
       <div className="flex flex-col gap-6">
         <FormSection title="Person" contentClassName="grid grid-cols-1 gap-4">
           <PersonSelector name="personId" />
         </FormSection>
-        <FormSection title="Role & contact">
+        <FormSection title="Role" contentClassName="grid grid-cols-1 gap-4">
           <TextField name="jobTitle" label="Job Title" placeholder="e.g. Procurement Manager" />
-          <PhoneField name="secondaryPhone" label="Secondary Phone" placeholder="e.g. +91 98765 00000" />
-          <TextField name="secondaryEmail" label="Secondary Email" type="email" placeholder="e.g. contact@acme.com" />
         </FormSection>
-        <FormSection title="Status" contentClassName="grid grid-cols-1 gap-4">
-          <Switch name="isPrimary" label="Primary person" description="Used as the default person for this company" />
+        <FormSection title="Handles" contentClassName="block">
+          <FunctionsEditor name="functions" label="Contact Functions" options={CONTACT_FUNCTION_OPTIONS} />
         </FormSection>
       </div>
       <DialogActions>

@@ -14893,9 +14893,9 @@
         ]
       }
     },
-    "/commerce-api/people/{id}/contacts/table": {
+    "/commerce-api/people/{id}/communications/table": {
       "get": {
-        "operationId": "PeopleGatewayController_listContacts",
+        "operationId": "PeopleGatewayController_listCommunications",
         "parameters": [
           {
             "name": "id",
@@ -14921,9 +14921,9 @@
         ]
       }
     },
-    "/commerce-api/people/{id}/contacts": {
+    "/commerce-api/people/{id}/communications": {
       "post": {
-        "operationId": "PeopleGatewayController_createContact",
+        "operationId": "PeopleGatewayController_createCommunication",
         "parameters": [
           {
             "name": "id",
@@ -14939,7 +14939,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartyContactDto"
+                "$ref": "#/components/schemas/CreatePartyCommunicationDto"
               }
             }
           }
@@ -14959,9 +14959,9 @@
         ]
       }
     },
-    "/commerce-api/people/{id}/contacts/{contactId}": {
+    "/commerce-api/people/{id}/communications/{communicationId}": {
       "patch": {
-        "operationId": "PeopleGatewayController_updateContact",
+        "operationId": "PeopleGatewayController_updateCommunication",
         "parameters": [
           {
             "name": "id",
@@ -14972,7 +14972,7 @@
             }
           },
           {
-            "name": "contactId",
+            "name": "communicationId",
             "required": true,
             "in": "path",
             "schema": {
@@ -14985,7 +14985,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyContactDto"
+                "$ref": "#/components/schemas/UpdatePartyCommunicationDto"
               }
             }
           }
@@ -15005,7 +15005,7 @@
         ]
       },
       "delete": {
-        "operationId": "PeopleGatewayController_deleteContact",
+        "operationId": "PeopleGatewayController_deleteCommunication",
         "parameters": [
           {
             "name": "id",
@@ -15016,7 +15016,153 @@
             }
           },
           {
-            "name": "contactId",
+            "name": "communicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/social-profiles/table": {
+      "get": {
+        "operationId": "PeopleGatewayController_listSocialProfiles",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/social-profiles": {
+      "post": {
+        "operationId": "PeopleGatewayController_createSocialProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartySocialProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/social-profiles/{profileId}": {
+      "patch": {
+        "operationId": "PeopleGatewayController_updateSocialProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartySocialProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      },
+      "delete": {
+        "operationId": "PeopleGatewayController_deleteSocialProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15394,6 +15540,50 @@
       }
     },
     "/commerce-api/companies/{id}/people/{relationshipId}": {
+      "patch": {
+        "operationId": "CompaniesGatewayController_updatePerson",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "relationshipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompanyPersonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
       "delete": {
         "operationId": "CompaniesGatewayController_removePerson",
         "parameters": [
@@ -16115,9 +16305,9 @@
         ]
       }
     },
-    "/commerce-api/companies/{id}/contacts/table": {
+    "/commerce-api/companies/{id}/communications/table": {
       "get": {
-        "operationId": "CompaniesGatewayController_listContacts",
+        "operationId": "CompaniesGatewayController_listCommunications",
         "parameters": [
           {
             "name": "id",
@@ -16143,9 +16333,9 @@
         ]
       }
     },
-    "/commerce-api/companies/{id}/contacts": {
+    "/commerce-api/companies/{id}/communications": {
       "post": {
-        "operationId": "CompaniesGatewayController_createContact",
+        "operationId": "CompaniesGatewayController_createCommunication",
         "parameters": [
           {
             "name": "id",
@@ -16161,7 +16351,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartyContactDto"
+                "$ref": "#/components/schemas/CreatePartyCommunicationDto"
               }
             }
           }
@@ -16181,9 +16371,9 @@
         ]
       }
     },
-    "/commerce-api/companies/{id}/contacts/{contactId}": {
+    "/commerce-api/companies/{id}/communications/{communicationId}": {
       "patch": {
-        "operationId": "CompaniesGatewayController_updateContact",
+        "operationId": "CompaniesGatewayController_updateCommunication",
         "parameters": [
           {
             "name": "id",
@@ -16194,7 +16384,7 @@
             }
           },
           {
-            "name": "contactId",
+            "name": "communicationId",
             "required": true,
             "in": "path",
             "schema": {
@@ -16207,7 +16397,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyContactDto"
+                "$ref": "#/components/schemas/UpdatePartyCommunicationDto"
               }
             }
           }
@@ -16227,7 +16417,7 @@
         ]
       },
       "delete": {
-        "operationId": "CompaniesGatewayController_deleteContact",
+        "operationId": "CompaniesGatewayController_deleteCommunication",
         "parameters": [
           {
             "name": "id",
@@ -16238,7 +16428,153 @@
             }
           },
           {
-            "name": "contactId",
+            "name": "communicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/social-profiles/table": {
+      "get": {
+        "operationId": "CompaniesGatewayController_listSocialProfiles",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/social-profiles": {
+      "post": {
+        "operationId": "CompaniesGatewayController_createSocialProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartySocialProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/companies/{id}/social-profiles/{profileId}": {
+      "patch": {
+        "operationId": "CompaniesGatewayController_updateSocialProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartySocialProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      },
+      "delete": {
+        "operationId": "CompaniesGatewayController_deleteSocialProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
             "required": true,
             "in": "path",
             "schema": {
@@ -20560,6 +20896,184 @@
             "description": "The party whose records to fetch options for",
             "schema": {
               "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Select"
+        ]
+      }
+    },
+    "/commerce-api/select-api/party-contacts": {
+      "get": {
+        "operationId": "SelectApiController_selectPartyContacts",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "partyId",
+            "required": true,
+            "in": "query",
+            "description": "The party whose records to fetch options for",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "function",
+            "required": false,
+            "in": "query",
+            "description": "Filter contacts by assigned function",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "REGISTERED",
+                "BILLING",
+                "SHIPPING",
+                "ORDERING",
+                "ORDER",
+                "ACCOUNTS",
+                "LOGISTICS",
+                "ESCALATION"
+              ]
             }
           }
         ],
@@ -27398,6 +27912,11 @@
             "type": "object",
             "description": "Party bank account pick for payments from this site",
             "nullable": true
+          },
+          "orderRelationshipId": {
+            "type": "object",
+            "description": "Company-person relationship pick for the order contact at this site",
+            "nullable": true
           }
         },
         "required": [
@@ -27415,6 +27934,11 @@
           "partyBankAccountId": {
             "type": "object",
             "description": "Party bank account pick for payments from this site",
+            "nullable": true
+          },
+          "orderRelationshipId": {
+            "type": "object",
+            "description": "Company-person relationship pick for the order contact at this site",
             "nullable": true
           },
           "isActive": {
@@ -27893,6 +28417,41 @@
           }
         }
       },
+      "PersonAddressInputDto": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string",
+            "description": "Address line 1",
+            "example": "12 MG Road"
+          },
+          "line2": {
+            "type": "string",
+            "description": "Address line 2"
+          },
+          "city": {
+            "type": "string",
+            "description": "City"
+          },
+          "region": {
+            "type": "string",
+            "description": "State / region"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Postal / ZIP code"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "Country (ISO-2)",
+            "example": "IN"
+          }
+        },
+        "required": [
+          "line1",
+          "countryCode"
+        ]
+      },
       "CreatePersonDto": {
         "type": "object",
         "properties": {
@@ -27937,6 +28496,14 @@
           "isActive": {
             "type": "boolean",
             "description": "Whether the person is selectable"
+          },
+          "address": {
+            "description": "Optional initial address",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PersonAddressInputDto"
+              }
+            ]
           }
         },
         "required": [
@@ -27978,19 +28545,35 @@
           "idValue"
         ]
       },
-      "AddPartyAddressDto": {
+      "PartyFunctionAssignmentDto": {
         "type": "object",
         "properties": {
-          "type": {
+          "function": {
             "type": "string",
-            "description": "Address type",
+            "description": "Party function assigned to this contact or address",
             "enum": [
               "REGISTERED",
               "BILLING",
               "SHIPPING",
-              "OTHER"
+              "ORDERING",
+              "ORDER",
+              "ACCOUNTS",
+              "LOGISTICS",
+              "ESCALATION"
             ]
           },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this record is the primary target for the function"
+          }
+        },
+        "required": [
+          "function"
+        ]
+      },
+      "AddPartyAddressDto": {
+        "type": "object",
+        "properties": {
           "line1": {
             "type": "string",
             "description": "Address line 1",
@@ -28017,13 +28600,15 @@
             "description": "ISO 3166-1 alpha-2 country code",
             "example": "IN"
           },
-          "isPrimary": {
-            "type": "boolean",
-            "description": "Whether this is the primary address"
+          "functions": {
+            "description": "Address functions assigned to this address",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
+            }
           }
         },
         "required": [
-          "type",
           "line1",
           "countryCode"
         ]
@@ -28031,16 +28616,6 @@
       "UpdatePartyAddressDto": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "description": "Address type",
-            "enum": [
-              "REGISTERED",
-              "BILLING",
-              "SHIPPING",
-              "OTHER"
-            ]
-          },
           "line1": {
             "type": "string",
             "description": "Address line 1",
@@ -28067,9 +28642,12 @@
             "description": "ISO 3166-1 alpha-2 country code",
             "example": "IN"
           },
-          "isPrimary": {
-            "type": "boolean",
-            "description": "Whether this is the primary address"
+          "functions": {
+            "description": "Address functions assigned to this address",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
+            }
           }
         }
       },
@@ -28314,90 +28892,141 @@
           }
         }
       },
-      "CreatePartyContactDto": {
+      "PartyCommunicationAppDto": {
         "type": "object",
         "properties": {
-          "purpose": {
+          "app": {
             "type": "string",
-            "description": "Contact purpose",
+            "description": "Messaging app reachable on this number",
             "enum": [
-              "ORDER",
-              "ACCOUNTS",
-              "ESCALATION"
+              "WHATSAPP",
+              "TELEGRAM",
+              "SIGNAL",
+              "IMO",
+              "VIBER",
+              "WECHAT"
             ]
           },
-          "label": {
+          "handle": {
             "type": "object",
-            "description": "Contact label",
-            "example": "Primary sales desk",
+            "description": "App handle if it differs from the number (e.g. Telegram @username)",
             "nullable": true
-          },
-          "name": {
-            "type": "object",
-            "description": "Contact person name",
-            "example": "Priya Sharma",
-            "nullable": true
-          },
-          "email": {
-            "type": "object",
-            "description": "Contact email",
-            "example": "orders@acmefoods.com",
-            "nullable": true
-          },
-          "phone": {
-            "type": "object",
-            "description": "Contact phone",
-            "example": "+91 98765 43210",
-            "nullable": true
-          },
-          "isPrimary": {
-            "type": "boolean",
-            "description": "Whether this is the primary contact for the party"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the contact is active",
-            "default": true
           }
         },
         "required": [
-          "purpose"
+          "app"
         ]
       },
-      "UpdatePartyContactDto": {
+      "CreatePartyCommunicationDto": {
         "type": "object",
         "properties": {
-          "label": {
-            "type": "object",
-            "description": "Contact label",
-            "example": "Primary sales desk",
-            "nullable": true
+          "channel": {
+            "type": "string",
+            "description": "Communication channel",
+            "enum": [
+              "EMAIL",
+              "PHONE"
+            ]
           },
-          "name": {
-            "type": "object",
-            "description": "Contact person name",
-            "example": "Priya Sharma",
-            "nullable": true
-          },
-          "email": {
-            "type": "object",
-            "description": "Contact email",
-            "example": "orders@acmefoods.com",
-            "nullable": true
-          },
-          "phone": {
-            "type": "object",
-            "description": "Contact phone",
-            "example": "+91 98765 43210",
-            "nullable": true
+          "value": {
+            "type": "string",
+            "description": "The email address or phone number",
+            "example": "priya@acme.in"
           },
           "isPrimary": {
             "type": "boolean",
-            "description": "Whether this is the primary contact for the party"
+            "description": "Whether this is the primary value for its channel"
           },
           "isActive": {
             "type": "boolean",
-            "description": "Whether the contact is active"
+            "description": "Whether the communication is active",
+            "default": true
+          },
+          "apps": {
+            "description": "Messaging apps reachable on this number (phone only)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyCommunicationAppDto"
+            }
+          }
+        },
+        "required": [
+          "channel",
+          "value"
+        ]
+      },
+      "UpdatePartyCommunicationDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "The email address or phone number",
+            "example": "priya@acme.in"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary value for its channel"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the communication is active"
+          },
+          "apps": {
+            "description": "Full set of messaging apps reachable on this number (phone only)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyCommunicationAppDto"
+            }
+          }
+        }
+      },
+      "CreatePartySocialProfileDto": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "description": "Social platform",
+            "enum": [
+              "INSTAGRAM",
+              "FACEBOOK",
+              "LINKEDIN",
+              "X",
+              "YOUTUBE",
+              "TIKTOK",
+              "WEBSITE"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Profile URL or handle",
+            "example": "https://instagram.com/acmefoods"
+          }
+        },
+        "required": [
+          "platform",
+          "url"
+        ]
+      },
+      "UpdatePartySocialProfileDto": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "description": "Social platform",
+            "enum": [
+              "INSTAGRAM",
+              "FACEBOOK",
+              "LINKEDIN",
+              "X",
+              "YOUTUBE",
+              "TIKTOK",
+              "WEBSITE"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Profile URL or handle",
+            "example": "https://instagram.com/acmefoods"
           }
         }
       },
@@ -28519,22 +29148,37 @@
             "type": "object",
             "description": "Job title of the person at the company"
           },
-          "secondaryPhone": {
-            "type": "object",
-            "description": "Secondary phone number for this relationship"
-          },
-          "secondaryEmail": {
-            "type": "object",
-            "description": "Secondary email for this relationship"
-          },
-          "isPrimary": {
-            "type": "boolean",
-            "description": "Whether this is the primary person"
+          "functions": {
+            "description": "Contact functions assigned to this person",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
+            }
           }
         },
         "required": [
           "childPartyId"
         ]
+      },
+      "UpdateCompanyPersonDto": {
+        "type": "object",
+        "properties": {
+          "jobTitle": {
+            "type": "object",
+            "description": "Job title of the person at the company"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the relationship is active"
+          },
+          "functions": {
+            "description": "Contact functions assigned to this person",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
+            }
+          }
+        }
       },
       "CreateCompanyRegistrationDto": {
         "type": "object",

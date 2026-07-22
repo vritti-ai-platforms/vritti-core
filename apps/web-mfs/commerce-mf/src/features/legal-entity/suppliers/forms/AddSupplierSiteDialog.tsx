@@ -28,6 +28,7 @@ export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
       siteId: '',
       partyTaxRegistrationId: '',
       partyBankAccountId: '',
+      orderRelationshipId: '',
     },
   });
 
@@ -43,6 +44,7 @@ export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
         siteId: data.siteId,
         partyTaxRegistrationId: data.partyTaxRegistrationId,
         partyBankAccountId: data.partyBankAccountId,
+        orderRelationshipId: data.orderRelationshipId,
       })}
     >
       <FormSection title="Enrollment" contentClassName="block">
@@ -63,6 +65,14 @@ export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
             searchable
             optionsEndpoint="commerce-api/select-api/party-bank-accounts"
             params={{ partyId }}
+          />
+          <Select
+            name="orderRelationshipId"
+            label="Order Contact"
+            placeholder="Pick an order contact for this site"
+            searchable
+            optionsEndpoint="commerce-api/select-api/party-contacts"
+            params={{ partyId, function: 'ORDER' }}
           />
         </div>
       </FormSection>

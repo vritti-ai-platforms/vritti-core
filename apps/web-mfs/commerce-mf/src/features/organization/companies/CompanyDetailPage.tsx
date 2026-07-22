@@ -12,10 +12,11 @@ import { useNavigate } from 'react-router-dom';
 import { useCompanyById, useDeleteCompany } from '@/hooks/organization/companies';
 import { AddressesTab } from '../party/tabs/AddressesTab';
 import { BankAccountsTab } from '../party/tabs/BankAccountsTab';
-import { ContactsTab } from '../party/tabs/ContactsTab';
+import { CommunicationsTab } from '../party/tabs/CommunicationsTab';
 import { IdentifiersTab } from '../party/tabs/IdentifiersTab';
 import { LicensesTab } from '../party/tabs/LicensesTab';
 import { RegistrationsTab } from '../party/tabs/RegistrationsTab';
+import { SocialProfilesTab } from '../party/tabs/SocialProfilesTab';
 import { EditCompanyDialog } from './forms/EditCompanyDialog';
 import { companyBindings } from './party-bindings';
 import { OverviewTab } from './tabs/OverviewTab';
@@ -76,6 +77,18 @@ export const CompanyDetailPage = () => {
             content: <AddressesTab partyId={company.id} binding={companyBindings.addresses} />,
           },
           {
+            value: 'communications',
+            label: 'Communications',
+            permission: ORG_COMPANIES.communications.view,
+            content: <CommunicationsTab partyId={company.id} binding={companyBindings.communications} />,
+          },
+          {
+            value: 'social-profiles',
+            label: 'Social Profiles',
+            permission: ORG_COMPANIES.socialProfiles.view,
+            content: <SocialProfilesTab partyId={company.id} binding={companyBindings.socialProfiles} />,
+          },
+          {
             value: 'people',
             label: 'People',
             permission: ORG_COMPANIES.people.view,
@@ -98,12 +111,6 @@ export const CompanyDetailPage = () => {
             label: 'Bank Accounts',
             permission: ORG_COMPANIES.bankAccounts.view,
             content: <BankAccountsTab partyId={company.id} binding={companyBindings.bankAccounts} />,
-          },
-          {
-            value: 'contacts',
-            label: 'Contacts',
-            permission: ORG_COMPANIES.contacts.view,
-            content: <ContactsTab partyId={company.id} binding={companyBindings.contacts} />,
           },
           {
             value: 'identifiers',

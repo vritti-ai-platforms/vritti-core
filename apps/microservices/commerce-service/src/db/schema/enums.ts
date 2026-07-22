@@ -493,20 +493,6 @@ export function isIdentifierTypeApplicable(partyType: PartyType, idType: PartyId
   return applicable.includes(idType);
 }
 
-export const partyAddressTypeEnum = coreSchema.enum('party_address_type', [
-  'REGISTERED',
-  'BILLING',
-  'SHIPPING',
-  'OTHER',
-]);
-export const PartyAddressTypeValues = {
-  REGISTERED: 'REGISTERED' as const,
-  BILLING: 'BILLING' as const,
-  SHIPPING: 'SHIPPING' as const,
-  OTHER: 'OTHER' as const,
-};
-export type PartyAddressType = (typeof partyAddressTypeEnum.enumValues)[number];
-
 export const taxRegistrationTypeEnum = coreSchema.enum('tax_registration_type', [
   'GSTIN',
   'VAT',
@@ -556,10 +542,69 @@ export const SupplierPriceSourceValues = {
 };
 export type SupplierPriceSource = (typeof supplierPriceSourceEnum.enumValues)[number];
 
-export const partyContactPurposeEnum = coreSchema.enum('party_contact_purpose', ['ORDER', 'ACCOUNTS', 'ESCALATION']);
-export const PartyContactPurposeValues = {
+export const partyFunctionTypeEnum = coreSchema.enum('party_function_type', [
+  'REGISTERED',
+  'BILLING',
+  'SHIPPING',
+  'ORDERING',
+  'ORDER',
+  'ACCOUNTS',
+  'LOGISTICS',
+  'ESCALATION',
+]);
+export const PartyFunctionTypeValues = {
+  REGISTERED: 'REGISTERED' as const,
+  BILLING: 'BILLING' as const,
+  SHIPPING: 'SHIPPING' as const,
+  ORDERING: 'ORDERING' as const,
   ORDER: 'ORDER' as const,
   ACCOUNTS: 'ACCOUNTS' as const,
+  LOGISTICS: 'LOGISTICS' as const,
   ESCALATION: 'ESCALATION' as const,
 };
-export type PartyContactPurpose = (typeof partyContactPurposeEnum.enumValues)[number];
+export type PartyFunctionType = (typeof partyFunctionTypeEnum.enumValues)[number];
+
+export const partyCommunicationChannelEnum = coreSchema.enum('party_communication_channel', ['EMAIL', 'PHONE']);
+export const PartyCommunicationChannelValues = {
+  EMAIL: 'EMAIL' as const,
+  PHONE: 'PHONE' as const,
+};
+export type PartyCommunicationChannel = (typeof partyCommunicationChannelEnum.enumValues)[number];
+
+export const messagingAppEnum = coreSchema.enum('messaging_app', [
+  'WHATSAPP',
+  'TELEGRAM',
+  'SIGNAL',
+  'IMO',
+  'VIBER',
+  'WECHAT',
+]);
+export const MessagingAppValues = {
+  WHATSAPP: 'WHATSAPP' as const,
+  TELEGRAM: 'TELEGRAM' as const,
+  SIGNAL: 'SIGNAL' as const,
+  IMO: 'IMO' as const,
+  VIBER: 'VIBER' as const,
+  WECHAT: 'WECHAT' as const,
+};
+export type MessagingApp = (typeof messagingAppEnum.enumValues)[number];
+
+export const socialPlatformEnum = coreSchema.enum('social_platform', [
+  'INSTAGRAM',
+  'FACEBOOK',
+  'LINKEDIN',
+  'X',
+  'YOUTUBE',
+  'TIKTOK',
+  'WEBSITE',
+]);
+export const SocialPlatformValues = {
+  INSTAGRAM: 'INSTAGRAM' as const,
+  FACEBOOK: 'FACEBOOK' as const,
+  LINKEDIN: 'LINKEDIN' as const,
+  X: 'X' as const,
+  YOUTUBE: 'YOUTUBE' as const,
+  TIKTOK: 'TIKTOK' as const,
+  WEBSITE: 'WEBSITE' as const,
+};
+export type SocialPlatform = (typeof socialPlatformEnum.enumValues)[number];

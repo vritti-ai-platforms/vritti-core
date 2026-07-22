@@ -7,4 +7,5 @@ export const PERSON_COMPANIES_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'c
 export const PERSON_REGISTRATIONS_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'registrations'] as const;
 export const PERSON_LICENSES_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'licenses'] as const;
 export const PERSON_BANK_ACCOUNTS_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'bank-accounts'] as const;
-export const PERSON_CONTACTS_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'contacts'] as const;
+export const PERSON_COMMUNICATIONS_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'communications'] as const;
+export const PERSON_SOCIAL_PROFILES_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'social-profiles'] as const;

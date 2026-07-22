@@ -7,4 +7,5 @@ export const COMPANY_IDENTIFIERS_TABLE_KEY = (id: string) => [...COMPANY_KEY(id)
 export const COMPANY_ADDRESSES_TABLE_KEY = (id: string) => [...COMPANY_KEY(id), 'addresses'] as const;
 export const COMPANY_LICENSES_TABLE_KEY = (id: string) => [...COMPANY_KEY(id), 'licenses'] as const;
 export const COMPANY_BANK_ACCOUNTS_TABLE_KEY = (id: string) => [...COMPANY_KEY(id), 'bank-accounts'] as const;
-export const COMPANY_CONTACTS_TABLE_KEY = (id: string) => [...COMPANY_KEY(id), 'contacts'] as const;
+export const COMPANY_COMMUNICATIONS_TABLE_KEY = (id: string) => [...COMPANY_KEY(id), 'communications'] as const;
+export const COMPANY_SOCIAL_PROFILES_TABLE_KEY = (id: string) => [...COMPANY_KEY(id), 'social-profiles'] as const;

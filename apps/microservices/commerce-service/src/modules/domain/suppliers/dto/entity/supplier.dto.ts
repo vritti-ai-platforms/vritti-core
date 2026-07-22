@@ -3,6 +3,7 @@ import type {
   PartyLicense,
   PartyLicenseType,
   PartyTaxRegistration,
+  PartyType,
   Supplier,
   SupplierItem,
   TaxRegistrationType,
@@ -187,6 +188,7 @@ export class SupplierDto {
 }
 
 export class SupplierDetailDto extends SupplierDto {
+  partyType: PartyType | null;
   registrations: SupplierRegistrationDto[];
   licenses: SupplierLicenseDto[];
   enrolledSiteCount: number;
@@ -194,10 +196,16 @@ export class SupplierDetailDto extends SupplierDto {
   static fromDetail(
     entity: Supplier,
     partyName: string | null = null,
-    detail?: { registrations: PartyTaxRegistration[]; licenses: PartyLicense[]; enrolledSiteCount: number },
+    detail?: {
+      partyType?: PartyType | null;
+      registrations: PartyTaxRegistration[];
+      licenses: PartyLicense[];
+      enrolledSiteCount: number;
+    },
   ): SupplierDetailDto {
     const dto = new SupplierDetailDto();
     Object.assign(dto, SupplierDto.from(entity, partyName));
+    dto.partyType = detail?.partyType ?? null;
     dto.registrations = (detail?.registrations ?? []).map(SupplierRegistrationDto.from);
     dto.licenses = (detail?.licenses ?? []).map(SupplierLicenseDto.from);
     dto.enrolledSiteCount = detail?.enrolledSiteCount ?? 0;

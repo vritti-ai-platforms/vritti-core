@@ -4,9 +4,6 @@ export class CompanyPrimaryAddressDto {
   @ApiProperty({ description: 'Address ID' })
   id: string;
 
-  @ApiProperty({ description: 'Address type', example: 'REGISTERED' })
-  type: string;
-
   @ApiProperty({ description: 'Address line 1' })
   line1: string;
 

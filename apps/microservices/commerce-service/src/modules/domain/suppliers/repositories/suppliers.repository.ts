@@ -9,6 +9,7 @@ import { asc, desc, eq, getTableColumns, type SQL, sql } from '@vritti/api-sdk/d
 import {
   type PartyLicense,
   type PartyTaxRegistration,
+  type PartyType,
   parties,
   partyLicenses,
   partyTaxRegistrations,
@@ -74,6 +75,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
   async findDetailById(id: string): Promise<
     | (Supplier & {
         partyName: string | null;
+        partyType: PartyType | null;
         registrations: PartyTaxRegistration[];
         licenses: PartyLicense[];
         enrolledSiteCount: number;
@@ -84,6 +86,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
       .select({
         ...getTableColumns(suppliers),
         partyName: parties.displayName,
+        partyType: parties.partyType,
         enrolledSiteCount: sql<number>`(
           SELECT count(*)::int FROM ${supplierSites} ss
           WHERE ss.supplier_id = ${suppliers.id} AND ss.is_active = true
@@ -95,7 +98,11 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
       .limit(1);
     if (!row) return undefined;
 
-    const supplier = row as Supplier & { partyName: string | null; enrolledSiteCount: number };
+    const supplier = row as Supplier & {
+      partyName: string | null;
+      partyType: PartyType | null;
+      enrolledSiteCount: number;
+    };
     const [registrations, licenses] = await Promise.all([
       this.db
         .select()

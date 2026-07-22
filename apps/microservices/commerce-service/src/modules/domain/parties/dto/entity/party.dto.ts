@@ -2,7 +2,6 @@ import type { PartyAddress } from '@/db/schema';
 
 export interface PartyPrimaryAddressDto {
   id: string;
-  type: string;
   line1: string;
   line2: string | null;
   city: string | null;
@@ -16,7 +15,6 @@ export function toPrimaryAddressDto(address: PartyAddress | null | undefined): P
   if (!address) return null;
   return {
     id: address.id,
-    type: address.type,
     line1: address.line1,
     line2: address.line2 ?? null,
     city: address.city ?? null,

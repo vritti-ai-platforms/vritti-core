@@ -22,26 +22,30 @@ import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AddPartyAddressDto } from './dto/request/add-party-address.dto';
 import { AddPartyIdentifierDto } from './dto/request/add-party-identifier.dto';
 import { CreatePartyBankAccountDto } from './dto/request/create-party-bank-account.dto';
-import { CreatePartyContactDto } from './dto/request/create-party-contact.dto';
+import { CreatePartyCommunicationDto } from './dto/request/create-party-communication.dto';
 import { CreatePartyLicenseDto } from './dto/request/create-party-license.dto';
+import { CreatePartySocialProfileDto } from './dto/request/create-party-social-profile.dto';
 import { CreatePersonDto } from './dto/request/create-person.dto';
 import { CreatePersonRegistrationDto } from './dto/request/create-person-registration.dto';
 import { UpdatePartyAddressDto } from './dto/request/update-party-address.dto';
 import { UpdatePartyBankAccountDto } from './dto/request/update-party-bank-account.dto';
-import { UpdatePartyContactDto } from './dto/request/update-party-contact.dto';
+import { UpdatePartyCommunicationDto } from './dto/request/update-party-communication.dto';
 import { UpdatePartyLicenseDto } from './dto/request/update-party-license.dto';
+import { UpdatePartySocialProfileDto } from './dto/request/update-party-social-profile.dto';
 import { UpdatePersonDto } from './dto/request/update-person.dto';
 import { UpdatePersonRegistrationDto } from './dto/request/update-person-registration.dto';
 import type { PartyAddressResponseDto } from './dto/response/party-address-response.dto';
 import type { PartyAddressTableResponseDto } from './dto/response/party-address-table-response.dto';
 import type { PartyBankAccountResponseDto } from './dto/response/party-bank-account-response.dto';
 import type { PartyBankAccountTableResponseDto } from './dto/response/party-bank-account-table-response.dto';
-import type { PartyContactResponseDto } from './dto/response/party-contact-response.dto';
-import type { PartyContactTableResponseDto } from './dto/response/party-contact-table-response.dto';
+import type { PartyCommunicationResponseDto } from './dto/response/party-communication-response.dto';
+import type { PartyCommunicationTableResponseDto } from './dto/response/party-communication-table-response.dto';
 import type { PartyIdentifierResponseDto } from './dto/response/party-identifier-response.dto';
 import type { PartyIdentifierTableResponseDto } from './dto/response/party-identifier-table-response.dto';
 import type { PartyLicenseResponseDto } from './dto/response/party-license-response.dto';
 import type { PartyLicenseTableResponseDto } from './dto/response/party-license-table-response.dto';
+import type { PartySocialProfileResponseDto } from './dto/response/party-social-profile-response.dto';
+import type { PartySocialProfileTableResponseDto } from './dto/response/party-social-profile-table-response.dto';
 import type { PersonCompanyTableResponseDto } from './dto/response/person-company-table-response.dto';
 import type { PersonRegistrationResponseDto } from './dto/response/person-registration-response.dto';
 import type { PersonRegistrationTableResponseDto } from './dto/response/person-registration-table-response.dto';
@@ -313,50 +317,96 @@ export class PeopleGatewayController {
     return this.service.deleteBankAccount(accountId);
   }
 
-  // Returns the contacts of a person for the data table
-  @Get(':id/contacts/table')
-  @RequirePermission(ORG_PEOPLE.contacts.view)
-  listContacts(
+  // Returns the communications of a person for the data table
+  @Get(':id/communications/table')
+  @RequirePermission(ORG_PEOPLE.communications.view)
+  listCommunications(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
-  ): Promise<PartyContactTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/contacts/table`);
-    return this.service.listContacts(id, userId);
+  ): Promise<PartyCommunicationTableResponseDto> {
+    this.logger.log(`GET /commerce-api/people/${id}/communications/table`);
+    return this.service.listCommunications(id, userId);
   }
 
-  // Creates a contact for a person
-  @Post(':id/contacts')
+  // Creates a communication for a person
+  @Post(':id/communications')
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_PEOPLE.contacts.add)
-  createContact(
+  @RequirePermission(ORG_PEOPLE.communications.add)
+  createCommunication(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreatePartyContactDto,
-  ): Promise<CreateResponseDto<PartyContactResponseDto>> {
-    this.logger.log(`POST /commerce-api/people/${id}/contacts`);
-    return this.service.createContact(id, dto);
+    @Body() dto: CreatePartyCommunicationDto,
+  ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
+    this.logger.log(`POST /commerce-api/people/${id}/communications`);
+    return this.service.createCommunication(id, dto);
   }
 
-  // Updates a person contact
-  @Patch(':id/contacts/:contactId')
-  @RequirePermission(ORG_PEOPLE.contacts.edit)
-  updateContact(
+  // Updates a person communication
+  @Patch(':id/communications/:communicationId')
+  @RequirePermission(ORG_PEOPLE.communications.edit)
+  updateCommunication(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('contactId', new ParseUUIDPipe()) contactId: string,
-    @Body() dto: UpdatePartyContactDto,
+    @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
+    @Body() dto: UpdatePartyCommunicationDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}/contacts/${contactId}`);
-    return this.service.updateContact(contactId, dto);
+    this.logger.log(`PATCH /commerce-api/people/${id}/communications/${communicationId}`);
+    return this.service.updateCommunication(communicationId, dto);
   }
 
-  // Deletes a person contact
-  @Delete(':id/contacts/:contactId')
-  @RequirePermission(ORG_PEOPLE.contacts.delete)
-  deleteContact(
+  // Deletes a person communication
+  @Delete(':id/communications/:communicationId')
+  @RequirePermission(ORG_PEOPLE.communications.delete)
+  deleteCommunication(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('contactId', new ParseUUIDPipe()) contactId: string,
+    @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}/contacts/${contactId}`);
-    return this.service.deleteContact(contactId);
+    this.logger.log(`DELETE /commerce-api/people/${id}/communications/${communicationId}`);
+    return this.service.deleteCommunication(communicationId);
+  }
+
+  // Returns the social profiles of a person for the data table
+  @Get(':id/social-profiles/table')
+  @RequirePermission(ORG_PEOPLE.socialProfiles.view)
+  listSocialProfiles(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartySocialProfileTableResponseDto> {
+    this.logger.log(`GET /commerce-api/people/${id}/social-profiles/table`);
+    return this.service.listSocialProfiles(id, userId);
+  }
+
+  // Creates a social profile for a person
+  @Post(':id/social-profiles')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_PEOPLE.socialProfiles.add)
+  createSocialProfile(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreatePartySocialProfileDto,
+  ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
+    this.logger.log(`POST /commerce-api/people/${id}/social-profiles`);
+    return this.service.createSocialProfile(id, dto);
+  }
+
+  // Updates a person social profile
+  @Patch(':id/social-profiles/:profileId')
+  @RequirePermission(ORG_PEOPLE.socialProfiles.edit)
+  updateSocialProfile(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+    @Body() dto: UpdatePartySocialProfileDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/people/${id}/social-profiles/${profileId}`);
+    return this.service.updateSocialProfile(profileId, dto);
+  }
+
+  // Deletes a person social profile
+  @Delete(':id/social-profiles/:profileId')
+  @RequirePermission(ORG_PEOPLE.socialProfiles.delete)
+  deleteSocialProfile(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/people/${id}/social-profiles/${profileId}`);
+    return this.service.deleteSocialProfile(profileId);
   }
 
   // Returns a person by ID

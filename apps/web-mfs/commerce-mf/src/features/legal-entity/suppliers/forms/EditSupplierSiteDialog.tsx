@@ -29,6 +29,7 @@ export const EditSupplierSiteDialog: React.FC<EditSupplierSiteDialogProps> = ({
     defaultValues: {
       partyTaxRegistrationId: site.partyTaxRegistrationId ?? '',
       partyBankAccountId: site.partyBankAccountId ?? '',
+      orderRelationshipId: site.orderRelationshipId ?? '',
       isActive: site.isActive,
     },
   });
@@ -45,6 +46,7 @@ export const EditSupplierSiteDialog: React.FC<EditSupplierSiteDialogProps> = ({
         data: {
           partyTaxRegistrationId: data.partyTaxRegistrationId || null,
           partyBankAccountId: data.partyBankAccountId || null,
+          orderRelationshipId: data.orderRelationshipId || null,
           isActive: data.isActive,
         },
       })}
@@ -66,6 +68,14 @@ export const EditSupplierSiteDialog: React.FC<EditSupplierSiteDialogProps> = ({
             searchable
             optionsEndpoint="commerce-api/select-api/party-bank-accounts"
             params={{ partyId }}
+          />
+          <Select
+            name="orderRelationshipId"
+            label="Order Contact"
+            placeholder="Pick an order contact for this site"
+            searchable
+            optionsEndpoint="commerce-api/select-api/party-contacts"
+            params={{ partyId, function: 'ORDER' }}
           />
           <Switch name="isActive" label="Active" description="Inactive enrollments block purchasing at this site" />
         </div>

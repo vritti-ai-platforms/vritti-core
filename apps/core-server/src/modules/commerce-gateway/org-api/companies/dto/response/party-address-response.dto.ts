@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PartyFunctionResponseDto } from '@/modules/commerce-gateway/_shared/dto/party-function-assignment.dto';
 
 export class PartyAddressResponseDto {
   @ApiProperty({ description: 'Address ID' })
@@ -6,9 +7,6 @@ export class PartyAddressResponseDto {
 
   @ApiProperty({ description: 'The party ID the address belongs to' })
   partyId: string;
-
-  @ApiProperty({ description: 'Address type', enum: ['REGISTERED', 'BILLING', 'SHIPPING', 'OTHER'] })
-  type: string;
 
   @ApiProperty({ description: 'Address line 1' })
   line1: string;
@@ -28,11 +26,11 @@ export class PartyAddressResponseDto {
   @ApiProperty({ description: 'ISO 3166-1 alpha-2 country code' })
   countryCode: string;
 
-  @ApiProperty({ description: 'Whether this is the primary address' })
-  isPrimary: boolean;
-
   @ApiProperty({ description: 'Whether the address is active' })
   isActive: boolean;
+
+  @ApiProperty({ type: [PartyFunctionResponseDto], description: 'Address functions assigned to this address' })
+  functions: PartyFunctionResponseDto[];
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;

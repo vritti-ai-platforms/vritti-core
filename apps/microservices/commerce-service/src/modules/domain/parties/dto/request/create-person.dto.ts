@@ -1,6 +1,8 @@
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { type PartyIdentifierType, PartyIdentifierTypeValues } from '@/db/schema';
+import { CompanyAddressInputDto } from './company-address-input.dto';
 
 export class CreatePersonDto {
   @Trim({ nullify: false })
@@ -39,4 +41,9 @@ export class CreatePersonDto {
 
   @IsBoolean()
   isActive: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CompanyAddressInputDto)
+  address?: CompanyAddressInputDto;
 }

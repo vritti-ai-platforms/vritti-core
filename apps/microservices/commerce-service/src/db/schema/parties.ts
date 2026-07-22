@@ -1,7 +1,9 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   boolean,
+  check,
   date,
+  foreignKey,
   index,
   pgPolicy,
   timestamp,
@@ -12,11 +14,13 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import {
-  partyAddressTypeEnum,
-  partyContactPurposeEnum,
+  messagingAppEnum,
+  partyCommunicationChannelEnum,
+  partyFunctionTypeEnum,
   partyIdentifierTypeEnum,
   partyLicenseTypeEnum,
   partyTypeEnum,
+  socialPlatformEnum,
   taxRegistrationTypeEnum,
 } from './enums';
 import { taxJurisdictions } from './tax-jurisdictions';
@@ -28,12 +32,9 @@ export const parties = coreSchema.table(
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     partyType: partyTypeEnum('party_type').notNull(),
     displayName: varchar('display_name', { length: 255 }).notNull(),
-    email: varchar('email', { length: 255 }),
-    phone: varchar('phone', { length: 20 }),
     isActive: boolean('is_active').notNull().default(true),
     legalName: varchar('legal_name', { length: 255 }),
     jurisdictionId: uuid('jurisdiction_id').references(() => taxJurisdictions.id),
-    website: varchar('website', { length: 255 }),
     firstName: varchar('first_name', { length: 120 }),
     lastName: varchar('last_name', { length: 120 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -63,14 +64,12 @@ export const partyAddresses = coreSchema.table(
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
-    type: partyAddressTypeEnum('type').notNull(),
     line1: varchar('line1', { length: 255 }).notNull(),
     line2: varchar('line2', { length: 255 }),
     city: varchar('city', { length: 120 }),
     region: varchar('region', { length: 120 }),
     postalCode: varchar('postal_code', { length: 20 }),
     countryCode: varchar('country_code', { length: 2 }).notNull(),
-    isPrimary: boolean('is_primary').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -79,6 +78,7 @@ export const partyAddresses = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    unique('uq_party_addresses_party_id').on(table.partyId, table.id),
     index('idx_party_addresses_party').on(table.partyId),
     pgPolicy('org_isolation', {
       for: 'all',
@@ -134,9 +134,6 @@ export const partyRelationships = coreSchema.table(
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
     jobTitle: varchar('job_title', { length: 100 }),
-    secondaryPhone: varchar('secondary_phone', { length: 20 }),
-    secondaryEmail: varchar('secondary_email', { length: 255 }),
-    isPrimary: boolean('is_primary').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -146,6 +143,7 @@ export const partyRelationships = coreSchema.table(
   },
   (table) => [
     unique('uq_party_rel_parent_child').on(table.parentPartyId, table.childPartyId),
+    unique('uq_party_rel_parent_id').on(table.parentPartyId, table.id),
     index('idx_party_rel_parent').on(table.parentPartyId),
     pgPolicy('org_isolation', {
       for: 'all',
@@ -260,19 +258,16 @@ export const partyBankAccounts = coreSchema.table(
 export type PartyBankAccount = typeof partyBankAccounts.$inferSelect;
 export type NewPartyBankAccount = typeof partyBankAccounts.$inferInsert;
 
-export const partyContacts = coreSchema.table(
-  'party_contacts',
+export const partyCommunications = coreSchema.table(
+  'party_communications',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
-    purpose: partyContactPurposeEnum('purpose').notNull(),
-    label: varchar('label', { length: 120 }),
-    name: varchar('name', { length: 150 }),
-    email: varchar('email', { length: 255 }),
-    phone: varchar('phone', { length: 20 }),
+    channel: partyCommunicationChannelEnum('channel').notNull(),
+    value: varchar('value', { length: 255 }).notNull(),
     isPrimary: boolean('is_primary').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -282,8 +277,9 @@ export const partyContacts = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    uniqueIndex('uq_party_contacts_primary').on(table.partyId, table.purpose).where(sql`is_primary = true`),
-    index('idx_party_contacts_party').on(table.partyId),
+    uniqueIndex('uq_party_communications_primary').on(table.partyId, table.channel).where(sql`is_primary = true`),
+    unique('uq_party_communications_party_channel_value').on(table.partyId, table.channel, table.value),
+    index('idx_party_communications_party').on(table.partyId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
@@ -291,5 +287,112 @@ export const partyContacts = coreSchema.table(
   ],
 );
 
-export type PartyContact = typeof partyContacts.$inferSelect;
-export type NewPartyContact = typeof partyContacts.$inferInsert;
+export type PartyCommunication = typeof partyCommunications.$inferSelect;
+export type NewPartyCommunication = typeof partyCommunications.$inferInsert;
+
+// Messaging apps reachable on a PHONE communication (WhatsApp/Telegram/… ride on the number)
+export const partyCommunicationApps = coreSchema.table(
+  'party_communication_apps',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    communicationId: uuid('communication_id')
+      .notNull()
+      .references(() => partyCommunications.id, { onDelete: 'cascade' }),
+    app: messagingAppEnum('app').notNull(),
+    handle: varchar('handle', { length: 255 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    unique('uq_party_communication_apps_comm_app').on(table.communicationId, table.app),
+    index('idx_party_communication_apps_comm').on(table.communicationId),
+    pgPolicy('org_isolation', {
+      for: 'all',
+      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
+    }),
+  ],
+);
+
+export type PartyCommunicationApp = typeof partyCommunicationApps.$inferSelect;
+export type NewPartyCommunicationApp = typeof partyCommunicationApps.$inferInsert;
+
+// Social / web presence profiles of a party (Instagram, Facebook, LinkedIn, …) — handle/URL, no primary
+export const partySocialProfiles = coreSchema.table(
+  'party_social_profiles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    partyId: uuid('party_id')
+      .notNull()
+      .references(() => parties.id, { onDelete: 'cascade' }),
+    platform: socialPlatformEnum('platform').notNull(),
+    url: varchar('url', { length: 500 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index('idx_party_social_profiles_party').on(table.partyId),
+    pgPolicy('org_isolation', {
+      for: 'all',
+      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
+    }),
+  ],
+);
+
+export type PartySocialProfile = typeof partySocialProfiles.$inferSelect;
+export type NewPartySocialProfile = typeof partySocialProfiles.$inferInsert;
+
+export const partyFunctions = coreSchema.table(
+  'party_functions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    partyId: uuid('party_id')
+      .notNull()
+      .references(() => parties.id, { onDelete: 'cascade' }),
+    function: partyFunctionTypeEnum('function').notNull(),
+    partyAddressId: uuid('party_address_id'),
+    partyRelationshipId: uuid('party_relationship_id'),
+    isPrimary: boolean('is_primary').notNull().default(false),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    check(
+      'party_functions_target_chk',
+      sql`("function" IN ('REGISTERED','BILLING','SHIPPING','ORDERING') AND party_address_id IS NOT NULL AND party_relationship_id IS NULL) OR ("function" IN ('ORDER','ACCOUNTS','LOGISTICS','ESCALATION') AND party_relationship_id IS NOT NULL AND party_address_id IS NULL)`,
+    ),
+    foreignKey({
+      columns: [table.partyId, table.partyAddressId],
+      foreignColumns: [partyAddresses.partyId, partyAddresses.id],
+      name: 'fk_party_functions_address',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.partyId, table.partyRelationshipId],
+      foreignColumns: [partyRelationships.parentPartyId, partyRelationships.id],
+      name: 'fk_party_functions_relationship',
+    }).onDelete('cascade'),
+    uniqueIndex('uq_party_functions_primary').on(table.partyId, table.function).where(sql`is_primary = true`),
+    unique('uq_party_functions_relationship_function').on(table.partyRelationshipId, table.function),
+    unique('uq_party_functions_address_function').on(table.partyAddressId, table.function),
+    index('idx_party_functions_party_function').on(table.partyId, table.function),
+    pgPolicy('org_isolation', {
+      for: 'all',
+      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
+    }),
+  ],
+);
+
+export type PartyFunction = typeof partyFunctions.$inferSelect;
+export type NewPartyFunction = typeof partyFunctions.$inferInsert;

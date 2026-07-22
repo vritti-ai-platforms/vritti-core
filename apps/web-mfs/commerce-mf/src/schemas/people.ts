@@ -2,15 +2,31 @@ import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 import { identifierTypeSchema } from './party-identifiers';
 
-export const createPersonSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(255, 'First name must be at most 255 characters'),
-  lastName: z.string().max(255, 'Last name must be at most 255 characters').optional(),
-  email: z.string().email('Enter a valid email').max(255).optional().or(z.literal('')),
-  phone: z.string().max(20).optional(),
-  identifierType: identifierTypeSchema.optional(),
-  identifierValue: z.string().max(100).optional(),
-  isActive: z.boolean(),
-});
+export const createPersonSchema = z
+  .object({
+    firstName: z.string().min(1, 'First name is required').max(255, 'First name must be at most 255 characters'),
+    lastName: z.string().max(255, 'Last name must be at most 255 characters').optional(),
+    email: z.string().email('Enter a valid email').max(255).optional().or(z.literal('')),
+    phone: z.string().max(20).optional(),
+    identifierType: identifierTypeSchema.optional(),
+    identifierValue: z.string().max(100).optional(),
+    isActive: z.boolean(),
+    line1: z.string().max(255).optional(),
+    line2: z.string().optional(),
+    city: z.string().optional(),
+    region: z.string().optional(),
+    postalCode: z.string().max(20).optional(),
+    countryCode: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.line1 && !data.countryCode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['countryCode'],
+        message: 'Country is required when an address is entered',
+      });
+    }
+  });
 
 export const updatePersonSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(255).optional(),
@@ -36,7 +52,6 @@ export interface PersonData {
   updatedAt: string;
   primaryAddress: {
     id: string;
-    type: string;
     line1: string;
     line2: string | null;
     city: string | null;
@@ -53,7 +68,6 @@ export interface PersonCompanyRow {
   companyId: string;
   companyName: string;
   jobTitle: string | null;
-  isPrimary: boolean;
   isActive: boolean;
 }
 

@@ -4,8 +4,18 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { AddCompanyPersonPayload, CompanyPeopleTableResponse, CompanyPersonRow } from '@/schemas/companies';
-import { addCompanyPerson, getCompanyPeople, removeCompanyPerson } from '@/services/organization/companies.service';
+import type {
+  AddCompanyPersonPayload,
+  CompanyPeopleTableResponse,
+  CompanyPersonRow,
+  UpdateCompanyPersonPayload,
+} from '@/schemas/companies';
+import {
+  addCompanyPerson,
+  getCompanyPeople,
+  removeCompanyPerson,
+  updateCompanyPerson,
+} from '@/services/organization/companies.service';
 import { COMPANY_KEY, COMPANY_PEOPLE_TABLE_KEY } from './keys';
 
 // Fetches a company's linked people; self-gates on the people view permission
@@ -30,6 +40,27 @@ export function useAddCompanyPerson(
   return useMutation<CompanyPersonRow, AxiosError, AddCompanyPersonPayload>({
     ...options,
     mutationFn: (data) => addCompanyPerson({ companyId, data }),
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: COMPANY_PEOPLE_TABLE_KEY(companyId) });
+      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+interface UpdateCompanyPersonVars {
+  companyPersonId: string;
+  data: UpdateCompanyPersonPayload;
+}
+
+export function useUpdateCompanyPerson(
+  companyId: string,
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpdateCompanyPersonVars>, 'mutationFn'>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation<SuccessResponse, AxiosError, UpdateCompanyPersonVars>({
+    ...options,
+    mutationFn: ({ companyPersonId, data }) => updateCompanyPerson({ companyId, companyPersonId, data }),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: COMPANY_PEOPLE_TABLE_KEY(companyId) });
       queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });

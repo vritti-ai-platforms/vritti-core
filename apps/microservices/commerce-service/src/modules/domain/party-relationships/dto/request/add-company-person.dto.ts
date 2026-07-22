@@ -1,5 +1,7 @@
+import { PartyFunctionAssignmentInput } from '@domain/party-functions/dto/request/party-function-assignment-input.dto';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
 
 export class AddCompanyPersonDto {
   @IsUUID()
@@ -14,23 +16,13 @@ export class AddCompanyPersonDto {
   @MaxLength(100)
   jobTitle?: string | null;
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  secondaryPhone?: string | null;
-
-  @Trim()
-  @IsOptional()
-  @IsEmail()
-  @MaxLength(255)
-  secondaryEmail?: string | null;
-
-  @IsOptional()
-  @IsBoolean()
-  isPrimary?: boolean;
-
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartyFunctionAssignmentInput)
+  functions?: PartyFunctionAssignmentInput[];
 }

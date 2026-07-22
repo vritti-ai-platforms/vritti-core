@@ -1,21 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, Length, MaxLength } from 'class-validator';
-
-export const PARTY_ADDRESS_TYPES = {
-  REGISTERED: 'REGISTERED',
-  BILLING: 'BILLING',
-  SHIPPING: 'SHIPPING',
-  OTHER: 'OTHER',
-} as const;
-
-export type PartyAddressTypeValue = (typeof PARTY_ADDRESS_TYPES)[keyof typeof PARTY_ADDRESS_TYPES];
+import { Type } from 'class-transformer';
+import { IsArray, IsNotEmpty, IsOptional, IsString, Length, MaxLength, ValidateNested } from 'class-validator';
+import { PartyFunctionAssignmentDto } from '@/modules/commerce-gateway/_shared/dto/party-function-assignment.dto';
 
 export class AddPartyAddressDto {
-  @ApiProperty({ description: 'Address type', enum: PARTY_ADDRESS_TYPES })
-  @IsEnum(PARTY_ADDRESS_TYPES)
-  type: PartyAddressTypeValue;
-
   @Trim({ nullify: false })
   @ApiProperty({ description: 'Address line 1', example: '221B Baker Street' })
   @IsString()
@@ -52,8 +41,13 @@ export class AddPartyAddressDto {
   @Length(2, 2)
   countryCode: string;
 
-  @ApiPropertyOptional({ description: 'Whether this is the primary address' })
+  @ApiPropertyOptional({
+    type: [PartyFunctionAssignmentDto],
+    description: 'Address functions assigned to this address',
+  })
   @IsOptional()
-  @IsBoolean()
-  isPrimary?: boolean;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartyFunctionAssignmentDto)
+  functions?: PartyFunctionAssignmentDto[];
 }

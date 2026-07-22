@@ -9,7 +9,7 @@ import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-it
 import { LocationsDomainModule } from '@domain/locations/locations.module';
 import { PartiesDomainModule } from '@domain/parties/parties.module';
 import { PartyBankAccountsDomainModule } from '@domain/party-bank-accounts/party-bank-accounts.module';
-import { PartyContactsDomainModule } from '@domain/party-contacts/party-contacts.module';
+import { PartyRelationshipsDomainModule } from '@domain/party-relationships/party-relationships.module';
 import { PosTerminalsDomainModule } from '@domain/pos-terminals/pos-terminals.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
@@ -37,7 +37,7 @@ import { SelectController } from './select.controller';
     CustomersDomainModule,
     LocationsDomainModule,
     PartyBankAccountsDomainModule,
-    PartyContactsDomainModule,
+    PartyRelationshipsDomainModule,
     InventoryItemLotsDomainModule,
     InventoryItemQuantsDomainModule,
     InventoryItemSerialsDomainModule,

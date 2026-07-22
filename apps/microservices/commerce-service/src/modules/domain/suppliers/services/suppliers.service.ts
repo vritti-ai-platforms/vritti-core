@@ -116,6 +116,7 @@ export class SuppliersDomainService {
     const entity = await this.repository.findDetailById(id);
     if (!entity) throw new NotFoundException('Supplier not found.');
     return SupplierDetailDto.fromDetail(entity, entity.partyName, {
+      partyType: entity.partyType,
       registrations: entity.registrations,
       licenses: entity.licenses,
       enrolledSiteCount: entity.enrolledSiteCount,

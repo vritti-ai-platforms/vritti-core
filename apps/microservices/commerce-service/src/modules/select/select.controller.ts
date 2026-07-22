@@ -10,7 +10,7 @@ import { InventoryItemsDomainService } from '@domain/inventory-items/services/in
 import { LocationsDomainService } from '@domain/locations/services/locations.service';
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { PartyBankAccountsDomainService } from '@domain/party-bank-accounts/services/party-bank-accounts.service';
-import { PartyContactsDomainService } from '@domain/party-contacts/services/party-contacts.service';
+import { PartyRelationshipsDomainService } from '@domain/party-relationships/services/party-relationships.service';
 import { PosTerminalsDomainService } from '@domain/pos-terminals/services/pos-terminals.service';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
@@ -68,7 +68,7 @@ export class SelectController {
     private readonly taxGroupsService: TaxGroupsDomainService,
     private readonly taxJurisdictionsService: TaxJurisdictionsDomainService,
     private readonly partyBankAccountsService: PartyBankAccountsDomainService,
-    private readonly partyContactsService: PartyContactsDomainService,
+    private readonly partyRelationshipsService: PartyRelationshipsDomainService,
   ) {}
 
   // Returns paginated category options for the select component
@@ -151,12 +151,13 @@ export class SelectController {
     return this.partyBankAccountsService.findForSelect(query, partyId);
   }
 
-  // Returns paginated contact options of a party for the select component
+  // Returns paginated contact-person (relationship) options of a company party for the select component,
+  // optionally filtered to holders of a function (e.g. ORDER for the order-contact picker)
   @MessagePattern({ cmd: 'select.partyContacts' })
   async partyContacts(@Payload() data: PartyContactSelectQueryDto): Promise<SelectQueryResult> {
-    const { partyId, purpose, ...query } = data;
+    const { partyId, function: functionCode, ...query } = data;
     this.logger.log(`select.partyContacts — partyId: ${partyId}`);
-    return this.partyContactsService.findForSelect(query, partyId, purpose);
+    return this.partyRelationshipsService.findForSelect(query, partyId, functionCode);
   }
 
   // Returns paginated customer options for the select component

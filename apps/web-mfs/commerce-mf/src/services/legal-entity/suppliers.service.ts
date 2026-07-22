@@ -1,7 +1,6 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
-  SupplierContactData,
   SupplierData,
   SupplierDetail,
   SupplierItemData,
@@ -71,29 +70,6 @@ export interface UpdateSupplierItemPayload {
   hasScheme?: boolean | null;
 }
 
-export interface CreateSupplierContactPayload {
-  name: string;
-  phone: string;
-  alternatePhone?: string;
-  email?: string;
-  alternateEmail?: string;
-  designation?: string;
-  notes?: string;
-  isPrimary?: boolean;
-}
-
-export interface UpdateSupplierContactPayload {
-  name?: string;
-  phone: string;
-  alternatePhone?: string | null;
-  email?: string | null;
-  alternateEmail?: string | null;
-  designation?: string | null;
-  notes?: string | null;
-  isPrimary?: boolean;
-  isActive?: boolean;
-}
-
 // Fetches suppliers for the data table
 export function getSuppliersTable(): Promise<SuppliersTableResponse> {
   return axios
@@ -122,13 +98,6 @@ export function getSupplierItemsTable(supplierId: string): Promise<SupplierItems
 export function getSupplierItemIds(supplierId: string): Promise<string[]> {
   return axios
     .get<string[]>(`commerce-api/le/suppliers/${supplierId}/items/ids`, { showSuccessToast: false })
-    .then((r) => r.data);
-}
-
-// Fetches contacts for a supplier
-export function getSupplierContacts(supplierId: string): Promise<SupplierContactData[]> {
-  return axios
-    .get<SupplierContactData[]>(`commerce-api/le/suppliers/${supplierId}/contacts`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
@@ -236,58 +205,6 @@ export function bulkSetSupplierItemPreferred({
     .then((r) => r.data);
 }
 
-// Adds a contact to a supplier
-export function addSupplierContact({
-  supplierId,
-  data,
-}: {
-  supplierId: string;
-  data: CreateSupplierContactPayload;
-}): Promise<SupplierContactData> {
-  return axios.post<SupplierContactData>(`commerce-api/le/suppliers/${supplierId}/contacts`, data).then((r) => r.data);
-}
-
-// Updates a supplier contact
-export function updateSupplierContact({
-  supplierId,
-  contactId,
-  data,
-}: {
-  supplierId: string;
-  contactId: string;
-  data: UpdateSupplierContactPayload;
-}): Promise<SupplierContactData> {
-  return axios
-    .patch<SupplierContactData>(`commerce-api/le/suppliers/${supplierId}/contacts/${contactId}`, data)
-    .then((r) => r.data);
-}
-
-// Deletes a supplier contact
-export function deleteSupplierContact({
-  supplierId,
-  contactId,
-}: {
-  supplierId: string;
-  contactId: string;
-}): Promise<SuccessResponse> {
-  return axios
-    .delete<SuccessResponse>(`commerce-api/le/suppliers/${supplierId}/contacts/${contactId}`)
-    .then((r) => r.data);
-}
-
-// Marks a supplier contact as primary
-export function markPrimarySupplierContact({
-  supplierId,
-  contactId,
-}: {
-  supplierId: string;
-  contactId: string;
-}): Promise<SupplierContactData> {
-  return axios
-    .post<SupplierContactData>(`commerce-api/le/suppliers/${supplierId}/contacts/${contactId}/mark-primary`)
-    .then((r) => r.data);
-}
-
 export interface ChangeSupplierCurrencyPayload {
   currencyCode: string;
   conversionRate?: number;
@@ -302,11 +219,13 @@ export interface AddSupplierSitePayload {
   siteId: string;
   partyTaxRegistrationId?: string | null;
   partyBankAccountId?: string | null;
+  orderRelationshipId?: string | null;
 }
 
 export interface UpdateSupplierSitePayload {
   partyTaxRegistrationId?: string | null;
   partyBankAccountId?: string | null;
+  orderRelationshipId?: string | null;
   isActive?: boolean;
 }
 

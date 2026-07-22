@@ -1,5 +1,6 @@
 import type { PartyRelationshipDto } from '@domain/party-relationships/dto/entity/party-relationship.dto';
 import { AddCompanyPersonDto } from '@domain/party-relationships/dto/request/add-company-person.dto';
+import { UpdateCompanyPersonDto } from '@domain/party-relationships/dto/request/update-company-person.dto';
 import { PartyRelationshipsDomainService } from '@domain/party-relationships/services/party-relationships.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -27,6 +28,14 @@ export class CompanyPeopleController {
     const { companyId, ...payload } = dto;
     this.logger.log(`companies.people.add — companyId: ${companyId}, childPartyId: ${payload.childPartyId}`);
     return this.service.addRelationship(companyId, payload);
+  }
+
+  // Updates a company-person relationship (job title, primary flag, contact functions)
+  @MessagePattern({ cmd: 'org.companies.people.update' })
+  async update(@Payload() dto: UpdateCompanyPersonDto): Promise<SuccessResponseDto> {
+    const { id, ...payload } = dto;
+    this.logger.log(`companies.people.update — id: ${id}`);
+    return this.service.updateRelationship(id, payload);
   }
 
   // Removes a company-person relationship
