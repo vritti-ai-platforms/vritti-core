@@ -1,3 +1,4 @@
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { Badge } from '@vritti/quantum-ui-native/Badge';
 import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { useLocale, useNavigationHeader, usePushNavigator } from '@vritti/quantum-ui-native/hooks';
@@ -44,6 +45,7 @@ export const WorkspaceSelectionScreen = () => {
   const { org, sites, legalEntities, siteGroups, assignments, selectWorkspace } = usePermissionContext();
   const { user } = useAuth();
   const { canPop, pop, push } = usePushNavigator<HostAppRoute>();
+  const navigation = useNavigation();
   const locale = useLocale();
   const now = useNow(30_000);
   const lastWorkspace = getSelectedWorkspace();
@@ -59,12 +61,13 @@ export const WorkspaceSelectionScreen = () => {
     ),
   });
 
-  // Apply the workspace, then slide back to the tabs: pop when pushed over HomeTabs (the switch flow), or
-  // navigate to HomeTabs when this is the initial route (fresh login — nothing to pop back to).
+  // Apply the workspace, then land on the tabs. Switch flow (picker pushed over HomeTabs from the tab-bar
+  // Workspace button): pop back, keeping the live HomeTabs instance. Post-login (picker is the stack ROOT):
+  // reset so HomeTabs is the SOLE route — a plain push would leave the picker beneath and back-poppable.
   const handleSelect = (workspace: ActiveWorkspace) => {
     selectWorkspace(workspace);
     if (canPop) pop();
-    else push('HomeTabs');
+    else navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'HomeTabs' }] }));
   };
 
   const siteById = useMemo(() => new Map(sites.map((s) => [s.id, s])), [sites]);
