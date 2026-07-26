@@ -1,6 +1,6 @@
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 
-export const purchaseOrderNumberSeq = coreSchema.sequence('purchase_order_number_seq');
-export const goodsReceiptNumberSeq = coreSchema.sequence('goods_receipt_number_seq');
-export const stockAdjustmentCodeSeq = coreSchema.sequence('stock_adjustment_code_seq');
-export const orderNumberSeq = coreSchema.sequence('order_number_seq');
+export const purchaseOrderNumberSeq = commerceSchema.sequence('purchase_order_number_seq');
+export const goodsReceiptNumberSeq = commerceSchema.sequence('goods_receipt_number_seq');
+export const stockAdjustmentCodeSeq = commerceSchema.sequence('stock_adjustment_code_seq');
+export const orderNumberSeq = commerceSchema.sequence('order_number_seq');

@@ -6,26 +6,26 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 import type {
   AddGoodsReceiptItemFromPurchaseOrderItemDto,
   AddGoodsReceiptItemFromSupplierItemDto,
-} from '../dto/request/add-goods-receipt-item.dto';
-import type { AddGoodsReceiptLineDto } from '../dto/request/add-goods-receipt-line.dto';
-import type { AddGoodsReceiptLineItemDto } from '../dto/request/add-goods-receipt-line-item.dto';
-import type { AddGoodsReceiptLotDto } from '../dto/request/add-goods-receipt-lot.dto';
-import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
-import type { UpdateGoodsReceiptItemDto } from '../dto/request/update-goods-receipt-item.dto';
-import type { UpdateGoodsReceiptLineDto } from '../dto/request/update-goods-receipt-line.dto';
-import type { UpdateGoodsReceiptLotDto } from '../dto/request/update-goods-receipt-lot.dto';
-import type { GoodsReceiptItemQuantsResponseDto } from '../dto/response/goods-receipt-item-quants-response.dto';
-import type { GoodsReceiptItemResponseDto } from '../dto/response/goods-receipt-item-response.dto';
-import type { GoodsReceiptItemTableResponseDto } from '../dto/response/goods-receipt-item-table-response.dto';
-import type { GoodsReceiptItemsCostResponseDto } from '../dto/response/goods-receipt-items-cost-response.dto';
-import type { GoodsReceiptLineItemResponseDto } from '../dto/response/goods-receipt-line-item-response.dto';
-import type { GoodsReceiptLineItemTableResponseDto } from '../dto/response/goods-receipt-line-item-table-response.dto';
-import type { GoodsReceiptLineResponseDto } from '../dto/response/goods-receipt-line-response.dto';
-import type { GoodsReceiptLineTableResponseDto } from '../dto/response/goods-receipt-line-table-response.dto';
-import type { GoodsReceiptLotResponseDto } from '../dto/response/goods-receipt-lot-response.dto';
-import type { GoodsReceiptResponseDto } from '../dto/response/goods-receipt-response.dto';
-import type { GoodsReceiptTableResponseDto } from '../dto/response/goods-receipt-table-response.dto';
-import type { GoodsReceiptTreeNodeResponseDto } from '../dto/response/goods-receipt-tree-response.dto';
+} from '@commerce/goods-receipts/dto/request/add-goods-receipt-item.dto';
+import type { AddGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line.dto';
+import type { AddGoodsReceiptLineItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
+import type { AddGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-lot.dto';
+import type { CreateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt.dto';
+import type { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
+import type { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
+import type { UpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-lot.dto';
+import type { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
+import type { GoodsReceiptItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-response.dto';
+import type { GoodsReceiptItemTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-table-response.dto';
+import type { GoodsReceiptItemsCostResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-items-cost-response.dto';
+import type { GoodsReceiptLineItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-line-item-response.dto';
+import type { GoodsReceiptLineItemTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-line-item-table-response.dto';
+import type { GoodsReceiptLineResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-line-response.dto';
+import type { GoodsReceiptLineTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-line-table-response.dto';
+import type { GoodsReceiptLotResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-lot-response.dto';
+import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-response.dto';
+import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
+import type { GoodsReceiptTreeNodeResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-tree-response.dto';
 
 @Injectable()
 export class GoodsReceiptsGatewayService {

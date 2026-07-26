@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateTaxClassDto } from '../dto/request/create-tax-class.dto';
-import type { UpdateTaxClassDto } from '../dto/request/update-tax-class.dto';
-import type { TaxClassResponseDto } from '../dto/response/tax-class-response.dto';
-import type { TaxClassTableResponseDto } from '../dto/response/tax-class-table-response.dto';
+import type { CreateTaxClassDto } from '@commerce/tax-classes/dto/request/create-tax-class.dto';
+import type { UpdateTaxClassDto } from '@commerce/tax-classes/dto/request/update-tax-class.dto';
+import type { TaxClassResponseDto } from '@commerce/tax-classes/dto/response/tax-class-response.dto';
+import type { TaxClassTableResponseDto } from '@commerce/tax-classes/dto/response/tax-class-table-response.dto';
 
 @Injectable()
 export class TaxClassesGatewayService {

@@ -1,5 +1,4 @@
 import { CreateRoleInternalDto } from '@domain/organization/dto/request/create-role-internal.dto';
-import { ProvisionRolesInternalDto } from '@domain/organization/dto/request/provision-roles-internal.dto';
 import { UpdateRoleInternalDto } from '@domain/organization/dto/request/update-role-internal.dto';
 import { RoleDomainService, type RolesByScope } from '@domain/organization/services/role.service';
 import {
@@ -28,7 +27,7 @@ import {
   ApiCreateRole,
   ApiDeleteRole,
   ApiListRoles,
-  ApiProvisionRoles,
+  ApiResetRole,
   ApiRolesForSite,
   ApiRolesForTarget,
   ApiSelectRoles,
@@ -46,15 +45,6 @@ export class RolesController {
   private readonly logger = new Logger(RolesController.name);
 
   constructor(private readonly roleService: RoleDomainService) {}
-
-  // Bulk provisions roles and their feature mappings for an organization
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiProvisionRoles()
-  async provision(@Body() dto: ProvisionRolesInternalDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /api/organizations/internal/roles — orgId: ${dto.orgId}`);
-    return this.roleService.provision(dto.orgId, dto.roles);
-  }
 
   // Lists an organization's roles grouped by scope (SITE by site type)
   @Get()
@@ -110,6 +100,15 @@ export class RolesController {
   async update(@Param('id') id: string, @Body() dto: UpdateRoleInternalDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /api/organizations/internal/roles/${id}`);
     return this.roleService.update(id, dto);
+  }
+
+  // Clears a role's deltas so it tracks its base template again
+  @Post(':id/reset')
+  @HttpCode(HttpStatus.OK)
+  @ApiResetRole()
+  async resetRole(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /api/organizations/internal/roles/${id}/reset`);
+    return this.roleService.resetToTemplate(id);
   }
 
   // Deletes a role and its associated data

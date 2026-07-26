@@ -1,6 +1,6 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, index, pgPolicy, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { costCategories } from './cost-categories';
 import { costDistributionMethodEnum, costSourceTypeEnum } from './enums';
 
@@ -8,7 +8,7 @@ import { costDistributionMethodEnum, costSourceTypeEnum } from './enums';
 // e.g. the supplier price on a goods receipt, or a freight/duty invoice. `total_amount` is the amount
 // to allocate; `unallocated_amount` tracks what is not yet pinned to quants. The per-quant slices live
 // in inventory_item_quant_costs and must sum to (total_amount − unallocated_amount).
-export const inventoryItemCosts = coreSchema.table(
+export const inventoryItemCosts = commerceSchema.table(
   'inventory_item_costs',
   {
     id: uuid('id').primaryKey().defaultRandom(),

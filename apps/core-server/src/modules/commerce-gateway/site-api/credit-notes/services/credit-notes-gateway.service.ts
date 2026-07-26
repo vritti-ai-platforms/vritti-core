@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { ApplyCreditNoteDto } from '../dto/request/apply-credit-note.dto';
-import type { CreateCreditNoteDto } from '../dto/request/create-credit-note.dto';
-import type { CreditNoteDetailResponseDto, CreditNoteResponseDto } from '../dto/response/credit-note-response.dto';
+import type { ApplyCreditNoteDto } from '@commerce/credit-notes/dto/request/apply-credit-note.dto';
+import type { CreateCreditNoteDto } from '@commerce/credit-notes/dto/request/create-credit-note.dto';
+import type { CreditNoteDetailResponseDto, CreditNoteResponseDto } from '@commerce/credit-notes/dto/response/credit-note-response.dto';
 
 @Injectable()
 export class CreditNotesGatewayService {

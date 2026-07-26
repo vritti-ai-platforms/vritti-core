@@ -19,41 +19,41 @@ import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
 import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { AddCompanyPersonDto } from './dto/request/add-company-person.dto';
-import { AddPartyAddressDto } from './dto/request/add-party-address.dto';
-import { AddPartyIdentifierDto } from './dto/request/add-party-identifier.dto';
-import { CreateCompanyDto } from './dto/request/create-company.dto';
-import { CreateCompanyRegistrationDto } from './dto/request/create-company-registration.dto';
-import { CreatePartyBankAccountDto } from './dto/request/create-party-bank-account.dto';
-import { CreatePartyCommunicationDto } from './dto/request/create-party-communication.dto';
-import { CreatePartyLicenseDto } from './dto/request/create-party-license.dto';
-import { CreatePartySocialProfileDto } from './dto/request/create-party-social-profile.dto';
-import { UpdateCompanyDto } from './dto/request/update-company.dto';
-import { UpdateCompanyPersonDto } from './dto/request/update-company-person.dto';
-import { UpdateCompanyRegistrationDto } from './dto/request/update-company-registration.dto';
-import { UpdatePartyAddressDto } from './dto/request/update-party-address.dto';
-import { UpdatePartyBankAccountDto } from './dto/request/update-party-bank-account.dto';
-import { UpdatePartyCommunicationDto } from './dto/request/update-party-communication.dto';
-import { UpdatePartyLicenseDto } from './dto/request/update-party-license.dto';
-import { UpdatePartySocialProfileDto } from './dto/request/update-party-social-profile.dto';
-import type { CompanyPersonResponseDto } from './dto/response/company-person-response.dto';
-import type { CompanyPersonTableResponseDto } from './dto/response/company-person-table-response.dto';
-import type { CompanyRegistrationResponseDto } from './dto/response/company-registration-response.dto';
-import type { CompanyRegistrationTableResponseDto } from './dto/response/company-registration-table-response.dto';
-import type { CompanyResponseDto } from './dto/response/company-response.dto';
-import type { CompanyTableResponseDto } from './dto/response/company-table-response.dto';
-import type { PartyAddressResponseDto } from './dto/response/party-address-response.dto';
-import type { PartyAddressTableResponseDto } from './dto/response/party-address-table-response.dto';
-import type { PartyBankAccountResponseDto } from './dto/response/party-bank-account-response.dto';
-import type { PartyBankAccountTableResponseDto } from './dto/response/party-bank-account-table-response.dto';
-import type { PartyCommunicationResponseDto } from './dto/response/party-communication-response.dto';
-import type { PartyCommunicationTableResponseDto } from './dto/response/party-communication-table-response.dto';
-import type { PartyIdentifierResponseDto } from './dto/response/party-identifier-response.dto';
-import type { PartyIdentifierTableResponseDto } from './dto/response/party-identifier-table-response.dto';
-import type { PartyLicenseResponseDto } from './dto/response/party-license-response.dto';
-import type { PartyLicenseTableResponseDto } from './dto/response/party-license-table-response.dto';
-import type { PartySocialProfileResponseDto } from './dto/response/party-social-profile-response.dto';
-import type { PartySocialProfileTableResponseDto } from './dto/response/party-social-profile-table-response.dto';
+import { AddCompanyPersonDto } from '@commerce/party-relationships/dto/request/add-company-person.dto';
+import { AddCompanyAddressDto } from '@commerce/party-addresses/dto/request/add-company-address.dto';
+import { AddCompanyIdentifierDto } from '@commerce/party-identifiers/dto/request/add-company-identifier.dto';
+import { CreateCompanyDto } from '@commerce/parties/dto/request/create-company.dto';
+import { CreateCompanyRegistrationDto } from '@commerce/parties/dto/request/create-company-registration.dto';
+import { CreateCompanyBankAccountDto } from '@commerce/party-bank-accounts/dto/request/create-company-bank-account.dto';
+import { CreateCompanyCommunicationDto } from '@commerce/party-communications/dto/request/create-company-communication.dto';
+import { CreateCompanyLicenseDto } from '@commerce/party-licenses/dto/request/create-company-license.dto';
+import { CreateCompanySocialProfileDto } from '@commerce/party-social-profiles/dto/request/create-company-social-profile.dto';
+import { UpdateCompanyDto } from '@commerce/parties/dto/request/update-company.dto';
+import { UpdateCompanyPersonDto } from '@commerce/party-relationships/dto/request/update-company-person.dto';
+import { UpdateCompanyRegistrationDto } from '@commerce/parties/dto/request/update-company-registration.dto';
+import { UpdateCompanyAddressDto } from '@commerce/party-addresses/dto/request/update-company-address.dto';
+import { UpdateCompanyBankAccountDto } from '@commerce/party-bank-accounts/dto/request/update-company-bank-account.dto';
+import { UpdateCompanyCommunicationDto } from '@commerce/party-communications/dto/request/update-company-communication.dto';
+import { UpdateCompanyLicenseDto } from '@commerce/party-licenses/dto/request/update-company-license.dto';
+import { UpdateCompanySocialProfileDto } from '@commerce/party-social-profiles/dto/request/update-company-social-profile.dto';
+import type { CompanyPersonResponseDto } from '@commerce/party-relationships/dto/response/company-person-response.dto';
+import type { CompanyPersonTableResponseDto } from '@commerce/party-relationships/dto/response/company-person-table-response.dto';
+import type { CompanyRegistrationResponseDto } from '@commerce/parties/dto/response/company-registration-response.dto';
+import type { CompanyRegistrationTableResponseDto } from '@commerce/parties/dto/response/company-registration-table-response.dto';
+import type { CompanyResponseDto } from '@commerce/parties/dto/response/company-response.dto';
+import type { CompanyTableResponseDto } from '@commerce/parties/dto/response/company-table-response.dto';
+import type { PartyAddressResponseDto } from '@commerce/party-addresses/dto/response/party-address-response.dto';
+import type { PartyAddressTableResponseDto } from '@commerce/party-addresses/dto/response/party-address-table-response.dto';
+import type { PartyBankAccountResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-response.dto';
+import type { PartyBankAccountTableResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-table-response.dto';
+import type { PartyCommunicationResponseDto } from '@commerce/party-communications/dto/response/party-communication-response.dto';
+import type { PartyCommunicationTableResponseDto } from '@commerce/party-communications/dto/response/party-communication-table-response.dto';
+import type { PartyIdentifierResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-response.dto';
+import type { PartyIdentifierTableResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-table-response.dto';
+import type { PartyLicenseResponseDto } from '@commerce/party-licenses/dto/response/party-license-response.dto';
+import type { PartyLicenseTableResponseDto } from '@commerce/party-licenses/dto/response/party-license-table-response.dto';
+import type { PartySocialProfileResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-response.dto';
+import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
 import { CompaniesGatewayService } from './services/companies-gateway.service';
 
 @ApiTags('Commerce - Companies')
@@ -200,7 +200,7 @@ export class CompaniesGatewayController {
   @RequirePermission(ORG_COMPANIES.identifiers.add)
   addIdentifier(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: AddPartyIdentifierDto,
+    @Body() dto: AddCompanyIdentifierDto,
   ): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
     this.logger.log(`POST /commerce-api/companies/${id}/identifiers`);
     return this.service.addIdentifier(id, dto);
@@ -234,7 +234,7 @@ export class CompaniesGatewayController {
   @RequirePermission(ORG_COMPANIES.addresses.add)
   addAddress(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: AddPartyAddressDto,
+    @Body() dto: AddCompanyAddressDto,
   ): Promise<CreateResponseDto<PartyAddressResponseDto>> {
     this.logger.log(`POST /commerce-api/companies/${id}/addresses`);
     return this.service.addAddress(id, dto);
@@ -246,7 +246,7 @@ export class CompaniesGatewayController {
   updateAddress(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
-    @Body() dto: UpdatePartyAddressDto,
+    @Body() dto: UpdateCompanyAddressDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/companies/${id}/addresses/${addressId}`);
     return this.service.updateAddress(addressId, dto);
@@ -280,7 +280,7 @@ export class CompaniesGatewayController {
   @RequirePermission(ORG_COMPANIES.licenses.add)
   createLicense(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreatePartyLicenseDto,
+    @Body() dto: CreateCompanyLicenseDto,
   ): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
     this.logger.log(`POST /commerce-api/companies/${id}/licenses`);
     return this.service.createLicense(id, dto);
@@ -292,7 +292,7 @@ export class CompaniesGatewayController {
   updateLicense(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
-    @Body() dto: UpdatePartyLicenseDto,
+    @Body() dto: UpdateCompanyLicenseDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/companies/${id}/licenses/${licenseId}`);
     return this.service.updateLicense(licenseId, dto);
@@ -326,7 +326,7 @@ export class CompaniesGatewayController {
   @RequirePermission(ORG_COMPANIES.bankAccounts.add)
   createBankAccount(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreatePartyBankAccountDto,
+    @Body() dto: CreateCompanyBankAccountDto,
   ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
     this.logger.log(`POST /commerce-api/companies/${id}/bank-accounts`);
     return this.service.createBankAccount(id, dto);
@@ -338,7 +338,7 @@ export class CompaniesGatewayController {
   updateBankAccount(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('accountId', new ParseUUIDPipe()) accountId: string,
-    @Body() dto: UpdatePartyBankAccountDto,
+    @Body() dto: UpdateCompanyBankAccountDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/companies/${id}/bank-accounts/${accountId}`);
     return this.service.updateBankAccount(accountId, dto);
@@ -372,7 +372,7 @@ export class CompaniesGatewayController {
   @RequirePermission(ORG_COMPANIES.communications.add)
   createCommunication(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreatePartyCommunicationDto,
+    @Body() dto: CreateCompanyCommunicationDto,
   ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
     this.logger.log(`POST /commerce-api/companies/${id}/communications`);
     return this.service.createCommunication(id, dto);
@@ -384,7 +384,7 @@ export class CompaniesGatewayController {
   updateCommunication(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
-    @Body() dto: UpdatePartyCommunicationDto,
+    @Body() dto: UpdateCompanyCommunicationDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/companies/${id}/communications/${communicationId}`);
     return this.service.updateCommunication(communicationId, dto);
@@ -418,7 +418,7 @@ export class CompaniesGatewayController {
   @RequirePermission(ORG_COMPANIES.socialProfiles.add)
   createSocialProfile(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreatePartySocialProfileDto,
+    @Body() dto: CreateCompanySocialProfileDto,
   ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
     this.logger.log(`POST /commerce-api/companies/${id}/social-profiles`);
     return this.service.createSocialProfile(id, dto);
@@ -430,7 +430,7 @@ export class CompaniesGatewayController {
   updateSocialProfile(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('profileId', new ParseUUIDPipe()) profileId: string,
-    @Body() dto: UpdatePartySocialProfileDto,
+    @Body() dto: UpdateCompanySocialProfileDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/companies/${id}/social-profiles/${profileId}`);
     return this.service.updateSocialProfile(profileId, dto);

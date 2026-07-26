@@ -1,10 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, foreignKey, index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { partyBankAccounts, partyRelationships, partyTaxRegistrations } from './parties';
 import { suppliers } from './suppliers';
 
-export const supplierSites = coreSchema.table(
+export const supplierSites = commerceSchema.table(
   'supplier_sites',
   {
     id: uuid('id').primaryKey().defaultRandom(),

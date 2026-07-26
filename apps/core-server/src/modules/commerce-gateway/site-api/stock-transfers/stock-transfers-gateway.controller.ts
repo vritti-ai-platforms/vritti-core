@@ -2,10 +2,10 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestj
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { CreateStockTransferDto } from './dto/request/create-stock-transfer.dto';
-import { UpdateStockTransferStatusDto } from './dto/request/update-stock-transfer-status.dto';
-import type { StockTransferResponseDto } from './dto/response/stock-transfer-response.dto';
-import type { StockTransferTableResponseDto } from './dto/response/stock-transfer-table-response.dto';
+import { CreateStockTransferDto } from '@commerce/stock-transfers/dto/request/create-stock-transfer.dto';
+import { UpdateStockTransferStatusDto } from '@commerce/stock-transfers/dto/request/update-stock-transfer-status.dto';
+import type { StockTransferResponseDto } from '@commerce/stock-transfers/dto/response/stock-transfer-response.dto';
+import type { StockTransferTableResponseDto } from '@commerce/stock-transfers/dto/response/stock-transfer-table-response.dto';
 import { StockTransfersGatewayService } from './services/stock-transfers-gateway.service';
 
 @ApiTags('Commerce - Stock Transfers')

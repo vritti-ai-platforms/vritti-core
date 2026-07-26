@@ -1,3 +1,0 @@
-ALTER TABLE "vritti_core"."inventory_items" ALTER COLUMN "purchase_tax_group_id" SET NOT NULL;--> statement-breakpoint
-ALTER TABLE "vritti_core"."offerings" ALTER COLUMN "sales_tax_group_id" SET NOT NULL;--> statement-breakpoint
-ALTER TABLE "vritti_core"."offerings" ADD CONSTRAINT "offerings_sales_tax_group_id_tax_groups_id_fkey" FOREIGN KEY ("sales_tax_group_id") REFERENCES "vritti_core"."tax_groups"("id");

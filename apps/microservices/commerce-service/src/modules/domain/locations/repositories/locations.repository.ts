@@ -237,7 +237,7 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
   async updatePath(id: string, path: string): Promise<void> {
     await this.db
       .update(locations)
-      .set({ path: sql`cast(${path} as vritti_core.ltree)` })
+      .set({ path: sql`cast(${path} as commerce.ltree)` })
       .where(eq(locations.id, id));
   }
 
@@ -246,11 +246,11 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
     await this.db.execute(sql`
       UPDATE ${locations}
       SET path = CASE
-        WHEN path = cast(${oldPath} as vritti_core.ltree) THEN cast(${newPath} as vritti_core.ltree)
-        ELSE cast(${newPath} as vritti_core.ltree) ||
-          vritti_core.subpath(path, vritti_core.nlevel(cast(${oldPath} as vritti_core.ltree)))
+        WHEN path = cast(${oldPath} as commerce.ltree) THEN cast(${newPath} as commerce.ltree)
+        ELSE cast(${newPath} as commerce.ltree) ||
+          commerce.subpath(path, commerce.nlevel(cast(${oldPath} as commerce.ltree)))
       END
-      WHERE path <@ cast(${oldPath} as vritti_core.ltree)
+      WHERE path <@ cast(${oldPath} as commerce.ltree)
     `);
   }
 
@@ -258,7 +258,7 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
   async updateLocationRoleForSubtree(rootPath: string, locationRole: LocationRole): Promise<void> {
     await this.db.execute(sql`
       UPDATE ${locations}
-      SET location_role = cast(${locationRole} as vritti_core.storage_location_role)
+      SET location_role = cast(${locationRole} as commerce.storage_location_role)
       WHERE path <@ cast(${rootPath} as ltree)
     `);
   }

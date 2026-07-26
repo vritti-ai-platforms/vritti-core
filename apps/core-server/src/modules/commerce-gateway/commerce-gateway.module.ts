@@ -49,9 +49,9 @@ import { InventoryItemQuantsFeedResolver } from './site-api/inventory-items/inve
 import { InventoryItemStockLevelsResolver } from './site-api/inventory-items/inventory-item-stock-levels-gateway.resolver';
 import { InventoryItemSuppliersResolver } from './site-api/inventory-items/inventory-item-suppliers-gateway.resolver';
 import { InventoryItemUomConversionsResolver } from './site-api/inventory-items/inventory-item-uom-conversions-gateway.resolver';
-import { InventoryItemsGatewayController } from './site-api/inventory-items/inventory-items-gateway.controller';
+import { SiteInventoryItemsGatewayController } from './site-api/inventory-items/inventory-items-gateway.controller';
 import { InventoryItemsResolver } from './site-api/inventory-items/inventory-items-gateway.resolver';
-import { InventoryItemsGatewayService } from './site-api/inventory-items/services/inventory-items-gateway.service';
+import { SiteInventoryItemsGatewayService } from './site-api/inventory-items/services/inventory-items-gateway.service';
 import { InvoicesGatewayController } from './site-api/invoices/invoices-gateway.controller';
 import { InvoicesGatewayService } from './site-api/invoices/services/invoices-gateway.service';
 import { LocationsGatewayController } from './site-api/locations/locations-gateway.controller';
@@ -82,7 +82,7 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     CreditNotesGatewayController,
     CustomersGatewayController,
     GoodsReceiptsGatewayController,
-    InventoryItemsGatewayController,
+    SiteInventoryItemsGatewayController,
     LocationsGatewayController,
     InvoicesGatewayController,
     CatalogsGatewayController,
@@ -114,7 +114,7 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     CreditNotesGatewayService,
     CustomersGatewayService,
     GoodsReceiptsGatewayService,
-    InventoryItemsGatewayService,
+    SiteInventoryItemsGatewayService,
     LocationsGatewayService,
     InvoicesGatewayService,
     CatalogsGatewayService,

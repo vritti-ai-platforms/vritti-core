@@ -9,11 +9,11 @@ import {
   uniqueIndex,
   uuid,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
 import { locations } from './locations';
 
-export const inventoryItemLocations = coreSchema.table(
+export const inventoryItemLocations = commerceSchema.table(
   'inventory_item_locations',
   {
     id: uuid('id').primaryKey().defaultRandom(),

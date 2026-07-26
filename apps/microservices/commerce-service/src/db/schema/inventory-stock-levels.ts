@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { inventoryItemLocations } from './inventory-item-locations';
 import { inventoryItemQuants } from './inventory-item-quants';
 
@@ -8,7 +8,7 @@ import { inventoryItemQuants } from './inventory-item-quants';
 //   - stock-only rows (quants exist, no inventory_item_locations row) → reorderLevel NULL
 //   - config-only rows (registry row exists, no stock yet)            → stocked/reserved/available 0
 //   - both                                                            → fully populated
-export const inventoryStockLevels = coreSchema.view('inventory_stock_levels').as((qb) => {
+export const inventoryStockLevels = commerceSchema.view('inventory_stock_levels').as((qb) => {
   const quantAggs = qb
     .select({
       inventoryItemId: inventoryItemQuants.inventoryItemId,

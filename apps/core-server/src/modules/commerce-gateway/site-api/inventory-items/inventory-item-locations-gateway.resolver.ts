@@ -8,7 +8,7 @@ import {
   UpdateInventoryItemLocationInput,
 } from './graphql/inventory-item-location-mutation.input';
 import { MutationResult } from './graphql/mutation-result.type';
-import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
+import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 // Per-inventory-item location configs (the mobile Locations tab) — a Relay offset feed (an item can be stocked
 // in many locations) plus create/edit/delete. Thin GraphQL forwards to the existing gateway methods.
@@ -16,7 +16,7 @@ import { InventoryItemsGatewayService } from './services/inventory-items-gateway
 export class InventoryItemLocationsResolver {
   private readonly logger = new Logger(InventoryItemLocationsResolver.name);
 
-  constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
+  constructor(private readonly inventoryItemsGatewayService: SiteInventoryItemsGatewayService) {}
 
   @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => InventoryItemLocationConnection, { name: 'inventoryItemLocations' })

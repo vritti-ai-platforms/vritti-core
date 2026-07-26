@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."party_relationships" DROP COLUMN "is_primary";

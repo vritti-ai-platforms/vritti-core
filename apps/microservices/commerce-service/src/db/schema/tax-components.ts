@@ -1,9 +1,9 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, codeCheck, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { taxAuthorityLevelEnum } from './enums';
 
-export const taxComponents = coreSchema.table(
+export const taxComponents = commerceSchema.table(
   'tax_components',
   {
     id: uuid('id').primaryKey().defaultRandom(),

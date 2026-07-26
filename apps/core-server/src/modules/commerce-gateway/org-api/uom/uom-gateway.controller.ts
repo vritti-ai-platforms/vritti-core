@@ -5,15 +5,15 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { ORG_UOM } from '@vritti/commerce-permissions/uom';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { CreateUomDto } from './dto/request/create-uom.dto';
-import { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
-import { UomDimensionsQueryDto } from './dto/request/uom-dimensions-query.dto';
-import { UpdateUomDto } from './dto/request/update-uom.dto';
-import { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
-import type { UomDimensionCountResponseDto } from './dto/response/uom-dimension-count-response.dto';
-import type { UomDimensionResponseDto } from './dto/response/uom-dimension-response.dto';
-import type { UomResponseDto } from './dto/response/uom-response.dto';
-import type { UomTableResponseDto } from './dto/response/uom-table-response.dto';
+import { CreateUomDto } from '@commerce/uom/dto/request/create-uom.dto';
+import { CreateUomDimensionDto } from '@commerce/uom/dto/request/create-uom-dimension.dto';
+import { UomDimensionsQueryDto } from '@commerce/uom/dto/request/uom-dimensions-query.dto';
+import { UpdateUomDto } from '@commerce/uom/dto/request/update-uom.dto';
+import { UpdateUomDimensionDto } from '@commerce/uom/dto/request/update-uom-dimension.dto';
+import type { UomDimensionCountResponseDto } from '@commerce/uom/dto/response/uom-dimension-count-response.dto';
+import type { UomDimensionResponseDto } from '@commerce/uom/dto/response/uom-dimension-response.dto';
+import type { UomResponseDto } from '@commerce/uom/dto/response/uom-response.dto';
+import type { UomTableResponseDto } from '@commerce/uom/dto/response/uom-table-response.dto';
 import { UomGatewayService } from './services/uom-gateway.service';
 
 @ApiTags('Commerce - Units of Measure')

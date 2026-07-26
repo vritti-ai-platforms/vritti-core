@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateCustomerDto } from '../dto/request/create-customer.dto';
-import type { UpdateCustomerDto } from '../dto/request/update-customer.dto';
-import type { CustomerResponseDto } from '../dto/response/customer-response.dto';
-import type { CustomerTableResponseDto } from '../dto/response/customer-table-response.dto';
+import type { CreateCustomerDto } from '@commerce/customers/dto/request/create-customer.dto';
+import type { UpdateCustomerDto } from '@commerce/customers/dto/request/update-customer.dto';
+import type { CustomerResponseDto } from '@commerce/customers/dto/response/customer-response.dto';
+import type { CustomerTableResponseDto } from '@commerce/customers/dto/response/customer-table-response.dto';
 
 @Injectable()
 export class CustomersGatewayService {

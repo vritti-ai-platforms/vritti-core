@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."inventory_items" ALTER COLUMN "tax_class_id" SET NOT NULL;

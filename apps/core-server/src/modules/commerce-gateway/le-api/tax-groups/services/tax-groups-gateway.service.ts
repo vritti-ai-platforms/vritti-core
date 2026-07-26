@@ -7,10 +7,10 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
-import type { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
-import type { TaxGroupResponseDto } from '../dto/response/tax-group-response.dto';
-import type { TaxGroupTableResponseDto } from '../dto/response/tax-group-table-response.dto';
+import type { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
+import type { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
+import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
+import type { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 
 @Injectable()
 export class TaxGroupsGatewayService {

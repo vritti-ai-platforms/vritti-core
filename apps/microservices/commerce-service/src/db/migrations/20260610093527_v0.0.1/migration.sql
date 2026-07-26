@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."locations" DROP COLUMN "address";

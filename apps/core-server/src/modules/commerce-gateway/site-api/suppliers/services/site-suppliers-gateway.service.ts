@@ -3,17 +3,17 @@ import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { AddSiteSupplierItemPriceDto } from '../dto/request/add-site-supplier-item-price.dto';
-import type { EnrollSiteSupplierDto } from '../dto/request/enroll-site-supplier.dto';
-import type { UpdateSiteSupplierEnrollmentDto } from '../dto/request/update-site-supplier-enrollment.dto';
-import type { UpdateSiteSupplierItemPriceDto } from '../dto/request/update-site-supplier-item-price.dto';
-import type { SiteSupplierEnrollmentResponseDto } from '../dto/response/site-supplier-enrollment-response.dto';
-import type { SiteSupplierItemPriceResponseDto } from '../dto/response/site-supplier-item-price-response.dto';
-import type { SiteSupplierItemPriceTableResponseDto } from '../dto/response/site-supplier-item-price-table-response.dto';
-import type { SiteSupplierItemResponseDto } from '../dto/response/site-supplier-item-response.dto';
-import type { SiteSupplierItemTableResponseDto } from '../dto/response/site-supplier-item-table-response.dto';
-import type { SiteSupplierResponseDto } from '../dto/response/site-supplier-response.dto';
-import type { SiteSupplierTableResponseDto } from '../dto/response/site-supplier-table-response.dto';
+import type { AddSiteSupplierItemPriceDto } from '@commerce/supplier-sites/dto/request/add-site-supplier-item-price.dto';
+import type { EnrollSiteSupplierDto } from '@commerce/supplier-sites/dto/request/enroll-site-supplier.dto';
+import type { UpdateSiteSupplierEnrollmentDto } from '@commerce/supplier-sites/dto/request/update-site-supplier-enrollment.dto';
+import type { UpdateSiteSupplierItemPriceDto } from '@commerce/supplier-sites/dto/request/update-site-supplier-item-price.dto';
+import type { SiteSupplierEnrollmentResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-enrollment-response.dto';
+import type { SiteSupplierItemPriceResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-item-price-response.dto';
+import type { SiteSupplierItemPriceTableResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-item-price-table-response.dto';
+import type { SiteSupplierItemResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-item-response.dto';
+import type { SiteSupplierItemTableResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-item-table-response.dto';
+import type { SiteSupplierResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-response.dto';
+import type { SiteSupplierTableResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-table-response.dto';
 
 @Injectable()
 export class SiteSuppliersGatewayService {

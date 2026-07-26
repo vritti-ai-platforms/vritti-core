@@ -1,10 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { decimal, index, pgPolicy, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { stockTransferStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 
-export const stockTransfers = coreSchema.table(
+export const stockTransfers = commerceSchema.table(
   'stock_transfers',
   {
     id: uuid('id').primaryKey().defaultRandom(),

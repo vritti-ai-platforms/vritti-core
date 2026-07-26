@@ -11,16 +11,16 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { LocationRoleValues, locationRoleEnum } from './enums';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
-    return 'vritti_core.ltree';
+    return 'commerce.ltree';
   },
 });
 
-export const locations = coreSchema.table(
+export const locations = commerceSchema.table(
   'locations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -31,7 +31,7 @@ export const locations = coreSchema.table(
     parentId: uuid('parent_id'),
     path: ltreeType('path').notNull(),
     // Human-readable breadcrumb of the ltree path: "main.sales.rack_a" → "Main › Sales › Rack A"
-    pathBreadcrumb: text('path_breadcrumb').generatedAlwaysAs(sql`vritti_core.format_ltree_path(path)`),
+    pathBreadcrumb: text('path_breadcrumb').generatedAlwaysAs(sql`commerce.format_ltree_path(path)`),
     sortOrder: integer('sort_order').notNull().default(1),
     area: varchar('area', { length: 100 }),
     managerId: uuid('manager_id'),

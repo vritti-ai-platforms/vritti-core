@@ -1,10 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, index, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { paymentMethodEnum, paymentStatusEnum } from './enums';
 import { invoices } from './invoices';
 
-export const payments = coreSchema.table(
+export const payments = commerceSchema.table(
   'payments',
   {
     id: uuid('id').primaryKey().defaultRandom(),

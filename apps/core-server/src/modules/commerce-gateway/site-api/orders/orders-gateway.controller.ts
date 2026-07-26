@@ -2,10 +2,10 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestj
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { CreateOrderDto } from './dto/request/create-order.dto';
-import { UpdateOrderStatusDto } from './dto/request/update-order-status.dto';
-import type { OrderDetailResponseDto, OrderResponseDto } from './dto/response/order-response.dto';
-import type { OrderTableResponseDto } from './dto/response/order-table-response.dto';
+import { CreateOrderDto } from '@commerce/orders/dto/request/create-order.dto';
+import { UpdateOrderStatusDto } from '@commerce/orders/dto/request/update-order-status.dto';
+import type { OrderDetailResponseDto, OrderResponseDto } from '@commerce/orders/dto/response/order-response.dto';
+import type { OrderTableResponseDto } from '@commerce/orders/dto/response/order-table-response.dto';
 import { OrdersGatewayService } from './services/orders-gateway.service';
 
 @ApiTags('Commerce - Orders')

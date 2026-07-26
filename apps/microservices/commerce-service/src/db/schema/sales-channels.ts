@@ -1,9 +1,9 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { salesChannelKindEnum } from './enums';
 
-export const salesChannels = coreSchema.table(
+export const salesChannels = commerceSchema.table(
   'sales_channels',
   {
     id: uuid('id').primaryKey().defaultRandom(),

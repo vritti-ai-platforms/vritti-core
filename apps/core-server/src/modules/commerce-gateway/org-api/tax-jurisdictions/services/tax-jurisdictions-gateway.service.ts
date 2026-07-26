@@ -2,12 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateTaxJurisdictionDto } from '../dto/request/create-tax-jurisdiction.dto';
-import type { UpdateTaxJurisdictionDto } from '../dto/request/update-tax-jurisdiction.dto';
-import type { TaxJurisdictionChildrenTableResponseDto } from '../dto/response/tax-jurisdiction-children-table-response.dto';
-import type { TaxJurisdictionCountResponseDto } from '../dto/response/tax-jurisdiction-count-response.dto';
-import type { TaxJurisdictionResponseDto } from '../dto/response/tax-jurisdiction-response.dto';
-import type { TaxJurisdictionTreeResponseDto } from '../dto/response/tax-jurisdiction-tree-response.dto';
+import type { CreateTaxJurisdictionDto } from '@commerce/tax-jurisdictions/dto/request/create-tax-jurisdiction.dto';
+import type { UpdateTaxJurisdictionDto } from '@commerce/tax-jurisdictions/dto/request/update-tax-jurisdiction.dto';
+import type { TaxJurisdictionChildrenTableResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-children-table-response.dto';
+import type { TaxJurisdictionCountResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-count-response.dto';
+import type { TaxJurisdictionResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-response.dto';
+import type { TaxJurisdictionTreeResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-tree-response.dto';
 
 @Injectable()
 export class TaxJurisdictionsGatewayService {

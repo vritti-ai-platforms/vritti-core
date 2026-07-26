@@ -8,32 +8,32 @@ import type {
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SiteDomainService } from '@/modules/domain/site/services/site.service';
-import type { AssignCatalogChannelDto } from '../dto/request/assign-catalog-channel.dto';
-import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
-import type { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';
-import type { CreateModifierOptionDto } from '../dto/request/create-modifier-option.dto';
-import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
-import type { CreateVariantDto } from '../dto/request/create-variant.dto';
-import type { CreateVariantOptionDto } from '../dto/request/create-variant-option.dto';
-import type { SaveOfferingModifiersDto } from '../dto/request/save-offering-modifiers.dto';
-import type { UpdateCatalogDto } from '../dto/request/update-catalog.dto';
-import type { UpdateModifierGroupDto } from '../dto/request/update-modifier-group.dto';
-import type { UpdateModifierOptionDto } from '../dto/request/update-modifier-option.dto';
-import type { UpdateOfferingDto } from '../dto/request/update-offering.dto';
-import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
-import type { UpdateVariantOptionDto } from '../dto/request/update-variant-option.dto';
-import type { CatalogChannelResponseDto } from '../dto/response/catalog-channel-response.dto';
-import type { CatalogResponseDto } from '../dto/response/catalog-response.dto';
-import type { CatalogTableResponseDto } from '../dto/response/catalog-table-response.dto';
-import type { ModifierGroupResponseDto, ModifierOptionResponseDto } from '../dto/response/modifier-group-response.dto';
+import type { AssignCatalogChannelDto } from '@commerce/catalogs/dto/request/assign-catalog-channel.dto';
+import type { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
+import type { CreateModifierGroupDto } from '@commerce/catalogs/dto/request/create-modifier-group.dto';
+import type { CreateModifierOptionDto } from '@commerce/catalogs/dto/request/create-modifier-option.dto';
+import type { CreateOfferingDto } from '@commerce/catalogs/dto/request/create-offering.dto';
+import type { CreateVariantDto } from '@commerce/catalogs/dto/request/create-variant.dto';
+import type { CreateVariantOptionDto } from '@commerce/catalogs/dto/request/create-variant-option.dto';
+import type { SaveOfferingModifiersDto } from '@commerce/catalogs/dto/request/save-offering-modifiers.dto';
+import type { UpdateCatalogDto } from '@commerce/catalogs/dto/request/update-catalog.dto';
+import type { UpdateModifierGroupDto } from '@commerce/catalogs/dto/request/update-modifier-group.dto';
+import type { UpdateModifierOptionDto } from '@commerce/catalogs/dto/request/update-modifier-option.dto';
+import type { UpdateOfferingDto } from '@commerce/catalogs/dto/request/update-offering.dto';
+import type { UpdateVariantDto } from '@commerce/catalogs/dto/request/update-variant.dto';
+import type { UpdateVariantOptionDto } from '@commerce/catalogs/dto/request/update-variant-option.dto';
+import type { CatalogChannelResponseDto } from '@commerce/catalogs/dto/response/catalog-channel-response.dto';
+import type { CatalogResponseDto } from '@commerce/catalogs/dto/response/catalog-response.dto';
+import type { CatalogTableResponseDto } from '@commerce/catalogs/dto/response/catalog-table-response.dto';
+import type { ModifierGroupResponseDto, ModifierOptionResponseDto } from '@commerce/catalogs/dto/response/modifier-group-response.dto';
 import type {
   OfferingDetailResponseDto,
   OfferingVariantResponseDto,
-} from '../dto/response/offering-detail-response.dto';
-import type { OfferingModifierGroupResponseDto } from '../dto/response/offering-modifier-group-response.dto';
-import type { OfferingResponseDto } from '../dto/response/offering-response.dto';
-import type { OfferingsTableResponseDto } from '../dto/response/offerings-table-response.dto';
-import type { VariantOptionResponseDto } from '../dto/response/variant-option-response.dto';
+} from '@commerce/catalogs/dto/response/offering-detail-response.dto';
+import type { OfferingModifierGroupResponseDto } from '@commerce/catalogs/dto/response/offering-modifier-group-response.dto';
+import type { OfferingResponseDto } from '@commerce/catalogs/dto/response/offering-response.dto';
+import type { OfferingsTableResponseDto } from '@commerce/catalogs/dto/response/offerings-table-response.dto';
+import type { VariantOptionResponseDto } from '@commerce/catalogs/dto/response/variant-option-response.dto';
 
 @Injectable()
 export class CatalogsGatewayService {

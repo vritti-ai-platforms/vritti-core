@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX "sites_org_code_unique" ON "vritti_core"."sites" ("organization_id","code");

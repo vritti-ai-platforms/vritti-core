@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { DatabaseModule, type DatabaseModuleOptions } from '@vritti/api-sdk/database';
 import type { NatsHeaders } from '@vritti/api-sdk/nats';
+import { DB_SCHEMA } from '@/db/schema/commerce-schema';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
@@ -53,7 +54,7 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
             username: config.getOrThrow<string>('PRIMARY_DB_USERNAME'),
             password: config.getOrThrow<string>('PRIMARY_DB_PASSWORD'),
             database: config.getOrThrow<string>('PRIMARY_DB_DATABASE'),
-            schema: config.get<string>('PRIMARY_DB_SCHEMA'),
+            schema: DB_SCHEMA,
             sslMode: config.get<'require' | 'prefer' | 'disable' | 'no-verify'>('PRIMARY_DB_SSL_MODE'),
           },
           drizzleRelations: relations,

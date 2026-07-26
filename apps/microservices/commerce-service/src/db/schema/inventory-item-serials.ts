@@ -1,11 +1,11 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { serialStatusEnum } from './enums';
 import { inventoryItemQuants } from './inventory-item-quants';
 import { inventoryItems } from './inventory-items';
 
-export const inventoryItemSerials = coreSchema.table(
+export const inventoryItemSerials = commerceSchema.table(
   'inventory_item_serials',
   {
     id: uuid('id').primaryKey().defaultRandom(),

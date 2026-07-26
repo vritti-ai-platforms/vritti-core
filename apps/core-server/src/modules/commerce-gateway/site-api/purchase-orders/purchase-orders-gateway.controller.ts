@@ -17,17 +17,17 @@ import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
-import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/site-api/goods-receipts/dto/response/goods-receipt-table-response.dto';
-import { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.dto';
-import { ChangePurchaseOrderExchangeRateDto } from './dto/request/change-purchase-order-exchange-rate.dto';
-import { ChangePurchaseOrderSupplierDto } from './dto/request/change-purchase-order-supplier.dto';
-import { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
-import { SendPurchaseOrderEmailDto } from './dto/request/send-purchase-order-email.dto';
-import { UpdatePurchaseOrderItemDto } from './dto/request/update-purchase-order-item.dto';
-import { UpdatePurchaseOrderNotesDto } from './dto/request/update-purchase-order-notes.dto';
-import type { PurchaseOrderItemTableResponseDto } from './dto/response/purchase-order-item-table-response.dto';
-import type { PurchaseOrderResponseDto } from './dto/response/purchase-order-response.dto';
-import type { PurchaseOrderTableResponseDto } from './dto/response/purchase-order-table-response.dto';
+import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
+import { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/add-purchase-order-item.dto';
+import { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
+import { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
+import { CreatePurchaseOrderDto } from '@commerce/purchase-orders/dto/request/create-purchase-order.dto';
+import { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/request/send-purchase-order-email.dto';
+import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
+import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
+import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
+import type { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
+import type { PurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-table-response.dto';
 import { PurchaseOrdersGatewayService } from './services/purchase-orders-gateway.service';
 
 @ApiTags('Commerce - Purchase Orders')

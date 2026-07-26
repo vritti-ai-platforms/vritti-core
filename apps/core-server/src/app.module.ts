@@ -17,6 +17,7 @@ import { RootModule } from '@vritti/api-sdk/root';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
+import { DB_SCHEMA } from '@/db/schema/core-schema';
 import { RbacModule } from '@/rbac/rbac.module';
 import { SecurityModule } from '@/security/security.module';
 import { SiteContextModule } from '@/site-context/site-context.module';
@@ -103,7 +104,7 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
             username: config.getOrThrow<string>('PRIMARY_DB_USERNAME'),
             password: config.getOrThrow<string>('PRIMARY_DB_PASSWORD'),
             database: config.getOrThrow<string>('PRIMARY_DB_DATABASE'),
-            schema: config.get<string>('PRIMARY_DB_SCHEMA'),
+            schema: DB_SCHEMA,
             sslMode: config.get<'require' | 'prefer' | 'disable' | 'no-verify'>('PRIMARY_DB_SSL_MODE'),
           },
           drizzleRelations: relations,

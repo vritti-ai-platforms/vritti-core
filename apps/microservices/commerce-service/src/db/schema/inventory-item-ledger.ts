@@ -1,10 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { decimal, index, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { inventoryItemLedgerReferenceTypeEnum, inventoryItemLedgerTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 
-export const inventoryItemLedger = coreSchema.table(
+export const inventoryItemLedger = commerceSchema.table(
   'inventory_item_ledger',
   {
     id: uuid('id').primaryKey().defaultRandom(),

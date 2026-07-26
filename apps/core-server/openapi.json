@@ -1849,62 +1849,6 @@
       }
     },
     "/organizations/internal/roles": {
-      "post": {
-        "description": "Receives bulk role provisioning from cloud-server. Creates roles rows with features stored as a jsonb array. Requires Ed25519 signature headers (x-timestamp, x-signature).",
-        "operationId": "RolesController_provision",
-        "parameters": [
-          {
-            "name": "x-timestamp",
-            "in": "header",
-            "description": "Unix seconds when the request was signed",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-signature",
-            "in": "header",
-            "description": "Ed25519 signature of the canonical request (base64)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProvisionRolesInternalDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Roles provisioned successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data or validation error."
-          },
-          "401": {
-            "description": "Invalid or missing request signature."
-          }
-        },
-        "summary": "Bulk provision roles",
-        "tags": [
-          "Organization Roles"
-        ]
-      },
       "get": {
         "description": "Returns all roles for an organization with their feature counts. Protected by request signature.",
         "operationId": "RolesController_list",
@@ -2444,6 +2388,63 @@
           }
         },
         "summary": "Delete a role",
+        "tags": [
+          "Organization Roles"
+        ]
+      }
+    },
+    "/organizations/internal/roles/{id}/reset": {
+      "post": {
+        "description": "Clears the role's custom feature and revoked deltas so it tracks its base template again. Scope, site type, code, and name are untouched.",
+        "operationId": "RolesController_resetRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Role ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role reset to its template.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Role not found."
+          }
+        },
+        "summary": "Reset role to template",
         "tags": [
           "Organization Roles"
         ]
@@ -6672,7 +6673,7 @@
     },
     "/commerce-api/site/inventory-items/table": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getTable",
+        "operationId": "SiteInventoryItemsGatewayController_getTable",
         "parameters": [],
         "responses": {
           "200": {
@@ -6691,7 +6692,7 @@
     },
     "/commerce-api/site/inventory-items/enable": {
       "post": {
-        "operationId": "InventoryItemsGatewayController_enable",
+        "operationId": "SiteInventoryItemsGatewayController_enable",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6720,7 +6721,7 @@
     },
     "/commerce-api/site/inventory-items/reorder": {
       "patch": {
-        "operationId": "InventoryItemsGatewayController_updateReorder",
+        "operationId": "SiteInventoryItemsGatewayController_updateReorder",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6749,7 +6750,7 @@
     },
     "/commerce-api/site/inventory-items/{id}": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_findById",
+        "operationId": "SiteInventoryItemsGatewayController_findById",
         "parameters": [
           {
             "name": "id",
@@ -6777,7 +6778,7 @@
     },
     "/commerce-api/site/inventory-items/{id}/suppliers/table": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getSuppliersTable",
+        "operationId": "SiteInventoryItemsGatewayController_getSuppliersTable",
         "parameters": [
           {
             "name": "id",
@@ -6805,7 +6806,7 @@
     },
     "/commerce-api/site/inventory-items/{id}/ledger/table": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getLedgerTable",
+        "operationId": "SiteInventoryItemsGatewayController_getLedgerTable",
         "parameters": [
           {
             "name": "id",
@@ -6833,7 +6834,7 @@
     },
     "/commerce-api/site/inventory-items/{id}/stocks": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getStocks",
+        "operationId": "SiteInventoryItemsGatewayController_getStocks",
         "parameters": [
           {
             "name": "id",
@@ -6861,7 +6862,7 @@
     },
     "/commerce-api/site/inventory-items/{id}/quants/table": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getQuantsTable",
+        "operationId": "SiteInventoryItemsGatewayController_getQuantsTable",
         "parameters": [
           {
             "name": "id",
@@ -6889,7 +6890,7 @@
     },
     "/commerce-api/site/inventory-items/{id}/lots/table": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getLotsTable",
+        "operationId": "SiteInventoryItemsGatewayController_getLotsTable",
         "parameters": [
           {
             "name": "id",
@@ -6917,7 +6918,7 @@
     },
     "/commerce-api/site/inventory-items/{id}/locations/table": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getLocationsTable",
+        "operationId": "SiteInventoryItemsGatewayController_getLocationsTable",
         "parameters": [
           {
             "name": "id",
@@ -6945,7 +6946,7 @@
     },
     "/commerce-api/site/inventory-items/{id}/locations": {
       "post": {
-        "operationId": "InventoryItemsGatewayController_createLocation",
+        "operationId": "SiteInventoryItemsGatewayController_createLocation",
         "parameters": [
           {
             "name": "id",
@@ -6983,7 +6984,7 @@
     },
     "/commerce-api/site/inventory-items/{id}/locations/{locationConfigId}": {
       "patch": {
-        "operationId": "InventoryItemsGatewayController_updateLocation",
+        "operationId": "SiteInventoryItemsGatewayController_updateLocation",
         "parameters": [
           {
             "name": "id",
@@ -7027,7 +7028,7 @@
         ]
       },
       "delete": {
-        "operationId": "InventoryItemsGatewayController_deleteLocation",
+        "operationId": "SiteInventoryItemsGatewayController_deleteLocation",
         "parameters": [
           {
             "name": "id",
@@ -14253,7 +14254,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddPartyIdentifierDto"
+                "$ref": "#/components/schemas/AddPersonIdentifierDto"
               }
             }
           }
@@ -14355,7 +14356,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddPartyAddressDto"
+                "$ref": "#/components/schemas/AddPersonAddressDto"
               }
             }
           }
@@ -14401,7 +14402,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyAddressDto"
+                "$ref": "#/components/schemas/UpdatePersonAddressDto"
               }
             }
           }
@@ -14647,7 +14648,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartyLicenseDto"
+                "$ref": "#/components/schemas/CreatePersonLicenseDto"
               }
             }
           }
@@ -14693,7 +14694,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyLicenseDto"
+                "$ref": "#/components/schemas/UpdatePersonLicenseDto"
               }
             }
           }
@@ -14793,7 +14794,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartyBankAccountDto"
+                "$ref": "#/components/schemas/CreatePersonBankAccountDto"
               }
             }
           }
@@ -14839,7 +14840,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyBankAccountDto"
+                "$ref": "#/components/schemas/UpdatePersonBankAccountDto"
               }
             }
           }
@@ -14939,7 +14940,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartyCommunicationDto"
+                "$ref": "#/components/schemas/CreatePersonCommunicationDto"
               }
             }
           }
@@ -14985,7 +14986,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyCommunicationDto"
+                "$ref": "#/components/schemas/UpdatePersonCommunicationDto"
               }
             }
           }
@@ -15085,7 +15086,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartySocialProfileDto"
+                "$ref": "#/components/schemas/CreatePersonSocialProfileDto"
               }
             }
           }
@@ -15131,7 +15132,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartySocialProfileDto"
+                "$ref": "#/components/schemas/UpdatePersonSocialProfileDto"
               }
             }
           }
@@ -15811,7 +15812,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddPartyIdentifierDto"
+                "$ref": "#/components/schemas/AddCompanyIdentifierDto"
               }
             }
           }
@@ -15913,7 +15914,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddPartyAddressDto"
+                "$ref": "#/components/schemas/AddCompanyAddressDto"
               }
             }
           }
@@ -15959,7 +15960,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyAddressDto"
+                "$ref": "#/components/schemas/UpdateCompanyAddressDto"
               }
             }
           }
@@ -16059,7 +16060,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartyLicenseDto"
+                "$ref": "#/components/schemas/CreateCompanyLicenseDto"
               }
             }
           }
@@ -16105,7 +16106,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyLicenseDto"
+                "$ref": "#/components/schemas/UpdateCompanyLicenseDto"
               }
             }
           }
@@ -16205,7 +16206,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartyBankAccountDto"
+                "$ref": "#/components/schemas/CreateCompanyBankAccountDto"
               }
             }
           }
@@ -16251,7 +16252,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyBankAccountDto"
+                "$ref": "#/components/schemas/UpdateCompanyBankAccountDto"
               }
             }
           }
@@ -16351,7 +16352,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartyCommunicationDto"
+                "$ref": "#/components/schemas/CreateCompanyCommunicationDto"
               }
             }
           }
@@ -16397,7 +16398,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartyCommunicationDto"
+                "$ref": "#/components/schemas/UpdateCompanyCommunicationDto"
               }
             }
           }
@@ -16497,7 +16498,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePartySocialProfileDto"
+                "$ref": "#/components/schemas/CreateCompanySocialProfileDto"
               }
             }
           }
@@ -16543,7 +16544,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePartySocialProfileDto"
+                "$ref": "#/components/schemas/UpdateCompanySocialProfileDto"
               }
             }
           }
@@ -18920,7 +18921,9 @@
             "required": false,
             "in": "query",
             "description": "Exclude items that have all UOMs already linked to this supplier",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -22847,6 +22850,16 @@
             "description": "Whether user has set a password",
             "example": true
           },
+          "phone": {
+            "type": "object",
+            "description": "Phone number",
+            "example": "919876543210"
+          },
+          "phoneCountry": {
+            "type": "object",
+            "description": "Phone country code",
+            "example": "IN"
+          },
           "createdAt": {
             "type": "string",
             "description": "Account creation timestamp",
@@ -23138,66 +23151,6 @@
           "signature"
         ]
       },
-      "RoleItemDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Inventory Manager"
-          },
-          "description": {
-            "type": "string",
-            "example": "Can manage all inventory operations"
-          },
-          "code": {
-            "type": "string",
-            "example": "cashier"
-          },
-          "scope": {
-            "type": "string",
-            "example": "SITE",
-            "description": "Template scope from the snapshot (not persisted)"
-          },
-          "siteType": {
-            "type": "string",
-            "example": "OUTLET",
-            "description": "Site type the template targets (not persisted)"
-          },
-          "features": {
-            "type": "object",
-            "example": {
-              "products": [
-                "VIEW",
-                "CREATE"
-              ]
-            }
-          }
-        },
-        "required": [
-          "name",
-          "features"
-        ]
-      },
-      "ProvisionRolesInternalDto": {
-        "type": "object",
-        "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
-          "roles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RoleItemDto"
-            }
-          }
-        },
-        "required": [
-          "orgId",
-          "roles"
-        ]
-      },
       "Object": {
         "type": "object",
         "properties": {}
@@ -23263,16 +23216,6 @@
             "description": "Template code this role builds on",
             "example": "cashier"
           },
-          "scope": {
-            "type": "object",
-            "description": "Assignment scope; resolved from the template when absent",
-            "example": "SITE"
-          },
-          "siteType": {
-            "type": "object",
-            "description": "Site type for SITE-scoped roles; resolved from the template",
-            "example": "OUTLET"
-          },
           "features": {
             "type": "object",
             "example": {
@@ -23316,16 +23259,6 @@
           "description": {
             "type": "string",
             "example": "Can manage all inventory operations"
-          },
-          "scope": {
-            "type": "object",
-            "description": "Assignment scope; resolved from the template when absent",
-            "example": "SITE"
-          },
-          "siteType": {
-            "type": "object",
-            "description": "Site type for SITE-scoped roles; resolved from the template",
-            "example": "OUTLET"
           },
           "features": {
             "type": "object",
@@ -28511,7 +28444,7 @@
           "isActive"
         ]
       },
-      "AddPartyIdentifierDto": {
+      "AddPersonIdentifierDto": {
         "type": "object",
         "properties": {
           "idType": {
@@ -28571,7 +28504,7 @@
           "function"
         ]
       },
-      "AddPartyAddressDto": {
+      "AddPersonAddressDto": {
         "type": "object",
         "properties": {
           "line1": {
@@ -28613,7 +28546,7 @@
           "countryCode"
         ]
       },
-      "UpdatePartyAddressDto": {
+      "UpdatePersonAddressDto": {
         "type": "object",
         "properties": {
           "line1": {
@@ -28722,7 +28655,7 @@
           }
         }
       },
-      "CreatePartyLicenseDto": {
+      "CreatePersonLicenseDto": {
         "type": "object",
         "properties": {
           "licenseType": {
@@ -28766,7 +28699,7 @@
           "licenseNumber"
         ]
       },
-      "UpdatePartyLicenseDto": {
+      "UpdatePersonLicenseDto": {
         "type": "object",
         "properties": {
           "licenseType": {
@@ -28805,13 +28738,13 @@
           }
         }
       },
-      "CreatePartyBankAccountDto": {
+      "CreatePersonBankAccountDto": {
         "type": "object",
         "properties": {
           "accountName": {
             "type": "string",
             "description": "Account holder name",
-            "example": "Acme Foods Pvt Ltd"
+            "example": "Priya Sharma"
           },
           "accountNumber": {
             "type": "string",
@@ -28827,7 +28760,7 @@
           "upiId": {
             "type": "object",
             "description": "UPI ID",
-            "example": "acme@hdfcbank",
+            "example": "priya@hdfcbank",
             "nullable": true
           },
           "bankName": {
@@ -28851,13 +28784,13 @@
           "accountNumber"
         ]
       },
-      "UpdatePartyBankAccountDto": {
+      "UpdatePersonBankAccountDto": {
         "type": "object",
         "properties": {
           "accountName": {
             "type": "string",
             "description": "Account holder name",
-            "example": "Acme Foods Pvt Ltd"
+            "example": "Priya Sharma"
           },
           "accountNumber": {
             "type": "string",
@@ -28873,7 +28806,7 @@
           "upiId": {
             "type": "object",
             "description": "UPI ID",
-            "example": "acme@hdfcbank",
+            "example": "priya@hdfcbank",
             "nullable": true
           },
           "bankName": {
@@ -28917,7 +28850,7 @@
           "app"
         ]
       },
-      "CreatePartyCommunicationDto": {
+      "CreatePersonCommunicationDto": {
         "type": "object",
         "properties": {
           "channel": {
@@ -28955,7 +28888,7 @@
           "value"
         ]
       },
-      "UpdatePartyCommunicationDto": {
+      "UpdatePersonCommunicationDto": {
         "type": "object",
         "properties": {
           "value": {
@@ -28980,7 +28913,7 @@
           }
         }
       },
-      "CreatePartySocialProfileDto": {
+      "CreatePersonSocialProfileDto": {
         "type": "object",
         "properties": {
           "platform": {
@@ -28999,7 +28932,7 @@
           "url": {
             "type": "string",
             "description": "Profile URL or handle",
-            "example": "https://instagram.com/acmefoods"
+            "example": "https://instagram.com/priya.sharma"
           }
         },
         "required": [
@@ -29007,7 +28940,7 @@
           "url"
         ]
       },
-      "UpdatePartySocialProfileDto": {
+      "UpdatePersonSocialProfileDto": {
         "type": "object",
         "properties": {
           "platform": {
@@ -29026,7 +28959,7 @@
           "url": {
             "type": "string",
             "description": "Profile URL or handle",
-            "example": "https://instagram.com/acmefoods"
+            "example": "https://instagram.com/priya.sharma"
           }
         }
       },
@@ -29239,6 +29172,403 @@
           "isPrimary": {
             "type": "boolean",
             "description": "Whether this is the primary registration"
+          }
+        }
+      },
+      "AddCompanyIdentifierDto": {
+        "type": "object",
+        "properties": {
+          "idType": {
+            "type": "string",
+            "description": "Identifier type",
+            "enum": [
+              "PAN",
+              "AADHAAR",
+              "PASSPORT",
+              "DRIVING_LICENSE",
+              "VOTER_ID",
+              "CIVIL_ID",
+              "NATIONAL_ID",
+              "DUNS",
+              "LEI",
+              "CIN"
+            ]
+          },
+          "idValue": {
+            "type": "string",
+            "description": "Identifier value",
+            "example": "AAAAA0000A"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary identifier"
+          }
+        },
+        "required": [
+          "idType",
+          "idValue"
+        ]
+      },
+      "AddCompanyAddressDto": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string",
+            "description": "Address line 1",
+            "example": "221B Baker Street"
+          },
+          "line2": {
+            "type": "string",
+            "description": "Address line 2"
+          },
+          "city": {
+            "type": "string",
+            "description": "City"
+          },
+          "region": {
+            "type": "string",
+            "description": "Region, state, or province"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Postal or ZIP code"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code",
+            "example": "IN"
+          },
+          "functions": {
+            "description": "Address functions assigned to this address",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
+            }
+          }
+        },
+        "required": [
+          "line1",
+          "countryCode"
+        ]
+      },
+      "UpdateCompanyAddressDto": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string",
+            "description": "Address line 1",
+            "example": "221B Baker Street"
+          },
+          "line2": {
+            "type": "string",
+            "description": "Address line 2"
+          },
+          "city": {
+            "type": "string",
+            "description": "City"
+          },
+          "region": {
+            "type": "string",
+            "description": "Region, state, or province"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Postal or ZIP code"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code",
+            "example": "IN"
+          },
+          "functions": {
+            "description": "Address functions assigned to this address",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
+            }
+          }
+        }
+      },
+      "CreateCompanyLicenseDto": {
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "description": "License type",
+            "enum": [
+              "DRUG",
+              "EXCISE",
+              "FSSAI",
+              "OTHER"
+            ]
+          },
+          "licenseNumber": {
+            "type": "string",
+            "description": "License number",
+            "example": "DL-20B-123456"
+          },
+          "region": {
+            "type": "object",
+            "description": "Region or state the license covers",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "object",
+            "description": "License expiry date (ISO date)",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "description": "Additional notes",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the license is active",
+            "default": true
+          }
+        },
+        "required": [
+          "licenseType",
+          "licenseNumber"
+        ]
+      },
+      "UpdateCompanyLicenseDto": {
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "description": "License type",
+            "enum": [
+              "DRUG",
+              "EXCISE",
+              "FSSAI",
+              "OTHER"
+            ]
+          },
+          "licenseNumber": {
+            "type": "string",
+            "description": "License number",
+            "example": "DL-20B-123456"
+          },
+          "region": {
+            "type": "object",
+            "description": "Region or state the license covers",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "object",
+            "description": "License expiry date (ISO date)",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "description": "Additional notes",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the license is active"
+          }
+        }
+      },
+      "CreateCompanyBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "accountName": {
+            "type": "string",
+            "description": "Account holder name",
+            "example": "Acme Foods Pvt Ltd"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Bank account number",
+            "example": "50100123456789"
+          },
+          "ifscCode": {
+            "type": "object",
+            "description": "IFSC code",
+            "example": "HDFC0001234",
+            "nullable": true
+          },
+          "upiId": {
+            "type": "object",
+            "description": "UPI ID",
+            "example": "acme@hdfcbank",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "object",
+            "description": "Bank name",
+            "example": "HDFC Bank",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary account for the party"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the account is active",
+            "default": true
+          }
+        },
+        "required": [
+          "accountName",
+          "accountNumber"
+        ]
+      },
+      "UpdateCompanyBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "accountName": {
+            "type": "string",
+            "description": "Account holder name",
+            "example": "Acme Foods Pvt Ltd"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Bank account number",
+            "example": "50100123456789"
+          },
+          "ifscCode": {
+            "type": "object",
+            "description": "IFSC code",
+            "example": "HDFC0001234",
+            "nullable": true
+          },
+          "upiId": {
+            "type": "object",
+            "description": "UPI ID",
+            "example": "acme@hdfcbank",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "object",
+            "description": "Bank name",
+            "example": "HDFC Bank",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary account for the party"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the account is active"
+          }
+        }
+      },
+      "CreateCompanyCommunicationDto": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Communication channel",
+            "enum": [
+              "EMAIL",
+              "PHONE"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "The email address or phone number",
+            "example": "priya@acme.in"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary value for its channel"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the communication is active",
+            "default": true
+          },
+          "apps": {
+            "description": "Messaging apps reachable on this number (phone only)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyCommunicationAppDto"
+            }
+          }
+        },
+        "required": [
+          "channel",
+          "value"
+        ]
+      },
+      "UpdateCompanyCommunicationDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "The email address or phone number",
+            "example": "priya@acme.in"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the primary value for its channel"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the communication is active"
+          },
+          "apps": {
+            "description": "Full set of messaging apps reachable on this number (phone only)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyCommunicationAppDto"
+            }
+          }
+        }
+      },
+      "CreateCompanySocialProfileDto": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "description": "Social platform",
+            "enum": [
+              "INSTAGRAM",
+              "FACEBOOK",
+              "LINKEDIN",
+              "X",
+              "YOUTUBE",
+              "TIKTOK",
+              "WEBSITE"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Profile URL or handle",
+            "example": "https://instagram.com/acmefoods"
+          }
+        },
+        "required": [
+          "platform",
+          "url"
+        ]
+      },
+      "UpdateCompanySocialProfileDto": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "description": "Social platform",
+            "enum": [
+              "INSTAGRAM",
+              "FACEBOOK",
+              "LINKEDIN",
+              "X",
+              "YOUTUBE",
+              "TIKTOK",
+              "WEBSITE"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Profile URL or handle",
+            "example": "https://instagram.com/acmefoods"
           }
         }
       },

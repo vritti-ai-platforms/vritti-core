@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
-import { CreateCostCategoryDto } from './dto/request/create-cost-category.dto';
-import { UpdateCostCategoryDto } from './dto/request/update-cost-category.dto';
-import type { CostCategoryResponseDto } from './dto/response/cost-category-response.dto';
-import type { CostCategoryTableResponseDto } from './dto/response/cost-category-table-response.dto';
+import { CreateCostCategoryDto } from '@commerce/cost-categories/dto/request/create-cost-category.dto';
+import { UpdateCostCategoryDto } from '@commerce/cost-categories/dto/request/update-cost-category.dto';
+import type { CostCategoryResponseDto } from '@commerce/cost-categories/dto/response/cost-category-response.dto';
+import type { CostCategoryTableResponseDto } from '@commerce/cost-categories/dto/response/cost-category-table-response.dto';
 import { CostCategoriesGatewayService } from './services/cost-categories-gateway.service';
 
 @ApiTags('Commerce - Cost Categories')

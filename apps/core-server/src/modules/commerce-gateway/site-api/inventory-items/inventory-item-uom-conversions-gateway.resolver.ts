@@ -8,7 +8,7 @@ import {
   UpdateInventoryItemUomConversionInput,
 } from './graphql/inventory-item-uom-conversion-mutation.input';
 import { MutationResult } from './graphql/mutation-result.type';
-import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
+import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 // Per-inventory-item UOM conversion overrides for the mobile detail tab. Thin GraphQL forwards to the
 // existing gateway service (which proxies the commerce-service NATS handlers). The list is small/bounded,
@@ -17,7 +17,7 @@ import { InventoryItemsGatewayService } from './services/inventory-items-gateway
 export class InventoryItemUomConversionsResolver {
   private readonly logger = new Logger(InventoryItemUomConversionsResolver.name);
 
-  constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
+  constructor(private readonly inventoryItemsGatewayService: SiteInventoryItemsGatewayService) {}
 
   @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => [InventoryItemUomConversion], { name: 'inventoryItemUomConversions' })

@@ -7,14 +7,14 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateUomDto } from '../dto/request/create-uom.dto';
-import type { CreateUomDimensionDto } from '../dto/request/create-uom-dimension.dto';
-import type { UpdateUomDto } from '../dto/request/update-uom.dto';
-import type { UpdateUomDimensionDto } from '../dto/request/update-uom-dimension.dto';
-import type { UomDimensionCountResponseDto } from '../dto/response/uom-dimension-count-response.dto';
-import type { UomDimensionResponseDto } from '../dto/response/uom-dimension-response.dto';
-import type { UomResponseDto } from '../dto/response/uom-response.dto';
-import type { UomTableResponseDto } from '../dto/response/uom-table-response.dto';
+import type { CreateUomDto } from '@commerce/uom/dto/request/create-uom.dto';
+import type { CreateUomDimensionDto } from '@commerce/uom/dto/request/create-uom-dimension.dto';
+import type { UpdateUomDto } from '@commerce/uom/dto/request/update-uom.dto';
+import type { UpdateUomDimensionDto } from '@commerce/uom/dto/request/update-uom-dimension.dto';
+import type { UomDimensionCountResponseDto } from '@commerce/uom/dto/response/uom-dimension-count-response.dto';
+import type { UomDimensionResponseDto } from '@commerce/uom/dto/response/uom-dimension-response.dto';
+import type { UomResponseDto } from '@commerce/uom/dto/response/uom-response.dto';
+import type { UomTableResponseDto } from '@commerce/uom/dto/response/uom-table-response.dto';
 
 @Injectable()
 export class UomGatewayService {

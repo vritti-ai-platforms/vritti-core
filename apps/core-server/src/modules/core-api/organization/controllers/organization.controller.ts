@@ -1,3 +1,4 @@
+import { OrganizationDto } from '@domain/organization/dto/entity/organization.dto';
 import { CreateOrganizationInternalDto } from '@domain/organization/dto/request/create-organization-internal.dto';
 import { ReceiveEntitlementInternalDto } from '@domain/organization/dto/request/receive-entitlement-internal.dto';
 import { UpdateOrganizationInternalDto } from '@domain/organization/dto/request/update-organization-internal.dto';
@@ -29,7 +30,6 @@ import {
   ApiReceiveEntitlement,
   ApiSetOrganizationLocks,
 } from '../docs/organization.docs';
-import { OrganizationDto } from '../dto/entity/organization.dto';
 
 @ApiTags('Organizations')
 @Controller('organizations')

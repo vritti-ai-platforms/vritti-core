@@ -1,10 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { creditNoteStatusEnum, creditNoteTypeEnum, invoicePartyTypeEnum } from './enums';
 import { invoices } from './invoices';
 
-export const creditNotes = coreSchema.table(
+export const creditNotes = commerceSchema.table(
   'credit_notes',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -52,7 +52,7 @@ export const creditNotes = coreSchema.table(
 export type CreditNote = typeof creditNotes.$inferSelect;
 export type NewCreditNote = typeof creditNotes.$inferInsert;
 
-export const creditNoteApplications = coreSchema.table(
+export const creditNoteApplications = commerceSchema.table(
   'credit_note_applications',
   {
     id: uuid('id').primaryKey().defaultRandom(),

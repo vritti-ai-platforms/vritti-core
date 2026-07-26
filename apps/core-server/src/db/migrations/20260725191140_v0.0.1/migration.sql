@@ -1,0 +1,2 @@
+ALTER TABLE "core"."roles" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "org_isolation" ON "core"."roles" AS PERMISSIVE FOR ALL TO public USING (organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid));

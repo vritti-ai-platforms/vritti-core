@@ -1,5 +1,6 @@
 import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
-import { boolean, jsonb, text, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { boolean, jsonb, pgPolicy, text, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 
 import { coreSchema } from './core-schema';
 import { scopeTypeEnum, siteTypeEnum } from './enums';
@@ -23,7 +24,13 @@ export const roles = coreSchema.table(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [uniqueIndex('roles_org_name_unique').on(table.organizationId, table.name)],
+  (table) => [
+    uniqueIndex('roles_org_name_unique').on(table.organizationId, table.name),
+    pgPolicy('org_isolation', {
+      for: 'all',
+      using: sql`organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid)`,
+    }),
+  ],
 );
 
 export type Role = typeof roles.$inferSelect;

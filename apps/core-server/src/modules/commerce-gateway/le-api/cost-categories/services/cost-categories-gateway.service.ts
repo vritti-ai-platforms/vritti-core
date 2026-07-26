@@ -7,10 +7,10 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateCostCategoryDto } from '../dto/request/create-cost-category.dto';
-import type { UpdateCostCategoryDto } from '../dto/request/update-cost-category.dto';
-import type { CostCategoryResponseDto } from '../dto/response/cost-category-response.dto';
-import type { CostCategoryTableResponseDto } from '../dto/response/cost-category-table-response.dto';
+import type { CreateCostCategoryDto } from '@commerce/cost-categories/dto/request/create-cost-category.dto';
+import type { UpdateCostCategoryDto } from '@commerce/cost-categories/dto/request/update-cost-category.dto';
+import type { CostCategoryResponseDto } from '@commerce/cost-categories/dto/response/cost-category-response.dto';
+import type { CostCategoryTableResponseDto } from '@commerce/cost-categories/dto/response/cost-category-table-response.dto';
 
 @Injectable()
 export class CostCategoriesGatewayService {

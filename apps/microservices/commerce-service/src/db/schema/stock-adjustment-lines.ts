@@ -12,14 +12,14 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { inventoryItemQuants } from './inventory-item-quants';
 import { locations } from './locations';
 import { stockAdjustmentLots } from './stock-adjustment-lots';
 import { stockAdjustments } from './stock-adjustments';
 import { uom } from './uom';
 
-export const stockAdjustmentLines = coreSchema.table(
+export const stockAdjustmentLines = commerceSchema.table(
   'stock_adjustment_lines',
   {
     id: uuid('id').primaryKey().defaultRandom(),

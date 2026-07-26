@@ -3,7 +3,7 @@ import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { InventoryItemStockLevelConnection } from './graphql/inventory-item-stock-level.type';
-import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
+import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 // Read-only per-location stock levels for an inventory item — a Relay connection (offset cursor) for the
 // mobile infinite-scroll tab. Thin forward to the gateway (which paginates via the commerce-service DB).
@@ -11,7 +11,7 @@ import { InventoryItemsGatewayService } from './services/inventory-items-gateway
 export class InventoryItemStockLevelsResolver {
   private readonly logger = new Logger(InventoryItemStockLevelsResolver.name);
 
-  constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
+  constructor(private readonly inventoryItemsGatewayService: SiteInventoryItemsGatewayService) {}
 
   @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => InventoryItemStockLevelConnection, { name: 'inventoryItemStockLevels' })

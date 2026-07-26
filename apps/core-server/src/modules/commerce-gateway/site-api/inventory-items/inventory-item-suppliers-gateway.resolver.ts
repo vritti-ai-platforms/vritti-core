@@ -3,7 +3,7 @@ import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { InventoryItemSupplierConnection } from './graphql/inventory-item-supplier.type';
-import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
+import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 // Read-only per-inventory-item supplier links for the mobile Suppliers tab — a Relay offset feed (an item can
 // have many suppliers). Thin forward to the gateway (which paginates via the commerce-service DB).
@@ -11,7 +11,7 @@ import { InventoryItemsGatewayService } from './services/inventory-items-gateway
 export class InventoryItemSuppliersResolver {
   private readonly logger = new Logger(InventoryItemSuppliersResolver.name);
 
-  constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
+  constructor(private readonly inventoryItemsGatewayService: SiteInventoryItemsGatewayService) {}
 
   @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => InventoryItemSupplierConnection, { name: 'inventoryItemSuppliers' })

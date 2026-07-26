@@ -2,10 +2,10 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from 
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { CreateInvoiceDto } from './dto/request/create-invoice.dto';
-import { UpdateInvoiceDto } from './dto/request/update-invoice.dto';
-import type { InvoiceDetailResponseDto, InvoiceResponseDto } from './dto/response/invoice-response.dto';
-import type { InvoiceTableResponseDto } from './dto/response/invoice-table-response.dto';
+import { CreateInvoiceDto } from '@commerce/invoices/dto/request/create-invoice.dto';
+import { UpdateInvoiceDto } from '@commerce/invoices/dto/request/update-invoice.dto';
+import type { InvoiceDetailResponseDto, InvoiceResponseDto } from '@commerce/invoices/dto/response/invoice-response.dto';
+import type { InvoiceTableResponseDto } from '@commerce/invoices/dto/response/invoice-table-response.dto';
 import { InvoicesGatewayService } from './services/invoices-gateway.service';
 
 @ApiTags('Commerce - Invoices')

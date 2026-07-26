@@ -4,7 +4,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { FeatureUnlocks, ScopeType, SiteType, VersionSnapshot } from '@vritti/api-sdk/catalog-resolver';
 import {
   type CreateResponseDto,
-  PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   SuccessResponseDto,
@@ -14,7 +13,6 @@ import type { Role } from '@/db/schema';
 import { templateAssignableAtSite, validateGrantDependencies } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import type { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
-import type { RoleItemDto } from '../dto/request/provision-roles-internal.dto';
 import type { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
 import { OrganizationDomainRepository } from '../repositories/organization.repository';
 import { RoleDomainRepository } from '../repositories/role.repository';
@@ -33,7 +31,6 @@ export class RoleDomainService {
   private readonly logger = new Logger(RoleDomainService.name);
 
   constructor(
-    private readonly database: PrimaryDatabaseService,
     private readonly roleRepository: RoleDomainRepository,
     private readonly organizationRepository: OrganizationDomainRepository,
     private readonly siteRepository: SiteDomainRepository,
@@ -48,72 +45,21 @@ export class RoleDomainService {
     validateGrantDependencies(features, snapshot);
   }
 
-  // Resolves a role's scope and site type from its template code in a snapshot; unmatched codes default to ORG scope
+  // Derives a role's scope and site type from its template code in the active snapshot; a missing template is fatal
   private scopeFromSnapshot(
     snapshot: VersionSnapshot | null,
     businessCode: string | null | undefined,
     code: string,
   ): { scope: ScopeType; siteType: SiteType | null } {
     const template = businessCode ? snapshot?.businesses?.[businessCode]?.roleTemplates?.[code] : undefined;
-    if (!template) return { scope: 'ORG', siteType: null };
-    return { scope: template.scope, siteType: template.scope === 'SITE' ? (template.siteType ?? null) : null };
-  }
-
-  // Resolves a role's scope for a single org, honouring explicit overrides and falling back to the template
-  private async resolveScope(
-    orgId: string,
-    code: string,
-    override?: { scope?: ScopeType; siteType?: SiteType | null },
-  ): Promise<{ scope: ScopeType; siteType: SiteType | null }> {
-    if (override?.scope) {
-      if (override.scope === 'SITE' && !override.siteType) {
-        throw new BadRequestException({
-          label: 'Site Type Required',
-          detail: 'A SITE-scoped role must target a site type (OUTLET, WAREHOUSE, or PRODUCTION).',
-          errors: [{ field: 'siteType', message: 'Site type is required' }],
-        });
-      }
-      return { scope: override.scope, siteType: override.scope === 'SITE' ? (override.siteType ?? null) : null };
+    if (!template) {
+      throw new NotFoundException({
+        label: 'Role Template Not Found',
+        detail: `Role template "${code}" not found in the active catalog.`,
+        errors: [{ field: 'code', message: 'Unknown template code' }],
+      });
     }
-    const [snapshot, org] = await Promise.all([
-      this.catalogService.getActiveSnapshot(),
-      this.organizationRepository.findById(orgId),
-    ]);
-    return this.scopeFromSnapshot(snapshot, org?.businessCode, code);
-  }
-
-  // Provisions template roles for an organization — creates a zero-delta stub per template code with no role yet
-  async provision(orgId: string, roles: RoleItemDto[]): Promise<SuccessResponseDto> {
-    const existing = await this.roleRepository.findByOrg(orgId);
-    const existingCodes = new Set(existing.map((r) => r.code));
-    let created = 0;
-
-    const [snapshot, org] = await Promise.all([
-      this.catalogService.getActiveSnapshot(),
-      this.organizationRepository.findById(orgId),
-    ]);
-
-    await this.database.runInTransaction(async () => {
-      for (const role of roles) {
-        if (!role.code || existingCodes.has(role.code)) continue;
-        const { scope, siteType } = this.scopeFromSnapshot(snapshot, org?.businessCode, role.code);
-        await this.roleRepository.create({
-          organizationId: orgId,
-          name: role.name,
-          description: role.description,
-          code: role.code,
-          scope,
-          siteType,
-          features: {},
-        });
-        created++;
-      }
-    });
-
-    this.logger.log(
-      `Provisioned roles for org ${orgId}: ${created} created, ${roles.length - created} already present`,
-    );
-    return { success: true, message: `${created} role(s) provisioned.` };
+    return { scope: template.scope, siteType: template.scope === 'SITE' ? (template.siteType ?? null) : null };
   }
 
   // Groups the org's roles by scope (SITE by site type), flagging which are safe to delete (no user assignments)
@@ -150,7 +96,11 @@ export class RoleDomainService {
 
     await this.assertGrantDependencies(dto.features);
 
-    const { scope, siteType } = await this.resolveScope(orgId, dto.code, { scope: dto.scope, siteType: dto.siteType });
+    const [snapshot, org] = await Promise.all([
+      this.catalogService.getActiveSnapshot(),
+      this.organizationRepository.findById(orgId),
+    ]);
+    const { scope, siteType } = this.scopeFromSnapshot(snapshot, org?.businessCode, dto.code);
 
     const role = await this.roleRepository.create({
       organizationId: orgId,
@@ -203,18 +153,11 @@ export class RoleDomainService {
       await this.assertGrantDependencies(dto.features);
     }
 
-    // Re-resolve scope from the role's template (or an explicit override) so it stays authoritative
-    const { scope, siteType } = dto.scope
-      ? { scope: dto.scope, siteType: dto.scope === 'SITE' ? (dto.siteType ?? null) : null }
-      : this.scopeFromSnapshot(snapshot, org?.businessCode, role.code);
-
     await this.roleRepository.update(roleId, {
       ...(dto.name && { name: dto.name }),
       ...(dto.description !== undefined && { description: dto.description }),
       ...(dto.features !== undefined && { features: dto.features }),
       ...(dto.revoked !== undefined && { revoked: dto.revoked }),
-      scope,
-      siteType,
       updatedAt: new Date(),
     });
 
@@ -225,6 +168,17 @@ export class RoleDomainService {
 
     this.logger.log(`Updated role ${roleId}`);
     return { success: true, message: 'Role updated successfully.' };
+  }
+
+  // Clears a role's custom deltas so it tracks its base template again
+  async resetToTemplate(roleId: string): Promise<SuccessResponseDto> {
+    const role = await this.roleRepository.findById(roleId);
+    if (!role) throw new NotFoundException('Role not found.');
+
+    await this.roleRepository.update(roleId, { features: {}, revoked: null, updatedAt: new Date() });
+
+    this.logger.log(`Reset role ${roleId} to its template`);
+    return { success: true, message: 'Role reset to its template.' };
   }
 
   // Deletes a role (cascade handles user_role_assignments)

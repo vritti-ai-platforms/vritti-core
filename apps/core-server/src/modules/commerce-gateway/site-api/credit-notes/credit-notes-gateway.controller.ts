@@ -2,9 +2,9 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestj
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { ApplyCreditNoteDto } from './dto/request/apply-credit-note.dto';
-import { CreateCreditNoteDto } from './dto/request/create-credit-note.dto';
-import type { CreditNoteDetailResponseDto, CreditNoteResponseDto } from './dto/response/credit-note-response.dto';
+import { ApplyCreditNoteDto } from '@commerce/credit-notes/dto/request/apply-credit-note.dto';
+import { CreateCreditNoteDto } from '@commerce/credit-notes/dto/request/create-credit-note.dto';
+import type { CreditNoteDetailResponseDto, CreditNoteResponseDto } from '@commerce/credit-notes/dto/response/credit-note-response.dto';
 import { CreditNotesGatewayService } from './services/credit-notes-gateway.service';
 
 @ApiTags('Commerce - Credit Notes')

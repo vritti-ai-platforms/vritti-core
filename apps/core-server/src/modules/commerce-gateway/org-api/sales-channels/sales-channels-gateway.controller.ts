@@ -5,10 +5,10 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { ORG_SALES_CHANNELS } from '@vritti/commerce-permissions/sales-channels';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { CreateSalesChannelDto } from './dto/request/create-sales-channel.dto';
-import { UpdateSalesChannelDto } from './dto/request/update-sales-channel.dto';
-import type { SalesChannelResponseDto } from './dto/response/sales-channel-response.dto';
-import type { SalesChannelTableResponseDto } from './dto/response/sales-channel-table-response.dto';
+import { CreateSalesChannelDto } from '@commerce/sales-channels/dto/request/create-sales-channel.dto';
+import { UpdateSalesChannelDto } from '@commerce/sales-channels/dto/request/update-sales-channel.dto';
+import type { SalesChannelResponseDto } from '@commerce/sales-channels/dto/response/sales-channel-response.dto';
+import type { SalesChannelTableResponseDto } from '@commerce/sales-channels/dto/response/sales-channel-table-response.dto';
 import { SalesChannelsGatewayService } from './services/sales-channels-gateway.service';
 
 @ApiTags('Commerce - Sales Channels')

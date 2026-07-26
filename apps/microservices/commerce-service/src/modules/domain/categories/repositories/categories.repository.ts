@@ -275,7 +275,7 @@ export class CategoriesDomainRepository extends PrimaryBaseRepository<typeof cat
   async updatePath(id: string, path: string): Promise<void> {
     await this.db
       .update(categories)
-      .set({ path: sql`cast(${path} as vritti_core.ltree)` })
+      .set({ path: sql`cast(${path} as commerce.ltree)` })
       .where(eq(categories.id, id));
   }
 
@@ -284,10 +284,10 @@ export class CategoriesDomainRepository extends PrimaryBaseRepository<typeof cat
     await this.db.execute(sql`
       UPDATE ${categories}
       SET path = CASE
-        WHEN path = cast(${oldPath} as vritti_core.ltree) THEN cast(${newPath} as vritti_core.ltree)
-        ELSE cast(${newPath} as vritti_core.ltree) || subpath(path, nlevel(cast(${oldPath} as vritti_core.ltree)))
+        WHEN path = cast(${oldPath} as commerce.ltree) THEN cast(${newPath} as commerce.ltree)
+        ELSE cast(${newPath} as commerce.ltree) || subpath(path, nlevel(cast(${oldPath} as commerce.ltree)))
       END
-      WHERE path <@ cast(${oldPath} as vritti_core.ltree)
+      WHERE path <@ cast(${oldPath} as commerce.ltree)
     `);
   }
 

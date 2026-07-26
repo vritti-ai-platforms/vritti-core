@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateOrderDto } from '../dto/request/create-order.dto';
-import type { UpdateOrderStatusDto } from '../dto/request/update-order-status.dto';
-import type { OrderDetailResponseDto, OrderResponseDto } from '../dto/response/order-response.dto';
-import type { OrderTableResponseDto } from '../dto/response/order-table-response.dto';
+import type { CreateOrderDto } from '@commerce/orders/dto/request/create-order.dto';
+import type { UpdateOrderStatusDto } from '@commerce/orders/dto/request/update-order-status.dto';
+import type { OrderDetailResponseDto, OrderResponseDto } from '@commerce/orders/dto/response/order-response.dto';
+import type { OrderTableResponseDto } from '@commerce/orders/dto/response/order-table-response.dto';
 
 @Injectable()
 export class OrdersGatewayService {

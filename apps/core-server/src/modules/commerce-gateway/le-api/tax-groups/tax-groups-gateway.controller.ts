@@ -12,10 +12,10 @@ import {
   ApiGetTaxGroup,
   ApiUpdateTaxGroup,
 } from './docs/tax-groups-gateway.docs';
-import { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
-import { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
-import type { TaxGroupResponseDto } from './dto/response/tax-group-response.dto';
-import type { TaxGroupTableResponseDto } from './dto/response/tax-group-table-response.dto';
+import { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
+import { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
+import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
+import type { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 
 @ApiTags('Commerce - Tax Groups')

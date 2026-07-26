@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."business_units" ADD COLUMN "feature_catalog" jsonb DEFAULT '[]' NOT NULL;

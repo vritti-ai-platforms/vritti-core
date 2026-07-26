@@ -1,10 +1,10 @@
 import { CreateUserInternalDto } from '@domain/user/dto/request/create-user-internal.dto';
 import { UpdateUserInternalDto } from '@domain/user/dto/request/update-user-internal.dto';
+import { UsersTableResponseDto } from '@domain/user/dto/response/users-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { MobileLookupResponseDto } from '../../auth/root/dto/response/mobile-lookup-response.dto';
-import { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 
 export function ApiGetOrganizationsByEmail() {
   return applyDecorators(

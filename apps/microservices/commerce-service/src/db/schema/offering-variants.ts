@@ -14,13 +14,13 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
 import { offerings } from './offerings';
 import { taxClasses } from './tax-classes';
 import { variantOptions, variantOptionValues } from './variant-options';
 
-export const offeringOptions = coreSchema.table(
+export const offeringOptions = commerceSchema.table(
   'offering_options',
   {
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
@@ -41,7 +41,7 @@ export const offeringOptions = coreSchema.table(
 export type OfferingOption = typeof offeringOptions.$inferSelect;
 export type NewOfferingOption = typeof offeringOptions.$inferInsert;
 
-export const offeringVariants = coreSchema.table(
+export const offeringVariants = commerceSchema.table(
   'offering_variants',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -70,7 +70,7 @@ export const offeringVariants = coreSchema.table(
 export type OfferingVariant = typeof offeringVariants.$inferSelect;
 export type NewOfferingVariant = typeof offeringVariants.$inferInsert;
 
-export const offeringVariantOptionValues = coreSchema.table(
+export const offeringVariantOptionValues = commerceSchema.table(
   'offering_variant_option_values',
   {
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
@@ -88,7 +88,7 @@ export const offeringVariantOptionValues = coreSchema.table(
 export type OfferingVariantOptionValue = typeof offeringVariantOptionValues.$inferSelect;
 export type NewOfferingVariantOptionValue = typeof offeringVariantOptionValues.$inferInsert;
 
-export const offeringVariantComponents = coreSchema.table(
+export const offeringVariantComponents = commerceSchema.table(
   'offering_variant_components',
   {
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),

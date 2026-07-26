@@ -25,14 +25,14 @@ import {
   ApiGetCategoryItemsTable,
   ApiUpdateCategory,
 } from './docs/categories-gateway.docs';
-import { CreateCategoryDto } from './dto/request/create-category.dto';
-import { ReorderCategoriesDto } from './dto/request/reorder-categories.dto';
-import { UpdateCategoryDto } from './dto/request/update-category.dto';
-import type { CategoryChildrenTableResponseDto } from './dto/response/category-children-table-response.dto';
-import type { CategoryCountResponseDto } from './dto/response/category-count-response.dto';
-import type { CategoryItemTableResponseDto } from './dto/response/category-item-table-response.dto';
-import type { CategoryResponseDto } from './dto/response/category-response.dto';
-import type { CategoryTreeResponseDto } from './dto/response/category-tree-response.dto';
+import { CreateCategoryDto } from '@commerce/categories/dto/request/create-category.dto';
+import { ReorderCategoriesDto } from '@commerce/categories/dto/request/reorder-categories.dto';
+import { UpdateCategoryDto } from '@commerce/categories/dto/request/update-category.dto';
+import type { CategoryChildrenTableResponseDto } from '@commerce/categories/dto/response/category-children-table-response.dto';
+import type { CategoryCountResponseDto } from '@commerce/categories/dto/response/category-count-response.dto';
+import type { CategoryItemTableResponseDto } from '@commerce/categories/dto/response/category-item-table-response.dto';
+import type { CategoryResponseDto } from '@commerce/categories/dto/response/category-response.dto';
+import type { CategoryTreeResponseDto } from '@commerce/categories/dto/response/category-tree-response.dto';
 import { CategoriesGatewayService } from './services/categories-gateway.service';
 
 @ApiTags('Commerce - Categories')

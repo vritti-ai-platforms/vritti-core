@@ -7,20 +7,20 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { AddInventoryItemMrpDto } from '../dto/request/add-inventory-item-mrp.dto';
-import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
-import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
-import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
-import type { UpdateInventoryItemMrpDto } from '../dto/request/update-inventory-item-mrp.dto';
-import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
-import type { InventoryItemMrpResponseDto } from '../dto/response/inventory-item-mrp-response.dto';
-import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
+import type { AddInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/add-inventory-item-mrp.dto';
+import type { CreateInventoryItemDto } from '@commerce/inventory-items/dto/request/create-inventory-item.dto';
+import type { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
+import type { UpdateInventoryItemDto } from '@commerce/inventory-items/dto/request/update-inventory-item.dto';
+import type { UpdateInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/update-inventory-item-mrp.dto';
+import type { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
+import type { InventoryItemMrpResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-response.dto';
+import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
 import type {
   InventoryItemSupplierResponseDto,
   InventoryItemSupplierTableResponseDto,
-} from '../dto/response/inventory-item-supplier-response.dto';
-import type { InventoryItemTableResponseDto } from '../dto/response/inventory-item-table-response.dto';
-import type { InventoryItemUomConversionResponseDto } from '../dto/response/inventory-item-uom-conversion-response.dto';
+} from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
+import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
+import type { InventoryItemUomConversionResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-uom-conversion-response.dto';
 
 @Injectable()
 export class InventoryItemsGatewayService {

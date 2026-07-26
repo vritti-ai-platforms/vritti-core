@@ -8,32 +8,32 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
-import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
-import type { EnableInventoryItemDto } from '../dto/request/enable-inventory-item.dto';
-import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
-import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
-import type { UpdateReorderDto } from '../dto/request/update-reorder.dto';
-import type { InventoryItemLedgerResponseDto } from '../dto/response/inventory-item-ledger-response.dto';
-import type { InventoryItemLedgerTableResponseDto } from '../dto/response/inventory-item-ledger-table-response.dto';
-import type { InventoryItemLocationResponseDto } from '../dto/response/inventory-item-location-response.dto';
-import type { InventoryItemLocationTableResponseDto } from '../dto/response/inventory-item-location-table-response.dto';
-import type { InventoryItemLotResponseDto } from '../dto/response/inventory-item-lot-response.dto';
-import type { InventoryItemLotTableResponseDto } from '../dto/response/inventory-item-lot-table-response.dto';
-import type { InventoryItemQuantResponseDto } from '../dto/response/inventory-item-quant-response.dto';
-import type { InventoryItemQuantTableResponseDto } from '../dto/response/inventory-item-quant-table-response.dto';
-import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
-import type { InventoryItemStockResponseDto } from '../dto/response/inventory-item-stock-response.dto';
+import type { CreateSiteInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item.dto';
+import type { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
+import type { EnableInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/enable-inventory-item.dto';
+import type { UpdateSiteInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/update-inventory-item.dto';
+import type { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
+import type { UpdateReorderDto } from '@commerce/inventory-item-sites/dto/request/update-reorder.dto';
+import type { InventoryItemLedgerResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-ledger-response.dto';
+import type { InventoryItemLedgerTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-ledger-table-response.dto';
+import type { InventoryItemLocationResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-location-response.dto';
+import type { InventoryItemLocationTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-location-table-response.dto';
+import type { InventoryItemLotResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-lot-response.dto';
+import type { InventoryItemLotTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-lot-table-response.dto';
+import type { InventoryItemQuantResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-response.dto';
+import type { InventoryItemQuantTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-table-response.dto';
+import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-response.dto';
+import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
 import type {
   InventoryItemSupplierResponseDto,
   InventoryItemSupplierTableResponseDto,
-} from '../dto/response/inventory-item-supplier-response.dto';
-import type { InventoryItemTableResponseDto } from '../dto/response/inventory-item-table-response.dto';
-import type { InventoryItemUomConversionResponseDto } from '../dto/response/inventory-item-uom-conversion-response.dto';
+} from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
+import type { SiteInventoryItemTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-table-response.dto';
+import type { SiteInventoryItemUomConversionResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-uom-conversion-response.dto';
 
 @Injectable()
-export class InventoryItemsGatewayService {
-  private readonly logger = new Logger(InventoryItemsGatewayService.name);
+export class SiteInventoryItemsGatewayService {
+  private readonly logger = new Logger(SiteInventoryItemsGatewayService.name);
 
   constructor(
     private readonly nats: NatsClientService,
@@ -41,14 +41,14 @@ export class InventoryItemsGatewayService {
   ) {}
 
   // Returns paginated inventory items for the data table
-  async findForTable(userId: string): Promise<InventoryItemTableResponseDto> {
+  async findForTable(userId: string): Promise<SiteInventoryItemTableResponseDto> {
     this.logger.log('site.inventoryItems.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       'commerce-inventory-items',
     );
 
-    const { result, count } = await this.nats.send<{ result: InventoryItemResponseDto[]; count: number }>(
+    const { result, count } = await this.nats.send<{ result: SiteInventoryItemResponseDto[]; count: number }>(
       'commerce',
       'site.inventoryItems.table',
       state,
@@ -65,7 +65,7 @@ export class InventoryItemsGatewayService {
     limit?: number;
     cursor?: string;
   }): Promise<{
-    edges: { cursor: string; node: InventoryItemResponseDto }[];
+    edges: { cursor: string; node: SiteInventoryItemResponseDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
     this.logger.log('inventoryItems.feed');
@@ -73,7 +73,7 @@ export class InventoryItemsGatewayService {
   }
 
   // Creates a new inventory item
-  async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
+  async create(dto: CreateSiteInventoryItemDto): Promise<CreateResponseDto<SiteInventoryItemResponseDto>> {
     this.logger.log(`org.inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
     return this.nats.send('commerce', 'org.inventoryItems.create', dto);
   }
@@ -125,7 +125,7 @@ export class InventoryItemsGatewayService {
   }
 
   // Returns a single inventory item
-  async findById(id: string): Promise<InventoryItemResponseDto> {
+  async findById(id: string): Promise<SiteInventoryItemResponseDto> {
     this.logger.log(`inventoryItems.findById — id: ${id}`);
     return this.nats.send('commerce', 'site.inventoryItems.findById', { id });
   }
@@ -302,7 +302,7 @@ export class InventoryItemsGatewayService {
       `inventory-item-${inventoryItemId}-uom-overrides`,
     );
 
-    const { result, count } = await this.nats.send<{ result: InventoryItemUomConversionResponseDto[]; count: number }>(
+    const { result, count } = await this.nats.send<{ result: SiteInventoryItemUomConversionResponseDto[]; count: number }>(
       'commerce',
       'org.inventoryItems.uom.table',
       { inventoryItemId, ...state },
@@ -315,9 +315,9 @@ export class InventoryItemsGatewayService {
   // machinery (no per-user saved views). The per-item list is small/bounded, so request a single large page.
   // The commerce-service handler reads state.pagination/filters/search/sort, so pass an explicit default state
   // (pagination is required — it destructures state.pagination.limit).
-  async findUomConversions(inventoryItemId: string): Promise<InventoryItemUomConversionResponseDto[]> {
+  async findUomConversions(inventoryItemId: string): Promise<SiteInventoryItemUomConversionResponseDto[]> {
     this.logger.log(`org.inventoryItems.uom.table (list) — inventoryItemId: ${inventoryItemId}`);
-    const { result } = await this.nats.send<{ result: InventoryItemUomConversionResponseDto[]; count: number }>(
+    const { result } = await this.nats.send<{ result: SiteInventoryItemUomConversionResponseDto[]; count: number }>(
       'commerce',
       'org.inventoryItems.uom.table',
       { inventoryItemId, filters: [], search: null, sort: [], pagination: { limit: 100, offset: 0 } },
@@ -329,7 +329,7 @@ export class InventoryItemsGatewayService {
   async createUomConversion(
     inventoryItemId: string,
     dto: CreateInventoryItemUomConversionDto,
-  ): Promise<CreateResponseDto<InventoryItemUomConversionResponseDto>> {
+  ): Promise<CreateResponseDto<SiteInventoryItemUomConversionResponseDto>> {
     this.logger.log(`org.inventoryItems.uom.create — inventoryItemId: ${inventoryItemId}`);
     return this.nats.send('commerce', 'org.inventoryItems.uom.create', { inventoryItemId, ...dto });
   }
@@ -350,7 +350,7 @@ export class InventoryItemsGatewayService {
   }
 
   // Updates an inventory item
-  async update(id: string, dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
+  async update(id: string, dto: UpdateSiteInventoryItemDto): Promise<SuccessResponseDto> {
     this.logger.log(`org.inventoryItems.update — id: ${id}`);
     return this.nats.send('commerce', 'org.inventoryItems.update', { id, ...dto });
   }

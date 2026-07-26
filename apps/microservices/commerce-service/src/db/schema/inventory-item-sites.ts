@@ -1,9 +1,9 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, decimal, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
 
-export const inventoryItemSites = coreSchema.table(
+export const inventoryItemSites = commerceSchema.table(
   'inventory_item_sites',
   {
     id: uuid('id').primaryKey().defaultRandom(),

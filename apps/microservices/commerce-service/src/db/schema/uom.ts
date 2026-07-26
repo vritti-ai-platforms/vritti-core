@@ -10,10 +10,10 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { uomDimensions } from './uom-dimensions';
 
-export const uom = coreSchema.table(
+export const uom = commerceSchema.table(
   'uom',
   {
     id: uuid('id').primaryKey().defaultRandom(),

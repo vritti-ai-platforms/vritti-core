@@ -1,5 +1,6 @@
 import { CreateUserInternalDto } from '@domain/user/dto/request/create-user-internal.dto';
 import { UpdateUserInternalDto } from '@domain/user/dto/request/update-user-internal.dto';
+import type { UsersTableResponseDto } from '@domain/user/dto/response/users-table-response.dto';
 import { UserDomainService } from '@domain/user/services/user.service';
 import {
   Body,
@@ -29,7 +30,6 @@ import {
   ApiUpdateUser,
 } from '../docs/user.docs';
 import { GetUsersInternalDto } from '../dto/request/get-users-internal.dto';
-import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 
 @ApiTags('Users')
 @Controller('users')

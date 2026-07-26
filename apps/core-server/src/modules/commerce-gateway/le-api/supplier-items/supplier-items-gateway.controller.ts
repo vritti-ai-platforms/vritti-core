@@ -5,7 +5,7 @@ import type { SelectQueryResult } from '@vritti/api-sdk/database';
 import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature } from '@/rbac/decorators';
-import { SupplierItemsSelectQueryDto } from './dto/request/supplier-items-select-query.dto';
+import { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
 import { SupplierItemsGatewayService } from './services/supplier-items-gateway.service';
 
 @ApiTags('Commerce - Supplier Items')

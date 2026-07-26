@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { InventoryBatchResponseDto } from '../dto/response/inventory-batch-response.dto';
+import type { InventoryBatchResponseDto } from '@commerce/inventory-item-quants/dto/response/inventory-batch-response.dto';
 
 @Injectable()
 export class InventoryItemQuantsGatewayService {

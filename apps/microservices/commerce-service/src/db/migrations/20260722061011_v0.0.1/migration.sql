@@ -1,1 +1,0 @@
-ALTER TYPE "vritti_core"."social_platform" ADD VALUE 'WEBSITE';

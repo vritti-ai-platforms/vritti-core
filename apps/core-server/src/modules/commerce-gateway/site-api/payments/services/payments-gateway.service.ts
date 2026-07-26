@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreatePaymentDto } from '../dto/request/create-payment.dto';
-import type { PaymentResponseDto } from '../dto/response/payment-response.dto';
+import type { CreatePaymentDto } from '@commerce/payments/dto/request/create-payment.dto';
+import type { PaymentResponseDto } from '@commerce/payments/dto/response/payment-response.dto';
 
 @Injectable()
 export class PaymentsGatewayService {

@@ -1,10 +1,10 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
-import { CreateCategoryDto } from '../dto/request/create-category.dto';
-import { UpdateCategoryDto } from '../dto/request/update-category.dto';
-import { CategoryItemTableResponseDto } from '../dto/response/category-item-table-response.dto';
-import { CategoryResponseDto } from '../dto/response/category-response.dto';
+import { CreateCategoryDto } from '@commerce/categories/dto/request/create-category.dto';
+import { UpdateCategoryDto } from '@commerce/categories/dto/request/update-category.dto';
+import { CategoryItemTableResponseDto } from '@commerce/categories/dto/response/category-item-table-response.dto';
+import { CategoryResponseDto } from '@commerce/categories/dto/response/category-response.dto';
 
 export function ApiCreateCategory() {
   return applyDecorators(

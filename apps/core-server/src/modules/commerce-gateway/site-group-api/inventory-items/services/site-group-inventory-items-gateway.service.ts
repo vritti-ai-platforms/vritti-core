@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { SiteGroupInventoryItemResponseDto } from '../dto/response/site-group-inventory-item-response.dto';
-import type { SiteGroupItemAvailabilityResponseDto } from '../dto/response/site-group-item-availability-response.dto';
-import type { SiteGroupItemLevelsResponseDto } from '../dto/response/site-group-item-levels-response.dto';
+import type { SiteGroupInventoryItemResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-inventory-item-response.dto';
+import type { SiteGroupItemAvailabilityResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-item-availability-response.dto';
+import type { SiteGroupItemLevelsResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-item-levels-response.dto';
 
 @Injectable()
 export class SiteGroupInventoryItemsGatewayService {

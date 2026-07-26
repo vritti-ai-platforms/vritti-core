@@ -1,10 +1,10 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
-import { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
-import { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
-import { TaxGroupResponseDto } from '../dto/response/tax-group-response.dto';
-import { TaxGroupTableResponseDto } from '../dto/response/tax-group-table-response.dto';
+import { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
+import { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
+import { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
+import { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 
 export function ApiFindForTableTaxGroups() {
   return applyDecorators(

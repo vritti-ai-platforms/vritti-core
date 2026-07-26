@@ -10,10 +10,10 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { taxJurisdictionLevelEnum } from './enums';
 
-export const taxJurisdictions = coreSchema.table(
+export const taxJurisdictions = commerceSchema.table(
   'tax_jurisdictions',
   {
     id: uuid('id').primaryKey().defaultRandom(),

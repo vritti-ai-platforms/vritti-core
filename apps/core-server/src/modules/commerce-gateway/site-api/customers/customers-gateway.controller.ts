@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
-import { CreateCustomerDto } from './dto/request/create-customer.dto';
-import { UpdateCustomerDto } from './dto/request/update-customer.dto';
-import type { CustomerResponseDto } from './dto/response/customer-response.dto';
-import type { CustomerTableResponseDto } from './dto/response/customer-table-response.dto';
+import { CreateCustomerDto } from '@commerce/customers/dto/request/create-customer.dto';
+import { UpdateCustomerDto } from '@commerce/customers/dto/request/update-customer.dto';
+import type { CustomerResponseDto } from '@commerce/customers/dto/response/customer-response.dto';
+import type { CustomerTableResponseDto } from '@commerce/customers/dto/response/customer-table-response.dto';
 import { CustomersGatewayService } from './services/customers-gateway.service';
 
 @ApiTags('Commerce - Customers')

@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."inventory_items" ADD COLUMN "has_mrp" boolean DEFAULT false NOT NULL;

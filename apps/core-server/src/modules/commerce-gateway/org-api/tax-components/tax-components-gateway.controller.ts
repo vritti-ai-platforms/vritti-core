@@ -5,10 +5,10 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { ORG_TAX_COMPONENTS } from '@vritti/commerce-permissions/tax-components';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { CreateTaxComponentDto } from './dto/request/create-tax-component.dto';
-import { UpdateTaxComponentDto } from './dto/request/update-tax-component.dto';
-import type { TaxComponentResponseDto } from './dto/response/tax-component-response.dto';
-import type { TaxComponentTableResponseDto } from './dto/response/tax-component-table-response.dto';
+import { CreateTaxComponentDto } from '@commerce/tax-components/dto/request/create-tax-component.dto';
+import { UpdateTaxComponentDto } from '@commerce/tax-components/dto/request/update-tax-component.dto';
+import type { TaxComponentResponseDto } from '@commerce/tax-components/dto/response/tax-component-response.dto';
+import type { TaxComponentTableResponseDto } from '@commerce/tax-components/dto/response/tax-component-table-response.dto';
 import { TaxComponentsGatewayService } from './services/tax-components-gateway.service';
 
 @ApiTags('Commerce - Tax Components')

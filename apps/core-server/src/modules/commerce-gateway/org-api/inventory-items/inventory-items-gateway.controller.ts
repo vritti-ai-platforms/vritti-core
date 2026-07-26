@@ -5,18 +5,18 @@ import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@
 import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { AddInventoryItemMrpDto } from './dto/request/add-inventory-item-mrp.dto';
-import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
-import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
-import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
-import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
-import { UpdateInventoryItemMrpDto } from './dto/request/update-inventory-item-mrp.dto';
-import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
-import type { InventoryItemMrpResponseDto } from './dto/response/inventory-item-mrp-response.dto';
-import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
-import type { InventoryItemSupplierTableResponseDto } from './dto/response/inventory-item-supplier-response.dto';
-import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
-import type { InventoryItemUomConversionResponseDto } from './dto/response/inventory-item-uom-conversion-response.dto';
+import { AddInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/add-inventory-item-mrp.dto';
+import { CreateInventoryItemDto } from '@commerce/inventory-items/dto/request/create-inventory-item.dto';
+import { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
+import { InventoryItemsSelectQueryDto } from '@commerce/inventory-items/dto/request/inventory-items-select-query.dto';
+import { UpdateInventoryItemDto } from '@commerce/inventory-items/dto/request/update-inventory-item.dto';
+import { UpdateInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/update-inventory-item-mrp.dto';
+import { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
+import type { InventoryItemMrpResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-response.dto';
+import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
+import type { InventoryItemSupplierTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
+import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
+import type { InventoryItemUomConversionResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-uom-conversion-response.dto';
 import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Org Inventory Items')

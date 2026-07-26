@@ -1,8 +1,8 @@
 import { decimal, integer, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { taxGroups } from './tax-groups';
 
-export const taxRates = coreSchema.table('tax_rates', {
+export const taxRates = commerceSchema.table('tax_rates', {
   id: uuid('id').primaryKey().defaultRandom(),
   taxGroupId: uuid('tax_group_id')
     .notNull()

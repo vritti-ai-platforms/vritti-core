@@ -39,12 +39,6 @@ class EnvironmentVariables {
   @IsString()
   PRIMARY_DB_DATABASE: string;
 
-  @IsString()
-  PRIMARY_DB_SCHEMA: string;
-
-  @IsString()
-  PRIMARY_DB_MIGRATION_SCHEMA: string;
-
   @IsEnum(['require', 'prefer', 'disable', 'no-verify'])
   PRIMARY_DB_SSL_MODE: 'require' | 'prefer' | 'disable' | 'no-verify';
 

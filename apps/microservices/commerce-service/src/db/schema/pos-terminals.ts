@@ -1,10 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogs } from './catalogs';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { locations } from './locations';
 
-export const posTerminals = coreSchema.table(
+export const posTerminals = commerceSchema.table(
   'pos_terminals',
   {
     id: uuid('id').primaryKey().defaultRandom(),

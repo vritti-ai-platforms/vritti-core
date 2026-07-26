@@ -29,10 +29,10 @@ import {
   ApiTable,
   ApiUpdate,
 } from './docs/pos-terminals-gateway.docs';
-import { CreatePosTerminalDto } from './dto/request/create-pos-terminal.dto';
-import { UpdatePosTerminalDto } from './dto/request/update-pos-terminal.dto';
-import type { PosTerminalResponseDto } from './dto/response/pos-terminal-response.dto';
-import type { PosTerminalTableResponseDto } from './dto/response/pos-terminal-table-response.dto';
+import { CreatePosTerminalDto } from '@commerce/pos-terminals/dto/request/create-pos-terminal.dto';
+import { UpdatePosTerminalDto } from '@commerce/pos-terminals/dto/request/update-pos-terminal.dto';
+import type { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-response.dto';
+import type { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
 import { PosTerminalsGatewayService } from './services/pos-terminals-gateway.service';
 
 @ApiTags('Commerce - POS Terminals')

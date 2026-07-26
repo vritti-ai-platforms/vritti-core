@@ -1,15 +1,15 @@
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 
-export const modifierSelectionTypeEnum = coreSchema.enum('modifier_selection_type', ['SINGLE', 'MULTI']);
+export const modifierSelectionTypeEnum = commerceSchema.enum('modifier_selection_type', ['SINGLE', 'MULTI']);
 
-export const salesChannelKindEnum = coreSchema.enum('sales_channel_kind', [
+export const salesChannelKindEnum = commerceSchema.enum('sales_channel_kind', [
   'IN_STORE',
   'ONLINE',
   'ZOMATO',
   'SWIGGY',
   'OTHER',
 ]);
-export const fulfilmentTypeEnum = coreSchema.enum('fulfilment_type', ['STOCK', 'SERVICE', 'COMPOSITE']);
+export const fulfilmentTypeEnum = commerceSchema.enum('fulfilment_type', ['STOCK', 'SERVICE', 'COMPOSITE']);
 
 export type SalesChannelKind = (typeof salesChannelKindEnum.enumValues)[number];
 export type FulfilmentType = (typeof fulfilmentTypeEnum.enumValues)[number];
@@ -26,8 +26,8 @@ export const FulfilmentTypeValues = {
   COMPOSITE: 'COMPOSITE' as const,
 };
 
-export const orderSourceEnum = coreSchema.enum('order_source', ['ONLINE', 'WALK_IN']);
-export const orderStatusEnum = coreSchema.enum('order_status', [
+export const orderSourceEnum = commerceSchema.enum('order_source', ['ONLINE', 'WALK_IN']);
+export const orderStatusEnum = commerceSchema.enum('order_status', [
   'PENDING',
   'ACCEPTED',
   'PREPARING',
@@ -35,14 +35,14 @@ export const orderStatusEnum = coreSchema.enum('order_status', [
   'COMPLETED',
   'CANCELLED',
 ]);
-export const orderItemStatusEnum = coreSchema.enum('order_item_status', [
+export const orderItemStatusEnum = commerceSchema.enum('order_item_status', [
   'PENDING',
   'PREPARING',
   'READY',
   'SERVED',
   'CANCELLED',
 ]);
-export const paymentMethodEnum = coreSchema.enum('payment_method', [
+export const paymentMethodEnum = commerceSchema.enum('payment_method', [
   'CASH',
   'CARD',
   'UPI',
@@ -50,7 +50,7 @@ export const paymentMethodEnum = coreSchema.enum('payment_method', [
   'WALLET',
   'ONLINE',
 ]);
-export const invoiceStatusEnum = coreSchema.enum('invoice_status', [
+export const invoiceStatusEnum = commerceSchema.enum('invoice_status', [
   'DRAFT',
   'ISSUED',
   'PARTIALLY_PAID',
@@ -59,11 +59,11 @@ export const invoiceStatusEnum = coreSchema.enum('invoice_status', [
   'VOID',
 ]);
 
-export const invoiceTypeEnum = coreSchema.enum('invoice_type', ['PAYABLE', 'RECEIVABLE']);
-export const invoicePartyTypeEnum = coreSchema.enum('invoice_party_type', ['SUPPLIER', 'CUSTOMER', 'AGGREGATOR']);
-export const paymentStatusEnum = coreSchema.enum('payment_status', ['COMPLETED', 'FAILED', 'REFUNDED']);
-export const creditNoteTypeEnum = coreSchema.enum('credit_note_type', ['PAYABLE', 'RECEIVABLE']);
-export const creditNoteStatusEnum = coreSchema.enum('credit_note_status', [
+export const invoiceTypeEnum = commerceSchema.enum('invoice_type', ['PAYABLE', 'RECEIVABLE']);
+export const invoicePartyTypeEnum = commerceSchema.enum('invoice_party_type', ['SUPPLIER', 'CUSTOMER', 'AGGREGATOR']);
+export const paymentStatusEnum = commerceSchema.enum('payment_status', ['COMPLETED', 'FAILED', 'REFUNDED']);
+export const creditNoteTypeEnum = commerceSchema.enum('credit_note_type', ['PAYABLE', 'RECEIVABLE']);
+export const creditNoteStatusEnum = commerceSchema.enum('credit_note_status', [
   'DRAFT',
   'ISSUED',
   'PARTIALLY_APPLIED',
@@ -159,11 +159,11 @@ export const CreditNoteStatusValues = {
   FULLY_APPLIED: 'FULLY_APPLIED' as const,
 };
 
-export const fieldTypeEnum = coreSchema.enum('field_type', ['text', 'number', 'boolean', 'select']);
+export const fieldTypeEnum = commerceSchema.enum('field_type', ['text', 'number', 'boolean', 'select']);
 export const FieldTypeValues = { TEXT: 'text', NUMBER: 'number', BOOLEAN: 'boolean', SELECT: 'select' } as const;
 export type FieldType = (typeof fieldTypeEnum.enumValues)[number];
 
-export const locationRoleEnum = coreSchema.enum('location_role', ['STORAGE', 'RESERVED_STORAGE', 'ZONE']);
+export const locationRoleEnum = commerceSchema.enum('location_role', ['STORAGE', 'RESERVED_STORAGE', 'ZONE']);
 export const LocationRoleValues = {
   STORAGE: 'STORAGE' as const,
   RESERVED_STORAGE: 'RESERVED_STORAGE' as const,
@@ -172,14 +172,14 @@ export const LocationRoleValues = {
 export type LocationRole = (typeof locationRoleEnum.enumValues)[number];
 
 // A GROUP holds sub-categories (no items); a CATEGORY is a leaf that holds inventory items.
-export const categoryRoleEnum = coreSchema.enum('category_role', ['GROUP', 'CATEGORY']);
+export const categoryRoleEnum = commerceSchema.enum('category_role', ['GROUP', 'CATEGORY']);
 export const CategoryRoleValues = {
   GROUP: 'GROUP' as const,
   CATEGORY: 'CATEGORY' as const,
 };
 export type CategoryRole = (typeof categoryRoleEnum.enumValues)[number];
 
-export const taxIdTypeEnum = coreSchema.enum('tax_id_type', ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER']);
+export const taxIdTypeEnum = commerceSchema.enum('tax_id_type', ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER']);
 export const TaxIdTypeValues = {
   GST: 'GST' as const,
   VAT: 'VAT' as const,
@@ -189,7 +189,7 @@ export const TaxIdTypeValues = {
 };
 export type TaxIdType = (typeof taxIdTypeEnum.enumValues)[number];
 
-export const inventoryItemTypeEnum = coreSchema.enum('inventory_item_type', [
+export const inventoryItemTypeEnum = commerceSchema.enum('inventory_item_type', [
   'RAW_MATERIAL',
   'SEMI_FINISHED',
   'FINISHED_GOOD',
@@ -205,7 +205,12 @@ export const InventoryItemTypeValues = {
 };
 export type InventoryItemType = (typeof inventoryItemTypeEnum.enumValues)[number];
 
-export const inventoryTrackingEnum = coreSchema.enum('inventory_tracking', ['quantity', 'lot', 'lot_serial', 'serial']);
+export const inventoryTrackingEnum = commerceSchema.enum('inventory_tracking', [
+  'quantity',
+  'lot',
+  'lot_serial',
+  'serial',
+]);
 export const InventoryTrackingValues = {
   QUANTITY: 'quantity' as const,
   LOT: 'lot' as const,
@@ -214,7 +219,7 @@ export const InventoryTrackingValues = {
 };
 export type InventoryTracking = (typeof inventoryTrackingEnum.enumValues)[number];
 
-export const inventoryPickStrategyEnum = coreSchema.enum('inventory_pick_strategy', ['none', 'fifo', 'fefo']);
+export const inventoryPickStrategyEnum = commerceSchema.enum('inventory_pick_strategy', ['none', 'fifo', 'fefo']);
 export const InventoryPickStrategyValues = {
   NONE: 'none' as const,
   FIFO: 'fifo' as const,
@@ -222,7 +227,7 @@ export const InventoryPickStrategyValues = {
 };
 export type InventoryPickStrategy = (typeof inventoryPickStrategyEnum.enumValues)[number];
 
-export const serialStatusEnum = coreSchema.enum('quant_item_status', ['AVAILABLE', 'RESERVED', 'CONSUMED']);
+export const serialStatusEnum = commerceSchema.enum('quant_item_status', ['AVAILABLE', 'RESERVED', 'CONSUMED']);
 export const SerialStatusValues = {
   AVAILABLE: 'AVAILABLE' as const,
   RESERVED: 'RESERVED' as const,
@@ -230,7 +235,7 @@ export const SerialStatusValues = {
 };
 export type SerialStatus = (typeof serialStatusEnum.enumValues)[number];
 
-export const inventoryItemLedgerTypeEnum = coreSchema.enum('inventory_item_ledger_type', [
+export const inventoryItemLedgerTypeEnum = commerceSchema.enum('inventory_item_ledger_type', [
   'GOODS_RECEIPT',
   'ORDER_RESERVE',
   'ORDER_DEDUCT',
@@ -256,7 +261,7 @@ export const InventoryItemLedgerTypeValues = {
 };
 export type InventoryItemLedgerType = (typeof inventoryItemLedgerTypeEnum.enumValues)[number];
 
-export const inventoryItemLedgerReferenceTypeEnum = coreSchema.enum('inventory_item_ledger_reference_type', [
+export const inventoryItemLedgerReferenceTypeEnum = commerceSchema.enum('inventory_item_ledger_reference_type', [
   'GOODS_RECEIPT',
   'STOCK_ADJUSTMENT',
   'CONVERSION',
@@ -272,14 +277,14 @@ export const InventoryItemLedgerReferenceTypeValues = {
 };
 export type InventoryItemLedgerReferenceType = (typeof inventoryItemLedgerReferenceTypeEnum.enumValues)[number];
 
-export const exchangeRateTypeEnum = coreSchema.enum('exchange_rate_type', ['FIXED', 'VARIABLE']);
+export const exchangeRateTypeEnum = commerceSchema.enum('exchange_rate_type', ['FIXED', 'VARIABLE']);
 export const ExchangeRateTypeValues = {
   FIXED: 'FIXED' as const,
   VARIABLE: 'VARIABLE' as const,
 };
 export type ExchangeRateType = (typeof exchangeRateTypeEnum.enumValues)[number];
 
-export const purchaseOrderStatusEnum = coreSchema.enum('purchase_order_status', [
+export const purchaseOrderStatusEnum = commerceSchema.enum('purchase_order_status', [
   'PENDING_APPROVAL',
   'APPROVED',
   'REJECTED',
@@ -305,14 +310,14 @@ export const PurchaseOrderStatusValues = {
 };
 export type PurchaseOrderStatus = (typeof purchaseOrderStatusEnum.enumValues)[number];
 
-export const goodsReceiptStatusEnum = coreSchema.enum('goods_receipt_status', ['DRAFT', 'PUBLISHED']);
+export const goodsReceiptStatusEnum = commerceSchema.enum('goods_receipt_status', ['DRAFT', 'PUBLISHED']);
 export const GoodsReceiptStatusValues = {
   DRAFT: 'DRAFT' as const,
   PUBLISHED: 'PUBLISHED' as const,
 };
 export type GoodsReceiptStatus = (typeof goodsReceiptStatusEnum.enumValues)[number];
 
-export const conversionStatusEnum = coreSchema.enum('conversion_status', [
+export const conversionStatusEnum = commerceSchema.enum('conversion_status', [
   'DRAFT',
   'IN_PROGRESS',
   'COMPLETED',
@@ -326,7 +331,7 @@ export const ConversionStatusValues = {
 };
 export type ConversionStatus = (typeof conversionStatusEnum.enumValues)[number];
 
-export const stockAdjustmentTypeEnum = coreSchema.enum('stock_adjustment_type', [
+export const stockAdjustmentTypeEnum = commerceSchema.enum('stock_adjustment_type', [
   'WASTE',
   'DAMAGE',
   'THEFT',
@@ -344,14 +349,14 @@ export const StockAdjustmentTypeValues = {
 };
 export type StockAdjustmentType = (typeof stockAdjustmentTypeEnum.enumValues)[number];
 
-export const stockAdjustmentStatusEnum = coreSchema.enum('stock_adjustment_status', ['DRAFT', 'PUBLISHED']);
+export const stockAdjustmentStatusEnum = commerceSchema.enum('stock_adjustment_status', ['DRAFT', 'PUBLISHED']);
 export const StockAdjustmentStatusValues = {
   DRAFT: 'DRAFT' as const,
   PUBLISHED: 'PUBLISHED' as const,
 };
 export type StockAdjustmentStatus = (typeof stockAdjustmentStatusEnum.enumValues)[number];
 
-export const stockTransferStatusEnum = coreSchema.enum('stock_transfer_status', [
+export const stockTransferStatusEnum = commerceSchema.enum('stock_transfer_status', [
   'REQUESTED',
   'IN_TRANSIT',
   'RECEIVED',
@@ -365,7 +370,7 @@ export const StockTransferStatusValues = {
 };
 export type StockTransferStatus = (typeof stockTransferStatusEnum.enumValues)[number];
 
-export const orderTypeEnum = coreSchema.enum('order_type', ['DINE_IN', 'TAKEAWAY', 'DELIVERY']);
+export const orderTypeEnum = commerceSchema.enum('order_type', ['DINE_IN', 'TAKEAWAY', 'DELIVERY']);
 export const OrderTypeValues = {
   DINE_IN: 'DINE_IN' as const,
   TAKEAWAY: 'TAKEAWAY' as const,
@@ -373,7 +378,7 @@ export const OrderTypeValues = {
 };
 export type OrderType = (typeof orderTypeEnum.enumValues)[number];
 
-export const costCategoryKindEnum = coreSchema.enum('cost_category_kind', [
+export const costCategoryKindEnum = commerceSchema.enum('cost_category_kind', [
   'ITEM',
   'FREIGHT',
   'DUTY',
@@ -391,7 +396,7 @@ export const CostCategoryKindValues = {
 };
 export type CostCategoryKind = (typeof costCategoryKindEnum.enumValues)[number];
 
-export const costSourceTypeEnum = coreSchema.enum('cost_source_type', [
+export const costSourceTypeEnum = commerceSchema.enum('cost_source_type', [
   'goods_receipt',
   'stock_adjustment',
   'stock_transfer',
@@ -405,7 +410,7 @@ export const CostSourceTypeValues = {
 };
 export type CostSourceType = (typeof costSourceTypeEnum.enumValues)[number];
 
-export const costDistributionMethodEnum = coreSchema.enum('cost_distribution_method', [
+export const costDistributionMethodEnum = commerceSchema.enum('cost_distribution_method', [
   'by_value',
   'by_quantity',
   'equal',
@@ -417,7 +422,7 @@ export const CostDistributionMethodValues = {
 };
 export type CostDistributionMethod = (typeof costDistributionMethodEnum.enumValues)[number];
 
-export const taxAuthorityLevelEnum = coreSchema.enum('tax_authority_level', [
+export const taxAuthorityLevelEnum = commerceSchema.enum('tax_authority_level', [
   'FEDERAL',
   'STATE',
   'COUNTY',
@@ -433,14 +438,14 @@ export const TaxAuthorityLevelValues = {
 };
 export type TaxAuthorityLevel = (typeof taxAuthorityLevelEnum.enumValues)[number];
 
-export const partyTypeEnum = coreSchema.enum('party_type', ['PERSON', 'COMPANY']);
+export const partyTypeEnum = commerceSchema.enum('party_type', ['PERSON', 'COMPANY']);
 export const PartyTypeValues = {
   PERSON: 'PERSON' as const,
   COMPANY: 'COMPANY' as const,
 };
 export type PartyType = (typeof partyTypeEnum.enumValues)[number];
 
-export const govtIdTypeEnum = coreSchema.enum('govt_id_type', [
+export const govtIdTypeEnum = commerceSchema.enum('govt_id_type', [
   'PAN',
   'AADHAAR',
   'PASSPORT',
@@ -451,7 +456,7 @@ export const govtIdTypeEnum = coreSchema.enum('govt_id_type', [
 ]);
 export type GovtIdType = (typeof govtIdTypeEnum.enumValues)[number];
 
-export const partyIdentifierTypeEnum = coreSchema.enum('party_identifier_type', [
+export const partyIdentifierTypeEnum = commerceSchema.enum('party_identifier_type', [
   'PAN',
   'AADHAAR',
   'PASSPORT',
@@ -493,7 +498,7 @@ export function isIdentifierTypeApplicable(partyType: PartyType, idType: PartyId
   return applicable.includes(idType);
 }
 
-export const taxRegistrationTypeEnum = coreSchema.enum('tax_registration_type', [
+export const taxRegistrationTypeEnum = commerceSchema.enum('tax_registration_type', [
   'GSTIN',
   'VAT',
   'TIN',
@@ -509,7 +514,7 @@ export const TaxRegistrationTypeValues = {
 };
 export type TaxRegistrationType = (typeof taxRegistrationTypeEnum.enumValues)[number];
 
-export const taxJurisdictionLevelEnum = coreSchema.enum('tax_jurisdiction_level', [
+export const taxJurisdictionLevelEnum = commerceSchema.enum('tax_jurisdiction_level', [
   'COUNTRY',
   'STATE',
   'COUNTY',
@@ -525,7 +530,7 @@ export const TaxJurisdictionLevelValues = {
 };
 export type TaxJurisdictionLevel = (typeof taxJurisdictionLevelEnum.enumValues)[number];
 
-export const partyLicenseTypeEnum = coreSchema.enum('party_license_type', ['DRUG', 'EXCISE', 'FSSAI', 'OTHER']);
+export const partyLicenseTypeEnum = commerceSchema.enum('party_license_type', ['DRUG', 'EXCISE', 'FSSAI', 'OTHER']);
 export const PartyLicenseTypeValues = {
   DRUG: 'DRUG' as const,
   EXCISE: 'EXCISE' as const,
@@ -534,7 +539,7 @@ export const PartyLicenseTypeValues = {
 };
 export type PartyLicenseType = (typeof partyLicenseTypeEnum.enumValues)[number];
 
-export const supplierPriceSourceEnum = coreSchema.enum('supplier_price_source', ['QUOTATION', 'MANUAL', 'IMPORT']);
+export const supplierPriceSourceEnum = commerceSchema.enum('supplier_price_source', ['QUOTATION', 'MANUAL', 'IMPORT']);
 export const SupplierPriceSourceValues = {
   QUOTATION: 'QUOTATION' as const,
   MANUAL: 'MANUAL' as const,
@@ -542,7 +547,7 @@ export const SupplierPriceSourceValues = {
 };
 export type SupplierPriceSource = (typeof supplierPriceSourceEnum.enumValues)[number];
 
-export const partyFunctionTypeEnum = coreSchema.enum('party_function_type', [
+export const partyFunctionTypeEnum = commerceSchema.enum('party_function_type', [
   'REGISTERED',
   'BILLING',
   'SHIPPING',
@@ -564,14 +569,14 @@ export const PartyFunctionTypeValues = {
 };
 export type PartyFunctionType = (typeof partyFunctionTypeEnum.enumValues)[number];
 
-export const partyCommunicationChannelEnum = coreSchema.enum('party_communication_channel', ['EMAIL', 'PHONE']);
+export const partyCommunicationChannelEnum = commerceSchema.enum('party_communication_channel', ['EMAIL', 'PHONE']);
 export const PartyCommunicationChannelValues = {
   EMAIL: 'EMAIL' as const,
   PHONE: 'PHONE' as const,
 };
 export type PartyCommunicationChannel = (typeof partyCommunicationChannelEnum.enumValues)[number];
 
-export const messagingAppEnum = coreSchema.enum('messaging_app', [
+export const messagingAppEnum = commerceSchema.enum('messaging_app', [
   'WHATSAPP',
   'TELEGRAM',
   'SIGNAL',
@@ -589,7 +594,7 @@ export const MessagingAppValues = {
 };
 export type MessagingApp = (typeof messagingAppEnum.enumValues)[number];
 
-export const socialPlatformEnum = coreSchema.enum('social_platform', [
+export const socialPlatformEnum = commerceSchema.enum('social_platform', [
   'INSTAGRAM',
   'FACEBOOK',
   'LINKEDIN',

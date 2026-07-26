@@ -1,33 +1,24 @@
 import { defineConfig } from 'drizzle-kit';
 import 'dotenv/config';
+import { DB_MIGRATION_SCHEMA, DB_SCHEMA } from './src/db/schema/commerce-schema';
 
 const dbUrl = process.env.PRIMARY_DB_DATABASE_DIRECT_URL;
-const dbSchema = process.env.PRIMARY_DB_SCHEMA;
-const migrationSchema = process.env.PRIMARY_DB_MIGRATION_SCHEMA;
 
 if (!dbUrl) {
   throw new Error('PRIMARY_DB_DATABASE_DIRECT_URL environment variable is required');
-}
-
-if (!dbSchema) {
-  throw new Error('PRIMARY_DB_SCHEMA environment variable is required');
-}
-
-if (!migrationSchema) {
-  throw new Error('PRIMARY_DB_MIGRATION_SCHEMA environment variable is required');
 }
 
 export default defineConfig({
   schema: './src/db/schema/index.ts',
   out: './src/db/migrations',
   dialect: 'postgresql',
-  schemaFilter: [dbSchema],
+  schemaFilter: [DB_SCHEMA],
   dbCredentials: {
     url: dbUrl,
   },
   migrations: {
     table: '__drizzle_migrations_commerce',
-    schema: migrationSchema,
+    schema: DB_MIGRATION_SCHEMA,
   },
   verbose: true,
   strict: true,

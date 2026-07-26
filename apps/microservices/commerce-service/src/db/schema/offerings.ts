@@ -11,11 +11,11 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogs } from './catalogs';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { fulfilmentTypeEnum } from './enums';
 import { taxGroups } from './tax-groups';
 
-export const offerings = coreSchema.table(
+export const offerings = commerceSchema.table(
   'offerings',
   {
     id: uuid('id').primaryKey().defaultRandom(),

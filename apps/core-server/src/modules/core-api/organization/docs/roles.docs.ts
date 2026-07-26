@@ -1,30 +1,9 @@
 import { CreateRoleInternalDto } from '@domain/organization/dto/request/create-role-internal.dto';
-import { ProvisionRolesInternalDto } from '@domain/organization/dto/request/provision-roles-internal.dto';
 import { UpdateRoleInternalDto } from '@domain/organization/dto/request/update-role-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { RoleSelectResponseDto } from '../dto/response/role-select-response.dto';
-
-export function ApiProvisionRoles() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Bulk provision roles',
-      description:
-        'Receives bulk role provisioning from cloud-server. Creates roles rows with features stored as a jsonb array. Requires Ed25519 signature headers (x-timestamp, x-signature).',
-    }),
-    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
-    ApiHeader({
-      name: 'x-signature',
-      description: 'Ed25519 signature of the canonical request (base64)',
-      required: true,
-    }),
-    ApiBody({ type: ProvisionRolesInternalDto }),
-    ApiResponse({ status: 201, description: 'Roles provisioned successfully.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'Invalid input data or validation error.' }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-  );
-}
 
 export function ApiListRoles() {
   return applyDecorators(
@@ -81,6 +60,26 @@ export function ApiUpdateRole() {
     ApiParam({ name: 'id', description: 'Role ID' }),
     ApiBody({ type: UpdateRoleInternalDto }),
     ApiResponse({ status: 200, description: 'Role updated successfully.', type: SuccessResponseDto }),
+    ApiResponse({ status: 404, description: 'Role not found.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiResetRole() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Reset role to template',
+      description:
+        "Clears the role's custom feature and revoked deltas so it tracks its base template again. Scope, site type, code, and name are untouched.",
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiParam({ name: 'id', description: 'Role ID' }),
+    ApiResponse({ status: 200, description: 'Role reset to its template.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Role not found.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );

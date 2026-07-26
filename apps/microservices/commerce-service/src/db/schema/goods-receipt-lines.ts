@@ -1,12 +1,12 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, decimal, index, jsonb, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { goodsReceiptItems } from './goods-receipt-items';
 import { goodsReceiptLots } from './goods-receipt-lots';
 import { inventoryItemQuants } from './inventory-item-quants';
 import { locations } from './locations';
 
-export const goodsReceiptLines = coreSchema.table(
+export const goodsReceiptLines = commerceSchema.table(
   'goods_receipt_lines',
   {
     id: uuid('id').primaryKey().defaultRandom(),

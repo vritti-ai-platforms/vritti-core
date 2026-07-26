@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."cost_categories" ADD CONSTRAINT "cost_categories_code_chk" CHECK ("code" ~ '^[a-z][a-z0-9-]*$');

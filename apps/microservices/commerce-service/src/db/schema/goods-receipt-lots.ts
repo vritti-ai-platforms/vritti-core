@@ -10,11 +10,11 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { goodsReceiptItems } from './goods-receipt-items';
 import { inventoryItemLots } from './inventory-item-lots';
 
-export const goodsReceiptLots = coreSchema.table(
+export const goodsReceiptLots = commerceSchema.table(
   'goods_receipt_lots',
   {
     id: uuid('id').primaryKey().defaultRandom(),

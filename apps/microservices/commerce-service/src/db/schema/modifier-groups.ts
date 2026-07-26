@@ -13,10 +13,10 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogs } from './catalogs';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { modifierSelectionTypeEnum } from './enums';
 
-export const modifierGroups = coreSchema.table(
+export const modifierGroups = commerceSchema.table(
   'modifier_groups',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -63,7 +63,7 @@ export const modifierGroups = coreSchema.table(
 export type ModifierGroup = typeof modifierGroups.$inferSelect;
 export type NewModifierGroup = typeof modifierGroups.$inferInsert;
 
-export const modifierOptions = coreSchema.table(
+export const modifierOptions = commerceSchema.table(
   'modifier_options',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -85,7 +85,7 @@ export const modifierOptions = coreSchema.table(
 export type ModifierOption = typeof modifierOptions.$inferSelect;
 export type NewModifierOption = typeof modifierOptions.$inferInsert;
 
-export const offeringModifierGroups = coreSchema.table(
+export const offeringModifierGroups = commerceSchema.table(
   'offering_modifier_groups',
   {
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),

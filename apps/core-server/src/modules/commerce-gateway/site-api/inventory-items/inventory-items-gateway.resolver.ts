@@ -7,13 +7,13 @@ import { CreateInventoryItemInput, UpdateInventoryItemInput } from './graphql/in
 import { FeedFilterInput, FeedSearchInput, FeedSortInput } from './graphql/inventory-items-feed.input';
 import { InventoryItemConnection } from './graphql/inventory-items-feed.type';
 import { MutationResult } from './graphql/mutation-result.type';
-import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
+import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @Resolver()
 export class InventoryItemsResolver {
   private readonly logger = new Logger(InventoryItemsResolver.name);
 
-  constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
+  constructor(private readonly inventoryItemsGatewayService: SiteInventoryItemsGatewayService) {}
 
   // Keyset/cursor Relay connection for the mobile infinite feed forwarded from commerce-service.
   @RequireSession(SessionTypeValues.MOBILE)

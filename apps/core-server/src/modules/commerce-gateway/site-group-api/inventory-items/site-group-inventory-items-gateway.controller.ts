@@ -4,10 +4,10 @@ import { RequireSession } from '@vritti/api-sdk/auth';
 import { SITE_GROUP_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature } from '@/rbac/decorators';
-import { GroupMatrixQueryDto } from './dto/request/group-matrix-query.dto';
-import type { SiteGroupInventoryItemResponseDto } from './dto/response/site-group-inventory-item-response.dto';
-import type { SiteGroupItemAvailabilityResponseDto } from './dto/response/site-group-item-availability-response.dto';
-import type { SiteGroupItemLevelsResponseDto } from './dto/response/site-group-item-levels-response.dto';
+import { GroupMatrixQueryDto } from '@commerce/site-group-inventory-items/dto/request/group-matrix-query.dto';
+import type { SiteGroupInventoryItemResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-inventory-item-response.dto';
+import type { SiteGroupItemAvailabilityResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-item-availability-response.dto';
+import type { SiteGroupItemLevelsResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-item-levels-response.dto';
 import { SiteGroupInventoryItemsGatewayService } from './services/site-group-inventory-items-gateway.service';
 
 @ApiTags('Commerce - Site Group Inventory Items')

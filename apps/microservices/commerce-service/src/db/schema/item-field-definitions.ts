@@ -1,9 +1,9 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, integer, jsonb, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { fieldTypeEnum } from './enums';
 
-export const itemFieldDefinitions = coreSchema.table(
+export const itemFieldDefinitions = commerceSchema.table(
   'item_field_definitions',
   {
     id: uuid('id').primaryKey().defaultRandom(),

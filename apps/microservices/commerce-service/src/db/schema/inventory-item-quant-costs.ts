@@ -1,6 +1,6 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, index, pgPolicy, primaryKey, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { inventoryItemCosts } from './inventory-item-costs';
 import { inventoryItemQuants } from './inventory-item-quants';
 
@@ -8,7 +8,7 @@ import { inventoryItemQuants } from './inventory-item-quants';
 // portion of the cost pinned to one quant; the rows for a single quant sum to that quant's total
 // cost, and the rows for a single cost sum to (cost.total_amount − cost.unallocated_amount). Residual
 // rounding is absorbed in the allocations so the sums reconcile exactly.
-export const inventoryItemQuantCosts = coreSchema.table(
+export const inventoryItemQuantCosts = commerceSchema.table(
   'inventory_item_quant_costs',
   {
     quantId: uuid('quant_id')

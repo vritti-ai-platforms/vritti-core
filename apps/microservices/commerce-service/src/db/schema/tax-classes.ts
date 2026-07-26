@@ -1,8 +1,8 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, codeCheck, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 
-export const taxClasses = coreSchema.table(
+export const taxClasses = commerceSchema.table(
   'tax_classes',
   {
     id: uuid('id').primaryKey().defaultRandom(),

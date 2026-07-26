@@ -12,12 +12,12 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
 import { parties } from './parties';
 import { uom } from './uom';
 
-export const suppliers = coreSchema.table(
+export const suppliers = commerceSchema.table(
   'suppliers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -78,7 +78,7 @@ export const suppliers = coreSchema.table(
 export type Supplier = typeof suppliers.$inferSelect;
 export type NewSupplier = typeof suppliers.$inferInsert;
 
-export const supplierItems = coreSchema.table(
+export const supplierItems = commerceSchema.table(
   'supplier_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),

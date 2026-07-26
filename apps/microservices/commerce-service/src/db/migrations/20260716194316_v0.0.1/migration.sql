@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."tax_components" DROP COLUMN "gl_account_key";

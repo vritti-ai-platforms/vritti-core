@@ -1,10 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogs } from './catalogs';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { salesChannels } from './sales-channels';
 
-export const catalogChannels = coreSchema.table(
+export const catalogChannels = commerceSchema.table(
   'catalog_channels',
   {
     id: uuid('id').primaryKey().defaultRandom(),

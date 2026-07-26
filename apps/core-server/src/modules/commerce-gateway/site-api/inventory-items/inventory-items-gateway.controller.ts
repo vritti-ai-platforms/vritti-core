@@ -5,32 +5,32 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature } from '@/rbac/decorators';
-import { CreateInventoryItemLocationDto } from './dto/request/create-inventory-item-location.dto';
-import { EnableInventoryItemDto } from './dto/request/enable-inventory-item.dto';
-import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
-import { UpdateReorderDto } from './dto/request/update-reorder.dto';
-import type { InventoryItemLedgerTableResponseDto } from './dto/response/inventory-item-ledger-table-response.dto';
-import type { InventoryItemLocationTableResponseDto } from './dto/response/inventory-item-location-table-response.dto';
-import type { InventoryItemLotTableResponseDto } from './dto/response/inventory-item-lot-table-response.dto';
-import type { InventoryItemQuantTableResponseDto } from './dto/response/inventory-item-quant-table-response.dto';
-import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
-import type { InventoryItemStockResponseDto } from './dto/response/inventory-item-stock-response.dto';
-import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
-import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
+import { CreateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item-location.dto';
+import { EnableInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/enable-inventory-item.dto';
+import { UpdateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/update-inventory-item-location.dto';
+import { UpdateReorderDto } from '@commerce/inventory-item-sites/dto/request/update-reorder.dto';
+import type { InventoryItemLedgerTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-ledger-table-response.dto';
+import type { InventoryItemLocationTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-location-table-response.dto';
+import type { InventoryItemLotTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-lot-table-response.dto';
+import type { InventoryItemQuantTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-table-response.dto';
+import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-response.dto';
+import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
+import type { SiteInventoryItemTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-table-response.dto';
+import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Inventory Items')
 @ApiBearerAuth()
 @RequireSession(SessionTypeValues.WEB)
 @RequireFeature(SITE_INVENTORY_ITEMS.featureCode)
 @Controller('site/inventory-items')
-export class InventoryItemsGatewayController {
-  private readonly logger = new Logger(InventoryItemsGatewayController.name);
+export class SiteInventoryItemsGatewayController {
+  private readonly logger = new Logger(SiteInventoryItemsGatewayController.name);
 
-  constructor(private readonly service: InventoryItemsGatewayService) {}
+  constructor(private readonly service: SiteInventoryItemsGatewayService) {}
 
   // Returns paginated inventory items for the data table
   @Get('table')
-  getTable(@UserId() userId: string): Promise<InventoryItemTableResponseDto> {
+  getTable(@UserId() userId: string): Promise<SiteInventoryItemTableResponseDto> {
     this.logger.log('GET /commerce-api/site/inventory-items/table');
     return this.service.findForTable(userId);
   }
@@ -52,7 +52,7 @@ export class InventoryItemsGatewayController {
 
   // Returns a single inventory item
   @Get(':id')
-  findById(@Param('id') id: string): Promise<InventoryItemResponseDto> {
+  findById(@Param('id') id: string): Promise<SiteInventoryItemResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}`);
     return this.service.findById(id);
   }

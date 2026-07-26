@@ -11,14 +11,14 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { customers } from './customers';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
 import { offeringVariants } from './offering-variants';
 import { offerings } from './offerings';
 import { salesChannels } from './sales-channels';
 
-export const orders = coreSchema.table(
+export const orders = commerceSchema.table(
   'orders',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -83,7 +83,7 @@ export const orders = coreSchema.table(
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 
-export const orderItems = coreSchema.table(
+export const orderItems = commerceSchema.table(
   'order_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -114,7 +114,7 @@ export const orderItems = coreSchema.table(
 export type OrderItem = typeof orderItems.$inferSelect;
 export type NewOrderItem = typeof orderItems.$inferInsert;
 
-export const orderItemModifiers = coreSchema.table(
+export const orderItemModifiers = commerceSchema.table(
   'order_item_modifiers',
   {
     id: uuid('id').primaryKey().defaultRandom(),

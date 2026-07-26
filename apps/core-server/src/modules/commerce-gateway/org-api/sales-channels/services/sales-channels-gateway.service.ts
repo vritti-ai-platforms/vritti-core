@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateSalesChannelDto } from '../dto/request/create-sales-channel.dto';
-import type { UpdateSalesChannelDto } from '../dto/request/update-sales-channel.dto';
-import type { SalesChannelResponseDto } from '../dto/response/sales-channel-response.dto';
-import type { SalesChannelTableResponseDto } from '../dto/response/sales-channel-table-response.dto';
+import type { CreateSalesChannelDto } from '@commerce/sales-channels/dto/request/create-sales-channel.dto';
+import type { UpdateSalesChannelDto } from '@commerce/sales-channels/dto/request/update-sales-channel.dto';
+import type { SalesChannelResponseDto } from '@commerce/sales-channels/dto/response/sales-channel-response.dto';
+import type { SalesChannelTableResponseDto } from '@commerce/sales-channels/dto/response/sales-channel-table-response.dto';
 
 @Injectable()
 export class SalesChannelsGatewayService {

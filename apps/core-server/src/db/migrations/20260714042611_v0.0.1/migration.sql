@@ -1,2 +1,0 @@
-ALTER TABLE "vritti_core"."legal_entities" ADD COLUMN "sort_order" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
-ALTER TABLE "vritti_core"."site_groups" ADD COLUMN "sort_order" integer DEFAULT 0 NOT NULL;

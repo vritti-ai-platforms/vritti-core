@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, gt, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  goodsReceiptLines,
   type InventoryItemQuant,
   type InventoryItemSerial,
   type InventoryTracking,
@@ -236,7 +237,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
       .where(
         sql`${inventoryItemQuants.id} IN (
-          SELECT resolved_quant_id FROM ${sql.identifier('vritti_core')}.goods_receipt_lines
+          SELECT resolved_quant_id FROM ${goodsReceiptLines}
           WHERE goods_receipt_item_id = ${grItemId} AND resolved_quant_id IS NOT NULL
         )`,
       )

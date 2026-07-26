@@ -5,10 +5,10 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { ORG_TAX_CLASSES } from '@vritti/commerce-permissions/tax-classes';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { CreateTaxClassDto } from './dto/request/create-tax-class.dto';
-import { UpdateTaxClassDto } from './dto/request/update-tax-class.dto';
-import type { TaxClassResponseDto } from './dto/response/tax-class-response.dto';
-import type { TaxClassTableResponseDto } from './dto/response/tax-class-table-response.dto';
+import { CreateTaxClassDto } from '@commerce/tax-classes/dto/request/create-tax-class.dto';
+import { UpdateTaxClassDto } from '@commerce/tax-classes/dto/request/update-tax-class.dto';
+import type { TaxClassResponseDto } from '@commerce/tax-classes/dto/response/tax-class-response.dto';
+import type { TaxClassTableResponseDto } from '@commerce/tax-classes/dto/response/tax-class-table-response.dto';
 import { TaxClassesGatewayService } from './services/tax-classes-gateway.service';
 
 @ApiTags('Commerce - Tax Classes')

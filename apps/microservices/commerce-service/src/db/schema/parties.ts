@@ -12,7 +12,7 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import {
   messagingAppEnum,
   partyCommunicationChannelEnum,
@@ -25,7 +25,7 @@ import {
 } from './enums';
 import { taxJurisdictions } from './tax-jurisdictions';
 
-export const parties = coreSchema.table(
+export const parties = commerceSchema.table(
   'parties',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -56,7 +56,7 @@ export const parties = coreSchema.table(
 export type Party = typeof parties.$inferSelect;
 export type NewParty = typeof parties.$inferInsert;
 
-export const partyAddresses = coreSchema.table(
+export const partyAddresses = commerceSchema.table(
   'party_addresses',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -90,7 +90,7 @@ export const partyAddresses = coreSchema.table(
 export type PartyAddress = typeof partyAddresses.$inferSelect;
 export type NewPartyAddress = typeof partyAddresses.$inferInsert;
 
-export const partyIdentifiers = coreSchema.table(
+export const partyIdentifiers = commerceSchema.table(
   'party_identifiers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -122,7 +122,7 @@ export const partyIdentifiers = coreSchema.table(
 export type PartyIdentifier = typeof partyIdentifiers.$inferSelect;
 export type NewPartyIdentifier = typeof partyIdentifiers.$inferInsert;
 
-export const partyRelationships = coreSchema.table(
+export const partyRelationships = commerceSchema.table(
   'party_relationships',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -155,7 +155,7 @@ export const partyRelationships = coreSchema.table(
 export type PartyRelationship = typeof partyRelationships.$inferSelect;
 export type NewPartyRelationship = typeof partyRelationships.$inferInsert;
 
-export const partyTaxRegistrations = coreSchema.table(
+export const partyTaxRegistrations = commerceSchema.table(
   'party_tax_registrations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -190,7 +190,7 @@ export const partyTaxRegistrations = coreSchema.table(
 export type PartyTaxRegistration = typeof partyTaxRegistrations.$inferSelect;
 export type NewPartyTaxRegistration = typeof partyTaxRegistrations.$inferInsert;
 
-export const partyLicenses = coreSchema.table(
+export const partyLicenses = commerceSchema.table(
   'party_licenses',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -223,7 +223,7 @@ export const partyLicenses = coreSchema.table(
 export type PartyLicense = typeof partyLicenses.$inferSelect;
 export type NewPartyLicense = typeof partyLicenses.$inferInsert;
 
-export const partyBankAccounts = coreSchema.table(
+export const partyBankAccounts = commerceSchema.table(
   'party_bank_accounts',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -258,7 +258,7 @@ export const partyBankAccounts = coreSchema.table(
 export type PartyBankAccount = typeof partyBankAccounts.$inferSelect;
 export type NewPartyBankAccount = typeof partyBankAccounts.$inferInsert;
 
-export const partyCommunications = coreSchema.table(
+export const partyCommunications = commerceSchema.table(
   'party_communications',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -291,7 +291,7 @@ export type PartyCommunication = typeof partyCommunications.$inferSelect;
 export type NewPartyCommunication = typeof partyCommunications.$inferInsert;
 
 // Messaging apps reachable on a PHONE communication (WhatsApp/Telegram/… ride on the number)
-export const partyCommunicationApps = coreSchema.table(
+export const partyCommunicationApps = commerceSchema.table(
   'party_communication_apps',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -321,7 +321,7 @@ export type PartyCommunicationApp = typeof partyCommunicationApps.$inferSelect;
 export type NewPartyCommunicationApp = typeof partyCommunicationApps.$inferInsert;
 
 // Social / web presence profiles of a party (Instagram, Facebook, LinkedIn, …) — handle/URL, no primary
-export const partySocialProfiles = coreSchema.table(
+export const partySocialProfiles = commerceSchema.table(
   'party_social_profiles',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -349,7 +349,7 @@ export const partySocialProfiles = coreSchema.table(
 export type PartySocialProfile = typeof partySocialProfiles.$inferSelect;
 export type NewPartySocialProfile = typeof partySocialProfiles.$inferInsert;
 
-export const partyFunctions = coreSchema.table(
+export const partyFunctions = commerceSchema.table(
   'party_functions',
   {
     id: uuid('id').primaryKey().defaultRandom(),

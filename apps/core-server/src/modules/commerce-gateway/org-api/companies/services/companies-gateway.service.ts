@@ -7,41 +7,41 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { AddCompanyPersonDto } from '../dto/request/add-company-person.dto';
-import type { AddPartyAddressDto } from '../dto/request/add-party-address.dto';
-import type { AddPartyIdentifierDto } from '../dto/request/add-party-identifier.dto';
-import type { CreateCompanyDto } from '../dto/request/create-company.dto';
-import type { CreateCompanyRegistrationDto } from '../dto/request/create-company-registration.dto';
-import type { CreatePartyBankAccountDto } from '../dto/request/create-party-bank-account.dto';
-import type { CreatePartyCommunicationDto } from '../dto/request/create-party-communication.dto';
-import type { CreatePartyLicenseDto } from '../dto/request/create-party-license.dto';
-import type { CreatePartySocialProfileDto } from '../dto/request/create-party-social-profile.dto';
-import type { UpdateCompanyDto } from '../dto/request/update-company.dto';
-import type { UpdateCompanyPersonDto } from '../dto/request/update-company-person.dto';
-import type { UpdateCompanyRegistrationDto } from '../dto/request/update-company-registration.dto';
-import type { UpdatePartyAddressDto } from '../dto/request/update-party-address.dto';
-import type { UpdatePartyBankAccountDto } from '../dto/request/update-party-bank-account.dto';
-import type { UpdatePartyCommunicationDto } from '../dto/request/update-party-communication.dto';
-import type { UpdatePartyLicenseDto } from '../dto/request/update-party-license.dto';
-import type { UpdatePartySocialProfileDto } from '../dto/request/update-party-social-profile.dto';
-import type { CompanyPersonResponseDto } from '../dto/response/company-person-response.dto';
-import type { CompanyPersonTableResponseDto } from '../dto/response/company-person-table-response.dto';
-import type { CompanyRegistrationResponseDto } from '../dto/response/company-registration-response.dto';
-import type { CompanyRegistrationTableResponseDto } from '../dto/response/company-registration-table-response.dto';
-import type { CompanyResponseDto } from '../dto/response/company-response.dto';
-import type { CompanyTableResponseDto } from '../dto/response/company-table-response.dto';
-import type { PartyAddressResponseDto } from '../dto/response/party-address-response.dto';
-import type { PartyAddressTableResponseDto } from '../dto/response/party-address-table-response.dto';
-import type { PartyBankAccountResponseDto } from '../dto/response/party-bank-account-response.dto';
-import type { PartyBankAccountTableResponseDto } from '../dto/response/party-bank-account-table-response.dto';
-import type { PartyCommunicationResponseDto } from '../dto/response/party-communication-response.dto';
-import type { PartyCommunicationTableResponseDto } from '../dto/response/party-communication-table-response.dto';
-import type { PartyIdentifierResponseDto } from '../dto/response/party-identifier-response.dto';
-import type { PartyIdentifierTableResponseDto } from '../dto/response/party-identifier-table-response.dto';
-import type { PartyLicenseResponseDto } from '../dto/response/party-license-response.dto';
-import type { PartyLicenseTableResponseDto } from '../dto/response/party-license-table-response.dto';
-import type { PartySocialProfileResponseDto } from '../dto/response/party-social-profile-response.dto';
-import type { PartySocialProfileTableResponseDto } from '../dto/response/party-social-profile-table-response.dto';
+import type { AddCompanyPersonDto } from '@commerce/party-relationships/dto/request/add-company-person.dto';
+import type { AddCompanyAddressDto } from '@commerce/party-addresses/dto/request/add-company-address.dto';
+import type { AddCompanyIdentifierDto } from '@commerce/party-identifiers/dto/request/add-company-identifier.dto';
+import type { CreateCompanyDto } from '@commerce/parties/dto/request/create-company.dto';
+import type { CreateCompanyRegistrationDto } from '@commerce/parties/dto/request/create-company-registration.dto';
+import type { CreateCompanyBankAccountDto } from '@commerce/party-bank-accounts/dto/request/create-company-bank-account.dto';
+import type { CreateCompanyCommunicationDto } from '@commerce/party-communications/dto/request/create-company-communication.dto';
+import type { CreateCompanyLicenseDto } from '@commerce/party-licenses/dto/request/create-company-license.dto';
+import type { CreateCompanySocialProfileDto } from '@commerce/party-social-profiles/dto/request/create-company-social-profile.dto';
+import type { UpdateCompanyDto } from '@commerce/parties/dto/request/update-company.dto';
+import type { UpdateCompanyPersonDto } from '@commerce/party-relationships/dto/request/update-company-person.dto';
+import type { UpdateCompanyRegistrationDto } from '@commerce/parties/dto/request/update-company-registration.dto';
+import type { UpdateCompanyAddressDto } from '@commerce/party-addresses/dto/request/update-company-address.dto';
+import type { UpdateCompanyBankAccountDto } from '@commerce/party-bank-accounts/dto/request/update-company-bank-account.dto';
+import type { UpdateCompanyCommunicationDto } from '@commerce/party-communications/dto/request/update-company-communication.dto';
+import type { UpdateCompanyLicenseDto } from '@commerce/party-licenses/dto/request/update-company-license.dto';
+import type { UpdateCompanySocialProfileDto } from '@commerce/party-social-profiles/dto/request/update-company-social-profile.dto';
+import type { CompanyPersonResponseDto } from '@commerce/party-relationships/dto/response/company-person-response.dto';
+import type { CompanyPersonTableResponseDto } from '@commerce/party-relationships/dto/response/company-person-table-response.dto';
+import type { CompanyRegistrationResponseDto } from '@commerce/parties/dto/response/company-registration-response.dto';
+import type { CompanyRegistrationTableResponseDto } from '@commerce/parties/dto/response/company-registration-table-response.dto';
+import type { CompanyResponseDto } from '@commerce/parties/dto/response/company-response.dto';
+import type { CompanyTableResponseDto } from '@commerce/parties/dto/response/company-table-response.dto';
+import type { PartyAddressResponseDto } from '@commerce/party-addresses/dto/response/party-address-response.dto';
+import type { PartyAddressTableResponseDto } from '@commerce/party-addresses/dto/response/party-address-table-response.dto';
+import type { PartyBankAccountResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-response.dto';
+import type { PartyBankAccountTableResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-table-response.dto';
+import type { PartyCommunicationResponseDto } from '@commerce/party-communications/dto/response/party-communication-response.dto';
+import type { PartyCommunicationTableResponseDto } from '@commerce/party-communications/dto/response/party-communication-table-response.dto';
+import type { PartyIdentifierResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-response.dto';
+import type { PartyIdentifierTableResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-table-response.dto';
+import type { PartyLicenseResponseDto } from '@commerce/party-licenses/dto/response/party-license-response.dto';
+import type { PartyLicenseTableResponseDto } from '@commerce/party-licenses/dto/response/party-license-table-response.dto';
+import type { PartySocialProfileResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-response.dto';
+import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
 
 @Injectable()
 export class CompaniesGatewayService {
@@ -187,7 +187,7 @@ export class CompaniesGatewayService {
   }
 
   // Adds an identifier to a company
-  addIdentifier(companyId: string, dto: AddPartyIdentifierDto): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
+  addIdentifier(companyId: string, dto: AddCompanyIdentifierDto): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
     this.logger.log(`org.companies.identifiers.add — companyId: ${companyId}, idType: ${dto.idType}`);
     return this.nats.send('commerce', 'org.companies.identifiers.add', { companyId, ...dto });
   }
@@ -216,13 +216,13 @@ export class CompaniesGatewayService {
   }
 
   // Adds an address to a company
-  addAddress(companyId: string, dto: AddPartyAddressDto): Promise<CreateResponseDto<PartyAddressResponseDto>> {
+  addAddress(companyId: string, dto: AddCompanyAddressDto): Promise<CreateResponseDto<PartyAddressResponseDto>> {
     this.logger.log(`org.companies.addresses.add — companyId: ${companyId}`);
     return this.nats.send('commerce', 'org.companies.addresses.add', { companyId, ...dto });
   }
 
   // Updates an address of a company by ID
-  updateAddress(addressId: string, dto: UpdatePartyAddressDto): Promise<SuccessResponseDto> {
+  updateAddress(addressId: string, dto: UpdateCompanyAddressDto): Promise<SuccessResponseDto> {
     this.logger.log(`org.companies.addresses.update — id: ${addressId}`);
     return this.nats.send('commerce', 'org.companies.addresses.update', { id: addressId, ...dto });
   }
@@ -251,13 +251,13 @@ export class CompaniesGatewayService {
   }
 
   // Creates a license for a company
-  createLicense(companyId: string, dto: CreatePartyLicenseDto): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
+  createLicense(companyId: string, dto: CreateCompanyLicenseDto): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
     this.logger.log(`org.companies.licenses.create — companyId: ${companyId}, licenseType: ${dto.licenseType}`);
     return this.nats.send('commerce', 'org.companies.licenses.create', { companyId, ...dto });
   }
 
   // Updates a license by ID
-  updateLicense(licenseId: string, dto: UpdatePartyLicenseDto): Promise<SuccessResponseDto> {
+  updateLicense(licenseId: string, dto: UpdateCompanyLicenseDto): Promise<SuccessResponseDto> {
     this.logger.log(`org.companies.licenses.update — id: ${licenseId}`);
     return this.nats.send('commerce', 'org.companies.licenses.update', { id: licenseId, ...dto });
   }
@@ -288,14 +288,14 @@ export class CompaniesGatewayService {
   // Creates a bank account for a company
   createBankAccount(
     companyId: string,
-    dto: CreatePartyBankAccountDto,
+    dto: CreateCompanyBankAccountDto,
   ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
     this.logger.log(`org.companies.bankAccounts.create — companyId: ${companyId}, accountName: ${dto.accountName}`);
     return this.nats.send('commerce', 'org.companies.bankAccounts.create', { companyId, ...dto });
   }
 
   // Updates a bank account by ID
-  updateBankAccount(accountId: string, dto: UpdatePartyBankAccountDto): Promise<SuccessResponseDto> {
+  updateBankAccount(accountId: string, dto: UpdateCompanyBankAccountDto): Promise<SuccessResponseDto> {
     this.logger.log(`org.companies.bankAccounts.update — id: ${accountId}`);
     return this.nats.send('commerce', 'org.companies.bankAccounts.update', { id: accountId, ...dto });
   }
@@ -326,14 +326,14 @@ export class CompaniesGatewayService {
   // Creates a communication for a company
   createCommunication(
     companyId: string,
-    dto: CreatePartyCommunicationDto,
+    dto: CreateCompanyCommunicationDto,
   ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
     this.logger.log(`org.companies.communications.create — companyId: ${companyId}, channel: ${dto.channel}`);
     return this.nats.send('commerce', 'org.companies.communications.create', { companyId, ...dto });
   }
 
   // Updates a communication by ID
-  updateCommunication(communicationId: string, dto: UpdatePartyCommunicationDto): Promise<SuccessResponseDto> {
+  updateCommunication(communicationId: string, dto: UpdateCompanyCommunicationDto): Promise<SuccessResponseDto> {
     this.logger.log(`org.companies.communications.update — id: ${communicationId}`);
     return this.nats.send('commerce', 'org.companies.communications.update', { id: communicationId, ...dto });
   }
@@ -364,14 +364,14 @@ export class CompaniesGatewayService {
   // Creates a social profile for a company
   createSocialProfile(
     companyId: string,
-    dto: CreatePartySocialProfileDto,
+    dto: CreateCompanySocialProfileDto,
   ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
     this.logger.log(`org.companies.socialProfiles.create — companyId: ${companyId}, platform: ${dto.platform}`);
     return this.nats.send('commerce', 'org.companies.socialProfiles.create', { companyId, ...dto });
   }
 
   // Updates a social profile by ID
-  updateSocialProfile(profileId: string, dto: UpdatePartySocialProfileDto): Promise<SuccessResponseDto> {
+  updateSocialProfile(profileId: string, dto: UpdateCompanySocialProfileDto): Promise<SuccessResponseDto> {
     this.logger.log(`org.companies.socialProfiles.update — id: ${profileId}`);
     return this.nats.send('commerce', 'org.companies.socialProfiles.update', { id: profileId, ...dto });
   }

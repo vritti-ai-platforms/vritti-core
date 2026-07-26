@@ -1,10 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { text, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 import { itemFieldDefinitions } from './item-field-definitions';
 import { offerings } from './offerings';
 
-export const itemFieldValues = coreSchema.table(
+export const itemFieldValues = commerceSchema.table(
   'item_field_values',
   {
     id: uuid('id').primaryKey().defaultRandom(),

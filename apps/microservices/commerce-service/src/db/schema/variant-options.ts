@@ -1,9 +1,9 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, integer, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogs } from './catalogs';
-import { coreSchema } from './core-schema';
+import { commerceSchema } from './commerce-schema';
 
-export const variantOptions = coreSchema.table(
+export const variantOptions = commerceSchema.table(
   'variant_options',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -32,7 +32,7 @@ export const variantOptions = coreSchema.table(
 export type VariantOption = typeof variantOptions.$inferSelect;
 export type NewVariantOption = typeof variantOptions.$inferInsert;
 
-export const variantOptionValues = coreSchema.table(
+export const variantOptionValues = commerceSchema.table(
   'variant_option_values',
   {
     id: uuid('id').primaryKey().defaultRandom(),

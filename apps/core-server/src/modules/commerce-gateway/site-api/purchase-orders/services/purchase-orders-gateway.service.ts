@@ -6,20 +6,20 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import type { GoodsReceiptResponseDto } from '@/modules/commerce-gateway/site-api/goods-receipts/dto/response/goods-receipt-response.dto';
-import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/site-api/goods-receipts/dto/response/goods-receipt-table-response.dto';
+import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-response.dto';
+import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
 import { SiteDomainService } from '@/modules/domain/site/services/site.service';
-import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
-import type { ChangePurchaseOrderExchangeRateDto } from '../dto/request/change-purchase-order-exchange-rate.dto';
-import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
-import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
-import type { SendPurchaseOrderEmailDto } from '../dto/request/send-purchase-order-email.dto';
-import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
-import type { UpdatePurchaseOrderNotesDto } from '../dto/request/update-purchase-order-notes.dto';
-import type { PurchaseOrderItemResponseDto } from '../dto/response/purchase-order-item-response.dto';
-import type { PurchaseOrderItemTableResponseDto } from '../dto/response/purchase-order-item-table-response.dto';
-import type { PurchaseOrderResponseDto } from '../dto/response/purchase-order-response.dto';
-import type { PurchaseOrderTableResponseDto } from '../dto/response/purchase-order-table-response.dto';
+import type { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/add-purchase-order-item.dto';
+import type { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
+import type { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
+import type { CreatePurchaseOrderDto } from '@commerce/purchase-orders/dto/request/create-purchase-order.dto';
+import type { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/request/send-purchase-order-email.dto';
+import type { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
+import type { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
+import type { PurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-response.dto';
+import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
+import type { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
+import type { PurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-table-response.dto';
 import {
   buildPurchaseOrderEmailHtml,
   buildPurchaseOrderEmailText,

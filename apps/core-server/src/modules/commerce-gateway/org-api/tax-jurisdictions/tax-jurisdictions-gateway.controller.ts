@@ -18,13 +18,13 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { ORG_TAX_JURISDICTIONS } from '@vritti/commerce-permissions/tax-jurisdictions';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { CreateTaxJurisdictionDto } from './dto/request/create-tax-jurisdiction.dto';
-import { TaxJurisdictionTreeQueryDto } from './dto/request/tax-jurisdiction-tree-query.dto';
-import { UpdateTaxJurisdictionDto } from './dto/request/update-tax-jurisdiction.dto';
-import type { TaxJurisdictionChildrenTableResponseDto } from './dto/response/tax-jurisdiction-children-table-response.dto';
-import type { TaxJurisdictionCountResponseDto } from './dto/response/tax-jurisdiction-count-response.dto';
-import type { TaxJurisdictionResponseDto } from './dto/response/tax-jurisdiction-response.dto';
-import type { TaxJurisdictionTreeResponseDto } from './dto/response/tax-jurisdiction-tree-response.dto';
+import { CreateTaxJurisdictionDto } from '@commerce/tax-jurisdictions/dto/request/create-tax-jurisdiction.dto';
+import { TaxJurisdictionTreeQueryDto } from '@commerce/tax-jurisdictions/dto/request/tax-jurisdiction-tree-query.dto';
+import { UpdateTaxJurisdictionDto } from '@commerce/tax-jurisdictions/dto/request/update-tax-jurisdiction.dto';
+import type { TaxJurisdictionChildrenTableResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-children-table-response.dto';
+import type { TaxJurisdictionCountResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-count-response.dto';
+import type { TaxJurisdictionResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-response.dto';
+import type { TaxJurisdictionTreeResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-tree-response.dto';
 import { TaxJurisdictionsGatewayService } from './services/tax-jurisdictions-gateway.service';
 
 @ApiTags('Commerce - Tax Jurisdictions')
