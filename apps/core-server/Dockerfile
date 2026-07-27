@@ -11,7 +11,10 @@ RUN npm install -g pnpm@10.28.0
 COPY . .
 RUN pnpm install --frozen-lockfile
 
-# Build only this project — output lands in apps/core-server/dist
+# Build the workspace-only permissions lib (no nx project) plus this app.
+# Its compiled dist is hand-copied into the production node_modules below,
+# because npm can't resolve the "workspace:*" range it's pinned at.
+RUN pnpm --filter @vritti/commerce-permissions build
 RUN pnpm exec nx build vritti-core-server
 
 # ============================================================================
@@ -24,9 +27,16 @@ ENV PORT=3002
 RUN apk add --no-cache wget
 
 COPY --from=builder /repo/apps/core-server/package.json ./package.json
-RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+# @vritti/commerce-permissions is a private workspace lib pinned at "workspace:*",
+# which npm can't resolve. Drop it before install and copy its built output in
+# from the builder (it has no runtime deps of its own).
+RUN node -e "const fs=require('fs'),p=require('./package.json');delete p.dependencies['@vritti/commerce-permissions'];fs.writeFileSync('./package.json',JSON.stringify(p,null,2));" \
+ && apk add --no-cache --virtual .build-deps python3 make g++ \
  && npm install --omit=dev --no-audit --no-fund \
  && apk del .build-deps
+
+COPY --from=builder /repo/libs/commerce-permissions/package.json ./node_modules/@vritti/commerce-permissions/package.json
+COPY --from=builder /repo/libs/commerce-permissions/dist ./node_modules/@vritti/commerce-permissions/dist
 
 COPY --from=builder /repo/apps/core-server/dist ./dist
 # SQL migration files aren't compiled by SWC — copy them next to dist/db/migrate.js for `db:deploy`.
