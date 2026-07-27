@@ -1,14 +1,14 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/TreeView';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Building2, Globe, Landmark, type LucideIcon, Map, MapPin } from 'lucide-react';
+import { Building2, Globe, Landmark, type LucideIcon, Map as MapIcon, MapPin } from 'lucide-react';
 import type React from 'react';
 import { type TaxJurisdictionLevel, TaxJurisdictionLevelValues } from '@/schemas/tax-jurisdictions';
 
 // Static icon per jurisdiction level, broad to narrow.
 export const JURISDICTION_LEVEL_ICON: Record<TaxJurisdictionLevel, LucideIcon> = {
   [TaxJurisdictionLevelValues.COUNTRY]: Globe,
-  [TaxJurisdictionLevelValues.STATE]: Map,
+  [TaxJurisdictionLevelValues.STATE]: MapIcon,
   [TaxJurisdictionLevelValues.COUNTY]: Landmark,
   [TaxJurisdictionLevelValues.CITY]: Building2,
   [TaxJurisdictionLevelValues.DISTRICT]: MapPin,
@@ -18,7 +18,7 @@ export const JURISDICTION_LEVEL_ICON: Record<TaxJurisdictionLevel, LucideIcon> =
 export const JurisdictionRow: React.FC<TreeRenderItemParams> = ({ item }) => {
   const node = item as TreeDataItem & { level?: TaxJurisdictionLevel };
   const childCount = node.children?.length ?? 0;
-  const Icon = node.level ? JURISDICTION_LEVEL_ICON[node.level] : Map;
+  const Icon = node.level ? JURISDICTION_LEVEL_ICON[node.level] : MapIcon;
 
   return (
     <div className="flex items-center gap-1.5 flex-1 min-w-0">

@@ -2,7 +2,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { PageContentPanel } from '@vritti/quantum-ui/PageContent';
 import { SearchBar } from '@vritti/quantum-ui/SearchBar';
 import { TreeView } from '@vritti/quantum-ui/TreeView';
-import { Map } from 'lucide-react';
+import { Map as MapIcon } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { useTaxJurisdictionTree } from '@/hooks/organization/tax-jurisdictions';
@@ -25,7 +25,7 @@ export const JurisdictionTreePanel: React.FC<JurisdictionTreePanelProps> = ({ se
       isEmpty={treeData.length === 0}
       emptyState={
         <Empty
-          icon={<Map />}
+          icon={<MapIcon />}
           title={searchQuery ? 'No results' : 'No jurisdictions'}
           description={searchQuery ? 'Try a different search term' : 'Add a jurisdiction to get started'}
         />
@@ -37,8 +37,8 @@ export const JurisdictionTreePanel: React.FC<JurisdictionTreePanelProps> = ({ se
         selectedItemId={selectedId}
         onSelectChange={(item) => onSelect(item?.id ?? null)}
         renderItem={(params) => <JurisdictionRow {...params} />}
-        defaultNodeIcon={Map}
-        defaultLeafIcon={Map}
+        defaultNodeIcon={MapIcon}
+        defaultLeafIcon={MapIcon}
       />
     </PageContentPanel>
   );

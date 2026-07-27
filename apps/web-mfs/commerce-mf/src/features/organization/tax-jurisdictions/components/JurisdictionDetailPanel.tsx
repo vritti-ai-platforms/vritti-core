@@ -9,7 +9,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Eye, Map, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, Map as MapIcon, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import {
@@ -42,7 +42,7 @@ export const JurisdictionDetailPanel: React.FC<JurisdictionDetailPanelProps> = (
       isEmpty={!jurisdictionId}
       emptyState={
         <Empty
-          icon={<Map />}
+          icon={<MapIcon />}
           title="Select a jurisdiction"
           description="Click a jurisdiction in the tree to view its details"
         />
@@ -214,7 +214,7 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
             ),
           }}
           emptyStateConfig={{
-            icon: Map,
+            icon: MapIcon,
             title: 'No child jurisdictions',
             description: 'This jurisdiction has no direct children.',
           }}
@@ -223,7 +223,7 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
 
       <Dialog
         handle={addChildDialog}
-        icon={Map}
+        icon={MapIcon}
         title="Add Child Jurisdiction"
         description={`Add a child jurisdiction under "${jurisdiction.name}".`}
         content={(close) => (
@@ -241,7 +241,7 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
 
       <Dialog
         handle={editDialog}
-        icon={Map}
+        icon={MapIcon}
         title="Edit Jurisdiction"
         description="Update the details for this jurisdiction."
         content={(close) => <EditJurisdictionDialog jurisdiction={jurisdiction} onSuccess={close} onCancel={close} />}

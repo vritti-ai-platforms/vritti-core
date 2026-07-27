@@ -6,7 +6,7 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { PermissionGate } from '@vritti/quantum-ui/PermissionGate';
-import { Map, Plus } from 'lucide-react';
+import { Map as MapIcon, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { TAX_JURISDICTIONS_KEY, useTaxJurisdictionCount } from '@/hooks/organization/tax-jurisdictions';
 import { JurisdictionDetailPanel, JurisdictionTreePanel } from './components';
@@ -47,7 +47,7 @@ export const TaxJurisdictionsPage = () => {
 
       <Dialog
         handle={formDialog}
-        icon={Map}
+        icon={MapIcon}
         title="Add Jurisdiction"
         description="Enter the details for the new tax jurisdiction."
         content={(close) => (
