@@ -176,6 +176,13 @@ class EnvironmentVariables {
   @Min(60)
   MEDIA_SIGNED_URL_EXPIRY: number;
 
+  // Gitea (self-hosted git service)
+  @IsString()
+  GITEA_BASE_URL: string;
+
+  @IsString()
+  GITEA_ADMIN_TOKEN: string;
+
   // Email / Brevo
   @IsString()
   @IsOptional()

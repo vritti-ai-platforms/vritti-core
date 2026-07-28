@@ -5,21 +5,75 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./uom": { "types": "./dist/uom.d.ts", "default": "./dist/uom.js" },
-    "./categories": { "types": "./dist/categories.d.ts", "default": "./dist/categories.js" },
-    "./companies": { "types": "./dist/companies.d.ts", "default": "./dist/companies.js" },
-    "./people": { "types": "./dist/people.d.ts", "default": "./dist/people.js" },
-    "./inventory-items": { "types": "./dist/inventory-items.d.ts", "default": "./dist/inventory-items.js" },
-    "./suppliers": { "types": "./dist/suppliers.d.ts", "default": "./dist/suppliers.js" },
-    "./sales-channels": { "types": "./dist/sales-channels.d.ts", "default": "./dist/sales-channels.js" },
-    "./locations": { "types": "./dist/locations.d.ts", "default": "./dist/locations.js" },
-    "./tax-classes": { "types": "./dist/tax-classes.d.ts", "default": "./dist/tax-classes.js" },
-    "./tax-components": { "types": "./dist/tax-components.d.ts", "default": "./dist/tax-components.js" },
-    "./tax-jurisdictions": { "types": "./dist/tax-jurisdictions.d.ts", "default": "./dist/tax-jurisdictions.js" },
-    "./tax-groups": { "types": "./dist/tax-groups.d.ts", "default": "./dist/tax-groups.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./uom": {
+      "types": "./dist/uom.d.ts",
+      "default": "./dist/uom.js"
+    },
+    "./categories": {
+      "types": "./dist/categories.d.ts",
+      "default": "./dist/categories.js"
+    },
+    "./companies": {
+      "types": "./dist/companies.d.ts",
+      "default": "./dist/companies.js"
+    },
+    "./people": {
+      "types": "./dist/people.d.ts",
+      "default": "./dist/people.js"
+    },
+    "./inventory-items": {
+      "types": "./dist/inventory-items.d.ts",
+      "default": "./dist/inventory-items.js"
+    },
+    "./suppliers": {
+      "types": "./dist/suppliers.d.ts",
+      "default": "./dist/suppliers.js"
+    },
+    "./sales-channels": {
+      "types": "./dist/sales-channels.d.ts",
+      "default": "./dist/sales-channels.js"
+    },
+    "./locations": {
+      "types": "./dist/locations.d.ts",
+      "default": "./dist/locations.js"
+    },
+    "./tax-classes": {
+      "types": "./dist/tax-classes.d.ts",
+      "default": "./dist/tax-classes.js"
+    },
+    "./tax-components": {
+      "types": "./dist/tax-components.d.ts",
+      "default": "./dist/tax-components.js"
+    },
+    "./tax-jurisdictions": {
+      "types": "./dist/tax-jurisdictions.d.ts",
+      "default": "./dist/tax-jurisdictions.js"
+    },
+    "./tax-groups": {
+      "types": "./dist/tax-groups.d.ts",
+      "default": "./dist/tax-groups.js"
+    },
+    "./organisation": {
+      "types": "./dist/organisation.d.ts",
+      "default": "./dist/organisation.js"
+    },
+    "./repositories": {
+      "types": "./dist/repositories.d.ts",
+      "default": "./dist/repositories.js"
+    }
   },
-  "files": ["dist"],
-  "scripts": { "build": "tsc -p tsconfig.json", "clean": "rm -rf dist" },
-  "devDependencies": { "typescript": "^6.0.3" }
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
 }

@@ -21763,6 +21763,275 @@
           "Commerce - Select"
         ]
       }
+    },
+    "/gitea-api/organization": {
+      "get": {
+        "operationId": "OrganizationGatewayController_getStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Organisation"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationGatewayController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Organisation"
+        ]
+      }
+    },
+    "/gitea-api/repositories": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "One-based page number",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size (Gitea caps a page at 50)",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      },
+      "post": {
+        "operationId": "RepositoriesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRepositoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_findOne",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      },
+      "delete": {
+        "operationId": "RepositoriesGatewayController_remove",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/stats": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_getStats",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ref",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/branches": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_listBranches",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/contents": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_getContents",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "path",
+            "required": false,
+            "in": "query",
+            "description": "Repository-relative path; empty means the root",
+            "schema": {
+              "example": "src/components",
+              "type": "string"
+            }
+          },
+          {
+            "name": "ref",
+            "required": false,
+            "in": "query",
+            "description": "Branch, tag or commit; defaults to the repository's default branch",
+            "schema": {
+              "example": "main",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
     }
   },
   "info": {
@@ -30104,6 +30373,27 @@
             "description": "Updated count of this UOM in the ratio"
           }
         }
+      },
+      "CreateRepositoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "billing-service"
+          },
+          "description": {
+            "type": "string",
+            "example": "Invoicing and payment runs"
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "default": true,
+            "description": "Repositories are private unless opted out"
+          }
+        },
+        "required": [
+          "name"
+        ]
       }
     }
   }

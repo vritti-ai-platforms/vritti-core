@@ -41,6 +41,7 @@ import { UserDomainModule } from './modules/domain/user/user.module';
 import { UserPermissionsDomainModule } from './modules/domain/user-permissions/user-permissions.module';
 import { UserRoleDomainModule } from './modules/domain/user-role/user-role.module';
 import { VerificationDomainModule } from './modules/domain/verification/verification.module';
+import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module';
 
 @Module({
   imports: [
@@ -256,7 +257,10 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     AccountModule,
     // Forwards requests to commerce-service via NATS
     CommerceGatewayModule,
+    // Forwards requests to the self-hosted Gitea instance over HTTP
+    GiteaGatewayModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
+    RouterModule.register([{ path: 'gitea-api', module: GiteaGatewayModule }]),
     RouterModule.register([{ path: 'account', module: AccountModule }]),
   ],
 })

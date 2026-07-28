@@ -21,6 +21,9 @@ if (isDev && parsed.PUBLIC_CLOUD_MF_PORT) {
 if (isDev && parsed.PUBLIC_COMMERCE_MF_PORT) {
   devRemotes.commerce = `commerce@${protocol}://${host}:${parsed.PUBLIC_COMMERCE_MF_PORT}/mf-manifest.json`;
 }
+if (isDev && parsed.PUBLIC_GITEA_MF_PORT) {
+  devRemotes.gitea = `gitea@${protocol}://${host}:${parsed.PUBLIC_GITEA_MF_PORT}/mf-manifest.json`;
+}
 
 export default defineConfig({
   source: {

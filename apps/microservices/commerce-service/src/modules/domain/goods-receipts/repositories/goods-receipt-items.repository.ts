@@ -46,17 +46,17 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
   async findTreeNodesByReceiptId(goodsReceiptId: string): Promise<GoodsReceiptTreeNode[]> {
     const acceptedQty = sql`(
       SELECT COALESCE(SUM(quantity), 0)
-      FROM ${goodsReceiptLines}
+      FROM commerce.goods_receipt_lines
       WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
     const itemLinesCount = sql`(
       SELECT COUNT(*)
-      FROM ${goodsReceiptLines}
+      FROM commerce.goods_receipt_lines
       WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
     const itemUnbalanced = sql`(
       SELECT COALESCE(SUM(CASE WHEN is_balanced = false THEN 1 ELSE 0 END), 0)
-      FROM ${goodsReceiptLines}
+      FROM commerce.goods_receipt_lines
       WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
     // Balanced when the lines distribute exactly the operator-declared item quantity (and there are
@@ -88,13 +88,13 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
         ),
         '[]'::json
       )
-      FROM ${goodsReceiptLots} l
+      FROM commerce.goods_receipt_lots l
       LEFT JOIN LATERAL (
         SELECT
           SUM(quantity) AS total_quantity,
           COUNT(*) AS lines_count,
           SUM(CASE WHEN is_balanced = false THEN 1 ELSE 0 END) AS unbalanced_lines_count
-        FROM ${goodsReceiptLines}
+        FROM commerce.goods_receipt_lines
         WHERE goods_receipt_lot_id = l.id
       ) la ON TRUE
       WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
@@ -115,13 +115,13 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
         ),
         '[]'::json
       )
-      FROM ${goodsReceiptLots} l
+      FROM commerce.goods_receipt_lots l
       LEFT JOIN LATERAL (
         SELECT
           SUM(quantity) AS total_quantity,
           COUNT(*) AS lines_count,
           SUM(CASE WHEN is_balanced = false THEN 1 ELSE 0 END) AS unbalanced_lines_count
-        FROM ${goodsReceiptLines}
+        FROM commerce.goods_receipt_lines
         WHERE goods_receipt_lot_id = l.id
       ) la ON TRUE
       LEFT JOIN LATERAL (
@@ -132,14 +132,14 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
             'kind', 'line',
             'balanced', line.is_balanced,
             'badge', CONCAT(
-              (SELECT COUNT(*) FROM ${goodsReceiptLineItems} li WHERE li.goods_receipt_line_id = line.id)::text,
+              (SELECT COUNT(*) FROM commerce.goods_receipt_line_items li WHERE li.goods_receipt_line_id = line.id)::text,
               '/',
               trim_scale(line.quantity)::text
             )
           ) ORDER BY line.created_at
         ) AS lines_json
-        FROM ${goodsReceiptLines} line
-        LEFT JOIN ${locations} loc ON line.location_id = loc.id
+        FROM commerce.goods_receipt_lines line
+        LEFT JOIN commerce.locations loc ON line.location_id = loc.id
         WHERE line.goods_receipt_lot_id = l.id
       ) lc ON TRUE
       WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
@@ -155,7 +155,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
             'kind', 'line',
             'balanced', line.is_balanced,
             'badge', CONCAT(
-              (SELECT COUNT(*) FROM ${goodsReceiptLineItems} li WHERE li.goods_receipt_line_id = line.id)::text,
+              (SELECT COUNT(*) FROM commerce.goods_receipt_line_items li WHERE li.goods_receipt_line_id = line.id)::text,
               '/',
               trim_scale(line.quantity)::text
             )
@@ -163,8 +163,8 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
         ),
         '[]'::json
       )
-      FROM ${goodsReceiptLines} line
-      LEFT JOIN ${locations} loc ON line.location_id = loc.id
+      FROM commerce.goods_receipt_lines line
+      LEFT JOIN commerce.locations loc ON line.location_id = loc.id
       WHERE line.goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
 

@@ -237,7 +237,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
       .where(
         sql`${inventoryItemQuants.id} IN (
-          SELECT resolved_quant_id FROM ${goodsReceiptLines}
+          SELECT resolved_quant_id FROM ${sql.identifier('commerce')}.goods_receipt_lines
           WHERE goods_receipt_item_id = ${grItemId} AND resolved_quant_id IS NOT NULL
         )`,
       )

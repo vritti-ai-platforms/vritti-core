@@ -1,7 +1,8 @@
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { useMemo } from 'react';
-import { Navigate, type RouteObject, useLocation, useRoutes } from 'react-router-dom';
+import { Navigate, type RouteObject, useRoutes } from 'react-router-dom';
 import { Upsell } from '../components/Upsell';
+import { resolveRemoteName } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { RemoteRoutes } from './RemoteRoutes';
 
@@ -23,7 +24,7 @@ export const DynamicFeatureRoutes = () => {
         ) : (
           <RemoteRoutes
             key={feature.code}
-            remoteName="commerce"
+            remoteName={resolveRemoteName(feature.route.remoteEntry)}
             remoteEntry={feature.route.remoteEntry}
             moduleName={feature.route.exposedModule}
           />
@@ -38,8 +39,10 @@ export const DynamicFeatureRoutes = () => {
     return featureRoutes;
   }, [features, workspace]);
 
-  const { pathname } = useLocation();
-  const routeElement = useRoutes(routes, pathname);
+  // No location argument on purpose: passing one makes react-router wrap descendants in its own
+  // LocationContext, which defaults search and hash to '' — that leaves useSearchParams permanently
+  // empty inside every remote. Both parent routes already end in a splat, so matching is unaffected.
+  const routeElement = useRoutes(routes);
 
   if (!workspace) {
     return <Navigate to="/" replace />;

@@ -7,6 +7,7 @@ declare global {
     // Module Federation remote ports (local development)
     readonly PUBLIC_CLOUD_MF_PORT?: string;
     readonly PUBLIC_COMMERCE_MF_PORT?: string;
+    readonly PUBLIC_GITEA_MF_PORT?: string;
 
     // Module Federation base URL (production)
     readonly PUBLIC_MF_BASE_URL?: string;
