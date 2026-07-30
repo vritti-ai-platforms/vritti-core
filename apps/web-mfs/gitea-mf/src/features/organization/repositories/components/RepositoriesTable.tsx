@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
@@ -5,99 +6,43 @@ import {
   type ColumnDef,
   DataTable,
   DateTimeCell,
-  type RowAction,
   RowActions,
   StringCell,
   useDataTable,
-  useDataTableStore,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Eye, GitBranch, Plus } from 'lucide-react';
-import { useMemo } from 'react';
+import type React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRepositories } from '@/hooks/organization/repositories';
+import { GITEA_REPOSITORIES_TABLE_KEY, useRepositories } from '@/hooks/organization/repositories';
 import type { RepositoryData } from '@/schemas/repositories';
 import { CreateRepositoryDialog } from '../forms/CreateRepositoryDialog';
 
 const TABLE_SLUG = 'gitea-org-repositories';
-const DEFAULT_LIMIT = 20;
 
-export const RepositoriesTable = () => {
+interface RepositoriesTableProps {
+  // True until the git organization status is known — the list endpoint rejects until the namespace exists
+  isOrganizationPending: boolean;
+}
+
+export const RepositoriesTable: React.FC<RepositoriesTableProps> = ({ isOrganizationPending }) => {
   const createDialog = useDialog();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // The table owns pagination state and runs in manualPagination mode, so mirror it into the query.
-  // The git service offers only page/limit — its cap of 50 matches the table's largest page size.
-  const pagination = useDataTableStore((s) => s.tables[TABLE_SLUG]?.activeState.pagination);
-  const limit = pagination?.limit ?? DEFAULT_LIMIT;
-  const offset = pagination?.offset ?? 0;
-
-  const { data: response, isLoading } = useRepositories({ page: Math.floor(offset / limit) + 1, limit });
-
-  const columns = useMemo<ColumnDef<RepositoryData>[]>(
-    () => [
-      {
-        accessorKey: 'name',
-        header: 'Name',
-        cell: ({ row }) => <StringCell value={row.original.name} mono />,
-        enableSorting: false,
-      },
-      { accessorKey: 'description', header: 'Description', enableSorting: false },
-      {
-        accessorKey: 'isPrivate',
-        header: 'Visibility',
-        cell: ({ row }) => <Badge variant="outline">{row.original.isPrivate ? 'Private' : 'Public'}</Badge>,
-        enableSorting: false,
-      },
-      {
-        accessorKey: 'defaultBranch',
-        header: 'Default branch',
-        cell: ({ row }) => <StringCell value={row.original.defaultBranch} mono />,
-        enableSorting: false,
-      },
-      {
-        accessorKey: 'cloneUrl',
-        header: 'Clone URL',
-        cell: ({ row }) => <StringCell value={row.original.cloneUrl} mono />,
-        enableSorting: false,
-      },
-      {
-        accessorKey: 'updatedAt',
-        header: 'Last updated',
-        cell: ({ row }) => <DateTimeCell value={row.original.updatedAt} />,
-        enableSorting: false,
-      },
-      {
-        id: 'actions',
-        header: '',
-        cell: ({ row }) => {
-          const actions: RowAction[] = [
-            {
-              id: 'view',
-              icon: Eye,
-              label: 'View',
-              onClick: () => navigate(row.original.name),
-            },
-          ];
-          return <RowActions actions={actions} />;
-        },
-        enableSorting: false,
-        enableHiding: false,
-      },
-    ],
-    [navigate],
-  );
+  const { data: response, isLoading } = useRepositories({ enabled: !isOrganizationPending });
 
   // Sorting and search are off deliberately: the git service paginates but cannot sort or filter, so
   // either control would silently act on the current page only.
   const { table } = useDataTable({
-    columns,
+    columns: getColumns({ onView: (repository) => navigate(repository.name) }),
     slug: TABLE_SLUG,
     label: 'repository',
-    serverState: { result: response?.items, count: response?.total },
+    serverState: response,
     enableRowSelection: false,
     enableSorting: false,
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: GITEA_REPOSITORIES_TABLE_KEY }),
   });
 
   const newRepositoryButton = (
@@ -115,11 +60,12 @@ export const RepositoriesTable = () => {
     <>
       <DataTable
         table={table}
-        isLoading={isLoading}
+        isLoading={isOrganizationPending || isLoading}
         permission={ORG_REPOSITORIES.view}
         // Named views round-trip table state through the backend; the git service has none, so the
         // views chrome would only issue pointless table-views requests.
         enableViews={false}
+        onRowClick={(repository) => navigate(repository.name)}
         toolbarActions={{ actions: newRepositoryButton }}
         emptyStateConfig={{
           icon: GitBranch,
@@ -141,9 +87,66 @@ export const RepositoriesTable = () => {
         handle={createDialog}
         icon={GitBranch}
         title="New repository"
-        description="Creates a repository inside your organisation's git namespace."
+        description="Creates a repository inside your organization's git namespace."
         content={(close) => <CreateRepositoryDialog onSuccess={close} onCancel={close} />}
       />
     </>
   );
 };
+
+interface ColumnActions {
+  onView: (repository: RepositoryData) => void;
+}
+
+// Every column carries an explicit size: DataTable takes the table's minWidth from their total, so the
+// TanStack default of 150px each would force a horizontal scrollbar the content does not need.
+function getColumns({ onView }: ColumnActions): ColumnDef<RepositoryData, unknown>[] {
+  return [
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => <StringCell value={row.original.name} mono />,
+      enableSorting: false,
+      size: 180,
+    },
+    { accessorKey: 'description', header: 'Description', enableSorting: false, size: 240 },
+    {
+      accessorKey: 'isPrivate',
+      header: 'Visibility',
+      cell: ({ row }) => <Badge variant="outline">{row.original.isPrivate ? 'Private' : 'Public'}</Badge>,
+      enableSorting: false,
+      size: 100,
+    },
+    {
+      accessorKey: 'defaultBranch',
+      header: 'Default branch',
+      cell: ({ row }) => <StringCell value={row.original.defaultBranch} mono />,
+      enableSorting: false,
+      size: 130,
+    },
+    {
+      accessorKey: 'cloneUrl',
+      header: 'Clone URL',
+      cell: ({ row }) => <StringCell value={row.original.cloneUrl} mono />,
+      enableSorting: false,
+      size: 220,
+    },
+    {
+      accessorKey: 'updatedAt',
+      header: 'Last updated',
+      cell: ({ row }) => <DateTimeCell value={row.original.updatedAt} />,
+      enableSorting: false,
+      size: 160,
+    },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => (
+        <RowActions actions={[{ id: 'view', icon: Eye, label: 'View', onClick: () => onView(row.original) }]} />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      size: 70,
+    },
+  ];
+}

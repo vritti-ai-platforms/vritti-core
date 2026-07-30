@@ -1,19 +1,18 @@
 import { axios } from '@vritti/quantum-ui/axios';
-import type { CreateResponse, SuccessResponse } from '@/schemas/common';
+import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   BranchListResponse,
   CreateRepositoryData,
+  RepositoriesTableResponse,
   RepositoryContentsData,
   RepositoryContentsParams,
   RepositoryData,
-  RepositoryListParams,
-  RepositoryListResponse,
   RepositoryStatsData,
 } from '@/schemas/repositories';
 
-// Fetches a page of repositories in the org's git namespace
-export function listRepositories(params: RepositoryListParams): Promise<RepositoryListResponse> {
-  return axios.get<RepositoryListResponse>('gitea-api/repositories', { params }).then((r) => r.data);
+// Fetches the repositories table — the server reads the pushed table state and applies pagination itself
+export function getRepositoriesTable(): Promise<RepositoriesTableResponse> {
+  return axios.get<RepositoriesTableResponse>('gitea-api/repositories/table').then((r) => r.data);
 }
 
 // Fetches a single repository by name

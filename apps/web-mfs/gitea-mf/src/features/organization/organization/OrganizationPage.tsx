@@ -1,25 +1,25 @@
-import { ORG_ORGANISATION } from '@vritti/commerce-permissions/organisation';
+import { ORG_ORGANIZATION } from '@vritti/commerce-permissions/organization';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent } from '@vritti/quantum-ui/Card';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Building2 } from 'lucide-react';
-import { useCreateGiteaOrganisation, useGiteaOrganisation } from '@/hooks/organization/organisation';
-import { OrganisationDetails } from './components/OrganisationDetails';
+import { useCreateGiteaOrganization, useGiteaOrganization } from '@/hooks/organization/organization';
+import { OrganizationDetails } from './components/OrganizationDetails';
+import { OrganizationDetailsSkeleton } from './components/OrganizationDetailsSkeleton';
 
-export const OrganizationsPage = () => {
-  const { data: status, isLoading } = useGiteaOrganisation();
-  const setupMutation = useCreateGiteaOrganisation();
+export const OrganizationPage = () => {
+  const { data: status, isLoading } = useGiteaOrganization();
+  const setupMutation = useCreateGiteaOrganization();
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Organisation" description="Your organization's namespace on the git service." />
+      <PageHeader title="Organization" description="Your organization's namespace on the git service." />
 
       {isLoading || !status ? (
-        <Skeleton className="h-64 w-full" />
+        <OrganizationDetailsSkeleton />
       ) : status.exists && status.organization ? (
-        <OrganisationDetails organisation={status.organization} />
+        <OrganizationDetails organization={status.organization} />
       ) : (
         // Not provisioned yet — one action, no form: every field is derived server-side from the
         // Vritti organization record.
@@ -28,16 +28,16 @@ export const OrganizationsPage = () => {
             <Empty
               icon={<Building2 />}
               iconColor="primary"
-              title="No git organisation yet"
+              title="No git organization yet"
               description={`Set up the "${status.namespace}" namespace to start hosting repositories. Its details are taken from your organization profile.`}
               action={
                 <Button
-                  permission={ORG_ORGANISATION.setup}
+                  permission={ORG_ORGANIZATION.setup}
                   onClick={() => setupMutation.mutate()}
                   isLoading={setupMutation.isPending}
                   loadingText="Setting up..."
                 >
-                  Setup organisation
+                  Setup organization
                 </Button>
               }
             />

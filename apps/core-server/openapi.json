@@ -21779,7 +21779,7 @@
           }
         ],
         "tags": [
-          "Gitea - Organisation"
+          "Gitea - Organization"
         ]
       },
       "post": {
@@ -21796,7 +21796,26 @@
           }
         ],
         "tags": [
-          "Gitea - Organisation"
+          "Gitea - Organization"
+        ]
+      }
+    },
+    "/gitea-api/repositories/table": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_findForTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
         ]
       }
     },
@@ -21867,9 +21886,9 @@
         ]
       }
     },
-    "/gitea-api/repositories/{name}": {
+    "/gitea-api/repositories/{name}/actions/workflows": {
       "get": {
-        "operationId": "RepositoriesGatewayController_findOne",
+        "operationId": "RepositoriesGatewayController_listWorkflows",
         "parameters": [
           {
             "name": "name",
@@ -21893,12 +21912,68 @@
         "tags": [
           "Gitea - Repositories"
         ]
-      },
-      "delete": {
-        "operationId": "RepositoriesGatewayController_remove",
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/workflows/{workflowId}/dispatches": {
+      "post": {
+        "operationId": "RepositoriesGatewayController_dispatchWorkflow",
         "parameters": [
           {
             "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DispatchWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/workflows/{workflowId}/enable": {
+      "put": {
+        "operationId": "RepositoriesGatewayController_enableWorkflow",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workflowId",
             "required": true,
             "in": "path",
             "schema": {
@@ -21908,6 +21983,393 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/workflows/{workflowId}/disable": {
+      "put": {
+        "operationId": "RepositoriesGatewayController_disableWorkflow",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/runs/table": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_findRunsForTable",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/runs": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_listRuns",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "One-based page number",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size (Gitea caps a page at 50)",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "event",
+            "required": false,
+            "in": "query",
+            "description": "Trigger event, e.g. push or workflow_dispatch",
+            "schema": {
+              "example": "workflow_dispatch",
+              "type": "string"
+            }
+          },
+          {
+            "name": "branch",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "main",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "waiting",
+                "queued",
+                "running",
+                "completed"
+              ]
+            }
+          },
+          {
+            "name": "actor",
+            "required": false,
+            "in": "query",
+            "description": "Gitea username that triggered the run",
+            "schema": {
+              "example": "vritti-admin",
+              "type": "string"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": false,
+            "in": "query",
+            "description": "Restrict to one workflow file",
+            "schema": {
+              "example": "ci.yaml",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/runs/{runId}": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_findRun",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      },
+      "delete": {
+        "operationId": "RepositoriesGatewayController_removeRun",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/runs/{runId}/jobs": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_listRunJobs",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/jobs/{jobId}/logs": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_getJobLogs",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/runs/{runId}/rerun": {
+      "post": {
+        "operationId": "RepositoriesGatewayController_rerun",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}/actions/runs/{runId}/rerun-failed-jobs": {
+      "post": {
+        "operationId": "RepositoriesGatewayController_rerunFailedJobs",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
             "description": ""
           }
         },
@@ -22014,6 +22476,60 @@
             "description": "Branch, tag or commit; defaults to the repository's default branch",
             "schema": {
               "example": "main",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/repositories/{name}": {
+      "get": {
+        "operationId": "RepositoriesGatewayController_findOne",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Repositories"
+        ]
+      },
+      "delete": {
+        "operationId": "RepositoriesGatewayController_remove",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
               "type": "string"
             }
           }
@@ -30393,6 +30909,25 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "DispatchWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "type": "string",
+            "example": "main",
+            "description": "Branch, tag or commit to run the workflow against"
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ref"
         ]
       }
     }

@@ -1,3 +1,4 @@
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 
 // A Gitea repository name is not a Vritti entity code — dots and underscores are allowed, so
@@ -36,17 +37,9 @@ export interface RepositoryData {
   updatedAt: string;
 }
 
-export interface RepositoryListResponse {
-  items: RepositoryData[];
-  total: number;
-}
-
-// Gitea only offers page/limit — the gateway caps limit at 50, matching the table's largest
-// page-size option.
-export interface RepositoryListParams {
-  page: number;
-  limit: number;
-}
+// The table endpoint answers with the rows plus the table state the server applied, so pagination
+// never has to be mirrored on this side
+export type RepositoriesTableResponse = TableResponse<RepositoryData>;
 
 export type RepositoryEntryType = 'file' | 'dir' | 'symlink' | 'submodule';
 

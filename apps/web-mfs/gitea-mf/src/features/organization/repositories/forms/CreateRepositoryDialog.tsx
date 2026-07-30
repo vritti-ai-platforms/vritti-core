@@ -36,7 +36,7 @@ export const CreateRepositoryDialog: React.FC<CreateRepositoryDialogProps> = ({ 
           description="Letters, numbers, dots, underscores, and hyphens"
         />
         <TextField name="description" label="Description" placeholder="What this repository holds" />
-        <Switch name="isPrivate" label="Private" description="Only your organisation can see this repository" />
+        <Switch name="isPrivate" label="Private" description="Only your organization can see this repository" />
       </div>
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

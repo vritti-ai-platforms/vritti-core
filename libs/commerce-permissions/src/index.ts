@@ -9,7 +9,7 @@ export {
   SITE_INVENTORY_ITEMS,
 } from './inventory-items';
 export { SITE_LOCATIONS } from './locations';
-export { ORG_ORGANISATION } from './organisation';
+export { ORG_ORGANIZATION } from './organization';
 export { ORG_PEOPLE } from './people';
 export { ORG_REPOSITORIES } from './repositories';
 export { ORG_SALES_CHANNELS } from './sales-channels';

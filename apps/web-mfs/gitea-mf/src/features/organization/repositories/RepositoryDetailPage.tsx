@@ -3,9 +3,9 @@ import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDeleteRepository, useRepository } from '@/hooks/organization/repositories';
+import { ActionsTab } from './tabs/ActionsTab';
 import { CodeTab } from './tabs/CodeTab';
 import { OverviewTab } from './tabs/OverviewTab';
 
@@ -14,9 +14,9 @@ export const RepositoryDetailPage = () => {
   const { repoName = '' } = useParams<{ repoName: string }>();
   const navigate = useNavigate();
   const { data: repository } = useRepository(repoName);
-  const [activeTab, setActiveTab] = useState('overview');
   const confirm = useConfirm();
-  const deleteMutation = useDeleteRepository({ onSuccess: () => navigate('..') });
+  // Two segments up: the active tab is part of the path, so `..` alone would only land back here
+  const deleteMutation = useDeleteRepository({ onSuccess: () => navigate('../..', { relative: 'path' }) });
 
   const handleDelete = async () => {
     const confirmed = await confirm({
@@ -33,6 +33,9 @@ export const RepositoryDetailPage = () => {
       <PageHeader title={repository.name} description={repository.description || 'No description'} />
 
       <Tabs
+        // The tab is a path segment, not a search param: Breadcrumb links carry the pathname only, so a
+        // `?tab=` would be dropped the moment a crumb is clicked
+        routeParam="repoTab"
         tabs={[
           {
             value: 'overview',
@@ -46,9 +49,13 @@ export const RepositoryDetailPage = () => {
             permission: ORG_REPOSITORIES.view,
             content: <CodeTab repository={repository} />,
           },
+          {
+            value: 'actions',
+            label: 'Actions',
+            permission: ORG_REPOSITORIES.view,
+            content: <ActionsTab />,
+          },
         ]}
-        value={activeTab}
-        onValueChange={setActiveTab}
       />
 
       <DangerZone

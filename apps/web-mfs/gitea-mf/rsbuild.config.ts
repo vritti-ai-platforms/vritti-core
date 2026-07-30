@@ -68,7 +68,9 @@ export default defineConfig({
       name: 'gitea',
       filename: 'remoteEntry.js',
       exposes: {
-        './Org/Organisation': './src/features/organization/organizations/index.tsx',
+        // The key must match cloud.features.web_exposed_module byte-for-byte, or the host cannot
+        // resolve the container entry for this feature
+        './Org/Organization': './src/features/organization/organization/index.tsx',
         './Org/Repositories': './src/features/organization/repositories/index.tsx',
       },
       shared: {

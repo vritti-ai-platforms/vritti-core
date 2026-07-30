@@ -1,21 +1,50 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgSubdomain } from '@/security/decorators';
 import { CreateRepositoryDto } from './dto/request/create-repository.dto';
+import { DispatchWorkflowDto } from './dto/request/dispatch-workflow.dto';
 import { ListRepositoriesQueryDto } from './dto/request/list-repositories-query.dto';
+import { ListRunsQueryDto } from './dto/request/list-runs-query.dto';
 import { RepositoryContentsQueryDto } from './dto/request/repository-contents-query.dto';
 import type { BranchListResponseDto } from './dto/response/branch-list-response.dto';
+import type { JobListResponseDto } from './dto/response/job-list-response.dto';
+import type { JobLogsResponseDto } from './dto/response/job-logs-response.dto';
 import type { RepositoryContentsResponseDto } from './dto/response/repository-contents-response.dto';
 import type { RepositoryListResponseDto } from './dto/response/repository-list-response.dto';
 import type { RepositoryResponseDto } from './dto/response/repository-response.dto';
 import type { RepositoryStatsResponseDto } from './dto/response/repository-stats-response.dto';
+import type { RepositoryTableResponseDto } from './dto/response/repository-table-response.dto';
+import type { RunListResponseDto, RunResponseDto } from './dto/response/run-response.dto';
+import type { RunTableResponseDto } from './dto/response/run-table-response.dto';
+import type { WorkflowListResponseDto } from './dto/response/workflow-list-response.dto';
+import { ActionsGatewayService } from './services/actions-gateway.service';
 import { RepositoriesGatewayService } from './services/repositories-gateway.service';
 
+// Actions are not a separate feature — they are a view of a repository — so every route lives here and
+// shares the repositories feature's permissions: reads need `view`, anything that queues or changes a
+// workflow needs `edit`, and deleting a repository or a run needs `delete`.
+//
+// Route order matters within a path depth: a static segment must be declared before a dynamic one at the
+// same position, or the parameter swallows it. Hence `table` before `:name`, and `runs/table` before
+// `runs/:runId`.
 @ApiTags('Gitea - Repositories')
 @ApiBearerAuth()
 @RequireSession(SessionTypeValues.WEB)
@@ -24,7 +53,18 @@ import { RepositoriesGatewayService } from './services/repositories-gateway.serv
 export class RepositoriesGatewayController {
   private readonly logger = new Logger(RepositoriesGatewayController.name);
 
-  constructor(private readonly repositoriesGatewayService: RepositoriesGatewayService) {}
+  constructor(
+    private readonly repositoriesGatewayService: RepositoriesGatewayService,
+    private readonly actionsGatewayService: ActionsGatewayService,
+  ) {}
+
+  // Canonical DataTable endpoint: view state comes from Redis rather than the query string
+  @Get('table')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  findForTable(@UserId() userId: string, @OrgSubdomain() subdomain: string): Promise<RepositoryTableResponseDto> {
+    this.logger.log(`GET /gitea-api/repositories/table (org=${subdomain})`);
+    return this.repositoriesGatewayService.findForTable(userId, subdomain);
+  }
 
   @Get()
   @RequirePermission(ORG_REPOSITORIES.view)
@@ -36,12 +76,152 @@ export class RepositoriesGatewayController {
     return this.repositoriesGatewayService.findAll(subdomain, query);
   }
 
-  @Get(':name')
-  @RequirePermission(ORG_REPOSITORIES.view)
-  findOne(@OrgSubdomain() subdomain: string, @Param('name') name: string): Promise<RepositoryResponseDto> {
-    this.logger.log(`GET /gitea-api/repositories/${name} (org=${subdomain})`);
-    return this.repositoriesGatewayService.findOne(subdomain, name);
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_REPOSITORIES.add)
+  create(
+    @OrgSubdomain() subdomain: string,
+    @Body() dto: CreateRepositoryDto,
+  ): Promise<CreateResponseDto<RepositoryResponseDto>> {
+    this.logger.log(`POST /gitea-api/repositories (org=${subdomain}, name=${dto.name})`);
+    return this.repositoriesGatewayService.create(subdomain, dto);
   }
+
+  // --- Actions: workflows -------------------------------------------------------------------------
+
+  @Get(':name/actions/workflows')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  listWorkflows(@OrgSubdomain() subdomain: string, @Param('name') name: string): Promise<WorkflowListResponseDto> {
+    this.logger.log(`GET /gitea-api/repositories/${name}/actions/workflows (org=${subdomain})`);
+    return this.actionsGatewayService.listWorkflows(subdomain, name);
+  }
+
+  @Post(':name/actions/workflows/:workflowId/dispatches')
+  @RequirePermission(ORG_REPOSITORIES.edit)
+  dispatchWorkflow(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('workflowId') workflowId: string,
+    @Body() dto: DispatchWorkflowDto,
+  ): Promise<RunResponseDto | null> {
+    this.logger.log(`POST /gitea-api/repositories/${name}/actions/workflows/${workflowId}/dispatches`);
+    return this.actionsGatewayService.dispatchWorkflow(subdomain, name, workflowId, dto);
+  }
+
+  @Put(':name/actions/workflows/:workflowId/enable')
+  @RequirePermission(ORG_REPOSITORIES.edit)
+  enableWorkflow(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('workflowId') workflowId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /gitea-api/repositories/${name}/actions/workflows/${workflowId}/enable`);
+    return this.actionsGatewayService.setWorkflowEnabled(subdomain, name, workflowId, true);
+  }
+
+  @Put(':name/actions/workflows/:workflowId/disable')
+  @RequirePermission(ORG_REPOSITORIES.edit)
+  disableWorkflow(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('workflowId') workflowId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /gitea-api/repositories/${name}/actions/workflows/${workflowId}/disable`);
+    return this.actionsGatewayService.setWorkflowEnabled(subdomain, name, workflowId, false);
+  }
+
+  // --- Actions: runs, jobs and logs --------------------------------------------------------------
+
+  @Get(':name/actions/runs/table')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  findRunsForTable(
+    @UserId() userId: string,
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Query('workflowId') workflowId?: string,
+  ): Promise<RunTableResponseDto> {
+    this.logger.log(`GET /gitea-api/repositories/${name}/actions/runs/table (workflow=${workflowId ?? 'all'})`);
+    return this.actionsGatewayService.findRunsForTable(userId, subdomain, name, workflowId);
+  }
+
+  @Get(':name/actions/runs')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  listRuns(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Query() query: ListRunsQueryDto,
+  ): Promise<RunListResponseDto> {
+    this.logger.log(`GET /gitea-api/repositories/${name}/actions/runs (workflow=${query.workflowId ?? 'all'})`);
+    return this.actionsGatewayService.listRuns(subdomain, name, query);
+  }
+
+  @Get(':name/actions/runs/:runId')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  findRun(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('runId', ParseIntPipe) runId: number,
+  ): Promise<RunResponseDto> {
+    this.logger.log(`GET /gitea-api/repositories/${name}/actions/runs/${runId}`);
+    return this.actionsGatewayService.findRun(subdomain, name, runId);
+  }
+
+  @Get(':name/actions/runs/:runId/jobs')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  listRunJobs(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('runId', ParseIntPipe) runId: number,
+  ): Promise<JobListResponseDto> {
+    this.logger.log(`GET /gitea-api/repositories/${name}/actions/runs/${runId}/jobs`);
+    return this.actionsGatewayService.listRunJobs(subdomain, name, runId);
+  }
+
+  @Get(':name/actions/jobs/:jobId/logs')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  getJobLogs(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('jobId', ParseIntPipe) jobId: number,
+  ): Promise<JobLogsResponseDto> {
+    this.logger.log(`GET /gitea-api/repositories/${name}/actions/jobs/${jobId}/logs`);
+    return this.actionsGatewayService.getJobLogs(subdomain, name, jobId);
+  }
+
+  @Post(':name/actions/runs/:runId/rerun')
+  @RequirePermission(ORG_REPOSITORIES.edit)
+  rerun(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('runId', ParseIntPipe) runId: number,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /gitea-api/repositories/${name}/actions/runs/${runId}/rerun`);
+    return this.actionsGatewayService.rerun(subdomain, name, runId, false);
+  }
+
+  @Post(':name/actions/runs/:runId/rerun-failed-jobs')
+  @RequirePermission(ORG_REPOSITORIES.edit)
+  rerunFailedJobs(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('runId', ParseIntPipe) runId: number,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /gitea-api/repositories/${name}/actions/runs/${runId}/rerun-failed-jobs`);
+    return this.actionsGatewayService.rerun(subdomain, name, runId, true);
+  }
+
+  @Delete(':name/actions/runs/:runId')
+  @RequirePermission(ORG_REPOSITORIES.delete)
+  removeRun(
+    @OrgSubdomain() subdomain: string,
+    @Param('name') name: string,
+    @Param('runId', ParseIntPipe) runId: number,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /gitea-api/repositories/${name}/actions/runs/${runId}`);
+    return this.actionsGatewayService.removeRun(subdomain, name, runId);
+  }
+
+  // --- Repository detail -------------------------------------------------------------------------
 
   @Get(':name/stats')
   @RequirePermission(ORG_REPOSITORIES.view)
@@ -72,15 +252,11 @@ export class RepositoriesGatewayController {
     return this.repositoriesGatewayService.getContents(subdomain, name, query);
   }
 
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_REPOSITORIES.add)
-  create(
-    @OrgSubdomain() subdomain: string,
-    @Body() dto: CreateRepositoryDto,
-  ): Promise<CreateResponseDto<RepositoryResponseDto>> {
-    this.logger.log(`POST /gitea-api/repositories (org=${subdomain}, name=${dto.name})`);
-    return this.repositoriesGatewayService.create(subdomain, dto);
+  @Get(':name')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  findOne(@OrgSubdomain() subdomain: string, @Param('name') name: string): Promise<RepositoryResponseDto> {
+    this.logger.log(`GET /gitea-api/repositories/${name} (org=${subdomain})`);
+    return this.repositoriesGatewayService.findOne(subdomain, name);
   }
 
   @Delete(':name')

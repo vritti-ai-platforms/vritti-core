@@ -11,6 +11,9 @@ interface GiteaRequestOptions {
   params?: Record<string, unknown>;
   // Performs the call on behalf of this Gitea user instead of the admin token owner
   sudo?: string;
+  // Action job logs come back as text/plain even though the OpenAPI spec declares application/json,
+  // so that call has to opt out of axios' JSON parsing
+  responseType?: 'text';
 }
 
 // Single authenticated HTTP client for the Gitea instance. Owns transport concerns only —
@@ -34,6 +37,7 @@ export class GiteaHttpService {
     return {
       params: options?.params,
       ...(options?.sudo ? { headers: { Sudo: options.sudo } } : {}),
+      ...(options?.responseType ? { responseType: options.responseType } : {}),
     };
   }
 
@@ -69,6 +73,11 @@ export class GiteaHttpService {
   // Sends a POST and returns the response body
   async post<T>(path: string, data?: unknown, options?: GiteaRequestOptions): Promise<T> {
     return (await this.send(() => this.client.post<T>(path, data, this.config(options)))).data;
+  }
+
+  // Sends a PUT and returns the response body
+  async put<T>(path: string, data?: unknown, options?: GiteaRequestOptions): Promise<T> {
+    return (await this.send(() => this.client.put<T>(path, data, this.config(options)))).data;
   }
 
   // Sends a PATCH and returns the response body

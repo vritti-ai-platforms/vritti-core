@@ -1,5 +1,7 @@
 export const GITEA_REPOSITORIES_KEY = ['gitea', 'repositories'] as const;
 
+export const GITEA_REPOSITORIES_TABLE_KEY = [...GITEA_REPOSITORIES_KEY, 'table'] as const;
+
 export const GITEA_REPOSITORY_KEY = (name: string) => [...GITEA_REPOSITORIES_KEY, name] as const;
 
 export const GITEA_REPOSITORY_BRANCHES_KEY = (name: string) => [...GITEA_REPOSITORY_KEY(name), 'branches'] as const;

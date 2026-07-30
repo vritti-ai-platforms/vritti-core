@@ -1,13 +1,14 @@
+import { DangerZoneSkeleton } from '@vritti/quantum-ui/DangerZone';
 import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
-import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { TabsSkeleton } from '@vritti/quantum-ui/Tabs';
 
 export const RepositoryDetailPageSkeleton = () => (
   <div className="flex flex-col gap-6">
-    <PageHeaderSkeleton showDescription />
+    <PageHeaderSkeleton showDescription showActions={false} />
 
-    <TabsSkeleton count={2} tabWidths={['w-24', 'w-16']} />
+    {/* TabsSkeleton already stands in for the tab panel, so the page's last block is the danger zone */}
+    <TabsSkeleton count={3} tabWidths={['w-24', 'w-16', 'w-20']} />
 
-    <Skeleton className="h-72 w-full" />
+    <DangerZoneSkeleton />
   </div>
 );

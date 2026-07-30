@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { OrganizationGatewayService } from '../../organization/services/organization-gateway.service';
 import { GiteaHttpService } from '../../services/gitea-http.service';
+import { toGiteaPaging } from '../../table-state.util';
 import type { CreateRepositoryDto } from '../dto/request/create-repository.dto';
 import type { ListRepositoriesQueryDto } from '../dto/request/list-repositories-query.dto';
 import type { RepositoryContentsQueryDto } from '../dto/request/repository-contents-query.dto';
@@ -14,12 +16,16 @@ import {
 import { RepositoryListResponseDto } from '../dto/response/repository-list-response.dto';
 import { type GiteaApiRepository, RepositoryResponseDto } from '../dto/response/repository-response.dto';
 import { RepositoryStatsResponseDto } from '../dto/response/repository-stats-response.dto';
+import type { RepositoryTableResponseDto } from '../dto/response/repository-table-response.dto';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 
 // Counting only needs the x-total-count header, so ask for the smallest possible page
 const COUNT_LIMIT = 1;
+
+// Must match the slug the frontend table registers under, or the two read different Redis keys
+const REPOSITORIES_TABLE_SLUG = 'gitea-org-repositories';
 
 // A single page is enough for a branch picker — 50 is also Gitea's own MAX_RESPONSE_ITEMS ceiling
 const BRANCH_LIMIT = 50;
@@ -43,7 +49,30 @@ export class RepositoriesGatewayService {
   constructor(
     private readonly gitea: GiteaHttpService,
     private readonly organizationGatewayService: OrganizationGatewayService,
+    private readonly dataTableStateService: DataTableStateService,
   ) {}
+
+  // Returns a page of repositories for the data table, with the view state the client last pushed.
+  // The git service can only honour pagination — it offers no filtering or sorting over org repos — so
+  // the rest of the state is round-tripped for the client rather than faked here.
+  async findForTable(userId: string, subdomain: string): Promise<RepositoryTableResponseDto> {
+    const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, REPOSITORIES_TABLE_SLUG);
+    const { page, limit } = toGiteaPaging(state);
+
+    const response = await this.gitea.getWithHeaders<GiteaApiRepository[]>(`/orgs/${namespace}/repos`, {
+      params: { page, limit },
+    });
+
+    const total = Number(response.headers['x-total-count']);
+
+    return {
+      result: response.data.map(RepositoryResponseDto.from),
+      count: Number.isFinite(total) ? total : response.data.length,
+      state,
+      activeViewId,
+    };
+  }
 
   // Returns a page of repositories in the organization's git namespace
   async findAll(subdomain: string, query: ListRepositoriesQueryDto): Promise<RepositoryListResponseDto> {

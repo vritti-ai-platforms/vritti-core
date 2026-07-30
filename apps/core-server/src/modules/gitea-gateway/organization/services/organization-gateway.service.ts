@@ -53,7 +53,7 @@ export class OrganizationGatewayService {
 
     return {
       success: true,
-      message: `Git organisation "${subdomain}" created successfully.`,
+      message: `Git organization "${subdomain}" created successfully.`,
       data: OrganizationResponseDto.from(organization),
     };
   }
@@ -64,8 +64,8 @@ export class OrganizationGatewayService {
     if (status.exists) return status.namespace;
 
     throw new ConflictException({
-      label: 'Organisation Not Set Up',
-      detail: 'Set up the git organisation before adding repositories.',
+      label: 'Organization Not Set Up',
+      detail: 'Set up the git organization before adding repositories.',
     });
   }
 }

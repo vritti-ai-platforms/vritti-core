@@ -57,9 +57,9 @@
       "types": "./dist/tax-groups.d.ts",
       "default": "./dist/tax-groups.js"
     },
-    "./organisation": {
-      "types": "./dist/organisation.d.ts",
-      "default": "./dist/organisation.js"
+    "./organization": {
+      "types": "./dist/organization.d.ts",
+      "default": "./dist/organization.js"
     },
     "./repositories": {
       "types": "./dist/repositories.d.ts",

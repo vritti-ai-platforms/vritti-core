@@ -1,6 +1,6 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { CreateResponse } from '@/schemas/common';
 import type { CreateRepositoryData, RepositoryData } from '@/schemas/repositories';
 import { createRepository } from '@/services/organization/repositories.service';
 import { GITEA_REPOSITORIES_KEY } from './keys';
