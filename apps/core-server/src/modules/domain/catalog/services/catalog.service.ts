@@ -27,7 +27,7 @@ export class CatalogDomainService {
     private readonly eventEmitter: EventEmitter2,
     configService: ConfigService,
   ) {
-    this.publicKey = configService.getOrThrow<string>('CLOUD_PUBLIC_KEY');
+    this.publicKey = configService.getOrThrow<string>('LICENSE_PUBLIC_KEY');
     this.deploymentId = configService.get<string>('DEPLOYMENT_ID');
   }
 

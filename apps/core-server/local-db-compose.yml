@@ -1,17 +1,45 @@
-version: '1.0'
+# Local dev backing services for core-server + commerce-service (the `local` env).
+# Postgres + Redis + NATS on standard ports so PRIMARY_DB_HOST=localhost,
+# REDIS_URL=redis://localhost:6379/0, NATS_URL=nats://localhost:4222 just work.
+#   docker compose -f local-db-compose.yml up -d
+# NOTE: throwaway local DB — run migrations to create the schema. Postgres 18 does NOT auto-upgrade
+# an older data dir; if you had an old volume, `... down -v` first.
 services:
   postgres:
     image: postgres:18
-    container_name: vritti-postgres-18
+    container_name: vritti-core-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: localdev
-      POSTGRES_DB: vritti_db
+      # Owner/superuser (bootstraps the DB, owns tables, runs migrations via DIRECT_URL).
+      POSTGRES_USER: vritti_core_owner
+      POSTGRES_PASSWORD: Vritti@0322
+      POSTGRES_DB: vritti_local
     volumes:
+      # Mount the PARENT, not .../data — postgres:18 refuses a volume mounted directly at the data dir.
       - pgdata:/var/lib/postgresql
+      # Seeds the least-privilege runtime role (vritti_core_app) so RLS applies to app connections.
+      # Runs ONCE on a fresh data dir — `down -v` if you had an old volume with the postgres superuser.
+      - ./init-db:/docker-entrypoint-initdb.d:ro
     ports:
-      - "5432:5432"
+      # Host 5433 (core) vs 5432 (cloud) so both projects' local stacks can run at once.
+      - "5433:5432"
+
+  redis:
+    image: redis:8-alpine
+    container_name: vritti-core-redis
+    restart: unless-stopped
+    ports:
+      # Host 6380 (core) vs 6379 (cloud).
+      - "6380:6379"
+
+  # NATS — the commerce microservice talks to core-server over NATS (no HTTP).
+  nats:
+    image: nats:2.11-alpine
+    container_name: vritti-core-nats
+    restart: unless-stopped
+    ports:
+      - "4222:4222" # client connections
+      - "8222:8222" # http monitoring
 
 volumes:
   pgdata:

@@ -30,7 +30,7 @@ export class OrganizationDomainService {
     private readonly catalogService: CatalogDomainService,
     configService: ConfigService,
   ) {
-    this.licensePublicKey = configService.getOrThrow<string>('CLOUD_PUBLIC_KEY');
+    this.licensePublicKey = configService.getOrThrow<string>('LICENSE_PUBLIC_KEY');
     this.deploymentId = configService.get<string>('DEPLOYMENT_ID');
   }
 

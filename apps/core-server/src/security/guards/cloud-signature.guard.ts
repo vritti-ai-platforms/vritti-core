@@ -9,7 +9,7 @@ export class CloudSignatureGuard implements CanActivate {
   private readonly publicKey: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.publicKey = this.configService.getOrThrow<string>('CLOUD_PUBLIC_KEY');
+    this.publicKey = this.configService.getOrThrow<string>('LICENSE_PUBLIC_KEY');
   }
 
   // Verifies the request's Ed25519 signature (x-timestamp + x-signature) against the cloud public key

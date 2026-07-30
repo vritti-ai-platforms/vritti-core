@@ -124,9 +124,9 @@ class EnvironmentVariables {
   @Min(1)
   OTP_MAX_ATTEMPTS: number;
 
-  // Cloud deployment public key (Ed25519, base64 spki DER) — verifies signed internal API requests and licenses
+  // Deployment license public key (Ed25519, base64 spki DER) — verifies signed internal API requests and licenses
   @IsString()
-  CLOUD_PUBLIC_KEY: string;
+  LICENSE_PUBLIC_KEY: string;
 
   @IsString()
   @IsOptional()
@@ -177,11 +177,11 @@ class EnvironmentVariables {
   MEDIA_SIGNED_URL_EXPIRY: number;
 
   // Gitea (self-hosted git service)
-  @IsString()
-  GITEA_BASE_URL: string;
+  // @IsString()
+  // GITEA_BASE_URL: string;
 
-  @IsString()
-  GITEA_ADMIN_TOKEN: string;
+  // @IsString()
+  // GITEA_ADMIN_TOKEN: string;
 
   // Email / Brevo
   @IsString()

@@ -43,6 +43,9 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# per-dev cloudflared tunnel name
+.tunnel
+
 # temp directory
 .temp
 .tmp
