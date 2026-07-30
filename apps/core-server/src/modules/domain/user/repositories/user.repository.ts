@@ -60,7 +60,7 @@ export class UserDomainRepository extends PrimaryBaseRepository<typeof users> {
     return this.update(id, { passwordHash, status: 'ACTIVE', updatedAt: new Date() });
   }
 
-  // Finds all users belonging to an organisation
+  // Finds all users belonging to an organization
   async findByOrganizationId(organizationId: string): Promise<User[]> {
     return this.model.findMany({
       where: { organizationId },

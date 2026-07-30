@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class GetUsersInternalDto {
-  @ApiProperty({ description: 'Organisation ID to fetch users for', example: 'uuid-here' })
+  @ApiProperty({ description: 'Organization ID to fetch users for', example: 'uuid-here' })
   @IsUUID()
   orgId: string;
 

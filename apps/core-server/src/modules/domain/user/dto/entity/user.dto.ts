@@ -5,7 +5,7 @@ export class UserDto {
   @ApiProperty({ description: 'User unique identifier', example: 'a1b2c3d4-...' })
   id: string;
 
-  @ApiProperty({ description: 'Organisation this user belongs to', example: 'uuid-here' })
+  @ApiProperty({ description: 'Organization this user belongs to', example: 'uuid-here' })
   organizationId: string;
 
   @ApiProperty({ description: 'User email address', example: 'user@example.com' })

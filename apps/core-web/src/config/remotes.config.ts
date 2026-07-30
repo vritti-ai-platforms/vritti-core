@@ -1,9 +1,6 @@
 export interface RemoteConfig {
   name: string;
   entry: string;
-  exposedModule: string;
-  // Substrings matched against a catalog-supplied remoteEntry to pick this container
-  matchers?: string[];
 }
 
 interface EnvironmentConfig {
@@ -16,7 +13,6 @@ interface EnvironmentConfig {
 // Gets an environment variable by key — static mapping required for build-time replacement
 const getEnvVar = (key: string): string | undefined => {
   const envMap: Record<string, string | undefined> = {
-    PUBLIC_CLOUD_MF_PORT: import.meta.env.PUBLIC_CLOUD_MF_PORT,
     PUBLIC_COMMERCE_MF_PORT: import.meta.env.PUBLIC_COMMERCE_MF_PORT,
     PUBLIC_GITEA_MF_PORT: import.meta.env.PUBLIC_GITEA_MF_PORT,
     PUBLIC_MF_BASE_URL: import.meta.env.PUBLIC_MF_BASE_URL,
@@ -66,43 +62,26 @@ const buildRemoteEntry = (config: { portEnvVar: string; prodPath: string }): str
   }
 };
 
+// The MF micro-apps the host loads. Registered at startup (bootstrap) so the host loads each from
+// its own buildRemoteEntry URL (local port in dev / prod path). The web catalog supplies a
+// remoteEntry per feature but not the container name, so the name is matched from the entry URL.
 export const ALL_REMOTES: RemoteConfig[] = [
-  {
-    name: 'VrittiCloud',
-    entry: buildRemoteEntry({
-      portEnvVar: 'PUBLIC_CLOUD_MF_PORT',
-      prodPath: 'cloud-microfrontend',
-    }),
-    exposedModule: 'routes',
-  },
-];
-
-// Feature remotes registered lazily at route-mount time from the catalog's remoteEntry, not at
-// startup like ALL_REMOTES. The MF container name is the one thing the web catalog does not carry,
-// so it is matched from the entry URL — mirroring core-app's resolveRemoteName.
-export const FEATURE_REMOTES: RemoteConfig[] = [
   {
     name: 'commerce',
     entry: buildRemoteEntry({ portEnvVar: 'PUBLIC_COMMERCE_MF_PORT', prodPath: 'commerce-mf' }),
-    exposedModule: './Org/SalesChannels',
-    matchers: ['commerce-mf', 'commerce'],
   },
   {
     name: 'gitea',
     entry: buildRemoteEntry({ portEnvVar: 'PUBLIC_GITEA_MF_PORT', prodPath: 'gitea-mf' }),
-    exposedModule: './Org/Gitea',
-    matchers: ['gitea-mf', 'gitea'],
   },
 ];
 
-// Picks the MF container name for a catalog-supplied remoteEntry, defaulting to commerce so
-// existing catalog entries keep mounting exactly as before
+// Picks the MF container name for a catalog-supplied remoteEntry by matching its URL against the
+// remote name (e.g. '…/gitea-mf/…' contains 'gitea'), defaulting to commerce
 export const resolveRemoteName = (remoteEntry?: string): string => {
   if (!remoteEntry) return 'commerce';
 
-  const matched = FEATURE_REMOTES.find(
-    (remote) => remote.entry === remoteEntry || (remote.matchers ?? []).some((m) => remoteEntry.includes(m)),
-  );
+  const matched = ALL_REMOTES.find((remote) => remoteEntry.includes(remote.name));
 
   return matched?.name ?? 'commerce';
 };

@@ -1152,14 +1152,14 @@
         ]
       },
       "get": {
-        "description": "Returns paginated, filtered, and sorted users for the given organisation. Filter/sort/search state is passed as JSON query params from cloud-server. Protected by request signature.",
+        "description": "Returns paginated, filtered, and sorted users for the given organization. Filter/sort/search state is passed as JSON query params from cloud-server. Protected by request signature.",
         "operationId": "UserController_getUsersByOrg",
         "parameters": [
           {
             "name": "orgId",
             "required": true,
             "in": "query",
-            "description": "Organisation ID",
+            "description": "Organization ID",
             "schema": {
               "example": "uuid-here",
               "type": "string"
@@ -23540,7 +23540,7 @@
         "properties": {
           "orgId": {
             "type": "string",
-            "description": "Nexus organisation ID",
+            "description": "Nexus organization ID",
             "example": "uuid-here"
           },
           "email": {
@@ -23597,7 +23597,7 @@
           },
           "organizationId": {
             "type": "string",
-            "description": "Organisation this user belongs to",
+            "description": "Organization this user belongs to",
             "example": "uuid-here"
           },
           "email": {

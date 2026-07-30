@@ -1,9 +1,9 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { CopyField } from '@vritti/quantum-ui/CopyField';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import type React from 'react';
 import type { RepositoryData } from '@/schemas/repositories';
-import { CloneUrlField } from '../components/CloneUrlField';
 import { PushInstructions } from '../components/PushInstructions';
 import { formatRepositorySize } from '../utils/format';
 
@@ -40,8 +40,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ repository }) => (
         <CardDescription>Use these URLs to clone the repository or add it as a remote.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <CloneUrlField label="HTTP" url={repository.cloneUrl} />
-        <CloneUrlField label="SSH" url={repository.sshUrl} />
+        <CopyField label="HTTP" value={repository.cloneUrl} />
+        <CopyField label="SSH" value={repository.sshUrl} />
       </CardContent>
     </Card>
   </div>

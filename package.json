@@ -5,9 +5,9 @@
   "packageManager": "pnpm@10.28.0",
   "scripts": {
     "build:permissions": "pnpm --filter @vritti/commerce-permissions build",
-    "dev": "pnpm build:permissions && nx run-many --target=dev --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf --parallel=5 --output-style=stream",
-    "dev:dev": "pnpm build:permissions && nx run-many --target=dev:dev --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf --parallel=5 --output-style=stream",
-    "dev:prod": "pnpm build:permissions && nx run-many --target=dev:prod --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf --parallel=5 --output-style=stream",
+    "dev": "pnpm build:permissions && nx run-many --target=dev --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf,gitea-mf --parallel=6 --output-style=stream",
+    "dev:dev": "pnpm build:permissions && nx run-many --target=dev:dev --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf,gitea-mf --parallel=6 --output-style=stream",
+    "dev:prod": "pnpm build:permissions && nx run-many --target=dev:prod --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf,gitea-mf --parallel=6 --output-style=stream",
     "dev:tunnel": "bash apps/core-server/scripts/tunnel.sh",
     "dev:tunnel:stop": "pkill -f 'cloudflared tunnel.*run' && echo 'Stopped tunnel connector.' || echo 'No tunnel connector running.'",
     "dev:server": "nx run vritti-core-server:dev",

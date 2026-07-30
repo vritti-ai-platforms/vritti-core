@@ -5,7 +5,6 @@ export {};
 declare global {
   interface ImportMetaEnv {
     // Module Federation remote ports (local development)
-    readonly PUBLIC_CLOUD_MF_PORT?: string;
     readonly PUBLIC_COMMERCE_MF_PORT?: string;
     readonly PUBLIC_GITEA_MF_PORT?: string;
 

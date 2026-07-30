@@ -37,9 +37,9 @@ export function ApiGetUsers() {
     ApiOperation({
       summary: 'Get portal users by org',
       description:
-        'Returns paginated, filtered, and sorted users for the given organisation. Filter/sort/search state is passed as JSON query params from cloud-server. Protected by request signature.',
+        'Returns paginated, filtered, and sorted users for the given organization. Filter/sort/search state is passed as JSON query params from cloud-server. Protected by request signature.',
     }),
-    ApiQuery({ name: 'orgId', description: 'Organisation ID', required: true }),
+    ApiQuery({ name: 'orgId', description: 'Organization ID', required: true }),
     ApiQuery({ name: 'filters', description: 'JSON-stringified FilterCondition[]', required: false }),
     ApiQuery({ name: 'search', description: 'JSON-stringified SearchState', required: false }),
     ApiQuery({ name: 'sort', description: 'JSON-stringified SortCondition[]', required: false }),

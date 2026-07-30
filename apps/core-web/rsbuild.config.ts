@@ -15,9 +15,6 @@ const defaultApiHost = `${protocol}://${host}:3001`;
 
 // Static dev remotes enable MF live reload (plugin needs URLs to watch)
 const devRemotes: Record<string, string> = {};
-if (isDev && parsed.PUBLIC_CLOUD_MF_PORT) {
-  devRemotes.VrittiCloud = `vritti_cloud@${protocol}://${host}:${parsed.PUBLIC_CLOUD_MF_PORT}/mf-manifest.json`;
-}
 if (isDev && parsed.PUBLIC_COMMERCE_MF_PORT) {
   devRemotes.commerce = `commerce@${protocol}://${host}:${parsed.PUBLIC_COMMERCE_MF_PORT}/mf-manifest.json`;
 }
