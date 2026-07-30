@@ -23,13 +23,13 @@ export class GiteaHttpService {
   private readonly client: AxiosInstance;
 
   constructor(configService: ConfigService) {
-    // const baseUrl = configService.getOrThrow<string>('GITEA_BASE_URL').replace(/\/+$/, '');
-    const baseUrl = '';
+    const baseUrl = (configService.get<string>('GITEA_BASE_URL') ?? '').replace(/\/+$/, '');
+    const token = configService.get<string>('GITEA_ADMIN_TOKEN') ?? '';
 
     this.client = axios.create({
       baseURL: `${baseUrl}/api/v1`,
       timeout: REQUEST_TIMEOUT_MS,
-      // headers: { Authorization: `token ${configService.getOrThrow<string>('GITEA_ADMIN_TOKEN')}` },
+      headers: token ? { Authorization: `token ${token}` } : {},
     });
   }
 
