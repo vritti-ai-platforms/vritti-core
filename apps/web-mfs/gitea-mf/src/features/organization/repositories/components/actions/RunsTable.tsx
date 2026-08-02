@@ -1,5 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { Button } from '@vritti/quantum-ui/Button';
+import { cn } from '@vritti/quantum-ui/cn';
 import {
   type ColumnDef,
   DataTable,
@@ -9,7 +11,7 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
-import { Eye, Play, RotateCcw, Trash2, TriangleAlert } from 'lucide-react';
+import { Eye, Play, RefreshCw, RotateCcw, Trash2, TriangleAlert } from 'lucide-react';
 import type React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -42,7 +44,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
   // This table renders at `<repository>/actions`, and a run's route is `actions/:runId`
   const onSelectRun = (runId: number) => navigate(String(runId), { relative: 'path' });
 
-  const { data: response, isLoading } = useRuns(repositoryName, { workflowId: workflowId || undefined });
+  const { data: response, isLoading, isFetching } = useRuns(repositoryName, { workflowId: workflowId || undefined });
 
   const rerunMutation = useRerunRun(repositoryName);
   const rerunFailedMutation = useRerunFailedJobs(repositoryName);
@@ -77,11 +79,29 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
     onStatePush: () => queryClient.invalidateQueries({ queryKey: GITEA_RUN_LISTS_KEY(repositoryName) }),
   });
 
+  // This list does not poll — a run only changes when a runner touches it, and a queued run nothing picks
+  // up would keep an interval alive forever. Sized like the toolbar's own icon buttons so it reads as
+  // table chrome, not an action on the data.
+  const refreshButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-8 w-8 p-0"
+      aria-label="Refresh runs"
+      disabled={isFetching}
+      permission={ORG_REPOSITORIES.view}
+      onClick={() => queryClient.invalidateQueries({ queryKey: GITEA_RUN_LISTS_KEY(repositoryName) })}
+    >
+      <RefreshCw className={cn('size-4', isFetching && 'animate-spin')} /> Re-Fetch
+    </Button>
+  );
+
   return (
     <DataTable
       table={table}
       isLoading={isLoading}
       mode="tab"
+      toolbarActions={{ actions: refreshButton }}
       permission={ORG_REPOSITORIES.view}
       // Named views round-trip table state through the backend; the git service has none, so the views
       // chrome would only issue pointless table-views requests.

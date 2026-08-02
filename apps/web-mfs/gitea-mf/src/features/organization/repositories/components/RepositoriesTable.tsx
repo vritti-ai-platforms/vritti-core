@@ -21,17 +21,13 @@ import { CreateRepositoryDialog } from '../forms/CreateRepositoryDialog';
 
 const TABLE_SLUG = 'gitea-org-repositories';
 
-interface RepositoriesTableProps {
-  // True until the git organization status is known — the list endpoint rejects until the namespace exists
-  isOrganizationPending: boolean;
-}
-
-export const RepositoriesTable: React.FC<RepositoriesTableProps> = ({ isOrganizationPending }) => {
+export const RepositoriesTable: React.FC = () => {
   const createDialog = useDialog();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: response, isLoading } = useRepositories({ enabled: !isOrganizationPending });
+  // The page only mounts this once the namespace exists, so the list can fetch immediately
+  const { data: response, isLoading } = useRepositories();
 
   // Sorting and search are off deliberately: the git service paginates but cannot sort or filter, so
   // either control would silently act on the current page only.
@@ -60,7 +56,7 @@ export const RepositoriesTable: React.FC<RepositoriesTableProps> = ({ isOrganiza
     <>
       <DataTable
         table={table}
-        isLoading={isOrganizationPending || isLoading}
+        isLoading={isLoading}
         permission={ORG_REPOSITORIES.view}
         // Named views round-trip table state through the backend; the git service has none, so the
         // views chrome would only issue pointless table-views requests.

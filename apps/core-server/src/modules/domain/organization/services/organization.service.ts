@@ -8,12 +8,15 @@ import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exception
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
 import { AUTH_STATUS_EVENTS, OrgUpdatedEvent, SiteUpdatedEvent } from '@/common/events/auth-status.events';
-import type { OrgSize } from '@/db/schema';
+import type { OrgService as OrgServiceEntity, OrgSize } from '@/db/schema';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
+import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
 import { OrganizationDto } from '../dto/entity/organization.dto';
 import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
+import type { ProvisionOrgServiceInternalDto } from '../dto/request/provision-org-service-internal.dto';
 import type { UpdateOrganizationInternalDto } from '../dto/request/update-organization-internal.dto';
+import { OrgServiceDomainRepository } from '../repositories/org-service.repository';
 import { OrganizationDomainRepository } from '../repositories/organization.repository';
 
 @Injectable()
@@ -25,7 +28,9 @@ export class OrganizationDomainService {
 
   constructor(
     private readonly organizationRepository: OrganizationDomainRepository,
+    private readonly orgServiceRepository: OrgServiceDomainRepository,
     private readonly siteContextCache: SiteContextCacheService,
+    private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
     private readonly catalogService: CatalogDomainService,
     configService: ConfigService,
@@ -60,16 +65,40 @@ export class OrganizationDomainService {
     return { success: true, message: 'Organization feature locks updated successfully.' };
   }
 
-  // Finds an organization by ID, returns DTO or null
-  async getById(id: string): Promise<OrganizationDto | null> {
-    const org = await this.organizationRepository.findById(id);
-    return org ? OrganizationDto.from(org) : null;
+  // Returns the services this organization has provisioned
+  async getServices(orgId: string): Promise<OrgServiceEntity[]> {
+    return this.orgServiceRepository.findByOrg(orgId);
   }
 
-  // Finds an organization by subdomain, returns DTO or null
+  // Records a provisioned external service — its presence is the authoritative answer for service feature locks
+  async provisionService(orgId: string, dto: ProvisionOrgServiceInternalDto): Promise<void> {
+    const org = await this.organizationRepository.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found.');
+
+    await this.orgServiceRepository.upsert(orgId, dto.service, {
+      externalId: dto.externalId ?? null,
+      externalName: dto.externalName ?? null,
+    });
+
+    // Bust the resolved permission sets BEFORE announcing, or the SSE re-push serves the stale locked set.
+    // Provisioning is once-per-service, so the blunt invalidateAll costs nothing (same as a catalog push).
+    await this.permissionSetCache.invalidateAll();
+
+    this.logger.log(`Provisioned service ${dto.service} for org ${orgId} (${dto.externalName ?? 'no ref'})`);
+    // Unlocks every feature gated on this service and refreshes org.services for live SSE connections
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.ORG_UPDATED, new OrgUpdatedEvent(orgId));
+  }
+
+  // Finds an organization by ID, returns DTO (with its provisioned services) or null
+  async getById(id: string): Promise<OrganizationDto | null> {
+    const org = await this.organizationRepository.findById(id);
+    return org ? OrganizationDto.from(org, await this.orgServiceRepository.findByOrg(org.id)) : null;
+  }
+
+  // Finds an organization by subdomain, returns DTO (with its provisioned services) or null
   async getBySubdomain(subdomain: string): Promise<OrganizationDto | null> {
     const org = await this.organizationRepository.findBySubdomain(subdomain);
-    return org ? OrganizationDto.from(org) : null;
+    return org ? OrganizationDto.from(org, await this.orgServiceRepository.findByOrg(org.id)) : null;
   }
 
   // Creates an organization from a cloud-server internal request payload

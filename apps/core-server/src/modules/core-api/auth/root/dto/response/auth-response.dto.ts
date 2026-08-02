@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { type ServiceType, ServiceTypeValues } from '@/db/schema';
 import { AssignedLegalEntityResponseDto } from '../../../../user-permissions/dto/response/assigned-legal-entity-response.dto';
 import { AssignedRoleResponseDto } from '../../../../user-permissions/dto/response/assigned-role-response.dto';
 import { AssignedSiteGroupResponseDto } from '../../../../user-permissions/dto/response/assigned-site-group-response.dto';
@@ -17,11 +18,19 @@ export class AuthUserDto {
   @ApiPropertyOptional() lastLoginAt: string | null;
 }
 
+export class AuthOrgServiceDto {
+  @ApiProperty({ enum: ServiceTypeValues, example: 'GITEA' }) service: ServiceType;
+  @ApiPropertyOptional({ description: "The provider's own id", nullable: true }) externalId: string | null;
+  @ApiPropertyOptional({ description: "The provider's namespace/name", nullable: true }) externalName: string | null;
+}
+
 export class AuthOrgDto {
   @ApiProperty() id: string;
   @ApiProperty() name: string;
   @ApiProperty() subdomain: string;
   @ApiPropertyOptional() logoUrl: string | null;
+  // Provisioned external services — clients gate service-dependent screens on this instead of calling the provider
+  @ApiProperty({ type: [AuthOrgServiceDto] }) services: AuthOrgServiceDto[];
 }
 
 export class AuthResponseDto {

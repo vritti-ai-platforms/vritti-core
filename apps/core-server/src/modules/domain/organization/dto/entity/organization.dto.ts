@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { Organization, OrgPlan, OrgSize } from '@/db/schema';
+import type { Organization, OrgPlan, OrgService, OrgSize } from '@/db/schema';
+import { OrgServiceDto } from './org-service.dto';
 
 export class OrganizationDto {
   @ApiProperty({ description: 'Organization unique identifier', example: 'a1b2c3d4-...' })
@@ -27,11 +28,14 @@ export class OrganizationDto {
   @ApiProperty({ description: 'Subscription plan', enum: ['free', 'pro', 'enterprise'], example: 'free' })
   plan: OrgPlan;
 
+  @ApiProperty({ description: 'External services this organization has provisioned', type: [OrgServiceDto] })
+  services: OrgServiceDto[];
+
   @ApiProperty({ description: 'Organization creation timestamp', example: '2024-01-15T10:30:00Z' })
   createdAt: string;
 
   // Creates a response DTO from an Organization entity
-  static from(org: Organization): OrganizationDto {
+  static from(org: Organization, services: OrgService[] = []): OrganizationDto {
     const dto = new OrganizationDto();
     dto.id = org.id;
     dto.name = org.name;
@@ -39,6 +43,7 @@ export class OrganizationDto {
     dto.size = org.size;
     dto.logoUrl = org.logoUrl ?? null;
     dto.plan = org.plan;
+    dto.services = services.map(OrgServiceDto.from);
     dto.createdAt = org.createdAt.toISOString();
     return dto;
   }

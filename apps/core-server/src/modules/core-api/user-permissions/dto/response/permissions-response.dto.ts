@@ -4,11 +4,14 @@ export class LockedPermissionDto {
   @ApiProperty({ example: 'delete' })
   code: string;
 
-  @ApiProperty({ example: 'PLAN', enum: ['PLAN', 'SITE'], nullable: true })
-  reason: 'PLAN' | 'SITE' | null;
+  @ApiProperty({ example: 'PLAN', enum: ['PLAN', 'SITE', 'SERVICE'], nullable: true })
+  reason: 'PLAN' | 'SITE' | 'SERVICE' | null;
 
   @ApiProperty({ example: ['pro'], description: 'Plan codes that would unlock this permission' })
   unlockPlans: string[];
+
+  @ApiProperty({ example: ['GITEA'], description: 'Services the org must provision to unlock this permission' })
+  missingServices: string[];
 }
 
 export class PermissionRouteDto {
@@ -41,14 +44,17 @@ export class PermissionFeatureDto {
   @ApiProperty({ example: ['VIEW', 'CREATE', 'EDIT'] })
   permissions: string[];
 
-  @ApiProperty({ example: false, description: 'Whole feature locked by plan/site' })
+  @ApiProperty({ example: false, description: 'Whole feature locked by plan/site/missing service' })
   locked: boolean;
 
-  @ApiProperty({ example: 'PLAN', enum: ['PLAN', 'SITE'], nullable: true })
-  lockReason: 'PLAN' | 'SITE' | null;
+  @ApiProperty({ example: 'PLAN', enum: ['PLAN', 'SITE', 'SERVICE'], nullable: true })
+  lockReason: 'PLAN' | 'SITE' | 'SERVICE' | null;
 
   @ApiProperty({ example: ['pro'], description: 'Plan codes that would unlock this feature' })
   unlockPlans: string[];
+
+  @ApiProperty({ example: ['GITEA'], description: 'Services the org must provision to unlock this feature' })
+  missingServices: string[];
 
   @ApiProperty({ type: [LockedPermissionDto] })
   lockedPermissions: LockedPermissionDto[];

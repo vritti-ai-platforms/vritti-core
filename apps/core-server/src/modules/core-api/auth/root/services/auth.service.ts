@@ -273,7 +273,16 @@ export class AuthService {
   ): Promise<AuthResponseDto> {
     // Resolve org regardless of auth state
     const org = subdomain ? await this.organizationService.getBySubdomain(subdomain) : null;
-    const orgData = org ? { id: org.id, name: org.name, subdomain: org.subdomain, logoUrl: org.logoUrl } : undefined;
+    const orgData = org
+      ? {
+          id: org.id,
+          name: org.name,
+          subdomain: org.subdomain,
+          logoUrl: org.logoUrl,
+          // Clients gate service-dependent screens on this instead of calling the provider
+          services: org.services,
+        }
+      : undefined;
 
     if (!refreshToken && !bearerAccessToken) {
       return new AuthResponseDto({ isAuthenticated: false, org: orgData });
@@ -292,6 +301,7 @@ export class AuthService {
               name: resolvedOrg.name,
               subdomain: resolvedOrg.subdomain,
               logoUrl: resolvedOrg.logoUrl,
+              services: resolvedOrg.services,
             }
           : orgData;
 
@@ -452,7 +462,16 @@ export class AuthService {
   ): Promise<AuthResponseDto> {
     const user = await this.userService.findById(userId);
     const org = await this.organizationService.getById(orgId);
-    const orgData = org ? { id: org.id, name: org.name, subdomain: org.subdomain, logoUrl: org.logoUrl } : undefined;
+    const orgData = org
+      ? {
+          id: org.id,
+          name: org.name,
+          subdomain: org.subdomain,
+          logoUrl: org.logoUrl,
+          // Clients gate service-dependent screens on this instead of calling the provider
+          services: org.services,
+        }
+      : undefined;
     const {
       sites,
       legalEntities,

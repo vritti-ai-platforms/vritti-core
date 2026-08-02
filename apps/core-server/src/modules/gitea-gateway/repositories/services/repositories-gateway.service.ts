@@ -10,6 +10,7 @@ import type { ListRepositoriesQueryDto } from '../dto/request/list-repositories-
 import type { RepositoryContentsQueryDto } from '../dto/request/repository-contents-query.dto';
 import { BranchListResponseDto, type GiteaApiBranch } from '../dto/response/branch-list-response.dto';
 import {
+  type GiteaApiContents,
   type GiteaApiContentsExt,
   RepositoryContentsResponseDto,
 } from '../dto/response/repository-contents-response.dto';
@@ -153,17 +154,26 @@ export class RepositoriesGatewayService {
   ): Promise<RepositoryContentsResponseDto> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
     const path = query.path ? encodeRepoPath(query.path) : '';
-
+    const base = `/repos/${namespace}/${encodeURIComponent(name)}`;
     // Gitea defaults `ref` to the repository's default branch, so it is only sent when overridden
-    const contents = await this.gitea.getOrNull<GiteaApiContentsExt>(
-      `/repos/${namespace}/${encodeURIComponent(name)}/contents-ext/${path}`,
-      { params: { includes: CONTENTS_INCLUDES, ...(query.ref ? { ref: query.ref } : {}) } },
-    );
+    const ref = query.ref ? { ref: query.ref } : {};
+
+    // contents-ext carries per-entry commit metadata in one call, but it does not exist on every Gitea
+    // (verified absent on 1.23 and 1.24). Its 404 is indistinguishable from an empty directory here, so
+    // fall back to /contents — same listing, minus the last-commit message.
+    const ext = await this.gitea.getOrNull<GiteaApiContentsExt>(`${base}/contents-ext/${path}`, {
+      params: { includes: CONTENTS_INCLUDES, ...ref },
+    });
+    if (ext) return RepositoryContentsResponseDto.from(ext.dir_contents ?? []);
+
+    const plain = await this.gitea.getOrNull<GiteaApiContents[] | GiteaApiContents>(`${base}/contents/${path}`, {
+      params: ref,
+    });
 
     // Three cases collapse to an empty listing rather than an error: a repository with no commits, a
-    // path that no longer exists on this ref (both 404), and a path resolving to a file — Gitea then
-    // answers with file_contents and no dir_contents, which this gateway deliberately ignores.
-    return RepositoryContentsResponseDto.from(contents?.dir_contents ?? []);
+    // path that no longer exists on this ref (both 404), and a path resolving to a file — which answers
+    // with a single object rather than an array, and this gateway browses directories only.
+    return RepositoryContentsResponseDto.from(Array.isArray(plain) ? plain : []);
   }
 
   // Creates a repository inside the organization's git namespace

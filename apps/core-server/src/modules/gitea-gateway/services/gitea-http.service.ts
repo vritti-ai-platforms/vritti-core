@@ -1,11 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NotFoundException } from '@vritti/api-sdk/exceptions';
+import { NotFoundException, ServiceUnavailableException } from '@vritti/api-sdk/exceptions';
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { rethrowGiteaError } from '../gitea-error.util';
 
 const REQUEST_TIMEOUT_MS = 10000;
 const UNREACHABLE_DETAIL = 'Unable to reach the git service. Please try again later.';
+
+// Gitea reports e.g. "1.24.7" or "1.26.0+dev-123-gabc" — only the leading numeric triple is comparable
+const VERSION_PATTERN = /^(\d+)\.(\d+)(?:\.(\d+))?/;
+
+// Parses a Gitea version into comparable segments; null when it doesn't look like a version at all
+function parseVersion(version: string): [number, number, number] | null {
+  const match = VERSION_PATTERN.exec(version.trim());
+  if (!match) return null;
+  return [Number(match[1]), Number(match[2]), Number(match[3] ?? 0)];
+}
+
+// Negative when a < b, 0 when equal, positive when a > b. Unparseable versions sort as equal so an
+// odd build string never trips a gate.
+function compareVersions(a: string, b: string): number {
+  const left = parseVersion(a);
+  const right = parseVersion(b);
+  if (!left || !right) return 0;
+  for (let i = 0; i < 3; i++) {
+    if (left[i] !== right[i]) return left[i] - right[i];
+  }
+  return 0;
+}
 
 interface GiteaRequestOptions {
   params?: Record<string, unknown>;
@@ -21,6 +43,8 @@ interface GiteaRequestOptions {
 @Injectable()
 export class GiteaHttpService {
   private readonly client: AxiosInstance;
+  // One probe per boot — GITEA_BASE_URL is fixed for the process, so the instance can't change under us
+  private versionProbe?: Promise<string | null>;
 
   constructor(configService: ConfigService) {
     const baseUrl = (configService.get<string>('GITEA_BASE_URL') ?? '').replace(/\/+$/, '');
@@ -49,6 +73,29 @@ export class GiteaHttpService {
     } catch (error: unknown) {
       rethrowGiteaError(error, UNREACHABLE_DETAIL);
     }
+  }
+
+  // The connected instance's version, or null when it can't be determined. Never throws: a probe
+  // failure must not be the reason a repository call fails.
+  async getVersion(): Promise<string | null> {
+    this.versionProbe ??= this.client
+      .get<{ version?: string }>('/version')
+      .then((response) => response.data?.version ?? null)
+      .catch(() => null);
+    return this.versionProbe;
+  }
+
+  // Rejects a call whose Gitea route only exists from `min` onwards. Gitea answers an unrouted path
+  // with a bare 404, which reads as "missing data" — this turns that into an actionable problem.
+  // An unknown version falls through to the real call rather than hard-failing.
+  async requireMinVersion(min: string, feature: string): Promise<void> {
+    const version = await this.getVersion();
+    if (!version || compareVersions(version, min) >= 0) return;
+
+    throw new ServiceUnavailableException({
+      label: 'Git Service Outdated',
+      detail: `${feature} requires Gitea ${min} or newer (connected: ${version}).`,
+    });
   }
 
   // Sends a GET and returns the response body

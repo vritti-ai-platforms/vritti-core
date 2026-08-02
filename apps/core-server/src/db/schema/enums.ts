@@ -86,3 +86,10 @@ export const TaxRegimeValues = {
   SALES_TAX: 'SALES_TAX' as const,
   NONE: 'NONE' as const,
 };
+
+// External services an organization can provision — features declare the ones they depend on
+export const serviceTypeEnum = coreSchema.enum('service_type', ['GITEA']);
+export type ServiceType = (typeof serviceTypeEnum.enumValues)[number];
+export const ServiceTypeValues = {
+  GITEA: 'GITEA' as const,
+};

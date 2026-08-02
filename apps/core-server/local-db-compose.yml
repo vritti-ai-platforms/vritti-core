@@ -54,7 +54,12 @@ services:
   # neither itself). On the compose network it reaches the DB at postgres:5432; core-server
   # (on the host) reaches Gitea's API at http://localhost:3020.
   gitea:
-    image: gitea/gitea:1.23
+    # The repositories gateway is written against a modern Gitea API. Verified: /contents-ext is not
+    # routed before 1.25, and the whole actions/runs family (run detail, jobs, logs, rerun, delete)
+    # is not routed before 1.25 either — on older instances those 404s read as "no data", not an error.
+    # The gateway degrades where an older equivalent exists (/contents, /actions/tasks) and reports an
+    # outdated instance otherwise, but keep this at the version the gateway actually targets.
+    image: gitea/gitea:1.27
     container_name: vritti-core-gitea
     restart: unless-stopped
     depends_on:

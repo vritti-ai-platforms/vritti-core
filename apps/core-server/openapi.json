@@ -22797,6 +22797,31 @@
           "createdAt"
         ]
       },
+      "AuthOrgServiceDto": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string",
+            "enum": [
+              "GITEA"
+            ],
+            "example": "GITEA"
+          },
+          "externalId": {
+            "type": "object",
+            "description": "The provider's own id",
+            "nullable": true
+          },
+          "externalName": {
+            "type": "object",
+            "description": "The provider's namespace/name",
+            "nullable": true
+          }
+        },
+        "required": [
+          "service"
+        ]
+      },
       "AuthOrgDto": {
         "type": "object",
         "properties": {
@@ -22811,12 +22836,19 @@
           },
           "logoUrl": {
             "type": "object"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthOrgServiceDto"
+            }
           }
         },
         "required": [
           "id",
           "name",
-          "subdomain"
+          "subdomain",
+          "services"
         ]
       },
       "AssignedSiteResponseDto": {
@@ -22980,7 +23012,8 @@
             "example": "PLAN",
             "enum": [
               "PLAN",
-              "SITE"
+              "SITE",
+              "SERVICE"
             ],
             "nullable": true
           },
@@ -22993,12 +23026,23 @@
             "items": {
               "type": "string"
             }
+          },
+          "missingServices": {
+            "example": [
+              "GITEA"
+            ],
+            "description": "Services the org must provision to unlock this permission",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
           "code",
           "reason",
-          "unlockPlans"
+          "unlockPlans",
+          "missingServices"
         ]
       },
       "PermissionRouteDto": {
@@ -23060,14 +23104,15 @@
           "locked": {
             "type": "boolean",
             "example": false,
-            "description": "Whole feature locked by plan/site"
+            "description": "Whole feature locked by plan/site/missing service"
           },
           "lockReason": {
             "type": "string",
             "example": "PLAN",
             "enum": [
               "PLAN",
-              "SITE"
+              "SITE",
+              "SERVICE"
             ],
             "nullable": true
           },
@@ -23076,6 +23121,16 @@
               "pro"
             ],
             "description": "Plan codes that would unlock this feature",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingServices": {
+            "example": [
+              "GITEA"
+            ],
+            "description": "Services the org must provision to unlock this feature",
             "type": "array",
             "items": {
               "type": "string"
@@ -23118,6 +23173,7 @@
           "locked",
           "lockReason",
           "unlockPlans",
+          "missingServices",
           "lockedPermissions",
           "route",
           "appCode",
@@ -23799,6 +23855,29 @@
           "size"
         ]
       },
+      "OrgServiceDto": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "object",
+            "description": "Provisioned service code",
+            "example": "GITEA"
+          },
+          "externalId": {
+            "type": "object",
+            "description": "The provider's own id",
+            "nullable": true
+          },
+          "externalName": {
+            "type": "object",
+            "description": "The provider's namespace/name",
+            "nullable": true
+          }
+        },
+        "required": [
+          "service"
+        ]
+      },
       "OrganizationDto": {
         "type": "object",
         "properties": {
@@ -23851,6 +23930,13 @@
             ],
             "example": "free"
           },
+          "services": {
+            "description": "External services this organization has provisioned",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgServiceDto"
+            }
+          },
           "createdAt": {
             "type": "string",
             "description": "Organization creation timestamp",
@@ -23863,6 +23949,7 @@
           "subdomain",
           "size",
           "plan",
+          "services",
           "createdAt"
         ]
       },

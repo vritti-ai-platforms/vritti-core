@@ -1,4 +1,5 @@
 import axios from '@vritti/quantum-ui/axios';
+import type { OrgService } from '@vritti/quantum-ui/context';
 import type { PermissionFeature } from '@vritti/quantum-ui/types/catalog-resolver';
 import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup } from './permissions.service';
 
@@ -21,6 +22,8 @@ export interface AuthOrg {
   name: string;
   subdomain: string;
   logoUrl: string | null;
+  // Provisioned external services — gates service-dependent features without calling the provider
+  services: OrgService[];
 }
 
 export interface AuthStatusResponse {

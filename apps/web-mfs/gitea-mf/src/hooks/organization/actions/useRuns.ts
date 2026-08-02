@@ -5,7 +5,6 @@ import type { AxiosError } from 'axios';
 import type { RunsTableParams, RunsTableResponse } from '@/schemas/actions';
 import { getRunsTable } from '@/services/organization/actions.service';
 import { GITEA_RUNS_TABLE_KEY } from './keys';
-import { ACTIVE_POLL_INTERVAL_MS } from './polling';
 
 // Fetches the workflow runs table. The key carries the workflow filter but no page: the server reads
 // the pushed table state, so a page change is an invalidation of the same key.
@@ -24,10 +23,8 @@ export function useRuns(
     placeholderData: keepPreviousData,
     // A run's status changes on the runner, not here
     staleTime: 0,
-    // Polls only while the page still holds a run that can change. The fetch that turns the last one
-    // terminal returns false, so the interval stops instead of hammering a finished list forever.
-    refetchInterval: (query) =>
-      query.state.data?.result.some((run) => run.isActive) ? ACTIVE_POLL_INTERVAL_MS : false,
+    // Deliberately no refetchInterval: a queued run that no runner ever picks up would poll forever.
+    // The table refreshes on demand (its toolbar button) and after any run mutation invalidates the list.
     ...options,
     enabled: available && (options?.enabled ?? true),
   });

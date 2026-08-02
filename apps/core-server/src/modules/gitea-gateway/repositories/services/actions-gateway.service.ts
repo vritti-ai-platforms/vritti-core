@@ -26,6 +26,11 @@ const RUNS_TABLE_SLUG = 'gitea-org-action-runs';
 // The only run fields Gitea will filter on. A filter on anything else is round-tripped, not applied.
 const GITEA_RUN_FILTERS = ['event', 'branch', 'status', 'actor'] as const;
 
+// Run detail, job listing, logs, rerun and delete are routed only from Gitea 1.25. Older instances
+// answer with a bare 404, which is indistinguishable from a deleted run — gate them instead.
+const RUNS_MIN_VERSION = '1.25';
+const RUNS_FEATURE = 'Repository actions';
+
 @Injectable()
 export class ActionsGatewayService {
   private readonly logger = new Logger(ActionsGatewayService.name);
@@ -42,6 +47,30 @@ export class ActionsGatewayService {
   private async repoBase(subdomain: string, name: string): Promise<string> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
     return `/repos/${namespace}/${encodeURIComponent(name)}`;
+  }
+
+  // Fetches a page of runs, tolerating every route shape across Gitea versions.
+  //   - `/actions/runs` is the 1.25+ listing
+  //   - `/actions/tasks` is the same payload under the pre-1.25 name, so it stands in verbatim
+  //   - the per-workflow listing exists only on Gitea main; below that the scope is dropped rather
+  //     than 404ing, so the table still renders (unfiltered) instead of erroring
+  private async fetchRuns(
+    base: string,
+    params: Record<string, unknown>,
+    workflowId?: string,
+  ): Promise<GiteaApiRunList | null> {
+    if (workflowId) {
+      const scoped = await this.gitea.getOrNull<GiteaApiRunList>(
+        `${base}/actions/workflows/${encodeURIComponent(workflowId)}/runs`,
+        { params },
+      );
+      if (scoped) return scoped;
+    }
+
+    const runs = await this.gitea.getOrNull<GiteaApiRunList>(`${base}/actions/runs`, { params });
+    if (runs) return runs;
+
+    return this.gitea.getOrNull<GiteaApiRunList>(`${base}/actions/tasks`, { params });
   }
 
   // Lists the repository's workflows
@@ -106,17 +135,15 @@ export class ActionsGatewayService {
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, RUNS_TABLE_SLUG);
     const { page, limit } = toGiteaPaging(state);
 
-    // Gitea has a dedicated per-workflow runs endpoint; the unscoped one covers the rest
-    const path = workflowId
-      ? `${base}/actions/workflows/${encodeURIComponent(workflowId)}/runs`
-      : `${base}/actions/runs`;
+    const response = await this.fetchRuns(
+      base,
+      { page, limit, ...toGiteaFilters(state, GITEA_RUN_FILTERS) },
+      workflowId,
+    );
 
-    const response = await this.gitea.getWithHeaders<GiteaApiRunList>(path, {
-      params: { page, limit, ...toGiteaFilters(state, GITEA_RUN_FILTERS) },
-    });
-
-    const runs = response.data?.workflow_runs ?? [];
-    const total = response.data?.total_count ?? runs.length;
+    // The total lives in the body, not a header — an instance with no runs endpoint at all yields none
+    const runs = response?.workflow_runs ?? [];
+    const total = response?.total_count ?? runs.length;
 
     return { result: runs.map(RunResponseDto.from), count: total, state, activeViewId };
   }
@@ -125,13 +152,9 @@ export class ActionsGatewayService {
   async listRuns(subdomain: string, name: string, query: ListRunsQueryDto): Promise<RunListResponseDto> {
     const base = await this.repoBase(subdomain, name);
 
-    // Gitea has a dedicated per-workflow runs endpoint; the unscoped one covers the rest
-    const path = query.workflowId
-      ? `${base}/actions/workflows/${encodeURIComponent(query.workflowId)}/runs`
-      : `${base}/actions/runs`;
-
-    const response = await this.gitea.getOrNull<GiteaApiRunList>(path, {
-      params: {
+    const response = await this.fetchRuns(
+      base,
+      {
         page: query.page ?? DEFAULT_PAGE,
         limit: query.limit ?? DEFAULT_LIMIT,
         ...(query.event ? { event: query.event } : {}),
@@ -139,13 +162,15 @@ export class ActionsGatewayService {
         ...(query.status ? { status: query.status } : {}),
         ...(query.actor ? { actor: query.actor } : {}),
       },
-    });
+      query.workflowId,
+    );
 
     return RunListResponseDto.from(response);
   }
 
   // Returns a single run
   async findRun(subdomain: string, name: string, runId: number): Promise<RunResponseDto> {
+    await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
     const base = await this.repoBase(subdomain, name);
 
     const run = await this.gitea.get<GiteaApiRun>(`${base}/actions/runs/${runId}`);
@@ -155,6 +180,7 @@ export class ActionsGatewayService {
 
   // Returns the jobs of a run, each with its steps
   async listRunJobs(subdomain: string, name: string, runId: number): Promise<JobListResponseDto> {
+    await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
     const base = await this.repoBase(subdomain, name);
 
     const response = await this.gitea.getOrNull<GiteaApiJobList>(`${base}/actions/runs/${runId}/jobs`);
@@ -166,6 +192,7 @@ export class ActionsGatewayService {
   // Gitea answers text/plain here even though its OpenAPI spec declares application/json, so the call
   // opts out of axios' JSON parsing.
   async getJobLogs(subdomain: string, name: string, jobId: number): Promise<JobLogsResponseDto> {
+    await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
     const base = await this.repoBase(subdomain, name);
 
     const content = await this.gitea.getOrNull<string>(`${base}/actions/jobs/${jobId}/logs`, {
@@ -178,6 +205,7 @@ export class ActionsGatewayService {
 
   // Re-runs a whole run, or only the jobs that failed
   async rerun(subdomain: string, name: string, runId: number, failedOnly: boolean): Promise<SuccessResponseDto> {
+    await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
     const base = await this.repoBase(subdomain, name);
     const path = failedOnly ? 'rerun-failed-jobs' : 'rerun';
 
@@ -190,6 +218,7 @@ export class ActionsGatewayService {
   // Deletes a run and its logs. Note Gitea 1.27 exposes no cancel endpoint — a queued or running run
   // can only be deleted, not stopped.
   async removeRun(subdomain: string, name: string, runId: number): Promise<SuccessResponseDto> {
+    await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
     const base = await this.repoBase(subdomain, name);
 
     await this.gitea.delete<void>(`${base}/actions/runs/${runId}`);

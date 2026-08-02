@@ -1,6 +1,8 @@
 import { Spinner } from '@vritti/quantum-ui/Spinner';
+import type { PermissionFeature } from '@vritti/quantum-ui/types/catalog-resolver';
 import { useMemo } from 'react';
 import { Navigate, type RouteObject, useRoutes } from 'react-router-dom';
+import { ServiceSetupRequired } from '../components/ServiceSetupRequired';
 import { Upsell } from '../components/Upsell';
 import { resolveRemoteName } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
@@ -13,15 +15,26 @@ export const DynamicFeatureRoutes = () => {
   const routes = useMemo<RouteObject[]>(() => {
     if (!workspace || features.length === 0) return [];
 
-    // Plan-locked features render an upsell instead of mounting the remote; others mount the micro-app
+    // A locked feature renders an explainer instead of mounting the remote: an upsell for a plan lock, a
+    // setup prompt when the org hasn't provisioned a service it needs. Site locks stay mounted — the
+    // feature itself works, its individual actions are gated inside.
+    const lockElement = (feature: PermissionFeature) => {
+      if (!feature.locked) return null;
+      switch (feature.lockReason) {
+        case 'PLAN':
+          return <Upsell featureName={feature.name} unlockPlans={feature.unlockPlans} upsell={feature.upsell} />;
+        case 'SERVICE':
+          return <ServiceSetupRequired featureName={feature.name} missingServices={feature.missingServices} />;
+        default:
+          return null;
+      }
+    };
+
     const featureRoutes: RouteObject[] = features.map((feature) => {
       const routePrefix = feature.route.routePrefix.replace(/^\//, '');
-      const planLocked = feature.locked && feature.lockReason === 'PLAN';
       return {
         path: `${routePrefix}/*`,
-        element: planLocked ? (
-          <Upsell featureName={feature.name} unlockPlans={feature.unlockPlans} upsell={feature.upsell} />
-        ) : (
+        element: lockElement(feature) ?? (
           <RemoteRoutes
             key={feature.code}
             remoteName={resolveRemoteName(feature.route.remoteEntry)}

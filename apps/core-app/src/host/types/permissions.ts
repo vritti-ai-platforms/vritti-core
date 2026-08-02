@@ -42,7 +42,8 @@ export interface AssignedRole {
   targetId: string | null;
 }
 
-export type LockReason = 'PLAN' | 'SITE';
+// Mirrors @vritti/api-sdk/catalog-resolver — SERVICE means the org has not provisioned a required service
+export type LockReason = 'PLAN' | 'SITE' | 'SERVICE';
 
 export interface LockedPermission {
   code: string;

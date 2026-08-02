@@ -44,6 +44,15 @@ export const relations = defineRelations(schema, (r) => ({
     siteGroups: r.many.siteGroups(),
     roles: r.many.roles(),
     legalEntities: r.many.legalEntities(),
+    orgServices: r.many.orgServices(),
+  },
+
+  // Provisioned external service relations
+  orgServices: {
+    organization: r.one.organizations({
+      from: r.orgServices.organizationId,
+      to: r.organizations.id,
+    }),
   },
 
   legalEntities: {

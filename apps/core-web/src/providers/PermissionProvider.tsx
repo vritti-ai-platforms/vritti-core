@@ -1,5 +1,6 @@
 import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup } from '@services/permissions.service';
 import { type ActiveWorkspace, extractWorkspaceFromPath, type WorkspaceKind } from '@utils/workspace';
+import { OrgContextProvider, type OrgContextValue } from '@vritti/quantum-ui/context';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
 import {
   type PermissionGateFn,
@@ -7,7 +8,7 @@ import {
   type PermissionGateResult,
 } from '@vritti/quantum-ui/PermissionGate';
 import { setBusinessUnitTimeZone } from '@vritti/quantum-ui/timezone';
-import type { PermissionFeature } from '@vritti/quantum-ui/types/catalog-resolver';
+import type { PermissionFeature, ServiceCode } from '@vritti/quantum-ui/types/catalog-resolver';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
@@ -48,6 +49,7 @@ const DENY: PermissionGateResult = Object.freeze({
   locked: false,
   reason: null,
   unlockPlans: [],
+  missingServices: [],
   available: false,
   featureName: null,
 });
@@ -58,13 +60,22 @@ function grant(
   reason: PermissionGateResult['reason'],
   unlockPlans: string[],
   featureName: string,
+  missingServices: ServiceCode[] = [],
 ): PermissionGateResult {
-  return { granted: true, locked, reason, unlockPlans, available: !locked, featureName };
+  return { granted: true, locked, reason, unlockPlans, missingServices, available: !locked, featureName };
 }
 
 // Denied but the feature is known — carries its name so messages can stay feature-specific
 function deny(featureName: string): PermissionGateResult {
-  return { granted: false, locked: false, reason: null, unlockPlans: [], available: false, featureName };
+  return {
+    granted: false,
+    locked: false,
+    reason: null,
+    unlockPlans: [],
+    missingServices: [],
+    available: false,
+    featureName,
+  };
 }
 
 // The workspace scope is part of the permission identity (scope.feature.permission). Each workspace
@@ -92,11 +103,20 @@ function buildGate(features: PermissionFeature[], workspaceScopePrefix: string |
     const permissionCode = dotIndex === -1 ? null : code.slice(dotIndex + 1);
     const feature = features.find((f) => f.code === featureCode);
     if (!feature) return DENY;
-    if (!permissionCode) return grant(feature.locked, feature.lockReason, feature.unlockPlans, feature.name);
+    if (!permissionCode)
+      return grant(feature.locked, feature.lockReason, feature.unlockPlans, feature.name, feature.missingServices);
     if (!feature.permissions.includes(permissionCode)) return deny(feature.name);
-    if (feature.locked) return grant(true, feature.lockReason, feature.unlockPlans, feature.name);
+    if (feature.locked)
+      return grant(true, feature.lockReason, feature.unlockPlans, feature.name, feature.missingServices);
     const permissionLock = feature.lockedPermissions.find((p) => p.code === permissionCode);
-    if (permissionLock) return grant(true, permissionLock.reason, permissionLock.unlockPlans, feature.name);
+    if (permissionLock)
+      return grant(
+        true,
+        permissionLock.reason,
+        permissionLock.unlockPlans,
+        feature.name,
+        permissionLock.missingServices,
+      );
     return grant(false, null, [], feature.name);
   };
 }
@@ -198,9 +218,24 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     [features, workspace],
   );
 
+  // Published to federated remotes so they read the org (and its git namespace) from the auth stream
+  // instead of refetching it — see quantum-ui/lib/context/OrgContext.tsx
+  const orgContextValue = useMemo<OrgContextValue>(
+    () => ({
+      id: org?.id ?? null,
+      name: org?.name ?? null,
+      subdomain: org?.subdomain ?? null,
+      logoUrl: org?.logoUrl ?? null,
+      services: org?.services ?? [],
+    }),
+    [org],
+  );
+
   return (
     <PermissionContext.Provider value={contextValue}>
-      <PermissionGateProvider value={gate}>{children}</PermissionGateProvider>
+      <OrgContextProvider value={orgContextValue}>
+        <PermissionGateProvider value={gate}>{children}</PermissionGateProvider>
+      </OrgContextProvider>
     </PermissionContext.Provider>
   );
 };

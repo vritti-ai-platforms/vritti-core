@@ -1,4 +1,5 @@
 import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
+import { OrgServiceDomainRepository } from '@domain/organization/repositories/org-service.repository';
 import { OrganizationDomainRepository } from '@domain/organization/repositories/organization.repository';
 import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import {
@@ -14,13 +15,22 @@ import {
   type PlatformBucket,
   resolveUserFeatures,
   type ScopeType,
+  SERVICE_CODES,
+  type ServiceCode,
   type SiteFeatureLocks,
   type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import type { Organization, Site, SiteType } from '@/db/schema';
+import type { Organization, OrgService as OrgServiceEntity, Site, SiteType } from '@/db/schema';
 import { templateAppliesAtSite } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
+
+// External services this org has provisioned — features declaring one stay locked until a row exists.
+// The stored codes and the resolver's ServiceCode union are the same vocabulary, kept in step by the
+// service_type enum; anything unrecognised is dropped rather than trusted.
+function toServiceCodes(rows: OrgServiceEntity[]): ServiceCode[] {
+  return rows.map((row) => row.service).filter((code): code is ServiceCode => SERVICE_CODES.includes(code));
+}
 
 export interface AssignedSite {
   id: string;
@@ -85,6 +95,7 @@ export class UserPermissionsDomainService {
     private readonly userRoleAssignmentRepository: UserRoleAssignmentDomainRepository,
     private readonly siteRepository: SiteDomainRepository,
     private readonly organizationRepository: OrganizationDomainRepository,
+    private readonly orgServiceRepository: OrgServiceDomainRepository,
     private readonly catalogService: CatalogDomainService,
     private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
@@ -283,6 +294,7 @@ export class UserPermissionsDomainService {
       platform,
       siteType: site.type,
       scope: 'SITE',
+      availableServices: toServiceCodes(await this.orgServiceRepository.findByOrg(org.id)),
     });
 
     this.logger.log(`Resolved ${features.length} features for user ${userId} at site ${siteId} (platform=${platform})`);
@@ -392,6 +404,7 @@ export class UserPermissionsDomainService {
       roleFeatures: this.mergeRoleGrants(effectiveGrants),
       platform,
       scope,
+      availableServices: toServiceCodes(await this.orgServiceRepository.findByOrg(org.id)),
     });
 
     this.logger.log(`Resolved ${features.length} features for user ${userId} at ${target} (platform=${platform})`);
