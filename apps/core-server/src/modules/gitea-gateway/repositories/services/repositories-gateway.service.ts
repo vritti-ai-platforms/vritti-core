@@ -6,7 +6,6 @@ import { OrganizationGatewayService } from '../../organization/services/organiza
 import { GiteaHttpService } from '../../services/gitea-http.service';
 import { toGiteaPaging } from '../../table-state.util';
 import type { CreateRepositoryDto } from '../dto/request/create-repository.dto';
-import type { ListRepositoriesQueryDto } from '../dto/request/list-repositories-query.dto';
 import type { RepositoryContentsQueryDto } from '../dto/request/repository-contents-query.dto';
 import { BranchListResponseDto, type GiteaApiBranch } from '../dto/response/branch-list-response.dto';
 import {
@@ -14,13 +13,9 @@ import {
   type GiteaApiContentsExt,
   RepositoryContentsResponseDto,
 } from '../dto/response/repository-contents-response.dto';
-import { RepositoryListResponseDto } from '../dto/response/repository-list-response.dto';
 import { type GiteaApiRepository, RepositoryResponseDto } from '../dto/response/repository-response.dto';
 import { RepositoryStatsResponseDto } from '../dto/response/repository-stats-response.dto';
 import type { RepositoryTableResponseDto } from '../dto/response/repository-table-response.dto';
-
-const DEFAULT_PAGE = 1;
-const DEFAULT_LIMIT = 20;
 
 // Counting only needs the x-total-count header, so ask for the smallest possible page
 const COUNT_LIMIT = 1;
@@ -73,24 +68,6 @@ export class RepositoriesGatewayService {
       state,
       activeViewId,
     };
-  }
-
-  // Returns a page of repositories in the organization's git namespace
-  async findAll(subdomain: string, query: ListRepositoriesQueryDto): Promise<RepositoryListResponseDto> {
-    const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
-    const page = query.page ?? DEFAULT_PAGE;
-    const limit = query.limit ?? DEFAULT_LIMIT;
-
-    const response = await this.gitea.getWithHeaders<GiteaApiRepository[]>(`/orgs/${namespace}/repos`, {
-      params: { page, limit },
-    });
-
-    const total = Number(response.headers['x-total-count']);
-
-    return RepositoryListResponseDto.from(
-      response.data.map(RepositoryResponseDto.from),
-      Number.isFinite(total) ? total : response.data.length,
-    );
   }
 
   // Returns a single repository in the organization's git namespace
@@ -170,9 +147,9 @@ export class RepositoriesGatewayService {
       params: ref,
     });
 
-    // Three cases collapse to an empty listing rather than an error: a repository with no commits, a
-    // path that no longer exists on this ref (both 404), and a path resolving to a file — which answers
-    // with a single object rather than an array, and this gateway browses directories only.
+    // A repository with no commits and a path that no longer exists on this ref both 404, and a path
+    // resolving to a file answers with a single object — all three collapse to an empty listing,
+    // because this gateway browses directories only.
     return RepositoryContentsResponseDto.from(Array.isArray(plain) ? plain : []);
   }
 
@@ -198,11 +175,13 @@ export class RepositoriesGatewayService {
 
   // Deletes a repository owned by the organization's git namespace
   async remove(subdomain: string, name: string): Promise<SuccessResponseDto> {
-    // Used directly rather than via requireNamespace: a 404 from Gitea is the correct answer when
-    // the namespace does not exist, and it also enforces cross-org isolation.
-    await this.gitea.delete<void>(`/repos/${subdomain}/${encodeURIComponent(name)}`);
+    // Resolve the namespace like every sibling operation instead of assuming it equals the subdomain —
+    // it is stored independently, so a drifted value would delete under the wrong owner.
+    const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
 
-    this.logger.log(`Deleted git repository ${subdomain}/${name}`);
+    await this.gitea.delete<void>(`/repos/${namespace}/${encodeURIComponent(name)}`);
+
+    this.logger.log(`Deleted git repository ${namespace}/${name}`);
     return { success: true, message: `Repository "${name}" deleted successfully.` };
   }
 }

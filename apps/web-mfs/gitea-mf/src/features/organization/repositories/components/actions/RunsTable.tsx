@@ -79,20 +79,18 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
     onStatePush: () => queryClient.invalidateQueries({ queryKey: GITEA_RUN_LISTS_KEY(repositoryName) }),
   });
 
-  // This list does not poll — a run only changes when a runner touches it, and a queued run nothing picks
-  // up would keep an interval alive forever. Sized like the toolbar's own icon buttons so it reads as
-  // table chrome, not an action on the data.
+  // This list does not poll — a run only changes when a runner touches it, and a queued run nothing
+  // picks up would keep an interval alive forever, so refreshing is an explicit action.
   const refreshButton = (
     <Button
       variant="outline"
       size="sm"
-      className="h-8 w-8 p-0"
-      aria-label="Refresh runs"
       disabled={isFetching}
       permission={ORG_REPOSITORIES.view}
+      startAdornment={<RefreshCw className={cn('size-4', isFetching && 'animate-spin')} />}
       onClick={() => queryClient.invalidateQueries({ queryKey: GITEA_RUN_LISTS_KEY(repositoryName) })}
     >
-      <RefreshCw className={cn('size-4', isFetching && 'animate-spin')} /> Re-Fetch
+      Refresh
     </Button>
   );
 

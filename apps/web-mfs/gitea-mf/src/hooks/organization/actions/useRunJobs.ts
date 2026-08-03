@@ -4,8 +4,7 @@ import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
 import type { JobListResponse } from '@/schemas/actions';
 import { listRunJobs } from '@/services/organization/actions.service';
-import { GITEA_RUN_JOBS_KEY } from './keys';
-import { ACTIVE_POLL_INTERVAL_MS } from './polling';
+import { ACTIVE_POLL_INTERVAL_MS, GITEA_RUN_JOBS_KEY } from './keys';
 
 export function useRunJobs(
   name: string,

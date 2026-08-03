@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { index, jsonb, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { index, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { serviceTypeEnum } from './enums';
 import { organizations } from './organizations';
@@ -17,8 +17,6 @@ export const orgServices = coreSchema.table(
     // The provider's own identifiers — for Gitea, its numeric org id and the namespace
     externalId: varchar('external_id', { length: 255 }),
     externalName: varchar('external_name', { length: 255 }),
-    // Per-service extras that don't deserve their own column
-    metadata: jsonb('metadata'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { PrimaryDatabaseService, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
@@ -29,6 +29,7 @@ export class OrganizationDomainService {
   constructor(
     private readonly organizationRepository: OrganizationDomainRepository,
     private readonly orgServiceRepository: OrgServiceDomainRepository,
+    private readonly primaryDb: PrimaryDatabaseService,
     private readonly siteContextCache: SiteContextCacheService,
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
@@ -65,9 +66,11 @@ export class OrganizationDomainService {
     return { success: true, message: 'Organization feature locks updated successfully.' };
   }
 
-  // Returns the services this organization has provisioned
+  // Returns the services this organization has provisioned. org_services carries an org_isolation
+  // policy and callers include the public /auth/status path, where no session has set app.org_id — so
+  // the read supplies its own context rather than relying on the connection owning the table.
   async getServices(orgId: string): Promise<OrgServiceEntity[]> {
-    return this.orgServiceRepository.findByOrg(orgId);
+    return this.primaryDb.runWithRlsContext({ orgId }, () => this.orgServiceRepository.findByOrg(orgId));
   }
 
   // Records a provisioned external service — its presence is the authoritative answer for service feature locks
@@ -75,13 +78,16 @@ export class OrganizationDomainService {
     const org = await this.organizationRepository.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found.');
 
+    // Passed through as-is: an omitted identifier must stay undefined so the upsert leaves the stored
+    // value alone rather than overwriting it with null
     await this.orgServiceRepository.upsert(orgId, dto.service, {
-      externalId: dto.externalId ?? null,
-      externalName: dto.externalName ?? null,
+      externalId: dto.externalId,
+      externalName: dto.externalName,
     });
 
-    // Bust the resolved permission sets BEFORE announcing, or the SSE re-push serves the stale locked set.
-    // Provisioning is once-per-service, so the blunt invalidateAll costs nothing (same as a catalog push).
+    // Bust the resolved permission sets BEFORE announcing, or the SSE re-push serves the stale locked
+    // set. Reached from the read-only status backfill too, but only on the transition into provisioned,
+    // so the blunt invalidateAll still fires about once per service (same as a catalog push).
     await this.permissionSetCache.invalidateAll();
 
     this.logger.log(`Provisioned service ${dto.service} for org ${orgId} (${dto.externalName ?? 'no ref'})`);
@@ -92,13 +98,13 @@ export class OrganizationDomainService {
   // Finds an organization by ID, returns DTO (with its provisioned services) or null
   async getById(id: string): Promise<OrganizationDto | null> {
     const org = await this.organizationRepository.findById(id);
-    return org ? OrganizationDto.from(org, await this.orgServiceRepository.findByOrg(org.id)) : null;
+    return org ? OrganizationDto.from(org, await this.getServices(org.id)) : null;
   }
 
   // Finds an organization by subdomain, returns DTO (with its provisioned services) or null
   async getBySubdomain(subdomain: string): Promise<OrganizationDto | null> {
     const org = await this.organizationRepository.findBySubdomain(subdomain);
-    return org ? OrganizationDto.from(org, await this.orgServiceRepository.findByOrg(org.id)) : null;
+    return org ? OrganizationDto.from(org, await this.getServices(org.id)) : null;
   }
 
   // Creates an organization from a cloud-server internal request payload

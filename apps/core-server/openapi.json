@@ -21820,44 +21820,6 @@
       }
     },
     "/gitea-api/repositories": {
-      "get": {
-        "operationId": "RepositoriesGatewayController_findAll",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "description": "One-based page number",
-            "schema": {
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "Page size (Gitea caps a page at 50)",
-            "schema": {
-              "default": 20,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Gitea - Repositories"
-        ]
-      },
       "post": {
         "operationId": "RepositoriesGatewayController_create",
         "parameters": [],
@@ -22049,107 +22011,6 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Gitea - Repositories"
-        ]
-      }
-    },
-    "/gitea-api/repositories/{name}/actions/runs": {
-      "get": {
-        "operationId": "RepositoriesGatewayController_listRuns",
-        "parameters": [
-          {
-            "name": "name",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "description": "One-based page number",
-            "schema": {
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "Page size (Gitea caps a page at 50)",
-            "schema": {
-              "default": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "event",
-            "required": false,
-            "in": "query",
-            "description": "Trigger event, e.g. push or workflow_dispatch",
-            "schema": {
-              "example": "workflow_dispatch",
-              "type": "string"
-            }
-          },
-          {
-            "name": "branch",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "main",
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "waiting",
-                "queued",
-                "running",
-                "completed"
-              ]
-            }
-          },
-          {
-            "name": "actor",
-            "required": false,
-            "in": "query",
-            "description": "Gitea username that triggered the run",
-            "schema": {
-              "example": "vritti-admin",
-              "type": "string"
-            }
-          },
-          {
-            "name": "workflowId",
-            "required": false,
-            "in": "query",
-            "description": "Restrict to one workflow file",
-            "schema": {
-              "example": "ci.yaml",
               "type": "string"
             }
           }
@@ -22546,6 +22407,156 @@
         ],
         "tags": [
           "Gitea - Repositories"
+        ]
+      }
+    },
+    "/gitea-api/select-api/repositories": {
+      "get": {
+        "operationId": "SelectApiController_selectRepositories",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Gitea - Select"
         ]
       }
     }

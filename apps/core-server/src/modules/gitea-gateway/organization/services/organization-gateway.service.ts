@@ -88,7 +88,17 @@ export class OrganizationGatewayService {
   async requireNamespace(subdomain: string): Promise<string> {
     const org = await this.organizationService.getBySubdomain(subdomain);
     const gitea = org?.services.find((entry) => entry.service === ServiceTypeValues.GITEA);
-    if (gitea?.externalName) return gitea.externalName;
+    if (gitea?.externalName) {
+      // The namespace is provisioned AS the subdomain, so the two must stay identical. If they ever
+      // diverge the stored value still wins — it is what actually exists in Gitea — but say so loudly,
+      // because it means a rename happened without the namespace following it.
+      if (gitea.externalName !== subdomain) {
+        this.logger.warn(
+          `Git namespace "${gitea.externalName}" no longer matches subdomain "${subdomain}" — using the stored namespace`,
+        );
+      }
+      return gitea.externalName;
+    }
 
     throw new ConflictException({
       label: 'Organization Not Set Up',

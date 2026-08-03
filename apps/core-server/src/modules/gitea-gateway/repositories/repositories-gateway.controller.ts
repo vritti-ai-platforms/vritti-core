@@ -21,18 +21,15 @@ import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgSubdomain } from '@/security/decorators';
 import { CreateRepositoryDto } from './dto/request/create-repository.dto';
 import { DispatchWorkflowDto } from './dto/request/dispatch-workflow.dto';
-import { ListRepositoriesQueryDto } from './dto/request/list-repositories-query.dto';
-import { ListRunsQueryDto } from './dto/request/list-runs-query.dto';
 import { RepositoryContentsQueryDto } from './dto/request/repository-contents-query.dto';
 import type { BranchListResponseDto } from './dto/response/branch-list-response.dto';
 import type { JobListResponseDto } from './dto/response/job-list-response.dto';
 import type { JobLogsResponseDto } from './dto/response/job-logs-response.dto';
 import type { RepositoryContentsResponseDto } from './dto/response/repository-contents-response.dto';
-import type { RepositoryListResponseDto } from './dto/response/repository-list-response.dto';
 import type { RepositoryResponseDto } from './dto/response/repository-response.dto';
 import type { RepositoryStatsResponseDto } from './dto/response/repository-stats-response.dto';
 import type { RepositoryTableResponseDto } from './dto/response/repository-table-response.dto';
-import type { RunListResponseDto, RunResponseDto } from './dto/response/run-response.dto';
+import type { RunResponseDto } from './dto/response/run-response.dto';
 import type { RunTableResponseDto } from './dto/response/run-table-response.dto';
 import type { WorkflowListResponseDto } from './dto/response/workflow-list-response.dto';
 import { ActionsGatewayService } from './services/actions-gateway.service';
@@ -64,16 +61,6 @@ export class RepositoriesGatewayController {
   findForTable(@UserId() userId: string, @OrgSubdomain() subdomain: string): Promise<RepositoryTableResponseDto> {
     this.logger.log(`GET /gitea-api/repositories/table (org=${subdomain})`);
     return this.repositoriesGatewayService.findForTable(userId, subdomain);
-  }
-
-  @Get()
-  @RequirePermission(ORG_REPOSITORIES.view)
-  findAll(
-    @OrgSubdomain() subdomain: string,
-    @Query() query: ListRepositoriesQueryDto,
-  ): Promise<RepositoryListResponseDto> {
-    this.logger.log(`GET /gitea-api/repositories (org=${subdomain})`);
-    return this.repositoriesGatewayService.findAll(subdomain, query);
   }
 
   @Post()
@@ -142,17 +129,6 @@ export class RepositoriesGatewayController {
   ): Promise<RunTableResponseDto> {
     this.logger.log(`GET /gitea-api/repositories/${name}/actions/runs/table (workflow=${workflowId ?? 'all'})`);
     return this.actionsGatewayService.findRunsForTable(userId, subdomain, name, workflowId);
-  }
-
-  @Get(':name/actions/runs')
-  @RequirePermission(ORG_REPOSITORIES.view)
-  listRuns(
-    @OrgSubdomain() subdomain: string,
-    @Param('name') name: string,
-    @Query() query: ListRunsQueryDto,
-  ): Promise<RunListResponseDto> {
-    this.logger.log(`GET /gitea-api/repositories/${name}/actions/runs (workflow=${query.workflowId ?? 'all'})`);
-    return this.actionsGatewayService.listRuns(subdomain, name, query);
   }
 
   @Get(':name/actions/runs/:runId')

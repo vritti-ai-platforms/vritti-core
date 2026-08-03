@@ -22,3 +22,7 @@ export const GITEA_RUN_JOBS_KEY = (name: string, runId: number) => [...GITEA_RUN
 // running job can land before its closing lines are written, which would leave the log short for good
 export const GITEA_JOB_LOGS_KEY = (name: string, jobId: number, phase: 'tailing' | 'final') =>
   [...GITEA_REPOSITORY_ACTIONS_KEY(name), 'job-logs', jobId, phase] as const;
+
+// How often a run, job or log is re-read while the git service still reports work in flight. Each query
+// turns polling off the moment `isActive` goes false, so no interval outlives its subject.
+export const ACTIVE_POLL_INTERVAL_MS = 5000;

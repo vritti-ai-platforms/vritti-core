@@ -142,21 +142,28 @@ export class UserPermissionsDomainService {
     return available;
   }
 
-  // Routes feature resolution to the scope-appropriate path for a workspace context
+  // Returns the service codes the organization has provisioned, for gating service-dependent features
+  async getAvailableServices(orgId: string): Promise<ServiceCode[]> {
+    return toServiceCodes(await this.orgServiceRepository.findByOrg(orgId));
+  }
+
+  // Routes feature resolution to the scope-appropriate path for a workspace context. availableServices is
+  // threaded in by callers that resolve many nodes for one org, so the lookup happens once, not per node.
   async getPermissionsForContext(
     userId: string,
     ctx: PermissionContext,
     platform: ClientPlatform = 'web',
+    availableServices?: ServiceCode[],
   ): Promise<{ features: PermissionFeature[] }> {
     switch (ctx.scope) {
       case 'SITE':
-        return this.getPermissions(userId, ctx.id, '', platform);
+        return this.getPermissions(userId, ctx.id, '', platform, availableServices);
       case 'SITE_GROUP':
-        return this.getSiteGroupPermissions(userId, ctx.id, platform);
+        return this.getSiteGroupPermissions(userId, ctx.id, platform, availableServices);
       case 'LE':
-        return this.getLegalEntityPermissions(userId, ctx.id, platform);
+        return this.getLegalEntityPermissions(userId, ctx.id, platform, availableServices);
       case 'ORG':
-        return this.getOrgPermissions(userId, ctx.id, platform);
+        return this.getOrgPermissions(userId, ctx.id, platform, availableServices);
     }
   }
 
@@ -260,6 +267,7 @@ export class UserPermissionsDomainService {
     siteId: string,
     _orgId: string,
     platform: ClientPlatform = 'web',
+    availableServices?: ServiceCode[],
   ): Promise<{ features: PermissionFeature[] }> {
     const site = await this.siteRepository.findById(siteId);
     if (!site) throw new NotFoundException('Site not found.');
@@ -294,7 +302,7 @@ export class UserPermissionsDomainService {
       platform,
       siteType: site.type,
       scope: 'SITE',
-      availableServices: toServiceCodes(await this.orgServiceRepository.findByOrg(org.id)),
+      availableServices: availableServices ?? (await this.getAvailableServices(org.id)),
     });
 
     this.logger.log(`Resolved ${features.length} features for user ${userId} at site ${siteId} (platform=${platform})`);
@@ -306,6 +314,7 @@ export class UserPermissionsDomainService {
     userId: string,
     siteGroupId: string,
     platform: ClientPlatform,
+    availableServices?: ServiceCode[],
   ): Promise<{ features: PermissionFeature[] }> {
     const group = await this.siteRepository.findSiteGroupById(siteGroupId);
     if (!group) throw new ForbiddenException('Site group not found in this organization.');
@@ -322,6 +331,8 @@ export class UserPermissionsDomainService {
       'SITE_GROUP',
       platform,
       `site group ${siteGroupId}`,
+      undefined,
+      availableServices,
     );
   }
 
@@ -330,6 +341,7 @@ export class UserPermissionsDomainService {
     userId: string,
     legalEntityId: string,
     platform: ClientPlatform,
+    availableServices?: ServiceCode[],
   ): Promise<{ features: PermissionFeature[] }> {
     const legalEntity = await this.siteRepository.findLegalEntityById(legalEntityId);
     if (!legalEntity) throw new ForbiddenException('Legal entity not found in this organization.');
@@ -348,6 +360,8 @@ export class UserPermissionsDomainService {
       'LE',
       platform,
       `legal entity ${legalEntityId}`,
+      undefined,
+      availableServices,
     );
   }
 
@@ -356,6 +370,7 @@ export class UserPermissionsDomainService {
     userId: string,
     orgId: string,
     platform: ClientPlatform,
+    availableServices?: ServiceCode[],
   ): Promise<{ features: PermissionFeature[] }> {
     const org = await this.organizationRepository.findById(orgId);
     if (!org) throw new ForbiddenException('Organization not found.');
@@ -372,6 +387,7 @@ export class UserPermissionsDomainService {
       platform,
       `org ${orgId}`,
       org,
+      availableServices,
     );
   }
 
@@ -385,6 +401,7 @@ export class UserPermissionsDomainService {
     platform: ClientPlatform,
     target: string,
     preloadedOrg?: Organization,
+    availableServices?: ServiceCode[],
   ): Promise<{ features: PermissionFeature[] }> {
     const snapshot = await this.catalogService.getActiveSnapshot();
     const org = preloadedOrg ?? (await this.organizationRepository.findById(orgId));
@@ -404,7 +421,7 @@ export class UserPermissionsDomainService {
       roleFeatures: this.mergeRoleGrants(effectiveGrants),
       platform,
       scope,
-      availableServices: toServiceCodes(await this.orgServiceRepository.findByOrg(org.id)),
+      availableServices: availableServices ?? (await this.getAvailableServices(org.id)),
     });
 
     this.logger.log(`Resolved ${features.length} features for user ${userId} at ${target} (platform=${platform})`);

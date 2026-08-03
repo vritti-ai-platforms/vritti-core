@@ -14,12 +14,14 @@ import {
   Store,
   Warehouse,
 } from 'lucide-react';
+import type { ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 import { useLogo } from '../../hooks/useLogo';
 import { useAuth } from '../../providers/AuthProvider';
 import { usePermissionContext } from '../../providers/PermissionProvider';
 import type { WorkspaceKind } from '../../utils/workspace';
 import { WORKSPACE_SLUG_PREFIXES } from '../../utils/workspace';
+import { RepositorySwitcher } from './switchers/RepositorySwitcher';
 import { UserMenu } from './UserMenu';
 
 const KIND_TILES: Record<WorkspaceKind, string> = {
@@ -34,6 +36,13 @@ const KIND_ICONS: Record<WorkspaceKind, LucideIcon> = {
   group: Network,
   le: Landmark,
   org: Building2,
+};
+
+// Detail-crumb switchers keyed by the catalog routePrefix that owns them. A remote's detail crumb is inert
+// on its own — it links back to the page you are already on — so the host swaps it for a switcher. Future
+// features register one line here.
+const DETAIL_SWITCHERS: Record<string, ComponentType<{ repoName: string; basePath: string }>> = {
+  repositories: RepositorySwitcher,
 };
 
 const SITE_TYPE_ICONS: Record<string, LucideIcon> = {
@@ -79,6 +88,18 @@ export const TopBar = () => {
               <Breadcrumb
                 maxItems={4}
                 renderSegment={(segment) => {
+                  // Feature routes mount at `/:workspaceSlug/<routePrefix>/*`, so a depth of exactly 4 is the
+                  // detail segment — deeper ones (a tab, or `actions/:runId`) stay plain crumbs
+                  const parts = segment.path.split('/');
+                  if (parts.length === 4) {
+                    const Switcher = DETAIL_SWITCHERS[parts[2]];
+                    if (Switcher) {
+                      return (
+                        <Switcher key={segment.raw} repoName={segment.raw} basePath={parts.slice(0, 3).join('/')} />
+                      );
+                    }
+                  }
+
                   const isWorkspace = WORKSPACE_SLUG_PREFIXES.some(({ prefix }) => segment.raw.startsWith(prefix));
                   if (!isWorkspace) return undefined;
                   const Icon = identity.icon;

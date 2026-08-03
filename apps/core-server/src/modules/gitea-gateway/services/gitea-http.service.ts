@@ -31,15 +31,13 @@ function compareVersions(a: string, b: string): number {
 
 interface GiteaRequestOptions {
   params?: Record<string, unknown>;
-  // Performs the call on behalf of this Gitea user instead of the admin token owner
-  sudo?: string;
   // Action job logs come back as text/plain even though the OpenAPI spec declares application/json,
   // so that call has to opt out of axios' JSON parsing
   responseType?: 'text';
 }
 
-// Single authenticated HTTP client for the Gitea instance. Owns transport concerns only —
-// the admin token, the Sudo header, and funnelling every failure through one translation point.
+// Single authenticated HTTP client for the Gitea instance. Owns transport concerns only — the admin
+// token, the instance version probe, and funnelling every failure through one translation point.
 @Injectable()
 export class GiteaHttpService {
   private readonly client: AxiosInstance;
@@ -57,11 +55,10 @@ export class GiteaHttpService {
     });
   }
 
-  // Builds per-request config, adding the Sudo header only when an actor is given
+  // Builds per-request config
   private config(options?: GiteaRequestOptions) {
     return {
       params: options?.params,
-      ...(options?.sudo ? { headers: { Sudo: options.sudo } } : {}),
       ...(options?.responseType ? { responseType: options.responseType } : {}),
     };
   }
@@ -126,11 +123,6 @@ export class GiteaHttpService {
   // Sends a PUT and returns the response body
   async put<T>(path: string, data?: unknown, options?: GiteaRequestOptions): Promise<T> {
     return (await this.send(() => this.client.put<T>(path, data, this.config(options)))).data;
-  }
-
-  // Sends a PATCH and returns the response body
-  async patch<T>(path: string, data?: unknown, options?: GiteaRequestOptions): Promise<T> {
-    return (await this.send(() => this.client.patch<T>(path, data, this.config(options)))).data;
   }
 
   // Sends a DELETE and returns the response body

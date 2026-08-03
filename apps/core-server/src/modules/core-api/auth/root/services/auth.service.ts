@@ -5,6 +5,7 @@ import { UserPermissionsDomainService } from '@domain/user-permissions/services/
 import { Injectable, Logger, type MessageEvent } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TokenService, TokenType } from '@vritti/api-sdk/auth';
+import type { ServiceCode } from '@vritti/api-sdk/catalog-resolver';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException, UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import * as argon2 from 'argon2';
@@ -55,12 +56,15 @@ export class AuthService {
         userId,
         orgId,
       );
+      // Resolved once for the whole fan-out: the org's services are the same for every site, group and
+      // legal entity below it, and resolving per node cost one identical query each
+      const availableServices = await this.userPermissionsService.getAvailableServices(orgId);
       const [featuresBySiteId, featuresByGroupId, featuresByLeId, orgFeatures] = await Promise.all([
-        this.resolveFeaturesByNode(userId, sites, 'SITE', platform),
-        this.resolveFeaturesByNode(userId, siteGroups, 'SITE_GROUP', platform),
-        this.resolveFeaturesByNode(userId, legalEntities, 'LE', platform),
+        this.resolveFeaturesByNode(userId, sites, 'SITE', platform, availableServices),
+        this.resolveFeaturesByNode(userId, siteGroups, 'SITE_GROUP', platform, availableServices),
+        this.resolveFeaturesByNode(userId, legalEntities, 'LE', platform, availableServices),
         this.userPermissionsService
-          .getPermissionsForContext(userId, { scope: 'ORG', id: orgId }, platform)
+          .getPermissionsForContext(userId, { scope: 'ORG', id: orgId }, platform, availableServices)
           .then((r) => r.features),
       ]);
       return {
@@ -82,6 +86,7 @@ export class AuthService {
     nodes: { id: string }[],
     scope: 'SITE' | 'SITE_GROUP' | 'LE',
     platform: 'web' | 'ios' | 'android',
+    availableServices: ServiceCode[],
   ): Promise<Record<string, Awaited<ReturnType<UserPermissionsDomainService['getPermissions']>>['features']>> {
     return Object.fromEntries(
       await Promise.all(
@@ -90,6 +95,7 @@ export class AuthService {
             userId,
             { scope, id: node.id },
             platform,
+            availableServices,
           );
           return [node.id, features];
         }),

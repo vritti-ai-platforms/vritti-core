@@ -26,7 +26,6 @@ export const RepositoriesTable: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // The page only mounts this once the namespace exists, so the list can fetch immediately
   const { data: response, isLoading } = useRepositories();
 
   // Sorting and search are off deliberately: the git service paginates but cannot sort or filter, so

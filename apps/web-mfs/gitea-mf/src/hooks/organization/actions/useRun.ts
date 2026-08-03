@@ -2,8 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { RunData } from '@/schemas/actions';
 import { getRun } from '@/services/organization/actions.service';
-import { GITEA_RUN_KEY } from './keys';
-import { ACTIVE_POLL_INTERVAL_MS } from './polling';
+import { ACTIVE_POLL_INTERVAL_MS, GITEA_RUN_KEY } from './keys';
 
 // Fetches a run by id; suspends until data is available, so the run page's skeleton is its only loading
 // state. Not self-gated on the view permission — useSuspenseQuery has no `enabled`, and the route only

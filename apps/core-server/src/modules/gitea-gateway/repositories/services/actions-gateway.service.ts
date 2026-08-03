@@ -5,20 +5,11 @@ import { OrganizationGatewayService } from '../../organization/services/organiza
 import { GiteaHttpService } from '../../services/gitea-http.service';
 import { toGiteaFilters, toGiteaPaging } from '../../table-state.util';
 import type { DispatchWorkflowDto } from '../dto/request/dispatch-workflow.dto';
-import type { ListRunsQueryDto } from '../dto/request/list-runs-query.dto';
 import { type GiteaApiJobList, JobListResponseDto } from '../dto/response/job-list-response.dto';
 import { JobLogsResponseDto } from '../dto/response/job-logs-response.dto';
-import {
-  type GiteaApiRun,
-  type GiteaApiRunList,
-  RunListResponseDto,
-  RunResponseDto,
-} from '../dto/response/run-response.dto';
+import { type GiteaApiRun, type GiteaApiRunList, RunResponseDto } from '../dto/response/run-response.dto';
 import type { RunTableResponseDto } from '../dto/response/run-table-response.dto';
 import { type GiteaApiWorkflowList, WorkflowListResponseDto } from '../dto/response/workflow-list-response.dto';
-
-const DEFAULT_PAGE = 1;
-const DEFAULT_LIMIT = 20;
 
 // Must match the slug the frontend table registers under, or the two read different Redis keys
 const RUNS_TABLE_SLUG = 'gitea-org-action-runs';
@@ -50,8 +41,8 @@ export class ActionsGatewayService {
   }
 
   // Fetches a page of runs, tolerating every route shape across Gitea versions.
-  //   - `/actions/runs` is the 1.25+ listing
-  //   - `/actions/tasks` is the same payload under the pre-1.25 name, so it stands in verbatim
+  //   - `/actions/runs` is the listing from RUNS_MIN_VERSION onwards
+  //   - `/actions/tasks` is the same payload under the older name, so it stands in verbatim
   //   - the per-workflow listing exists only on Gitea main; below that the scope is dropped rather
   //     than 404ing, so the table still renders (unfiltered) instead of erroring
   private async fetchRuns(
@@ -148,26 +139,6 @@ export class ActionsGatewayService {
     return { result: runs.map(RunResponseDto.from), count: total, state, activeViewId };
   }
 
-  // Lists workflow runs, optionally scoped to one workflow file
-  async listRuns(subdomain: string, name: string, query: ListRunsQueryDto): Promise<RunListResponseDto> {
-    const base = await this.repoBase(subdomain, name);
-
-    const response = await this.fetchRuns(
-      base,
-      {
-        page: query.page ?? DEFAULT_PAGE,
-        limit: query.limit ?? DEFAULT_LIMIT,
-        ...(query.event ? { event: query.event } : {}),
-        ...(query.branch ? { branch: query.branch } : {}),
-        ...(query.status ? { status: query.status } : {}),
-        ...(query.actor ? { actor: query.actor } : {}),
-      },
-      query.workflowId,
-    );
-
-    return RunListResponseDto.from(response);
-  }
-
   // Returns a single run
   async findRun(subdomain: string, name: string, runId: number): Promise<RunResponseDto> {
     await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
@@ -215,8 +186,8 @@ export class ActionsGatewayService {
     return { success: true, message: failedOnly ? 'Failed jobs re-queued.' : 'Run re-queued.' };
   }
 
-  // Deletes a run and its logs. Note Gitea 1.27 exposes no cancel endpoint — a queued or running run
-  // can only be deleted, not stopped.
+  // Deletes a run and its logs. Gitea exposes no cancel endpoint at any version we support, so a
+  // queued or running run can only be deleted, not stopped.
   async removeRun(subdomain: string, name: string, runId: number): Promise<SuccessResponseDto> {
     await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
     const base = await this.repoBase(subdomain, name);

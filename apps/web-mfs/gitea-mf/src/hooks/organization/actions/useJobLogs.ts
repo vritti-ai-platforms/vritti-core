@@ -4,8 +4,7 @@ import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
 import type { JobLogsData } from '@/schemas/actions';
 import { getJobLogs } from '@/services/organization/actions.service';
-import { GITEA_JOB_LOGS_KEY } from './keys';
-import { ACTIVE_POLL_INTERVAL_MS } from './polling';
+import { ACTIVE_POLL_INTERVAL_MS, GITEA_JOB_LOGS_KEY } from './keys';
 
 // isJobActive is a required argument rather than an option: the log payload carries no isActive of its own,
 // so the job that produces it is the only thing that can say when tailing has to stop.
