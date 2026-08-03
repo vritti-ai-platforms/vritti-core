@@ -293,8 +293,8 @@ importers:
         specifier: ^11.2.5
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: ^0.3.5
-        version: 0.3.5(8ea5d58567a5ba334c1d362fb794c23f)
+        specifier: ^0.3.6
+        version: 0.3.6(8ea5d58567a5ba334c1d362fb794c23f)
       '@vritti/commerce-permissions':
         specifier: workspace:*
         version: link:../../libs/commerce-permissions
@@ -635,8 +635,8 @@ importers:
         specifier: ^11.2.6
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: ^0.3.5
-        version: 0.3.5(8ea5d58567a5ba334c1d362fb794c23f)
+        specifier: ^0.3.6
+        version: 0.3.6(8ea5d58567a5ba334c1d362fb794c23f)
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -5790,8 +5790,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vritti/api-sdk@0.3.5':
-    resolution: {integrity: sha512-amtWFx4mJS+7vK5n1IzXA4PVRmVF3Afg68gOwKM2bqvekKMJ+ZySYScFl41hbXcsIwi295Geg1Z/ZKSUK7jdnQ==}
+  '@vritti/api-sdk@0.3.6':
+    resolution: {integrity: sha512-80CIXdUXCobAVEXCYh/o3cK68TGhJEZXRkkGfhp1HnkJ8SHOg0QwgQe5u58M086llQ/WcUObWO/SwAoaNT4Jiw==}
     peerDependencies:
       '@nestjs/common': ^11.0.0
       '@nestjs/config': ^4.0.0
@@ -18957,7 +18957,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vritti/api-sdk@0.3.5(8ea5d58567a5ba334c1d362fb794c23f)':
+  '@vritti/api-sdk@0.3.6(8ea5d58567a5ba334c1d362fb794c23f)':
     dependencies:
       '@getbrevo/brevo': 4.0.1
       '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
