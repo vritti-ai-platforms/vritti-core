@@ -100,3 +100,16 @@ jobs:
       package_json_path: apps/web-mfs/commerce-mf/package.json
       production_domain: https://dev.vrittiai.com
     secrets: inherit
+
+  # Module-federation remote — core-web loads it at runtime via the feature catalog
+  gitea-mf:
+    needs: affected
+    if: contains(fromJSON(needs.affected.outputs.projects), 'gitea-mf')
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-web.yml@main
+    with:
+      app_name: gitea-mf
+      build_command: pnpm exec nx build gitea-mf
+      output_dir: apps/web-mfs/gitea-mf/dist
+      package_json_path: apps/web-mfs/gitea-mf/package.json
+      production_domain: https://dev.vrittiai.com
+    secrets: inherit
