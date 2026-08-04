@@ -98,7 +98,8 @@ jobs:
       build_command: pnpm exec nx build commerce-mf
       output_dir: apps/web-mfs/commerce-mf/dist
       package_json_path: apps/web-mfs/commerce-mf/package.json
-      production_domain: https://dev.vrittiai.com
+      # No production_domain: MF remotes resolve API + assets same-origin at runtime (like core-web),
+      # so nothing bakes a fixed dev.vrittiai.com origin. Lets the bare dev.vrittiai.com host retire.
     secrets: inherit
 
   # Module-federation remote — core-web loads it at runtime via the feature catalog
@@ -111,5 +112,6 @@ jobs:
       build_command: pnpm exec nx build gitea-mf
       output_dir: apps/web-mfs/gitea-mf/dist
       package_json_path: apps/web-mfs/gitea-mf/package.json
-      production_domain: https://dev.vrittiai.com
+      # No production_domain: MF remotes resolve API + assets same-origin at runtime (like core-web),
+      # so nothing bakes a fixed dev.vrittiai.com origin. Lets the bare dev.vrittiai.com host retire.
     secrets: inherit

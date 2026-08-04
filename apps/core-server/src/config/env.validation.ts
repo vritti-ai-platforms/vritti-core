@@ -89,9 +89,6 @@ class EnvironmentVariables {
   @IsString()
   REFRESH_COOKIE_NAME: string;
 
-  @IsString()
-  REFRESH_COOKIE_DOMAIN: string;
-
   // Primary Database
   @IsString()
   PRIMARY_DB_HOST: string;

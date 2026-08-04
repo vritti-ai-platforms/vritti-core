@@ -24,7 +24,7 @@ const ENV = {
   port: process.env.PORT ?? 3002,
   host: process.env.APP_HOST ?? 'local.vrittiai.com',
   refreshCookieName: process.env.REFRESH_COOKIE_NAME,
-  refreshCookieDomain: process.env.REFRESH_COOKIE_DOMAIN,
+  refreshCookieDomain: process.env.BASE_DOMAIN ?? 'local.vrittiai.com',
 } as const;
 
 const protocol = ENV.useHttps ? 'https' : 'http';
