@@ -1,5 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+// Gitea's SSH listens on 2222 in the deployment stack. A non-22 port can't be expressed in the scp
+// form (`git@host:path`), so the SSH URL uses the ssh:// form to carry it.
+const GITEA_SSH_PORT = 2222;
+
 // Raw repository shape returned by the Gitea REST API — snake_case mirrors the wire format.
 // Kept beside the DTO that maps it so the two stay in step. The URL fields here are no longer used
 // for the DTO's URLs — those are derived from BASE_DOMAIN, not this Gitea payload.
@@ -47,7 +51,7 @@ export class RepositoryResponseDto {
   @ApiProperty({ example: 'https://git.example.com/wine-mart/billing-service.git' })
   cloneUrl: string;
 
-  @ApiProperty({ example: 'git@git.example.com:wine-mart/billing-service.git' })
+  @ApiProperty({ example: 'ssh://git@git.example.com:2222/wine-mart/billing-service.git' })
   sshUrl: string;
 
   @ApiProperty({ example: 'main' })
@@ -69,12 +73,13 @@ export class RepositoryResponseDto {
     dto.isPrivate = repository.private;
     dto.isEmpty = repository.empty;
     dto.size = repository.size;
-    // Portless URLs derived from BASE_DOMAIN — the edge/nginx handles port routing, and Gitea's own
-    // html_url/clone_url/ssh_url depend on its ROOT_URL config which can be wrong (e.g. gitea:3000).
+    // Git URLs derived from BASE_DOMAIN, not Gitea's own html_url/clone_url/ssh_url (those depend on
+    // Gitea's ROOT_URL config, which can be wrong — e.g. gitea:3000). HTTP is portless (the edge/nginx
+    // handles :443); SSH carries Gitea's :2222 since it isn't fronted by the HTTP edge.
     const gitHost = `git.${baseDomain}`;
     dto.htmlUrl = `https://${gitHost}/${repository.full_name}`;
     dto.cloneUrl = `https://${gitHost}/${repository.full_name}.git`;
-    dto.sshUrl = `git@${gitHost}:${repository.full_name}.git`;
+    dto.sshUrl = `ssh://git@${gitHost}:${GITEA_SSH_PORT}/${repository.full_name}.git`;
     dto.defaultBranch = repository.default_branch;
     dto.createdAt = repository.created_at;
     dto.updatedAt = repository.updated_at;
