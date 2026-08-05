@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -41,12 +42,16 @@ function encodeRepoPath(path: string): string {
 @Injectable()
 export class RepositoriesGatewayService {
   private readonly logger = new Logger(RepositoriesGatewayService.name);
+  private readonly baseDomain: string;
 
   constructor(
     private readonly gitea: GiteaHttpService,
     private readonly organizationGatewayService: OrganizationGatewayService,
     private readonly dataTableStateService: DataTableStateService,
-  ) {}
+    configService: ConfigService,
+  ) {
+    this.baseDomain = configService.getOrThrow<string>('BASE_DOMAIN');
+  }
 
   // Returns a page of repositories for the data table, with the view state the client last pushed.
   // The git service can only honour pagination — it offers no filtering or sorting over org repos — so
@@ -63,7 +68,7 @@ export class RepositoriesGatewayService {
     const total = Number(response.headers['x-total-count']);
 
     return {
-      result: response.data.map(RepositoryResponseDto.from),
+      result: response.data.map((repo) => RepositoryResponseDto.from(repo, this.baseDomain)),
       count: Number.isFinite(total) ? total : response.data.length,
       state,
       activeViewId,
@@ -76,7 +81,7 @@ export class RepositoriesGatewayService {
 
     const repository = await this.gitea.get<GiteaApiRepository>(`/repos/${namespace}/${encodeURIComponent(name)}`);
 
-    return RepositoryResponseDto.from(repository);
+    return RepositoryResponseDto.from(repository, this.baseDomain);
   }
 
   // Reads a collection's total from its x-total-count header without fetching the collection.
@@ -169,7 +174,7 @@ export class RepositoriesGatewayService {
     return {
       success: true,
       message: `Repository "${repository.name}" created successfully.`,
-      data: RepositoryResponseDto.from(repository),
+      data: RepositoryResponseDto.from(repository, this.baseDomain),
     };
   }
 

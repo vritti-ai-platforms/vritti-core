@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 // Raw repository shape returned by the Gitea REST API — snake_case mirrors the wire format.
-// Kept beside the DTO that maps it so the two stay in step.
+// Kept beside the DTO that maps it so the two stay in step. The URL fields here are no longer used
+// for the DTO's URLs — those are derived from BASE_DOMAIN, not this Gitea payload.
 export interface GiteaApiRepository {
   id: number;
   name: string;
@@ -40,13 +41,13 @@ export class RepositoryResponseDto {
   @ApiProperty({ example: 1024, description: 'Repository size in KiB' })
   size: number;
 
-  @ApiProperty({ example: 'http://localhost:3300/wine-mart/billing-service' })
+  @ApiProperty({ example: 'https://git.example.com/wine-mart/billing-service' })
   htmlUrl: string;
 
-  @ApiProperty({ example: 'http://localhost:3300/wine-mart/billing-service.git' })
+  @ApiProperty({ example: 'https://git.example.com/wine-mart/billing-service.git' })
   cloneUrl: string;
 
-  @ApiProperty({ example: 'git@localhost:wine-mart/billing-service.git' })
+  @ApiProperty({ example: 'git@git.example.com:wine-mart/billing-service.git' })
   sshUrl: string;
 
   @ApiProperty({ example: 'main' })
@@ -58,8 +59,8 @@ export class RepositoryResponseDto {
   @ApiProperty({ example: '2024-01-15T10:30:00Z' })
   updatedAt: string;
 
-  // Creates a DTO from a raw Gitea repository payload
-  static from(repository: GiteaApiRepository): RepositoryResponseDto {
+  // Creates a DTO from a raw Gitea repository payload, deriving git URLs from BASE_DOMAIN
+  static from(repository: GiteaApiRepository, baseDomain: string): RepositoryResponseDto {
     const dto = new RepositoryResponseDto();
     dto.id = repository.id;
     dto.name = repository.name;
@@ -68,9 +69,12 @@ export class RepositoryResponseDto {
     dto.isPrivate = repository.private;
     dto.isEmpty = repository.empty;
     dto.size = repository.size;
-    dto.htmlUrl = repository.html_url;
-    dto.cloneUrl = repository.clone_url;
-    dto.sshUrl = repository.ssh_url;
+    // Portless URLs derived from BASE_DOMAIN — the edge/nginx handles port routing, and Gitea's own
+    // html_url/clone_url/ssh_url depend on its ROOT_URL config which can be wrong (e.g. gitea:3000).
+    const gitHost = `git.${baseDomain}`;
+    dto.htmlUrl = `https://${gitHost}/${repository.full_name}`;
+    dto.cloneUrl = `https://${gitHost}/${repository.full_name}.git`;
+    dto.sshUrl = `git@${gitHost}:${repository.full_name}.git`;
     dto.defaultBranch = repository.default_branch;
     dto.createdAt = repository.created_at;
     dto.updatedAt = repository.updated_at;
