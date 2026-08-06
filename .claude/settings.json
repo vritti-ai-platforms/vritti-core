@@ -1,5 +1,5 @@
 {
-  "model": "claude-mythos-5",
+  "model": "claude-opus-5",
   "max_tokens": 1000,
   "enabledPlugins": {
     "vritti-dev-tools@vritti-plugins": true,
