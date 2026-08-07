@@ -11,6 +11,16 @@
  */
 @import "@vritti/quantum-ui/index.css";
 
+/**
+ * Required for Tailwind v4 to compile this file's own `@layer base { @apply … }`.
+ * A stylesheet only gets its custom-layer/@apply content emitted when it carries its
+ * own `@theme` context; the theme arriving via the quantum-ui @import (external CSS)
+ * doesn't count. Without this block, `@apply border-border` below silently drops and
+ * default borders fall back to `currentColor` (white in dark mode).
+ */
+@theme inline {
+}
+
 @layer base {
   * {
     @apply border-border; /* border-color: var(--color-border); */
