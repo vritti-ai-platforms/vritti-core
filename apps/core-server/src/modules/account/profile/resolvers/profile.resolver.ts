@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { Query, Resolver } from '@nestjs/graphql';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
+import { OrgId } from '@/security/decorators';
 import { Profile } from '../graphql/profile.type';
 import { ProfileService } from '../services/profile.service';
 
@@ -14,8 +15,8 @@ export class ProfileResolver {
   // Returns the authenticated user's profile
   @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => Profile, { name: 'profile' })
-  async profile(@UserId() userId: string): Promise<Profile> {
+  async profile(@UserId() userId: string, @OrgId() orgId: string): Promise<Profile> {
     this.logger.log('QUERY profile');
-    return this.profileService.getProfile(userId);
+    return this.profileService.getProfile(userId, orgId);
   }
 }

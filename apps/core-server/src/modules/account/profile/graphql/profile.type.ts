@@ -31,4 +31,8 @@ export class Profile {
 
   @Field(() => String, { nullable: true })
   lastLoginAt?: string | null;
+
+  // Signed, so it expires — clients must re-query rather than cache it indefinitely
+  @Field(() => String, { nullable: true })
+  profilePictureUrl?: string | null;
 }

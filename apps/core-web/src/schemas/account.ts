@@ -40,4 +40,6 @@ export interface ProfileData {
   createdAt: string;
   lastLoginAt: string | null;
   hasPassword: boolean;
+  // Presigned, so it expires — see the staleTime note in useProfile
+  profilePictureUrl: string | null;
 }

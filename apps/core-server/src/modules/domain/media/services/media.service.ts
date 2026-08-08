@@ -12,7 +12,7 @@ import { OrgStorageResolverService, type ResolvedOrgStorage } from '../storage/o
 
 const DEFAULT_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 
-interface FilePayload {
+export interface FilePayload {
   buffer: Buffer;
   filename: string;
   mimetype: string;
@@ -186,6 +186,31 @@ export class MediaDomainService {
     const { provider } = await this.resolveOrgStorage(record.organizationId);
     const url = await provider.getSignedUrl(record.storageKey, this.signedUrlExpiry, record.bucket ?? undefined);
     return { url, expiresIn: this.signedUrlExpiry };
+  }
+
+  // Resolves the single media item attached to an entity, with a presigned URL ready to render. Returns null when the
+  // entity has none — callers treat "no media yet" as a normal state, not an error.
+  async getUrlForEntity(
+    organizationId: string,
+    entityType: string,
+    entityId: string,
+  ): Promise<{ id: string; url: string; expiresIn: number } | null> {
+    const record = await this.mediaRepository.findOneByEntity(organizationId, entityType, entityId);
+    if (!record) return null;
+
+    const { provider } = await this.resolveOrgStorage(organizationId);
+    const url = await provider.getSignedUrl(record.storageKey, this.signedUrlExpiry, record.bucket ?? undefined);
+    return { id: record.id, url, expiresIn: this.signedUrlExpiry };
+  }
+
+  // Deletes whatever media an entity holds. A no-op when there is none, so callers can remove idempotently.
+  async deleteForEntity(organizationId: string, entityType: string, entityId: string): Promise<void> {
+    const record = await this.mediaRepository.findOneByEntity(organizationId, entityType, entityId);
+    if (!record) return;
+
+    const { provider } = await this.resolveOrgStorage(organizationId);
+    await this.deleteRecord(record, provider);
+    this.logger.log(`Deleted media ${record.id} for entity ${entityType}/${entityId}`);
   }
 
   // Deletes a media record and removes the storage file if no other records reference it

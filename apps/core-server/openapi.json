@@ -4759,7 +4759,7 @@
     },
     "/account/profile": {
       "get": {
-        "description": "Returns the authenticated user profile information. Profile changes must be requested through the admin.",
+        "description": "Returns the authenticated user profile information. Other than the photo, profile changes must be requested through the admin.",
         "operationId": "ProfileController_getProfile",
         "parameters": [],
         "responses": {
@@ -4786,6 +4786,84 @@
           }
         ],
         "summary": "Get user profile",
+        "tags": [
+          "Account - Profile"
+        ]
+      }
+    },
+    "/account/profile/photo": {
+      "post": {
+        "description": "Stores the uploaded image in the organization's private bucket and returns a time-limited URL. Any previous photo is replaced.",
+        "operationId": "ProfileController_uploadPhoto",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Photo uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfilePhotoDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No file provided, unsupported type, or file too large"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication"
+          },
+          "413": {
+            "description": "Organization has used its full storage allowance"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload profile photo",
+        "tags": [
+          "Account - Profile"
+        ]
+      },
+      "delete": {
+        "description": "Deletes the profile photo. Succeeds even when no photo is set.",
+        "operationId": "ProfileController_removePhoto",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Photo removed successfully"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove profile photo",
         "tags": [
           "Account - Profile"
         ]
@@ -25361,6 +25439,11 @@
             "type": "object",
             "description": "Last login timestamp",
             "example": "2024-06-01T08:00:00Z"
+          },
+          "profilePictureUrl": {
+            "type": "object",
+            "description": "Time-limited URL for the profile photo, null when none is set",
+            "example": "https://<account>.r2.cloudflarestorage.com/org-acme/…?X-Amz-Signature=…"
           }
         },
         "required": [
@@ -25372,6 +25455,30 @@
           "locale",
           "timezone",
           "createdAt"
+        ]
+      },
+      "ProfilePhotoDto": {
+        "type": "object",
+        "properties": {
+          "mediaId": {
+            "type": "string",
+            "description": "Identifier of the stored media item",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "url": {
+            "type": "string",
+            "description": "Time-limited URL for rendering the photo"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Seconds until the URL expires",
+            "example": 3600
+          }
+        },
+        "required": [
+          "mediaId",
+          "url",
+          "expiresIn"
         ]
       },
       "ChangePasswordDto": {

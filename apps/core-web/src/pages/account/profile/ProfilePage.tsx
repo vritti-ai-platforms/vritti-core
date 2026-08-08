@@ -5,7 +5,8 @@ import { Typography } from '@vritti/quantum-ui/Typography';
 import type React from 'react';
 import { AccountInformationCard } from '@/components/account/profile/AccountInformationCard';
 import { PersonalInformationCard } from '@/components/account/profile/PersonalInformationCard';
-import { useProfile } from '@/hooks/account/profile/useProfile';
+import { ProfilePhotoCard } from '@/components/account/profile/ProfilePhotoCard';
+import { useProfile } from '@/hooks/account/profile';
 
 export const ProfilePage: React.FC = () => {
   const { data: profile, isLoading } = useProfile();
@@ -18,6 +19,7 @@ export const ProfilePage: React.FC = () => {
           <Skeleton className="h-4 w-96" />
         </div>
         <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-40 w-full" />
         <Skeleton className="h-48 w-full" />
         <Skeleton className="h-40 w-full" />
       </div>
@@ -40,9 +42,11 @@ export const ProfilePage: React.FC = () => {
 
       <Alert
         title="Profile Changes"
-        description="To make changes to your profile information, please contact your administrator."
+        description="Your photo is the only detail you can change here. For anything else, please contact your administrator."
         variant="info"
       />
+
+      <ProfilePhotoCard profile={profile} />
 
       <PersonalInformationCard profile={profile} />
 

@@ -32,8 +32,14 @@ export class ProfileDto {
   @ApiPropertyOptional({ description: 'Last login timestamp', example: '2024-06-01T08:00:00Z' })
   lastLoginAt: string | null;
 
+  @ApiPropertyOptional({
+    description: 'Time-limited URL for the profile photo, null when none is set',
+    example: 'https://<account>.r2.cloudflarestorage.com/org-acme/…?X-Amz-Signature=…',
+  })
+  profilePictureUrl: string | null;
+
   // Creates a ProfileDto from a User entity
-  static from(user: User): ProfileDto {
+  static from(user: User, profilePictureUrl: string | null = null): ProfileDto {
     const dto = new ProfileDto();
     dto.id = user.id;
     dto.email = user.email;
@@ -45,6 +51,7 @@ export class ProfileDto {
     dto.timezone = user.timezone;
     dto.createdAt = user.createdAt.toISOString();
     dto.lastLoginAt = user.lastLoginAt?.toISOString() ?? null;
+    dto.profilePictureUrl = profilePictureUrl;
     return dto;
   }
 }

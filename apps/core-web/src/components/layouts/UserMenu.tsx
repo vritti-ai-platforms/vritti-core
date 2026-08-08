@@ -1,15 +1,19 @@
-import { Avatar, AvatarFallback } from '@vritti/quantum-ui/Avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@vritti/quantum-ui/Avatar';
 import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
 import { ThemeToggle, useTheme } from '@vritti/quantum-ui/theme';
 import { Lock, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLogout } from '../../hooks';
+import { useProfile } from '../../hooks/account/profile';
 import { useAuth } from '../../providers/AuthProvider';
 
 export const UserMenu = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { user, logout } = useAuth();
+  // Shares the profile page's query key and cache, so opening this menu costs nothing extra once either has loaded
+  const { data: profile } = useProfile({ enabled: !!user });
+  const photoUrl = profile?.profilePictureUrl ?? undefined;
   const logoutMutation = useLogout({
     onSuccess: () => {
       logout();
@@ -48,6 +52,7 @@ export const UserMenu = () => {
       render: (
         <div className="flex items-center gap-3 px-2 py-2">
           <Avatar className="h-10 w-10">
+            {photoUrl && <AvatarImage src={photoUrl} alt={displayName} className="object-cover" />}
             <AvatarFallback className="text-sm">{userInitials}</AvatarFallback>
           </Avatar>
           <div className="flex flex-1 min-w-0">
@@ -119,6 +124,7 @@ export const UserMenu = () => {
       trigger={{
         children: (
           <Avatar className="h-8 w-8 cursor-pointer transition-opacity hover:opacity-80" aria-label="User menu">
+            {photoUrl && <AvatarImage src={photoUrl} alt={displayName} className="object-cover" />}
             <AvatarFallback className="bg-primary text-primary-foreground font-semibold">{userInitials}</AvatarFallback>
           </Avatar>
         ),
