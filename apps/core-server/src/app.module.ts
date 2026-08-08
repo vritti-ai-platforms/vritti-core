@@ -18,6 +18,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
 import { DB_SCHEMA } from '@/db/schema/core-schema';
+import { MediaApiModule } from '@/modules/core-api/media/media-api.module';
 import { RbacModule } from '@/rbac/rbac.module';
 import { SecurityModule } from '@/security/security.module';
 import { SiteContextModule } from '@/site-context/site-context.module';
@@ -253,6 +254,7 @@ import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module
     StructureApiModule,
     CatalogApiModule,
     UserPermissionsApiModule,
+    MediaApiModule,
     // Profile and security management
     AccountModule,
     // Forwards requests to commerce-service via NATS

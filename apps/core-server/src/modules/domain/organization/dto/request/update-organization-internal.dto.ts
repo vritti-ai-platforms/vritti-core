@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import type { OrgCredential } from '@vritti/api-sdk/storage';
+import { IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 import { OrgSizeValues } from '@/db/schema';
 
 export class UpdateOrganizationInternalDto {
@@ -18,4 +19,14 @@ export class UpdateOrganizationInternalDto {
   @IsOptional()
   @IsString()
   logoUrl?: string;
+
+  @ApiPropertyOptional({ description: 'False when the org has exceeded its plan storage allowance' })
+  @IsOptional()
+  @IsBoolean()
+  storageEnabled?: boolean;
+
+  @ApiPropertyOptional({ description: "Replacement credential pair, sent when the org's storage key is rotated" })
+  @IsOptional()
+  @IsObject()
+  storageCredential?: OrgCredential;
 }

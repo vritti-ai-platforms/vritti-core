@@ -142,31 +142,14 @@ class EnvironmentVariables {
   @IsString()
   BASE_DOMAIN: string;
 
-  // R2 Storage
-  @IsString()
-  R2_ACCOUNT_ID: string;
-
-  @IsString()
-  R2_ACCESS_KEY_ID: string;
-
-  @IsString()
-  R2_SECRET_ACCESS_KEY: string;
-
-  @IsString()
-  R2_BUCKET_NAME: string;
-
-  @IsString()
-  R2_PUBLIC_BUCKET: string;
-
-  @IsString()
-  R2_PUBLIC_URL: string;
-
   // Media service
   @IsNumber()
   @Min(1)
   MEDIA_MAX_FILE_SIZE_MB: number;
 
-  @IsString()
+  // Constrained, not a free string: the storage key blocks are validated by matching on this value, so a typo would
+  // match no branch and silently skip every storage key instead of failing at startup
+  @IsIn(['r2'])
   MEDIA_STORAGE_PROVIDER: string;
 
   @IsNumber()

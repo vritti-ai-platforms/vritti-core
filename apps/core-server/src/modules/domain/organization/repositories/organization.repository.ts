@@ -14,6 +14,11 @@ export class OrganizationDomainRepository extends PrimaryBaseRepository<typeof o
     return this.model.findFirst({ where: { subdomain } });
   }
 
+  // Every organization, for jobs that sweep across tenants rather than serve one request
+  async findAll(): Promise<Organization[]> {
+    return this.db.select().from(organizations);
+  }
+
   // Returns the ids of all sites belonging to an organization
   async findSiteIds(orgId: string): Promise<string[]> {
     const rows = await this.db.select({ id: sites.id }).from(sites).where(eq(sites.organizationId, orgId));

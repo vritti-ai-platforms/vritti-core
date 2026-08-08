@@ -1,4 +1,5 @@
 import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
+import { MediaGcService } from '@domain/media/services/media-gc.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -34,6 +35,7 @@ export class OrganizationDomainService {
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
     private readonly catalogService: CatalogDomainService,
+    private readonly mediaGcService: MediaGcService,
     configService: ConfigService,
   ) {
     this.licensePublicKey = configService.getOrThrow<string>('LICENSE_PUBLIC_KEY');
@@ -115,6 +117,7 @@ export class OrganizationDomainService {
       size: dto.size,
       plan: dto.plan,
       logoUrl: dto.logoUrl,
+      storage: dto.storage,
     });
 
     this.logger.log(`Created organization from cloud: ${org.subdomain} (${org.id})`);
@@ -131,6 +134,10 @@ export class OrganizationDomainService {
       ...(dto.name && { name: dto.name }),
       ...(dto.size && { size: dto.size as OrgSize }),
       ...(dto.logoUrl && { logoUrl: dto.logoUrl }),
+      // Checked against undefined, not truthiness: `false` is the whole point of this field
+      ...(dto.storageEnabled !== undefined && { storageEnabled: dto.storageEnabled }),
+      // Merged rather than replaced: buckets and publicUrl are unchanged by a rotation, and only this side holds them
+      ...(dto.storageCredential && { storage: { ...org.storage, ...dto.storageCredential } }),
       updatedAt: new Date(),
     });
 
@@ -198,7 +205,17 @@ export class OrganizationDomainService {
     const org = await this.organizationRepository.findById(id);
     if (!org) throw new NotFoundException('Organization not found.');
 
+    // Captured before the row goes, then used after it. Purging first would mean a failed row delete leaves the org
+    // intact with every file destroyed — silent data loss with nothing deleted. This way the worst case is orphaned
+    // objects, which the control plane's bucket delete and the GC sweep both clean up.
+    const storage = org.storage;
     await this.organizationRepository.delete(id);
+
+    try {
+      await this.mediaGcService.purgeObjects(storage);
+    } catch (error: unknown) {
+      this.logger.warn(`Deleted org ${id} but could not purge its objects: ${error}`);
+    }
 
     this.logger.log(`Deleted organization from cloud: ${org.subdomain} (${id})`);
     return { success: true, message: 'Organization deleted successfully.' };

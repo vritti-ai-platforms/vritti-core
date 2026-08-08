@@ -17,33 +17,46 @@ export class MediaDomainRepository extends PrimaryBaseRepository<typeof media> {
   }
 
   // Finds active media by entity type and entity ID
-  async findByEntity(entityType: string, entityId: string): Promise<Media[]> {
+  async findByEntity(organizationId: string, entityType: string, entityId: string): Promise<Media[]> {
     return this.model.findMany({
-      where: { entityType, entityId, deletedAt: { isNull: true } },
+      where: { organizationId, entityType, entityId, deletedAt: { isNull: true } },
     });
   }
 
   // Finds a single ready media record for an entity (1 media per entity)
-  async findOneByEntity(entityType: string, entityId: string): Promise<Media | undefined> {
+  async findOneByEntity(organizationId: string, entityType: string, entityId: string): Promise<Media | undefined> {
     return this.model.findFirst({
-      where: { entityType, entityId, status: MediaStatusValues.READY, deletedAt: { isNull: true } },
+      where: { organizationId, entityType, entityId, status: MediaStatusValues.READY, deletedAt: { isNull: true } },
     });
   }
 
-  // Finds a ready media record matching the given checksum
-  async findByChecksum(checksum: string): Promise<Media | undefined> {
+  // Finds a ready media record matching the given checksum. Scoped to the org — dedup across tenants would let one
+  // org's presigned URL serve another's bytes — and to the bucket, because reusing a private object's key for a
+  // public record would hand out a public URL pointing at an object that is not in the public bucket.
+  async findByChecksum(organizationId: string, checksum: string, bucket: string): Promise<Media | undefined> {
     return this.model.findFirst({
-      where: { checksum, status: MediaStatusValues.READY, deletedAt: { isNull: true } },
+      where: { organizationId, bucket, checksum, status: MediaStatusValues.READY, deletedAt: { isNull: true } },
     });
   }
 
-  // Counts media records sharing the same storage key
-  async countByStorageKey(storageKey: string): Promise<number> {
+  // Counts media records sharing the same storage key. The org is passed explicitly rather than left to RLS: outside a
+  // request there is no app.org_id, the policy would return 0, and the caller would delete a still-referenced object.
+  async countByStorageKey(organizationId: string, storageKey: string): Promise<number> {
     const result = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(media)
-      .where(and(eq(media.storageKey, storageKey), isNull(media.deletedAt)));
+      .where(and(eq(media.organizationId, organizationId), eq(media.storageKey, storageKey), isNull(media.deletedAt)));
     return Number(result[0]?.count ?? 0);
+  }
+
+  // Every storage key the org still has a record for. The sweep compares the bucket against this set, so a key
+  // missing here is an object nothing can reach.
+  async findStorageKeys(organizationId: string): Promise<Set<string>> {
+    const rows = await this.db
+      .select({ storageKey: media.storageKey })
+      .from(media)
+      .where(and(eq(media.organizationId, organizationId), isNull(media.deletedAt)));
+    return new Set(rows.map((r) => r.storageKey));
   }
 
   // Permanently deletes a media record from the database

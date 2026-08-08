@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import type { OrgStorage } from '@vritti/api-sdk/storage';
+import { IsEnum, IsInt, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 import type { OrgPlan, OrgSize } from '@/db/schema';
 import { OrgPlanValues, OrgSizeValues } from '@/db/schema';
 
@@ -36,4 +37,8 @@ export class CreateOrganizationInternalDto {
   @IsOptional()
   @IsString()
   logoUrl?: string;
+
+  @ApiProperty({ description: "The org's provisioned buckets and the credential scoped to them" })
+  @IsObject()
+  storage: OrgStorage;
 }
