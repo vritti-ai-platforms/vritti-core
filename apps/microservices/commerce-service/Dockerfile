@@ -2,31 +2,41 @@
 # Build context = repo root (vritti-core). NATS microservice — no HTTP ingress.
 
 # ============================================================================
-# Builder — install the pnpm workspace and build just this service via Nx
+# Builder — fetch deps (cached on the lockfile alone), install offline, build
+# via Nx, then emit a self-contained prod bundle with `pnpm deploy`.
 # ============================================================================
 FROM node:20-alpine AS builder
 WORKDIR /repo
 RUN npm install -g pnpm@10.28.0
 
-COPY . .
-RUN pnpm install --frozen-lockfile
+# Dependency layer keyed ONLY on the lockfile: `pnpm fetch` populates the store
+# straight from pnpm-lock.yaml (no source needed), so this heavy download is a
+# cache hit on every source-only change and only re-runs when the lockfile moves.
+# patches/ is needed because pnpm-workspace.yaml pins patchedDependencies.
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY patches ./patches
+RUN pnpm fetch
 
-# Build only this project — output lands in apps/microservices/commerce-service/dist
+# Now the source. `--offline` links from the already-fetched store (no network).
+COPY . .
+RUN pnpm install --frozen-lockfile --offline
 RUN pnpm exec nx build commerce-service
 
+# Self-contained prod deployment: prod-only, flat node_modules in /prod — no
+# install runs downstream. allowUnusedPatches: the workspace patches RN packages
+# a commerce-service-only deploy doesn't include (otherwise a hard error).
+RUN pnpm --filter commerce-service deploy --prod --legacy --config.allowUnusedPatches=true /prod
+
 # ============================================================================
-# Production — prod-only deps + compiled output, non-root
+# Production — prod bundle + compiled output, non-root. No install, no compiler.
 # ============================================================================
 FROM node:20-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apk add --no-cache procps
 
-COPY --from=builder /repo/apps/microservices/commerce-service/package.json ./package.json
-RUN apk add --no-cache --virtual .build-deps python3 make g++ \
- && npm install --omit=dev --no-audit --no-fund \
- && apk del .build-deps
-
+# Prod deps (already resolved) + the compiled app, straight from the deploy bundle.
+COPY --from=builder /prod/node_modules ./node_modules
 COPY --from=builder /repo/apps/microservices/commerce-service/dist ./dist
 # SQL migration files aren't compiled by SWC — copy them next to dist/db/migrate.js for `db:deploy`.
 COPY --from=builder /repo/apps/microservices/commerce-service/src/db/migrations ./dist/db/migrations

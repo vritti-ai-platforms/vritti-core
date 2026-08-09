@@ -2,23 +2,45 @@
 # Build context = repo root (vritti-core). @vritti/* resolve from public npm.
 
 # ============================================================================
-# Builder — install the pnpm workspace and build just this app via Nx
+# Builder — fetch deps (cached on the lockfile alone), install offline, build
+# via Nx, then emit a self-contained prod bundle with `pnpm deploy`.
 # ============================================================================
 FROM node:20-alpine AS builder
 WORKDIR /repo
 RUN npm install -g pnpm@10.28.0
+# Toolchain for native module builds (argon2). Lives ONLY in the builder — the
+# compiled binary is carried into the prod bundle, so the final image never
+# needs a compiler or a second install.
+RUN apk add --no-cache python3 make g++
 
+# Dependency layer keyed ONLY on the lockfile: `pnpm fetch` populates the store
+# straight from pnpm-lock.yaml (no source needed), so this heavy download is a
+# cache hit on every source-only change and only re-runs when the lockfile moves.
+# patches/ is needed because pnpm-workspace.yaml pins patchedDependencies.
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY patches ./patches
+RUN pnpm fetch
+
+# Now the source. `--offline` links from the already-fetched store (no network).
 COPY . .
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --offline
 
-# Build the workspace-only permissions lib (no nx project) plus this app.
-# Its compiled dist is hand-copied into the production node_modules below,
-# because npm can't resolve the "workspace:*" range it's pinned at.
+# Build the workspace-only permissions lib (no nx project) so `pnpm deploy` bundles
+# its compiled dist, then build this app.
 RUN pnpm --filter @vritti/commerce-permissions build
 RUN pnpm exec nx build vritti-core-server
 
+# Self-contained prod deployment: prod-only, flat node_modules — including the
+# @vritti/commerce-permissions workspace lib (pnpm resolves `workspace:*`, so no
+# hand-copy is needed) — in /prod. Then compile argon2 once here: it's not in the
+# build-script allowlist, and alpine/musl has no prebuilt, so pnpm ships it unbuilt.
+# allowUnusedPatches: the workspace patches RN packages (bottom-sheet/zeego/…) that a
+# core-server-only deploy doesn't include, which is otherwise a hard error.
+RUN pnpm --filter vritti-core-server deploy --prod --legacy --config.allowUnusedPatches=true /prod \
+ && npm rebuild --prefix /prod argon2
+
 # ============================================================================
-# Production — prod-only deps + compiled output, non-root
+# Production — prod bundle + compiled output, non-root. No install, no compiler.
 # ============================================================================
 FROM node:20-alpine AS production
 WORKDIR /app
@@ -26,18 +48,8 @@ ENV NODE_ENV=production
 ENV PORT=3002
 RUN apk add --no-cache wget
 
-COPY --from=builder /repo/apps/core-server/package.json ./package.json
-# @vritti/commerce-permissions is a private workspace lib pinned at "workspace:*",
-# which npm can't resolve. Drop it before install and copy its built output in
-# from the builder (it has no runtime deps of its own).
-RUN node -e "const fs=require('fs'),p=require('./package.json');delete p.dependencies['@vritti/commerce-permissions'];fs.writeFileSync('./package.json',JSON.stringify(p,null,2));" \
- && apk add --no-cache --virtual .build-deps python3 make g++ \
- && npm install --omit=dev --no-audit --no-fund \
- && apk del .build-deps
-
-COPY --from=builder /repo/libs/commerce-permissions/package.json ./node_modules/@vritti/commerce-permissions/package.json
-COPY --from=builder /repo/libs/commerce-permissions/dist ./node_modules/@vritti/commerce-permissions/dist
-
+# Prod deps (built, incl. the bundled workspace lib) + the compiled app.
+COPY --from=builder /prod/node_modules ./node_modules
 COPY --from=builder /repo/apps/core-server/dist ./dist
 # SQL migration files aren't compiled by SWC — copy them next to dist/db/migrate.js for `db:deploy`.
 COPY --from=builder /repo/apps/core-server/src/db/migrations ./dist/db/migrations
