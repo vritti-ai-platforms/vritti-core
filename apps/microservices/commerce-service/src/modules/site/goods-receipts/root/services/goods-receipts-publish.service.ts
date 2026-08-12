@@ -20,6 +20,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { allocateByWeight } from '@/common/allocate';
 import {
   CostDistributionMethodValues,
@@ -99,7 +100,7 @@ export class GoodsReceiptsPublishService {
     if (itemsMissingPrice.length > 0) {
       throw new BadRequestException({
         label: 'Missing Unit Price',
-        detail: `${itemsMissingPrice.length} item(s) have no unit price. Set a price for every item before publishing.`,
+        detail: `${pluralize('item', itemsMissingPrice.length, true)} have no unit price. Set a price for every item before publishing.`,
       });
     }
 

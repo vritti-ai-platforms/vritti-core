@@ -10,6 +10,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, ilike, or } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { CostCategoryKindValues, costCategories } from '@/db/schema';
 import { CostCategoryDto } from '../dto/entity/cost-category.dto';
 import { CreateCostCategoryDto } from '../dto/request/create-cost-category.dto';
@@ -161,7 +162,7 @@ export class CostCategoriesDomainService {
     if (refs.costRows > 0) {
       throw new ConflictException({
         label: 'Cost category in use',
-        detail: `Cannot delete "${existing.name}" — it is referenced by ${refs.costRows} cost row${refs.costRows > 1 ? 's' : ''}. Deactivate instead.`,
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${pluralize('cost row', refs.costRows, true)}. Deactivate instead.`,
       });
     }
     await this.repository.delete(id);

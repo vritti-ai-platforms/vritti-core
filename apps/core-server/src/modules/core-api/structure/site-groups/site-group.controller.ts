@@ -23,6 +23,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
 import type { SelectQueryResult } from '@vritti/api-sdk/database';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import { OrgStructureSelectQueryDto } from '../dto/request/org-structure-select-query.dto';
@@ -115,7 +116,9 @@ export class SiteGroupController {
   @Patch('reorder')
   @ApiReorderSiteGroups()
   async reorder(@Body() dto: ReorderSiteGroupsInternalDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /site-groups/internal/reorder — ${dto.ids.length} group(s) for org ${dto.orgId}`);
+    this.logger.log(
+      `PATCH /site-groups/internal/reorder — ${pluralize('group', dto.ids.length, true)} for org ${dto.orgId}`,
+    );
     return this.siteGroupApiService.reorder(dto.orgId, dto.ids);
   }
 

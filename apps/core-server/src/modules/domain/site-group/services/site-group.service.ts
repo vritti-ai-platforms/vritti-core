@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { type SelectOptionsQueryDto, type SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { AUTH_STATUS_EVENTS, SiteGroupUpdatedEvent } from '@/common/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { sequentialSortOrders } from '@/utils/sort-order';
@@ -45,7 +46,7 @@ export class SiteGroupDomainService {
     await this.siteGroupRepository.update(id, { featureLocks: expanded, updatedAt: new Date() });
 
     this.logger.log(
-      `Set feature locks for site group ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
+      `Set feature locks for site group ${id}: ${featureLocks ? pluralize('feature', Object.keys(featureLocks).length, true) : 'inherit full plan'}`,
     );
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id, group.organizationId));
     return { success: true, message: 'Site group feature locks updated successfully.' };
@@ -144,7 +145,7 @@ export class SiteGroupDomainService {
     if (childCount > 0) {
       throw new ConflictException({
         label: 'Cannot Delete',
-        detail: `This site group has ${childCount} child group(s). Remove or reassign them first.`,
+        detail: `This site group has ${pluralize('child group', childCount, true)}. Remove or reassign them first.`,
       });
     }
 
@@ -152,7 +153,7 @@ export class SiteGroupDomainService {
     if (memberCount > 0) {
       throw new ConflictException({
         label: 'Cannot Delete',
-        detail: `This site group has ${memberCount} member site(s). Move them to another group first.`,
+        detail: `This site group has ${pluralize('member site', memberCount, true)}. Move them to another group first.`,
       });
     }
 
@@ -178,7 +179,7 @@ export class SiteGroupDomainService {
 
     await this.siteGroupRepository.setSortOrders(orgId, sequentialSortOrders(ids));
 
-    this.logger.log(`Reordered ${ids.length} site group(s) for org ${orgId}`);
+    this.logger.log(`Reordered ${pluralize('site group', ids.length, true)} for org ${orgId}`);
     for (const group of groups) {
       this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(group.id, orgId));
     }

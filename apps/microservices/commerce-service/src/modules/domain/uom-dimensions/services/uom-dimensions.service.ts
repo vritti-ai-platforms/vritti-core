@@ -7,6 +7,7 @@ import {
   type SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { UomDimensionDto } from '../dto/entity/uom-dimension.dto';
 import type { CreateUomDimensionDto } from '../dto/request/create-uom-dimension.dto';
 import type { UpdateUomDimensionDto } from '../dto/request/update-uom-dimension.dto';
@@ -101,7 +102,7 @@ export class UomDimensionsDomainService {
       [refs.inventoryItems, 'inventory item'],
       [refs.supplierItems, 'supplier item'],
     ];
-    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${pluralize(label, n)}`);
     if (parts.length > 0) {
       throw new ConflictException({
         label: 'Dimension In Use',

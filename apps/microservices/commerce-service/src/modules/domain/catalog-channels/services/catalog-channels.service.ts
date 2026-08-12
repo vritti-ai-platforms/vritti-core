@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
 import { CatalogChannelsDomainRepository } from '../repositories/catalog-channels.repository';
 
@@ -41,7 +42,9 @@ export class CatalogChannelsDomainService {
     if (toAdd.length > 0) {
       const conflicts = await this.repository.findConflictingChannelNames(siteId, toAdd, catalogId);
       if (conflicts.length > 0) {
-        throw new ConflictException(`Channel(s) ${conflicts.join(', ')} are already mapped to another catalog.`);
+        throw new ConflictException(
+          `${pluralize('Channel', conflicts.length)} ${conflicts.join(', ')} are already mapped to another catalog.`,
+        );
       }
     }
 

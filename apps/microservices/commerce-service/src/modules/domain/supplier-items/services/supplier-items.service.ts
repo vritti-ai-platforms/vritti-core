@@ -20,6 +20,7 @@ import {
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import { CurrencyAmountDto, type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import {
   inventoryItems,
   type NewSupplierItemPrice,
@@ -372,7 +373,7 @@ export class SupplierItemsDomainService {
     await this.repository.bulkDeleteSupplierItems(dto.supplierItemIds);
     return {
       success: true,
-      message: `${dto.supplierItemIds.length} item${dto.supplierItemIds.length === 1 ? '' : 's'} removed from supplier.`,
+      message: `${pluralize('item', dto.supplierItemIds.length, true)} removed from supplier.`,
     };
   }
 
@@ -387,7 +388,7 @@ export class SupplierItemsDomainService {
     });
     return {
       success: true,
-      message: `Scheme updated for ${dto.supplierItemIds.length} item${dto.supplierItemIds.length === 1 ? '' : 's'}.`,
+      message: `Scheme updated for ${pluralize('item', dto.supplierItemIds.length, true)}.`,
     };
   }
 
@@ -398,7 +399,7 @@ export class SupplierItemsDomainService {
     await this.repository.bulkSetPreferred(dto.supplierItemIds, dto.isPreferred);
     return {
       success: true,
-      message: `${dto.supplierItemIds.length} item${dto.supplierItemIds.length === 1 ? '' : 's'} marked ${dto.isPreferred ? 'preferred' : 'not preferred'}.`,
+      message: `${pluralize('item', dto.supplierItemIds.length, true)} marked ${dto.isPreferred ? 'preferred' : 'not preferred'}.`,
     };
   }
 

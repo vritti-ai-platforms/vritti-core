@@ -23,6 +23,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
 import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import { OrgStructureSelectQueryDto } from '../dto/request/org-structure-select-query.dto';
@@ -75,7 +76,7 @@ export class LegalEntityController {
   @ApiReorderLegalEntities()
   async reorder(@Body() dto: ReorderLegalEntitiesInternalDto): Promise<SuccessResponseDto> {
     this.logger.log(
-      `PATCH /legal-entities/internal/reorder — ${dto.ids.length} entit${dto.ids.length === 1 ? 'y' : 'ies'} for org ${dto.orgId}`,
+      `PATCH /legal-entities/internal/reorder — ${pluralize('entity', dto.ids.length, true)} for org ${dto.orgId}`,
     );
     return this.legalEntityApiService.reorder(dto.orgId, dto.ids);
   }

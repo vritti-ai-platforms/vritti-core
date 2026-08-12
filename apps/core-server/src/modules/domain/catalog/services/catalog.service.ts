@@ -5,6 +5,7 @@ import { type VersionSnapshot } from '@vritti/api-sdk/catalog-resolver';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CatalogLicense, hashSnapshot, type SignedDocument } from '@vritti/api-sdk/license';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { verifyDocument } from '@vritti/api-sdk/signing';
 import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
@@ -58,7 +59,7 @@ export class CatalogDomainService {
     this.snapshotCache = null;
 
     const pruned = await this.catalogRepository.pruneKeep(5);
-    if (pruned > 0) this.logger.log(`Pruned ${pruned} inactive catalog row(s)`);
+    if (pruned > 0) this.logger.log(`Pruned ${pruned} inactive catalog ${pluralize('row', pruned)}`);
 
     await this.refreshAllSites();
 

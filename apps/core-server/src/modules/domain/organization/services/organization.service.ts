@@ -7,6 +7,7 @@ import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { PrimaryDatabaseService, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { verifyDocument } from '@vritti/api-sdk/signing';
 import { AUTH_STATUS_EVENTS, OrgUpdatedEvent, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import type { OrgService as OrgServiceEntity, OrgSize } from '@/db/schema';
@@ -61,7 +62,7 @@ export class OrganizationDomainService {
     await this.organizationRepository.update(orgId, { featureLocks: expanded, updatedAt: new Date() });
 
     this.logger.log(
-      `Set feature locks for org ${orgId}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
+      `Set feature locks for org ${orgId}: ${featureLocks ? pluralize('feature', Object.keys(featureLocks).length, true) : 'inherit full plan'}`,
     );
     // Push the refreshed org-scope feature set to live SSE connections of the org's users
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.ORG_UPDATED, new OrgUpdatedEvent(orgId));

@@ -18,6 +18,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { inventoryItems } from '@/db/schema';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
@@ -307,7 +308,7 @@ export class InventoryItemsDomainService {
       [refs.stockTransfers, 'stock transfer'],
       [refs.purchaseOrderItems, 'purchase order item'],
     ];
-    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${pluralize(label, n)}`);
     if (parts.length > 0) {
       throw new ConflictException({
         label: 'Inventory Item In Use',

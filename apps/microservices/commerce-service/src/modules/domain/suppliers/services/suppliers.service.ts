@@ -12,6 +12,7 @@ import {
 import { and, desc, sql } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { parties, supplierItems, suppliers } from '@/db/schema';
 import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
@@ -142,7 +143,7 @@ export class SuppliersDomainService {
     if (!existing) throw new NotFoundException('Supplier not found.');
     const refs = await this.repository.countReferences(id);
     const refLabels: [number, string][] = [[refs.purchaseOrders, 'purchase order']];
-    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${pluralize(label, n)}`);
 
     if (parts.length > 0) {
       throw new ConflictException({

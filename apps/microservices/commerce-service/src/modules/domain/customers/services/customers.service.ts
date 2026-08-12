@@ -9,6 +9,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { customers } from '@/db/schema';
 import { CustomerDto } from '../dto/entity/customer.dto';
 import type { CreateCustomerDto } from '../dto/request/create-customer.dto';
@@ -102,7 +103,7 @@ export class CustomersDomainService {
     if (refs.orders > 0) {
       throw new ConflictException({
         label: 'Customer In Use',
-        detail: `Cannot delete "${existing.name}" — it is referenced by ${refs.orders} order${refs.orders > 1 ? 's' : ''}.`,
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${pluralize('order', refs.orders, true)}.`,
       });
     }
 

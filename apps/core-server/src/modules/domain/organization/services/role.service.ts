@@ -9,6 +9,7 @@ import {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { Role } from '@/db/schema';
 import { templateAssignableAtSite, validateGrantDependencies } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
@@ -269,7 +270,7 @@ export class RoleDomainService {
       updated++;
     }
 
-    this.logger.log(`Backfilled scope for ${updated} of ${roles.length} role(s)`);
+    this.logger.log(`Backfilled scope for ${updated} of ${roles.length} ${pluralize('role', roles.length)}`);
     return { updated };
   }
 }

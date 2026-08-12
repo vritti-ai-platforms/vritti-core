@@ -7,6 +7,8 @@ import { ActionsGatewayService } from './repositories/services/actions-gateway.s
 import { RepositoriesGatewayService } from './repositories/services/repositories-gateway.service';
 import { SelectApiController } from './select-api/select-api.controller';
 import { SelectApiGatewayService } from './select-api/services/select-api-gateway.service';
+import { GiteaCredentialsRepository } from './services/gitea-credentials.repository';
+import { GiteaCredentialsService } from './services/gitea-credentials.service';
 import { GiteaHttpService } from './services/gitea-http.service';
 
 // HTTP gateway to the self-hosted Gitea instance. GiteaHttpService stays private — callers get the
@@ -16,6 +18,9 @@ import { GiteaHttpService } from './services/gitea-http.service';
   imports: [OrganizationDomainModule],
   controllers: [OrganizationGatewayController, RepositoriesGatewayController, SelectApiController],
   providers: [
+    // Reads the agent-owned gitea_credentials row (base URL + admin token + pull token), cached in memory
+    GiteaCredentialsService,
+    GiteaCredentialsRepository,
     // HTTP transport
     GiteaHttpService,
     // Organization
@@ -26,5 +31,8 @@ import { GiteaHttpService } from './services/gitea-http.service';
     // Select options for dropdowns
     SelectApiGatewayService,
   ],
+  // Exposed so the signed internal endpoints (mounted outside the gitea-api prefix) can reuse them while
+  // GiteaHttpService itself stays private
+  exports: [GiteaCredentialsService, SelectApiGatewayService],
 })
 export class GiteaGatewayModule {}

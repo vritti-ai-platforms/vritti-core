@@ -21,6 +21,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';
@@ -90,7 +91,7 @@ export class SiteController {
   @Patch('reorder')
   @ApiReorderSites()
   async reorder(@Body() dto: ReorderSitesInternalDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /sites/internal/reorder — ${dto.ids.length} site(s) for org ${dto.orgId}`);
+    this.logger.log(`PATCH /sites/internal/reorder — ${pluralize('site', dto.ids.length, true)} for org ${dto.orgId}`);
     return this.siteApiService.reorder(dto.orgId, dto.ids);
   }
 

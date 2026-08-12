@@ -11,6 +11,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, ne, notInArray, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { type LocationRole, LocationRoleValues, locations } from '@/db/schema';
 import { LocationDto } from '../dto/entity/location.dto';
 import type { LocationCountDto } from '../dto/entity/location-count.dto';
@@ -329,7 +330,7 @@ export class LocationsDomainService {
       [refs.inventoryLevels, 'inventory level'],
       [refs.childLocations, 'child location'],
     ];
-    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${pluralize(label, n)}`);
     if (parts.length > 0) {
       throw new ConflictException({
         label: 'Storage Location In Use',

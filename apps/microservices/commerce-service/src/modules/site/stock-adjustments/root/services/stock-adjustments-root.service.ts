@@ -22,6 +22,7 @@ import {
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import {
   CostSourceTypeValues,
   InventoryItemLedgerReferenceTypeValues,
@@ -107,7 +108,9 @@ export class StockAdjustmentsService {
     if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL) {
       const validation = await this.linesService.getPublishValidation(id);
       if (!validation.valid) {
-        throw new BadRequestException(`Line items mismatch in ${validation.invalidLinesCount} line(s).`);
+        throw new BadRequestException(
+          `Line items mismatch in ${pluralize('line', validation.invalidLinesCount, true)}.`,
+        );
       }
     }
 
@@ -127,7 +130,7 @@ export class StockAdjustmentsService {
       const emptyLotCount = lots.filter((lot) => !usedLotIds.has(lot.id)).length;
       if (emptyLotCount > 0) {
         throw new BadRequestException(
-          `${emptyLotCount} lot(s) have no lines. Remove them or add lines before publishing.`,
+          `${pluralize('lot', emptyLotCount, true)} have no lines. Remove them or add lines before publishing.`,
         );
       }
     }

@@ -43,6 +43,7 @@ import { UserPermissionsDomainModule } from './modules/domain/user-permissions/u
 import { UserRoleDomainModule } from './modules/domain/user-role/user-role.module';
 import { VerificationDomainModule } from './modules/domain/verification/verification.module';
 import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module';
+import { GiteaInternalModule } from './modules/gitea-gateway/internal/gitea-internal.module';
 
 @Module({
   imports: [
@@ -261,6 +262,9 @@ import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module
     CommerceGatewayModule,
     // Forwards requests to the self-hosted Gitea instance over HTTP
     GiteaGatewayModule,
+    // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the
+    // Ed25519-signed request path; must NOT go under the gitea-api RouterModule prefix
+    GiteaInternalModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
     RouterModule.register([{ path: 'gitea-api', module: GiteaGatewayModule }]),
     RouterModule.register([{ path: 'account', module: AccountModule }]),

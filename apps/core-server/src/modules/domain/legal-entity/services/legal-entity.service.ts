@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { type SelectOptionsQueryDto, type SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { AUTH_STATUS_EVENTS, LegalEntityUpdatedEvent } from '@/common/events/auth-status.events';
 import type { TaxRegime } from '@/db/schema';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
@@ -50,7 +51,7 @@ export class LegalEntityDomainService {
     await this.legalEntityRepository.update(id, { featureLocks: expanded, updatedAt: new Date() });
 
     this.logger.log(
-      `Set feature locks for legal entity ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
+      `Set feature locks for legal entity ${id}: ${featureLocks ? pluralize('feature', Object.keys(featureLocks).length, true) : 'inherit full plan'}`,
     );
     this.eventEmitter.emit(
       AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED,
@@ -174,7 +175,7 @@ export class LegalEntityDomainService {
     if (siteCount > 0) {
       throw new ConflictException({
         label: 'Cannot Delete',
-        detail: `This legal entity is linked to ${siteCount} site(s). Unlink them before deleting.`,
+        detail: `This legal entity is linked to ${pluralize('site', siteCount, true)}. Unlink them before deleting.`,
       });
     }
 
@@ -182,7 +183,7 @@ export class LegalEntityDomainService {
     if (childCount > 0) {
       throw new ConflictException({
         label: 'Cannot Delete',
-        detail: `This legal entity has ${childCount} child legal entit${childCount === 1 ? 'y' : 'ies'}. Remove or reassign them first.`,
+        detail: `This legal entity has ${pluralize('child legal entity', childCount, true)}. Remove or reassign them first.`,
       });
     }
 
@@ -211,7 +212,7 @@ export class LegalEntityDomainService {
 
     await this.legalEntityRepository.setSortOrders(sequentialSortOrders(ids));
 
-    this.logger.log(`Reordered ${ids.length} legal entit${ids.length === 1 ? 'y' : 'ies'} for org ${orgId}`);
+    this.logger.log(`Reordered ${pluralize('legal entity', ids.length, true)} for org ${orgId}`);
     for (const legalEntity of legalEntities) {
       this.eventEmitter.emit(
         AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED,
@@ -263,7 +264,7 @@ export class LegalEntityDomainService {
     if (siteCount > 0) {
       throw new ConflictException({
         label: 'Cannot Delete',
-        detail: `This tax registration is linked to ${siteCount} site(s). Unlink them before deleting.`,
+        detail: `This tax registration is linked to ${pluralize('site', siteCount, true)}. Unlink them before deleting.`,
       });
     }
 

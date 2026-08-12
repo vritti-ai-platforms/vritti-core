@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type SiteFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import { type LegalEntity, type SiteMetadata, type SiteType } from '@/db/schema';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
@@ -155,7 +156,7 @@ export class SiteDomainService {
 
     await this.siteRepository.setSortOrders(sequentialSortOrders(ids));
 
-    this.logger.log(`Reordered ${ids.length} site(s) for org ${orgId}`);
+    this.logger.log(`Reordered ${pluralize('site', ids.length, true)} for org ${orgId}`);
     for (const site of sites) {
       await this.siteContextCache.invalidate(site.id);
       this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(site.id));
@@ -178,7 +179,7 @@ export class SiteDomainService {
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(id));
 
     this.logger.log(
-      `Set feature locks for site ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
+      `Set feature locks for site ${id}: ${featureLocks ? pluralize('feature', Object.keys(featureLocks).length, true) : 'inherit full plan'}`,
     );
     return { success: true, message: 'Site feature locks updated successfully.' };
   }

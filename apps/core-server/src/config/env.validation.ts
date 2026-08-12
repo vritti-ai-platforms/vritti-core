@@ -125,6 +125,10 @@ class EnvironmentVariables {
   @IsString()
   LICENSE_PUBLIC_KEY: string;
 
+  // Deployment agent public key (Ed25519, base64 spki DER) — verifies signed agent→core requests (gitea credential writes)
+  @IsString()
+  AGENT_PUBLIC_KEY: string;
+
   @IsString()
   @IsOptional()
   DEPLOYMENT_ID?: string;
@@ -155,15 +159,6 @@ class EnvironmentVariables {
   @IsNumber()
   @Min(60)
   MEDIA_SIGNED_URL_EXPIRY: number;
-
-  // Gitea (self-hosted git service)
-  @IsString()
-  @IsOptional()
-  GITEA_BASE_URL?: string;
-
-  @IsString()
-  @IsOptional()
-  GITEA_ADMIN_TOKEN?: string;
 
   // Email / Brevo
   @IsString()

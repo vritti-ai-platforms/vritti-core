@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { NotFoundException, ServiceUnavailableException } from '@vritti/api-sdk/exceptions';
-import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
+import axios, { type AxiosError, type AxiosInstance, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { rethrowGiteaError } from '../gitea-error.util';
+import { GiteaCredentialsService } from './gitea-credentials.service';
 
 const REQUEST_TIMEOUT_MS = 10000;
 const UNREACHABLE_DETAIL = 'Unable to reach the git service. Please try again later.';
@@ -36,23 +36,45 @@ interface GiteaRequestOptions {
   responseType?: 'text';
 }
 
-// Single authenticated HTTP client for the Gitea instance. Owns transport concerns only — the admin
-// token, the instance version probe, and funnelling every failure through one translation point.
+// Marks a config that has already been retried once after a 401 so the response interceptor can't loop
+type RetryableConfig = InternalAxiosRequestConfig & { _giteaRetried?: boolean };
+
+// Single authenticated HTTP client for the Gitea instance. Owns transport concerns only — the base URL
+// and admin token come from the agent-owned gitea_credentials row (via GiteaCredentialsService), the
+// instance version probe, and funnelling every failure through one translation point. The token is the
+// all-scopes admin PAT; core no longer mints anything, so there is no Basic-auth path.
 @Injectable()
 export class GiteaHttpService {
   private readonly client: AxiosInstance;
-  // One probe per boot — GITEA_BASE_URL is fixed for the process, so the instance can't change under us
+  // One probe per boot — the connected instance is fixed for the process, so it can't change under us
   private versionProbe?: Promise<string | null>;
 
-  constructor(configService: ConfigService) {
-    const baseUrl = (configService.get<string>('GITEA_BASE_URL') ?? '').replace(/\/+$/, '');
-    const token = configService.get<string>('GITEA_ADMIN_TOKEN') ?? '';
+  constructor(private readonly credentials: GiteaCredentialsService) {
+    this.client = axios.create({ timeout: REQUEST_TIMEOUT_MS });
 
-    this.client = axios.create({
-      baseURL: `${baseUrl}/api/v1`,
-      timeout: REQUEST_TIMEOUT_MS,
-      headers: token ? { Authorization: `token ${token}` } : {},
+    // Base URL and admin token both live in the DB and can rotate, so they are resolved per request
+    // rather than baked into axios.create — the credentials service caches them in memory.
+    this.client.interceptors.request.use(async (config) => {
+      const baseUrl = (await this.credentials.getBaseUrl()).replace(/\/+$/, '');
+      config.baseURL = `${baseUrl}/api/v1`;
+      config.headers.Authorization = `token ${await this.credentials.getCoreToken()}`;
+      return config;
     });
+
+    // A 401 means the agent rotated the admin token out from under us: drop the cached credentials and
+    // retry the request once so the request interceptor re-reads the fresh token. A second 401 surfaces.
+    this.client.interceptors.response.use(
+      (response) => response,
+      async (error: AxiosError) => {
+        const config = error.config as RetryableConfig | undefined;
+        if (error.response?.status === 401 && config && !config._giteaRetried) {
+          config._giteaRetried = true;
+          this.credentials.invalidate();
+          return this.client.request(config);
+        }
+        throw error;
+      },
+    );
   }
 
   // Builds per-request config

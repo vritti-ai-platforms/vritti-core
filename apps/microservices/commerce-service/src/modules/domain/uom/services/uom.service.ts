@@ -15,6 +15,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { inventoryItemUomConversions, purchaseOrderItems, supplierItems, uom, uomDimensions } from '@/db/schema';
 import { UomDto } from '../dto/entity/uom.dto';
 import type { CreateUomDto } from '../dto/request/create-uom.dto';
@@ -308,7 +309,7 @@ export class UomDomainService {
       [refs.derivedUnits, 'derived unit'],
       [refs.uomOverrides, 'per-item override'],
     ];
-    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${pluralize(label, n)}`);
     if (parts.length > 0) {
       throw new ConflictException({
         label: 'Unit In Use',

@@ -10,6 +10,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { salesChannels } from '@/db/schema';
 import { SalesChannelDto } from '../dto/entity/sales-channel.dto';
 import { CreateSalesChannelDto } from '../dto/request/create-sales-channel.dto';
@@ -127,7 +128,7 @@ export class SalesChannelsDomainService {
     if (refs > 0) {
       throw new ConflictException({
         label: 'Sales channel in use',
-        detail: `Cannot delete "${existing.name}" — it is referenced by ${refs} record${refs > 1 ? 's' : ''}.`,
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${pluralize('record', refs, true)}.`,
       });
     }
     await this.repository.delete(id);

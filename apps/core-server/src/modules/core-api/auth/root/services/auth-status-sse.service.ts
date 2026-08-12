@@ -1,4 +1,5 @@
 import { Injectable, Logger, type MessageEvent, OnModuleDestroy } from '@nestjs/common';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { Subject } from 'rxjs';
 
 interface UserConnection {
@@ -74,7 +75,7 @@ export class AuthStatusSseService implements OnModuleDestroy {
       }
     }
 
-    this.logger.log(`Sent auth-status event to ${sentCount} connection(s) for user ${userId}`);
+    this.logger.log(`Sent auth-status event to ${pluralize('connection', sentCount, true)} for user ${userId}`);
     return sentCount > 0;
   }
 
@@ -96,7 +97,7 @@ export class AuthStatusSseService implements OnModuleDestroy {
     }
 
     this.logger.log(
-      `Sent auth-status event to ${sentCount} session connection(s) for user ${userId}, session ${sessionId}`,
+      `Sent auth-status event to ${pluralize('session connection', sentCount, true)} for user ${userId}, session ${sessionId}`,
     );
     return sentCount > 0;
   }

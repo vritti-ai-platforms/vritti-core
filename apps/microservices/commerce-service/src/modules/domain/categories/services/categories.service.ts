@@ -11,6 +11,7 @@ import {
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { type Category, type CategoryRole, CategoryRoleValues, categories } from '@/db/schema';
 import { CategoryDto } from '../dto/entity/category.dto';
 import type { CategoryCountDto } from '../dto/entity/category-count.dto';
@@ -264,9 +265,9 @@ export class CategoriesDomainService {
     const refs = await this.categoriesRepository.countReferences(id);
 
     const parts = _.compact([
-      refs.items > 0 && `${refs.items} item${refs.items > 1 ? 's' : ''}`,
-      refs.inventoryItems > 0 && `${refs.inventoryItems} inventory item${refs.inventoryItems > 1 ? 's' : ''}`,
-      refs.childCategories > 0 && `${refs.childCategories} child categor${refs.childCategories > 1 ? 'ies' : 'y'}`,
+      refs.items > 0 && pluralize('item', refs.items, true),
+      refs.inventoryItems > 0 && pluralize('inventory item', refs.inventoryItems, true),
+      refs.childCategories > 0 && pluralize('child category', refs.childCategories, true),
     ]);
     if (parts.length > 0) {
       throw new ConflictException({
@@ -347,7 +348,7 @@ export class CategoriesDomainService {
       if (childCount > 0) {
         throw new BadRequestException({
           label: 'Group Has Sub-categories',
-          detail: `Cannot turn "${category.name}" into a leaf category — it still has ${childCount} sub-categor${childCount > 1 ? 'ies' : 'y'}. Move or delete them first.`,
+          detail: `Cannot turn "${category.name}" into a leaf category — it still has ${pluralize('sub-category', childCount, true)}. Move or delete them first.`,
         });
       }
     } else {
@@ -355,7 +356,7 @@ export class CategoriesDomainService {
       if (itemCount > 0) {
         throw new BadRequestException({
           label: 'Category Has Items',
-          detail: `Cannot turn "${category.name}" into a group — ${itemCount} item(s) are linked to it. Reassign those items first.`,
+          detail: `Cannot turn "${category.name}" into a group — ${pluralize('item', itemCount, true)} are linked to it. Reassign those items first.`,
         });
       }
     }

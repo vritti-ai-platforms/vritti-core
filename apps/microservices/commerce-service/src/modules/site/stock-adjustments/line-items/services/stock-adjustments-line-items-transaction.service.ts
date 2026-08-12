@@ -6,6 +6,7 @@ import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repo
 import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { SerialStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 
 @Injectable()
@@ -35,7 +36,7 @@ export class StockAdjustmentsLineItemsTransactionService {
     if (currentCount >= line.uomQty) {
       throw new BadRequestException({
         label: 'Line Capacity Reached',
-        detail: `This line allows ${line.uomQty} serial item(s). All slots are already filled.`,
+        detail: `This line allows ${pluralize('serial item', line.uomQty, true)}. All slots are already filled.`,
       });
     }
 

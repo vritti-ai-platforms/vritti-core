@@ -2,6 +2,7 @@ import { OrganizationDomainRepository } from '@domain/organization/repositories/
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { OrgStorage, StorageProvider } from '@vritti/api-sdk/storage';
 import { MediaDomainRepository } from '../repositories/media.repository';
 import { OrgStorageResolverService } from '../storage/org-storage-resolver.service';
@@ -42,7 +43,9 @@ export class MediaGcService {
       }
     }
 
-    this.logger.log(`Media sweep finished: ${total.scanned} object(s) scanned, ${total.deleted} orphan(s) deleted`);
+    this.logger.log(
+      `Media sweep finished: ${pluralize('object', total.scanned, true)} scanned, ${pluralize('orphan', total.deleted, true)} deleted`,
+    );
     return total;
   }
 
@@ -67,7 +70,9 @@ export class MediaGcService {
     }
 
     if (result.deleted > 0) {
-      this.logger.log(`Org ${organizationId}: deleted ${result.deleted} orphaned object(s) of ${result.scanned}`);
+      this.logger.log(
+        `Org ${organizationId}: deleted ${result.deleted} orphaned ${pluralize('object', result.deleted)} of ${result.scanned}`,
+      );
     }
     return result;
   }
@@ -96,7 +101,7 @@ export class MediaGcService {
       } while (token);
     }
 
-    this.logger.log(`Purged ${deleted} object(s) from ${storage.bucket} and ${storage.publicBucket}`);
+    this.logger.log(`Purged ${pluralize('object', deleted, true)} from ${storage.bucket} and ${storage.publicBucket}`);
     return deleted;
   }
 

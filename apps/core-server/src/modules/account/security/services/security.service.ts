@@ -6,6 +6,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { hashToken } from '@vritti/api-sdk/auth';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import * as argon2 from 'argon2';
 import { AUTH_STATUS_EVENTS, SessionRevokedEvent } from '@/common/events/auth-status.events';
 import { SessionResponseDto } from '../dto/response/session-response.dto';
@@ -121,9 +122,9 @@ export class SecurityService {
     // Emit with no sessionId so SSE pushes logout to all other connections for this user
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SESSION_REVOKED, new SessionRevokedEvent(userId));
 
-    this.logger.log(`Revoked ${count} other session(s) for user: ${userId}`);
+    this.logger.log(`Revoked ${count} other ${pluralize('session', count)} for user: ${userId}`);
 
-    return { success: true, message: `Successfully signed out ${count} other device(s).` };
+    return { success: true, message: `Successfully signed out ${count} other ${pluralize('device', count)}.` };
   }
 
   // Extracts the raw token from the Authorization: Bearer header
