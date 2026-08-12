@@ -21,7 +21,7 @@ onlyBuiltDependencies:
 
 overrides:
   '@react-native-menu/menu': 2.0.0
-  # LOCAL ONLY — do not commit. Remove once quantum-ui with OrgContext + the SERVICE lock is published.
+  # LOCAL ONLY — do not commit. Uncomment to build against unpublished ../quantum-ui source.
   # '@vritti/quantum-ui': link:../quantum-ui
   '@vritti/quantum-ui-native': link:../quantum-ui-native
   lightningcss: 1.30.1
