@@ -3,7 +3,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
-import type { OrgStorage, StorageProvider } from '@vritti/api-sdk/storage';
+import type { StorageProvider } from '@vritti/api-sdk/storage';
+import type { OrgStorage } from '@/db/schema';
 import { MediaDomainRepository } from '../repositories/media.repository';
 import { OrgStorageResolverService } from '../storage/org-storage-resolver.service';
 

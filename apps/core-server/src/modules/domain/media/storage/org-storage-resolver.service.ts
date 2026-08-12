@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { type OrgStorage, R2StorageProvider, type StorageProvider } from '@vritti/api-sdk/storage';
+import { R2StorageProvider, type StorageProvider } from '@vritti/api-sdk/storage';
+import type { OrgStorage } from '@/db/schema';
 
 // Bounded so a deployment with many tenants cannot accumulate an S3 client per org. Each entry holds an HTTPS agent
 // and its connection pool, so this is memory and sockets, not just objects.

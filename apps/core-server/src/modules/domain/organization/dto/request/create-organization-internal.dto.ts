@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { OrgStorage } from '@vritti/api-sdk/storage';
 import { IsEnum, IsInt, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
-import type { OrgPlan, OrgSize } from '@/db/schema';
+import type { OrgPlan, OrgSize, OrgStorage } from '@/db/schema';
 import { OrgPlanValues, OrgSizeValues } from '@/db/schema';
 
 export class CreateOrganizationInternalDto {

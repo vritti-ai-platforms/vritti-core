@@ -1,8 +1,8 @@
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { boolean, jsonb, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
-import type { OrgStorage } from '@vritti/api-sdk/storage';
 import { coreSchema } from './core-schema';
+import type { OrgStorage } from './org-storage.types';
 import { orgPlanEnum, orgSizeEnum } from './enums';
 
 export const organizations = coreSchema.table('organizations', {

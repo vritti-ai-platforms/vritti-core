@@ -1,7 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import type { OrgCredential } from '@vritti/api-sdk/storage';
 import { IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
-import { OrgSizeValues } from '@/db/schema';
+import { type OrgCredential, OrgSizeValues } from '@/db/schema';
 
 export class UpdateOrganizationInternalDto {
   @ApiPropertyOptional({ example: 'Acme Corp' })

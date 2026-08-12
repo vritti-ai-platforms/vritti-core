@@ -9,6 +9,7 @@ export * from './users';
 export * from './sessions';
 export * from './verifications';
 export * from './organizations';
+export * from './org-storage.types';
 export * from './org-service';
 export * from './gitea-credentials';
 export * from './catalogs';
