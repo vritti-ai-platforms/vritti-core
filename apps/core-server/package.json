@@ -38,8 +38,6 @@
     "db:stop": "docker compose -f local-db-compose.yml down",
     "db:tunnel:dev": "cloudflared access tcp --hostname devdb.vrittiai.com --url localhost:6000",
     "db:tunnel:apw1": "cloudflared access tcp --hostname apw1db.vrittiai.com --url localhost:5432",
-    "gitea:tunnel:apw1": "cloudflared access tcp --hostname apw1-git.vrittiai.com --url localhost:3021",
-    "gitea:tunnel:apw1:stop": "pkill -f 'cloudflared access tcp.*apw1-git.vrittiai.com' && echo 'Stopped apw1 gitea tunnel.' || echo 'No apw1 gitea tunnel running.'",
     "gitea:bootstrap": "bash scripts/gitea-bootstrap.sh",
     "tunnel": "bash scripts/tunnel.sh",
     "tunnel:stop": "pkill -f 'cloudflared tunnel.*run' && echo 'Stopped tunnel connector.' || echo 'No tunnel connector running.'"
