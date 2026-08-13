@@ -14,18 +14,18 @@
     "start": "infisical run --path=/commerce-service -- nest start",
     "dev": "infisical run --path=/commerce-service -- nest start --watch",
     "dev:dev": "infisical run --env=dev-local --path=/commerce-service -- nest start --watch",
-    "dev:prod": "infisical run --env=apw1-local --path=/commerce-service -- nest start --watch",
+    "dev:apw1": "infisical run --env=apw1-local --path=/commerce-service -- nest start --watch",
     "debug": "infisical run --path=/commerce-service -- nest start --debug --watch",
     "start:prod": "node dist/main",
     "db:generate": "infisical run --path=/commerce-service -- drizzle-kit generate --name v$npm_package_version",
     "db:generate:custom": "infisical run --path=/commerce-service -- drizzle-kit generate --custom --name",
     "db:migrate": "infisical run --path=/commerce-service -- drizzle-kit migrate",
     "db:migrate:dev": "infisical run --env=dev-local --path=/commerce-service -- drizzle-kit migrate",
-    "db:migrate:prod": "infisical run --env=apw1-local --path=/commerce-service -- drizzle-kit migrate",
+    "db:migrate:apw1": "infisical run --env=apw1-local --path=/commerce-service -- drizzle-kit migrate",
     "db:deploy": "node dist/db/migrate.js",
     "db:studio": "infisical run --path=/commerce-service -- drizzle-kit studio",
     "db:studio:dev": "infisical run --env=dev-local --path=/commerce-service -- drizzle-kit studio",
-    "db:studio:prod": "infisical run --env=apw1-local --path=/commerce-service -- drizzle-kit studio"
+    "db:studio:apw1": "infisical run --env=apw1-local --path=/commerce-service -- drizzle-kit studio"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

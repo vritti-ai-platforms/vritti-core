@@ -11,7 +11,7 @@
     "lint": "biome lint .",
     "dev": "infisical run --path=/core-web -- rsbuild dev --host local.vrittiai.com",
     "dev:dev": "infisical run --env=dev-local --path=/core-web -- rsbuild dev --host local.vrittiai.com",
-    "dev:prod": "infisical run --env=apw1-local --path=/core-web -- rsbuild dev --host local.vrittiai.com",
+    "dev:apw1": "infisical run --env=apw1-local --path=/core-web -- rsbuild dev --host local.vrittiai.com",
     "dev:vm": "infisical run --path=/core-web -- rsbuild dev --host 0.0.0.0",
     "preview": "rsbuild preview"
   },

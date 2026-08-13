@@ -11,7 +11,7 @@
     "lint": "biome lint .",
     "dev": "infisical run --path=/commerce-mf -- rsbuild dev",
     "dev:dev": "infisical run --env=dev-local --path=/commerce-mf -- rsbuild dev",
-    "dev:prod": "infisical run --env=apw1-local --path=/commerce-mf -- rsbuild dev",
+    "dev:apw1": "infisical run --env=apw1-local --path=/commerce-mf -- rsbuild dev",
     "preview": "rsbuild preview"
   },
   "dependencies": {

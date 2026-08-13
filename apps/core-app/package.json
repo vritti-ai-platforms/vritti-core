@@ -5,7 +5,7 @@
   "scripts": {
     "start": "infisical run --path=/core-app -- react-native start --config rspack.host.config.mjs --host 0.0.0.0",
     "start:dev": "infisical run --env=dev-local --path=/core-app -- react-native start --config rspack.host.config.mjs --host 0.0.0.0",
-    "start:prod": "infisical run --env=apw1-local --path=/core-app -- react-native start --config rspack.host.config.mjs --host 0.0.0.0",
+    "start:apw1": "infisical run --env=apw1-local --path=/core-app -- react-native start --config rspack.host.config.mjs --host 0.0.0.0",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "codegen": "graphql-codegen --config codegen.ts"
