@@ -76,6 +76,14 @@
       },
       "cache": false
     },
+    "db:grant": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run db:grant",
+        "cwd": "{projectRoot}"
+      },
+      "cache": false
+    },
     "db:studio": {
       "executor": "nx:run-commands",
       "options": {
