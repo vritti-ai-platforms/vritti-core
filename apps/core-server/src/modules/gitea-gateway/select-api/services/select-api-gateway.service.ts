@@ -120,6 +120,41 @@ export class SelectApiGatewayService {
     return { options, hasMore: versions.length === limit };
   }
 
+  // Returns combined image options (`name:tag`) for select dropdowns — one option per container-package
+  // VERSION, since a website pins a single name+version. Gitea lists one entry per version already, so no
+  // collapsing: each entry becomes an option whose value and label are `${name}:${version}`. Callers split
+  // on the last ':' back into image + tag. Backs the website-creation image selector (replaces the
+  // package→tag cascade), so it takes no package param.
+  async selectImages(subdomain: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
+
+    // Resolving the current selection: the `name:tag` ref IS the label, so no call to the git service is needed
+    if (query.values) {
+      const refs = query.values.split(',').filter(Boolean);
+      return { options: refs.map((ref) => ({ value: ref, label: ref })), hasMore: false };
+    }
+
+    const limit = query.limit ?? DEFAULT_LIMIT;
+    const page = Math.floor((query.offset ?? 0) / limit) + 1;
+    const packages = await this.searchPackages(namespace, query.search, page, limit);
+
+    const excluded = new Set((query.excludeIds ?? '').split(',').filter(Boolean));
+    // Gitea's `q` matches the package NAME; also let the search term match the tag half of the combined ref
+    const searchTerm = query.search?.toLowerCase();
+    const seen = new Set<string>();
+    const options: SelectQueryOption[] = [];
+    for (const entry of packages) {
+      const ref = `${entry.name}:${entry.version}`;
+      if (excluded.has(ref) || seen.has(ref)) continue;
+      if (searchTerm && !ref.toLowerCase().includes(searchTerm)) continue;
+      seen.add(ref);
+      options.push({ value: ref, label: ref });
+    }
+
+    // Gitea reports no usable total here, so a full raw page is treated as "there may be another".
+    return { options, hasMore: packages.length === limit };
+  }
+
   // Searches within the organization's repositories. The search route needs the org's numeric git id,
   // which only the provisioned service row carries; without it fall back to the unfiltered listing.
   private async searchRepositories(

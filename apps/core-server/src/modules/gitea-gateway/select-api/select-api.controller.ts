@@ -6,7 +6,12 @@ import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgSubdomain } from '@/security/decorators';
-import { ApiSelectPackages, ApiSelectPackageTags, ApiSelectRepositories } from './docs/select-api.docs';
+import {
+  ApiSelectImages,
+  ApiSelectPackages,
+  ApiSelectPackageTags,
+  ApiSelectRepositories,
+} from './docs/select-api.docs';
 import { PackageTagsSelectQueryDto } from './dto/request/package-tags-select-query.dto';
 import { SelectApiGatewayService } from './services/select-api-gateway.service';
 
@@ -39,6 +44,15 @@ export class SelectApiController {
   selectPackages(@OrgSubdomain() subdomain: string, @Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`GET /gitea-api/select-api/packages (org=${subdomain}, search=${query.search ?? 'none'})`);
     return this.selectApiGatewayService.selectPackages(subdomain, query);
+  }
+
+  // Returns paginated combined image options (`name:tag`) for select dropdowns — one per package version
+  @Get('images')
+  @RequirePermission(ORG_REPOSITORIES.view)
+  @ApiSelectImages()
+  selectImages(@OrgSubdomain() subdomain: string, @Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(`GET /gitea-api/select-api/images (org=${subdomain}, search=${query.search ?? 'none'})`);
+    return this.selectApiGatewayService.selectImages(subdomain, query);
   }
 
   // Returns paginated tag (version) options for one container package

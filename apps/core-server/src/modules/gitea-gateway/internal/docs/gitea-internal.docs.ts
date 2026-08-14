@@ -83,6 +83,23 @@ export function ApiInternalSelectPackages() {
   );
 }
 
+export function ApiInternalSelectImages() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get container image select options (signed)',
+      description:
+        "Returns paginated combined image options (`name:tag`) scoped to the owner's git namespace — one per " +
+        'package version. Signature-gated equivalent of the session-gated select endpoint, for cloud-server ' +
+        'which has no core session. The owner (org subdomain) is supplied by the trusted signed caller.',
+    }),
+    ...SIGNATURE_HEADERS,
+    ApiBody({ type: PackageSelectBodyDto }),
+    ApiResponse({ status: 200, description: 'Container image select options retrieved successfully.' }),
+    ApiResponse({ status: 400, description: 'Owner is missing or invalid.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
 export function ApiInternalSelectPackageTags() {
   return applyDecorators(
     ApiOperation({

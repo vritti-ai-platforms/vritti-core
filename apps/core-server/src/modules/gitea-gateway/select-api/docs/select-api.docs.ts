@@ -37,6 +37,21 @@ export function ApiSelectPackages() {
   );
 }
 
+export function ApiSelectImages() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get container image select options',
+      description:
+        "Returns paginated combined image options (`name:tag`) for select dropdowns, scoped to the org's git " +
+        'namespace — one option per package version (the registry lists one entry per version). Backs the ' +
+        'website-creation image selector; callers split the value on the last colon into image and tag.',
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Container image select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
 export function ApiSelectPackageTags() {
   return applyDecorators(
     ApiOperation({

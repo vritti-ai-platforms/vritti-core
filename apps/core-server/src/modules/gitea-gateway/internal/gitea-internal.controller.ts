@@ -9,6 +9,7 @@ import { GiteaCredentialsService } from '../services/gitea-credentials.service';
 import {
   ApiGetCredentialsStatus,
   ApiGetPullToken,
+  ApiInternalSelectImages,
   ApiInternalSelectPackages,
   ApiInternalSelectPackageTags,
   ApiUpdateGiteaCredentials,
@@ -73,6 +74,16 @@ export class GiteaInternalController {
   selectPackages(@Body() body: PackageSelectBodyDto): Promise<SelectQueryResult> {
     this.logger.log(`POST /gitea/internal/packages (owner=${body.owner}, search=${body.search ?? 'none'})`);
     return this.selectApiGatewayService.selectPackages(body.owner, body);
+  }
+
+  // Signed-caller equivalent of the session-gated image select; owner comes from the trusted signed body
+  @Post('images')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(CloudSignatureGuard)
+  @ApiInternalSelectImages()
+  selectImages(@Body() body: PackageSelectBodyDto): Promise<SelectQueryResult> {
+    this.logger.log(`POST /gitea/internal/images (owner=${body.owner}, search=${body.search ?? 'none'})`);
+    return this.selectApiGatewayService.selectImages(body.owner, body);
   }
 
   // Signed-caller equivalent of the session-gated package-tags select; owner comes from the trusted signed body
