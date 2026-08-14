@@ -44,6 +44,7 @@ import { UserRoleDomainModule } from './modules/domain/user-role/user-role.modul
 import { VerificationDomainModule } from './modules/domain/verification/verification.module';
 import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module';
 import { GiteaInternalModule } from './modules/gitea-gateway/internal/gitea-internal.module';
+import { StorageInternalModule } from './modules/storage-internal/storage-internal.module';
 
 @Module({
   imports: [
@@ -265,6 +266,9 @@ import { GiteaInternalModule } from './modules/gitea-gateway/internal/gitea-inte
     // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the
     // Ed25519-signed request path; must NOT go under the gitea-api RouterModule prefix
     GiteaInternalModule,
+    // Signed internal storage endpoint (org-storage) — deliberately unprefixed so its path matches the
+    // Ed25519-signed request path, same as GiteaInternalModule
+    StorageInternalModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
     RouterModule.register([{ path: 'gitea-api', module: GiteaGatewayModule }]),
     RouterModule.register([{ path: 'account', module: AccountModule }]),

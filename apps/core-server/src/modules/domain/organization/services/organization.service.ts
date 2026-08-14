@@ -10,7 +10,7 @@ import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { verifyDocument } from '@vritti/api-sdk/signing';
 import { AUTH_STATUS_EVENTS, OrgUpdatedEvent, SiteUpdatedEvent } from '@/common/events/auth-status.events';
-import type { OrgService as OrgServiceEntity, OrgSize } from '@/db/schema';
+import type { OrgService as OrgServiceEntity, OrgSize, OrgStorage } from '@/db/schema';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
@@ -108,6 +108,15 @@ export class OrganizationDomainService {
   async getBySubdomain(subdomain: string): Promise<OrganizationDto | null> {
     const org = await this.organizationRepository.findBySubdomain(subdomain);
     return org ? OrganizationDto.from(org, await this.getServices(org.id)) : null;
+  }
+
+  // Returns an org's object-storage descriptor by subdomain for signed-internal callers; read straight off the org
+  // row (cloud provisions storage before the org exists, so a live org always has it) and returned in whatever form
+  // the writer stored — core applies no extra treatment, matching how the media path consumes the same credential
+  async getStorageBySubdomain(subdomain: string): Promise<OrgStorage> {
+    const org = await this.organizationRepository.findBySubdomain(subdomain);
+    if (!org) throw new NotFoundException(`Organization "${subdomain}" not found.`);
+    return org.storage;
   }
 
   // Creates an organization from a cloud-server internal request payload
