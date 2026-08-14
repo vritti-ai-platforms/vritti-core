@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "scripts": {
-    "build:permissions": "pnpm --filter @vritti/commerce-permissions build",
+    "build:permissions": "pnpm --filter @vritti/commerce-permissions --filter @vritti/gitea-permissions build",
     "dev": "pnpm build:permissions && nx run-many --target=dev --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf,gitea-mf --parallel=6 --output-style=stream",
     "dev:dev": "pnpm build:permissions && nx run-many --target=dev:dev --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf,gitea-mf --parallel=6 --output-style=stream",
     "dev:apw1": "pnpm build:permissions && nx run-many --target=dev:apw1 --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf,gitea-mf --parallel=6 --output-style=stream",

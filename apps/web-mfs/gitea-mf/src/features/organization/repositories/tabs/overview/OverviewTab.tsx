@@ -4,8 +4,8 @@ import { CopyField } from '@vritti/quantum-ui/CopyField';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import type React from 'react';
 import type { RepositoryData } from '@/schemas/repositories';
-import { PushInstructions } from '../components/PushInstructions';
-import { formatRepositorySize } from '../utils/format';
+import { PushInstructions } from './components/PushInstructions';
+import { formatRepositorySize } from './utils/format';
 
 interface OverviewTabProps {
   repository: RepositoryData;

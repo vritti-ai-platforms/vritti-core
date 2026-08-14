@@ -4,8 +4,9 @@ import type { RepositoryData } from '@/schemas/repositories';
 import { getRepository } from '@/services/organization/repositories.service';
 import { GITEA_REPOSITORY_KEY } from './keys';
 
-// Fetches a repository by name; suspends until data is available. Not self-gated on the view
-// permission — useSuspenseQuery has no `enabled`, and the route only mounts once the feature does.
+// Fetches a repository by name; suspends until data is available. Not self-gated on the view permission —
+// useSuspenseQuery has no `enabled`. The guarded GET is instead kept off the wire by the PermissionGate on
+// the `:repoName` route, which never mounts a caller for a user without the view permission.
 export function useRepository(name: string) {
   return useSuspenseQuery<RepositoryData, AxiosError>({
     queryKey: GITEA_REPOSITORY_KEY(name),

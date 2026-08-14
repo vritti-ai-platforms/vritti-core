@@ -1,5 +1,5 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
 import type { JobListResponse } from '@/schemas/actions';
@@ -11,7 +11,7 @@ export function useRunJobs(
   runId: number,
   options?: Omit<UseQueryOptions<JobListResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_REPOSITORIES.view);
+  const { available } = usePermission(ORG_REPOSITORIES.actions.runs.view);
 
   return useQuery<JobListResponse, AxiosError>({
     queryKey: GITEA_RUN_JOBS_KEY(name, runId),

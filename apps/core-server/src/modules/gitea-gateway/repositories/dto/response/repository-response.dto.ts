@@ -11,7 +11,8 @@ export interface GiteaApiRepository {
   id: number;
   name: string;
   full_name: string;
-  description: string;
+  // Gitea sends null when a repository has no description, not an empty string
+  description: string | null;
   private: boolean;
   empty: boolean;
   size: number;
@@ -33,8 +34,8 @@ export class RepositoryResponseDto {
   @ApiProperty({ example: 'wine-mart/billing-service' })
   fullName: string;
 
-  @ApiProperty({ example: 'Invoicing and payment runs' })
-  description: string;
+  @ApiProperty({ example: 'Invoicing and payment runs', nullable: true })
+  description: string | null;
 
   @ApiProperty({ example: true })
   isPrivate: boolean;
@@ -69,7 +70,7 @@ export class RepositoryResponseDto {
     dto.id = repository.id;
     dto.name = repository.name;
     dto.fullName = repository.full_name;
-    dto.description = repository.description ?? '';
+    dto.description = repository.description;
     dto.isPrivate = repository.private;
     dto.isEmpty = repository.empty;
     dto.size = repository.size;

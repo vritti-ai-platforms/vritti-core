@@ -25,7 +25,8 @@ export interface RepositoryData {
   id: number;
   name: string;
   fullName: string;
-  description: string;
+  // Null when the repository has no description — never coerced to '' on the wire
+  description: string | null;
   isPrivate: boolean;
   isEmpty: boolean;
   size: number;

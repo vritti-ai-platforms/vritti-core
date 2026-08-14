@@ -2,7 +2,7 @@ import { Controller, Get, Logger, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgSubdomain } from '@/security/decorators';
@@ -39,7 +39,7 @@ export class SelectApiController {
 
   // Returns paginated container package options for select dropdowns
   @Get('packages')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.packages.view)
   @ApiSelectPackages()
   selectPackages(@OrgSubdomain() subdomain: string, @Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`GET /gitea-api/select-api/packages (org=${subdomain}, search=${query.search ?? 'none'})`);
@@ -57,7 +57,7 @@ export class SelectApiController {
 
   // Returns paginated tag (version) options for one container package
   @Get('package-tags')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.packages.view)
   @ApiSelectPackageTags()
   selectPackageTags(
     @OrgSubdomain() subdomain: string,

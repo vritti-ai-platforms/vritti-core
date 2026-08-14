@@ -74,8 +74,8 @@ export function formatActionDuration(
   return `${Math.floor(seconds / SECONDS_PER_HOUR)}h ${minutes}m`;
 }
 
-// Only a positive integer identifies a run or a job, so a hand-edited search param is ignored rather
-// than being sent to the git service
+// Only a positive integer identifies a job, so a hand-edited `?job=` is ignored rather than being sent
+// to the git service. Route params carry their id in a slug and are read with useSlugParams instead.
 export function parseIdParam(value: string | null): number | null {
   if (!value || !/^\d+$/.test(value)) return null;
 

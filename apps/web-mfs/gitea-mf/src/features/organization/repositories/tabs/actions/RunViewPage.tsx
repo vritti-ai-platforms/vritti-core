@@ -1,22 +1,20 @@
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { useConfirm } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { RotateCcw, Trash2, TriangleAlert } from 'lucide-react';
-import type React from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDeleteRun, useRerunFailedJobs, useRerunRun, useRun } from '@/hooks/organization/actions';
-import { ActionStatusBadge } from './components/actions/ActionStatusBadge';
-import { RunDetail } from './components/actions/RunDetail';
-import { parseIdParam } from './utils/actions';
+import { ActionStatusBadge } from './components/ActionStatusBadge';
+import { RunDetail } from './components/RunDetail';
 
-interface RunViewProps {
-  repositoryName: string;
-  runId: number;
-}
+export const RunViewPage = () => {
+  // `repoName` carries no separator, so its `id` is the raw repository name
+  const { repoName, runSlug } = useSlugParams('repoName', 'runSlug');
+  const repositoryName = repoName.id;
+  const runId = Number(runSlug.id);
 
-const RunView: React.FC<RunViewProps> = ({ repositoryName, runId }) => {
   const navigate = useNavigate();
   const confirm = useConfirm();
 
@@ -53,7 +51,7 @@ const RunView: React.FC<RunViewProps> = ({ repositoryName, runId }) => {
             <Button
               variant="outline"
               size="sm"
-              permission={ORG_REPOSITORIES.edit}
+              permission={ORG_REPOSITORIES.actions.runs.rerun}
               startAdornment={<RotateCcw className="size-4" />}
               // Gitea refuses to re-queue a run that has not finished yet
               disabled={run.isActive || rerunMutation.isPending}
@@ -65,7 +63,7 @@ const RunView: React.FC<RunViewProps> = ({ repositoryName, runId }) => {
             <Button
               variant="outline"
               size="sm"
-              permission={ORG_REPOSITORIES.edit}
+              permission={ORG_REPOSITORIES.actions.runs.rerun}
               startAdornment={<TriangleAlert className="size-4" />}
               disabled={run.conclusion !== 'failure' || rerunFailedMutation.isPending}
               disabledTip={run.conclusion !== 'failure' ? 'This run has no failed jobs' : undefined}
@@ -78,7 +76,7 @@ const RunView: React.FC<RunViewProps> = ({ repositoryName, runId }) => {
               size="icon"
               aria-label={`Delete run #${run.runNumber}`}
               className="text-destructive hover:text-destructive"
-              permission={ORG_REPOSITORIES.delete}
+              permission={ORG_REPOSITORIES.actions.runs.delete}
               disabled={deleteMutation.isPending}
               onClick={handleDelete}
             >
@@ -91,15 +89,4 @@ const RunView: React.FC<RunViewProps> = ({ repositoryName, runId }) => {
       <RunDetail repositoryName={repositoryName} runId={runId} />
     </div>
   );
-};
-
-export const RunViewPage = () => {
-  // Runs are keyed by a numeric Gitea id, not a name-uuid slug, so useSlugParams does not apply here
-  const { repoName = '', runId } = useParams<{ repoName: string; runId: string }>();
-  const parsedRunId = parseIdParam(runId ?? null);
-
-  // A hand-edited run id can never resolve, so the runs list is the only place to send the user
-  if (parsedRunId === null) return <Navigate to=".." relative="path" replace />;
-
-  return <RunView repositoryName={repoName} runId={parsedRunId} />;
 };

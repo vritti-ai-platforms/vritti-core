@@ -15,7 +15,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgSubdomain } from '@/security/decorators';
@@ -36,8 +36,14 @@ import { ActionsGatewayService } from './services/actions-gateway.service';
 import { RepositoriesGatewayService } from './services/repositories-gateway.service';
 
 // Actions are not a separate feature — they are a view of a repository — so every route lives here and
-// shares the repositories feature's permissions: reads need `view`, anything that queues or changes a
-// workflow needs `edit`, and deleting a repository or a run needs `delete`.
+// shares the repositories feature. Permissions split by what the route actually does rather than by verb:
+// the repository record is CRUD (`view`/`add`/`edit`/`delete`), browsing source is `code.view`, and the
+// actions routes are executions, split by lifecycle stage. The definitions are `actions.workflows.*` —
+// `dispatch` starts one on a caller-chosen ref, `configure` enables or disables it org-wide. The
+// executions are `actions.runs.*` — `rerun` replays one, `delete` removes it (Gitea has no cancel, so
+// that is also the only way to stop one).
+// Job logs are `logs.view` of their own: the endpoint is job-scoped rather than run-scoped, and CI output
+// routinely carries secrets and internal hostnames.
 //
 // Route order matters within a path depth: a static segment must be declared before a dynamic one at the
 // same position, or the parameter swallows it. Hence `table` before `:name`, and `runs/table` before
@@ -77,14 +83,14 @@ export class RepositoriesGatewayController {
   // --- Actions: workflows -------------------------------------------------------------------------
 
   @Get(':name/actions/workflows')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.actions.workflows.view)
   listWorkflows(@OrgSubdomain() subdomain: string, @Param('name') name: string): Promise<WorkflowListResponseDto> {
     this.logger.log(`GET /gitea-api/repositories/${name}/actions/workflows (org=${subdomain})`);
     return this.actionsGatewayService.listWorkflows(subdomain, name);
   }
 
   @Post(':name/actions/workflows/:workflowId/dispatches')
-  @RequirePermission(ORG_REPOSITORIES.edit)
+  @RequirePermission(ORG_REPOSITORIES.actions.workflows.dispatch)
   dispatchWorkflow(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -96,7 +102,7 @@ export class RepositoriesGatewayController {
   }
 
   @Put(':name/actions/workflows/:workflowId/enable')
-  @RequirePermission(ORG_REPOSITORIES.edit)
+  @RequirePermission(ORG_REPOSITORIES.actions.workflows.configure)
   enableWorkflow(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -107,7 +113,7 @@ export class RepositoriesGatewayController {
   }
 
   @Put(':name/actions/workflows/:workflowId/disable')
-  @RequirePermission(ORG_REPOSITORIES.edit)
+  @RequirePermission(ORG_REPOSITORIES.actions.workflows.configure)
   disableWorkflow(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -120,7 +126,7 @@ export class RepositoriesGatewayController {
   // --- Actions: runs, jobs and logs --------------------------------------------------------------
 
   @Get(':name/actions/runs/table')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.actions.runs.view)
   findRunsForTable(
     @UserId() userId: string,
     @OrgSubdomain() subdomain: string,
@@ -132,7 +138,7 @@ export class RepositoriesGatewayController {
   }
 
   @Get(':name/actions/runs/:runId')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.actions.runs.view)
   findRun(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -143,7 +149,7 @@ export class RepositoriesGatewayController {
   }
 
   @Get(':name/actions/runs/:runId/jobs')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.actions.runs.view)
   listRunJobs(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -154,7 +160,7 @@ export class RepositoriesGatewayController {
   }
 
   @Get(':name/actions/jobs/:jobId/logs')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.logs.view)
   getJobLogs(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -165,7 +171,7 @@ export class RepositoriesGatewayController {
   }
 
   @Post(':name/actions/runs/:runId/rerun')
-  @RequirePermission(ORG_REPOSITORIES.edit)
+  @RequirePermission(ORG_REPOSITORIES.actions.runs.rerun)
   rerun(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -176,7 +182,7 @@ export class RepositoriesGatewayController {
   }
 
   @Post(':name/actions/runs/:runId/rerun-failed-jobs')
-  @RequirePermission(ORG_REPOSITORIES.edit)
+  @RequirePermission(ORG_REPOSITORIES.actions.runs.rerun)
   rerunFailedJobs(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -187,7 +193,7 @@ export class RepositoriesGatewayController {
   }
 
   @Delete(':name/actions/runs/:runId')
-  @RequirePermission(ORG_REPOSITORIES.delete)
+  @RequirePermission(ORG_REPOSITORIES.actions.runs.delete)
   removeRun(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -200,7 +206,7 @@ export class RepositoriesGatewayController {
   // --- Repository detail -------------------------------------------------------------------------
 
   @Get(':name/stats')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.code.view)
   getStats(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,
@@ -210,6 +216,8 @@ export class RepositoriesGatewayController {
     return this.repositoriesGatewayService.getStats(subdomain, name, ref);
   }
 
+  // Stays on `view`, not `code.view`: the dispatch dialog populates its ref picker from this, so a user
+  // with actions.dispatch but no Code-tab access would otherwise have no branch to run against
   @Get(':name/branches')
   @RequirePermission(ORG_REPOSITORIES.view)
   listBranches(@OrgSubdomain() subdomain: string, @Param('name') name: string): Promise<BranchListResponseDto> {
@@ -218,7 +226,7 @@ export class RepositoriesGatewayController {
   }
 
   @Get(':name/contents')
-  @RequirePermission(ORG_REPOSITORIES.view)
+  @RequirePermission(ORG_REPOSITORIES.code.view)
   getContents(
     @OrgSubdomain() subdomain: string,
     @Param('name') name: string,

@@ -5,8 +5,8 @@ import { getRun } from '@/services/organization/actions.service';
 import { ACTIVE_POLL_INTERVAL_MS, GITEA_RUN_KEY } from './keys';
 
 // Fetches a run by id; suspends until data is available, so the run page's skeleton is its only loading
-// state. Not self-gated on the view permission — useSuspenseQuery has no `enabled`, and the route only
-// mounts once the feature does, exactly as useRepository does for the repository this run hangs off.
+// state. Not self-gated on the view permission — useSuspenseQuery has no `enabled`; like useRepository it
+// relies on the PermissionGate on the `:repoName` route to keep this guarded GET unmounted.
 export function useRun(name: string, runId: number) {
   return useSuspenseQuery<RunData, AxiosError>({
     queryKey: GITEA_RUN_KEY(name, runId),

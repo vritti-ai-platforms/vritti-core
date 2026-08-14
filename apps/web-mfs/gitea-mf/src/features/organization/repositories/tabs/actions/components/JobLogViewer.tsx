@@ -9,7 +9,7 @@ import type React from 'react';
 import { useMemo } from 'react';
 import { useJobLogs } from '@/hooks/organization/actions';
 import type { JobData } from '@/schemas/actions';
-import { parseJobLog } from '../../utils/actions';
+import { parseJobLog } from '../utils/actions';
 
 // One <pre> per section, never one element per line: a long log would otherwise put tens of thousands of
 // nodes in the DOM, which is exactly what would force a virtualizer back into this app.

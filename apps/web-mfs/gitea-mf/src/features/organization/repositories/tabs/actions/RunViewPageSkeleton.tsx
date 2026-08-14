@@ -1,7 +1,7 @@
 import { CardSkeleton } from '@vritti/quantum-ui/Card';
 import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
-import { JobListSkeleton } from './components/actions/JobListSkeleton';
+import { JobListSkeleton } from './components/JobListSkeleton';
 
 // One entry per DetailField in RunDetail's grid — named rather than indexed so the keys are stable
 const DETAIL_FIELDS = ['workflow', 'branch', 'event', 'commit', 'actor', 'duration', 'started', 'completed'];

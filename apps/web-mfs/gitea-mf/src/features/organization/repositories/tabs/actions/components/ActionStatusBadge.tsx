@@ -1,7 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import type React from 'react';
-import { resolveActionStatus } from '../../utils/actions';
+import { resolveActionStatus } from '../utils/actions';
 
 interface ActionStatusBadgeProps {
   status: string;

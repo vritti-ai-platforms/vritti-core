@@ -1,13 +1,13 @@
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDeleteRepository, useRepository } from '@/hooks/organization/repositories';
-import { ActionsTab } from './tabs/ActionsTab';
-import { CodeTab } from './tabs/CodeTab';
-import { OverviewTab } from './tabs/OverviewTab';
+import { ActionsTab } from './tabs/actions/ActionsTab';
+import { CodeTab } from './tabs/code/CodeTab';
+import { OverviewTab } from './tabs/overview/OverviewTab';
 
 export const RepositoryDetailPage = () => {
   // Repositories are keyed by name, not a name-uuid slug, so useSlugParams does not apply here
@@ -46,13 +46,13 @@ export const RepositoryDetailPage = () => {
           {
             value: 'code',
             label: 'Code',
-            permission: ORG_REPOSITORIES.view,
+            permission: ORG_REPOSITORIES.code.view,
             content: <CodeTab repository={repository} />,
           },
           {
             value: 'actions',
             label: 'Actions',
-            permission: ORG_REPOSITORIES.view,
+            permission: ORG_REPOSITORIES.actions.view,
             content: <ActionsTab />,
           },
         ]}

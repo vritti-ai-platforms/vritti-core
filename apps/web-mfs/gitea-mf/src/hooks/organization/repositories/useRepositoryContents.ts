@@ -1,5 +1,5 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
 import type { RepositoryContentsData, RepositoryContentsParams } from '@/schemas/repositories';
@@ -11,7 +11,7 @@ export function useRepositoryContents(
   params: RepositoryContentsParams,
   options?: Omit<UseQueryOptions<RepositoryContentsData, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_REPOSITORIES.view);
+  const { available } = usePermission(ORG_REPOSITORIES.code.view);
 
   return useQuery<RepositoryContentsData, AxiosError>({
     queryKey: GITEA_REPOSITORY_CONTENTS_KEY(name, params.path, params.ref),

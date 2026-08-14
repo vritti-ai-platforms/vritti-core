@@ -3,8 +3,8 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { Workflow } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useRepository } from '@/hooks/organization/repositories';
-import { RunsTable } from '../components/actions/RunsTable';
-import { WorkflowsPanel } from '../components/actions/WorkflowsPanel';
+import { RunsTable } from './components/RunsTable';
+import { WorkflowsPanel } from './components/WorkflowsPanel';
 
 // Composes the two panels and nothing else — each fetches what it renders and reads the search params
 // it needs, so no data or selection state passes through here

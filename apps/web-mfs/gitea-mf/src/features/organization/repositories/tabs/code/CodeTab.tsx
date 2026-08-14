@@ -7,9 +7,9 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useRepositoryBranches } from '@/hooks/organization/repositories';
 import type { RepositoryData } from '@/schemas/repositories';
-import { FileList } from '../components/FileList';
-import { PathCrumbs } from '../components/PathCrumbs';
-import { RepositoryStats } from '../components/RepositoryStats';
+import { FileList } from './components/FileList';
+import { PathCrumbs } from './components/PathCrumbs';
+import { RepositoryStats } from './components/RepositoryStats';
 
 // Above this many branches the popover gets a search box; below it, one would just be clutter
 const SEARCHABLE_BRANCH_THRESHOLD = 10;

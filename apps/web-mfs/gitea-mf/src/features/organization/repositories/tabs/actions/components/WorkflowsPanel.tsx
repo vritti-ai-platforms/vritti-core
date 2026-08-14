@@ -1,4 +1,4 @@
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card } from '@vritti/quantum-ui/Card';
@@ -11,7 +11,7 @@ import type React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDisableWorkflow, useEnableWorkflow, useWorkflows } from '@/hooks/organization/actions';
 import type { WorkflowData } from '@/schemas/actions';
-import { DispatchWorkflowDialog } from '../../forms/DispatchWorkflowDialog';
+import { DispatchWorkflowDialog } from '../forms/DispatchWorkflowDialog';
 import { WorkflowsPanelSkeleton } from './WorkflowsPanelSkeleton';
 
 // Tailwind v4's button reset leaves the cursor as `default`, so interactive rows ask for it explicitly
@@ -57,7 +57,7 @@ const WorkflowRow: React.FC<WorkflowRowProps> = ({ repositoryName, workflow, isS
             variant="ghost"
             size="icon"
             aria-label={`Run ${workflow.name}`}
-            permission={ORG_REPOSITORIES.edit}
+            permission={ORG_REPOSITORIES.actions.workflows.dispatch}
             disabled={!workflow.isActive}
             disabledTip="Enable this workflow before running it"
             onClick={open}
@@ -79,7 +79,7 @@ const WorkflowRow: React.FC<WorkflowRowProps> = ({ repositoryName, workflow, isS
         variant="ghost"
         size="icon"
         aria-label={workflow.isActive ? `Disable ${workflow.name}` : `Enable ${workflow.name}`}
-        permission={ORG_REPOSITORIES.edit}
+        permission={ORG_REPOSITORIES.actions.workflows.configure}
         disabled={toggleMutation.isPending}
         onClick={() => toggleMutation.mutate(workflow.id)}
       >

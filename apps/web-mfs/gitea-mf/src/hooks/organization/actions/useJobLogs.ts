@@ -1,5 +1,5 @@
 import { keepPreviousData, type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
 import type { JobLogsData } from '@/schemas/actions';
@@ -14,7 +14,7 @@ export function useJobLogs(
   isJobActive: boolean,
   options?: Omit<UseQueryOptions<JobLogsData, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_REPOSITORIES.view);
+  const { available } = usePermission(ORG_REPOSITORIES.logs.view);
 
   return useQuery<JobLogsData, AxiosError>({
     // The phase in the key turns the job's completion into one final read

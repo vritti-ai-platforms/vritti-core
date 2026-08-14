@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { Button } from '@vritti/quantum-ui/Button';
 import { cn } from '@vritti/quantum-ui/cn';
 import {
@@ -11,6 +11,7 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
+import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Play, RefreshCw, RotateCcw, Trash2, TriangleAlert } from 'lucide-react';
 import type React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -22,7 +23,7 @@ import {
   useRuns,
 } from '@/hooks/organization/actions';
 import type { RunData } from '@/schemas/actions';
-import { formatActionDuration } from '../../utils/actions';
+import { formatActionDuration } from '../utils/actions';
 import { ActionStatusBadge } from './ActionStatusBadge';
 
 const TABLE_SLUG = 'gitea-org-action-runs';
@@ -41,8 +42,10 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
   const [searchParams] = useSearchParams();
   const workflowId = searchParams.get('workflow') ?? '';
 
-  // This table renders at `<repository>/actions`, and a run's route is `actions/:runId`
-  const onSelectRun = (runId: number) => navigate(String(runId), { relative: 'path' });
+  // This table renders at `<repository>/actions`, and a run's route is `actions/:runSlug`. The run number
+  // is what both the table and the run page call it, so it is the name the slug carries.
+  const onSelectRun = (run: RunData) =>
+    navigate(buildSlug(`Run ${run.runNumber}`, String(run.id)), { relative: 'path' });
 
   const { data: response, isLoading, isFetching } = useRuns(repositoryName, { workflowId: workflowId || undefined });
 
@@ -64,7 +67,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
   // either control would silently act on the current page only.
   const { table } = useDataTable({
     columns: getColumns({
-      onView: (run) => onSelectRun(run.id),
+      onView: onSelectRun,
       onRerun: (run) => rerunMutation.mutate(run.id),
       onRerunFailed: (run) => rerunFailedMutation.mutate(run.id),
       onDelete: handleDelete,
@@ -86,7 +89,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
       variant="outline"
       size="sm"
       disabled={isFetching}
-      permission={ORG_REPOSITORIES.view}
+      permission={ORG_REPOSITORIES.actions.runs.view}
       startAdornment={<RefreshCw className={cn('size-4', isFetching && 'animate-spin')} />}
       onClick={() => queryClient.invalidateQueries({ queryKey: GITEA_RUN_LISTS_KEY(repositoryName) })}
     >
@@ -100,11 +103,11 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
       isLoading={isLoading}
       mode="tab"
       toolbarActions={{ actions: refreshButton }}
-      permission={ORG_REPOSITORIES.view}
+      permission={ORG_REPOSITORIES.actions.runs.view}
       // Named views round-trip table state through the backend; the git service has none, so the views
       // chrome would only issue pointless table-views requests.
       enableViews={false}
-      onRowClick={(run) => onSelectRun(run.id)}
+      onRowClick={onSelectRun}
       emptyStateConfig={{
         icon: Play,
         title: 'No runs yet',
@@ -203,7 +206,7 @@ function getColumns({
             id: 'rerun',
             icon: RotateCcw,
             label: 'Re-run',
-            permission: ORG_REPOSITORIES.edit,
+            permission: ORG_REPOSITORIES.actions.runs.rerun,
             // Gitea refuses to re-queue a run that has not finished yet
             disabled: run.isActive || isRerunPending,
             onClick: () => onRerun(run),
@@ -212,7 +215,7 @@ function getColumns({
             id: 'rerun-failed',
             icon: TriangleAlert,
             label: 'Re-run failed jobs',
-            permission: ORG_REPOSITORIES.edit,
+            permission: ORG_REPOSITORIES.actions.runs.rerun,
             disabled: run.conclusion !== 'failure' || isRerunFailedPending,
             onClick: () => onRerunFailed(run),
           },
@@ -221,7 +224,7 @@ function getColumns({
             icon: Trash2,
             label: 'Delete',
             variant: 'destructive',
-            permission: ORG_REPOSITORIES.delete,
+            permission: ORG_REPOSITORIES.actions.runs.delete,
             onClick: () => onDelete(run),
           },
         ];

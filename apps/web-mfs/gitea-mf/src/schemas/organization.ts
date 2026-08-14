@@ -4,12 +4,13 @@
 export interface OrganizationData {
   id: number;
   namespace: string;
-  fullName: string;
-  description: string;
-  website: string;
-  location: string;
+  // Null when unset in Gitea — DetailField renders null as its placeholder, so nothing coerces to ''
+  fullName: string | null;
+  description: string | null;
+  website: string | null;
+  location: string | null;
   visibility: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
 }
 
 // `namespace` is always present so the empty state can name the namespace it will create;

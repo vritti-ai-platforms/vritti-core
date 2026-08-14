@@ -1,5 +1,5 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import { ORG_REPOSITORIES } from '@vritti/commerce-permissions/repositories';
+import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
 import type { WorkflowListResponse } from '@/schemas/actions';
@@ -10,7 +10,7 @@ export function useWorkflows(
   name: string,
   options?: Omit<UseQueryOptions<WorkflowListResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_REPOSITORIES.view);
+  const { available } = usePermission(ORG_REPOSITORIES.actions.workflows.view);
 
   return useQuery<WorkflowListResponse, AxiosError>({
     queryKey: GITEA_WORKFLOWS_KEY(name),

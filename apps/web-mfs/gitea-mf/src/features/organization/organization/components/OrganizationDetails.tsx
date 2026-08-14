@@ -18,10 +18,10 @@ export const OrganizationDetails: React.FC<OrganizationDetailsProps> = ({ organi
     </CardHeader>
     <CardContent className="grid gap-4 sm:grid-cols-2">
       <DetailField label="Namespace" type="string" value={organization.namespace} mono />
-      <DetailField label="Display name" type="string" value={organization.fullName || undefined} />
-      <DetailField label="Description" type="string" value={organization.description || undefined} />
-      <DetailField label="Website" type="string" value={organization.website || undefined} />
-      <DetailField label="Location" type="string" value={organization.location || undefined} />
+      <DetailField label="Display name" type="string" value={organization.fullName} />
+      <DetailField label="Description" type="string" value={organization.description} />
+      <DetailField label="Website" type="string" value={organization.website} />
+      <DetailField label="Location" type="string" value={organization.location} />
       <DetailField
         label="Visibility"
         type="string"

@@ -2,7 +2,7 @@ import { Controller, Get, HttpCode, HttpStatus, Logger, Post } from '@nestjs/com
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto } from '@vritti/api-sdk/database';
-import { ORG_ORGANIZATION } from '@vritti/commerce-permissions/organization';
+import { ORG_ORGANIZATION } from '@vritti/gitea-permissions/organization';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgId, OrgSubdomain } from '@/security/decorators';

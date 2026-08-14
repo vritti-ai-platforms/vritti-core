@@ -9,7 +9,7 @@ import type React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useRun, useRunJobs } from '@/hooks/organization/actions';
 import type { JobData } from '@/schemas/actions';
-import { actionTimestamp, formatActionDuration, parseIdParam } from '../../utils/actions';
+import { actionTimestamp, formatActionDuration, parseIdParam } from '../utils/actions';
 import { ActionStatusBadge } from './ActionStatusBadge';
 import { JobListSkeleton } from './JobListSkeleton';
 import { JobLogViewer } from './JobLogViewer';
