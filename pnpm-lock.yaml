@@ -292,8 +292,8 @@ importers:
         specifier: ^11.2.5
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: ^0.3.10
-        version: 0.3.10(fc8654244b69098ed2a5feef7e900db1)
+        specifier: ^0.3.11
+        version: 0.3.11(fc8654244b69098ed2a5feef7e900db1)
       '@vritti/commerce-permissions':
         specifier: workspace:*
         version: link:../../libs/commerce-permissions
@@ -637,8 +637,8 @@ importers:
         specifier: ^11.2.6
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: ^0.3.10
-        version: 0.3.10(fc8654244b69098ed2a5feef7e900db1)
+        specifier: ^0.3.11
+        version: 0.3.11(fc8654244b69098ed2a5feef7e900db1)
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -6685,8 +6685,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vritti/api-sdk@0.3.10':
-    resolution: {integrity: sha512-qSVrbkaHyZSr3627vw/0WJdE8ZmvYVHAbkSzNBEbHMRbxF861Z88fKktycP4kdTNO3a3vLYe+LDfKYG/3wRCGA==}
+  '@vritti/api-sdk@0.3.11':
+    resolution: {integrity: sha512-PYZqyyGkWVLz5amMzg1Yo0rt2bU2txsLTFblVtKqkXoU5SMRvKbFZYcG/KhdTU5BRezc8NfZQFHT6cjq+q0r9Q==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.997.0
       '@aws-sdk/s3-request-presigner': ^3.997.0
@@ -21164,7 +21164,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vritti/api-sdk@0.3.10(fc8654244b69098ed2a5feef7e900db1)':
+  '@vritti/api-sdk@0.3.11(fc8654244b69098ed2a5feef7e900db1)':
     dependencies:
       '@getbrevo/brevo': 4.0.1
       '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)

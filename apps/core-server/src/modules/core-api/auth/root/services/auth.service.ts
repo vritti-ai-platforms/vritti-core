@@ -114,10 +114,25 @@ export class AuthService {
     ipAddress?: string,
     sessionType: SessionType = SessionTypeValues.WEB,
     userAgent?: string,
+    subdomain?: string,
   ): Promise<AuthResponseDto & { refreshToken?: string }> {
-    const user = dto.organizationId
-      ? await this.userService.findByEmailAndOrg(dto.email, dto.organizationId)
-      : await this.userService.findByEmail(dto.email);
+    // The org is resolved before the user so the lookup is always tenant-scoped — an email may exist in
+    // several orgs, and an unscoped match would mint a session for whichever row came back first.
+    // Mobile has no tenant subdomain and supplies organizationId from the org picker instead.
+    const org = dto.organizationId
+      ? await this.organizationService.getById(dto.organizationId)
+      : subdomain
+        ? await this.organizationService.getBySubdomain(subdomain)
+        : null;
+
+    if (!org) {
+      throw new BadRequestException({
+        label: 'Organization Not Found',
+        detail: 'Organization not found. Please contact support.',
+      });
+    }
+
+    const user = await this.userService.findByEmailAndOrg(dto.email, org.id);
 
     if (!user) {
       throw new BadRequestException({
@@ -149,14 +164,6 @@ export class AuthService {
         label: 'Invalid Credentials',
         detail: 'The email or password you entered is incorrect. Please check your credentials and try again.',
         errors: [{ field: 'password', message: 'Invalid credentials' }],
-      });
-    }
-
-    const org = await this.organizationService.getById(user.organizationId);
-    if (!org) {
-      throw new BadRequestException({
-        label: 'Organization Not Found',
-        detail: 'Organization not found. Please contact support.',
       });
     }
 

@@ -23,6 +23,7 @@ import {
   RefreshCookieOptions,
   RefreshTokenCookie,
   SkipCsrf,
+  Subdomain,
   UserId,
 } from '@vritti/api-sdk/auth';
 import type { FastifyReply } from 'fastify';
@@ -75,10 +76,17 @@ export class AuthController {
     @Headers('user-agent') userAgent: string | undefined,
     @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
     @CookieName() cookieName: string,
+    @Subdomain() subdomain: string | undefined,
   ): Promise<AuthResponseDto> {
-    this.logger.log(`POST /auth/login - Email: ${dto.email}`);
+    this.logger.log(`POST /auth/login - Email: ${dto.email}, subdomain: ${subdomain ?? 'none'}`);
 
-    const { refreshToken, ...response } = await this.authService.login(dto, ipAddress, undefined, userAgent);
+    const { refreshToken, ...response } = await this.authService.login(
+      dto,
+      ipAddress,
+      SessionTypeValues.WEB,
+      userAgent,
+      subdomain,
+    );
 
     if (refreshToken) {
       reply.setCookie(cookieName, refreshToken, cookieOptions);
