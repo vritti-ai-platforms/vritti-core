@@ -1,8 +1,28 @@
 {
   "name": "@vritti/core-sdk",
+  "description": "Client for the Vritti core API — signed requests, identity today, orders and appointments as they land",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.1",
-  "private": true,
-  "description": "Client for the Vritti core API \u2014 signed requests, identity today, orders and appointments as they land",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vritti-ai-platforms/vritti-core.git",
+    "directory": "libs/core-sdk"
+  },
+  "homepage": "https://github.com/vritti-ai-platforms/vritti-core/tree/main/libs/core-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/vritti-ai-platforms/vritti-core/issues"
+  },
+  "keywords": [
+    "vritti",
+    "sdk",
+    "api-client",
+    "signed-requests",
+    "typescript"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -19,13 +39,13 @@
       "default": "./dist/workspaces/index.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist"
   },
-  "files": [
-    "dist"
-  ],
   "devDependencies": {
     "@types/node": "^22.20.1",
     "typescript": "^6.0.3"
