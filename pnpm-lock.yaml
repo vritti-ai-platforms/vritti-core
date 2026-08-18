@@ -477,7 +477,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.23
         version: 10.4.27(postcss@8.5.26)
-        version: 10.4.27(postcss@8.5.26)
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -775,7 +774,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.23
         version: 10.4.27(postcss@8.5.26)
-        version: 10.4.27(postcss@8.5.26)
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -849,7 +847,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.23
         version: 10.4.27(postcss@8.5.26)
-        version: 10.4.27(postcss@8.5.26)
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -910,6 +907,12 @@ importers:
       '@types/node':
         specifier: ^22.20.1
         version: 22.20.1
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  libs/gitea-permissions:
+    devDependencies:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -19731,9 +19734,7 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-colors@0.83.2': {}
 
@@ -21627,13 +21628,11 @@ snapshots:
   auto-bind@5.0.1: {}
 
   autoprefixer@10.4.27(postcss@8.5.26):
-  autoprefixer@10.4.27(postcss@8.5.26):
     dependencies:
       browserslist: 4.28.1
       caniuse-lite: 1.0.30001778
       fraction.js: 5.3.4
       picocolors: 1.1.1
-      postcss: 8.5.26
       postcss: 8.5.26
       postcss-value-parser: 4.2.0
 
@@ -26130,7 +26129,6 @@ snapshots:
 
   postcss@8.4.49:
     dependencies:
-      nanoid: 3.3.18
       nanoid: 3.3.18
       picocolors: 1.1.1
       source-map-js: 1.2.1
