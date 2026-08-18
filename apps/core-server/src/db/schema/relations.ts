@@ -40,11 +40,21 @@ export const relations = defineRelations(schema, (r) => ({
   // Organization relations
   organizations: {
     users: r.many.users(),
+    apps: r.many.apps(),
     sites: r.many.sites(),
     siteGroups: r.many.siteGroups(),
     roles: r.many.roles(),
     legalEntities: r.many.legalEntities(),
     orgServices: r.many.orgServices(),
+  },
+
+  // API credentials issued to external clients. An app belongs to an org and to
+  // nothing else — it is a caller, not a person.
+  apps: {
+    organization: r.one.organizations({
+      from: r.apps.organizationId,
+      to: r.organizations.id,
+    }),
   },
 
   // Provisioned external service relations

@@ -26,12 +26,14 @@ import { SiteContextResolverService } from '@/site-context/site-context-resolver
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
+import { AppApiModule } from './modules/core-api/app/app-api.module';
 import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
 import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
 import { StructureApiModule } from './modules/core-api/structure/structure.module';
 import { UserApiModule } from './modules/core-api/user/user.module';
 import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
+import { AppDomainModule } from './modules/domain/app/app.module';
 import { CatalogDomainModule } from './modules/domain/catalog/catalog.module';
 import { LegalEntityDomainModule } from './modules/domain/legal-entity/legal-entity.module';
 import { OrganizationDomainModule } from './modules/domain/organization/organization.module';
@@ -45,6 +47,7 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
 import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module';
 import { GiteaInternalModule } from './modules/gitea-gateway/internal/gitea-internal.module';
 import { StorageInternalModule } from './modules/storage-internal/storage-internal.module';
+import { AppRequestResolver } from './security/services/app-request.resolver';
 
 @Module({
   imports: [
@@ -127,8 +130,9 @@ import { StorageInternalModule } from './modules/storage-internal/storage-intern
     }),
     // JWT auth + global VrittiAuthGuard (must load after DatabaseModule)
     AuthConfigModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
+      imports: [SecurityModule],
+      inject: [ConfigService, AppRequestResolver],
+      useFactory: (config: ConfigService, appRequestResolver: AppRequestResolver) => ({
         tokenExpiry: {
           access: config.getOrThrow('ACCESS_TOKEN_EXPIRY') as TokenExpiryString,
           refresh: config.getOrThrow('REFRESH_TOKEN_EXPIRY') as TokenExpiryString,
@@ -144,19 +148,15 @@ import { StorageInternalModule } from './modules/storage-internal/storage-intern
           csrfExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
           refreshTokenBindingExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
           csrfExemptTransports: ['graphql'],
-          onAuthenticated: (requestService, sessionInfo) => {
-            const hostname = requestService.getHostname();
-
+          // Runs for BOTH callers. A session arrives already authenticated by the
+          // guard and only needs its host checked; an app arrives unauthenticated
+          // and is resolved here, because verifying its signature needs a database
+          // lookup the SDK cannot do. Both then share the workspace-context headers.
+          onAuthenticated: async (requestService, sessionInfo) => {
             const readHeader = (name: string): string | undefined => {
               const value = requestService.getHeader(name);
               return Array.isArray(value) ? value[0] : value;
             };
-
-            // x-org-id is a consistency check only — the org always derives from the session
-            const orgIdHeader = readHeader('x-org-id');
-            if (orgIdHeader && orgIdHeader !== sessionInfo.organizationId) {
-              throw new UnauthorizedException('Organization mismatch — header does not match this session');
-            }
 
             // Workspace context headers: SITE > SITE_GROUP > LE; none = ORG workspace
             const applyContextHeaders = () => {
@@ -168,7 +168,23 @@ import { StorageInternalModule } from './modules/storage-internal/storage-intern
               if (legalEntityId) sessionInfo.legalEntityId = legalEntityId;
             };
 
-            const requestSubdomain = hostname.split('.')[0];
+            if (appRequestResolver.isAppRequest(requestService)) {
+              // Fills organizationId, appType, the synthetic actor and the subdomain
+              // from the credential's organization. No host check: an app calls
+              // whatever hostname it was configured with, so the host must not decide
+              // which tenant it speaks for.
+              await appRequestResolver.resolve(requestService, sessionInfo);
+              applyContextHeaders();
+              return;
+            }
+
+            // x-org-id is a consistency check only — the org always derives from the session
+            const orgIdHeader = readHeader('x-org-id');
+            if (orgIdHeader && orgIdHeader !== sessionInfo.organizationId) {
+              throw new UnauthorizedException('Organization mismatch — header does not match this session');
+            }
+
+            const requestSubdomain = requestService.getHostname().split('.')[0];
             if (!requestSubdomain) {
               throw new UnauthorizedException('Invalid request host');
             }
@@ -200,6 +216,7 @@ import { StorageInternalModule } from './modules/storage-internal/storage-intern
 
     // --- Domain modules (services + repositories only) ---
     SessionDomainModule,
+    AppDomainModule,
     VerificationDomainModule,
     LegalEntityDomainModule,
     SiteDomainModule,
@@ -250,7 +267,9 @@ import { StorageInternalModule } from './modules/storage-internal/storage-intern
     }),
 
     // --- API modules (controllers + DTOs + docs) ---
+    AppApiModule,
     AuthApiModule,
+    // Public storefront surface — one signed mutation, tenant from the app's client id
     UserApiModule,
     OrganizationApiModule,
     StructureApiModule,

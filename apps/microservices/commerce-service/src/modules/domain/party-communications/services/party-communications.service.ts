@@ -10,6 +10,7 @@ import {
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
+  CONTACTABLE_CHANNELS,
   type PartyCommunication,
   type PartyCommunicationChannel,
   PartyCommunicationChannelValues,
@@ -35,6 +36,25 @@ export class PartyCommunicationsDomainService {
     private readonly database: PrimaryDatabaseService,
     private readonly repository: PartyCommunicationsDomainRepository,
   ) {}
+
+  /**
+   * Resolves the parties reachable at a presented email or phone, oldest party first.
+   *
+   * A list rather than a single party: the table's unique is per party, so one
+   * address legitimately sits on several. Which one wins is the caller's policy —
+   * this only reports who matched.
+   *
+   * The value is matched case-insensitively. Callers are still expected to send a
+   * normalized value, since only case is handled here.
+   */
+  async findPartyIdsByValue(channel: PartyCommunicationChannel, value: string): Promise<string[]> {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return [];
+
+    const partyIds = await this.repository.findPartyIdsByValue(channel, normalized);
+    this.logger.log(`communications.findByValue — ${channel} matched ${partyIds.length} parties`);
+    return partyIds;
+  }
 
   // Returns paginated communications of a party for the data table
   async findForTable(
@@ -102,9 +122,8 @@ export class PartyCommunicationsDomainService {
       });
     }
 
-    const isPrimary = data.isPrimary ?? false;
     const isActive = data.isActive ?? true;
-    if (isPrimary && !isActive) {
+    if (data.isPrimary && !isActive) {
       throw new ConflictException({
         label: 'Invalid State',
         detail: 'A primary value must be active — an inactive value cannot be the primary for its channel.',
@@ -119,6 +138,7 @@ export class PartyCommunicationsDomainService {
     }
 
     const entity = await this.database.runInTransaction(async () => {
+      const isPrimary = data.isPrimary ?? (await this.claimsEmptyPrimarySlot(partyId, data.channel, isActive));
       if (isPrimary) {
         await this.repository.clearPrimaryForChannel(partyId, data.channel);
       }
@@ -140,6 +160,35 @@ export class PartyCommunicationsDomainService {
       message: 'Communication added successfully.',
       data: PartyCommunicationDto.from(entity, apps),
     };
+  }
+
+  /**
+   * Whether a row that did not ask to be primary should become one anyway.
+   *
+   * True only when the party has nothing primary on that channel yet. A person whose
+   * single email is filed as non-primary reads as having no email at all —
+   * `findByIdWithDetails` returns the primary — so the first one in claims the slot.
+   * An existing primary is never re-pointed, and an explicit `isPrimary` is never
+   * second-guessed: the caller has already decided.
+   *
+   * This is what lets an app add a contact detail without being handed `isPrimary`,
+   * which it must not have — re-pointing someone's main email is a staff decision.
+   *
+   * Runs inside the caller's transaction so the read and the insert see one state.
+   */
+  private async claimsEmptyPrimarySlot(
+    partyId: string,
+    channel: PartyCommunicationChannel,
+    isActive: boolean,
+  ): Promise<boolean> {
+    // A primary must be reachable and contactable: an inactive row cannot be primary,
+    // and the party_communications_primary_channel_chk CHECK rejects a primary WEB_APP
+    // outright — one person may hold accounts in several web apps.
+    if (!isActive) return false;
+    if (!CONTACTABLE_CHANNELS.includes(channel as (typeof CONTACTABLE_CHANNELS)[number])) return false;
+
+    const existing = await this.repository.findPrimary(partyId, channel);
+    return !existing;
   }
 
   // Updates a communication, enforcing at most one primary per party+channel via clear-then-set

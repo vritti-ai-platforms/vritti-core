@@ -1,0 +1,3 @@
+ALTER TYPE "commerce"."party_communication_channel" ADD VALUE 'WEB_APP';--> statement-breakpoint
+CREATE INDEX "idx_party_communications_lookup" ON "commerce"."party_communications" ("organization_id","channel",lower("value"));--> statement-breakpoint
+ALTER TABLE "commerce"."party_communications" ADD CONSTRAINT "party_communications_primary_channel_chk" CHECK (is_primary = false OR channel IN ('EMAIL', 'PHONE'));

@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, inArray, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  CONTACTABLE_CHANNELS,
   type MessagingApp,
   type PartyCommunication,
   type PartyCommunicationChannel,
+  PartyTypeValues,
   parties,
   partyCommunicationApps,
   partyCommunications,
@@ -12,6 +14,16 @@ import {
 import type { PartyCommunicationAppDto } from '../dto/entity/party-communication.dto';
 
 export type PartyCommunicationRow = PartyCommunication & { apps: PartyCommunicationAppDto[] };
+
+/**
+ * Restricts a read to channels that are an actual way to reach someone.
+ *
+ * Applied here rather than at each call site because a `WEB_APP` row's value is
+ * an external account id, not an address — one leaking into notification
+ * resolution, a contact picker or the people detail screen would be a bug in
+ * every one of those places. One filter, one thing to audit.
+ */
+const contactableOnly = () => inArray(partyCommunications.channel, [...CONTACTABLE_CHANNELS]);
 
 const appsAgg = sql<PartyCommunicationAppDto[]>`COALESCE(
   json_agg(json_build_object('app', ${partyCommunicationApps.app}, 'handle', ${partyCommunicationApps.handle}))
@@ -30,20 +42,19 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
     result: PartyCommunicationRow[];
     count: number;
   }> {
+    const where = options.where ? and(options.where, contactableOnly()) : contactableOnly();
+
     const rowsPromise = this.db
       .select({ communication: partyCommunications, apps: appsAgg })
       .from(partyCommunications)
       .leftJoin(partyCommunicationApps, eq(partyCommunicationApps.communicationId, partyCommunications.id))
-      .where(options.where)
+      .where(where)
       .groupBy(partyCommunications.id)
       .orderBy(...(options.orderBy ?? []))
       .limit(options.limit)
       .offset(options.offset);
 
-    const countPromise = this.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(partyCommunications)
-      .where(options.where);
+    const countPromise = this.db.select({ count: sql<number>`count(*)::int` }).from(partyCommunications).where(where);
 
     const [rows, countResult] = await Promise.all([rowsPromise, countPromise]);
     return {
@@ -78,14 +89,50 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
     return Boolean(row);
   }
 
-  // Returns all communications of a party, primary first then by channel
+  // Returns a party's contactable communications, primary first then by channel
   async findByParty(partyId: string): Promise<PartyCommunication[]> {
     const rows = await this.db
       .select()
       .from(partyCommunications)
-      .where(eq(partyCommunications.partyId, partyId))
+      .where(and(eq(partyCommunications.partyId, partyId), contactableOnly()))
       .orderBy(asc(partyCommunications.channel), desc(partyCommunications.isPrimary));
     return rows as PartyCommunication[];
+  }
+
+  /**
+   * Resolves the parties reachable at a presented email or phone, oldest party first.
+   *
+   * Compares on `lower(value)` to match the `idx_party_communications_lookup`
+   * index, so a shopper who signs up as `A@x.com` having previously used
+   * `a@x.com` resolves to the one party rather than creating a second.
+   *
+   * Returns a list, not a row: the table's unique is `(party_id, channel, value)`
+   * — per party — so one address legitimately sits on several parties, and
+   * picking between them is the caller's policy, not the repository's.
+   *
+   * Narrowed two ways. `PERSON` only, because a shopper account must never be
+   * attached to a company party. And active rows only, so a communication
+   * somebody deliberately deactivated stops being a match. The organization
+   * comes from RLS, never from an argument.
+   */
+  async findPartyIdsByValue(channel: PartyCommunicationChannel, normalizedValue: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ partyId: partyCommunications.partyId })
+      .from(partyCommunications)
+      .innerJoin(parties, eq(parties.id, partyCommunications.partyId))
+      .where(
+        and(
+          eq(partyCommunications.channel, channel),
+          sql`lower(${partyCommunications.value}) = ${normalizedValue}`,
+          eq(partyCommunications.isActive, true),
+          eq(parties.partyType, PartyTypeValues.PERSON),
+        ),
+      )
+      .orderBy(asc(parties.createdAt));
+
+    // Two rows differing only in case both match, so the same party can come
+    // back twice. Dedupe while keeping oldest-first order.
+    return [...new Set(rows.map((row) => row.partyId))];
   }
 
   // Returns the party's primary communication for a channel, if one is set
@@ -105,6 +152,15 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
   }
 
   // Looks up a communication by party, channel and value
+  /**
+   * The party's existing row on this channel with this value, if any.
+   *
+   * Compared case-insensitively, matching `findPartyIdsByValue` and the
+   * `idx_party_communications_lookup` index. With an exact comparison a party holding
+   * `Ram@X.com` still *matches* a signup for `ram@x.com` — the lookup lowercases —
+   * and then fails this check, so the party ends up with two EMAIL rows differing only
+   * in case. The unique constraint is on the raw value, so it does not catch it either.
+   */
   async findByPartyChannelValue(
     partyId: string,
     channel: PartyCommunicationChannel,
@@ -117,7 +173,7 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
         and(
           eq(partyCommunications.partyId, partyId),
           eq(partyCommunications.channel, channel),
-          eq(partyCommunications.value, value),
+          sql`lower(${partyCommunications.value}) = lower(${value})`,
         ),
       )
       .limit(1);

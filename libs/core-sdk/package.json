@@ -1,0 +1,33 @@
+{
+  "name": "@vritti/core-sdk",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Client for the Vritti core API \u2014 signed requests, identity today, orders and appointments as they land",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./people": {
+      "types": "./dist/people/index.d.ts",
+      "default": "./dist/people/index.js"
+    },
+    "./workspaces": {
+      "types": "./dist/workspaces/index.d.ts",
+      "default": "./dist/workspaces/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "typescript": "^6.0.3"
+  }
+}

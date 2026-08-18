@@ -59,6 +59,24 @@ type TaxGroup {
   taxRates: [TaxRate!]!
 }
 
+type Person {
+  id: ID!
+  displayName: String!
+  firstName: String
+  lastName: String
+  email: String
+  phone: String
+  isActive: Boolean!
+}
+
+type PersonCommunication {
+  id: ID!
+  channel: String!
+  value: String!
+  isPrimary: Boolean!
+  isActive: Boolean!
+}
+
 type Uom {
   id: ID!
   dimensionId: ID!
@@ -376,9 +394,24 @@ type MobileTokens {
   expiresIn: Int!
 }
 
+type WorkspaceOption {
+  kind: String!
+  id: ID!
+  name: String!
+  code: String!
+  parentId: ID
+}
+
+type Workspaces {
+  legalEntities: [WorkspaceOption!]!
+  siteGroups: [WorkspaceOption!]!
+  sites: [WorkspaceOption!]!
+}
+
 type Query {
   organizationsByEmail(email: String!): [LookupOrganization!]!
   usersOptions(input: SelectOptionsInput): SelectOptions!
+  workspaces: Workspaces!
   profile: Profile!
   sessions: [UserSession!]!
   inventoryItems(first: Int, after: String, filters: [FeedFilterInput!], search: FeedSearchInput, sort: [FeedSortInput!]): InventoryItemConnection!
@@ -411,6 +444,7 @@ type Query {
   uomOptions(input: SelectOptionsInput, dimensionId: ID, baseOnly: Boolean, derivedOnly: Boolean): SelectOptions!
   suppliersOptions(input: SelectOptionsInput): SelectOptions!
   taxGroupsOptions(input: SelectOptionsInput): SelectOptions!
+  peopleByCommunication(input: FindPeopleByCommunicationInput!): [ID!]!
 }
 
 input SelectOptionsInput {
@@ -444,6 +478,11 @@ input FeedSortInput {
   direction: String!
 }
 
+input FindPeopleByCommunicationInput {
+  channel: String!
+  value: String!
+}
+
 type Mutation {
   mobileLogin(input: MobileLoginInput!): MobileAuthSession!
   mobileRefreshTokens(input: MobileRefreshInput!): MobileTokens!
@@ -472,6 +511,8 @@ type Mutation {
   createCostCategory(input: CreateCostCategoryInput!): CostCategory!
   updateCostCategory(id: ID!, input: UpdateCostCategoryInput!): CostCategory!
   deleteCostCategory(id: ID!): MutationResult!
+  createPerson(input: CreatePersonInput!): Person!
+  addPersonCommunication(input: AddPersonCommunicationInput!): PersonCommunication!
 }
 
 input MobileLoginInput {
@@ -591,4 +632,17 @@ input CreateCostCategoryInput {
 input UpdateCostCategoryInput {
   name: String
   isActive: Boolean
+}
+
+input CreatePersonInput {
+  firstName: String!
+  lastName: String
+  email: String
+  phone: String
+}
+
+input AddPersonCommunicationInput {
+  personId: ID!
+  channel: String!
+  value: String!
 }

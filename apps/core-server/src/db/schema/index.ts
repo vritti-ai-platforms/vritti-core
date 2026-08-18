@@ -6,9 +6,11 @@ export * from './enums';
 // Export all tables
 export * from './media';
 export * from './users';
+// Before ./sessions — that table now references both subjects.
 export * from './sessions';
 export * from './verifications';
 export * from './organizations';
+export * from './apps';
 export * from './org-storage.types';
 export * from './org-service';
 export * from './gitea-credentials';

@@ -2,9 +2,15 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 
+// Mirrors commerce's `party_communication_channel` enum and must stay identical to it —
+// a value missing here cannot be expressed through the gateway at all.
+// WEB_APP is not a contact method: its value is a person's id in one of the
+// organization's own web apps, so this deployment can resolve that account back to
+// the party. A CHECK on the table refuses it as primary.
 export const PARTY_COMMUNICATION_CHANNELS = {
   EMAIL: 'EMAIL',
   PHONE: 'PHONE',
+  WEB_APP: 'WEB_APP',
 } as const;
 
 export type PartyCommunicationChannelValue =

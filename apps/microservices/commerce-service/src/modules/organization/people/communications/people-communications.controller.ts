@@ -1,5 +1,6 @@
 import type { PartyCommunicationDto } from '@domain/party-communications/dto/entity/party-communication.dto';
 import { CreatePersonCommunicationDto } from '@domain/party-communications/dto/request/create-person-communication.dto';
+import { FindPartiesByCommunicationDto } from '@domain/party-communications/dto/request/find-parties-by-communication.dto';
 import { UpdateCommunicationDto } from '@domain/party-communications/dto/request/update-communication.dto';
 import { PartyCommunicationsDomainService } from '@domain/party-communications/services/party-communications.service';
 import { Controller, Logger } from '@nestjs/common';
@@ -20,6 +21,14 @@ export class PeopleCommunicationsController {
     const { personId, ...state } = data;
     this.logger.log(`people.communications.table — personId: ${personId}`);
     return this.service.findForTable(personId, state);
+  }
+
+  // Resolves the people reachable at an email or phone, oldest party first. The caller
+  // decides which match wins — several people can legitimately share an address.
+  @MessagePattern({ cmd: 'org.people.communications.findByValue' })
+  findByValue(@Payload() dto: FindPartiesByCommunicationDto): Promise<string[]> {
+    this.logger.log(`people.communications.findByValue — channel: ${dto.channel}`);
+    return this.service.findPartyIdsByValue(dto.channel, dto.value);
   }
 
   // Creates a communication for a person

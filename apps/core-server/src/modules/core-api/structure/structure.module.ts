@@ -12,6 +12,8 @@ import { SiteGroupService } from './site-groups/services/site-group-api.service'
 import { SiteGroupController } from './site-groups/site-group.controller';
 import { SiteService } from './sites/services/site-api.service';
 import { SiteController } from './sites/site.controller';
+import { StructureAppController } from './structure.app.controller';
+import { StructureAppResolver } from './structure.app.resolver';
 
 @Module({
   imports: [
@@ -21,7 +23,13 @@ import { SiteController } from './sites/site.controller';
     OrganizationDomainModule,
     UserRoleDomainModule,
   ],
-  controllers: [StructureController, LegalEntityController, SiteController, SiteGroupController],
-  providers: [StructureService, LegalEntityService, SiteService, SiteGroupService],
+  controllers: [
+    StructureController,
+    LegalEntityController,
+    SiteController,
+    SiteGroupController,
+    StructureAppController,
+  ],
+  providers: [StructureService, LegalEntityService, SiteService, SiteGroupService, StructureAppResolver],
 })
 export class StructureApiModule {}

@@ -399,6 +399,183 @@
         ]
       }
     },
+    "/apps/internal": {
+      "post": {
+        "operationId": "AppController_createFromCloud",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Apps"
+        ]
+      },
+      "get": {
+        "operationId": "AppController_listFromCloud",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "query",
+            "description": "Nexus organization ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/internal/{id}/signing-key": {
+      "get": {
+        "operationId": "AppController_revealSigningKey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "query",
+            "description": "Nexus organization ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/internal/{id}": {
+      "patch": {
+        "operationId": "AppController_updateFromCloud",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/internal/{id}/rotate": {
+      "post": {
+        "operationId": "AppController_rotateFromCloud",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppScopeInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/internal/{id}/revoke": {
+      "post": {
+        "operationId": "AppController_revokeFromCloud",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppScopeInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "description": "Authenticates a nexus user with email and password. Returns an access token and sets a refresh token in an httpOnly cookie.",
@@ -4484,6 +4661,20 @@
         "summary": "Reparent site group",
         "tags": [
           "Site Groups"
+        ]
+      }
+    },
+    "/app/workspaces": {
+      "get": {
+        "operationId": "StructureAppController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Structure (App)"
         ]
       }
     },
@@ -15547,6 +15738,102 @@
         ]
       }
     },
+    "/commerce-api/app/people/by-communication": {
+      "get": {
+        "operationId": "PeopleAppController_findByCommunication",
+        "parameters": [
+          {
+            "name": "channel",
+            "required": true,
+            "in": "query",
+            "description": "Channel to search",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EMAIL",
+                "PHONE",
+                "WEB_APP"
+              ]
+            }
+          },
+          {
+            "name": "value",
+            "required": true,
+            "in": "query",
+            "description": "The value to resolve",
+            "schema": {
+              "example": "ramesh@example.com",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Commerce - People (App)"
+        ]
+      }
+    },
+    "/commerce-api/app/people": {
+      "post": {
+        "operationId": "PeopleAppController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePersonAppDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Commerce - People (App)"
+        ]
+      }
+    },
+    "/commerce-api/app/people/{id}/communications": {
+      "post": {
+        "operationId": "PeopleAppController_addCommunication",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPersonCommunicationAppDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Commerce - People (App)"
+        ]
+      }
+    },
     "/commerce-api/companies/table": {
       "get": {
         "operationId": "CompaniesGatewayController_getTable",
@@ -22991,6 +23278,161 @@
         ]
       }
     },
+    "/gitea-api/select-api/images": {
+      "get": {
+        "description": "Returns paginated combined image options (`name:tag`) for select dropdowns, scoped to the org's git namespace — one option per package version (the registry lists one entry per version). Backs the website-creation image selector; callers split the value on the last colon into image and tag.",
+        "operationId": "SelectApiController_selectImages",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter options by name",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to exclude",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Container image select options retrieved successfully."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get container image select options",
+        "tags": [
+          "Gitea - Select"
+        ]
+      }
+    },
     "/gitea-api/select-api/package-tags": {
       "get": {
         "description": "Returns paginated tag (version) options for a container package, newest first. Used by the website-creation package selector to pick an image tag.",
@@ -23361,6 +23803,57 @@
         ]
       }
     },
+    "/gitea/internal/images": {
+      "post": {
+        "description": "Returns paginated combined image options (`name:tag`) scoped to the owner's git namespace — one per package version. Signature-gated equivalent of the session-gated select endpoint, for cloud-server which has no core session. The owner (org subdomain) is supplied by the trusted signed caller.",
+        "operationId": "GiteaInternalController_selectImages",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PackageSelectBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Container image select options retrieved successfully."
+          },
+          "400": {
+            "description": "Owner is missing or invalid."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "Get container image select options (signed)",
+        "tags": [
+          "Gitea - Internal"
+        ]
+      }
+    },
     "/gitea/internal/package-tags": {
       "post": {
         "description": "Returns paginated tag (version) options for a container package, newest first, scoped to the owner's git namespace. Signature-gated equivalent of the session-gated select endpoint, for cloud-server which has no core session. The owner (org subdomain) is supplied by the trusted signed caller.",
@@ -23409,6 +23902,70 @@
         "summary": "Get container package tag select options (signed)",
         "tags": [
           "Gitea - Internal"
+        ]
+      }
+    },
+    "/storage/internal/org-storage": {
+      "post": {
+        "description": "Returns an organization's full object-storage descriptor (provider, account, buckets, public URL, and the S3 credential scoped to those buckets) for cloud-server, which has no core session. The descriptor is provisioned by the control plane and read straight off the org row; the secret is returned in whatever form the writer stored it. The owner (org subdomain) is supplied by the trusted signed caller. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "StorageInternalController_getOrgStorage",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgStorageBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Org storage descriptor retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgStorageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Owner is missing or invalid."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "403": {
+            "description": "Signature verification failed."
+          },
+          "404": {
+            "description": "No organization matches the supplied subdomain."
+          }
+        },
+        "summary": "Get org storage descriptor (signed)",
+        "tags": [
+          "Storage - Internal"
         ]
       }
     }
@@ -23590,6 +24147,63 @@
         },
         "required": [
           "isShared"
+        ]
+      },
+      "CreateAppInternalDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Nexus organization ID the app belongs to"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human label for the credential",
+            "example": "Desi Taakat storefront"
+          },
+          "type": {
+            "type": "string",
+            "description": "What the credential is for",
+            "enum": [
+              "GRAPHQL",
+              "HTTP"
+            ],
+            "example": "GRAPHQL"
+          }
+        },
+        "required": [
+          "orgId",
+          "name",
+          "type"
+        ]
+      },
+      "UpdateAppInternalDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Nexus organization ID — scopes the lookup so one org cannot address another’s app"
+          },
+          "name": {
+            "type": "string",
+            "description": "New label"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Suspend or restore the credential without revoking it"
+          }
+        }
+      },
+      "AppScopeInternalDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Nexus organization ID"
+          }
+        },
+        "required": [
+          "orgId"
         ]
       },
       "LoginDto": {
@@ -30722,7 +31336,8 @@
             "description": "Communication channel",
             "enum": [
               "EMAIL",
-              "PHONE"
+              "PHONE",
+              "WEB_APP"
             ]
           },
           "value": {
@@ -30851,6 +31466,57 @@
             "description": "Whether the person is selectable"
           }
         }
+      },
+      "CreatePersonAppDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "Given name",
+            "example": "Ramesh"
+          },
+          "lastName": {
+            "type": "object",
+            "description": "Family name",
+            "example": "Kumar"
+          },
+          "email": {
+            "type": "object",
+            "description": "Becomes the primary EMAIL communication",
+            "example": "ramesh@example.com"
+          },
+          "phone": {
+            "type": "object",
+            "description": "Becomes the primary PHONE communication",
+            "example": "+919876543210"
+          }
+        },
+        "required": [
+          "firstName"
+        ]
+      },
+      "AddPersonCommunicationAppDto": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Communication channel",
+            "enum": [
+              "EMAIL",
+              "PHONE",
+              "WEB_APP"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "The address, number, or external reference",
+            "example": "ramesh@example.com"
+          }
+        },
+        "required": [
+          "channel",
+          "value"
+        ]
       },
       "CompanyAddressInputDto": {
         "type": "object",
@@ -31331,7 +31997,8 @@
             "description": "Communication channel",
             "enum": [
               "EMAIL",
-              "PHONE"
+              "PHONE",
+              "WEB_APP"
             ]
           },
           "value": {
@@ -32239,6 +32906,69 @@
         "required": [
           "package",
           "owner"
+        ]
+      },
+      "OrgStorageBodyDto": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "example": "acme",
+            "description": "Organization subdomain whose storage descriptor to return"
+          }
+        },
+        "required": [
+          "owner"
+        ]
+      },
+      "OrgStorageResponseDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "Object-storage provider",
+            "example": "r2"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Provider account id the endpoint is derived from",
+            "example": "a1b2c3d4e5f6"
+          },
+          "bucket": {
+            "type": "string",
+            "description": "The org's private bucket",
+            "example": "acme-private"
+          },
+          "publicBucket": {
+            "type": "string",
+            "description": "The org's public bucket",
+            "example": "acme-public"
+          },
+          "publicUrl": {
+            "type": "object",
+            "description": "Public base URL of publicBucket; null when public access could not be enabled",
+            "example": "https://cdn.acme.example.com",
+            "nullable": true
+          },
+          "accessKeyId": {
+            "type": "string",
+            "description": "S3 access key id scoped to the org buckets",
+            "example": "AKIAEXAMPLE"
+          },
+          "secretAccessKey": {
+            "type": "string",
+            "description": "S3 secret access key, as stored by the writer",
+            "example": "wJalr...EXAMPLE"
+          }
+        },
+        "required": [
+          "provider",
+          "accountId",
+          "bucket",
+          "publicBucket",
+          "publicUrl",
+          "accessKeyId",
+          "secretAccessKey"
         ]
       }
     }

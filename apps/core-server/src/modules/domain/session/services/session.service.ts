@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { hashToken, TokenService, TokenType } from '@vritti/api-sdk/auth';
 import { UnauthorizedException } from '@vritti/api-sdk/exceptions';
-import { type Session, type SessionType } from '@/db/schema';
+import type { Session, SessionType } from '@/db/schema';
 import { SessionDomainRepository } from '../repositories/session.repository';
 
 @Injectable()

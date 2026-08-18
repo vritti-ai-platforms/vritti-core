@@ -569,12 +569,40 @@ export const PartyFunctionTypeValues = {
 };
 export type PartyFunctionType = (typeof partyFunctionTypeEnum.enumValues)[number];
 
-export const partyCommunicationChannelEnum = commerceSchema.enum('party_communication_channel', ['EMAIL', 'PHONE']);
+/**
+ * How a party is reached — plus one channel that is not a contact method at all.
+ *
+ * `WEB_APP` carries an external reference rather than an address: its `value` is
+ * the id of the person's account in a web app the organization runs, so core can
+ * resolve that account back to this party. It is never contactable, never
+ * primary (a CHECK enforces that), and must be filtered out of anything that
+ * reads communications to find somewhere to send a message.
+ *
+ * Adding a value here is permanent — Postgres has no `ALTER TYPE … DROP VALUE`.
+ */
+export const partyCommunicationChannelEnum = commerceSchema.enum('party_communication_channel', [
+  'EMAIL',
+  'PHONE',
+  'WEB_APP',
+]);
 export const PartyCommunicationChannelValues = {
   EMAIL: 'EMAIL' as const,
   PHONE: 'PHONE' as const,
+  WEB_APP: 'WEB_APP' as const,
 };
 export type PartyCommunicationChannel = (typeof partyCommunicationChannelEnum.enumValues)[number];
+
+/**
+ * The channels that are an actual way to reach someone.
+ *
+ * An allowlist rather than "everything except WEB_APP" on purpose: the next
+ * external-reference channel added to the enum is then non-contactable by
+ * default, instead of being accidentally contactable until somebody notices.
+ */
+export const CONTACTABLE_CHANNELS = [
+  PartyCommunicationChannelValues.EMAIL,
+  PartyCommunicationChannelValues.PHONE,
+] as const;
 
 export const messagingAppEnum = commerceSchema.enum('messaging_app', [
   'WHATSAPP',

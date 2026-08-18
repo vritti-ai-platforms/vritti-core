@@ -1,3 +1,37 @@
+import type { CreatePersonDto } from '@commerce/parties/dto/request/create-person.dto';
+import type { CreatePersonRegistrationDto } from '@commerce/parties/dto/request/create-person-registration.dto';
+import type { UpdatePersonDto } from '@commerce/parties/dto/request/update-person.dto';
+import type { UpdatePersonRegistrationDto } from '@commerce/parties/dto/request/update-person-registration.dto';
+import type { PersonRegistrationResponseDto } from '@commerce/parties/dto/response/person-registration-response.dto';
+import type { PersonRegistrationTableResponseDto } from '@commerce/parties/dto/response/person-registration-table-response.dto';
+import type { PersonResponseDto } from '@commerce/parties/dto/response/person-response.dto';
+import type { PersonTableResponseDto } from '@commerce/parties/dto/response/person-table-response.dto';
+import type { AddPersonAddressDto } from '@commerce/party-addresses/dto/request/add-person-address.dto';
+import type { UpdatePersonAddressDto } from '@commerce/party-addresses/dto/request/update-person-address.dto';
+import type { PartyAddressResponseDto } from '@commerce/party-addresses/dto/response/party-address-response.dto';
+import type { PartyAddressTableResponseDto } from '@commerce/party-addresses/dto/response/party-address-table-response.dto';
+import type { CreatePersonBankAccountDto } from '@commerce/party-bank-accounts/dto/request/create-person-bank-account.dto';
+import type { UpdatePersonBankAccountDto } from '@commerce/party-bank-accounts/dto/request/update-person-bank-account.dto';
+import type { PartyBankAccountResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-response.dto';
+import type { PartyBankAccountTableResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-table-response.dto';
+import type { CreatePersonCommunicationDto } from '@commerce/party-communications/dto/request/create-person-communication.dto';
+import type { PartyCommunicationChannelValue } from '@commerce/party-communications/dto/request/party-communication-app.dto';
+import type { UpdatePersonCommunicationDto } from '@commerce/party-communications/dto/request/update-person-communication.dto';
+import type { PartyCommunicationResponseDto } from '@commerce/party-communications/dto/response/party-communication-response.dto';
+import type { PartyCommunicationTableResponseDto } from '@commerce/party-communications/dto/response/party-communication-table-response.dto';
+import type { AddPersonIdentifierDto } from '@commerce/party-identifiers/dto/request/add-person-identifier.dto';
+import type { PartyIdentifierResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-response.dto';
+import type { PartyIdentifierTableResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-table-response.dto';
+import type { CreatePersonLicenseDto } from '@commerce/party-licenses/dto/request/create-person-license.dto';
+import type { UpdatePersonLicenseDto } from '@commerce/party-licenses/dto/request/update-person-license.dto';
+import type { PartyLicenseResponseDto } from '@commerce/party-licenses/dto/response/party-license-response.dto';
+import type { PartyLicenseTableResponseDto } from '@commerce/party-licenses/dto/response/party-license-table-response.dto';
+import type { PersonCompanyResponseDto } from '@commerce/party-relationships/dto/response/person-company-response.dto';
+import type { PersonCompanyTableResponseDto } from '@commerce/party-relationships/dto/response/person-company-table-response.dto';
+import type { CreatePersonSocialProfileDto } from '@commerce/party-social-profiles/dto/request/create-person-social-profile.dto';
+import type { UpdatePersonSocialProfileDto } from '@commerce/party-social-profiles/dto/request/update-person-social-profile.dto';
+import type { PartySocialProfileResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-response.dto';
+import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type {
@@ -7,39 +41,6 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { AddPersonAddressDto } from '@commerce/party-addresses/dto/request/add-person-address.dto';
-import type { AddPersonIdentifierDto } from '@commerce/party-identifiers/dto/request/add-person-identifier.dto';
-import type { CreatePersonBankAccountDto } from '@commerce/party-bank-accounts/dto/request/create-person-bank-account.dto';
-import type { CreatePersonCommunicationDto } from '@commerce/party-communications/dto/request/create-person-communication.dto';
-import type { CreatePersonLicenseDto } from '@commerce/party-licenses/dto/request/create-person-license.dto';
-import type { CreatePersonSocialProfileDto } from '@commerce/party-social-profiles/dto/request/create-person-social-profile.dto';
-import type { CreatePersonDto } from '@commerce/parties/dto/request/create-person.dto';
-import type { CreatePersonRegistrationDto } from '@commerce/parties/dto/request/create-person-registration.dto';
-import type { UpdatePersonAddressDto } from '@commerce/party-addresses/dto/request/update-person-address.dto';
-import type { UpdatePersonBankAccountDto } from '@commerce/party-bank-accounts/dto/request/update-person-bank-account.dto';
-import type { UpdatePersonCommunicationDto } from '@commerce/party-communications/dto/request/update-person-communication.dto';
-import type { UpdatePersonLicenseDto } from '@commerce/party-licenses/dto/request/update-person-license.dto';
-import type { UpdatePersonSocialProfileDto } from '@commerce/party-social-profiles/dto/request/update-person-social-profile.dto';
-import type { UpdatePersonDto } from '@commerce/parties/dto/request/update-person.dto';
-import type { UpdatePersonRegistrationDto } from '@commerce/parties/dto/request/update-person-registration.dto';
-import type { PartyAddressResponseDto } from '@commerce/party-addresses/dto/response/party-address-response.dto';
-import type { PartyAddressTableResponseDto } from '@commerce/party-addresses/dto/response/party-address-table-response.dto';
-import type { PartyBankAccountResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-response.dto';
-import type { PartyBankAccountTableResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-table-response.dto';
-import type { PartyCommunicationResponseDto } from '@commerce/party-communications/dto/response/party-communication-response.dto';
-import type { PartyCommunicationTableResponseDto } from '@commerce/party-communications/dto/response/party-communication-table-response.dto';
-import type { PartyIdentifierResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-response.dto';
-import type { PartyIdentifierTableResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-table-response.dto';
-import type { PartyLicenseResponseDto } from '@commerce/party-licenses/dto/response/party-license-response.dto';
-import type { PartyLicenseTableResponseDto } from '@commerce/party-licenses/dto/response/party-license-table-response.dto';
-import type { PartySocialProfileResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-response.dto';
-import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
-import type { PersonCompanyResponseDto } from '@commerce/party-relationships/dto/response/person-company-response.dto';
-import type { PersonCompanyTableResponseDto } from '@commerce/party-relationships/dto/response/person-company-table-response.dto';
-import type { PersonRegistrationResponseDto } from '@commerce/parties/dto/response/person-registration-response.dto';
-import type { PersonRegistrationTableResponseDto } from '@commerce/parties/dto/response/person-registration-table-response.dto';
-import type { PersonResponseDto } from '@commerce/parties/dto/response/person-response.dto';
-import type { PersonTableResponseDto } from '@commerce/parties/dto/response/person-table-response.dto';
 
 @Injectable()
 export class PeopleGatewayService {
@@ -68,6 +69,17 @@ export class PeopleGatewayService {
   select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.people');
     return this.nats.send('commerce', 'select.people', params);
+  }
+
+  /**
+   * Resolves the people reachable at an email or phone, oldest party first.
+   *
+   * Returns ids rather than records: one address legitimately sits on several
+   * people, and deciding which of them is "the" person is the caller's policy.
+   */
+  findPartiesByCommunication(channel: PartyCommunicationChannelValue, value: string): Promise<string[]> {
+    this.logger.log(`org.people.communications.findByValue — channel: ${channel}`);
+    return this.nats.send('commerce', 'org.people.communications.findByValue', { channel, value });
   }
 
   // Creates a new person

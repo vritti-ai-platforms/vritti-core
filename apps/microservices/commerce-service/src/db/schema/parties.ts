@@ -280,6 +280,15 @@ export const partyCommunications = commerceSchema.table(
     uniqueIndex('uq_party_communications_primary').on(table.partyId, table.channel).where(sql`is_primary = true`),
     unique('uq_party_communications_party_channel_value').on(table.partyId, table.channel, table.value),
     index('idx_party_communications_party').on(table.partyId),
+    // Only a real contact method can be primary. WEB_APP rows carry an external
+    // account id, and one person may hold accounts in several web apps — so
+    // without this, the second app's insert would collide with the partial unique
+    // above. Making it a constraint rather than a convention means no writer has
+    // to remember.
+    check('party_communications_primary_channel_chk', sql`is_primary = false OR channel IN ('EMAIL', 'PHONE')`),
+    // Resolves a party from a presented email or phone at signup. `lower(value)`
+    // is what makes the match case-insensitive without a second column.
+    index('idx_party_communications_lookup').on(table.organizationId, table.channel, sql`lower(${table.value})`),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

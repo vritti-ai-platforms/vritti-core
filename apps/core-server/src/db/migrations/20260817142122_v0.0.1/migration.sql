@@ -1,0 +1,1 @@
+ALTER TYPE "core"."app_type" ADD VALUE 'HTTP';

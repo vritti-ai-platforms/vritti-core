@@ -17,6 +17,8 @@ import { CompaniesGatewayController } from './org-api/companies/companies-gatewa
 import { CompaniesGatewayService } from './org-api/companies/services/companies-gateway.service';
 import { InventoryItemsGatewayController as OrgInventoryItemsGatewayController } from './org-api/inventory-items/inventory-items-gateway.controller';
 import { InventoryItemsGatewayService as OrgInventoryItemsGatewayService } from './org-api/inventory-items/services/inventory-items-gateway.service';
+import { PeopleAppController } from './org-api/people/people.app.controller';
+import { PeopleAppResolver } from './org-api/people/people.app.resolver';
 import { PeopleGatewayController } from './org-api/people/people-gateway.controller';
 import { PeopleGatewayService } from './org-api/people/services/people-gateway.service';
 import { SalesChannelsGatewayController } from './org-api/sales-channels/sales-channels-gateway.controller';
@@ -99,6 +101,7 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     OrgInventoryItemsGatewayController,
     SiteGroupInventoryItemsGatewayController,
     PeopleGatewayController,
+    PeopleAppController,
     CompaniesGatewayController,
     TaxClassesGatewayController,
     TaxComponentsGatewayController,
@@ -150,6 +153,7 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     TaxGroupsResolver,
     CostCategoriesResolver,
     SelectApiResolver,
+    PeopleAppResolver,
   ],
 })
 export class CommerceGatewayModule {}
