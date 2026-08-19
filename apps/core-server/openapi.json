@@ -24169,6 +24169,10 @@
               "HTTP"
             ],
             "example": "GRAPHQL"
+          },
+          "permissions": {
+            "type": "object",
+            "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"app\":[\"view\",\"add\"]}}. Omitted means the credential starts able to do nothing."
           }
         },
         "required": [
@@ -24191,6 +24195,10 @@
           "isActive": {
             "type": "boolean",
             "description": "Suspend or restore the credential without revoking it"
+          },
+          "permissions": {
+            "type": "object",
+            "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"app\":[\"view\",\"add\"]}}. Replaces the whole set."
           }
         }
       },

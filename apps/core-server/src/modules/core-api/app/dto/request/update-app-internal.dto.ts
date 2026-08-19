@@ -1,8 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
+import { IsBoolean, IsObject, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateAppInternalDto {
-  @ApiPropertyOptional({ description: 'Nexus organization ID — scopes the lookup so one org cannot address another’s app' })
+  @ApiPropertyOptional({
+    description: 'Nexus organization ID — scopes the lookup so one org cannot address another’s app',
+  })
   @IsUUID()
   orgId: string;
 
@@ -17,4 +20,12 @@ export class UpdateAppInternalDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'What the credential may do, keyed by bare feature code — e.g. {"people":{"app":["view","add"]}}. Replaces the whole set.',
+  })
+  @IsObject()
+  @IsOptional()
+  permissions?: FeatureUnlocks;
 }

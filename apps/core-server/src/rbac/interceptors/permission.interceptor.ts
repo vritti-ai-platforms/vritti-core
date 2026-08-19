@@ -1,5 +1,6 @@
 import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { APP_SESSION_TYPE } from '@vritti/api-sdk/auth';
 import type { PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { ForbiddenException } from '@vritti/api-sdk/exceptions';
@@ -60,13 +61,25 @@ export class PermissionInterceptor implements NestInterceptor {
           ? { scope: 'LE', id: legalEntityId }
           : { scope: 'ORG', id: orgId };
 
-    // Platform bucket follows the session type: a MOBILE session enforces the mobile feature set, all else web
-    const bucket: PlatformBucket = sessionType === SessionTypeValues.MOBILE ? 'mobile' : 'web';
+    // Platform bucket follows the session type: MOBILE enforces the mobile feature set, an app
+    // credential its own `app` set, everything else web. An app having its own bucket is what lets a
+    // plan entitle API access separately from the browser, and what frees a headless feature from
+    // needing a microfrontend to be reachable.
+    const bucket: PlatformBucket =
+      sessionType === SessionTypeValues.MOBILE ? 'mobile' : sessionType === APP_SESSION_TYPE ? 'app' : 'web';
+
+    // An app's grants sit on its credential rather than coming from role assignments, so the
+    // grant source differs — but the catalog it is intersected with does not. A plan lock or a
+    // node's feature switch binds an app exactly as it binds a person.
+    const isApp = bucket === 'app';
+    const grants = request.sessionInfo?.appPermissions ?? {};
 
     // A specific permission subsumes the feature switch — an enabled permission implies its feature is unlocked
     if (requiredPermission) {
       const enabled = await this.primaryDb.runWithRlsContext({ orgId }, () =>
-        this.userPermissionsService.resolveEnabledPermissions(userId, ctx, bucket),
+        isApp
+          ? this.userPermissionsService.resolveAppEnabledPermissions(grants, ctx, bucket)
+          : this.userPermissionsService.resolveEnabledPermissions(userId, ctx, bucket),
       );
       if (!enabled.has(requiredPermission)) {
         this.logger.warn(`  DENY ${requiredPermission} — not in enabled set`);
@@ -79,7 +92,9 @@ export class PermissionInterceptor implements NestInterceptor {
     // No specific permission (e.g. count) — gate on the feature switch being on for this user's site
     if (requiredFeature) {
       const available = await this.primaryDb.runWithRlsContext({ orgId }, () =>
-        this.userPermissionsService.resolveAvailableFeatures(userId, ctx, bucket),
+        isApp
+          ? this.userPermissionsService.resolveAppAvailableFeatures(grants, ctx, bucket)
+          : this.userPermissionsService.resolveAvailableFeatures(userId, ctx, bucket),
       );
       if (!available.has(requiredFeature)) {
         this.logger.warn(`  DENY feature ${requiredFeature} — switch off / not available`);

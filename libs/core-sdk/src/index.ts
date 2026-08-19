@@ -1,4 +1,16 @@
 export {
+  CLIENT_ID_HEADER,
+  createResponseCacheLink,
+  createSignedClient,
+  createSignedFetch,
+  PARTY_ID_HEADER,
+  type ResponseCacheContext,
+  type ResponseCacheStore,
+  requireData,
+  run,
+} from './apollo';
+export { type CoreSdkOptions, ENV_VARS, resolveConfig } from './config';
+export {
   CHANNELS,
   type Channel,
   type CreatePersonInput,
@@ -13,7 +25,6 @@ export {
 } from './people';
 export { type CoreSdk, createCoreSdk } from './sdk';
 export { signRequest } from './signing';
-export { CLIENT_ID_HEADER, createTransport, PARTY_ID_HEADER, type Transport } from './transport';
 export { CoreError, type CoreSdkConfig, PartyRollbackError } from './types';
 export {
   createWorkspacesOperations,

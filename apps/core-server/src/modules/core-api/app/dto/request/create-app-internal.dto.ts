@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
+import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { AppTypeValues } from '@/db/schema';
 
 export class CreateAppInternalDto {
@@ -17,4 +18,12 @@ export class CreateAppInternalDto {
   @ApiProperty({ description: 'What the credential is for', enum: AppTypeValues, example: AppTypeValues.GRAPHQL })
   @IsEnum(AppTypeValues)
   type: (typeof AppTypeValues)[keyof typeof AppTypeValues];
+
+  @ApiPropertyOptional({
+    description:
+      'What the credential may do, keyed by bare feature code — e.g. {"people":{"app":["view","add"]}}. Omitted means the credential starts able to do nothing.',
+  })
+  @IsObject()
+  @IsOptional()
+  permissions?: FeatureUnlocks;
 }

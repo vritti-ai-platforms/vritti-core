@@ -1,6 +1,6 @@
+import { createSignedClient } from './apollo/client';
+import { type CoreSdkOptions, resolveConfig } from './config';
 import { createPeopleOperations } from './people/operations';
-import { createTransport } from './transport';
-import type { CoreSdkConfig } from './types';
 import type { RequestContext } from './workspaces';
 import { createWorkspacesOperations } from './workspaces/operations';
 
@@ -15,27 +15,35 @@ import { createWorkspacesOperations } from './workspaces/operations';
  * Distinct from `@vritti/api-sdk`, which is the *server* SDK for building Vritti
  * services. This one is what calls them, and carries no server dependencies.
  *
+ * Configuration comes from `CORE_GRAPHQL_URL`, `APP_CLIENT_ID` and `APP_PRIVATE_KEY` unless it is
+ * passed in, so the usual call takes no arguments at all.
+ *
  * ```ts
- * const sdk = createCoreSdk({ endpoint, clientId, privateKey });
+ * const sdk = createCoreSdk();
  * const { partyId } = await sdk.people.register(input, hooks);
  *
  * // Everything a signed-in shopper does, scoped to their store:
  * const scoped = sdk.forContext({ partyId, workspace: { kind: 'site', id: siteId } });
  * ```
  */
-export function createCoreSdk(config: CoreSdkConfig) {
-  const build = (context: RequestContext = {}) => {
-    const request = createTransport(config, context);
-    return {
-      people: createPeopleOperations(request),
-      workspaces: createWorkspacesOperations(request),
-      /** The raw signed transport, for an operation no domain covers yet. */
-      request,
-    };
-  };
+export function createCoreSdk(options: CoreSdkOptions = {}) {
+  const config = resolveConfig(options);
+
+  // One client for the life of the SDK. It caches nothing in memory — see `createSignedClient` — so
+  // sharing it across requests and organizations is safe, and per-request identity travels as Apollo
+  // context instead.
+  const client = createSignedClient(config);
+
+  const build = (context: RequestContext = {}) => ({
+    people: createPeopleOperations(client, context),
+    workspaces: createWorkspacesOperations(client, context),
+  });
 
   return {
     ...build(),
+
+    /** The Apollo client itself, for an operation no domain covers yet. */
+    client,
 
     /**
      * The same operations, bound to a party and a workspace.

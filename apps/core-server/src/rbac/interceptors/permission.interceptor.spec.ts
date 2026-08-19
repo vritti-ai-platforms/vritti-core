@@ -21,7 +21,12 @@ type Any = any;
 describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement', () => {
   const NEXT = of('handler-result');
   let reflectorReturns: Record<string, unknown>;
-  let userPermissions: { resolveEnabledPermissions: jest.Mock; resolveAvailableFeatures: jest.Mock };
+  let userPermissions: {
+    resolveEnabledPermissions: jest.Mock;
+    resolveAvailableFeatures: jest.Mock;
+    resolveAppEnabledPermissions: jest.Mock;
+    resolveAppAvailableFeatures: jest.Mock;
+  };
   let interceptor: PermissionInterceptor;
   let next: { handle: jest.Mock };
 
@@ -33,6 +38,8 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     userPermissions = {
       resolveEnabledPermissions: jest.fn().mockResolvedValue(new Set<string>()),
       resolveAvailableFeatures: jest.fn().mockResolvedValue(new Set<string>()),
+      resolveAppEnabledPermissions: jest.fn().mockResolvedValue(new Set<string>()),
+      resolveAppAvailableFeatures: jest.fn().mockResolvedValue(new Set<string>()),
     };
     const primaryDb = { runWithRlsContext: jest.fn((_ctx: unknown, fn: () => unknown) => fn()) } as Any;
     interceptor = new PermissionInterceptor(reflector, userPermissions as Any, primaryDb);
@@ -184,5 +191,104 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['dashboard.view']));
     await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
     expect(next.handle).not.toHaveBeenCalled();
+  });
+
+  describe('app credentials', () => {
+    // What AppRequestResolver puts on the session after a signature verifies
+    const appRequest = (permissions: unknown, scope: Record<string, string> = {}) => ({
+      method: 'POST',
+      url: '/graphql',
+      sessionInfo: {
+        // The app id stands in as the acting principal — there is no user behind the call
+        userId: 'app-1',
+        organizationId: 'o1',
+        sessionType: 'APP',
+        appPermissions: permissions,
+        ...scope,
+      },
+    });
+
+    it('resolves from the credential rather than from role assignments', async () => {
+      reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.add';
+      mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view', 'add'] } }));
+      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.add']));
+
+      const res = await interceptor.intercept(context(), next as Any);
+
+      expect(res).toBe(NEXT);
+      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
+        { people: { web: ['view', 'add'] } },
+        { scope: 'ORG', id: 'o1' },
+        'app',
+      );
+      // The user path must not be consulted — there are no role assignments behind an app id
+      expect(userPermissions.resolveEnabledPermissions).not.toHaveBeenCalled();
+    });
+
+    it('denies (403) a permission the credential was not granted', async () => {
+      reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.delete';
+      mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view'] } }));
+      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
+
+      await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
+      expect(next.handle).not.toHaveBeenCalled();
+    });
+
+    it('denies (403) an ungranted credential outright', async () => {
+      reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.add';
+      mockGetRequest.mockReturnValue(appRequest({}));
+
+      await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
+      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith({}, { scope: 'ORG', id: 'o1' }, 'app');
+    });
+
+    it('treats a missing grant as an empty one rather than reaching the user path', async () => {
+      reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.add';
+      mockGetRequest.mockReturnValue(appRequest(undefined));
+
+      await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
+      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith({}, { scope: 'ORG', id: 'o1' }, 'app');
+      expect(userPermissions.resolveEnabledPermissions).not.toHaveBeenCalled();
+    });
+
+    it('gates on the feature switch when no specific permission is required', async () => {
+      reflectorReturns[REQUIRE_FEATURE_KEY] = 'people';
+      mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view'] } }));
+      userPermissions.resolveAppAvailableFeatures.mockResolvedValue(new Set(['people']));
+
+      const res = await interceptor.intercept(context(), next as Any);
+
+      expect(res).toBe(NEXT);
+      expect(userPermissions.resolveAppAvailableFeatures).toHaveBeenCalled();
+      expect(userPermissions.resolveAvailableFeatures).not.toHaveBeenCalled();
+    });
+
+    it('honours the workspace scope the signed request named', async () => {
+      reflectorReturns[REQUIRE_PERMISSION_KEY] = 'site.people.view';
+      mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view'] } }, { siteId: 's1' }));
+      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['site.people.view']));
+
+      await interceptor.intercept(context(), next as Any);
+
+      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
+        { people: { web: ['view'] } },
+        { scope: 'SITE', id: 's1' },
+        'app',
+      );
+    });
+
+    it('resolves an app against its own feature set, never web or mobile', async () => {
+      reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.view';
+      mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view'] } }));
+      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
+
+      await interceptor.intercept(context(), next as Any);
+
+      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'app',
+      );
+    });
   });
 });

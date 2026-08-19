@@ -1,5 +1,8 @@
-import type { Transport } from '../transport';
+import type { ApolloClient } from '@apollo/client';
+import { requireData, run } from '../apollo/errors';
+import { ADD_PERSON_COMMUNICATION, CREATE_PERSON, PEOPLE_BY_COMMUNICATION_QUERY } from '../graphql/people';
 import { CoreError, PartyRollbackError } from '../types';
+import type { RequestContext } from '../workspaces/types';
 import {
   CHANNELS,
   type Channel,
@@ -12,20 +15,6 @@ import {
   type RegisterPersonResult,
 } from './types';
 
-const PERSON_FIELDS = 'id displayName firstName lastName email phone isActive';
-
-const FIND_BY_COMMUNICATION = `query PeopleByCommunication($input: FindPeopleByCommunicationInput!) {
-  peopleByCommunication(input: $input)
-}`;
-
-const CREATE_PERSON = `mutation CreatePerson($input: CreatePersonInput!) {
-  createPerson(input: $input) { ${PERSON_FIELDS} }
-}`;
-
-const ADD_COMMUNICATION = `mutation AddPersonCommunication($input: AddPersonCommunicationInput!) {
-  addPersonCommunication(input: $input) { id channel value isPrimary isActive }
-}`;
-
 /**
  * People in the organization, and the registration flow built on top of them.
  *
@@ -34,14 +23,39 @@ const ADD_COMMUNICATION = `mutation AddPersonCommunication($input: AddPersonComm
  * a second storefront or an appointment site gets the same matching rules rather
  * than its own approximation of them.
  */
-export function createPeopleOperations(request: Transport) {
-  const findByCommunication = (channel: Channel, value: string) =>
-    request<string[]>(FIND_BY_COMMUNICATION, { input: { channel, value } });
+export function createPeopleOperations(client: ApolloClient, context: RequestContext = {}) {
+  // The party and workspace ride as Apollo context, so one long-lived client serves every scope and
+  // the signature is built per request from the headers that request carries.
+  const requestContext = { requestContext: context };
 
-  const create = (input: CreatePersonInput) => request<Person>(CREATE_PERSON, { input });
+  const findByCommunication = (channel: Channel, value: string) =>
+    run(() =>
+      client
+        .query({
+          query: PEOPLE_BY_COMMUNICATION_QUERY,
+          variables: { input: { channel, value } },
+          context: requestContext,
+        })
+        .then((r) => requireData(r.data).peopleByCommunication),
+    );
+
+  const create = (input: CreatePersonInput) =>
+    run(() =>
+      client
+        .mutate({ mutation: CREATE_PERSON, variables: { input }, context: requestContext })
+        .then((r) => requireData(r.data).createPerson as Person),
+    );
 
   const addCommunication = (personId: string, channel: Channel, value: string) =>
-    request<PersonCommunication>(ADD_COMMUNICATION, { input: { personId, channel, value } });
+    run(() =>
+      client
+        .mutate({
+          mutation: ADD_PERSON_COMMUNICATION,
+          variables: { input: { personId, channel, value } },
+          context: requestContext,
+        })
+        .then((r) => requireData(r.data).addPersonCommunication as PersonCommunication),
+    );
 
   return {
     findByCommunication,

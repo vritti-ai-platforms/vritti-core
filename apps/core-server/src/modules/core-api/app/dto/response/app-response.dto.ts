@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
 import type { App } from '@/db/schema';
 
 /**
@@ -15,6 +16,8 @@ export class AppResponseDto {
   @ApiProperty() type: string;
   @ApiProperty() signingPublicKey: string;
   @ApiProperty() isActive: boolean;
+  /** Returned so the cloud editor opens on what is currently granted. */
+  @ApiProperty() permissions: FeatureUnlocks;
   @ApiPropertyOptional({ nullable: true }) lastUsedAt: string | null;
   @ApiPropertyOptional({ nullable: true }) revokedAt: string | null;
   @ApiProperty() createdAt: string;
@@ -26,6 +29,7 @@ export class AppResponseDto {
     this.type = app.type;
     this.signingPublicKey = app.signingPublicKey;
     this.isActive = app.isActive;
+    this.permissions = app.permissions;
     this.lastUsedAt = app.lastUsedAt?.toISOString() ?? null;
     this.revokedAt = app.revokedAt?.toISOString() ?? null;
     this.createdAt = app.createdAt.toISOString();

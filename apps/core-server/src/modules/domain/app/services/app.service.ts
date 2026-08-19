@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
+import type { FeatureUnlocks, PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
+import { PLATFORMS } from '@vritti/api-sdk/catalog-resolver';
 import { generateSigningKeyPair } from '@vritti/api-sdk/signing';
 import type { App, AppType } from '@/db/schema';
 import { AppDomainRepository } from '../repositories/app.repository';
@@ -28,7 +30,12 @@ export class AppDomainService {
    * lives in the client's environment, not just in whoever was watching the
    * screen the day it was created.
    */
-  async create(input: { organizationId: string; name: string; type: AppType }): Promise<App> {
+  async create(input: {
+    organizationId: string;
+    name: string;
+    type: AppType;
+    permissions?: FeatureUnlocks;
+  }): Promise<App> {
     const { privateKey, publicKey } = generateSigningKeyPair();
 
     const app = await this.repository.create({
@@ -38,6 +45,9 @@ export class AppDomainService {
       type: input.type,
       signingKey: privateKey,
       signingPublicKey: publicKey,
+      // Omitted means an empty grant, which authenticates but can do nothing — a new
+      // credential is inert until someone says what it is for.
+      permissions: sanitizeGrants(input.permissions ?? {}),
     });
 
     this.logger.log(`Created ${input.type} app ${app.clientId} for org ${input.organizationId}`);
@@ -68,6 +78,23 @@ export class AppDomainService {
     return this.repository.update(id, { name: name.trim() });
   }
 
+  /**
+   * Replaces what the credential may do.
+   *
+   * A whole-set replace rather than a merge: the editor sends the complete selection,
+   * so a permission absent from it has been taken away. Merging would make revoking
+   * impossible.
+   *
+   * The grant is sanitized first. It arrives as free-form JSON over the cloud webhook,
+   * and a malformed shape would not fail validation — it would simply resolve to nothing
+   * later, at the point where the reason is hardest to see.
+   */
+  async setPermissions(id: string, permissions: FeatureUnlocks): Promise<App> {
+    const app = await this.repository.update(id, { permissions: sanitizeGrants(permissions) });
+    this.logger.log(`Set permissions on app ${app.clientId}: ${Object.keys(app.permissions).join(', ') || 'none'}`);
+    return app;
+  }
+
   async revoke(id: string): Promise<App> {
     const app = await this.repository.revoke(id);
     this.logger.log(`Revoked app ${app.clientId}`);
@@ -94,4 +121,27 @@ export class AppDomainService {
   touchLastUsed(appId: string): void {
     void this.repository.touchLastUsed(appId).catch(() => undefined);
   }
+}
+
+/**
+ * Keeps only what `FeatureUnlocks` allows: feature codes mapping to per-platform arrays
+ * of action codes.
+ *
+ * An empty array is meaningful and preserved — it means "a member of this feature with
+ * no actions", which the resolver reads as view-only membership. `undefined` is the
+ * absence of membership, so a platform key is dropped rather than defaulted.
+ */
+function sanitizeGrants(grants: FeatureUnlocks): FeatureUnlocks {
+  const clean: FeatureUnlocks = {};
+  for (const [featureCode, platforms] of Object.entries(grants ?? {})) {
+    if (!platforms || typeof platforms !== 'object') continue;
+    const entry: Partial<Record<PlatformBucket, string[]>> = {};
+    for (const platform of PLATFORMS) {
+      const codes = platforms[platform];
+      if (!Array.isArray(codes)) continue;
+      entry[platform] = [...new Set(codes.filter((code): code is string => typeof code === 'string'))];
+    }
+    if (entry.web !== undefined || entry.mobile !== undefined) clean[featureCode] = entry;
+  }
+  return clean;
 }

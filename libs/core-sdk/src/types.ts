@@ -1,3 +1,5 @@
+import type { ResponseCacheStore } from './apollo/response-cache';
+
 /**
  * A failure the caller should surface.
  *
@@ -62,4 +64,15 @@ export type CoreSdkConfig = {
 
   /** Overridable for tests. Defaults to the global `fetch`. */
   fetch?: typeof fetch;
+
+  /**
+   * Where to cache operation results, when you want them cached.
+   *
+   * Supplied by the caller so this package owns no database driver, no connection pool and no
+   * migration — a Postgres-backed implementation lives in the app that already has a pool. Omit it and
+   * nothing is cached, which is what a browser-side caller would do.
+   *
+   * Caching is still opt-in per operation on top of this; providing a store only makes it possible.
+   */
+  responseCache?: ResponseCacheStore;
 };

@@ -87,6 +87,15 @@ export interface PermissionContext {
   id: string;
 }
 
+/**
+ * Turns grants into an enforceable permission set.
+ *
+ * Named for users because that is all it resolved at first; it now also resolves app
+ * credentials, whose grants live on the app row rather than coming from roles. Both
+ * paths converge on the same catalog intersection, so the plan and the node's feature
+ * locks bind an app exactly as they bind a person. Renaming the class would touch every
+ * injection site for no behavioural gain.
+ */
 @Injectable()
 export class UserPermissionsDomainService {
   private readonly logger = new Logger(UserPermissionsDomainService.name);
@@ -111,10 +120,132 @@ export class UserPermissionsDomainService {
 
     // getPermissionsForContext collapses ClientPlatform → bucket internally; 'android' stands in for the mobile bucket
     const { features } = await this.getPermissionsForContext(userId, ctx, bucket === 'web' ? 'web' : 'android');
+    const enabled = this.flattenEnabled(features, ctx.scope);
 
-    // Permission identity is scope.feature.permission — the enabled set carries the context's scope
-    // prefix so it matches the frontend/@RequirePermission codes (e.g. `org.uom.view`).
-    const scopePrefix = SCOPE_CODE_PREFIX[ctx.scope];
+    await this.permissionSetCache.set(userId, ctx, bucket, enabled);
+    return enabled;
+  }
+
+  /**
+   * Resolves the enabled-permission set for an app credential.
+   *
+   * Deliberately uncached, unlike the user path. Grants arrive with the request that
+   * authenticated it, so caching by app id would serve a set built from a grant the
+   * caller no longer holds — a revoked permission would keep working until the entry
+   * expired. It is also far cheaper to recompute: no role assignments, no nearest-wins
+   * chain walk, no template composition — one org read against an already-cached
+   * catalog snapshot.
+   */
+  async resolveAppEnabledPermissions(
+    grants: FeatureUnlocks,
+    ctx: PermissionContext,
+    bucket: PlatformBucket = 'web',
+  ): Promise<Set<string>> {
+    const features = await this.resolveGrantedFeatures(grants, ctx, bucket);
+    return this.flattenEnabled(features, ctx.scope);
+  }
+
+  // Resolves the feature codes an app credential may reach — the feature-switch gate, no specific permission
+  async resolveAppAvailableFeatures(
+    grants: FeatureUnlocks,
+    ctx: PermissionContext,
+    bucket: PlatformBucket = 'web',
+  ): Promise<Set<string>> {
+    const features = await this.resolveGrantedFeatures(grants, ctx, bucket);
+    return new Set(features.filter((feature) => !feature.locked).map((feature) => feature.code));
+  }
+
+  /**
+   * Resolves a grant set against the catalog at a workspace context.
+   *
+   * The app-side counterpart of `resolveScopedFeatures`, minus the role machinery: an app
+   * holds one grant set outright, so there is no nearest-wins target selection, no
+   * template composition and nothing to merge. What it keeps is everything that
+   * constrains the grant — the plan entitlement, the node's feature locks, the site type,
+   * and the provisioned services.
+   */
+  private async resolveGrantedFeatures(
+    grants: FeatureUnlocks,
+    ctx: PermissionContext,
+    bucket: PlatformBucket,
+  ): Promise<PermissionFeature[]> {
+    const snapshot = await this.catalogService.getActiveSnapshot();
+    const node = await this.resolveNodeContext(ctx);
+
+    if (!snapshot || !node.org?.businessCode) {
+      this.logger.warn(`No active catalog/entitlement — returning zero features for ${ctx.scope} ${ctx.id}`);
+      return [];
+    }
+
+    return resolveUserFeatures({
+      snapshot,
+      businessCode: node.org.businessCode,
+      planCode: node.org.planCode ?? undefined,
+      siteLocks: node.locks,
+      roleFeatures: grants,
+      // ClientPlatform, not PlatformBucket: 'android' is how the resolver is told to read the mobile
+      // bucket (ios/android share one), while 'app' maps one-to-one since an API client has no variants
+      platform: bucket === 'web' ? 'web' : bucket === 'app' ? 'app' : 'android',
+      siteType: node.siteType,
+      scope: ctx.scope,
+      availableServices: await this.getAvailableServices(node.org.id),
+    });
+  }
+
+  /**
+   * The organization and feature locks that apply at a workspace context.
+   *
+   * Locks live on the node itself — a site, group or legal entity can have a feature
+   * switched off independently of any plan — so which row to read depends entirely on the
+   * scope being resolved.
+   */
+  private async resolveNodeContext(
+    ctx: PermissionContext,
+  ): Promise<{ org: Organization | undefined; locks: SiteFeatureLocks | undefined; siteType?: SiteType }> {
+    switch (ctx.scope) {
+      case 'SITE': {
+        const site = await this.siteRepository.findById(ctx.id);
+        if (!site) throw new NotFoundException('Site not found.');
+        return {
+          org: await this.organizationRepository.findById(site.organizationId),
+          locks: site.featureLocks ?? undefined,
+          siteType: site.type,
+        };
+      }
+      case 'SITE_GROUP': {
+        const group = await this.siteRepository.findSiteGroupById(ctx.id);
+        if (!group) throw new ForbiddenException('Site group not found in this organization.');
+        return {
+          org: await this.organizationRepository.findById(group.organizationId),
+          locks: group.featureLocks ?? undefined,
+        };
+      }
+      case 'LE': {
+        const legalEntity = await this.siteRepository.findLegalEntityById(ctx.id);
+        if (!legalEntity) throw new ForbiddenException('Legal entity not found in this organization.');
+        return {
+          org: await this.organizationRepository.findById(legalEntity.organizationId),
+          locks: legalEntity.featureLocks ?? undefined,
+        };
+      }
+      case 'ORG': {
+        const org = await this.organizationRepository.findById(ctx.id);
+        if (!org) throw new ForbiddenException('Organization not found.');
+        return { org, locks: org.featureLocks ?? undefined };
+      }
+    }
+  }
+
+  /**
+   * Flattens resolved features into the dotted codes `@RequirePermission` is written in.
+   *
+   * Permission identity is scope.feature.permission, so the set carries the requesting
+   * context's scope prefix — the same string the frontend gates on (e.g. `org.uom.view`).
+   * A locked feature contributes nothing, and a locked permission is dropped from an
+   * otherwise unlocked one.
+   */
+  private flattenEnabled(features: PermissionFeature[], scope: ScopeType): Set<string> {
+    const scopePrefix = SCOPE_CODE_PREFIX[scope];
     const enabled = new Set<string>();
     for (const feature of features) {
       if (feature.locked) continue;
@@ -123,8 +254,6 @@ export class UserPermissionsDomainService {
         if (!locked.has(perm)) enabled.add(`${scopePrefix}.${feature.code}.${perm}`);
       }
     }
-
-    await this.permissionSetCache.set(userId, ctx, bucket, enabled);
     return enabled;
   }
 

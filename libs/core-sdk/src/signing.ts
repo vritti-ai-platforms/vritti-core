@@ -24,7 +24,7 @@ import { createHash, createPrivateKey, sign } from 'node:crypto';
  * the uniform 401 will not say why: the pinned canonical in `signing.test.ts` is what
  * catches it instead.
  */
-const WORKSPACE_HEADER_ORDER = ['x-site-id', 'x-sg-id', 'x-le-id', 'x-org-id'] as const;
+export const WORKSPACE_HEADER_ORDER = ['x-site-id', 'x-sg-id', 'x-le-id', 'x-org-id'] as const;
 
 type SignInput = {
   method: string;

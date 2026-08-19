@@ -103,6 +103,11 @@ export class AppRequestResolver {
     sessionInfo.organizationId = app.organizationId;
     sessionInfo.appType = app.type;
 
+    // Carried on the session rather than re-read downstream: the row is already in hand,
+    // so `PermissionInterceptor` gates the request without a second query, and a grant
+    // edited in cloud takes effect on the next request rather than when a cache expires.
+    sessionInfo.appPermissions = app.permissions;
+
     // The shopper the app is acting for, when it named one. Signed, so it cannot be
     // swapped in transit. The workspace headers are left to `applyContextHeaders`,
     // which both callers share.
