@@ -1,11 +1,11 @@
 {
   "name": "@vritti/core-sdk",
-  "description": "Client for the Vritti core API \u2014 signed requests, identity today, orders and appointments as they land",
+  "description": "Client for the Vritti core API — signed requests, identity today, orders and appointments as they land",
   "private": false,
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.0.3",
+  "version": "0.0.4",
   "sideEffects": false,
   "repository": {
     "type": "git",

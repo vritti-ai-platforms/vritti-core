@@ -57,6 +57,14 @@ export interface VrittiCloudAuthOptions extends CloudAuthCredentialOptions {
   allowPasswordLogin?: boolean;
 
   /**
+   * Whether the login screen shows the Payload × Vritti lockup instead of Payload's own logo.
+   *
+   * On by default, and never applied over a site that sets `admin.components.graphics.Logo` itself — an
+   * explicit one is a decision, and this is a default, not an override. Set false to keep Payload's.
+   */
+  brandLogo?: boolean;
+
+  /**
    * How stale a membership check may be before an authenticated request revalidates it, in minutes.
    *
    * Zero checks on every request, which is correct but chatty. The default trades a short window for one

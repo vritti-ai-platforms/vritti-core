@@ -3,13 +3,22 @@ import { applyCloudAuth } from './collection';
 import { buildEndpoints } from './endpoints';
 import type { VrittiCloudAuthOptions } from './types';
 
-// The component the admin login screen renders. A path rather than an import: Payload resolves it through
-// the app's generated import map, so the consumer runs `payload generate:importmap` after adding this.
+// The components the admin panel renders. Paths rather than imports: Payload resolves them through the
+// app's generated import map, so the consumer runs `payload generate:importmap` after adding this.
 const LOGIN_BUTTON = '@vritti/core-sdk/payload/client#VrittiCloudLoginButton';
+const BRAND_LOGO = '@vritti/core-sdk/payload/client#VrittiAdminLogo';
 
 /** The config this plugin reads and writes — `vrittiCore`'s ConfigLike plus the parts login needs. */
 interface AuthConfigLike extends ConfigLike {
-  admin?: { user?: string; components?: { beforeLogin?: unknown[]; [key: string]: unknown }; [key: string]: unknown };
+  admin?: {
+    user?: string;
+    components?: {
+      beforeLogin?: unknown[];
+      graphics?: { Logo?: unknown; Icon?: unknown; [key: string]: unknown };
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
   endpoints?: unknown[];
 }
 
@@ -52,6 +61,12 @@ export function vrittiCloudAuth(options: VrittiCloudAuthOptions = {}): PayloadPl
       );
     }
 
+    // The login-screen graphic: Payload's mark × Vritti's. Only when the site has not set one of its own —
+    // an explicit `graphics.Logo` in a consumer's config is a decision, and a plugin that silently replaced
+    // it would be rebranding somebody else's admin panel behind their back.
+    const graphics = typed.admin?.components?.graphics;
+    const brandLogo = options.brandLogo !== false && !graphics?.Logo;
+
     // Cast because spreading a generic and adding known keys cannot be proven to still be `T`. It is:
     // every key written here is declared on the config shapes above.
     return {
@@ -64,6 +79,7 @@ export function vrittiCloudAuth(options: VrittiCloudAuthOptions = {}): PayloadPl
         components: {
           ...typed.admin?.components,
           beforeLogin: [...(typed.admin?.components?.beforeLogin ?? []), LOGIN_BUTTON],
+          ...(brandLogo ? { graphics: { ...graphics, Logo: BRAND_LOGO } } : {}),
         },
       },
       endpoints: [...(typed.endpoints ?? []), ...buildEndpoints({ ...options, collection: slug })],
