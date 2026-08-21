@@ -1,16 +1,10 @@
-// Payload is ESM-only while this package emits CommonJS, so a type-only import needs to be told which
-// resolution mode to read its `exports` map under. Safe precisely because it is type-only.
+// Reads payload types under ESM resolution, since this package emits CommonJS.
 import type { Field } from 'payload' with { 'resolution-mode': 'import' };
 import type { CollectionLike } from '../runtime';
 import { buildAuthStrategy } from './strategy';
 import type { VrittiCloudAuthOptions } from './types';
 
-/**
- * The columns that make the admin collection a mirror of cloud's membership.
- *
- * All three are read-only in the panel: they are cloud's answers, and an administrator editing them by
- * hand would either lock somebody out or, worse, point an account at a different cloud identity.
- */
+// The columns that make the admin collection a mirror of cloud's membership.
 export function cloudAuthFields(): Field[] {
   return [
     {
@@ -40,16 +34,7 @@ export function cloudAuthFields(): Field[] {
   ];
 }
 
-/**
- * Rewrites the admin collection: adds the mirror columns, registers the strategy, and — by default —
- * closes the password door.
- *
- * `disableLocalStrategy` is set as an OBJECT rather than `true`, which matters three times over:
- * `enableFields` keeps the `email` and `password` columns so `useAsTitle`, email matching and the existing
- * database shape are untouched; `optionalPassword` lets an SSO-created account exist without one; and
- * Payload's own logout and refresh prune session rows only when the value is not literally `true`
- * (`payload/dist/auth/operations/logout.js`).
- */
+// Rewrites the admin collection: mirror columns, auth strategy, and the password door.
 export function applyCloudAuth(collection: CollectionLike, options: VrittiCloudAuthOptions): CollectionLike {
   const slug = String(collection.slug ?? 'users');
   const auth = typeof collection.auth === 'object' && collection.auth !== null ? collection.auth : {};

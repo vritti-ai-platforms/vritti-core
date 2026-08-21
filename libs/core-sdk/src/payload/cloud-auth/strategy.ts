@@ -2,22 +2,7 @@ import { fetchMemberStatus } from './client';
 import { resolveCloudAuthCredentials } from './config';
 import type { MirroredUser, PayloadInstance, VrittiCloudAuthOptions } from './types';
 
-/**
- * The strategy that authenticates every admin request — and the point where a revoked membership takes effect.
- *
- * It delegates the cookie work to Payload's own `JWTAuthentication`, then, if this account's last
- * membership check has gone stale, asks cloud whether they are still a member. That placement is
- * deliberate: it is the one code path every authenticated request goes through, so revocation does not
- * have to wait for the person to sign in again.
- *
- * Registering it at all is not optional. Payload enables its built-in `local-jwt` strategy only when some
- * collection still has the local strategy on (`payload/dist/index.js`), so on a site where the admin
- * collection is the only auth collection — and this plugin has just turned its password login off — the
- * cookie we mint would authenticate nobody.
- *
- * **Fails open on a network error, closed on an explicit answer.** Cloud being unreachable must not lock
- * every administrator out of a running site; cloud saying "not a member" must lock exactly one out.
- */
+// The strategy that authenticates every admin request — and the point where a revoked membership takes effect.
 export function buildAuthStrategy(options: VrittiCloudAuthOptions, collection: string) {
   const staleAfterMs = (options.revalidateAfterMinutes ?? 15) * 60 * 1000;
 

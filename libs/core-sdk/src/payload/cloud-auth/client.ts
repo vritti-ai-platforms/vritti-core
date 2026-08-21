@@ -24,7 +24,7 @@ export interface MemberStatus {
   active: boolean;
 }
 
-/** Builds the URL a member is sent to in order to approve this app. */
+// Builds the URL a member is sent to in order to approve this app.
 export function buildConsentUrl(args: {
   credentials: CloudAuthCredentials;
   redirectUri: string;
@@ -43,7 +43,7 @@ export function buildConsentUrl(args: {
   return url.toString();
 }
 
-/** Exchanges the authorization code. Runs server to server, so the client secret never reaches a browser. */
+// Exchanges the authorization code.
 export async function exchangeCode(args: {
   credentials: CloudAuthCredentials;
   code: string;
@@ -68,12 +68,7 @@ export async function fetchUserInfo(credentials: CloudAuthCredentials, accessTok
   return (await response.json()) as CloudUserInfo;
 }
 
-/**
- * Which of these people are still members of the app's organization.
- *
- * The reconcile channel: it is how an admin record for someone who was removed — and who therefore can
- * never complete a sign-in again — still gets deleted.
- */
+// Which of these people are still members of the app's organization.
 export async function fetchMemberStatus(credentials: CloudAuthCredentials, subs: string[]): Promise<MemberStatus[]> {
   if (subs.length === 0) return [];
   return post<MemberStatus[]>(credentials, '/auth/oauth2/members/status', {

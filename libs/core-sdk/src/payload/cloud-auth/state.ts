@@ -6,9 +6,7 @@ const STATE_TTL_MS = 10 * 60 * 1000;
 export interface LoginState {
   state: string;
   verifier: string;
-  /** The exact redirect_uri sent to authorize — the token exchange must present the identical string */
   redirectUri: string;
-  /** Where to land in the admin panel once the session exists */
   returnTo: string;
   expiresAt: number;
 }
@@ -22,13 +20,7 @@ export function randomState(): string {
   return randomBytes(16).toString('base64url');
 }
 
-/**
- * The login leg's state, parked in a cookie rather than a table.
- *
- * Signed with Payload's own secret and read back once: nothing here is secret to the user it belongs to
- * (it is their own PKCE verifier), but it must not be *forgeable*, or a crafted cookie could pair an
- * attacker's code with a victim's browser.
- */
+// The login leg's state, parked in a cookie rather than a table.
 export function sealState(state: LoginState, secret: string): string {
   const payload = Buffer.from(JSON.stringify(state), 'utf8').toString('base64url');
   return `${payload}.${sign(payload, secret)}`;
@@ -56,10 +48,7 @@ export function stateExpiry(): number {
   return Date.now() + STATE_TTL_MS;
 }
 
-/**
- * `SameSite=Lax` because the browser arrives back at the callback from cloud's own domain — `Strict`
- * would withhold the cookie on that navigation and every sign-in would fail state validation.
- */
+// Uses SameSite=Lax because the browser returns to the callback from cloud's domain; Strict withholds it.
 export function stateCookie(value: string, secure: boolean): string {
   const attributes = [
     `${STATE_COOKIE}=${value}`,

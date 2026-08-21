@@ -1,16 +1,3 @@
-/**
- * The Vritti Cloud lockup — the same artwork cloud-web's app bar renders.
- *
- * Inlined from `vritti_cloud_light.svg` rather than served: this renders inside a consumer's admin panel,
- * where there is no asset route of ours and a remote URL would put their login screen at the mercy of
- * another origin being up.
- *
- * cloud-web swaps whole files by theme (`useLogo`), which it can because it owns its bundler. Here the two
- * greys are CSS custom properties instead, flipped by Payload's own `data-theme` — one file, no asset
- * pipeline, same result. The dark values are lifted from `vritti_cloud_dark.svg`; brand blue is identical
- * in both files and is left exactly as supplied.
- */
-
 const css = `
   .vritti-cloud-logo {
     --vc-ink-a: #9E9E9E;
@@ -60,7 +47,14 @@ export function VrittiCloudLogo() {
           <stop stopColor="#0959B9" />
           <stop offset="1" stopColor="#1B74D1" />
         </linearGradient>
-        <linearGradient id="vrittiCloudInk" x1="30.5245" y1="14" x2="30.5245" y2="51.6836" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id="vrittiCloudInk"
+          x1="30.5245"
+          y1="14"
+          x2="30.5245"
+          y2="51.6836"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop className="vc-ink-a" />
           <stop offset="1" className="vc-ink-b" />
         </linearGradient>

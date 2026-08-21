@@ -17,10 +17,8 @@ import type { PayloadInstance, VrittiCloudAuthOptions } from './types';
 export const LOGIN_PATH = '/vritti-cloud/login';
 export const CALLBACK_PATH = '/vritti-cloud/callback';
 
-/** The callback cloud derives for a provisioned website — the two must stay identical. */
 export const CALLBACK_URL_PATH = `/api${CALLBACK_PATH}`;
 
-// The shape this plugin needs from Payload's request. Structural, like everything else here.
 interface EndpointRequest {
   payload: PayloadInstance;
   headers: Headers;
@@ -45,20 +43,11 @@ export function buildEndpoints(options: VrittiCloudAuthOptions) {
   ];
 }
 
-/**
- * Starts the flow: mint state + a PKCE verifier, park them in a signed cookie, send the browser to cloud.
- *
- * The redirect URI is derived from the request's own origin and then *stored*, so the token exchange
- * presents the identical string even if a later request arrives with different headers — cloud compares
- * them byte for byte.
- */
+// Starts the flow: mint state + a PKCE verifier, park them in a signed cookie, send the browser to cloud.
 async function handleLogin(req: EndpointRequest, options: VrittiCloudAuthOptions): Promise<Response> {
   const origin = resolveOrigin(req);
 
-  // A site with the plugin installed but no OAuth app selected for it has none of the VRITTI_OAUTH_* values,
-  // and resolving them throws. Answering with a 500 would be the wrong shape for what is a configuration
-  // gap, not a failure: the button is rendered whether or not the site is set up, so pressing it lands back
-  // on the login screen with something an administrator can act on.
+  // Answers a site with no OAuth app selected on the login screen, not with a 500.
   let credentials: ReturnType<typeof resolveCloudAuthCredentials>;
   try {
     credentials = resolveCloudAuthCredentials(options);
@@ -91,14 +80,7 @@ async function handleLogin(req: EndpointRequest, options: VrittiCloudAuthOptions
   });
 }
 
-/**
- * Finishes the flow.
- *
- * Cloud answers one of two ways and both are handled here: a code, or a standard `access_denied` for
- * someone who is not (or is no longer) a member of the organization. Either way the reconcile sweep runs,
- * which is what deletes the mirrored account of a person who was removed — the browser never carries a
- * subject, so the verdict comes from the client-authenticated back channel instead.
- */
+// Finishes the flow.
 async function handleCallback(
   req: EndpointRequest,
   options: VrittiCloudAuthOptions,
@@ -136,8 +118,7 @@ async function handleCallback(
     });
     const info = await fetchUserInfo(credentials, tokens.access_token);
 
-    // Sweep before minting: an admin removed while somebody else was signing in is gone by the time the
-    // panel loads, and the sweep can never delete the account being created here — cloud just vouched for it.
+    // Sweeps before minting, so a removed admin is gone by the time the panel loads.
     await reconcileMirroredUsers({ payload, collection, credentials });
 
     const user = await upsertMirroredUser({ payload, collection, info });
@@ -156,13 +137,7 @@ function redirect(location: string, ...cookies: string[]): Response {
   return new Response(null, { status: 302, headers });
 }
 
-/**
- * The site's own origin, from the request rather than from configuration.
- *
- * A provisioned website is reached on the host cloud gave it, and that is exactly the host cloud derives
- * its allowed callback from — so reading it back off the request keeps the two in step with nothing to
- * configure. Proxy headers come first because the container itself sees plain HTTP behind Caddy.
- */
+// The site's own origin, from the request rather than from configuration.
 function resolveOrigin(req: EndpointRequest): string {
   const forwardedHost = req.headers.get('x-forwarded-host');
   const host = forwardedHost ?? req.headers.get('host') ?? '';

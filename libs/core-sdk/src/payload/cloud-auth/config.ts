@@ -1,12 +1,5 @@
 import { CoreError } from '../../types';
 
-/**
- * The variables the platform seals into a website's container when an OAuth app is selected for it.
- *
- * Names are fixed on both sides — cloud's desired-state builder writes exactly these, so a provisioned site
- * is configured by choosing an app in the cloud UI and nothing else. Passing an option here wins, which is
- * what lets a local checkout point at a dev cloud without touching its environment.
- */
 export const CLOUD_AUTH_ENV = {
   consentUrl: 'VRITTI_OAUTH_CONSENT_URL',
   apiUrl: 'VRITTI_OAUTH_API_URL',
@@ -15,24 +8,15 @@ export const CLOUD_AUTH_ENV = {
 } as const;
 
 export interface CloudAuthCredentials {
-  /** cloud-web's origin — where a member is sent to approve this app */
   consentUrl: string;
-  /** cloud-server's origin — the token, userinfo and member-status back channel */
   apiUrl: string;
   clientId: string;
-  /** Absent for a public client, which authenticates with PKCE alone */
   clientSecret?: string;
 }
 
 export type CloudAuthCredentialOptions = Partial<CloudAuthCredentials>;
 
-/**
- * Fills in whatever the caller did not pass, from the environment.
- *
- * Resolved per request rather than at config time, deliberately: a missing variable then fails the sign-in
- * that needs it instead of the whole CMS at boot, so a site whose Vritti login is not configured still
- * serves its storefront and its admin panel.
- */
+// Fills in whatever the caller did not pass, from the environment.
 export function resolveCloudAuthCredentials(options: CloudAuthCredentialOptions = {}): CloudAuthCredentials {
   const missing: string[] = [];
   const required = (value: string | undefined, name: string): string => {
