@@ -1,0 +1,21 @@
+{
+  // The admin-panel component, built apart from the rest of the package.
+  //
+  // Everything else here emits CommonJS, which is what lets a plain Node consumer require it. Payload's
+  // admin panel is the opposite: React Server Components compiled by Next, resolved through the app's
+  // generated import map. So this one file is emitted as ESM with its JSX compiled, under its own
+  // `./payload/client` export, and never enters the CommonJS graph.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "declaration": true,
+    "outDir": "dist/payload/client",
+    "rootDir": "src/payload/cloud-auth/client",
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/payload/cloud-auth/client"]
+}

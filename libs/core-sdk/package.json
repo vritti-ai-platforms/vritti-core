@@ -45,13 +45,17 @@
     "./payload": {
       "types": "./dist/payload/index.d.ts",
       "default": "./dist/payload/index.js"
+    },
+    "./payload/client": {
+      "types": "./dist/payload/client/index.d.ts",
+      "default": "./dist/payload/client/index.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "pnpm codegen && tsc -p tsconfig.json",
+    "build": "pnpm codegen && tsc -p tsconfig.json && tsc -p tsconfig.client.json && node -e \"require('fs').writeFileSync('dist/payload/client/package.json', JSON.stringify({type:'module'}))\"",
     "codegen": "graphql-codegen --config codegen.ts",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch",
     "clean": "rm -rf dist src/gql"
@@ -61,7 +65,8 @@
     "@graphql-codegen/client-preset": "^6.0.1",
     "@types/node": "^22.20.1",
     "typescript": "^6.0.3",
-    "payload": "^3.86.0"
+    "payload": "^3.86.0",
+    "@types/react": "^19.2.0"
   },
   "dependencies": {
     "@apollo/client": "^4.2.3",
@@ -69,10 +74,14 @@
     "pg": "^8.13.1"
   },
   "peerDependencies": {
-    "payload": "^3"
+    "payload": "^3",
+    "react": "^19"
   },
   "peerDependenciesMeta": {
     "payload": {
+      "optional": true
+    },
+    "react": {
       "optional": true
     }
   }

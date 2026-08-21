@@ -9,7 +9,7 @@ export class CreateAppInternalDto {
   @IsNotEmpty()
   orgId: string;
 
-  @ApiProperty({ description: 'Human label for the credential', example: 'Desi Taakat storefront' })
+  @ApiProperty({ description: 'Human label for the credential', example: 'Acme storefront' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)

@@ -24159,7 +24159,7 @@
           "name": {
             "type": "string",
             "description": "Human label for the credential",
-            "example": "Desi Taakat storefront"
+            "example": "Acme storefront"
           },
           "type": {
             "type": "string",
