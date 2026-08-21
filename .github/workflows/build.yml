@@ -22,6 +22,10 @@ concurrency:
 permissions:
   contents: read
   packages: write
+  # nx-set-shas reads the last successful run on main to compute the affected base. Declaring a permissions
+  # block sets every unlisted scope to none, so without this the API call 403s with
+  # "Resource not accessible by integration".
+  actions: read
 
 jobs:
   affected:
