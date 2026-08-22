@@ -21,7 +21,7 @@ export class CreateAppInternalDto {
 
   @ApiPropertyOptional({
     description:
-      'What the credential may do, keyed by bare feature code — e.g. {"people":{"app":["view","add"]}}. Omitted means the credential starts able to do nothing.',
+      'What the credential may do, keyed by bare feature code — e.g. {"people":{"graphql":["view","add"]}}. Omitted means the credential starts able to do nothing.',
   })
   @IsObject()
   @IsOptional()

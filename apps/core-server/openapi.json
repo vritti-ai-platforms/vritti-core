@@ -543,9 +543,9 @@
         ]
       }
     },
-    "/apps/internal/{id}/revoke": {
+    "/apps/internal/{id}/delete": {
       "post": {
-        "operationId": "AppController_revokeFromCloud",
+        "operationId": "AppController_deleteFromCloud",
         "parameters": [
           {
             "name": "id",
@@ -567,7 +567,7 @@
           }
         },
         "responses": {
-          "200": {
+          "204": {
             "description": ""
           }
         },
@@ -24172,7 +24172,7 @@
           },
           "permissions": {
             "type": "object",
-            "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"app\":[\"view\",\"add\"]}}. Omitted means the credential starts able to do nothing."
+            "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"graphql\":[\"view\",\"add\"]}}. Omitted means the credential starts able to do nothing."
           }
         },
         "required": [
@@ -24198,7 +24198,7 @@
           },
           "permissions": {
             "type": "object",
-            "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"app\":[\"view\",\"add\"]}}. Replaces the whole set."
+            "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"graphql\":[\"view\",\"add\"]}}. Replaces the whole set."
           }
         }
       },

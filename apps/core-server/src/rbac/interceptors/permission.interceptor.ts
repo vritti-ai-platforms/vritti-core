@@ -1,7 +1,7 @@
 import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { APP_SESSION_TYPE } from '@vritti/api-sdk/auth';
-import type { PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
+import { API_SURFACES, BUCKET_BY_SURFACE, isApiBucket, type PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { ForbiddenException } from '@vritti/api-sdk/exceptions';
 import type { Observable } from 'rxjs';
@@ -62,16 +62,29 @@ export class PermissionInterceptor implements NestInterceptor {
           : { scope: 'ORG', id: orgId };
 
     // Platform bucket follows the session type: MOBILE enforces the mobile feature set, an app
-    // credential its own `app` set, everything else web. An app having its own bucket is what lets a
-    // plan entitle API access separately from the browser, and what frees a headless feature from
-    // needing a microfrontend to be reachable.
-    const bucket: PlatformBucket =
-      sessionType === SessionTypeValues.MOBILE ? 'mobile' : sessionType === APP_SESSION_TYPE ? 'app' : 'web';
+    // credential the bucket of its own surface (GRAPHQL → graphql, HTTP → http), everything else
+    // web. The credential type BEING the bucket is what lets a plan entitle each API surface
+    // independently, and what frees a headless feature from needing a microfrontend to be reachable.
+    //
+    // Fails closed: an app session whose type is missing or unrecognised resolves nothing rather
+    // than everything.
+    let bucket: PlatformBucket;
+    if (sessionType === APP_SESSION_TYPE) {
+      const appType = request.sessionInfo?.appType;
+      const surface = API_SURFACES.find((s) => s === appType);
+      if (!surface) {
+        this.logger.warn(`  DENY — app session with unrecognised type ${appType ?? '(none)'}`);
+        throw new ForbiddenException('You do not have permission to perform this action.');
+      }
+      bucket = BUCKET_BY_SURFACE[surface];
+    } else {
+      bucket = sessionType === SessionTypeValues.MOBILE ? 'mobile' : 'web';
+    }
 
     // An app's grants sit on its credential rather than coming from role assignments, so the
     // grant source differs — but the catalog it is intersected with does not. A plan lock or a
     // node's feature switch binds an app exactly as it binds a person.
-    const isApp = bucket === 'app';
+    const isApp = isApiBucket(bucket);
     const grants = request.sessionInfo?.appPermissions ?? {};
 
     // A specific permission subsumes the feature switch — an enabled permission implies its feature is unlocked

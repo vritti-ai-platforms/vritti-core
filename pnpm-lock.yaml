@@ -291,8 +291,8 @@ importers:
         specifier: ^11.2.5
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.3.13
-        version: 0.3.13(fc8654244b69098ed2a5feef7e900db1)
+        specifier: 0.3.14
+        version: 0.3.14(fc8654244b69098ed2a5feef7e900db1)
       '@vritti/commerce-permissions':
         specifier: workspace:*
         version: link:../../libs/commerce-permissions
@@ -427,8 +427,8 @@ importers:
         specifier: ^5.100.10
         version: 5.100.10(react@19.2.3)
       '@vritti/quantum-ui':
-        specifier: 0.3.23
-        version: 0.3.23(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.16)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.8.2))(yjs@13.6.32)
+        specifier: 0.3.24
+        version: 0.3.24(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.16)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.8.2))(yjs@13.6.32)
       axios:
         specifier: ^1.13.2
         version: 1.13.6
@@ -636,8 +636,8 @@ importers:
         specifier: ^11.2.6
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: ^0.3.12
-        version: 0.3.12(fc8654244b69098ed2a5feef7e900db1)
+        specifier: ^0.3.14
+        version: 0.3.14(fc8654244b69098ed2a5feef7e900db1)
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -727,8 +727,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/commerce-permissions
       '@vritti/quantum-ui':
-        specifier: 0.3.23
-        version: 0.3.23(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.16)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.8.2))(yjs@13.6.32)
+        specifier: 0.3.24
+        version: 0.3.24(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.16)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.8.2))(yjs@13.6.32)
       axios:
         specifier: ^1.13.2
         version: 1.13.6
@@ -803,8 +803,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/gitea-permissions
       '@vritti/quantum-ui':
-        specifier: 0.3.23
-        version: 0.3.23(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.16)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.8.2))(yjs@13.6.32)
+        specifier: 0.3.24
+        version: 0.3.24(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.16)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.8.2))(yjs@13.6.32)
       axios:
         specifier: ^1.13.2
         version: 1.15.0
@@ -7198,41 +7198,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vritti/api-sdk@0.3.12':
-    resolution: {integrity: sha512-meCyOGoDCu1jtx1j78LlB8RKFrKfgUqVNSSBHuCDz3lodUgfUEeRh83kLcWg9telSQjJEFZ9Kw+eZHt6IbQcVg==}
-    peerDependencies:
-      '@aws-sdk/client-s3': ^3.997.0
-      '@aws-sdk/s3-request-presigner': ^3.997.0
-      '@nestjs/common': ^11.0.0
-      '@nestjs/config': ^4.0.0
-      '@nestjs/core': ^11.0.0
-      '@nestjs/graphql': ^13.0.0
-      '@nestjs/jwt': ^11.0.0
-      '@nestjs/microservices': ^11.0.0
-      '@nestjs/swagger': ^11.0.0
-      class-transformer: ^0.5.0
-      class-validator: ^0.14.0
-      fastify: 5.7.4
-      reflect-metadata: ^0.2.0
-      rxjs: ^7.8.0
-    peerDependenciesMeta:
-      '@aws-sdk/client-s3':
-        optional: true
-      '@aws-sdk/s3-request-presigner':
-        optional: true
-      '@nestjs/graphql':
-        optional: true
-      '@nestjs/microservices':
-        optional: true
-      '@nestjs/swagger':
-        optional: true
-      class-transformer:
-        optional: true
-      class-validator:
-        optional: true
-
-  '@vritti/api-sdk@0.3.13':
-    resolution: {integrity: sha512-VhUhKvEU9O3q1AlQzM6WDomAvmWpAdgw6g+FBwlRnWPsoTOWhoifTfykLTrp5R2bhnHVYk/EW/hWZ7FL53jqBQ==}
+  '@vritti/api-sdk@0.3.14':
+    resolution: {integrity: sha512-n1JmbOEozk3q+yLqds25sleKEnA3t1j2BAzUhAt5Vy625sLnI6gZk2Np/xVuETF4JdYWsrxp2k35VRfs4oWCog==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.997.0
       '@aws-sdk/s3-request-presigner': ^3.997.0
@@ -7302,8 +7269,8 @@ packages:
       react-native-mmkv:
         optional: true
 
-  '@vritti/quantum-ui@0.3.23':
-    resolution: {integrity: sha512-fHBYyCTm1mhEKnkRdVebp0mg7ZK8x4o7jxNJADjjVVaerITz153LzqSp3ranIW8VXTysKZR5iJK2xNbkjtXmWw==}
+  '@vritti/quantum-ui@0.3.24':
+    resolution: {integrity: sha512-13/SvEaIELHASYuTfJZg0IPpVuIh15RQjj2xaUEikKPHPecmuVTUddqyKaIqZ/5TRLwq+M+xx9kGg6/vRExLoQ==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       react: ^18.0.0 || ^19.0.0
@@ -22346,77 +22313,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vritti/api-sdk@0.3.12(fc8654244b69098ed2a5feef7e900db1)':
-    dependencies:
-      '@getbrevo/brevo': 4.0.1
-      '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/config': 4.0.3(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
-      '@nestjs/core': 11.1.16(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.17)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/jwt': 11.0.2(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))
-      decimal.js: 10.6.0
-      dinero.js: 2.0.2
-      drizzle-orm: 1.0.0-rc.3(@sinclair/typebox@0.34.48)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.18.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)
-      fastify: 5.7.4
-      ioredis: 5.11.1
-      lodash: 4.18.1
-      lru-cache: 11.5.2
-      nats: 2.29.3
-      pg: 8.20.0
-      pluralize-esm: 9.0.5
-      reflect-metadata: 0.2.2
-      rxjs: 7.8.2
-      winston: 3.19.0
-      winston-daily-rotate-file: 5.0.0(winston@3.19.0)
-      xlsx: 0.18.5
-    optionalDependencies:
-      '@aws-sdk/client-s3': 3.1023.0
-      '@aws-sdk/s3-request-presigner': 3.1023.0
-      '@nestjs/graphql': 13.4.2(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@16.14.2)(reflect-metadata@0.2.2)(ts-morph@27.0.2)
-      '@nestjs/microservices': 11.1.17(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(ioredis@5.11.1)(nats@2.29.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/swagger': 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
-      class-transformer: 0.5.1
-      class-validator: 0.14.4
-    transitivePeerDependencies:
-      - '@aws-sdk/client-rds-data'
-      - '@cloudflare/workers-types'
-      - '@effect/sql-pg'
-      - '@electric-sql/pglite'
-      - '@libsql/client'
-      - '@libsql/client-wasm'
-      - '@neondatabase/serverless'
-      - '@op-engineering/op-sqlite'
-      - '@opentelemetry/api'
-      - '@planetscale/database'
-      - '@sinclair/typebox'
-      - '@sqlitecloud/drivers'
-      - '@tidbcloud/serverless'
-      - '@tursodatabase/database'
-      - '@tursodatabase/database-common'
-      - '@tursodatabase/database-wasm'
-      - '@types/better-sqlite3'
-      - '@types/mssql'
-      - '@types/pg'
-      - '@types/sql.js'
-      - '@upstash/redis'
-      - '@vercel/postgres'
-      - '@xata.io/client'
-      - arktype
-      - better-sqlite3
-      - bun-types
-      - effect
-      - expo-sqlite
-      - mssql
-      - mysql2
-      - pg-native
-      - postgres
-      - sql.js
-      - sqlite3
-      - supports-color
-      - typebox
-      - valibot
-      - zod
-
-  '@vritti/api-sdk@0.3.13(fc8654244b69098ed2a5feef7e900db1)':
+  '@vritti/api-sdk@0.3.14(fc8654244b69098ed2a5feef7e900db1)':
     dependencies:
       '@getbrevo/brevo': 4.0.1
       '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -22614,7 +22511,7 @@ snapshots:
       - react-native-web
       - use-sync-external-store
 
-  '@vritti/quantum-ui@0.3.23(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.16)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.8.2))(yjs@13.6.32)':
+  '@vritti/quantum-ui@0.3.24(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.16)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.8.2))(yjs@13.6.32)':
     dependencies:
       '@dagrejs/dagre': 3.1.1
       '@date-fns/tz': 1.5.0

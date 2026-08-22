@@ -12,6 +12,7 @@ import {
   composeRoleGrants,
   type FeatureUnlocks,
   type PermissionFeature,
+  PLATFORMS,
   type PlatformBucket,
   resolveUserFeatures,
   type ScopeType,
@@ -21,6 +22,16 @@ import {
   type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
+
+// Exhaustive by type, so a new bucket cannot silently fall through to a UI platform —
+// which is how an API caller would end up resolving mobile's feature set.
+const CLIENT_BY_BUCKET: Record<PlatformBucket, ClientPlatform> = {
+  web: 'web',
+  mobile: 'android',
+  graphql: 'graphql',
+  http: 'http',
+};
+
 import type { Organization, OrgService as OrgServiceEntity, Site, SiteType } from '@/db/schema';
 import { templateAppliesAtSite } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
@@ -139,7 +150,7 @@ export class UserPermissionsDomainService {
   async resolveAppEnabledPermissions(
     grants: FeatureUnlocks,
     ctx: PermissionContext,
-    bucket: PlatformBucket = 'web',
+    bucket: PlatformBucket,
   ): Promise<Set<string>> {
     const features = await this.resolveGrantedFeatures(grants, ctx, bucket);
     return this.flattenEnabled(features, ctx.scope);
@@ -149,7 +160,7 @@ export class UserPermissionsDomainService {
   async resolveAppAvailableFeatures(
     grants: FeatureUnlocks,
     ctx: PermissionContext,
-    bucket: PlatformBucket = 'web',
+    bucket: PlatformBucket,
   ): Promise<Set<string>> {
     const features = await this.resolveGrantedFeatures(grants, ctx, bucket);
     return new Set(features.filter((feature) => !feature.locked).map((feature) => feature.code));
@@ -184,8 +195,8 @@ export class UserPermissionsDomainService {
       siteLocks: node.locks,
       roleFeatures: grants,
       // ClientPlatform, not PlatformBucket: 'android' is how the resolver is told to read the mobile
-      // bucket (ios/android share one), while 'app' maps one-to-one since an API client has no variants
-      platform: bucket === 'web' ? 'web' : bucket === 'app' ? 'app' : 'android',
+      // bucket (ios/android share one); the API buckets map one-to-one since a credential has no variants
+      platform: CLIENT_BY_BUCKET[bucket],
       siteType: node.siteType,
       scope: ctx.scope,
       availableServices: await this.getAvailableServices(node.org.id),
@@ -634,15 +645,18 @@ export class UserPermissionsDomainService {
     });
   }
 
-  // Merges the effective grants of all assignments additively per feature, per platform bucket
+  // Merges the effective grants of all assignments additively per feature, per platform bucket.
+  // Iterates PLATFORMS rather than naming buckets — the web/mobile-only version dropped app grants.
   private mergeRoleGrants(grantSets: FeatureUnlocks[]): FeatureUnlocks {
     const merged: FeatureUnlocks = {};
     for (const features of grantSets) {
       for (const [code, grant] of Object.entries(features)) {
         merged[code] ??= {};
         const entry = merged[code];
-        if (grant.web !== undefined) entry.web = [...new Set([...(entry.web ?? []), ...grant.web])];
-        if (grant.mobile !== undefined) entry.mobile = [...new Set([...(entry.mobile ?? []), ...grant.mobile])];
+        for (const platform of PLATFORMS) {
+          const codes = grant[platform];
+          if (codes !== undefined) entry[platform] = [...new Set([...(entry[platform] ?? []), ...codes])];
+        }
       }
     }
     return merged;

@@ -95,10 +95,13 @@ export class AppDomainService {
     return app;
   }
 
-  async revoke(id: string): Promise<App> {
-    const app = await this.repository.revoke(id);
-    this.logger.log(`Revoked app ${app.clientId}`);
-    return app;
+  /**
+   * Removes the credential outright. The client id stops resolving on the next
+   * request — the same uniform 401 an unknown client gets.
+   */
+  async delete(app: App): Promise<void> {
+    await this.repository.deleteById(app.id);
+    this.logger.log(`Deleted app ${app.clientId}`);
   }
 
   /**
@@ -141,7 +144,9 @@ function sanitizeGrants(grants: FeatureUnlocks): FeatureUnlocks {
       if (!Array.isArray(codes)) continue;
       entry[platform] = [...new Set(codes.filter((code): code is string => typeof code === 'string'))];
     }
-    if (entry.web !== undefined || entry.mobile !== undefined) clean[featureCode] = entry;
+    // Checked across every bucket — naming web/mobile here silently discarded app-only grants,
+    // which is the only shape the credential permission editor actually sends
+    if (PLATFORMS.some((platform) => entry[platform] !== undefined)) clean[featureCode] = entry;
   }
   return clean;
 }

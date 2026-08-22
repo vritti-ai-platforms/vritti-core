@@ -112,19 +112,18 @@ export class AppController {
   }
 
   /**
-   * A POST rather than a DELETE, for two reasons: the row survives as a record
-   * that the credential existed and when it stopped working, so nothing is
-   * actually deleted — and `CoreHttpService.delete` sends no query string, so a
-   * DELETE could not carry the org scope every route here requires.
+   * A POST rather than a DELETE because `CoreHttpService.delete` carries no query
+   * string and no body, so a true DELETE could not name the org scope every route
+   * here requires.
    */
-  @Post('internal/:id/revoke')
+  @Post('internal/:id/delete')
   @Public()
   @UseGuards(CloudSignatureGuard)
-  @HttpCode(HttpStatus.OK)
-  async revokeFromCloud(@Param('id') id: string, @Body() dto: AppScopeInternalDto): Promise<AppResponseDto> {
-    this.logger.log(`POST /apps/internal/${id}/revoke`);
-    await this.requireApp(id, dto.orgId);
-    return new AppResponseDto(await this.appService.revoke(id));
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteFromCloud(@Param('id') id: string, @Body() dto: AppScopeInternalDto): Promise<void> {
+    this.logger.log(`POST /apps/internal/${id}/delete`);
+    const app = await this.requireApp(id, dto.orgId);
+    await this.appService.delete(app);
   }
 
   private async requireApp(id: string, orgId: string) {

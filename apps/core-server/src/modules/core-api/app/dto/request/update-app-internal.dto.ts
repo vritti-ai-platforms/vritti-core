@@ -23,7 +23,7 @@ export class UpdateAppInternalDto {
 
   @ApiPropertyOptional({
     description:
-      'What the credential may do, keyed by bare feature code — e.g. {"people":{"app":["view","add"]}}. Replaces the whole set.',
+      'What the credential may do, keyed by bare feature code — e.g. {"people":{"graphql":["view","add"]}}. Replaces the whole set.',
   })
   @IsObject()
   @IsOptional()

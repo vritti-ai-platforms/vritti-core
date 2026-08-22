@@ -203,6 +203,7 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
         userId: 'app-1',
         organizationId: 'o1',
         sessionType: 'APP',
+        appType: 'GRAPHQL',
         appPermissions: permissions,
         ...scope,
       },
@@ -210,16 +211,16 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
 
     it('resolves from the credential rather than from role assignments', async () => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.add';
-      mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view', 'add'] } }));
+      mockGetRequest.mockReturnValue(appRequest({ people: { graphql: ['view', 'add'] } }));
       userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.add']));
 
       const res = await interceptor.intercept(context(), next as Any);
 
       expect(res).toBe(NEXT);
       expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
-        { people: { web: ['view', 'add'] } },
+        { people: { graphql: ['view', 'add'] } },
         { scope: 'ORG', id: 'o1' },
-        'app',
+        'graphql',
       );
       // The user path must not be consulted — there are no role assignments behind an app id
       expect(userPermissions.resolveEnabledPermissions).not.toHaveBeenCalled();
@@ -239,7 +240,11 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
       mockGetRequest.mockReturnValue(appRequest({}));
 
       await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
-      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith({}, { scope: 'ORG', id: 'o1' }, 'app');
+      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
+        {},
+        { scope: 'ORG', id: 'o1' },
+        'graphql',
+      );
     });
 
     it('treats a missing grant as an empty one rather than reaching the user path', async () => {
@@ -247,7 +252,11 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
       mockGetRequest.mockReturnValue(appRequest(undefined));
 
       await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
-      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith({}, { scope: 'ORG', id: 'o1' }, 'app');
+      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
+        {},
+        { scope: 'ORG', id: 'o1' },
+        'graphql',
+      );
       expect(userPermissions.resolveEnabledPermissions).not.toHaveBeenCalled();
     });
 
@@ -265,21 +274,21 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
 
     it('honours the workspace scope the signed request named', async () => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'site.people.view';
-      mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view'] } }, { siteId: 's1' }));
+      mockGetRequest.mockReturnValue(appRequest({ people: { graphql: ['view'] } }, { siteId: 's1' }));
       userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['site.people.view']));
 
       await interceptor.intercept(context(), next as Any);
 
       expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
-        { people: { web: ['view'] } },
+        { people: { graphql: ['view'] } },
         { scope: 'SITE', id: 's1' },
-        'app',
+        'graphql',
       );
     });
 
-    it('resolves an app against its own feature set, never web or mobile', async () => {
+    it('resolves an app against its own surface bucket, never web or mobile', async () => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.view';
-      mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view'] } }));
+      mockGetRequest.mockReturnValue(appRequest({ people: { graphql: ['view'] } }));
       userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
 
       await interceptor.intercept(context(), next as Any);
@@ -287,7 +296,37 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
       expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
         expect.anything(),
         expect.anything(),
-        'app',
+        'graphql',
+      );
+    });
+
+    // The surface check fails closed: a session claiming APP without a recognised credential
+    // type must resolve nothing, not everything — resolution is never even attempted.
+    it.each([undefined, 'SOAP'])('denies (403) an app session whose type is %p', async (appType) => {
+      reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.view';
+      const request = appRequest({ people: { graphql: ['view'] } });
+      request.sessionInfo.appType = appType as never;
+      mockGetRequest.mockReturnValue(request);
+
+      await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
+      expect(userPermissions.resolveAppEnabledPermissions).not.toHaveBeenCalled();
+      expect(next.handle).not.toHaveBeenCalled();
+    });
+
+    it('an HTTP credential resolves the http bucket', async () => {
+      reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.view';
+      const request = appRequest({ people: { http: ['view'] } });
+      request.sessionInfo.appType = 'HTTP';
+      mockGetRequest.mockReturnValue(request);
+      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
+
+      const res = await interceptor.intercept(context(), next as Any);
+
+      expect(res).toBe(NEXT);
+      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'http',
       );
     });
   });

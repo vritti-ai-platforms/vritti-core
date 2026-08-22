@@ -39,12 +39,9 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     return this.update(id, { signingKey, signingPublicKey });
   }
 
-  /**
-   * Revokes without deleting — the row stays as a record that the credential
-   * existed and when it stopped working.
-   */
-  async revoke(id: string): Promise<App> {
-    return this.update(id, { isActive: false, revokedAt: new Date() });
+  /** Removes the credential outright — no row, no resolvable client id, nothing to restore. */
+  async deleteById(id: string): Promise<void> {
+    await this.db.delete(apps).where(eq(apps.id, id));
   }
 
   /**
