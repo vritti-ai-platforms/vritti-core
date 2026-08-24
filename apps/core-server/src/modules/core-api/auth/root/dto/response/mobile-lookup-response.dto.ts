@@ -10,8 +10,11 @@ export class MobileLookupOrganizationDto {
   @ApiProperty({ example: 'acme' })
   subdomain: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/logo.png' })
-  logoUrl: string | null;
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/logo-light.png' })
+  logoLightUrl: string | null;
+
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/logo-dark.png' })
+  logoDarkUrl: string | null;
 }
 
 export class MobileLookupResponseDto {

@@ -6,7 +6,8 @@ export const ORGANIZATIONS_BY_EMAIL = gql`
       id
       name
       subdomain
-      logoUrl
+      logoLightUrl
+      logoDarkUrl
     }
   }
 `;

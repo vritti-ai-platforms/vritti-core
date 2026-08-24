@@ -21,7 +21,8 @@ export interface AuthOrg {
   id: string;
   name: string;
   subdomain: string;
-  logoUrl: string | null;
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
   // Provisioned external services — gates service-dependent features without calling the provider
   services: OrgService[];
 }

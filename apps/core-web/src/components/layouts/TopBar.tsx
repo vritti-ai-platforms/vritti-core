@@ -17,6 +17,7 @@ import {
 import type { ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 import { useLogo } from '../../hooks/useLogo';
+import { useOrgLogo } from '../../hooks/useOrgLogo';
 import { useAuth } from '../../providers/AuthProvider';
 import { usePermissionContext } from '../../providers/PermissionProvider';
 import type { WorkspaceKind } from '../../utils/workspace';
@@ -54,6 +55,7 @@ const SITE_TYPE_ICONS: Record<string, LucideIcon> = {
 export const TopBar = () => {
   const logoImg = useLogo();
   const { org } = useAuth();
+  const orgLogo = useOrgLogo();
   const { workspace, sites, legalEntities, siteGroups } = usePermissionContext();
 
   // Resolves the active workspace's display name + icon from the assigned structure
@@ -105,12 +107,8 @@ export const TopBar = () => {
                   const Icon = identity.icon;
                   return (
                     <span className="flex items-center gap-2.5 min-w-0">
-                      {workspace.kind === 'org' && org?.logoUrl ? (
-                        <img
-                          src={org.logoUrl}
-                          alt={identity.name}
-                          className="size-8 rounded-lg object-contain shrink-0"
-                        />
+                      {workspace.kind === 'org' && orgLogo ? (
+                        <img src={orgLogo} alt={identity.name} className="size-8 rounded-lg object-contain shrink-0" />
                       ) : (
                         <span
                           className={cn(

@@ -126,7 +126,8 @@ export class OrganizationDomainService {
       subdomain: dto.subdomain,
       size: dto.size,
       plan: dto.plan,
-      logoUrl: dto.logoUrl,
+      logoLightUrl: dto.logoLightUrl,
+      logoDarkUrl: dto.logoDarkUrl,
       storage: dto.storage,
     });
 
@@ -143,7 +144,8 @@ export class OrganizationDomainService {
     await this.organizationRepository.update(id, {
       ...(dto.name && { name: dto.name }),
       ...(dto.size && { size: dto.size as OrgSize }),
-      ...(dto.logoUrl && { logoUrl: dto.logoUrl }),
+      ...(dto.logoLightUrl && { logoLightUrl: dto.logoLightUrl }),
+      ...(dto.logoDarkUrl && { logoDarkUrl: dto.logoDarkUrl }),
       // Checked against undefined, not truthiness: `false` is the whole point of this field
       ...(dto.storageEnabled !== undefined && { storageEnabled: dto.storageEnabled }),
       // Merged rather than replaced: buckets and publicUrl are unchanged by a rotation, and only this side holds them

@@ -22,8 +22,11 @@ export class OrganizationDto {
   })
   size: OrgSize;
 
-  @ApiPropertyOptional({ description: 'Public logo URL', nullable: true })
-  logoUrl: string | null;
+  @ApiPropertyOptional({ description: 'Public logo URL for light surfaces', nullable: true })
+  logoLightUrl: string | null;
+
+  @ApiPropertyOptional({ description: 'Public logo URL for dark surfaces', nullable: true })
+  logoDarkUrl: string | null;
 
   @ApiProperty({ description: 'Subscription plan', enum: ['free', 'pro', 'enterprise'], example: 'free' })
   plan: OrgPlan;
@@ -41,7 +44,8 @@ export class OrganizationDto {
     dto.name = org.name;
     dto.subdomain = org.subdomain;
     dto.size = org.size;
-    dto.logoUrl = org.logoUrl ?? null;
+    dto.logoLightUrl = org.logoLightUrl ?? null;
+    dto.logoDarkUrl = org.logoDarkUrl ?? null;
     dto.plan = org.plan;
     dto.services = services.map(OrgServiceDto.from);
     dto.createdAt = org.createdAt.toISOString();

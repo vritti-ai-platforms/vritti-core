@@ -32,10 +32,15 @@ export class CreateOrganizationInternalDto {
   @IsInt()
   industryId?: number;
 
-  @ApiPropertyOptional({ description: 'Public logo URL' })
+  @ApiPropertyOptional({ description: 'Public logo URL for light surfaces' })
   @IsOptional()
   @IsString()
-  logoUrl?: string;
+  logoLightUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Public logo URL for dark surfaces' })
+  @IsOptional()
+  @IsString()
+  logoDarkUrl?: string;
 
   @ApiProperty({ description: "The org's provisioned buckets and the credential scoped to them" })
   @IsObject()

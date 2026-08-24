@@ -378,7 +378,8 @@ type LookupOrganization {
   id: ID!
   name: String!
   subdomain: String!
-  logoUrl: String
+  logoLightUrl: String
+  logoDarkUrl: String
 }
 
 type MobileAuthSession {

@@ -4,10 +4,12 @@ import { Building2 } from 'lucide-react';
 import type React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useLogo } from '../../hooks/useLogo';
+import { useOrgLogo } from '../../hooks/useOrgLogo';
 import { useAuth } from '../../providers/AuthProvider';
 
 export const AuthLayout: React.FC = () => {
   const logo = useLogo();
+  const orgLogo = useOrgLogo();
   const { org, isOrgNotFound, isLoading } = useAuth();
 
   // Org not found — show error instead of login
@@ -43,8 +45,8 @@ export const AuthLayout: React.FC = () => {
         <CardHeader className="flex flex-col items-center pt-8 pb-4">
           {!isLoading && org ? (
             <>
-              {org.logoUrl ? (
-                <img src={org.logoUrl} alt={org.name} className="h-20 w-auto object-contain mb-2" />
+              {orgLogo ? (
+                <img src={orgLogo} alt={org.name} className="h-20 w-auto object-contain mb-2" />
               ) : (
                 <div className="flex items-center justify-center size-16 rounded-2xl bg-primary/10 mb-2">
                   <Building2 className="size-8 text-primary" />

@@ -291,7 +291,8 @@ export class AuthService {
           id: org.id,
           name: org.name,
           subdomain: org.subdomain,
-          logoUrl: org.logoUrl,
+          logoLightUrl: org.logoLightUrl,
+          logoDarkUrl: org.logoDarkUrl,
           // Clients gate service-dependent screens on this instead of calling the provider
           services: org.services,
         }
@@ -313,7 +314,8 @@ export class AuthService {
               id: resolvedOrg.id,
               name: resolvedOrg.name,
               subdomain: resolvedOrg.subdomain,
-              logoUrl: resolvedOrg.logoUrl,
+              logoLightUrl: resolvedOrg.logoLightUrl,
+              logoDarkUrl: resolvedOrg.logoDarkUrl,
               services: resolvedOrg.services,
             }
           : orgData;
@@ -480,7 +482,8 @@ export class AuthService {
           id: org.id,
           name: org.name,
           subdomain: org.subdomain,
-          logoUrl: org.logoUrl,
+          logoLightUrl: org.logoLightUrl,
+          logoDarkUrl: org.logoDarkUrl,
           // Clients gate service-dependent screens on this instead of calling the provider
           services: org.services,
         }

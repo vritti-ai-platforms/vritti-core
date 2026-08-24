@@ -6,7 +6,7 @@ import { usePushNavigator } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import * as React from 'react';
-import { View } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import type { AuthRoute } from '../../routes/auth/authRoutes';
 import type { LookupOrganization } from '../../services/auth';
@@ -20,6 +20,10 @@ export const OrgSelectionScreen = () => {
   const { organizations, selectOrganization } = useAuthFlow();
   const { push } = usePushNavigator<AuthRoute>();
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const colorScheme = useColorScheme();
+
+  // Picks the org logo matching the device appearance
+  const orgLogo = (org: LookupOrganization) => (colorScheme === 'dark' ? org.logoDarkUrl : org.logoLightUrl);
 
   const selectedOrg = organizations.find((o: LookupOrganization) => o.id === selectedId) ?? null;
 
@@ -47,7 +51,7 @@ export const OrgSelectionScreen = () => {
               onPress={() => setSelectedId(item.id)}
               leading={
                 <Avatar alt={item.name} className="w-10 h-10">
-                  {item.logoUrl ? <AvatarImage source={{ uri: item.logoUrl }} /> : null}
+                  {orgLogo(item) ? <AvatarImage source={{ uri: orgLogo(item) as string }} /> : null}
                   <AvatarFallback>
                     <Text className="text-xs font-semibold text-muted-foreground">{orgInitials(item.name)}</Text>
                   </AvatarFallback>

@@ -22,7 +22,8 @@ export interface AuthStatusOrg {
   id: string;
   name: string;
   subdomain: string;
-  logoUrl: string | null;
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
 }
 
 export interface AuthStatusResponse {

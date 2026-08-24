@@ -2,6 +2,7 @@ import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup
 import { type ActiveWorkspace, extractWorkspaceFromPath, type WorkspaceKind } from '@utils/workspace';
 import { OrgContextProvider, type OrgContextValue } from '@vritti/quantum-ui/context';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
+import { useTheme } from '@vritti/quantum-ui/hooks';
 import {
   type PermissionGateFn,
   PermissionGateProvider,
@@ -123,6 +124,7 @@ function buildGate(features: PermissionFeature[], workspaceScopePrefix: string |
 
 // Provides workspace selection and resolved permissions to the app
 export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { theme } = useTheme();
   const {
     org,
     sites,
@@ -225,10 +227,10 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       id: org?.id ?? null,
       name: org?.name ?? null,
       subdomain: org?.subdomain ?? null,
-      logoUrl: org?.logoUrl ?? null,
+      logoUrl: (theme === 'dark' ? org?.logoDarkUrl : org?.logoLightUrl) ?? null,
       services: org?.services ?? [],
     }),
-    [org],
+    [org, theme],
   );
 
   return (

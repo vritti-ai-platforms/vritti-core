@@ -14,10 +14,15 @@ export class UpdateOrganizationInternalDto {
   @IsEnum(OrgSizeValues)
   size?: string;
 
-  @ApiPropertyOptional({ description: 'Public logo URL' })
+  @ApiPropertyOptional({ description: 'Public logo URL for light surfaces' })
   @IsOptional()
   @IsString()
-  logoUrl?: string;
+  logoLightUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Public logo URL for dark surfaces' })
+  @IsOptional()
+  @IsString()
+  logoDarkUrl?: string;
 
   @ApiPropertyOptional({ description: 'False when the org has exceeded its plan storage allowance' })
   @IsOptional()

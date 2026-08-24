@@ -28,7 +28,8 @@ export interface LookupOrganizationSummary {
   id: string;
   name: string;
   subdomain: string;
-  logoUrl: string | null;
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
 }
 
 export interface LookupOrganizationsResult {
@@ -149,7 +150,8 @@ export class UserDomainService {
         id: u.organization.id,
         name: u.organization.name,
         subdomain: u.organization.subdomain,
-        logoUrl: u.organization.logoUrl,
+        logoLightUrl: u.organization.logoLightUrl,
+        logoDarkUrl: u.organization.logoDarkUrl,
       })),
     };
   }

@@ -17,13 +17,31 @@ export class UserDomainRepository extends PrimaryBaseRepository<typeof users> {
   }
 
   // Finds all users with the given email across all organizations, including organization data
-  async findAllByEmailWithOrg(
-    email: string,
-  ): Promise<(User & { organization: { id: string; name: string; subdomain: string; logoUrl: string | null } })[]> {
+  async findAllByEmailWithOrg(email: string): Promise<
+    (User & {
+      organization: {
+        id: string;
+        name: string;
+        subdomain: string;
+        logoLightUrl: string | null;
+        logoDarkUrl: string | null;
+      };
+    })[]
+  > {
     return this.model.findMany({
       where: { email },
       with: { organization: true },
-    }) as Promise<(User & { organization: { id: string; name: string; subdomain: string; logoUrl: string | null } })[]>;
+    }) as Promise<
+      (User & {
+        organization: {
+          id: string;
+          name: string;
+          subdomain: string;
+          logoLightUrl: string | null;
+          logoDarkUrl: string | null;
+        };
+      })[]
+    >;
   }
 
   // Finds a user by email within a specific organization

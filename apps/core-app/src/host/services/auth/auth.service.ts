@@ -15,7 +15,8 @@ export interface LookupOrganization {
   id: string;
   name: string;
   subdomain: string;
-  logoUrl: string | null;
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
 }
 
 export interface LookupResponse {

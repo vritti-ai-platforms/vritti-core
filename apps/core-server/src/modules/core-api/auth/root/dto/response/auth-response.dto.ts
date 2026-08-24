@@ -28,7 +28,8 @@ export class AuthOrgDto {
   @ApiProperty() id: string;
   @ApiProperty() name: string;
   @ApiProperty() subdomain: string;
-  @ApiPropertyOptional() logoUrl: string | null;
+  @ApiPropertyOptional() logoLightUrl: string | null;
+  @ApiPropertyOptional() logoDarkUrl: string | null;
   // Provisioned external services — clients gate service-dependent screens on this instead of calling the provider
   @ApiProperty({ type: [AuthOrgServiceDto] }) services: AuthOrgServiceDto[];
 }

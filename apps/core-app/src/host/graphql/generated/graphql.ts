@@ -11,6 +11,12 @@ export type Scalars = {
   JSON: { input: unknown; output: unknown; }
 };
 
+export type AddPersonCommunicationInput = {
+  channel: Scalars['String']['input'];
+  personId: Scalars['ID']['input'];
+  value: Scalars['String']['input'];
+};
+
 export type ChangePasswordInput = {
   currentPassword: Scalars['String']['input'];
   newPassword: Scalars['String']['input'];
@@ -37,7 +43,6 @@ export type CreateInventoryItemInput = {
   categoryId: Scalars['String']['input'];
   code: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
-  hasMrp?: InputMaybe<Scalars['Boolean']['input']>;
   hsnCode?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   pickStrategy?: InputMaybe<Scalars['String']['input']>;
@@ -56,6 +61,13 @@ export type CreateInventoryItemUomConversionInput = {
   primaryUomQty: Scalars['Int']['input'];
   uomId: Scalars['String']['input'];
   uomQty: Scalars['Int']['input'];
+};
+
+export type CreatePersonInput = {
+  email?: InputMaybe<Scalars['String']['input']>;
+  firstName: Scalars['String']['input'];
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateTaxGroupInput = {
@@ -93,6 +105,11 @@ export type FeedSearchInput = {
 export type FeedSortInput = {
   direction: Scalars['String']['input'];
   field: Scalars['String']['input'];
+};
+
+export type FindPeopleByCommunicationInput = {
+  channel: Scalars['String']['input'];
+  value: Scalars['String']['input'];
 };
 
 export type GoodsReceipt = {
@@ -358,7 +375,8 @@ export type InventoryItemUomConversion = {
 export type LookupOrganization = {
   __typename?: 'LookupOrganization';
   id: Scalars['ID']['output'];
-  logoUrl?: Maybe<Scalars['String']['output']>;
+  logoDarkUrl?: Maybe<Scalars['String']['output']>;
+  logoLightUrl?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   subdomain: Scalars['String']['output'];
 };
@@ -396,11 +414,13 @@ export type MobileTokens = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addPersonCommunication: PersonCommunication;
   changePassword: MessageResponse;
   createCostCategory: CostCategory;
   createInventoryItem: InventoryItem;
   createInventoryItemLocation: InventoryItemLocation;
   createInventoryItemUomConversion: InventoryItemUomConversion;
+  createPerson: Person;
   createTaxGroup: TaxGroup;
   createUom: Uom;
   createUomDimension: UomDimension;
@@ -423,6 +443,11 @@ export type Mutation = {
   updateTaxGroup: TaxGroup;
   updateUom: Uom;
   updateUomDimension: UomDimension;
+};
+
+
+export type MutationAddPersonCommunicationArgs = {
+  input: AddPersonCommunicationInput;
 };
 
 
@@ -450,6 +475,11 @@ export type MutationCreateInventoryItemLocationArgs = {
 export type MutationCreateInventoryItemUomConversionArgs = {
   input: CreateInventoryItemUomConversionInput;
   inventoryItemId: Scalars['ID']['input'];
+};
+
+
+export type MutationCreatePersonArgs = {
+  input: CreatePersonInput;
 };
 
 
@@ -565,6 +595,26 @@ export type MutationResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export type Person = {
+  __typename?: 'Person';
+  displayName: Scalars['String']['output'];
+  email?: Maybe<Scalars['String']['output']>;
+  firstName?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  isActive: Scalars['Boolean']['output'];
+  lastName?: Maybe<Scalars['String']['output']>;
+  phone?: Maybe<Scalars['String']['output']>;
+};
+
+export type PersonCommunication = {
+  __typename?: 'PersonCommunication';
+  channel: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  isActive: Scalars['Boolean']['output'];
+  isPrimary: Scalars['Boolean']['output'];
+  value: Scalars['String']['output'];
+};
+
 export type Profile = {
   __typename?: 'Profile';
   createdAt: Scalars['String']['output'];
@@ -575,37 +625,69 @@ export type Profile = {
   id: Scalars['ID']['output'];
   lastLoginAt?: Maybe<Scalars['String']['output']>;
   locale: Scalars['String']['output'];
+  profilePictureUrl?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   timezone: Scalars['String']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
+  categoriesOptions: SelectOptions;
   costCategories: Array<CostCategory>;
+  costCategoriesOptions: SelectOptions;
+  customersOptions: SelectOptions;
   goodsReceipt: GoodsReceipt;
   goodsReceiptsFeed: GoodsReceiptConnection;
   inventoryItem: InventoryItem;
   inventoryItemLedger: InventoryItemLedgerConnection;
   inventoryItemLocations: InventoryItemLocationConnection;
+  inventoryItemLotsOptions: SelectOptions;
   inventoryItemQuants: InventoryItemQuantConnection;
+  inventoryItemQuantsOptions: SelectOptions;
+  inventoryItemSerialsOptions: SelectOptions;
   inventoryItemStockLevels: InventoryItemStockLevelConnection;
   inventoryItemSuppliers: InventoryItemSupplierConnection;
   inventoryItemUomConversions: Array<InventoryItemUomConversion>;
   inventoryItems: InventoryItemConnection;
+  inventoryItemsOptions: SelectOptions;
+  locationsOptions: SelectOptions;
   organizationsByEmail: Array<LookupOrganization>;
+  peopleByCommunication: Array<Scalars['ID']['output']>;
   profile: Profile;
+  purchaseOrderItemsOptions: SelectOptions;
+  purchaseOrdersOptions: SelectOptions;
   sessions: Array<UserSession>;
+  supplierItemsOptions: SelectOptions;
+  suppliersOptions: SelectOptions;
   taxGroups: Array<TaxGroup>;
+  taxGroupsOptions: SelectOptions;
   uom: Uom;
   uomDimension: UomDimension;
   uomDimensions: Array<UomDimension>;
+  uomOptions: SelectOptions;
   uomsFeed: UomConnection;
   usersOptions: SelectOptions;
+  workspaces: Workspaces;
+};
+
+
+export type QueryCategoriesOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
 };
 
 
 export type QueryCostCategoriesArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryCostCategoriesOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
+};
+
+
+export type QueryCustomersOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
 };
 
 
@@ -640,10 +722,28 @@ export type QueryInventoryItemLocationsArgs = {
 };
 
 
+export type QueryInventoryItemLotsOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
+  inventoryItemId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type QueryInventoryItemQuantsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   inventoryItemId: Scalars['ID']['input'];
+};
+
+
+export type QueryInventoryItemQuantsOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
+  inventoryItemId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryInventoryItemSerialsOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
+  quantId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -675,13 +775,65 @@ export type QueryInventoryItemsArgs = {
 };
 
 
+export type QueryInventoryItemsOptionsArgs = {
+  excludeOnSupplierId?: InputMaybe<Scalars['ID']['input']>;
+  input?: InputMaybe<SelectOptionsInput>;
+};
+
+
+export type QueryLocationsOptionsArgs = {
+  excludeUsedOnGoodsReceiptItemId?: InputMaybe<Scalars['ID']['input']>;
+  goodsReceiptLotId?: InputMaybe<Scalars['ID']['input']>;
+  input?: InputMaybe<SelectOptionsInput>;
+  inventoryItemId?: InputMaybe<Scalars['ID']['input']>;
+  locationRoles?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryOrganizationsByEmailArgs = {
   email: Scalars['String']['input'];
 };
 
 
+export type QueryPeopleByCommunicationArgs = {
+  input: FindPeopleByCommunicationInput;
+};
+
+
+export type QueryPurchaseOrderItemsOptionsArgs = {
+  excludeOnGoodsReceiptId?: InputMaybe<Scalars['String']['input']>;
+  input?: InputMaybe<SelectOptionsInput>;
+  purchaseOrderId: Scalars['String']['input'];
+};
+
+
+export type QueryPurchaseOrdersOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  supplierId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QuerySupplierItemsOptionsArgs = {
+  excludeOnGoodsReceiptId?: InputMaybe<Scalars['String']['input']>;
+  excludeOnPurchaseOrderId?: InputMaybe<Scalars['String']['input']>;
+  input?: InputMaybe<SelectOptionsInput>;
+  supplierId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QuerySuppliersOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
+};
+
+
 export type QueryTaxGroupsArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryTaxGroupsOptionsArgs = {
+  input?: InputMaybe<SelectOptionsInput>;
 };
 
 
@@ -697,6 +849,14 @@ export type QueryUomDimensionArgs = {
 
 export type QueryUomDimensionsArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryUomOptionsArgs = {
+  baseOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  derivedOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  dimensionId?: InputMaybe<Scalars['ID']['input']>;
+  input?: InputMaybe<SelectOptionsInput>;
 };
 
 
@@ -831,7 +991,6 @@ export type UpdateInventoryItemInput = {
   categoryId?: InputMaybe<Scalars['String']['input']>;
   code?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
-  hasMrp?: InputMaybe<Scalars['Boolean']['input']>;
   hsnCode?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   pickStrategy?: InputMaybe<Scalars['String']['input']>;
@@ -878,4 +1037,20 @@ export type UserSession = {
   isCurrent: Scalars['Boolean']['output'];
   lastActive: Scalars['String']['output'];
   sessionId: Scalars['ID']['output'];
+};
+
+export type WorkspaceOption = {
+  __typename?: 'WorkspaceOption';
+  code: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  kind: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  parentId?: Maybe<Scalars['ID']['output']>;
+};
+
+export type Workspaces = {
+  __typename?: 'Workspaces';
+  legalEntities: Array<WorkspaceOption>;
+  siteGroups: Array<WorkspaceOption>;
+  sites: Array<WorkspaceOption>;
 };

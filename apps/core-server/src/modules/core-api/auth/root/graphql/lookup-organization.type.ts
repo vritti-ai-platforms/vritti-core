@@ -12,5 +12,8 @@ export class LookupOrganization {
   subdomain: string;
 
   @Field(() => String, { nullable: true })
-  logoUrl?: string | null;
+  logoLightUrl?: string | null;
+
+  @Field(() => String, { nullable: true })
+  logoDarkUrl?: string | null;
 }
