@@ -16,7 +16,7 @@ export const AuthLayout: React.FC = () => {
   if (isOrgNotFound) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="hidden sm:block fixed top-6 right-6 z-50">
+        <div className="fixed top-6 right-6 z-50">
           <ThemeToggle />
         </div>
         <Card className="w-full max-w-md border-border shadow-lg">
@@ -37,7 +37,7 @@ export const AuthLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       {/* Theme toggle - fixed to viewport top-right */}
-      <div className="hidden sm:block fixed top-6 right-6 z-50">
+      <div className="fixed top-6 right-6 z-50">
         <ThemeToggle />
       </div>
 

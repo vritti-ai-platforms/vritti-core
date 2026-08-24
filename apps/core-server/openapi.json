@@ -24319,7 +24319,10 @@
           "subdomain": {
             "type": "string"
           },
-          "logoUrl": {
+          "logoLightUrl": {
+            "type": "object"
+          },
+          "logoDarkUrl": {
             "type": "object"
           },
           "services": {
@@ -24779,9 +24782,13 @@
             "type": "string",
             "example": "acme"
           },
-          "logoUrl": {
+          "logoLightUrl": {
             "type": "object",
-            "example": "https://cdn.example.com/logo.png"
+            "example": "https://cdn.example.com/logo-light.png"
+          },
+          "logoDarkUrl": {
+            "type": "object",
+            "example": "https://cdn.example.com/logo-dark.png"
           }
         },
         "required": [
@@ -25329,9 +25336,13 @@
             "description": "Industry ID",
             "example": 1
           },
-          "logoUrl": {
+          "logoLightUrl": {
             "type": "string",
-            "description": "Public logo URL"
+            "description": "Public logo URL for light surfaces"
+          },
+          "logoDarkUrl": {
+            "type": "string",
+            "description": "Public logo URL for dark surfaces"
           },
           "storage": {
             "type": "object",
@@ -25405,9 +25416,14 @@
             ],
             "example": "0-10"
           },
-          "logoUrl": {
+          "logoLightUrl": {
             "type": "object",
-            "description": "Public logo URL",
+            "description": "Public logo URL for light surfaces",
+            "nullable": true
+          },
+          "logoDarkUrl": {
+            "type": "object",
+            "description": "Public logo URL for dark surfaces",
             "nullable": true
           },
           "plan": {
@@ -25489,9 +25505,13 @@
               "500+"
             ]
           },
-          "logoUrl": {
+          "logoLightUrl": {
             "type": "string",
-            "description": "Public logo URL"
+            "description": "Public logo URL for light surfaces"
+          },
+          "logoDarkUrl": {
+            "type": "string",
+            "description": "Public logo URL for dark surfaces"
           },
           "storageEnabled": {
             "type": "boolean",
