@@ -21,11 +21,8 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "types": ["node", "jest"],
     "paths": {
       "@domain/*": ["./src/modules/domain/*"],
-      "@commerce/*": ["./src/modules/commerce-gateway/domain/*"],
-      "@communications/*": ["./src/modules/communications-gateway/domain/*"],
       "@/generated/*": ["./src/generated/*"],
       "@/db/*": ["./src/db/*"],
       "@/*": ["./src/*"]

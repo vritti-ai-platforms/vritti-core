@@ -45,6 +45,7 @@
   "dependencies": {
     "@apollo/server": "^5.5.1",
     "@vritti/commerce-permissions": "workspace:*",
+    "@vritti/communications-permissions": "workspace:*",
     "@vritti/gitea-permissions": "workspace:*",
     "@as-integrations/fastify": "^3.1.0",
     "@aws-sdk/client-s3": "^3.1023.0",

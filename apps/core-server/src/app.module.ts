@@ -26,6 +26,7 @@ import { SiteContextResolverService } from '@/site-context/site-context-resolver
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
+import { CommunicationsGatewayModule } from './modules/communications-gateway/communications-gateway.module';
 import { AppApiModule } from './modules/core-api/app/app-api.module';
 import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
@@ -233,7 +234,7 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
       inject: [ConfigService, SiteContextResolverService],
       useFactory: (config: ConfigService, siteContextResolver: SiteContextResolverService) => ({
         natsUrl: config.get<string>('NATS_URL'),
-        services: [{ name: 'commerce' }],
+        services: [{ name: 'commerce' }, { name: 'communications' }],
         contextResolver: async (sessionInfo) => {
           const orgId = sessionInfo.organizationId;
           const userId = sessionInfo.userId;
@@ -280,6 +281,8 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
     AccountModule,
     // Forwards requests to commerce-service via NATS
     CommerceGatewayModule,
+    // Forwards requests to communications-service via NATS
+    CommunicationsGatewayModule,
     // Forwards requests to the self-hosted Gitea instance over HTTP
     GiteaGatewayModule,
     // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the
@@ -289,6 +292,7 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
     // Ed25519-signed request path, same as GiteaInternalModule
     StorageInternalModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
+    RouterModule.register([{ path: 'communications-api', module: CommunicationsGatewayModule }]),
     RouterModule.register([{ path: 'gitea-api', module: GiteaGatewayModule }]),
     RouterModule.register([{ path: 'account', module: AccountModule }]),
   ],

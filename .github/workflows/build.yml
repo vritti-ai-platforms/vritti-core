@@ -78,6 +78,17 @@ jobs:
       package_json_path: apps/microservices/commerce-service/package.json
     secrets: inherit
 
+  communications-service:
+    needs: affected
+    if: contains(fromJSON(needs.affected.outputs.projects), 'communications-service')
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-backend-image.yml@main
+    with:
+      service_name: communications-service
+      dockerfile_path: apps/microservices/communications-service/Dockerfile
+      build_context: .
+      package_json_path: apps/microservices/communications-service/package.json
+    secrets: inherit
+
   core-web:
     needs: affected
     if: contains(fromJSON(needs.affected.outputs.projects), 'vritti-core-web')
@@ -102,6 +113,20 @@ jobs:
       build_command: pnpm exec nx build commerce-mf
       output_dir: apps/web-mfs/commerce-mf/dist
       package_json_path: apps/web-mfs/commerce-mf/package.json
+      # No production_domain: MF remotes resolve API + assets same-origin at runtime (like core-web),
+      # so nothing bakes a fixed dev.vrittiai.com origin. Lets the bare dev.vrittiai.com host retire.
+    secrets: inherit
+
+  # Module-federation remote — core-web loads it at runtime via the feature catalog
+  communications-mf:
+    needs: affected
+    if: contains(fromJSON(needs.affected.outputs.projects), 'communications-mf')
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-web.yml@main
+    with:
+      app_name: communications-mf
+      build_command: pnpm exec nx build communications-mf
+      output_dir: apps/web-mfs/communications-mf/dist
+      package_json_path: apps/web-mfs/communications-mf/package.json
       # No production_domain: MF remotes resolve API + assets same-origin at runtime (like core-web),
       # so nothing bakes a fixed dev.vrittiai.com origin. Lets the bare dev.vrittiai.com host retire.
     secrets: inherit

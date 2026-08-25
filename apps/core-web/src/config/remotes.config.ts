@@ -14,6 +14,7 @@ interface EnvironmentConfig {
 const getEnvVar = (key: string): string | undefined => {
   const envMap: Record<string, string | undefined> = {
     PUBLIC_COMMERCE_MF_PORT: import.meta.env.PUBLIC_COMMERCE_MF_PORT,
+    PUBLIC_COMMUNICATIONS_MF_PORT: import.meta.env.PUBLIC_COMMUNICATIONS_MF_PORT,
     PUBLIC_GITEA_MF_PORT: import.meta.env.PUBLIC_GITEA_MF_PORT,
     PUBLIC_MF_BASE_URL: import.meta.env.PUBLIC_MF_BASE_URL,
   };
@@ -69,6 +70,10 @@ export const ALL_REMOTES: RemoteConfig[] = [
   {
     name: 'commerce',
     entry: buildRemoteEntry({ portEnvVar: 'PUBLIC_COMMERCE_MF_PORT', prodPath: 'commerce-mf' }),
+  },
+  {
+    name: 'communications',
+    entry: buildRemoteEntry({ portEnvVar: 'PUBLIC_COMMUNICATIONS_MF_PORT', prodPath: 'communications-mf' }),
   },
   {
     name: 'gitea',

@@ -22322,6 +22322,211 @@
         ]
       }
     },
+    "/communications-api/whatsapp-accounts/table": {
+      "get": {
+        "description": "Returns paginated, filtered, and sorted WhatsApp accounts using server-stored table state.",
+        "operationId": "WhatsappAccountsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "WhatsApp accounts table retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsappAccountTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get WhatsApp accounts table",
+        "tags": [
+          "Communications - WhatsApp Accounts"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts": {
+      "post": {
+        "description": "Stores the WABA and its access token. The first account connected becomes the default sender.",
+        "operationId": "WhatsappAccountsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWhatsappAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "WhatsApp account connected successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "409": {
+            "description": "This WABA is already connected to the organization."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Connect a WhatsApp Business Account",
+        "tags": [
+          "Communications - WhatsApp Accounts"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}": {
+      "get": {
+        "operationId": "WhatsappAccountsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "WhatsApp account retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsappAccountResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WhatsApp account not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a WhatsApp account by ID",
+        "tags": [
+          "Communications - WhatsApp Accounts"
+        ]
+      },
+      "patch": {
+        "description": "Omitting accessToken leaves the stored credential untouched.",
+        "operationId": "WhatsappAccountsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWhatsappAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "WhatsApp account updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WhatsApp account not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a WhatsApp account",
+        "tags": [
+          "Communications - WhatsApp Accounts"
+        ]
+      },
+      "delete": {
+        "operationId": "WhatsappAccountsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "WhatsApp account disconnected.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WhatsApp account not found."
+          },
+          "409": {
+            "description": "Cannot disconnect the default account while others exist."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Disconnect a WhatsApp account",
+        "tags": [
+          "Communications - WhatsApp Accounts"
+        ]
+      }
+    },
     "/gitea-api/organization": {
       "get": {
         "operationId": "OrganizationGatewayController_getStatus",
@@ -32661,6 +32866,144 @@
           "uomQty": {
             "type": "number",
             "description": "Updated count of this UOM in the ratio"
+          }
+        }
+      },
+      "WhatsappAccountResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "WhatsApp account ID"
+          },
+          "legalEntityId": {
+            "type": "object",
+            "description": "Legal entity that owns this WABA; null for an organization-wide account"
+          },
+          "metaBusinessId": {
+            "type": "string",
+            "description": "Meta Business Portfolio that owns the WABA"
+          },
+          "wabaId": {
+            "type": "string",
+            "description": "WhatsApp Business Account ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Whether this account sends when nothing narrows the choice"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the connection is usable"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "id",
+          "metaBusinessId",
+          "wabaId",
+          "name",
+          "isDefault",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "WhatsappAccountTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WhatsappAccountResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "CreateWhatsappAccountDto": {
+        "type": "object",
+        "properties": {
+          "legalEntityId": {
+            "type": "object",
+            "description": "Legal entity that owns this WABA; omit for an organization-wide account"
+          },
+          "metaBusinessId": {
+            "type": "string",
+            "example": "1234567890123456"
+          },
+          "wabaId": {
+            "type": "string",
+            "example": "9876543210987654"
+          },
+          "name": {
+            "type": "string",
+            "example": "Desi Taakat"
+          },
+          "accessToken": {
+            "type": "string",
+            "description": "Long-lived Meta system-user access token"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "default": false
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "metaBusinessId",
+          "wabaId",
+          "name",
+          "accessToken"
+        ]
+      },
+      "UpdateWhatsappAccountDto": {
+        "type": "object",
+        "properties": {
+          "legalEntityId": {
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string",
+            "description": "Send only to rotate the token; omitting it leaves the stored one in place"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },

@@ -1,0 +1,80 @@
+{
+  "name": "communications-service",
+  "projectType": "application",
+  "sourceRoot": "apps/microservices/communications-service/src",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run build",
+        "cwd": "{projectRoot}"
+      },
+      "outputs": ["{projectRoot}/dist"],
+      "cache": true
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run dev",
+        "cwd": "{projectRoot}"
+      },
+      "cache": false
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run start",
+        "cwd": "{projectRoot}"
+      },
+      "cache": false
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run lint",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run typecheck",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true
+    },
+    "db:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run db:generate",
+        "cwd": "{projectRoot}"
+      },
+      "cache": false
+    },
+    "db:migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run db:migrate",
+        "cwd": "{projectRoot}"
+      },
+      "cache": false
+    },
+    "db:grant": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run db:grant",
+        "cwd": "{projectRoot}"
+      },
+      "cache": false
+    },
+    "db:studio": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run db:studio",
+        "cwd": "{projectRoot}"
+      },
+      "cache": false
+    }
+  }
+}
