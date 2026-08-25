@@ -25,9 +25,10 @@ RUN pnpm fetch
 COPY . .
 RUN pnpm install --frozen-lockfile --offline
 
-# Build the workspace-only permissions lib (no nx project) so `pnpm deploy` bundles
-# its compiled dist, then build this app.
-RUN pnpm --filter @vritti/commerce-permissions build
+# Build the workspace-only permissions libs (no nx project, and dist/ is gitignored) so `pnpm deploy`
+# bundles their compiled dist, then build this app. Every lib core-server imports must be listed —
+# a missing one fails the tsc pass with "cannot find module", not at runtime.
+RUN pnpm --filter @vritti/commerce-permissions --filter @vritti/communications-permissions --filter @vritti/gitea-permissions build
 RUN pnpm exec nx build vritti-core-server
 
 # Self-contained prod deployment: prod-only, flat node_modules — including the

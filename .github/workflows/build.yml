@@ -124,7 +124,9 @@ jobs:
     uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-web.yml@main
     with:
       app_name: communications-mf
-      build_command: pnpm exec nx build communications-mf
+      # The permissions lib has no nx project and its dist/ is gitignored, so a clean CI checkout has
+      # nothing to import — build it before the MF or tsc fails with "cannot find module".
+      build_command: pnpm --filter @vritti/communications-permissions build && pnpm exec nx build communications-mf
       output_dir: apps/web-mfs/communications-mf/dist
       package_json_path: apps/web-mfs/communications-mf/package.json
       # No production_domain: MF remotes resolve API + assets same-origin at runtime (like core-web),
