@@ -5,6 +5,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { type MetaGraphLibraryTemplate, TemplateLibraryItemDto } from '../dto/entity/template-library-item.dto';
 import { type MetaGraphTemplate, WhatsappTemplateDto } from '../dto/entity/whatsapp-template.dto';
 import type { CreateWhatsappTemplateDto } from '../dto/request/create-whatsapp-template.dto';
+import type { SendWhatsappTemplateTestDto } from '../dto/request/send-whatsapp-template-test.dto';
 
 const TEMPLATE_FIELDS = 'id,name,status,category,language,quality_score,rejected_reason,components';
 
@@ -123,5 +124,42 @@ export class WhatsappAccountTemplatesDomainService {
 
     this.logger.log(`Deleted template ${name} (${templateId}) from WABA ${wabaId}`);
     return { success: true, message: 'Template deleted successfully.' };
+  }
+
+  // Sends a real, billable template message from one of the WABA's registered numbers. Meta only
+  // sends APPROVED templates and requires a value for every {{n}} body variable
+  async sendTest(accountId: string, dto: SendWhatsappTemplateTestDto): Promise<SuccessResponseDto> {
+    const { accessToken } = await this.accountsService.resolveGraphCredentials(accountId);
+
+    const components: Record<string, unknown>[] = [];
+    if (dto.bodyParams?.length) {
+      components.push({ type: 'body', parameters: dto.bodyParams.map((text) => ({ type: 'text', text })) });
+      // Authentication templates carry a copy-code button whose URL is dynamic — Meta requires the
+      // code repeated as that button's parameter
+      if (dto.category === 'AUTHENTICATION') {
+        components.push({
+          type: 'button',
+          sub_type: 'url',
+          index: '0',
+          parameters: [{ type: 'text', text: dto.bodyParams[0] }],
+        });
+      }
+    }
+
+    await this.metaGraph.post(accessToken, `/${dto.senderPhoneNumberId}/messages`, {
+      messaging_product: 'whatsapp',
+      to: dto.to,
+      type: 'template',
+      template: {
+        name: dto.templateName,
+        language: { code: dto.language },
+        ...(components.length ? { components } : {}),
+      },
+    });
+
+    this.logger.log(
+      `Sent test template ${dto.templateName} (${dto.language}) to ${dto.to} from ${dto.senderPhoneNumberId}`,
+    );
+    return { success: true, message: 'Test message sent.' };
   }
 }

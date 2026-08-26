@@ -42,6 +42,16 @@ export interface CreateWhatsappTemplateData {
   libraryTemplateButtonInputs?: Record<string, unknown>[];
 }
 
+// Mirrors SendWhatsappTemplateTestDto — a real, billable message to one recipient
+export interface SendWhatsappTemplateTestData {
+  senderPhoneNumberId: string;
+  to: string;
+  templateName: string;
+  language: string;
+  category?: string;
+  bodyParams?: string[];
+}
+
 const templateName = z
   .string()
   .min(1, 'Name is required')
@@ -103,3 +113,24 @@ export type LibraryConfigFormData = z.infer<typeof libraryConfigSchema>;
 
 // templateLanguage kept for the basics-step validation of the Meta-fed selector
 export const templateLanguageSchema = templateLanguage;
+
+// The preview dialog's send-a-test form — template name/language come from the previewed row.
+// bodyParams is sized to the template's {{n}} count at render time; every value is required.
+export const sendTemplateTestSchema = z
+  .object({
+    senderPhoneNumberId: z.string().min(1, 'Pick a sender number'),
+    to: z
+      .string()
+      .trim()
+      .regex(/^\+?[0-9]{7,15}$/, 'Enter the number in international format, e.g. +919876543210'),
+    bodyParams: z.array(z.string().max(200)),
+  })
+  .superRefine((data, ctx) => {
+    data.bodyParams.forEach((value, i) => {
+      if (!value.trim()) {
+        ctx.addIssue({ code: 'custom', path: ['bodyParams', i], message: `Value for {{${i + 1}}} is required` });
+      }
+    });
+  });
+
+export type SendTemplateTestFormData = z.infer<typeof sendTemplateTestSchema>;

@@ -14,6 +14,7 @@ export { useDeleteWhatsappTemplate } from './useDeleteWhatsappTemplate';
 export { useRegisterWhatsappPhoneNumber } from './useRegisterWhatsappPhoneNumber';
 export { useRequestPhoneNumberNameChange } from './useRequestPhoneNumberNameChange';
 export { useRequestPhoneVerificationCode } from './useRequestPhoneVerificationCode';
+export { useSendWhatsappTemplateTest } from './useSendWhatsappTemplateTest';
 export { useUpdatePhoneNumberProfilePicture } from './useUpdatePhoneNumberProfilePicture';
 export { useUpdateWhatsappAccount } from './useUpdateWhatsappAccount';
 export { useVerifyPhoneNumberCode } from './useVerifyPhoneNumberCode';

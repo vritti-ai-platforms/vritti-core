@@ -1,4 +1,5 @@
 import type { CreateWhatsappTemplateDto } from '@communications/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
+import type { SendWhatsappTemplateTestDto } from '@communications/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
 import type { TemplateLibraryItemResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-item-response.dto';
 import type { WhatsappTemplateResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-response.dto';
 import type { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
@@ -62,5 +63,11 @@ export class WhatsappAccountsTemplatesGatewayService {
   delete(accountId: string, templateId: string, name: string): Promise<SuccessResponseDto> {
     this.logger.log(`whatsappAccounts.templates.delete — account: ${accountId}, template: ${name}`);
     return this.nats.send('communications', 'org.whatsappAccounts.templates.delete', { accountId, templateId, name });
+  }
+
+  // Sends a real, billable template message to a recipient number
+  sendTest(accountId: string, dto: SendWhatsappTemplateTestDto): Promise<SuccessResponseDto> {
+    this.logger.log(`whatsappAccounts.templates.sendTest — account: ${accountId}, template: ${dto.templateName}`);
+    return this.nats.send('communications', 'org.whatsappAccounts.templates.sendTest', { accountId, ...dto });
   }
 }

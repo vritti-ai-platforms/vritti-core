@@ -5,14 +5,13 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { Typography } from '@vritti/quantum-ui/Typography';
 import { Eye, LayoutTemplate, Plus, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useWhatsappTemplates, WHATSAPP_ACCOUNT_TEMPLATES_KEY } from '@/hooks/organization/whatsapp-accounts';
 import type { WhatsappTemplateData } from '@/schemas/whatsapp-templates';
-import { TemplatePreview } from './components/TemplatePreview';
 import { CreateTemplateDialog } from './forms/CreateTemplateDialog';
 import { DeleteTemplateDialog } from './forms/DeleteTemplateDialog';
+import { TemplatePreviewDialog } from './forms/TemplatePreviewDialog';
 
 interface TemplatesTabProps {
   accountId: string;
@@ -99,23 +98,8 @@ export const TemplatesTab = ({ accountId }: TemplatesTabProps) => {
                   description:
                     [row.original.category?.toLowerCase(), row.original.language].filter(Boolean).join(' · ') ||
                     'Template preview',
-                  content: () => (
-                    <div className="flex flex-col items-center gap-3 px-6 py-6">
-                      <TemplatePreview
-                        header={row.original.headerText}
-                        body={row.original.bodyText}
-                        footer={row.original.footerText}
-                        buttons={row.original.buttons}
-                      />
-                      <Typography variant="body2" intent="muted">
-                        {'{{n}}'} placeholders are filled with real values when a message is sent.
-                      </Typography>
-                      {row.original.rejectedReason && (
-                        <Typography variant="body2" className="text-destructive">
-                          Rejected: {row.original.rejectedReason.toLowerCase().replace(/_/g, ' ')}
-                        </Typography>
-                      )}
-                    </div>
+                  content: (close) => (
+                    <TemplatePreviewDialog accountId={accountId} template={row.original} onClose={close} />
                   ),
                 },
               },

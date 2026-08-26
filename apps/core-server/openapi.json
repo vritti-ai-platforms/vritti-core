@@ -23189,6 +23189,60 @@
         ]
       }
     },
+    "/communications-api/whatsapp-accounts/{id}/templates/send-test": {
+      "post": {
+        "description": "Sends a real, billable message from one of the WABA's registered numbers. Meta only sends APPROVED templates and requires a value for every {{n}} body variable.",
+        "operationId": "WhatsappAccountsTemplatesGatewayController_sendTest",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendWhatsappTemplateTestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test message sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Meta rejected the send (e.g. template not approved)."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send a test template message",
+        "tags": [
+          "Communications - WhatsApp Templates"
+        ]
+      }
+    },
     "/communications-api/whatsapp-accounts/{id}/templates/{templateId}": {
       "delete": {
         "description": "Removes the name+language node matching the template ID. Meta blocks reusing a deleted template name for 30 days.",
@@ -34191,6 +34245,51 @@
           "name",
           "language",
           "category"
+        ]
+      },
+      "SendWhatsappTemplateTestDto": {
+        "type": "object",
+        "properties": {
+          "senderPhoneNumberId": {
+            "type": "string",
+            "description": "Meta phone number ID of the WABA number to send from",
+            "example": "106540352242922"
+          },
+          "to": {
+            "type": "string",
+            "description": "Recipient in international format",
+            "example": "+919876543210"
+          },
+          "templateName": {
+            "type": "string",
+            "example": "order_update"
+          },
+          "language": {
+            "type": "string",
+            "example": "en"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "AUTHENTICATION",
+              "UTILITY",
+              "MARKETING"
+            ],
+            "description": "AUTHENTICATION templates repeat the code as the copy-code button's URL parameter"
+          },
+          "bodyParams": {
+            "description": "One value per {{n}} body variable, in order",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "senderPhoneNumberId",
+          "to",
+          "templateName",
+          "language"
         ]
       },
       "CreateRepositoryDto": {

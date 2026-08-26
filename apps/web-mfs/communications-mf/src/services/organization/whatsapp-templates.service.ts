@@ -2,6 +2,7 @@ import { axios } from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   CreateWhatsappTemplateData,
+  SendWhatsappTemplateTestData,
   TemplateLibraryItemData,
   WhatsappTemplateData,
   WhatsappTemplatesTableResponse,
@@ -47,6 +48,16 @@ export function createWhatsappTemplate(
 ): Promise<CreateResponse<WhatsappTemplateData>> {
   return axios
     .post<CreateResponse<WhatsappTemplateData>>(`communications-api/whatsapp-accounts/${accountId}/templates`, data)
+    .then((r) => r.data);
+}
+
+// Sends a real, billable template message from one of the WABA's registered numbers
+export function sendWhatsappTemplateTest(
+  accountId: string,
+  data: SendWhatsappTemplateTestData,
+): Promise<SuccessResponse> {
+  return axios
+    .post<SuccessResponse>(`communications-api/whatsapp-accounts/${accountId}/templates/send-test`, data)
     .then((r) => r.data);
 }
 

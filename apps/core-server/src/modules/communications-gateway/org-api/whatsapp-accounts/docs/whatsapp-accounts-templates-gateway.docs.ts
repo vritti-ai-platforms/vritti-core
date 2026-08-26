@@ -1,4 +1,5 @@
 import { CreateWhatsappTemplateDto } from '@communications/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
+import { SendWhatsappTemplateTestDto } from '@communications/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
 import { TemplateLibraryItemResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-item-response.dto';
 import { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
@@ -57,6 +58,21 @@ export function ApiCreateWhatsappTemplate() {
     ApiBody({ type: CreateWhatsappTemplateDto }),
     ApiResponse({ status: 201, description: 'Template submitted.', type: CreateResponseDto }),
     ApiResponse({ status: 400, description: 'Meta rejected the template payload.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiSendWhatsappTemplateTest() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Send a test template message',
+      description:
+        "Sends a real, billable message from one of the WABA's registered numbers. Meta only sends APPROVED templates and requires a value for every {{n}} body variable.",
+    }),
+    ApiParam({ name: 'id', description: 'WhatsApp account ID' }),
+    ApiBody({ type: SendWhatsappTemplateTestDto }),
+    ApiResponse({ status: 200, description: 'Test message sent.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'Meta rejected the send (e.g. template not approved).' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

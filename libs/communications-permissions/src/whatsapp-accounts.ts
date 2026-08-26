@@ -10,6 +10,7 @@
 //   `templates.view`     the Message Templates tab
 //   `templates.add`      submits a new template to Meta for approval (includes browsing Meta's library)
 //   `templates.delete`   deletes a template from the WABA in Meta
+//   `templates.send`     sends a real, billable template message to a recipient number
 export const ORG_WHATSAPP_ACCOUNTS = {
   featureCode: 'whatsapp-accounts',
   view: 'org.whatsapp-accounts.view',
@@ -24,5 +25,6 @@ export const ORG_WHATSAPP_ACCOUNTS = {
     view: 'org.whatsapp-accounts.templates.view',
     add: 'org.whatsapp-accounts.templates.add',
     delete: 'org.whatsapp-accounts.templates.delete',
+    send: 'org.whatsapp-accounts.templates.send',
   },
 } as const;

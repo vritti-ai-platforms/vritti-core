@@ -1,4 +1,5 @@
 import { CreateWhatsappTemplateDto } from '@communications/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
+import { SendWhatsappTemplateTestDto } from '@communications/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
 import type { TemplateLibraryItemResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-item-response.dto';
 import type { WhatsappTemplateResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-response.dto';
 import type { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
@@ -27,6 +28,7 @@ import {
   ApiGetWhatsappTemplateLanguages,
   ApiGetWhatsappTemplateLibrary,
   ApiGetWhatsappTemplatesTable,
+  ApiSendWhatsappTemplateTest,
 } from '../docs/whatsapp-accounts-templates-gateway.docs';
 import { WhatsappAccountsTemplatesGatewayService } from '../services/whatsapp-accounts-templates-gateway.service';
 
@@ -87,6 +89,19 @@ export class WhatsappAccountsTemplatesGatewayController {
   ): Promise<CreateResponseDto<WhatsappTemplateResponseDto>> {
     this.logger.log(`POST /communications-api/whatsapp-accounts/${id}/templates`);
     return this.service.create(id, dto);
+  }
+
+  // Sends a real, billable template message from one of the WABA's registered numbers
+  @Post('send-test')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.templates.send)
+  @ApiSendWhatsappTemplateTest()
+  sendTest(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: SendWhatsappTemplateTestDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /communications-api/whatsapp-accounts/${id}/templates/send-test`);
+    return this.service.sendTest(id, dto);
   }
 
   // Deletes a template — Meta requires the name alongside the ID (the ID scopes it to one language).

@@ -1,6 +1,7 @@
 import { TemplateLibraryItemDto } from '@domain/whatsapp-account-templates/dto/entity/template-library-item.dto';
 import { WhatsappTemplateDto } from '@domain/whatsapp-account-templates/dto/entity/whatsapp-template.dto';
 import { CreateWhatsappTemplateDto } from '@domain/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
+import { SendWhatsappTemplateTestDto } from '@domain/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
 import { WhatsappAccountTemplatesDomainService } from '@domain/whatsapp-account-templates/services/whatsapp-account-templates.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -46,5 +47,12 @@ export class WhatsappAccountsTemplatesController {
   async delete(@Payload() data: { accountId: string; templateId: string; name: string }): Promise<SuccessResponseDto> {
     this.logger.log(`whatsappAccounts.templates.delete — account: ${data.accountId}, template: ${data.name}`);
     return this.service.delete(data.accountId, data.templateId, data.name);
+  }
+
+  @MessagePattern({ cmd: 'org.whatsappAccounts.templates.sendTest' })
+  async sendTest(@Payload() data: { accountId: string } & SendWhatsappTemplateTestDto): Promise<SuccessResponseDto> {
+    const { accountId, ...dto } = data;
+    this.logger.log(`whatsappAccounts.templates.sendTest — account: ${accountId}, template: ${dto.templateName}`);
+    return this.service.sendTest(accountId, dto);
   }
 }
