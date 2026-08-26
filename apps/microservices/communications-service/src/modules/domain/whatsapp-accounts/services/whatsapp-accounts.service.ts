@@ -24,6 +24,7 @@ export class WhatsappAccountsDomainService {
     metaBusinessId: { column: whatsappAccounts.metaBusinessId, type: 'string' },
     isDefault: { column: whatsappAccounts.isDefault, type: 'boolean' },
     isActive: { column: whatsappAccounts.isActive, type: 'boolean' },
+    createdAt: { column: whatsappAccounts.createdAt, type: 'string' },
   };
 
   constructor(private readonly repository: WhatsappAccountsDomainRepository) {}

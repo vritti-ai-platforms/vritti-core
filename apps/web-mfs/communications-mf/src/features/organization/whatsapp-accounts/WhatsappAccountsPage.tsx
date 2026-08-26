@@ -13,6 +13,7 @@ import {
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Eye, MessageCircle, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -34,46 +35,63 @@ export const WhatsappAccountsPage = () => {
         accessorKey: 'name',
         header: 'Name',
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
+          // inline-flex so the group flows within the cell's text-center like every other column;
+          // a block flex would pack left and break column alignment
+          <span className="inline-flex items-center gap-2">
             <StringCell value={row.original.name} />
             {row.original.isDefault && <Badge variant="secondary">Default</Badge>}
-          </div>
+          </span>
         ),
+        enableSorting: true,
         size: 240,
       },
       {
         accessorKey: 'wabaId',
         header: 'WABA ID',
         cell: ({ row }) => <StringCell value={row.original.wabaId} mono />,
+        enableSorting: true,
         size: 180,
       },
       {
         accessorKey: 'metaBusinessId',
         header: 'Business portfolio',
         cell: ({ row }) => <StringCell value={row.original.metaBusinessId} mono />,
+        enableSorting: true,
         size: 180,
       },
       {
         accessorKey: 'isActive',
         header: 'Status',
         cell: ({ row }) => (
-          <Badge variant={row.original.isActive ? 'outline' : 'destructive'}>
+          <Badge variant={row.original.isActive ? 'success' : 'destructive'}>
             {row.original.isActive ? 'Connected' : 'Disabled'}
           </Badge>
         ),
+        enableSorting: true,
         size: 110,
       },
       {
         accessorKey: 'createdAt',
         header: 'Connected',
         cell: ({ row }) => <DateTimeCell value={row.original.createdAt} />,
+        enableSorting: true,
         size: 160,
       },
       {
         id: 'actions',
         header: '',
         cell: ({ row }) => (
-          <RowActions actions={[{ id: 'view', icon: Eye, label: 'View', onClick: () => navigate(row.original.id) }]} />
+          <RowActions
+            actions={[
+              {
+                id: 'view',
+                icon: Eye,
+                label: 'View',
+                permission: ORG_WHATSAPP_ACCOUNTS.view,
+                onClick: () => navigate(row.original.id),
+              },
+            ]}
+          />
         ),
         enableSorting: false,
         enableHiding: false,
@@ -89,6 +107,8 @@ export const WhatsappAccountsPage = () => {
     label: 'WhatsApp account',
     serverState: response,
     enableRowSelection: false,
+    enableSorting: true,
+    enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: WHATSAPP_ACCOUNTS_TABLE_KEY }),
   });
 
@@ -101,6 +121,34 @@ export const WhatsappAccountsPage = () => {
         isLoading={isLoading}
         permission={ORG_WHATSAPP_ACCOUNTS.view}
         onRowClick={(account) => navigate(account.id)}
+        searchConfig={{
+          columns: [
+            { id: 'name', label: 'Name' },
+            { id: 'wabaId', label: 'WABA ID' },
+            { id: 'metaBusinessId', label: 'Business ID' },
+          ],
+          searchAll: true,
+        }}
+        filters={[
+          <SelectFilter
+            key="isActive"
+            name="isActive"
+            label="Status"
+            options={[
+              { label: 'Connected', value: 'true' },
+              { label: 'Disabled', value: 'false' },
+            ]}
+          />,
+          <SelectFilter
+            key="isDefault"
+            name="isDefault"
+            label="Default sender"
+            options={[
+              { label: 'Default', value: 'true' },
+              { label: 'Not default', value: 'false' },
+            ]}
+          />,
+        ]}
         toolbarActions={{
           actions: (
             <Button
