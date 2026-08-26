@@ -3,6 +3,8 @@ import {
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk/database';
@@ -45,6 +47,24 @@ export class WhatsappAccountsDomainService {
     });
 
     return { result: rows.map(WhatsappAccountDto.from), count };
+  }
+
+  // Returns paginated account options for select dropdowns (e.g. the breadcrumb switcher)
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+    });
   }
 
   // Connects a WABA to this organization, rejecting one already connected

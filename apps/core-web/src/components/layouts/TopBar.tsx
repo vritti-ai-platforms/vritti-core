@@ -23,6 +23,7 @@ import { usePermissionContext } from '../../providers/PermissionProvider';
 import type { WorkspaceKind } from '../../utils/workspace';
 import { WORKSPACE_SLUG_PREFIXES } from '../../utils/workspace';
 import { RepositorySwitcher } from './switchers/RepositorySwitcher';
+import { WhatsappAccountSwitcher } from './switchers/WhatsappAccountSwitcher';
 import { UserMenu } from './UserMenu';
 
 const KIND_TILES: Record<WorkspaceKind, string> = {
@@ -44,6 +45,7 @@ const KIND_ICONS: Record<WorkspaceKind, LucideIcon> = {
 // features register one line here.
 const DETAIL_SWITCHERS: Record<string, ComponentType<{ repoName: string; basePath: string }>> = {
   repositories: RepositorySwitcher,
+  'whatsapp-accounts': WhatsappAccountSwitcher,
 };
 
 const SITE_TYPE_ICONS: Record<string, LucideIcon> = {

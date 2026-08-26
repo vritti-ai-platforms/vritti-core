@@ -5,12 +5,14 @@ import { WhatsappAccountsPhoneNumbersGatewayService } from './org-api/whatsapp-a
 import { WhatsappAccountsTemplatesGatewayService } from './org-api/whatsapp-accounts/services/whatsapp-accounts-templates-gateway.service';
 import { WhatsappAccountsTemplatesGatewayController } from './org-api/whatsapp-accounts/templates/whatsapp-accounts-templates-gateway.controller';
 import { WhatsappAccountsGatewayController } from './org-api/whatsapp-accounts/whatsapp-accounts-gateway.controller';
+import { SelectApiController } from './select-api/select-api.controller';
 
 @Module({
   controllers: [
     WhatsappAccountsGatewayController,
     WhatsappAccountsPhoneNumbersGatewayController,
     WhatsappAccountsTemplatesGatewayController,
+    SelectApiController,
   ],
   providers: [
     WhatsappAccountsGatewayService,

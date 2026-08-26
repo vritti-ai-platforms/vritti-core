@@ -4,7 +4,13 @@ import { UpdateWhatsappAccountDto } from '@domain/whatsapp-accounts/dto/request/
 import { WhatsappAccountsDomainService } from '@domain/whatsapp-accounts/services/whatsapp-accounts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+  TableViewState,
+} from '@vritti/api-sdk/database';
 
 @Controller()
 export class WhatsappAccountsController {
@@ -22,6 +28,12 @@ export class WhatsappAccountsController {
   async create(@Payload() dto: CreateWhatsappAccountDto): Promise<CreateResponseDto<WhatsappAccountDto>> {
     this.logger.log(`whatsappAccounts.create — waba: ${dto.wabaId}`);
     return this.service.create(dto);
+  }
+
+  @MessagePattern({ cmd: 'select.whatsappAccounts' })
+  async select(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.whatsappAccounts');
+    return this.service.findForSelect(query);
   }
 
   @MessagePattern({ cmd: 'org.whatsappAccounts.findById' })
