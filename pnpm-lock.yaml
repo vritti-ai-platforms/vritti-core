@@ -1073,7 +1073,13 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  libs/core-sdk:
+  libs/gitea-permissions:
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  libs/vap-sdk:
     dependencies:
       '@apollo/client':
         specifier: ^4.2.3
@@ -1103,12 +1109,6 @@ importers:
       payload:
         specifier: ^3.86.0
         version: 3.88.0(graphql@16.14.2)(typescript@6.0.3)
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  libs/gitea-permissions:
-    devDependencies:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
