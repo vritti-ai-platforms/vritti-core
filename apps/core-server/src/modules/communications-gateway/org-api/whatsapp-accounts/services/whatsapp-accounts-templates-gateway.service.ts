@@ -1,7 +1,10 @@
+import type { CreateWhatsappTemplateDto } from '@communications/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
+import type { TemplateLibraryItemResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-item-response.dto';
 import type { WhatsappTemplateResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-response.dto';
 import type { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
@@ -29,5 +32,35 @@ export class WhatsappAccountsTemplatesGatewayService {
     );
 
     return { result, count: result.length, state, activeViewId };
+  }
+
+  // Browses Meta's library of pre-written templates
+  listLibrary(
+    accountId: string,
+    filters: { search?: string; topic?: string; language?: string; category?: string },
+  ): Promise<TemplateLibraryItemResponseDto[]> {
+    this.logger.log(`whatsappAccounts.templates.libraryList — account: ${accountId}`);
+    return this.nats.send('communications', 'org.whatsappAccounts.templates.libraryList', {
+      accountId,
+      ...filters,
+    });
+  }
+
+  // Distinct languages the library ships templates in
+  listLibraryLanguages(accountId: string): Promise<string[]> {
+    this.logger.log(`whatsappAccounts.templates.libraryLanguages — account: ${accountId}`);
+    return this.nats.send('communications', 'org.whatsappAccounts.templates.libraryLanguages', { accountId });
+  }
+
+  // Submits a template to Meta — custom content or a pre-approved library reference
+  create(accountId: string, dto: CreateWhatsappTemplateDto): Promise<CreateResponseDto<WhatsappTemplateResponseDto>> {
+    this.logger.log(`whatsappAccounts.templates.create — account: ${accountId}, template: ${dto.name}`);
+    return this.nats.send('communications', 'org.whatsappAccounts.templates.create', { accountId, ...dto });
+  }
+
+  // Deletes one template — Meta scopes the delete to the name+language node matching the template ID
+  delete(accountId: string, templateId: string, name: string): Promise<SuccessResponseDto> {
+    this.logger.log(`whatsappAccounts.templates.delete — account: ${accountId}, template: ${name}`);
+    return this.nats.send('communications', 'org.whatsappAccounts.templates.delete', { accountId, templateId, name });
   }
 }

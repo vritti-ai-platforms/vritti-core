@@ -1,11 +1,33 @@
+import { CreateWhatsappTemplateDto } from '@communications/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
+import type { TemplateLibraryItemResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-item-response.dto';
+import type { WhatsappTemplateResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-response.dto';
 import type { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
-import { Controller, Get, Logger, Param, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { ApiGetWhatsappTemplatesTable } from '../docs/whatsapp-accounts-templates-gateway.docs';
+import {
+  ApiCreateWhatsappTemplate,
+  ApiDeleteWhatsappTemplate,
+  ApiGetWhatsappTemplateLanguages,
+  ApiGetWhatsappTemplateLibrary,
+  ApiGetWhatsappTemplatesTable,
+} from '../docs/whatsapp-accounts-templates-gateway.docs';
 import { WhatsappAccountsTemplatesGatewayService } from '../services/whatsapp-accounts-templates-gateway.service';
 
 @ApiTags('Communications - WhatsApp Templates')
@@ -19,9 +41,8 @@ export class WhatsappAccountsTemplatesGatewayController {
   constructor(private readonly service: WhatsappAccountsTemplatesGatewayService) {}
 
   // Returns the WABA's message templates data table, rows read live from Meta
-  // TEMP: account-level view until templates.view is authored in the cloud catalog (after the full templates feature ships)
   @Get('table')
-  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.view)
+  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.templates.view)
   @ApiGetWhatsappTemplatesTable()
   getTable(
     @UserId() userId: string,
@@ -29,5 +50,56 @@ export class WhatsappAccountsTemplatesGatewayController {
   ): Promise<WhatsappTemplateTableResponseDto> {
     this.logger.log(`GET /communications-api/whatsapp-accounts/${id}/templates/table`);
     return this.service.findForTable(userId, id);
+  }
+
+  // Browses Meta's library of pre-written, pre-approved templates — part of the add flow
+  @Get('library')
+  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.templates.add)
+  @ApiGetWhatsappTemplateLibrary()
+  getLibrary(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query('search') search?: string,
+    @Query('topic') topic?: string,
+    @Query('language') language?: string,
+    @Query('category') category?: string,
+  ): Promise<TemplateLibraryItemResponseDto[]> {
+    this.logger.log(`GET /communications-api/whatsapp-accounts/${id}/templates/library`);
+    return this.service.listLibrary(id, { search, topic, language, category });
+  }
+
+  // Distinct languages the library ships templates in — feeds the create wizard's language selector
+  @Get('library/languages')
+  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.templates.add)
+  @ApiGetWhatsappTemplateLanguages()
+  getLibraryLanguages(@Param('id', new ParseUUIDPipe()) id: string): Promise<string[]> {
+    this.logger.log(`GET /communications-api/whatsapp-accounts/${id}/templates/library/languages`);
+    return this.service.listLibraryLanguages(id);
+  }
+
+  // Submits a template to Meta — custom content or a pre-approved library reference
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.templates.add)
+  @ApiCreateWhatsappTemplate()
+  create(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreateWhatsappTemplateDto,
+  ): Promise<CreateResponseDto<WhatsappTemplateResponseDto>> {
+    this.logger.log(`POST /communications-api/whatsapp-accounts/${id}/templates`);
+    return this.service.create(id, dto);
+  }
+
+  // Deletes a template — Meta requires the name alongside the ID (the ID scopes it to one language).
+  // :templateId is Meta's numeric template ID, so it is deliberately not UUID-piped.
+  @Delete(':templateId')
+  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.templates.delete)
+  @ApiDeleteWhatsappTemplate()
+  delete(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('templateId') templateId: string,
+    @Query('name') name: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /communications-api/whatsapp-accounts/${id}/templates/${templateId}`);
+    return this.service.delete(id, templateId, name);
   }
 }

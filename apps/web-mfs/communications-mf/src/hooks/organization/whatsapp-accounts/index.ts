@@ -8,7 +8,9 @@ export {
 } from './keys';
 export { useAddWhatsappPhoneNumber } from './useAddWhatsappPhoneNumber';
 export { useCreateWhatsappAccount } from './useCreateWhatsappAccount';
+export { useCreateWhatsappTemplate } from './useCreateWhatsappTemplate';
 export { useDeleteWhatsappAccount } from './useDeleteWhatsappAccount';
+export { useDeleteWhatsappTemplate } from './useDeleteWhatsappTemplate';
 export { useRegisterWhatsappPhoneNumber } from './useRegisterWhatsappPhoneNumber';
 export { useRequestPhoneNumberNameChange } from './useRequestPhoneNumberNameChange';
 export { useRequestPhoneVerificationCode } from './useRequestPhoneVerificationCode';
@@ -19,4 +21,6 @@ export { useWhatsappAccount } from './useWhatsappAccount';
 export { useWhatsappAccounts } from './useWhatsappAccounts';
 export { useWhatsappPhoneNumberProfile } from './useWhatsappPhoneNumberProfile';
 export { useWhatsappPhoneNumbers } from './useWhatsappPhoneNumbers';
+export { useWhatsappTemplateLanguages } from './useWhatsappTemplateLanguages';
+export { useWhatsappTemplateLibrary } from './useWhatsappTemplateLibrary';
 export { useWhatsappTemplates } from './useWhatsappTemplates';

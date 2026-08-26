@@ -23018,6 +23018,239 @@
         ]
       }
     },
+    "/communications-api/whatsapp-accounts/{id}/templates/library": {
+      "get": {
+        "description": "Pre-written, pre-approved templates — creating from one usually skips Meta review.",
+        "operationId": "WhatsappAccountsTemplatesGatewayController_getLibrary",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "topic",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "language",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Library entries retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TemplateLibraryItemResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Browse Meta's template library",
+        "tags": [
+          "Communications - WhatsApp Templates"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/templates/library/languages": {
+      "get": {
+        "description": "Distinct languages Meta's template library ships in — feeds the language selector.",
+        "operationId": "WhatsappAccountsTemplatesGatewayController_getLibraryLanguages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Languages retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List template languages",
+        "tags": [
+          "Communications - WhatsApp Templates"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/templates": {
+      "post": {
+        "description": "Custom components go through Meta review; a library reference is pre-approved content and usually approves instantly.",
+        "operationId": "WhatsappAccountsTemplatesGatewayController_create",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWhatsappTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Template submitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Meta rejected the template payload."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a message template",
+        "tags": [
+          "Communications - WhatsApp Templates"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/templates/{templateId}": {
+      "delete": {
+        "description": "Removes the name+language node matching the template ID. Meta blocks reusing a deleted template name for 30 days.",
+        "operationId": "WhatsappAccountsTemplatesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "templateId",
+            "required": true,
+            "in": "path",
+            "description": "Meta template ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "required": true,
+            "in": "query",
+            "description": "Template name — Meta requires it alongside the ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Meta rejected the delete."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a message template",
+        "tags": [
+          "Communications - WhatsApp Templates"
+        ]
+      }
+    },
     "/gitea-api/organization": {
       "get": {
         "operationId": "OrganizationGatewayController_getStatus",
@@ -33775,6 +34008,27 @@
             "type": "object",
             "nullable": true,
             "description": "Reason Meta gave when the template was rejected"
+          },
+          "headerText": {
+            "type": "object",
+            "nullable": true,
+            "description": "Header text ({{n}} placeholders unrendered); null for media headers"
+          },
+          "bodyText": {
+            "type": "object",
+            "nullable": true,
+            "description": "Body text with {{n}} placeholders unrendered"
+          },
+          "footerText": {
+            "type": "object",
+            "nullable": true
+          },
+          "buttons": {
+            "description": "Button labels in display order",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -33784,7 +34038,11 @@
           "category",
           "language",
           "qualityScore",
-          "rejectedReason"
+          "rejectedReason",
+          "headerText",
+          "bodyText",
+          "footerText",
+          "buttons"
         ]
       },
       "WhatsappTemplateTableResponseDto": {
@@ -33812,6 +34070,127 @@
           "result",
           "count",
           "state"
+        ]
+      },
+      "TemplateLibraryItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Meta library template ID"
+          },
+          "name": {
+            "type": "string",
+            "example": "delivery_update_1"
+          },
+          "language": {
+            "type": "object",
+            "nullable": true,
+            "example": "en"
+          },
+          "category": {
+            "type": "object",
+            "nullable": true,
+            "example": "UTILITY"
+          },
+          "topic": {
+            "type": "object",
+            "nullable": true,
+            "example": "ORDER_MANAGEMENT"
+          },
+          "usecase": {
+            "type": "object",
+            "nullable": true,
+            "example": "DELIVERY_UPDATES"
+          },
+          "industry": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "header": {
+            "type": "object",
+            "nullable": true,
+            "description": "Header text, when the template has one"
+          },
+          "body": {
+            "type": "object",
+            "nullable": true,
+            "description": "Body text with {{n}} variables"
+          },
+          "bodyParams": {
+            "description": "Example values for the body variables",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "buttons": {
+            "description": "Button definitions, when the template has them",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "language",
+          "category",
+          "topic",
+          "usecase",
+          "industry",
+          "header",
+          "body",
+          "bodyParams",
+          "buttons"
+        ]
+      },
+      "CreateWhatsappTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Template name — lowercase letters, digits, underscores",
+            "example": "order_update"
+          },
+          "language": {
+            "type": "string",
+            "example": "en"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "AUTHENTICATION",
+              "UTILITY",
+              "MARKETING"
+            ]
+          },
+          "components": {
+            "description": "Custom template components (header/body/footer/buttons)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "libraryTemplateName": {
+            "type": "string",
+            "example": "order_confirmation_1"
+          },
+          "libraryTemplateButtonInputs": {
+            "description": "Button inputs (e.g. URLs) required by the chosen library template",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "language",
+          "category"
         ]
       },
       "CreateRepositoryDto": {

@@ -43,6 +43,18 @@ export class MetaGraphHttpService {
     }
   }
 
+  async delete<T>(accessToken: string, path: string, params?: Record<string, unknown>): Promise<T> {
+    try {
+      const response = await this.client.delete<T>(path, {
+        params,
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      return response.data;
+    } catch (error) {
+      rethrowMetaGraphError(error, UNREACHABLE_DETAIL);
+    }
+  }
+
   // Pushes a file through Meta's Resumable Upload API and returns the handle ("h") that
   // asset-consuming endpoints (e.g. profile_picture_handle) accept. The upload call itself uses
   // the OAuth authorization scheme and a file_offset header — that is Meta's spec, not Bearer.

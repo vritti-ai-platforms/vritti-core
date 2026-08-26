@@ -75,8 +75,7 @@ export const WhatsappAccountDetailPage = () => {
           {
             value: 'templates',
             label: 'Templates',
-            // TEMP: account-level view until templates.view is authored in the cloud catalog (after the full templates feature ships)
-            permission: ORG_WHATSAPP_ACCOUNTS.view,
+            permission: ORG_WHATSAPP_ACCOUNTS.templates.view,
             content: <TemplatesTab accountId={account.id} />,
           },
         ]}

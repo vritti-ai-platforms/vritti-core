@@ -12,8 +12,7 @@ export function useWhatsappTemplates(
   accountId: string,
   options?: Omit<UseQueryOptions<WhatsappTemplatesTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  // TEMP: account-level view until templates.view is authored in the cloud catalog (after the full templates feature ships)
-  const { available } = usePermission(ORG_WHATSAPP_ACCOUNTS.view);
+  const { available } = usePermission(ORG_WHATSAPP_ACCOUNTS.templates.view);
 
   return useQuery<WhatsappTemplatesTableResponse, AxiosError>({
     queryKey: WHATSAPP_ACCOUNT_TEMPLATES_KEY(accountId),
