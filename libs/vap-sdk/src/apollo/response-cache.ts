@@ -6,7 +6,7 @@ import { PARTY_ID_HEADER } from './signed-fetch';
 /**
  * Where cached operation results live.
  *
- * The consumer implements this — core-sdk never opens a connection or owns a table, so it needs no
+ * The consumer implements this — vap-sdk never opens a connection or owns a table, so it needs no
  * database driver and no migration of its own, and a caller with nowhere to cache simply omits it.
  * Mirrors how the mobile host injects MMKV into the Apollo layer.
  *

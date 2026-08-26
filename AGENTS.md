@@ -1,6 +1,6 @@
 # vritti-core
 
-pnpm workspace monorepo containing the Vritti Core (Platforms) backend and frontend.
+pnpm workspace monorepo containing the VAP (Vritti AI Platform) backend and frontend.
 
 ## Apps
 

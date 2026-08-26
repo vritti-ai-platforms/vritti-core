@@ -1,9 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { Session } from '@/db/schema';
 
-// Extracts "iOS 17.0" / "Android 12" from VrittiCoreApp UAs; returns null for browser UAs.
+// Extracts "iOS 17.0" / "Android 12" from VAP app UAs; returns null for browser UAs.
 function parseMobileDevice(userAgent: string): string | null {
-  const match = /VrittiCoreApp\/[^\s]+ \(([^)]+)\)/i.exec(userAgent);
+  const match = /VAP\/[^\s]+ \(([^)]+)\)/i.exec(userAgent);
   return match ? match[1] : null;
 }
 

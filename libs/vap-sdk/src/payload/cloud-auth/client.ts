@@ -1,4 +1,4 @@
-import { CoreError } from '../../types';
+import { VapError } from '../../types';
 import type { CloudAuthCredentials } from './config';
 
 export interface CloudUserInfo {
@@ -88,8 +88,8 @@ async function post<T>(credentials: CloudAuthCredentials, path: string, body: un
   return (await response.json()) as T;
 }
 
-async function toError(response: Response, what: string): Promise<CoreError> {
+async function toError(response: Response, what: string): Promise<VapError> {
   const detail = await response.text().catch(() => '');
   const suffix = detail ? ` — ${detail.slice(0, 200)}` : '';
-  return new CoreError(`Vritti Cloud rejected the ${what} request${suffix}`, 'OAuth Failed', response.status);
+  return new VapError(`Vritti Cloud rejected the ${what} request${suffix}`, 'OAuth Failed', response.status);
 }

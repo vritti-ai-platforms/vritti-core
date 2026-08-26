@@ -3,8 +3,8 @@ import { applyCloudAuth } from './collection';
 import { buildEndpoints } from './endpoints';
 import type { VrittiCloudAuthOptions } from './types';
 
-const LOGIN_BUTTON = '@vritti/core-sdk/payload/client#VrittiCloudLoginButton';
-const BRAND_LOGO = '@vritti/core-sdk/payload/client#VrittiAdminLogo';
+const LOGIN_BUTTON = '@vritti/vap-sdk/payload/client#VrittiCloudLoginButton';
+const BRAND_LOGO = '@vritti/vap-sdk/payload/client#VrittiAdminLogo';
 
 interface AuthConfigLike extends ConfigLike {
   admin?: {

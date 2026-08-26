@@ -5,10 +5,10 @@ import type { CollectionConfig, Field } from 'payload' with { 'resolution-mode':
 import type { CollectionLike } from '../runtime';
 
 /** The table name Payload derives from the slug — hyphens become underscores. */
-export const CORE_CACHE_TABLE = 'core_cache';
+export const VAP_CACHE_TABLE = 'vap_cache';
 
 /**
- * Cached responses from core, one row per operation-and-scope.
+ * Cached responses from VAP, one row per operation-and-scope.
  *
  * **A collection purely so Payload's migration generator creates the table.** Nothing reads or writes it
  * through the Local API — the store in `response-cache-postgres.ts` uses one indexed query per hit,
@@ -19,17 +19,17 @@ export const CORE_CACHE_TABLE = 'core_cache';
  * Every access rule is shut and reads are staff-only: there is nothing here a visitor should reach, and
  * the keys themselves encode which shopper and which store a result belongs to.
  */
-export function coreCacheCollection(extraFields: Field[] = []): CollectionLike {
+export function vapCacheCollection(extraFields: Field[] = []): CollectionLike {
   // Authored against CollectionConfig for the field-level safety, handed back opaque so the built types
   // never name one installed copy of payload.
   const collection: CollectionConfig = {
-    slug: 'core-cache',
-    labels: { singular: 'Core Cache Entry', plural: 'Core Cache' },
+    slug: 'vap-cache',
+    labels: { singular: 'VAP Cache Entry', plural: 'VAP Cache' },
     admin: {
       useAsTitle: 'key',
       defaultColumns: ['key', 'expiresAt', 'updatedAt'],
       group: 'Store',
-      description: 'Cached responses from Vritti core. Machinery — nothing here is edited by hand.',
+      description: 'Cached responses from VAP. Machinery — nothing here is edited by hand.',
       hidden: ({ user }) => user?.collection !== 'users',
     },
     access: {

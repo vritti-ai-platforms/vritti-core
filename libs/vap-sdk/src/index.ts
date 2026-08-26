@@ -9,7 +9,7 @@ export {
   requireData,
   run,
 } from './apollo';
-export { type CoreSdkOptions, ENV_VARS, resolveConfig } from './config';
+export { type VapSdkOptions, ENV_VARS, resolveConfig } from './config';
 export {
   CHANNELS,
   type Channel,
@@ -23,9 +23,9 @@ export {
   type RegisterPersonInput,
   type RegisterPersonResult,
 } from './people';
-export { type CoreSdk, createCoreSdk } from './sdk';
+export { type VapSdk, createVapSdk } from './sdk';
 export { signRequest } from './signing';
-export { CoreError, type CoreSdkConfig, PartyRollbackError } from './types';
+export { VapError, type VapSdkConfig, PartyRollbackError } from './types';
 export {
   createWorkspacesOperations,
   type RequestContext,

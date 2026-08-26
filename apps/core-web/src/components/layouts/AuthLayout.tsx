@@ -59,7 +59,7 @@ export const AuthLayout: React.FC = () => {
               </div>
             </>
           ) : (
-            <img src={logo} alt="Vritti Core" className="h-12 sm:h-14 lg:h-12 w-auto mb-4" />
+            <img src={logo} alt="VAP" className="h-12 sm:h-14 lg:h-12 w-auto mb-4" />
           )}
         </CardHeader>
         <CardContent className="px-6 pb-6">

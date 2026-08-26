@@ -5,7 +5,7 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
  *
  * `kind` is what the caller turns into a header — `site` → `x-site-id`,
  * `group` → `x-sg-id`, `le` → `x-le-id` — which is how core learns the scope without
- * needing a separate field for it. `@vritti/core-sdk` does that mapping.
+ * needing a separate field for it. `@vritti/vap-sdk` does that mapping.
  */
 @ObjectType()
 export class WorkspaceOption {

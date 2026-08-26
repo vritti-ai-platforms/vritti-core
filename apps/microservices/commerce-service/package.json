@@ -1,7 +1,7 @@
 {
   "name": "commerce-service",
   "version": "0.0.1",
-  "description": "Commerce microservice for Vritti Core platform",
+  "description": "Commerce microservice for VAP platform",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

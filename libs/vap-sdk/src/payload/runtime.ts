@@ -1,5 +1,5 @@
-import type { CoreSdk } from '../sdk';
-import { CoreError } from '../types';
+import type { VapSdk } from '../sdk';
+import { VapError } from '../types';
 
 /**
  * What these helpers need from a Payload instance.
@@ -62,14 +62,14 @@ export const SDK_CONFIG_KEY = 'vritti';
  * Throws rather than returning undefined: reaching here without the plugin registered is a
  * configuration mistake, and a clear message beats `Cannot read properties of undefined`.
  */
-export function getSdk(payload: PayloadLike): CoreSdk {
+export function getSdk(payload: PayloadLike): VapSdk {
   // A factory, not the client itself — see the note in plugin.ts on why a getter would defeat the
   // deferral it was meant to provide.
-  const factory = payload.config.custom?.[SDK_CONFIG_KEY] as (() => CoreSdk) | undefined;
+  const factory = payload.config.custom?.[SDK_CONFIG_KEY] as (() => VapSdk) | undefined;
   const sdk = typeof factory === 'function' ? factory() : undefined;
   if (!sdk) {
-    throw new CoreError(
-      'The Vritti core plugin is not registered — add vrittiCore() to your Payload plugins.',
+    throw new VapError(
+      'The VAP plugin is not registered — add vap() to your Payload plugins.',
       'Not Configured',
       undefined,
     );

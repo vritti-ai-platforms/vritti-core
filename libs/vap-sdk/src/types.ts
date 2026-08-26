@@ -7,7 +7,7 @@ import type { ResponseCacheStore } from './apollo/response-cache';
  * that cannot be created come back the same shape, so a caller handles them in
  * one place.
  */
-export class CoreError extends Error {
+export class VapError extends Error {
   constructor(
     message: string,
     /** Core's error label, e.g. `Unknown Client`. */
@@ -16,7 +16,7 @@ export class CoreError extends Error {
     readonly status: number | undefined,
   ) {
     super(message);
-    this.name = 'CoreError';
+    this.name = 'VapError';
   }
 }
 
@@ -29,7 +29,7 @@ export class CoreError extends Error {
  * tell them to sign in rather than inviting a retry that will now say their email
  * is taken.
  *
- * Distinct from a plain `CoreError`, which means core refused and the local record
+ * Distinct from a plain `VapError`, which means core refused and the local record
  * was cleanly removed — nothing left anywhere, safe to retry.
  */
 export class PartyRollbackError extends Error {
@@ -49,7 +49,7 @@ export class PartyRollbackError extends Error {
   }
 }
 
-export type CoreSdkConfig = {
+export type VapSdkConfig = {
   /** Where core's GraphQL lives. Absolute — these calls are made server-side. */
   endpoint: string;
 

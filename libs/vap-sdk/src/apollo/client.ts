@@ -1,7 +1,7 @@
 import { ApolloClient, ApolloLink, InMemoryCache } from '@apollo/client';
 import { SetContextLink } from '@apollo/client/link/context';
 import { HttpLink } from '@apollo/client/link/http';
-import type { CoreSdkConfig } from '../types';
+import type { VapSdkConfig } from '../types';
 import type { RequestContext } from '../workspaces/types';
 import { workspaceHeaders } from '../workspaces/types';
 import { createResponseCacheLink } from './response-cache';
@@ -18,7 +18,7 @@ import { createSignedFetch, PARTY_ID_HEADER } from './signed-fetch';
  * Per-request identity therefore travels as Apollo *context* rather than being baked into the client,
  * which is also what lets a future UI reuse this with its own fetch policies.
  */
-export function createSignedClient(config: CoreSdkConfig): ApolloClient {
+export function createSignedClient(config: VapSdkConfig): ApolloClient {
   const contextLink = new SetContextLink((prevContext) => {
     const context = (prevContext.requestContext ?? {}) as RequestContext;
     return {
@@ -42,7 +42,7 @@ export function createSignedClient(config: CoreSdkConfig): ApolloClient {
     link: ApolloLink.from(links),
     cache: new InMemoryCache(),
     // `no-cache` is what makes the InMemoryCache above inert. errorPolicy is left at its default
-    // ('none' — throw on any GraphQL error), which is what the CoreError mapper expects; declaring it
+    // ('none' — throw on any GraphQL error), which is what the VapError mapper expects; declaring it
     // here would require Apollo v4's DeclareDefaultOptions augmentation for no behavioural gain.
     defaultOptions: {
       query: { fetchPolicy: 'no-cache' },

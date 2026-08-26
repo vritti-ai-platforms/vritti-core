@@ -12,7 +12,7 @@ export const StartupSplashScreen = ({ statusText }: StartupSplashScreenProps) =>
   return (
     <SplashScreen
       logo={<Image source={logo} style={{ width: 72, height: 72 }} resizeMode="contain" />}
-      title="Vritti Core"
+      title="VAP"
       subtitle="Inventory and operations workspace"
       statusText={statusText}
       showSpinner

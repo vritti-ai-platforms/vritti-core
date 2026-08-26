@@ -23,7 +23,7 @@ import { PeopleGatewayService } from './services/people-gateway.service';
  * calling app authenticated its own visitor before reaching us.
  *
  * Deliberately primitive. These are three separate operations, not a registration
- * endpoint — `@vritti/core-sdk` composes them into the signup flow so every web app
+ * endpoint — `@vritti/vap-sdk` composes them into the signup flow so every web app
  * shares one implementation of it. What stays atomic server-side is the part that
  * has to be: `createPerson` writes the party and its primary EMAIL and PHONE rows in
  * a single transaction.

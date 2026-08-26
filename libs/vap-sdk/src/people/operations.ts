@@ -1,7 +1,7 @@
 import type { ApolloClient } from '@apollo/client';
 import { requireData, run } from '../apollo/errors';
 import { ADD_PERSON_COMMUNICATION, CREATE_PERSON, PEOPLE_BY_COMMUNICATION_QUERY } from '../graphql/people';
-import { CoreError, PartyRollbackError } from '../types';
+import { VapError, PartyRollbackError } from '../types';
 import type { RequestContext } from '../workspaces/types';
 import {
   CHANNELS,
@@ -208,7 +208,7 @@ const ALREADY_ON_RECORD = 'Communication Exists';
  * check cannot go stale between the read and the write.
  */
 function isAlreadyOnRecord(error: unknown): boolean {
-  return error instanceof CoreError && error.status === 409 && error.code === ALREADY_ON_RECORD;
+  return error instanceof VapError && error.status === 409 && error.code === ALREADY_ON_RECORD;
 }
 
 /** Email decides if it matches anyone; phone is only consulted when it does not. */

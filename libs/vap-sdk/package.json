@@ -1,18 +1,18 @@
 {
-  "name": "@vritti/core-sdk",
-  "description": "Client for the Vritti core API — signed requests, identity today, orders and appointments as they land",
+  "name": "@vritti/vap-sdk",
+  "description": "Client for the VAP API — signed requests, identity today, orders and appointments as they land",
   "private": false,
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.0.4",
+  "version": "0.0.1",
   "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vritti-ai-platforms/vritti-core.git",
-    "directory": "libs/core-sdk"
+    "directory": "libs/vap-sdk"
   },
-  "homepage": "https://github.com/vritti-ai-platforms/vritti-core/tree/main/libs/core-sdk#readme",
+  "homepage": "https://github.com/vritti-ai-platforms/vritti-core/tree/main/libs/vap-sdk#readme",
   "bugs": {
     "url": "https://github.com/vritti-ai-platforms/vritti-core/issues"
   },

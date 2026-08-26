@@ -2,22 +2,22 @@
 // resolution mode to read its `exports` map under. Safe precisely because it is type-only: nothing here
 // imports a runtime value from payload, so there is no CJS/ESM interop at all in the built output.
 import type { Field } from 'payload' with { 'resolution-mode': 'import' };
-import type { CoreSdkOptions } from '../config';
-import { createCoreSdk } from '../sdk';
-import { coreCacheCollection } from './collections/core-cache';
+import type { VapSdkOptions } from '../config';
+import { createVapSdk } from '../sdk';
+import { vapCacheCollection } from './collections/vap-cache';
 import { customerSessionsCollection } from './collections/customer-sessions';
 import { customersCollection } from './collections/customers';
 import { createPostgresResponseCache } from './response-cache-postgres';
 import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime';
 
-export interface VrittiCoreOptions extends CoreSdkOptions {
+export interface VapOptions extends VapSdkOptions {
   /** Mirrors `s3Storage` — off leaves the config untouched, so a branch can disable it without edits. */
   enabled?: boolean;
 
   /**
    * Where to cache core's responses — the same connection string Payload's adapter is given.
    *
-   * Supplying it turns caching on: the plugin builds the store over its own `core-cache` table, so a
+   * Supplying it turns caching on: the plugin builds the store over its own `vap-cache` table, so a
    * storefront gets it by configuring one value instead of writing an adapter. Omit it and the client
    * behaves exactly as it does without a cache, and no pool is ever opened.
    *
@@ -35,15 +35,15 @@ export interface VrittiCoreOptions extends CoreSdkOptions {
   fields?: {
     customers?: Field[];
     customerSessions?: Field[];
-    coreCache?: Field[];
+    vapCache?: Field[];
   };
 }
 
 /**
- * Everything a storefront needs to talk to Vritti core, as one Payload plugin.
+ * Everything a storefront needs to talk to VAP, as one Payload plugin.
  *
  * ```ts
- * plugins: [ vrittiCore() ]
+ * plugins: [ vap() ]
  * ```
  *
  * That one line generates the `customers` and `customer-sessions` collections and attaches the core
@@ -62,13 +62,13 @@ export interface VrittiCoreOptions extends CoreSdkOptions {
  * **`custom` is server-only.** It is in Payload's `serverOnlyConfigProperties` strip list, so the
  * client — and the signing key it holds — never reaches the browser bundle.
  */
-export function vrittiCore(options: VrittiCoreOptions = {}): PayloadPlugin {
+export function vap(options: VapOptions = {}): PayloadPlugin {
   const { enabled = true, fields, databaseUrl, databaseSchema, ...sdkOptions } = options;
 
   return <T extends ConfigLike>(config: T): T => {
     if (enabled === false) return config;
 
-    let client: ReturnType<typeof createCoreSdk> | undefined;
+    let client: ReturnType<typeof createVapSdk> | undefined;
 
     // Cast because spreading a generic and adding known keys cannot be proven to still be `T`. It is:
     // both keys are declared on ConfigLike, so nothing outside the constraint is being changed.
@@ -78,7 +78,7 @@ export function vrittiCore(options: VrittiCoreOptions = {}): PayloadPlugin {
         ...(config.collections ?? []),
         customersCollection(fields?.customers),
         customerSessionsCollection(fields?.customerSessions),
-        coreCacheCollection(fields?.coreCache),
+        vapCacheCollection(fields?.vapCache),
       ],
       custom: {
         ...config.custom,
@@ -87,7 +87,7 @@ export function vrittiCore(options: VrittiCoreOptions = {}): PayloadPlugin {
         // config phase — and throw there when a credential is missing, which is exactly what deferring it
         // was meant to avoid. `JSON.stringify` has the same problem. A function reference survives both.
         [SDK_CONFIG_KEY]: () =>
-          (client ??= createCoreSdk({
+          (client ??= createVapSdk({
             ...sdkOptions,
             // Only when a connection was supplied — otherwise the client has no store and never
             // consults one, which is the same shape it had before caching existed.

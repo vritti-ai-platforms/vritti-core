@@ -1,5 +1,5 @@
 import { signRequest, WORKSPACE_HEADER_ORDER } from '../signing';
-import type { CoreSdkConfig } from '../types';
+import type { VapSdkConfig } from '../types';
 
 /** The client id core resolves the app — and therefore the tenant — from. */
 export const CLIENT_ID_HEADER = 'x-vritti-client-id';
@@ -20,7 +20,7 @@ export const PARTY_ID_HEADER = 'x-party-id';
  * closure. That is what lets one long-lived client serve many parties and scopes: the signature is
  * built per request from the headers that request actually carries.
  */
-export function createSignedFetch(config: CoreSdkConfig): typeof fetch {
+export function createSignedFetch(config: VapSdkConfig): typeof fetch {
   const doFetch = config.fetch ?? globalThis.fetch;
   // Core signs over the pathname only; a query string would not match.
   const path = new URL(config.endpoint, 'http://placeholder').pathname;

@@ -127,7 +127,7 @@ export const TopBar = () => {
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="text-xs text-muted-foreground leading-tight">Powered by</span>
-                          <img src={logoImg} alt="Vritti Core" className="h-2.5 w-auto" />
+                          <img src={logoImg} alt="VAP" className="h-2.5 w-auto" />
                         </span>
                       </span>
                     </span>
@@ -137,7 +137,7 @@ export const TopBar = () => {
             </>
           ) : (
             <div className="flex items-center px-2">
-              <img src={logoImg} alt="Vritti Core" className="h-8" />
+              <img src={logoImg} alt="VAP" className="h-8" />
             </div>
           )}
         </div>

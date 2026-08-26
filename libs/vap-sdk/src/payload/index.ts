@@ -4,11 +4,11 @@ export { CLOUD_AUTH_ENV, type CloudAuthCredentials } from './cloud-auth/config';
 export { CALLBACK_URL_PATH } from './cloud-auth/endpoints';
 export { vrittiCloudAuth } from './cloud-auth/plugin';
 export type { VrittiCloudAuthOptions } from './cloud-auth/types';
-export { CORE_CACHE_TABLE, coreCacheCollection } from './collections/core-cache';
+export { VAP_CACHE_TABLE, vapCacheCollection } from './collections/vap-cache';
 export { customerSessionsCollection } from './collections/customer-sessions';
 export { customersCollection } from './collections/customers';
 export { ensurePartyId } from './party';
-export { type VrittiCoreOptions, vrittiCore } from './plugin';
+export { type VapOptions, vap } from './plugin';
 export {
   createPostgresResponseCache,
   type PostgresResponseCacheOptions,

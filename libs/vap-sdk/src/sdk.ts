@@ -1,11 +1,11 @@
 import { createSignedClient } from './apollo/client';
-import { type CoreSdkOptions, resolveConfig } from './config';
+import { type VapSdkOptions, resolveConfig } from './config';
 import { createPeopleOperations } from './people/operations';
 import type { RequestContext } from './workspaces';
 import { createWorkspacesOperations } from './workspaces/operations';
 
 /**
- * A client for the Vritti core API.
+ * A client for the VAP API.
  *
  * Not storefront-specific: a shop, an appointment booking site and a partner
  * integration all speak to core the same way, so domains are named for what they
@@ -19,14 +19,14 @@ import { createWorkspacesOperations } from './workspaces/operations';
  * passed in, so the usual call takes no arguments at all.
  *
  * ```ts
- * const sdk = createCoreSdk();
+ * const sdk = createVapSdk();
  * const { partyId } = await sdk.people.register(input, hooks);
  *
  * // Everything a signed-in shopper does, scoped to their store:
  * const scoped = sdk.forContext({ partyId, workspace: { kind: 'site', id: siteId } });
  * ```
  */
-export function createCoreSdk(options: CoreSdkOptions = {}) {
+export function createVapSdk(options: VapSdkOptions = {}) {
   const config = resolveConfig(options);
 
   // One client for the life of the SDK. It caches nothing in memory — see `createSignedClient` — so
@@ -56,4 +56,4 @@ export function createCoreSdk(options: CoreSdkOptions = {}) {
   };
 }
 
-export type CoreSdk = ReturnType<typeof createCoreSdk>;
+export type VapSdk = ReturnType<typeof createVapSdk>;

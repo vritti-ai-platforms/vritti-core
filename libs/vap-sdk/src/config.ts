@@ -1,10 +1,10 @@
-import { CoreError, type CoreSdkConfig } from './types';
+import { VapError, type VapSdkConfig } from './types';
 
 /**
  * The variables this SDK reads when it is not handed a value.
  *
  * Unprefixed on purpose — the SDK owns these names, so a consumer configures core access by setting
- * them and nothing else. Each has a matching field on `CoreSdkConfig`; passing the field wins, which
+ * them and nothing else. Each has a matching field on `VapSdkConfig`; passing the field wins, which
  * is what lets a test or a second credential bypass the environment entirely.
  */
 export const ENV_VARS = {
@@ -14,7 +14,7 @@ export const ENV_VARS = {
 } as const;
 
 /** What a caller may leave out, because the environment can supply it. */
-export type CoreSdkOptions = Partial<CoreSdkConfig>;
+export type VapSdkOptions = Partial<VapSdkConfig>;
 
 /**
  * Fills in whatever the caller did not pass, from the environment.
@@ -27,7 +27,7 @@ export type CoreSdkOptions = Partial<CoreSdkConfig>;
  * yields a missing-configuration error instead of `ReferenceError: process is not defined` — the SDK's
  * documents are meant to be reusable from a UI even though its signing is not.
  */
-export function resolveConfig(options: CoreSdkOptions = {}): CoreSdkConfig {
+export function resolveConfig(options: VapSdkOptions = {}): VapSdkConfig {
   // Collected rather than thrown one at a time, so someone configuring this for the first time is told
   // about all three at once instead of discovering them across three failed deploys.
   const missing: string[] = [];
@@ -44,9 +44,9 @@ export function resolveConfig(options: CoreSdkOptions = {}): CoreSdkConfig {
   const privateKey = required(options.privateKey ?? readEnv(ENV_VARS.privateKey), ENV_VARS.privateKey);
 
   if (missing.length > 0) {
-    // A configuration mistake, not a request failure — but it surfaces as CoreError so a caller that
+    // A configuration mistake, not a request failure — but it surfaces as VapError so a caller that
     // already handles core failures does not need a second catch for this one.
-    throw new CoreError(`Vritti core is not configured — set ${missing.join(', ')}.`, 'Not Configured', undefined);
+    throw new VapError(`VAP is not configured — set ${missing.join(', ')}.`, 'Not Configured', undefined);
   }
 
   return { ...options, endpoint, clientId, privateKey };

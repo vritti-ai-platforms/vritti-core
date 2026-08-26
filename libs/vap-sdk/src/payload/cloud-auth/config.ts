@@ -1,4 +1,4 @@
-import { CoreError } from '../../types';
+import { VapError } from '../../types';
 
 export const CLOUD_AUTH_ENV = {
   consentUrl: 'VRITTI_OAUTH_CONSENT_URL',
@@ -33,7 +33,7 @@ export function resolveCloudAuthCredentials(options: CloudAuthCredentialOptions 
   const clientSecret = options.clientSecret ?? readEnv(CLOUD_AUTH_ENV.clientSecret);
 
   if (missing.length > 0) {
-    throw new CoreError(
+    throw new VapError(
       `Vritti Cloud login is not configured — set ${missing.join(', ')}.`,
       'Not Configured',
       undefined,

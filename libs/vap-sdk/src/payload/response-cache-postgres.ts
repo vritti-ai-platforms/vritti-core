@@ -1,5 +1,5 @@
 import type { ResponseCacheStore } from '../apollo/response-cache';
-import { CORE_CACHE_TABLE } from './collections/core-cache';
+import { VAP_CACHE_TABLE } from './collections/vap-cache';
 
 /** The slice of `pg` this uses. Structural, so `@types/pg` is not a dependency. */
 interface PoolLike {
@@ -24,7 +24,7 @@ export interface PostgresResponseCacheOptions {
 }
 
 /**
- * A `ResponseCacheStore` over the `core-cache` table.
+ * A `ResponseCacheStore` over the `vap-cache` table.
  *
  * Raw SQL rather than Payload's Local API, deliberately: this is consulted on every cached request, and
  * a cache read should be one indexed lookup rather than a document pipeline with hooks and access rules
@@ -38,7 +38,7 @@ export function createPostgresResponseCache(options: PostgresResponseCacheOption
   const schema = options.databaseSchema?.trim() || 'public';
   // Identifiers cannot be parameterised, so they are quoted and the schema is the only interpolation —
   // it comes from the app's own config, never from a request.
-  const table = `"${schema.replace(/"/g, '""')}"."${CORE_CACHE_TABLE}"`;
+  const table = `"${schema.replace(/"/g, '""')}"."${VAP_CACHE_TABLE}"`;
 
   let pool: PoolLike | undefined;
   let poolFailed = false;
