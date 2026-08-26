@@ -89,6 +89,15 @@ export class WhatsappAccountsDomainService {
     return WhatsappAccountDto.from(entity);
   }
 
+  // Resolves the WABA id and access token for Meta Graph calls made by sibling domain services.
+  // Internal to the domain layer — never exposed through a message pattern, so the credential
+  // stays inside this service's boundary
+  async resolveGraphCredentials(id: string): Promise<{ wabaId: string; accessToken: string }> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('WhatsApp account not found.');
+    return { wabaId: entity.wabaId, accessToken: entity.accessToken };
+  }
+
   // Updates a WhatsApp account; an omitted accessToken leaves the stored credential untouched
   async update(id: string, data: Omit<UpdateWhatsappAccountDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);

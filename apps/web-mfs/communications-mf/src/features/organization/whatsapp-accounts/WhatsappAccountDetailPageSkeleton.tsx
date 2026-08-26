@@ -7,7 +7,7 @@ export const WhatsappAccountDetailPageSkeleton = () => (
     <PageHeaderSkeleton showDescription showActions={false} />
 
     {/* TabsSkeleton already stands in for the tab panel, so the page's last block is the danger zone */}
-    <TabsSkeleton count={1} tabWidths={['w-24']} />
+    <TabsSkeleton count={2} tabWidths={['w-24', 'w-32']} />
 
     <DangerZoneSkeleton />
   </div>

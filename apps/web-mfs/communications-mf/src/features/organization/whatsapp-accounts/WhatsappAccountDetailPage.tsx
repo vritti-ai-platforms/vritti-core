@@ -12,6 +12,7 @@ import {
   useWhatsappAccount,
 } from '@/hooks/organization/whatsapp-accounts';
 import { OverviewTab } from './tabs/overview/OverviewTab';
+import { PhoneNumbersTab } from './tabs/phone-numbers/PhoneNumbersTab';
 
 export const WhatsappAccountDetailPage = () => {
   const { accountId = '' } = useParams<{ accountId: string }>();
@@ -63,6 +64,12 @@ export const WhatsappAccountDetailPage = () => {
             label: 'Overview',
             permission: ORG_WHATSAPP_ACCOUNTS.view,
             content: <OverviewTab account={account} />,
+          },
+          {
+            value: 'phone-numbers',
+            label: 'Phone numbers',
+            permission: ORG_WHATSAPP_ACCOUNTS.phoneNumbers.view,
+            content: <PhoneNumbersTab accountId={account.id} />,
           },
         ]}
       />

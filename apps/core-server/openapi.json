@@ -22527,6 +22527,453 @@
         ]
       }
     },
+    "/communications-api/whatsapp-accounts/{id}/phone-numbers/table": {
+      "get": {
+        "description": "Reads the numbers live from Meta — verification status and quality are always current.",
+        "operationId": "WhatsappAccountsPhoneNumbersGatewayController_getTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Phone numbers retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsappPhoneNumberTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "WhatsApp account not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the WABA's phone numbers table",
+        "tags": [
+          "Communications - WhatsApp Phone Numbers"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/phone-numbers": {
+      "post": {
+        "description": "Creates the number on the WABA in Meta. It must then be verified and registered before it can send.",
+        "operationId": "WhatsappAccountsPhoneNumbersGatewayController_create",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWhatsappPhoneNumberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Phone number added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Meta rejected the number or display name."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a phone number to the WABA",
+        "tags": [
+          "Communications - WhatsApp Phone Numbers"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/phone-numbers/{phoneNumberId}/request-code": {
+      "post": {
+        "description": "Meta delivers a 6-digit code to the number by SMS or voice call.",
+        "operationId": "WhatsappAccountsPhoneNumbersGatewayController_requestCode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phoneNumberId",
+            "required": true,
+            "in": "path",
+            "description": "Meta phone number ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPhoneVerificationCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification code requested.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Meta rejected the request."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Request the ownership verification code",
+        "tags": [
+          "Communications - WhatsApp Phone Numbers"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/phone-numbers/{phoneNumberId}/verify-code": {
+      "post": {
+        "operationId": "WhatsappAccountsPhoneNumbersGatewayController_verifyCode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phoneNumberId",
+            "required": true,
+            "in": "path",
+            "description": "Meta phone number ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneNumberCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone number verified.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The code is incorrect or expired."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Verify the phone number with the delivered code",
+        "tags": [
+          "Communications - WhatsApp Phone Numbers"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/phone-numbers/{phoneNumberId}/profile": {
+      "get": {
+        "description": "Reads the profile (picture, about, contact details) live from Meta.",
+        "operationId": "WhatsappAccountsPhoneNumbersGatewayController_getProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phoneNumberId",
+            "required": true,
+            "in": "path",
+            "description": "Meta phone number ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsappPhoneNumberProfileResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WhatsApp account not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the number's business profile",
+        "tags": [
+          "Communications - WhatsApp Phone Numbers"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/phone-numbers/{phoneNumberId}/profile-picture": {
+      "post": {
+        "description": "Uploads the image to Meta and points the business profile at it. Applies immediately.",
+        "operationId": "WhatsappAccountsPhoneNumbersGatewayController_updateProfilePicture",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phoneNumberId",
+            "required": true,
+            "in": "path",
+            "description": "Meta phone number ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePhoneNumberProfilePictureDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile picture updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Meta rejected the image."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace the number's profile picture",
+        "tags": [
+          "Communications - WhatsApp Phone Numbers"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/phone-numbers/{phoneNumberId}/request-name-change": {
+      "post": {
+        "description": "Submits the new name to Meta for review (track via nameStatus). Once approved, re-register the number to apply it. Limited to 10 changes per 30 days.",
+        "operationId": "WhatsappAccountsPhoneNumbersGatewayController_requestNameChange",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phoneNumberId",
+            "required": true,
+            "in": "path",
+            "description": "Meta phone number ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPhoneNumberNameChangeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Name change submitted for review.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Meta rejected the name change request."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Request a display name change",
+        "tags": [
+          "Communications - WhatsApp Phone Numbers"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/phone-numbers/{phoneNumberId}/register": {
+      "post": {
+        "description": "Requires the two-step verification PIN — set on first registration, matched afterwards.",
+        "operationId": "WhatsappAccountsPhoneNumbersGatewayController_register",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phoneNumberId",
+            "required": true,
+            "in": "path",
+            "description": "Meta phone number ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPhoneNumberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone number registered.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Meta rejected the registration (e.g. wrong PIN)."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register the verified number for Cloud API messaging",
+        "tags": [
+          "Communications - WhatsApp Phone Numbers"
+        ]
+      }
+    },
     "/gitea-api/organization": {
       "get": {
         "operationId": "OrganizationGatewayController_getStatus",
@@ -33006,6 +33453,245 @@
             "type": "boolean"
           }
         }
+      },
+      "WhatsappPhoneNumberResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Meta phone number ID",
+            "example": "1259833303888701"
+          },
+          "displayPhoneNumber": {
+            "type": "string",
+            "example": "+91 94917 00322"
+          },
+          "verifiedName": {
+            "type": "string",
+            "description": "Display name shown to WhatsApp users",
+            "example": "Vritti AI"
+          },
+          "codeVerificationStatus": {
+            "type": "object",
+            "nullable": true,
+            "example": "VERIFIED",
+            "description": "Meta ownership verification status"
+          },
+          "qualityRating": {
+            "type": "object",
+            "nullable": true,
+            "example": "GREEN",
+            "description": "Meta messaging quality rating"
+          },
+          "platformType": {
+            "type": "object",
+            "nullable": true,
+            "example": "CLOUD_API"
+          },
+          "throughputLevel": {
+            "type": "object",
+            "nullable": true,
+            "example": "STANDARD"
+          },
+          "nameStatus": {
+            "type": "object",
+            "nullable": true,
+            "example": "APPROVED",
+            "description": "Meta display name review status"
+          }
+        },
+        "required": [
+          "id",
+          "displayPhoneNumber",
+          "verifiedName",
+          "codeVerificationStatus",
+          "qualityRating",
+          "platformType",
+          "throughputLevel",
+          "nameStatus"
+        ]
+      },
+      "WhatsappPhoneNumberTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WhatsappPhoneNumberResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "CreateWhatsappPhoneNumberDto": {
+        "type": "object",
+        "properties": {
+          "cc": {
+            "type": "string",
+            "description": "Country calling code without the plus sign",
+            "example": "91"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "National number without the country code",
+            "example": "9491700322"
+          },
+          "verifiedName": {
+            "type": "string",
+            "description": "Display name shown to WhatsApp users; reviewed by Meta",
+            "example": "Vritti AI"
+          }
+        },
+        "required": [
+          "cc",
+          "phoneNumber",
+          "verifiedName"
+        ]
+      },
+      "RequestPhoneVerificationCodeDto": {
+        "type": "object",
+        "properties": {
+          "codeMethod": {
+            "type": "string",
+            "description": "How Meta delivers the verification code",
+            "enum": [
+              "SMS",
+              "VOICE"
+            ],
+            "example": "SMS"
+          },
+          "language": {
+            "type": "string",
+            "description": "Locale for the delivery message",
+            "example": "en_US",
+            "default": "en_US"
+          }
+        },
+        "required": [
+          "codeMethod"
+        ]
+      },
+      "VerifyPhoneNumberCodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The 6-digit code Meta delivered",
+            "example": "123456"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "WhatsappPhoneNumberProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "about": {
+            "type": "object",
+            "nullable": true,
+            "description": "Short status line shown on the profile"
+          },
+          "address": {
+            "type": "object",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "nullable": true
+          },
+          "profilePictureUrl": {
+            "type": "object",
+            "nullable": true,
+            "description": "CDN URL of the current profile picture"
+          },
+          "vertical": {
+            "type": "object",
+            "nullable": true,
+            "description": "Business category (Meta vertical)"
+          },
+          "websites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "about",
+          "address",
+          "description",
+          "email",
+          "profilePictureUrl",
+          "vertical",
+          "websites"
+        ]
+      },
+      "UpdatePhoneNumberProfilePictureDto": {
+        "type": "object",
+        "properties": {
+          "imageBase64": {
+            "type": "string",
+            "description": "Base64-encoded image bytes (no data: prefix). Square 640×640 recommended."
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png"
+            ],
+            "example": "image/jpeg"
+          }
+        },
+        "required": [
+          "imageBase64",
+          "mimeType"
+        ]
+      },
+      "RequestPhoneNumberNameChangeDto": {
+        "type": "object",
+        "properties": {
+          "newDisplayName": {
+            "type": "string",
+            "description": "New display name — reviewed by Meta against its display name policy",
+            "example": "Vritti AI"
+          }
+        },
+        "required": [
+          "newDisplayName"
+        ]
+      },
+      "RegisterPhoneNumberDto": {
+        "type": "object",
+        "properties": {
+          "pin": {
+            "type": "string",
+            "description": "Two-step verification PIN — set on first registration, must match the existing PIN afterwards",
+            "example": "000000"
+          }
+        },
+        "required": [
+          "pin"
+        ]
       },
       "CreateRepositoryDto": {
         "type": "object",
