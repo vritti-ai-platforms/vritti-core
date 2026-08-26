@@ -13,6 +13,7 @@ import {
 } from '@/hooks/organization/whatsapp-accounts';
 import { OverviewTab } from './tabs/overview/OverviewTab';
 import { PhoneNumbersTab } from './tabs/phone-numbers/PhoneNumbersTab';
+import { TemplatesTab } from './tabs/templates/TemplatesTab';
 
 export const WhatsappAccountDetailPage = () => {
   const { accountId = '' } = useParams<{ accountId: string }>();
@@ -70,6 +71,13 @@ export const WhatsappAccountDetailPage = () => {
             label: 'Phone numbers',
             permission: ORG_WHATSAPP_ACCOUNTS.phoneNumbers.view,
             content: <PhoneNumbersTab accountId={account.id} />,
+          },
+          {
+            value: 'templates',
+            label: 'Templates',
+            // TEMP: account-level view until templates.view is authored in the cloud catalog (after the full templates feature ships)
+            permission: ORG_WHATSAPP_ACCOUNTS.view,
+            content: <TemplatesTab accountId={account.id} />,
           },
         ]}
       />

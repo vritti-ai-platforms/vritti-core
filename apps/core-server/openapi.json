@@ -22974,6 +22974,50 @@
         ]
       }
     },
+    "/communications-api/whatsapp-accounts/{id}/templates/table": {
+      "get": {
+        "description": "Reads the templates live from Meta (one row per name and language pair) — review status and quality are always current.",
+        "operationId": "WhatsappAccountsTemplatesGatewayController_getTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Templates retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsappTemplateTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "WhatsApp account not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the WABA's message templates table",
+        "tags": [
+          "Communications - WhatsApp Templates"
+        ]
+      }
+    },
     "/gitea-api/organization": {
       "get": {
         "operationId": "OrganizationGatewayController_getStatus",
@@ -33691,6 +33735,83 @@
         },
         "required": [
           "pin"
+        ]
+      },
+      "WhatsappTemplateResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Meta template ID",
+            "example": "1234567890123456"
+          },
+          "name": {
+            "type": "string",
+            "example": "verification_code"
+          },
+          "status": {
+            "type": "object",
+            "nullable": true,
+            "example": "APPROVED",
+            "description": "Meta review status"
+          },
+          "category": {
+            "type": "object",
+            "nullable": true,
+            "example": "AUTHENTICATION"
+          },
+          "language": {
+            "type": "object",
+            "nullable": true,
+            "example": "en"
+          },
+          "qualityScore": {
+            "type": "object",
+            "nullable": true,
+            "example": "GREEN",
+            "description": "Meta quality score"
+          },
+          "rejectedReason": {
+            "type": "object",
+            "nullable": true,
+            "description": "Reason Meta gave when the template was rejected"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status",
+          "category",
+          "language",
+          "qualityScore",
+          "rejectedReason"
+        ]
+      },
+      "WhatsappTemplateTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WhatsappTemplateResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
         ]
       },
       "CreateRepositoryDto": {
