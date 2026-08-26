@@ -130,6 +130,7 @@ export const TemplatePreviewDialog = ({ accountId, template, onClose }: Template
           <Select name="senderPhoneNumberId" label="From" placeholder="Select sender number" options={senderOptions} />
           <TextField name="to" label="To" placeholder="+919876543210" description="Recipient in international format" />
           {Array.from({ length: variableCount }, (_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: a template variable IS its position ({{1}}, {{2}}) — the list cannot reorder
             <TextField key={`bodyParams.${i}`} name={`bodyParams.${i}`} label={`Value for {{${i + 1}}}`} />
           ))}
         </div>
