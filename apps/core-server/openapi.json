@@ -424,17 +424,7 @@
       },
       "get": {
         "operationId": "AppController_listFromCloud",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "query",
-            "description": "Nexus organization ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": ""
@@ -453,15 +443,6 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "query",
-            "description": "Nexus organization ID",
             "schema": {
               "type": "string"
             }
@@ -523,16 +504,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AppScopeInternalDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": ""
@@ -556,16 +527,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AppScopeInternalDto"
-              }
-            }
-          }
-        },
         "responses": {
           "204": {
             "description": ""
@@ -1333,16 +1294,6 @@
         "operationId": "UserController_getUsersByOrg",
         "parameters": [
           {
-            "name": "orgId",
-            "required": true,
-            "in": "query",
-            "description": "Organization ID",
-            "schema": {
-              "example": "uuid-here",
-              "type": "string"
-            }
-          },
-          {
             "name": "filters",
             "required": false,
             "in": "query",
@@ -1388,6 +1339,13 @@
               "default": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "query",
+            "description": "Organization ID",
+            "schema": {}
           }
         ],
         "responses": {
@@ -25290,10 +25248,6 @@
       "CreateAppInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Nexus organization ID the app belongs to"
-          },
           "name": {
             "type": "string",
             "description": "Human label for the credential",
@@ -25314,7 +25268,6 @@
           }
         },
         "required": [
-          "orgId",
           "name",
           "type"
         ]
@@ -25322,10 +25275,6 @@
       "UpdateAppInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Nexus organization ID — scopes the lookup so one org cannot address another’s app"
-          },
           "name": {
             "type": "string",
             "description": "New label"
@@ -25339,18 +25288,6 @@
             "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"graphql\":[\"view\",\"add\"]}}. Replaces the whole set."
           }
         }
-      },
-      "AppScopeInternalDto": {
-        "type": "object",
-        "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Nexus organization ID"
-          }
-        },
-        "required": [
-          "orgId"
-        ]
       },
       "LoginDto": {
         "type": "object",
@@ -26224,11 +26161,6 @@
       "CreateUserInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Nexus organization ID",
-            "example": "uuid-here"
-          },
           "email": {
             "type": "string",
             "description": "User email address",
@@ -26251,7 +26183,6 @@
           }
         },
         "required": [
-          "orgId",
           "email",
           "fullName"
         ]
@@ -26726,11 +26657,6 @@
       "CreateRoleInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
           "name": {
             "type": "string",
             "example": "Inventory Manager"
@@ -26771,7 +26697,6 @@
           }
         },
         "required": [
-          "orgId",
           "name",
           "code",
           "features"
@@ -27141,11 +27066,6 @@
       "CreateLegalEntityInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
           "code": {
             "type": "string",
             "description": "Legal entity code (unique per organization)",
@@ -27199,7 +27119,6 @@
           }
         },
         "required": [
-          "orgId",
           "code",
           "name",
           "country",
@@ -27254,11 +27173,6 @@
       "ReorderLegalEntitiesInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
           "ids": {
             "description": "Sibling legal entity IDs in their new left-to-right order",
             "type": "array",
@@ -27268,7 +27182,6 @@
           }
         },
         "required": [
-          "orgId",
           "ids"
         ]
       },
@@ -27349,11 +27262,6 @@
       "CreateSiteInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
           "name": {
             "type": "string",
             "description": "Site name",
@@ -27412,7 +27320,6 @@
           }
         },
         "required": [
-          "orgId",
           "name",
           "code",
           "type",
@@ -27423,11 +27330,6 @@
       "ReorderSitesInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
           "ids": {
             "description": "Site IDs of the same legal entity in their new left-to-right order",
             "type": "array",
@@ -27437,7 +27339,6 @@
           }
         },
         "required": [
-          "orgId",
           "ids"
         ]
       },
@@ -27504,11 +27405,6 @@
       "CreateSiteGroupInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
           "name": {
             "type": "string",
             "description": "Site group name",
@@ -27550,7 +27446,6 @@
           }
         },
         "required": [
-          "orgId",
           "name",
           "code"
         ]
@@ -27558,11 +27453,6 @@
       "ReorderSiteGroupsInternalDto": {
         "type": "object",
         "properties": {
-          "orgId": {
-            "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
           "ids": {
             "description": "Sibling site group IDs in their new left-to-right order",
             "type": "array",
@@ -27572,7 +27462,6 @@
           }
         },
         "required": [
-          "orgId",
           "ids"
         ]
       },

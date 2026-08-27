@@ -40,8 +40,8 @@ export class LegalEntityService {
   }
 
   // Creates a legal entity
-  async create(dto: CreateLegalEntityInternalDto): Promise<LegalEntityDto> {
-    return this.legalEntityService.create(dto.orgId, dto);
+  async create(orgId: string, dto: CreateLegalEntityInternalDto): Promise<LegalEntityDto> {
+    return this.legalEntityService.create(orgId, dto);
   }
 
   // Updates a legal entity

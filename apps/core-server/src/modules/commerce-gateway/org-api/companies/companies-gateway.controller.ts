@@ -1,3 +1,38 @@
+import { CreateCompanyDto } from '@commerce/parties/dto/request/create-company.dto';
+import { CreateCompanyRegistrationDto } from '@commerce/parties/dto/request/create-company-registration.dto';
+import { UpdateCompanyDto } from '@commerce/parties/dto/request/update-company.dto';
+import { UpdateCompanyRegistrationDto } from '@commerce/parties/dto/request/update-company-registration.dto';
+import type { CompanyRegistrationResponseDto } from '@commerce/parties/dto/response/company-registration-response.dto';
+import type { CompanyRegistrationTableResponseDto } from '@commerce/parties/dto/response/company-registration-table-response.dto';
+import type { CompanyResponseDto } from '@commerce/parties/dto/response/company-response.dto';
+import type { CompanyTableResponseDto } from '@commerce/parties/dto/response/company-table-response.dto';
+import { AddCompanyAddressDto } from '@commerce/party-addresses/dto/request/add-company-address.dto';
+import { UpdateCompanyAddressDto } from '@commerce/party-addresses/dto/request/update-company-address.dto';
+import type { PartyAddressResponseDto } from '@commerce/party-addresses/dto/response/party-address-response.dto';
+import type { PartyAddressTableResponseDto } from '@commerce/party-addresses/dto/response/party-address-table-response.dto';
+import { CreateCompanyBankAccountDto } from '@commerce/party-bank-accounts/dto/request/create-company-bank-account.dto';
+import { UpdateCompanyBankAccountDto } from '@commerce/party-bank-accounts/dto/request/update-company-bank-account.dto';
+import type { PartyBankAccountResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-response.dto';
+import type { PartyBankAccountTableResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-table-response.dto';
+import { CreateCompanyCommunicationDto } from '@commerce/party-communications/dto/request/create-company-communication.dto';
+import { UpdateCompanyCommunicationDto } from '@commerce/party-communications/dto/request/update-company-communication.dto';
+import type { PartyCommunicationResponseDto } from '@commerce/party-communications/dto/response/party-communication-response.dto';
+import type { PartyCommunicationTableResponseDto } from '@commerce/party-communications/dto/response/party-communication-table-response.dto';
+import { AddCompanyIdentifierDto } from '@commerce/party-identifiers/dto/request/add-company-identifier.dto';
+import type { PartyIdentifierResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-response.dto';
+import type { PartyIdentifierTableResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-table-response.dto';
+import { CreateCompanyLicenseDto } from '@commerce/party-licenses/dto/request/create-company-license.dto';
+import { UpdateCompanyLicenseDto } from '@commerce/party-licenses/dto/request/update-company-license.dto';
+import type { PartyLicenseResponseDto } from '@commerce/party-licenses/dto/response/party-license-response.dto';
+import type { PartyLicenseTableResponseDto } from '@commerce/party-licenses/dto/response/party-license-table-response.dto';
+import { AddCompanyPersonDto } from '@commerce/party-relationships/dto/request/add-company-person.dto';
+import { UpdateCompanyPersonDto } from '@commerce/party-relationships/dto/request/update-company-person.dto';
+import type { CompanyPersonResponseDto } from '@commerce/party-relationships/dto/response/company-person-response.dto';
+import type { CompanyPersonTableResponseDto } from '@commerce/party-relationships/dto/response/company-person-table-response.dto';
+import { CreateCompanySocialProfileDto } from '@commerce/party-social-profiles/dto/request/create-company-social-profile.dto';
+import { UpdateCompanySocialProfileDto } from '@commerce/party-social-profiles/dto/request/update-company-social-profile.dto';
+import type { PartySocialProfileResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-response.dto';
+import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
 import {
   Body,
   Controller,
@@ -13,52 +48,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
 import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { AddCompanyPersonDto } from '@commerce/party-relationships/dto/request/add-company-person.dto';
-import { AddCompanyAddressDto } from '@commerce/party-addresses/dto/request/add-company-address.dto';
-import { AddCompanyIdentifierDto } from '@commerce/party-identifiers/dto/request/add-company-identifier.dto';
-import { CreateCompanyDto } from '@commerce/parties/dto/request/create-company.dto';
-import { CreateCompanyRegistrationDto } from '@commerce/parties/dto/request/create-company-registration.dto';
-import { CreateCompanyBankAccountDto } from '@commerce/party-bank-accounts/dto/request/create-company-bank-account.dto';
-import { CreateCompanyCommunicationDto } from '@commerce/party-communications/dto/request/create-company-communication.dto';
-import { CreateCompanyLicenseDto } from '@commerce/party-licenses/dto/request/create-company-license.dto';
-import { CreateCompanySocialProfileDto } from '@commerce/party-social-profiles/dto/request/create-company-social-profile.dto';
-import { UpdateCompanyDto } from '@commerce/parties/dto/request/update-company.dto';
-import { UpdateCompanyPersonDto } from '@commerce/party-relationships/dto/request/update-company-person.dto';
-import { UpdateCompanyRegistrationDto } from '@commerce/parties/dto/request/update-company-registration.dto';
-import { UpdateCompanyAddressDto } from '@commerce/party-addresses/dto/request/update-company-address.dto';
-import { UpdateCompanyBankAccountDto } from '@commerce/party-bank-accounts/dto/request/update-company-bank-account.dto';
-import { UpdateCompanyCommunicationDto } from '@commerce/party-communications/dto/request/update-company-communication.dto';
-import { UpdateCompanyLicenseDto } from '@commerce/party-licenses/dto/request/update-company-license.dto';
-import { UpdateCompanySocialProfileDto } from '@commerce/party-social-profiles/dto/request/update-company-social-profile.dto';
-import type { CompanyPersonResponseDto } from '@commerce/party-relationships/dto/response/company-person-response.dto';
-import type { CompanyPersonTableResponseDto } from '@commerce/party-relationships/dto/response/company-person-table-response.dto';
-import type { CompanyRegistrationResponseDto } from '@commerce/parties/dto/response/company-registration-response.dto';
-import type { CompanyRegistrationTableResponseDto } from '@commerce/parties/dto/response/company-registration-table-response.dto';
-import type { CompanyResponseDto } from '@commerce/parties/dto/response/company-response.dto';
-import type { CompanyTableResponseDto } from '@commerce/parties/dto/response/company-table-response.dto';
-import type { PartyAddressResponseDto } from '@commerce/party-addresses/dto/response/party-address-response.dto';
-import type { PartyAddressTableResponseDto } from '@commerce/party-addresses/dto/response/party-address-table-response.dto';
-import type { PartyBankAccountResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-response.dto';
-import type { PartyBankAccountTableResponseDto } from '@commerce/party-bank-accounts/dto/response/party-bank-account-table-response.dto';
-import type { PartyCommunicationResponseDto } from '@commerce/party-communications/dto/response/party-communication-response.dto';
-import type { PartyCommunicationTableResponseDto } from '@commerce/party-communications/dto/response/party-communication-table-response.dto';
-import type { PartyIdentifierResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-response.dto';
-import type { PartyIdentifierTableResponseDto } from '@commerce/party-identifiers/dto/response/party-identifier-table-response.dto';
-import type { PartyLicenseResponseDto } from '@commerce/party-licenses/dto/response/party-license-response.dto';
-import type { PartyLicenseTableResponseDto } from '@commerce/party-licenses/dto/response/party-license-table-response.dto';
-import type { PartySocialProfileResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-response.dto';
-import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
 import { CompaniesGatewayService } from './services/companies-gateway.service';
 
 @ApiTags('Commerce - Companies')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_COMPANIES.featureCode)
 @Controller('companies')
 export class CompaniesGatewayController {

@@ -1,16 +1,19 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import { SessionTypeValues } from '@/db/schema';
 import { CreateInvoiceDto } from '@commerce/invoices/dto/request/create-invoice.dto';
 import { UpdateInvoiceDto } from '@commerce/invoices/dto/request/update-invoice.dto';
-import type { InvoiceDetailResponseDto, InvoiceResponseDto } from '@commerce/invoices/dto/response/invoice-response.dto';
+import type {
+  InvoiceDetailResponseDto,
+  InvoiceResponseDto,
+} from '@commerce/invoices/dto/response/invoice-response.dto';
 import type { InvoiceTableResponseDto } from '@commerce/invoices/dto/response/invoice-table-response.dto';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import { SessionTypeValues } from '@/db/schema';
 import { InvoicesGatewayService } from './services/invoices-gateway.service';
 
 @ApiTags('Commerce - Invoices')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('invoices')
 export class InvoicesGatewayController {
   constructor(private readonly invoicesGatewayService: InvoicesGatewayService) {}

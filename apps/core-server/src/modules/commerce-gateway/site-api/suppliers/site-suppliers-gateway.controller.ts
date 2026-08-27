@@ -1,11 +1,3 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
-import { SITE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
-import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AddSiteSupplierItemPriceDto } from '@commerce/supplier-sites/dto/request/add-site-supplier-item-price.dto';
 import { EnrollSiteSupplierDto } from '@commerce/supplier-sites/dto/request/enroll-site-supplier.dto';
 import { SiteSupplierItemPriceQueryDto } from '@commerce/supplier-sites/dto/request/site-supplier-item-price-query.dto';
@@ -18,11 +10,19 @@ import type { SiteSupplierItemResponseDto } from '@commerce/supplier-sites/dto/r
 import type { SiteSupplierItemTableResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-item-table-response.dto';
 import type { SiteSupplierResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-response.dto';
 import type { SiteSupplierTableResponseDto } from '@commerce/supplier-sites/dto/response/site-supplier-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
+import { SITE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
+import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { SiteSuppliersGatewayService } from './services/site-suppliers-gateway.service';
 
 @ApiTags('Commerce - Site Suppliers')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_SUPPLIERS.featureCode)
 @Controller('site/suppliers')
 export class SiteSuppliersGatewayController {

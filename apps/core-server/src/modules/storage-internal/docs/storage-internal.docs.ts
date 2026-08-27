@@ -26,7 +26,11 @@ export function ApiGetOrgStorage() {
     }),
     ...SIGNATURE_HEADERS,
     ApiBody({ type: OrgStorageBodyDto }),
-    ApiResponse({ status: 200, description: 'Org storage descriptor retrieved successfully.', type: OrgStorageResponseDto }),
+    ApiResponse({
+      status: 200,
+      description: 'Org storage descriptor retrieved successfully.',
+      type: OrgStorageResponseDto,
+    }),
     ApiResponse({ status: 400, description: 'Owner is missing or invalid.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
     ApiResponse({ status: 403, description: 'Signature verification failed.' }),

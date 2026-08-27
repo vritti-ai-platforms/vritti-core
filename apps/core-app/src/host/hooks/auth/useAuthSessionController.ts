@@ -3,9 +3,9 @@ import {
   getStoredMobileBaseURL,
   initializeMobileSession,
   setMobileBaseURL,
+  setOnSessionExpired,
 } from '@vritti/quantum-ui-native/utils';
 import { useCallback, useEffect, useState } from 'react';
-import mobileAxiosConfig from '../../../../quantum-ui-native.config';
 import { purgeApolloCache } from '../../config/apollo';
 import { config } from '../../config/env';
 import type { AuthStatusResponse } from '../../types/auth-status';
@@ -58,10 +58,9 @@ export function useAuthSessionController() {
       setPhase('bootstrapping');
 
       try {
-        const restored = await initializeMobileSession({
-          ...mobileAxiosConfig,
-          onSessionExpired: resetSignedOutState,
-        });
+        // Swap the handler rather than reconfiguring — reconfiguring replaces every section
+        setOnSessionExpired(resetSignedOutState);
+        const restored = await initializeMobileSession();
         // Dev: pin API_BASE_URL over any stored deployment/tenant URL so all traffic targets it (no-op in prod).
         if (config.api.devRawCoreBaseUrl) {
           await setMobileBaseURL(config.api.devRawCoreBaseUrl);

@@ -1,22 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  Param,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
-import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
-import { AppScopeInternalDto } from '../dto/request/app-scope-internal.dto';
+import { OrgId } from '@/security/decorators/org-id.decorator';
 import { CreateAppInternalDto } from '../dto/request/create-app-internal.dto';
 import { UpdateAppInternalDto } from '../dto/request/update-app-internal.dto';
 import { AppResponseDto } from '../dto/response/app-response.dto';
@@ -25,13 +12,12 @@ import { AppSigningKeyResponseDto } from '../dto/response/app-signing-key-respon
 /**
  * App credentials, managed from cloud-web.
  *
- * Every route is `@Public()` + `CloudSignatureGuard` — the same shape as
- * `/users/internal`. `@Public()` turns the *session* guard off because cloud
- * carries no user session; the signature is what authenticates the caller.
+ * Every route is `@Require(AuthType.Cloud)` — the signature is what authenticates the caller,
+ * verified by `CloudRequestResolver` from the auth hook, the same shape as `/users/internal`.
  *
- * Every route also takes `orgId` and scopes its lookup by it. An id alone would
- * let one organization address another's credential, and cloud is trusted to
- * name the org but not to have picked the right one.
+ * The organization comes from `@OrgId()`, which reads the context the guard
+ * established from the signed `x-org-id` header. Every lookup is scoped by it:
+ * an id alone would let one organization address another's credential.
  */
 @ApiTags('Apps')
 @Controller('apps')
@@ -42,13 +28,12 @@ export class AppController {
   constructor(private readonly appService: AppDomainService) {}
 
   @Post('internal')
-  @Public()
-  @UseGuards(CloudSignatureGuard)
+  @Require(AuthType.Cloud)
   @HttpCode(HttpStatus.CREATED)
-  async createFromCloud(@Body() dto: CreateAppInternalDto): Promise<AppResponseDto> {
-    this.logger.log(`POST /apps/internal — ${dto.type} for org ${dto.orgId}`);
+  async createFromCloud(@OrgId() orgId: string, @Body() dto: CreateAppInternalDto): Promise<AppResponseDto> {
+    this.logger.log(`POST /apps/internal — ${dto.type} for org ${orgId}`);
     const app = await this.appService.create({
-      organizationId: dto.orgId,
+      organizationId: orgId,
       name: dto.name,
       type: dto.type,
       permissions: dto.permissions,
@@ -57,11 +42,10 @@ export class AppController {
   }
 
   @Get('internal')
-  @Public()
-  @UseGuards(CloudSignatureGuard)
-  async listFromCloud(@Query() dto: AppScopeInternalDto): Promise<AppResponseDto[]> {
-    this.logger.log(`GET /apps/internal?orgId=${dto.orgId}`);
-    const apps = await this.appService.listForOrg(dto.orgId);
+  @Require(AuthType.Cloud)
+  async listFromCloud(@OrgId() orgId: string): Promise<AppResponseDto[]> {
+    this.logger.log(`GET /apps/internal — org ${orgId}`);
+    const apps = await this.appService.listForOrg(orgId);
     return apps.map((app) => new AppResponseDto(app));
   }
 
@@ -72,42 +56,38 @@ export class AppController {
    * is always a deliberate act — and so it shows up in the access log as one.
    */
   @Get('internal/:id/signing-key')
-  @Public()
-  @UseGuards(CloudSignatureGuard)
-  async revealSigningKey(
-    @Param('id') id: string,
-    @Query() dto: AppScopeInternalDto,
-  ): Promise<AppSigningKeyResponseDto> {
+  @Require(AuthType.Cloud)
+  async revealSigningKey(@Param('id') id: string, @OrgId() orgId: string): Promise<AppSigningKeyResponseDto> {
     this.logger.log(`GET /apps/internal/${id}/signing-key`);
-    const app = await this.requireApp(id, dto.orgId);
+    const app = await this.requireApp(id, orgId);
     return new AppSigningKeyResponseDto(app.clientId, app.signingKey);
   }
 
   @Patch('internal/:id')
-  @Public()
-  @UseGuards(CloudSignatureGuard)
-  async updateFromCloud(@Param('id') id: string, @Body() dto: UpdateAppInternalDto): Promise<AppResponseDto> {
+  @Require(AuthType.Cloud)
+  async updateFromCloud(
+    @Param('id') id: string,
+    @OrgId() orgId: string,
+    @Body() dto: UpdateAppInternalDto,
+  ): Promise<AppResponseDto> {
     this.logger.log(`PATCH /apps/internal/${id}`);
-    await this.requireApp(id, dto.orgId);
+    await this.requireApp(id, orgId);
 
     if (dto.name !== undefined) await this.appService.rename(id, dto.name);
     if (dto.permissions !== undefined) await this.appService.setPermissions(id, dto.permissions);
     const app =
-      dto.isActive !== undefined
-        ? await this.appService.setActive(id, dto.isActive)
-        : await this.requireApp(id, dto.orgId);
+      dto.isActive !== undefined ? await this.appService.setActive(id, dto.isActive) : await this.requireApp(id, orgId);
 
     return new AppResponseDto(app);
   }
 
   /** New keypair, same client id — the caller swaps one value, not two. */
   @Post('internal/:id/rotate')
-  @Public()
-  @UseGuards(CloudSignatureGuard)
+  @Require(AuthType.Cloud)
   @HttpCode(HttpStatus.OK)
-  async rotateFromCloud(@Param('id') id: string, @Body() dto: AppScopeInternalDto): Promise<AppResponseDto> {
+  async rotateFromCloud(@Param('id') id: string, @OrgId() orgId: string): Promise<AppResponseDto> {
     this.logger.log(`POST /apps/internal/${id}/rotate`);
-    await this.requireApp(id, dto.orgId);
+    await this.requireApp(id, orgId);
     return new AppResponseDto(await this.appService.rotate(id));
   }
 
@@ -117,12 +97,11 @@ export class AppController {
    * here requires.
    */
   @Post('internal/:id/delete')
-  @Public()
-  @UseGuards(CloudSignatureGuard)
+  @Require(AuthType.Cloud)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteFromCloud(@Param('id') id: string, @Body() dto: AppScopeInternalDto): Promise<void> {
+  async deleteFromCloud(@Param('id') id: string, @OrgId() orgId: string): Promise<void> {
     this.logger.log(`POST /apps/internal/${id}/delete`);
-    const app = await this.requireApp(id, dto.orgId);
+    const app = await this.requireApp(id, orgId);
     await this.appService.delete(app);
   }
 

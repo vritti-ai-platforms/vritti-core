@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto } from '@vritti/api-sdk/database';
 import { ORG_ORGANIZATION } from '@vritti/gitea-permissions/organization';
 import { SessionTypeValues } from '@/db/schema';
@@ -12,7 +12,7 @@ import { OrganizationGatewayService } from './services/organization-gateway.serv
 
 @ApiTags('Gitea - Organization')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_ORGANIZATION.featureCode)
 @Controller('organization')
 export class OrganizationGatewayController {

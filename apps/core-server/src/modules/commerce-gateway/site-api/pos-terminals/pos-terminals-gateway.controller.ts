@@ -1,3 +1,7 @@
+import { CreatePosTerminalDto } from '@commerce/pos-terminals/dto/request/create-pos-terminal.dto';
+import { UpdatePosTerminalDto } from '@commerce/pos-terminals/dto/request/update-pos-terminal.dto';
+import type { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-response.dto';
+import type { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
 import {
   Body,
   Controller,
@@ -13,7 +17,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import {
   type CreateResponseDto,
   SelectOptionsQueryDto,
@@ -29,15 +33,11 @@ import {
   ApiTable,
   ApiUpdate,
 } from './docs/pos-terminals-gateway.docs';
-import { CreatePosTerminalDto } from '@commerce/pos-terminals/dto/request/create-pos-terminal.dto';
-import { UpdatePosTerminalDto } from '@commerce/pos-terminals/dto/request/update-pos-terminal.dto';
-import type { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-response.dto';
-import type { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
 import { PosTerminalsGatewayService } from './services/pos-terminals-gateway.service';
 
 @ApiTags('Commerce - POS Terminals')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('pos-terminals')
 export class PosTerminalsGatewayController {
   private readonly logger = new Logger(PosTerminalsGatewayController.name);
@@ -55,7 +55,7 @@ export class PosTerminalsGatewayController {
   // Returns POS-role storage location options for select dropdowns
   @Get('locations/select')
   @ApiSelectLocations()
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   selectLocations(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/pos-terminals/locations/select');
     return this.posTerminalsGatewayService.selectPosLocations(query);

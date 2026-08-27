@@ -1,6 +1,19 @@
+import { CategoriesSelectQueryDto } from '@commerce/categories/dto/request/categories-select-query.dto';
+import { LotsSelectQueryDto } from '@commerce/inventory-item-lots/dto/request/lots-select-query.dto';
+import { QuantsSelectQueryDto } from '@commerce/inventory-item-quants/dto/request/quants-select-query.dto';
+import { SerialsSelectQueryDto } from '@commerce/inventory-item-serials/dto/request/serials-select-query.dto';
+import { InventoryItemsSelectQueryDto } from '@commerce/inventory-items/dto/request/inventory-items-select-query.dto';
+import { LocationsSelectQueryDto } from '@commerce/locations/dto/request/locations-select-query.dto';
+import { PartyContactSelectQueryDto } from '@commerce/parties/dto/request/party-contact-select-query.dto';
+import { PartySelectQueryDto } from '@commerce/parties/dto/request/party-select-query.dto';
+import { PurchaseOrderItemsSelectQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-items-select-query.dto';
+import { PurchaseOrderSelectQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-select-query.dto';
+import { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
+import { SuppliersSelectQueryDto } from '@commerce/suppliers/dto/request/suppliers-select-query.dto';
+import { UomSelectQueryDto } from '@commerce/uom/dto/request/uom-select-query.dto';
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SessionTypeValues } from '@/db/schema';
@@ -25,23 +38,10 @@ import {
   ApiUomDimensionsSelect,
   ApiUomSelect,
 } from './docs/select-api.docs';
-import { CategoriesSelectQueryDto } from '@commerce/categories/dto/request/categories-select-query.dto';
-import { InventoryItemsSelectQueryDto } from '@commerce/inventory-items/dto/request/inventory-items-select-query.dto';
-import { LocationsSelectQueryDto } from '@commerce/locations/dto/request/locations-select-query.dto';
-import { LotsSelectQueryDto } from '@commerce/inventory-item-lots/dto/request/lots-select-query.dto';
-import { PartyContactSelectQueryDto } from '@commerce/parties/dto/request/party-contact-select-query.dto';
-import { PartySelectQueryDto } from '@commerce/parties/dto/request/party-select-query.dto';
-import { PurchaseOrderItemsSelectQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-items-select-query.dto';
-import { PurchaseOrderSelectQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-select-query.dto';
-import { QuantsSelectQueryDto } from '@commerce/inventory-item-quants/dto/request/quants-select-query.dto';
-import { SerialsSelectQueryDto } from '@commerce/inventory-item-serials/dto/request/serials-select-query.dto';
-import { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
-import { SuppliersSelectQueryDto } from '@commerce/suppliers/dto/request/suppliers-select-query.dto';
-import { UomSelectQueryDto } from '@commerce/uom/dto/request/uom-select-query.dto';
 
 @ApiTags('Commerce - Select')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
+@Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
 @Controller('select-api')
 export class SelectApiController {
   constructor(private readonly nats: NatsClientService) {}

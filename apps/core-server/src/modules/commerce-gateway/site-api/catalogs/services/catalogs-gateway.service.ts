@@ -1,13 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
-import { NatsClientService } from '@vritti/api-sdk/nats';
-import { SiteDomainService } from '@/modules/domain/site/services/site.service';
 import type { AssignCatalogChannelDto } from '@commerce/catalogs/dto/request/assign-catalog-channel.dto';
 import type { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
 import type { CreateModifierGroupDto } from '@commerce/catalogs/dto/request/create-modifier-group.dto';
@@ -25,7 +15,10 @@ import type { UpdateVariantOptionDto } from '@commerce/catalogs/dto/request/upda
 import type { CatalogChannelResponseDto } from '@commerce/catalogs/dto/response/catalog-channel-response.dto';
 import type { CatalogResponseDto } from '@commerce/catalogs/dto/response/catalog-response.dto';
 import type { CatalogTableResponseDto } from '@commerce/catalogs/dto/response/catalog-table-response.dto';
-import type { ModifierGroupResponseDto, ModifierOptionResponseDto } from '@commerce/catalogs/dto/response/modifier-group-response.dto';
+import type {
+  ModifierGroupResponseDto,
+  ModifierOptionResponseDto,
+} from '@commerce/catalogs/dto/response/modifier-group-response.dto';
 import type {
   OfferingDetailResponseDto,
   OfferingVariantResponseDto,
@@ -34,6 +27,16 @@ import type { OfferingModifierGroupResponseDto } from '@commerce/catalogs/dto/re
 import type { OfferingResponseDto } from '@commerce/catalogs/dto/response/offering-response.dto';
 import type { OfferingsTableResponseDto } from '@commerce/catalogs/dto/response/offerings-table-response.dto';
 import type { VariantOptionResponseDto } from '@commerce/catalogs/dto/response/variant-option-response.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
+import { NatsClientService } from '@vritti/api-sdk/nats';
+import { SiteDomainService } from '@/modules/domain/site/services/site.service';
 
 @Injectable()
 export class CatalogsGatewayService {
@@ -61,7 +64,7 @@ export class CatalogsGatewayService {
 
   // Creates a new catalog, snapshotting the active site's currency
   async create(dto: CreateCatalogDto, siteId: string): Promise<CreateResponseDto<CatalogResponseDto>> {
-    const site = await this.siteService.findById(siteId);
+    const _site = await this.siteService.findById(siteId);
     const currencyCode = (await this.siteService.getSiteCurrency(siteId)) ?? '';
     this.logger.log(`catalogs.create — name: ${dto.name}, currency: ${currencyCode}`);
     return this.nats.send('commerce', 'site.catalogs.create', { ...dto, currencyCode });

@@ -3,10 +3,6 @@ import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'clas
 import { SITE_GROUP_COLOR_KEYS } from '../../site-group-colors';
 
 export class CreateSiteGroupInternalDto {
-  @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
-  @IsUUID()
-  orgId: string;
-
   @ApiProperty({ description: 'Site group name', example: 'South Zone' })
   @IsString()
   @IsNotEmpty()

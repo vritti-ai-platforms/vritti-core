@@ -1,6 +1,3 @@
-import { applyDecorators } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { AssignCatalogChannelDto } from '@commerce/catalogs/dto/request/assign-catalog-channel.dto';
 import { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
 import { CreateModifierGroupDto } from '@commerce/catalogs/dto/request/create-modifier-group.dto';
@@ -18,11 +15,20 @@ import { UpdateVariantOptionDto } from '@commerce/catalogs/dto/request/update-va
 import { CatalogChannelResponseDto } from '@commerce/catalogs/dto/response/catalog-channel-response.dto';
 import { CatalogResponseDto } from '@commerce/catalogs/dto/response/catalog-response.dto';
 import { CatalogTableResponseDto } from '@commerce/catalogs/dto/response/catalog-table-response.dto';
-import { ModifierGroupResponseDto, ModifierOptionResponseDto } from '@commerce/catalogs/dto/response/modifier-group-response.dto';
-import { OfferingDetailResponseDto, OfferingVariantResponseDto } from '@commerce/catalogs/dto/response/offering-detail-response.dto';
+import {
+  ModifierGroupResponseDto,
+  ModifierOptionResponseDto,
+} from '@commerce/catalogs/dto/response/modifier-group-response.dto';
+import {
+  OfferingDetailResponseDto,
+  OfferingVariantResponseDto,
+} from '@commerce/catalogs/dto/response/offering-detail-response.dto';
 import { OfferingModifierGroupResponseDto } from '@commerce/catalogs/dto/response/offering-modifier-group-response.dto';
 import { OfferingsTableResponseDto } from '@commerce/catalogs/dto/response/offerings-table-response.dto';
 import { VariantOptionResponseDto } from '@commerce/catalogs/dto/response/variant-option-response.dto';
+import { applyDecorators } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 
 export function ApiGetCatalogsTable() {
   return applyDecorators(

@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { MutationResult } from '../../site-api/inventory-items/graphql/mutation-result.type';
 import { TaxGroup } from './graphql/tax-group.type';
@@ -16,7 +16,7 @@ export class TaxGroupsResolver {
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}
 
   // All tax groups (with rates + canDelete) — the mobile Tax Groups list. Small/bounded, so a plain array.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => [TaxGroup], { name: 'taxGroups' })
   async taxGroups(@Args('search', { type: () => String, nullable: true }) search?: string): Promise<TaxGroup[]> {
     this.logger.log('QUERY taxGroups');
@@ -24,7 +24,7 @@ export class TaxGroupsResolver {
   }
 
   // Returns the created entity so the client inserts it into the cached list (no refetch).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => TaxGroup, { name: 'createTaxGroup' })
   async createTaxGroup(@Args('input') input: CreateTaxGroupInput): Promise<TaxGroup> {
     this.logger.log('MUTATION createTaxGroup');
@@ -33,7 +33,7 @@ export class TaxGroupsResolver {
   }
 
   // Re-reads + returns the entity so Apollo auto-merges by id (the gateway update returns only success).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => TaxGroup, { name: 'updateTaxGroup' })
   async updateTaxGroup(
     @Args('id', { type: () => ID }) id: string,
@@ -45,7 +45,7 @@ export class TaxGroupsResolver {
   }
 
   // Deletes a tax group; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteTaxGroup' })
   async deleteTaxGroup(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteTaxGroup');

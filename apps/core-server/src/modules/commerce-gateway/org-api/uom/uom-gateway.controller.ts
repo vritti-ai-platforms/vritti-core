@@ -1,10 +1,3 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { ORG_UOM } from '@vritti/commerce-permissions/uom';
-import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { CreateUomDto } from '@commerce/uom/dto/request/create-uom.dto';
 import { CreateUomDimensionDto } from '@commerce/uom/dto/request/create-uom-dimension.dto';
 import { UomDimensionsQueryDto } from '@commerce/uom/dto/request/uom-dimensions-query.dto';
@@ -14,11 +7,18 @@ import type { UomDimensionCountResponseDto } from '@commerce/uom/dto/response/uo
 import type { UomDimensionResponseDto } from '@commerce/uom/dto/response/uom-dimension-response.dto';
 import type { UomResponseDto } from '@commerce/uom/dto/response/uom-response.dto';
 import type { UomTableResponseDto } from '@commerce/uom/dto/response/uom-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ORG_UOM } from '@vritti/commerce-permissions/uom';
+import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { UomGatewayService } from './services/uom-gateway.service';
 
 @ApiTags('Commerce - Units of Measure')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_UOM.featureCode)
 @Controller('uom')
 export class UomGatewayController {

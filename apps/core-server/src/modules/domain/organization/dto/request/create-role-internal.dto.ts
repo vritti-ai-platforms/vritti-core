@@ -1,13 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
 import { Transform } from 'class-transformer';
-import { Allow, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Allow, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateRoleInternalDto {
-  @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
-  @IsUUID()
-  orgId: string;
-
   @ApiProperty({ example: 'Inventory Manager' })
   @IsString()
   @IsNotEmpty()

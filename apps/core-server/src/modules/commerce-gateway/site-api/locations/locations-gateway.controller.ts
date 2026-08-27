@@ -1,3 +1,12 @@
+import { CreateLocationDto } from '@commerce/locations/dto/request/create-location.dto';
+import { ReorderLocationsDto } from '@commerce/locations/dto/request/reorder-locations.dto';
+import { UpdateLocationDto } from '@commerce/locations/dto/request/update-location.dto';
+import type { LocationChildrenTableResponseDto } from '@commerce/locations/dto/response/location-children-table-response.dto';
+import type { LocationCountResponseDto } from '@commerce/locations/dto/response/location-count-response.dto';
+import type { LocationItemQuantResponseDto } from '@commerce/locations/dto/response/location-item-quant-response.dto';
+import type { LocationItemTableResponseDto } from '@commerce/locations/dto/response/location-item-table-response.dto';
+import type { LocationResponseDto } from '@commerce/locations/dto/response/location-response.dto';
+import type { LocationTreeResponseDto } from '@commerce/locations/dto/response/location-tree-response.dto';
 import {
   Body,
   Controller,
@@ -13,26 +22,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SITE_LOCATIONS } from '@vritti/commerce-permissions/locations';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { ApiGetLocationItemQuants, ApiGetLocationItemsTable } from './docs/locations-gateway.docs';
-import { CreateLocationDto } from '@commerce/locations/dto/request/create-location.dto';
-import { ReorderLocationsDto } from '@commerce/locations/dto/request/reorder-locations.dto';
-import { UpdateLocationDto } from '@commerce/locations/dto/request/update-location.dto';
-import type { LocationChildrenTableResponseDto } from '@commerce/locations/dto/response/location-children-table-response.dto';
-import type { LocationCountResponseDto } from '@commerce/locations/dto/response/location-count-response.dto';
-import type { LocationItemQuantResponseDto } from '@commerce/locations/dto/response/location-item-quant-response.dto';
-import type { LocationItemTableResponseDto } from '@commerce/locations/dto/response/location-item-table-response.dto';
-import type { LocationResponseDto } from '@commerce/locations/dto/response/location-response.dto';
-import type { LocationTreeResponseDto } from '@commerce/locations/dto/response/location-tree-response.dto';
 import { LocationsGatewayService } from './services/locations-gateway.service';
 
 @ApiTags('Commerce - Storage Locations')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_LOCATIONS.featureCode)
 @Controller('locations')
 export class LocationsGatewayController {

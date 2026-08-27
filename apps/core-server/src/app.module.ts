@@ -25,6 +25,7 @@ import { SiteContextModule } from '@/site-context/site-context.module';
 import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
+import { CommerceAppGatewayModule } from './modules/commerce-gateway/commerce-app-gateway.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
 import { CommunicationsGatewayModule } from './modules/communications-gateway/communications-gateway.module';
 import { AppApiModule } from './modules/core-api/app/app-api.module';
@@ -32,6 +33,7 @@ import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
 import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
 import { StructureApiModule } from './modules/core-api/structure/structure.module';
+import { StructureAppApiModule } from './modules/core-api/structure/structure-app-api.module';
 import { UserApiModule } from './modules/core-api/user/user.module';
 import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
 import { AppDomainModule } from './modules/domain/app/app.module';
@@ -49,6 +51,18 @@ import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module
 import { GiteaInternalModule } from './modules/gitea-gateway/internal/gitea-internal.module';
 import { StorageInternalModule } from './modules/storage-internal/storage-internal.module';
 import { AppRequestResolver } from './security/services/app-request.resolver';
+import { CloudRequestResolver } from './security/services/cloud-request.resolver';
+
+// Shared by both GraphQL registrations — only include/path/schema-file/introspection differ
+const graphqlBaseOptions = {
+  csrfPrevention: true,
+  playground: false,
+  context: (request: FastifyRequest, reply: FastifyReply) => ({ req: request, reply }),
+  formatError: createGraphqlFormatError({
+    isProduction: process.env.NODE_ENV === 'production',
+    getTraceId: () => getCorrelationContext()?.correlationId,
+  }),
+};
 
 @Module({
   imports: [
@@ -84,21 +98,45 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
       },
       inject: [ConfigService],
     }),
-    // Apollo GraphQL transport (code-first schema on Fastify)
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    /**
+     * Two Apollo transports, two schemas, one process.
+     *
+     * The storefront surface is a published product API, so it is introspectable in production
+     * and must contain nothing internal. The mobile/web surface is not, and keeps introspection
+     * off outside development.
+     *
+     * `forRootAsync` rather than `forRoot` deliberately: only the async form stamps a unique
+     * `GRAPHQL_MODULE_ID`, which is what lets one dynamic module be registered twice. Each
+     * registration builds its own `ApolloServer` and its own Fastify route, so they share no
+     * state beyond the HTTP adapter.
+     *
+     * BOTH need an explicit `include` — omitting it means "scan every module", which would put
+     * the storefront resolvers back into the internal schema. `include` also follows imports
+     * transitively, so each listed module's closure must be free of the other surface's
+     * resolvers. That is the whole reason CommerceAppGatewayModule / StructureAppApiModule exist.
+     */
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
+      // `driver` belongs on this object, NOT in useFactory — assertDriver() reads the outer
+      // options and throws before the factory ever runs.
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      path: '/graphql',
-      csrfPrevention: true,
-      playground: false,
-      introspection: process.env.NODE_ENV !== 'production',
-      context: (request: FastifyRequest, reply: FastifyReply) => ({
-        req: request,
-        reply,
+      useFactory: () => ({
+        ...graphqlBaseOptions,
+        include: [CommerceAppGatewayModule, StructureAppApiModule],
+        autoSchemaFile: join(process.cwd(), 'src/schema.app.gql'),
+        path: '/graphql',
+        // Public product surface: integrators codegen against it rather than reverse-engineering
+        // from docs. Every type reachable from a storefront operation is therefore published API.
+        introspection: true,
       }),
-      formatError: createGraphqlFormatError({
-        isProduction: process.env.NODE_ENV === 'production',
-        getTraceId: () => getCorrelationContext()?.correlationId,
+    }),
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      useFactory: () => ({
+        ...graphqlBaseOptions,
+        include: [CommerceGatewayModule, StructureApiModule, AuthApiModule, AccountModule],
+        autoSchemaFile: join(process.cwd(), 'src/schema.mobile.gql'),
+        path: '/mobile-graphql',
+        introspection: process.env.NODE_ENV !== 'production',
       }),
     }),
     // Drizzle/Postgres connection pool + RLS context hook
@@ -132,8 +170,12 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
     // JWT auth + global VrittiAuthGuard (must load after DatabaseModule)
     AuthConfigModule.forRootAsync({
       imports: [SecurityModule],
-      inject: [ConfigService, AppRequestResolver],
-      useFactory: (config: ConfigService, appRequestResolver: AppRequestResolver) => ({
+      inject: [ConfigService, AppRequestResolver, CloudRequestResolver],
+      useFactory: (
+        config: ConfigService,
+        appRequestResolver: AppRequestResolver,
+        cloudRequestResolver: CloudRequestResolver,
+      ) => ({
         tokenExpiry: {
           access: config.getOrThrow('ACCESS_TOKEN_EXPIRY') as TokenExpiryString,
           refresh: config.getOrThrow('REFRESH_TOKEN_EXPIRY') as TokenExpiryString,
@@ -153,7 +195,7 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
           // guard and only needs its host checked; an app arrives unauthenticated
           // and is resolved here, because verifying its signature needs a database
           // lookup the SDK cannot do. Both then share the workspace-context headers.
-          onAuthenticated: async (requestService, sessionInfo) => {
+          onAuthenticated: async (requestService, auth) => {
             const readHeader = (name: string): string | undefined => {
               const value = requestService.getHeader(name);
               return Array.isArray(value) ? value[0] : value;
@@ -162,26 +204,32 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
             // Workspace context headers: SITE > SITE_GROUP > LE; none = ORG workspace
             const applyContextHeaders = () => {
               const siteId = readHeader('x-site-id');
-              if (siteId) sessionInfo.siteId = siteId;
+              if (siteId) auth.siteId = siteId;
               const siteGroupId = readHeader('x-sg-id');
-              if (siteGroupId) sessionInfo.siteGroupId = siteGroupId;
+              if (siteGroupId) auth.siteGroupId = siteGroupId;
               const legalEntityId = readHeader('x-le-id');
-              if (legalEntityId) sessionInfo.legalEntityId = legalEntityId;
+              if (legalEntityId) auth.legalEntityId = legalEntityId;
             };
 
-            if (appRequestResolver.isAppRequest(requestService)) {
-              // Fills organizationId, appType, the synthetic actor and the subdomain
-              // from the credential's organization. No host check: an app calls
-              // whatever hostname it was configured with, so the host must not decide
-              // which tenant it speaks for.
-              await appRequestResolver.resolve(requestService, sessionInfo);
+            if (auth.kind === 'app') {
+              // Fills organizationId, appId, appType and the credential's grants. No host
+              // check: an app calls whatever hostname it was configured with, so the host
+              // must not decide which tenant it speaks for.
+              await appRequestResolver.resolve(requestService, auth);
               applyContextHeaders();
+              return;
+            }
+
+            if (auth.kind === 'cloud') {
+              // No workspace headers: the control plane names an organization, never a
+              // workspace within it.
+              cloudRequestResolver.resolve(requestService, auth);
               return;
             }
 
             // x-org-id is a consistency check only — the org always derives from the session
             const orgIdHeader = readHeader('x-org-id');
-            if (orgIdHeader && orgIdHeader !== sessionInfo.organizationId) {
+            if (orgIdHeader && orgIdHeader !== auth.organizationId) {
               throw new UnauthorizedException('Organization mismatch — header does not match this session');
             }
 
@@ -190,11 +238,11 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
               throw new UnauthorizedException('Invalid request host');
             }
 
-            if (sessionInfo.subdomain !== requestSubdomain) {
+            if (auth.subdomain !== requestSubdomain) {
               throw new UnauthorizedException('Invalid request host');
             }
 
-            sessionInfo.subdomain = requestSubdomain;
+            auth.subdomain = requestSubdomain;
 
             applyContextHeaders();
           },
@@ -228,24 +276,32 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
     UserRoleDomainModule,
     UserPermissionsDomainModule,
 
-    // NATS client (gateway mode) — resolves the workspace context from sessionInfo (site context derives its LE)
+    // NATS client (gateway mode) — resolves the workspace context from request.auth (site context derives its LE)
     NatsClientModule.forRoot({
       imports: [SiteContextModule],
       inject: [ConfigService, SiteContextResolverService],
       useFactory: (config: ConfigService, siteContextResolver: SiteContextResolverService) => ({
         natsUrl: config.get<string>('NATS_URL'),
         services: [{ name: 'commerce' }, { name: 'communications' }],
-        contextResolver: async (sessionInfo) => {
-          const orgId = sessionInfo.organizationId;
-          const userId = sessionInfo.userId;
+        contextResolver: async (request) => {
+          const auth = request.auth;
+          // Without an organization there is nothing to scope by, and the receiving service
+          // would run with app.org_id unset — matching no rows rather than failing. Refuse here.
+          if (!auth?.organizationId) return null;
+
+          const orgId = auth.organizationId;
+
+          // Who acted, per caller kind. A control-plane call has no principal at all, and
+          // parseNatsHeaders now tolerates that rather than discarding the whole context.
+          const userId = auth.kind === 'session' ? auth.userId : auth.kind === 'app' ? auth.appId : '';
 
           // A site workspace carries the full site context and derives its legal entity
-          if (sessionInfo.siteId) {
-            const siteContext = await siteContextResolver.resolve(sessionInfo.siteId);
+          if (auth.siteId) {
+            const siteContext = await siteContextResolver.resolve(auth.siteId);
             return {
               orgId,
               userId,
-              siteId: sessionInfo.siteId,
+              siteId: auth.siteId,
               legalEntityId: siteContext.legalEntityId,
               siteGroupId: '',
               siteTimezone: siteContext.siteTimezone,
@@ -258,8 +314,8 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
             orgId,
             userId,
             siteId: '',
-            legalEntityId: sessionInfo.legalEntityId ?? '',
-            siteGroupId: sessionInfo.siteGroupId ?? '',
+            legalEntityId: auth.legalEntityId ?? '',
+            siteGroupId: auth.siteGroupId ?? '',
             siteTimezone: '',
             siteCurrencyCode: '',
           };
@@ -274,6 +330,8 @@ import { AppRequestResolver } from './security/services/app-request.resolver';
     UserApiModule,
     OrganizationApiModule,
     StructureApiModule,
+    StructureAppApiModule,
+    CommerceAppGatewayModule,
     CatalogApiModule,
     UserPermissionsApiModule,
     MediaApiModule,

@@ -1,14 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
-import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 import { AppTypeValues } from '@/db/schema';
 
 export class CreateAppInternalDto {
-  @ApiProperty({ description: 'Nexus organization ID the app belongs to' })
-  @IsUUID()
-  @IsNotEmpty()
-  orgId: string;
-
   @ApiProperty({ description: 'Human label for the credential', example: 'Acme storefront' })
   @IsString()
   @IsNotEmpty()

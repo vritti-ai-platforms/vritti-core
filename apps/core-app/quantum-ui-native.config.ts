@@ -1,8 +1,8 @@
-import type { MobileAxiosConfig } from '@vritti/quantum-ui-native/utils';
+import type { QuantumUINativeConfig } from '@vritti/quantum-ui-native/utils';
 import * as Keychain from 'react-native-keychain';
 import { config } from './src/host/config/env';
 
-export const storage: MobileAxiosConfig['storage'] = {
+export const storage: QuantumUINativeConfig['storage'] = {
   async getItem(key) {
     const credentials = await Keychain.getGenericPassword({
       service: `${config.security.keychainServicePrefix}.${key}`,
@@ -25,10 +25,27 @@ export const storage: MobileAxiosConfig['storage'] = {
   },
 };
 
-const mobileAxiosConfig: MobileAxiosConfig = {
-  baseURL: config.api.fallbackBaseUrl,
+/**
+ * Everything quantum-ui-native needs, in one object.
+ *
+ * The package ships no endpoint defaults — this app names every URL it talks to, and the ones that
+ * vary by deployment come from the environment.
+ */
+const quantumUINativeConfig: QuantumUINativeConfig = {
+  axios: {
+    baseURL: config.api.fallbackBaseUrl,
+  },
   auth: {
     refreshEndpoint: 'auth/mobile/refresh-tokens',
+  },
+  // core-server serves two GraphQL surfaces on separate paths: /graphql (the public storefront
+  // schema) and the internal one this app talks to. Which one is deployment config, hence the env var.
+  graphql: {
+    httpEndpoint: config.api.graphqlPath,
+  },
+  views: {
+    viewsEndpoint: 'table-views',
+    statesEndpoint: 'table-states',
   },
   storage,
   onSessionExpired: () => {
@@ -36,4 +53,4 @@ const mobileAxiosConfig: MobileAxiosConfig = {
   },
 };
 
-export default mobileAxiosConfig;
+export default quantumUINativeConfig;

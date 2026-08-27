@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Logger, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import type { FastifyRequest } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
@@ -12,7 +12,7 @@ import { ProfileService } from '../services/profile.service';
 
 @ApiTags('Account - Profile')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('profile')
 export class ProfileController {
   private readonly logger = new Logger(ProfileController.name);

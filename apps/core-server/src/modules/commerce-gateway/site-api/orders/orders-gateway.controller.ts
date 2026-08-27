@@ -1,16 +1,16 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import { SessionTypeValues } from '@/db/schema';
 import { CreateOrderDto } from '@commerce/orders/dto/request/create-order.dto';
 import { UpdateOrderStatusDto } from '@commerce/orders/dto/request/update-order-status.dto';
 import type { OrderDetailResponseDto, OrderResponseDto } from '@commerce/orders/dto/response/order-response.dto';
 import type { OrderTableResponseDto } from '@commerce/orders/dto/response/order-table-response.dto';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import { SessionTypeValues } from '@/db/schema';
 import { OrdersGatewayService } from './services/orders-gateway.service';
 
 @ApiTags('Commerce - Orders')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('orders')
 export class OrdersGatewayController {
   constructor(private readonly ordersGatewayService: OrdersGatewayService) {}

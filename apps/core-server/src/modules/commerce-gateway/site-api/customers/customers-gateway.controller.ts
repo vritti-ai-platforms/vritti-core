@@ -1,17 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
-import { SessionTypeValues } from '@/db/schema';
 import { CreateCustomerDto } from '@commerce/customers/dto/request/create-customer.dto';
 import { UpdateCustomerDto } from '@commerce/customers/dto/request/update-customer.dto';
 import type { CustomerResponseDto } from '@commerce/customers/dto/response/customer-response.dto';
 import type { CustomerTableResponseDto } from '@commerce/customers/dto/response/customer-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SessionTypeValues } from '@/db/schema';
 import { CustomersGatewayService } from './services/customers-gateway.service';
 
 @ApiTags('Commerce - Customers')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('customers')
 export class CustomersGatewayController {
   private readonly logger = new Logger(CustomersGatewayController.name);

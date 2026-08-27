@@ -1,6 +1,6 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { RequireApp } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { AppTypeValues } from '@/db/schema';
 import { OrgId } from '@/security/decorators';
 import type { WorkspaceOption, Workspaces } from './graphql/workspace.type';
@@ -14,7 +14,7 @@ import { StructureService } from './root/services/structure-api.service';
  * one does — otherwise the only way to name a scope is to hardcode an id.
  */
 @ApiTags('Structure (App)')
-@RequireApp(AppTypeValues.HTTP)
+@Require(AuthType.App, AppTypeValues.HTTP)
 @Controller('app/workspaces')
 export class StructureAppController {
   private readonly logger = new Logger(StructureAppController.name);

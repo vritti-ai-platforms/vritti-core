@@ -1,19 +1,19 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { ORG_SALES_CHANNELS } from '@vritti/commerce-permissions/sales-channels';
-import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { CreateSalesChannelDto } from '@commerce/sales-channels/dto/request/create-sales-channel.dto';
 import { UpdateSalesChannelDto } from '@commerce/sales-channels/dto/request/update-sales-channel.dto';
 import type { SalesChannelResponseDto } from '@commerce/sales-channels/dto/response/sales-channel-response.dto';
 import type { SalesChannelTableResponseDto } from '@commerce/sales-channels/dto/response/sales-channel-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ORG_SALES_CHANNELS } from '@vritti/commerce-permissions/sales-channels';
+import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { SalesChannelsGatewayService } from './services/sales-channels-gateway.service';
 
 @ApiTags('Commerce - Sales Channels')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_SALES_CHANNELS.featureCode)
 @Controller('sales-channels')
 export class SalesChannelsGatewayController {

@@ -6,7 +6,9 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
 // useQuery/useMutation with full type inference. `fragmentMasking` is off for now — typed documents
 // without the unmask ceremony. Run `pnpm codegen` (or `codegen:watch`) before typecheck/dev.
 const config: CodegenConfig = {
-  schema: '../../core-server/src/schema.gql',
+  // The INTERNAL schema. core-server serves two GraphQL surfaces: /graphql (storefront, public,
+  // schema.app.gql) and /mobile-graphql (this one). Codegen must target the mobile schema.
+  schema: '../../core-server/src/schema.mobile.gql',
   documents: ['src/**/*.{ts,tsx}', '!src/gql/**'],
   ignoreNoDocuments: true,
   generates: {

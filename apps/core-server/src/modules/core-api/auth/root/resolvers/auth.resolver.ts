@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { AccessToken, ClientIp, Public, RequireSession, UserAgent } from '@vritti/api-sdk/auth';
+import { AccessToken, AuthType, ClientIp, Require, UserAgent } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { LookupOrganization } from '../graphql/lookup-organization.type';
 import { MessageResponse } from '../graphql/message-response.type';
@@ -17,7 +17,7 @@ export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
   // Lists organizations a user belongs to, by email — public mobile login pre-step
-  @Public()
+  @Require(AuthType.Public)
   @Query(() => [LookupOrganization], { name: 'organizationsByEmail' })
   async organizationsByEmail(@Args('email') email: string): Promise<LookupOrganization[]> {
     this.logger.log('QUERY organizationsByEmail');
@@ -26,7 +26,7 @@ export class AuthResolver {
   }
 
   // Authenticates credentials and creates a MOBILE session
-  @Public()
+  @Require(AuthType.Public)
   @Mutation(() => MobileAuthSession, { name: 'mobileLogin' })
   async mobileLogin(
     @Args('input') input: MobileLoginInput,
@@ -38,7 +38,7 @@ export class AuthResolver {
   }
 
   // Rotates the mobile session tokens using the body-provided refresh token
-  @Public()
+  @Require(AuthType.Public)
   @Mutation(() => MobileTokens, { name: 'mobileRefreshTokens' })
   async mobileRefreshTokens(@Args('input') input: MobileRefreshInput): Promise<MobileTokens> {
     this.logger.log('MUTATION mobileRefreshTokens');
@@ -46,7 +46,7 @@ export class AuthResolver {
   }
 
   // Invalidates the current mobile session
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => MessageResponse, { name: 'mobileLogout' })
   async mobileLogout(@AccessToken() accessToken: string): Promise<MessageResponse> {
     this.logger.log('MUTATION mobileLogout');

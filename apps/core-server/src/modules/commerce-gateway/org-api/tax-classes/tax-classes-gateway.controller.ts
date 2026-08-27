@@ -1,19 +1,19 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { ORG_TAX_CLASSES } from '@vritti/commerce-permissions/tax-classes';
-import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { CreateTaxClassDto } from '@commerce/tax-classes/dto/request/create-tax-class.dto';
 import { UpdateTaxClassDto } from '@commerce/tax-classes/dto/request/update-tax-class.dto';
 import type { TaxClassResponseDto } from '@commerce/tax-classes/dto/response/tax-class-response.dto';
 import type { TaxClassTableResponseDto } from '@commerce/tax-classes/dto/response/tax-class-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ORG_TAX_CLASSES } from '@vritti/commerce-permissions/tax-classes';
+import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { TaxClassesGatewayService } from './services/tax-classes-gateway.service';
 
 @ApiTags('Commerce - Tax Classes')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_TAX_CLASSES.featureCode)
 @Controller('tax-classes')
 export class TaxClassesGatewayController {

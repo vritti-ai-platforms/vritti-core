@@ -1,17 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { SessionTypeValues } from '@/db/schema';
 import { CreateCostCategoryDto } from '@commerce/cost-categories/dto/request/create-cost-category.dto';
 import { UpdateCostCategoryDto } from '@commerce/cost-categories/dto/request/update-cost-category.dto';
 import type { CostCategoryResponseDto } from '@commerce/cost-categories/dto/response/cost-category-response.dto';
 import type { CostCategoryTableResponseDto } from '@commerce/cost-categories/dto/response/cost-category-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SessionTypeValues } from '@/db/schema';
 import { CostCategoriesGatewayService } from './services/cost-categories-gateway.service';
 
 @ApiTags('Commerce - Cost Categories')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('cost-categories')
 export class CostCategoriesGatewayController {
   private readonly logger = new Logger(CostCategoriesGatewayController.name);

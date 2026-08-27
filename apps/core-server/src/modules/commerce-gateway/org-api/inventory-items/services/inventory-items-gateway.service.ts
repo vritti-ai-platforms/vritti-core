@@ -1,12 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
-import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/add-inventory-item-mrp.dto';
 import type { CreateInventoryItemDto } from '@commerce/inventory-items/dto/request/create-inventory-item.dto';
 import type { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
@@ -21,6 +12,15 @@ import type {
 } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-uom-conversion-response.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
 export class InventoryItemsGatewayService {

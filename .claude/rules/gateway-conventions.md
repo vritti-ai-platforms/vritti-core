@@ -33,10 +33,48 @@ org-api/uom/
 - **Resolver sits parallel to the controller** — at the feature-folder root, NEVER in a
   `resolvers/` subfolder. Multiple resolvers per feature are fine, but they all inject the one
   gateway service.
-- **No per-feature `*.module.ts`.** Every gateway controller/resolver/service registers directly
-  in the single `commerce-gateway.module.ts`.
+- **No per-feature `*.module.ts`.** A feature never gets its own module. Every controller,
+  resolver and service registers into the **surface module** for its audience (below).
 - NATS `cmd` namespaces nest to match the microservice: `org.uom.*` (root) + `org.uom.dimensions.*`
   (sub-resource). The gateway `send(...)` cmd MUST match the microservice `@MessagePattern` exactly.
+
+## Surface modules — one module per API audience
+
+The gateway is split by **who calls it**, not by feature. Each surface gets exactly one module, and
+that module is what `GraphQLModule`'s `include` scopes a schema to.
+
+| Module | File | Holds |
+|---|---|---|
+| `CommerceGatewayServicesModule` | `commerce-gateway-services.module.ts` | **every gateway service** — no controllers, no resolvers. Exported. |
+| `CommerceGatewayModule` | `commerce-gateway.module.ts` | every controller + the session-facing resolvers. Imports Services. |
+| `CommerceAppGatewayModule` | `commerce-app-gateway.module.ts` | the `@Require(AuthType.App)` resolvers. Imports Services. |
+
+Services live in their **own** module because both surfaces need them and neither may import the
+other. That is what keeps each surface's import closure resolver-free while still giving every
+service exactly one instance.
+
+**Where a new file registers** is decided by its audience:
+
+- a **controller** → always `CommerceGatewayModule` (controllers are HTTP; they do not affect any schema)
+- a **resolver** → the module matching its `@Require(AuthType.…)` — `App` resolvers go in
+  `CommerceAppGatewayModule`, session resolvers in `CommerceGatewayModule`
+- a **service** → always `CommerceGatewayServicesModule`, exported. Never provided in a surface module.
+
+Rules that make this work:
+
+- **Files stay in their feature folder.** `people.app.resolver.ts` lives in `org-api/people/`
+  beside `people-gateway.controller.ts`. Only module *membership* differs — never file location.
+- **A resolver is declared in EXACTLY ONE module.** Declaring it in two puts it in **both**
+  schemas, silently: everything compiles and both endpoints serve it. This is the failure mode to
+  watch for, and the reason a CI check asserts the two generated schemas share no operation.
+- **A surface module's import closure must contain no other surface's resolvers.** `include` walks
+  imports **transitively** (`BaseExplorerService.getModules`), so importing `CommerceGatewayModule`
+  from `CommerceAppGatewayModule` would drag every internal resolver into the storefront schema.
+  A surface module may therefore import `CommerceGatewayServicesModule` (resolver-free) and the
+  domain modules, but **never the other surface module**.
+- **Never re-provide a service to dodge an import.** Duplicating a provider gives two instances,
+  which is invisible until someone puts state on it. Put it in `CommerceGatewayServicesModule` and
+  import that.
 
 ## Controller — thin HTTP layer with logs
 

@@ -1,18 +1,18 @@
-import { Controller, Get, Logger, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk/auth';
-import { SITE_GROUP_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
-import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature } from '@/rbac/decorators';
 import { GroupMatrixQueryDto } from '@commerce/site-group-inventory-items/dto/request/group-matrix-query.dto';
 import type { SiteGroupInventoryItemResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-inventory-item-response.dto';
 import type { SiteGroupItemAvailabilityResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-item-availability-response.dto';
 import type { SiteGroupItemLevelsResponseDto } from '@commerce/site-group-inventory-items/dto/response/site-group-item-levels-response.dto';
+import { Controller, Get, Logger, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
+import { SITE_GROUP_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
+import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature } from '@/rbac/decorators';
 import { SiteGroupInventoryItemsGatewayService } from './services/site-group-inventory-items-gateway.service';
 
 @ApiTags('Commerce - Site Group Inventory Items')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_GROUP_INVENTORY_ITEMS.featureCode)
 @Controller('site-group/inventory-items')
 export class SiteGroupInventoryItemsGatewayController {

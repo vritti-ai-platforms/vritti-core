@@ -45,7 +45,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
@@ -55,7 +55,7 @@ import { PeopleGatewayService } from './services/people-gateway.service';
 
 @ApiTags('Commerce - People')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_PEOPLE.featureCode)
 @Controller('people')
 export class PeopleGatewayController {

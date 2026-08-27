@@ -1,8 +1,20 @@
+import {
+  PARTY_IDENTIFIER_TYPES,
+  type PartyIdentifierTypeValue,
+} from '@commerce/party-identifiers/dto/request/add-person-identifier.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
-import { PARTY_IDENTIFIER_TYPES, type PartyIdentifierTypeValue } from '@commerce/party-identifiers/dto/request/add-person-identifier.dto';
+import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 import { PersonAddressInputDto } from './person-address-input.dto';
 
 export class CreatePersonDto {

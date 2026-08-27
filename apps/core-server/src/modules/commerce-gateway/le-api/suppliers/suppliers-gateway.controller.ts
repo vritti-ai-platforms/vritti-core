@@ -1,12 +1,3 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
-import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
-import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { LegalEntityId, OrgId } from '@/security/decorators';
 import { AddSupplierItemDto } from '@commerce/suppliers/dto/request/add-supplier-item.dto';
 import { AddSupplierItemPriceDto } from '@commerce/suppliers/dto/request/add-supplier-item-price.dto';
 import { AddSupplierItemSiteDto } from '@commerce/suppliers/dto/request/add-supplier-item-site.dto';
@@ -31,11 +22,20 @@ import type { SupplierResponseDto } from '@commerce/suppliers/dto/response/suppl
 import type { SupplierSiteResponseDto } from '@commerce/suppliers/dto/response/supplier-site-response.dto';
 import type { SupplierSiteTableResponseDto } from '@commerce/suppliers/dto/response/supplier-site-table-response.dto';
 import type { SupplierTableResponseDto } from '@commerce/suppliers/dto/response/supplier-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
+import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
+import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { LegalEntityId, OrgId } from '@/security/decorators';
 import { SuppliersGatewayService } from './services/suppliers-gateway.service';
 
 @ApiTags('Commerce - Suppliers')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(LE_SUPPLIERS.featureCode)
 @Controller('le/suppliers')
 export class SuppliersGatewayController {

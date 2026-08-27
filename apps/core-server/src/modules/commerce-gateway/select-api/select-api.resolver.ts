@@ -1,13 +1,13 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SessionTypeValues } from '@/db/schema';
 import { SelectOptionsInput } from '../_shared/graphql/select.input';
 import { SelectOptions } from '../_shared/graphql/select.type';
 
 @Resolver()
-@RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
+@Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
 export class SelectApiResolver {
   private readonly logger = new Logger(SelectApiResolver.name);
 

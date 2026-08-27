@@ -1,6 +1,10 @@
+import { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
+import { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
+import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
+import type { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { LE_TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
 import { SessionTypeValues } from '@/db/schema';
@@ -12,15 +16,11 @@ import {
   ApiGetTaxGroup,
   ApiUpdateTaxGroup,
 } from './docs/tax-groups-gateway.docs';
-import { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
-import { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
-import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
-import type { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 
 @ApiTags('Commerce - Tax Groups')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(LE_TAX_GROUPS.featureCode)
 @Controller('tax-groups')
 export class TaxGroupsGatewayController {

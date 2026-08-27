@@ -29,6 +29,24 @@ type UserSession {
   isCurrent: Boolean!
 }
 
+type Person {
+  id: ID!
+  displayName: String!
+  firstName: String
+  lastName: String
+  email: String
+  phone: String
+  isActive: Boolean!
+}
+
+type PersonCommunication {
+  id: ID!
+  channel: String!
+  value: String!
+  isPrimary: Boolean!
+  isActive: Boolean!
+}
+
 type MutationResult {
   success: Boolean!
   message: String!
@@ -57,24 +75,6 @@ type TaxGroup {
   isActive: Boolean!
   canDelete: Boolean!
   taxRates: [TaxRate!]!
-}
-
-type Person {
-  id: ID!
-  displayName: String!
-  firstName: String
-  lastName: String
-  email: String
-  phone: String
-  isActive: Boolean!
-}
-
-type PersonCommunication {
-  id: ID!
-  channel: String!
-  value: String!
-  isPrimary: Boolean!
-  isActive: Boolean!
 }
 
 type Uom {
@@ -410,11 +410,6 @@ type Workspaces {
 }
 
 type Query {
-  organizationsByEmail(email: String!): [LookupOrganization!]!
-  usersOptions(input: SelectOptionsInput): SelectOptions!
-  workspaces: Workspaces!
-  profile: Profile!
-  sessions: [UserSession!]!
   inventoryItems(first: Int, after: String, filters: [FeedFilterInput!], search: FeedSearchInput, sort: [FeedSortInput!]): InventoryItemConnection!
   inventoryItem(id: ID!): InventoryItem!
   goodsReceiptsFeed(first: Int, after: String, search: FeedSearchInput): GoodsReceiptConnection!
@@ -445,22 +440,9 @@ type Query {
   uomOptions(input: SelectOptionsInput, dimensionId: ID, baseOnly: Boolean, derivedOnly: Boolean): SelectOptions!
   suppliersOptions(input: SelectOptionsInput): SelectOptions!
   taxGroupsOptions(input: SelectOptionsInput): SelectOptions!
-  peopleByCommunication(input: FindPeopleByCommunicationInput!): [ID!]!
-}
-
-input SelectOptionsInput {
-  search: String
-  limit: Int
-  offset: Int
-  values: String
-  excludeIds: String
-  valueKey: String
-  labelKey: String
-  descriptionKey: String
-  additionalKeys: String
-  groupIdKey: String
-  orderByKey: String
-  orderDirection: String
+  profile: Profile!
+  sessions: [UserSession!]!
+  organizationsByEmail(email: String!): [LookupOrganization!]!
 }
 
 input FeedFilterInput {
@@ -479,18 +461,22 @@ input FeedSortInput {
   direction: String!
 }
 
-input FindPeopleByCommunicationInput {
-  channel: String!
-  value: String!
+input SelectOptionsInput {
+  search: String
+  limit: Int
+  offset: Int
+  values: String
+  excludeIds: String
+  valueKey: String
+  labelKey: String
+  descriptionKey: String
+  additionalKeys: String
+  groupIdKey: String
+  orderByKey: String
+  orderDirection: String
 }
 
 type Mutation {
-  mobileLogin(input: MobileLoginInput!): MobileAuthSession!
-  mobileRefreshTokens(input: MobileRefreshInput!): MobileTokens!
-  mobileLogout: MessageResponse!
-  changePassword(input: ChangePasswordInput!): MessageResponse!
-  revokeSession(sessionId: ID!): MessageResponse!
-  revokeAllSessions: MessageResponse!
   createInventoryItem(input: CreateInventoryItemInput!): InventoryItem!
   updateInventoryItem(id: ID!, input: UpdateInventoryItemInput!): InventoryItem!
   deleteInventoryItem(id: ID!): MutationResult!
@@ -512,23 +498,12 @@ type Mutation {
   createCostCategory(input: CreateCostCategoryInput!): CostCategory!
   updateCostCategory(id: ID!, input: UpdateCostCategoryInput!): CostCategory!
   deleteCostCategory(id: ID!): MutationResult!
-  createPerson(input: CreatePersonInput!): Person!
-  addPersonCommunication(input: AddPersonCommunicationInput!): PersonCommunication!
-}
-
-input MobileLoginInput {
-  email: String!
-  password: String!
-  organizationId: ID!
-}
-
-input MobileRefreshInput {
-  refreshToken: String!
-}
-
-input ChangePasswordInput {
-  currentPassword: String!
-  newPassword: String!
+  changePassword(input: ChangePasswordInput!): MessageResponse!
+  revokeSession(sessionId: ID!): MessageResponse!
+  revokeAllSessions: MessageResponse!
+  mobileLogin(input: MobileLoginInput!): MobileAuthSession!
+  mobileRefreshTokens(input: MobileRefreshInput!): MobileTokens!
+  mobileLogout: MessageResponse!
 }
 
 input CreateInventoryItemInput {
@@ -635,15 +610,17 @@ input UpdateCostCategoryInput {
   isActive: Boolean
 }
 
-input CreatePersonInput {
-  firstName: String!
-  lastName: String
-  email: String
-  phone: String
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
 }
 
-input AddPersonCommunicationInput {
-  personId: ID!
-  channel: String!
-  value: String!
+input MobileLoginInput {
+  email: String!
+  password: String!
+  organizationId: ID!
+}
+
+input MobileRefreshInput {
+  refreshToken: String!
 }

@@ -1,0 +1,293 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Person {
+  id: ID!
+  displayName: String!
+  firstName: String
+  lastName: String
+  email: String
+  phone: String
+  isActive: Boolean!
+}
+
+type PersonCommunication {
+  id: ID!
+  channel: String!
+  value: String!
+  isPrimary: Boolean!
+  isActive: Boolean!
+}
+
+type TaxRate {
+  id: ID!
+  name: String!
+  rate: Float!
+  sortOrder: Int!
+}
+
+type Uom {
+  id: ID!
+  dimensionId: ID!
+  name: String!
+  symbol: String!
+  baseUnitId: ID
+  baseUnitSymbol: String
+  baseUomQty: Int!
+  uomQty: Int!
+  canEdit: Boolean!
+  canDelete: Boolean!
+  createdAt: String!
+}
+
+type UomPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type UomEdge {
+  cursor: String!
+  node: Uom!
+}
+
+type SelectOption {
+  value: String!
+  label: String!
+  description: String
+  groupId: String
+  additionals: JSON
+}
+
+"""Arbitrary JSON value (used for Select option `additionals`)."""
+scalar JSON
+
+type SelectGroup {
+  id: String!
+  name: String!
+}
+
+type GoodsReceiptMoney {
+  currency: String!
+  value: String!
+}
+
+type GoodsReceiptPo {
+  id: ID!
+  poNumber: String!
+  orderDate: String!
+  expectedBy: String
+  totalAmount: GoodsReceiptMoney!
+}
+
+type GoodsReceipt {
+  id: ID!
+  grNumber: String!
+  supplierId: String!
+  supplierName: String!
+  supplierCurrencyCode: String!
+  status: String!
+  po: GoodsReceiptPo
+  receivedDate: String!
+  notes: String
+  exchangeRate: Float!
+  publishedAt: String
+  createdAt: String!
+}
+
+type GoodsReceiptPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type GoodsReceiptEdge {
+  cursor: String!
+  node: GoodsReceipt!
+}
+
+type InventoryItemLedgerEntry {
+  id: ID!
+  type: String!
+  quantity: Float!
+  balanceAfter: Float
+  referenceType: String
+  referenceId: ID
+  notes: String
+  createdAt: String!
+}
+
+type InventoryItemLedgerPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemLedgerEdge {
+  cursor: String!
+  node: InventoryItemLedgerEntry!
+}
+
+type InventoryItemLocation {
+  id: ID!
+  inventoryItemId: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  reorderLevel: Float!
+}
+
+type InventoryItemLocationPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemLocationEdge {
+  cursor: String!
+  node: InventoryItemLocation!
+}
+
+type InventoryItemQuant {
+  id: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  lotId: ID
+  lotNumber: String
+  quantity: Float!
+  reservedQuantity: Float!
+  availableQuantity: Float!
+  manufacturingDate: String
+  expiryDate: String
+  createdAt: String!
+}
+
+type InventoryItemQuantPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemQuantEdge {
+  cursor: String!
+  node: InventoryItemQuant!
+}
+
+type InventoryItemStockLevel {
+  id: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  stockedQuantity: Float!
+  reservedQuantity: Float!
+  availableQuantity: Float!
+  reorderLevel: Float
+}
+
+type InventoryItemStockLevelPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemStockLevelEdge {
+  cursor: String!
+  node: InventoryItemStockLevel!
+}
+
+type SupplierUnitPrice {
+  currency: String!
+  value: String!
+}
+
+type InventoryItemSupplier {
+  id: ID!
+  supplierId: ID!
+  supplierName: String
+  supplierCode: String
+  supplierItemCode: String
+  unitPrice: SupplierUnitPrice
+  uomId: ID!
+  uomSymbol: String!
+  minOrderQuantity: Float
+  leadTimeDays: Int
+  isPreferred: Boolean!
+  isActive: Boolean!
+}
+
+type InventoryItemSupplierPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemSupplierEdge {
+  cursor: String!
+  node: InventoryItemSupplier!
+}
+
+type InventoryItem {
+  id: ID!
+  name: String!
+  code: String!
+  type: String!
+  tracking: String!
+  pickStrategy: String!
+  categoryId: String!
+  categoryName: String
+  description: String
+  uomId: String!
+  uomSymbol: String
+  purchaseTaxGroupId: String
+  hsnCode: String
+  canDelete: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type InventoryItemPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemEdge {
+  cursor: String!
+  node: InventoryItem!
+}
+
+type WorkspaceOption {
+  kind: String!
+  id: ID!
+  name: String!
+  code: String!
+  parentId: ID
+}
+
+type Workspaces {
+  legalEntities: [WorkspaceOption!]!
+  siteGroups: [WorkspaceOption!]!
+  sites: [WorkspaceOption!]!
+}
+
+type Query {
+  peopleByCommunication(input: FindPeopleByCommunicationInput!): [ID!]!
+  workspaces: Workspaces!
+}
+
+input FindPeopleByCommunicationInput {
+  channel: String!
+  value: String!
+}
+
+type Mutation {
+  createPerson(input: CreatePersonInput!): Person!
+  addPersonCommunication(input: AddPersonCommunicationInput!): PersonCommunication!
+}
+
+input CreatePersonInput {
+  firstName: String!
+  lastName: String
+  email: String
+  phone: String
+}
+
+input AddPersonCommunicationInput {
+  personId: ID!
+  channel: String!
+  value: String!
+}

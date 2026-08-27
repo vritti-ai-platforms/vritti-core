@@ -74,8 +74,8 @@ importers:
         specifier: 8.0.0-alpha.25
         version: 8.0.0-alpha.25(c691e0f8f9586fc551eeb8478e0236f4)
       '@vritti/quantum-ui-native':
-        specifier: 0.1.0
-        version: 0.1.0(7af6ab27c9f5759f553729d97ac721aa)
+        specifier: 0.2.0
+        version: 0.2.0(7af6ab27c9f5759f553729d97ac721aa)
       axios:
         specifier: ^1.14.0
         version: 1.15.0
@@ -291,8 +291,8 @@ importers:
         specifier: ^11.2.5
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.3.15
-        version: 0.3.15(fc8654244b69098ed2a5feef7e900db1)
+        specifier: 0.4.0
+        version: 0.4.0(fc8654244b69098ed2a5feef7e900db1)
       '@vritti/commerce-permissions':
         specifier: workspace:*
         version: link:../../libs/commerce-permissions
@@ -506,8 +506,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/commerce-permissions
       '@vritti/quantum-ui-native':
-        specifier: 0.1.0
-        version: 0.1.0(9d1faba98a3af6edf0d4a77e669db0f9)
+        specifier: 0.2.0
+        version: 0.2.0(9d1faba98a3af6edf0d4a77e669db0f9)
       axios:
         specifier: ^1.14.0
         version: 1.15.0
@@ -639,8 +639,8 @@ importers:
         specifier: ^11.2.6
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.3.15
-        version: 0.3.15(fc8654244b69098ed2a5feef7e900db1)
+        specifier: 0.4.0
+        version: 0.4.0(fc8654244b69098ed2a5feef7e900db1)
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -730,8 +730,8 @@ importers:
         specifier: ^11.2.6
         version: 11.2.6(@fastify/static@9.0.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.3.15
-        version: 0.3.15(fc8654244b69098ed2a5feef7e900db1)
+        specifier: 0.4.0
+        version: 0.4.0(fc8654244b69098ed2a5feef7e900db1)
       axios:
         specifier: ^1.7.9
         version: 1.15.0
@@ -7371,8 +7371,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vritti/api-sdk@0.3.15':
-    resolution: {integrity: sha512-qvzF5iHzaqM5jMK3zTldz8D+Npdv63BSkIw4bR+tGpM6HNdHRUjQN3PtFMLRPCbxap/GKuHmSGP5VqAQXQiyLQ==}
+  '@vritti/api-sdk@0.4.0':
+    resolution: {integrity: sha512-yMwlevj9Z9YjxoTe7cIPdCbB9LJPES5Pr7kr8Mzwb5k6GL+dlOM5DSIoovg7XVB+v2Akqs4VBJtUN0x1c9I+aQ==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.997.0
       '@aws-sdk/s3-request-presigner': ^3.997.0
@@ -7404,8 +7404,8 @@ packages:
       class-validator:
         optional: true
 
-  '@vritti/quantum-ui-native@0.1.0':
-    resolution: {integrity: sha512-n/wkSRbR5vX+C1kxFfWBGYYS4yeoL4QxlZyQ7twd+gSFQLPFnzburFl6p32o9gQd0+XuKAly4KNqYPzQIGG14Q==}
+  '@vritti/quantum-ui-native@0.2.0':
+    resolution: {integrity: sha512-IfiG7g+UZlHFfOolgLAfTg3HdOOBpKU5yeNY+aJWX3SQ5WUCrgIYAL+WGcY0Xz53yt8VzCd0HtoG13j6Ue48xg==}
     peerDependencies:
       '@apollo/client': '>=4'
       '@bottom-tabs/react-navigation': '>=1.4.0'
@@ -22663,7 +22663,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vritti/api-sdk@0.3.15(fc8654244b69098ed2a5feef7e900db1)':
+  '@vritti/api-sdk@0.4.0(fc8654244b69098ed2a5feef7e900db1)':
     dependencies:
       '@getbrevo/brevo': 4.0.1
       '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -22733,7 +22733,7 @@ snapshots:
       - valibot
       - zod
 
-  '@vritti/quantum-ui-native@0.1.0(7af6ab27c9f5759f553729d97ac721aa)':
+  '@vritti/quantum-ui-native@0.2.0(7af6ab27c9f5759f553729d97ac721aa)':
     dependencies:
       '@bottom-tabs/react-navigation': 1.4.0(@react-navigation/native@8.0.0-alpha.17(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native-bottom-tabs@1.4.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@callstack/liquid-glass': 0.7.1(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
@@ -22797,7 +22797,7 @@ snapshots:
       - react-native-web
       - use-sync-external-store
 
-  '@vritti/quantum-ui-native@0.1.0(9d1faba98a3af6edf0d4a77e669db0f9)':
+  '@vritti/quantum-ui-native@0.2.0(9d1faba98a3af6edf0d4a77e669db0f9)':
     dependencies:
       '@bottom-tabs/react-navigation': 1.4.0(@react-navigation/native@8.0.0-alpha.17(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native-bottom-tabs@1.4.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@callstack/liquid-glass': 0.7.1(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)

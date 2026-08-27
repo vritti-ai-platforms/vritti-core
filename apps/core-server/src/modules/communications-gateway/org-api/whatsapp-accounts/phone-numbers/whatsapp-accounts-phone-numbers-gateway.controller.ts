@@ -9,7 +9,7 @@ import type { WhatsappPhoneNumberResponseDto } from '@communications/whatsapp-ac
 import type { WhatsappPhoneNumberTableResponseDto } from '@communications/whatsapp-account-phone-numbers/dto/response/whatsapp-phone-number-table-response.dto';
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
 import { SessionTypeValues } from '@/db/schema';
@@ -29,7 +29,7 @@ import { WhatsappAccountsPhoneNumbersGatewayService } from '../services/whatsapp
 // The :phoneNumberId params are Meta's numeric IDs, not UUIDs — only the account id gets the UUID pipe
 @ApiTags('Communications - WhatsApp Phone Numbers')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_WHATSAPP_ACCOUNTS.featureCode)
 @Controller('whatsapp-accounts/:id/phone-numbers')
 export class WhatsappAccountsPhoneNumbersGatewayController {

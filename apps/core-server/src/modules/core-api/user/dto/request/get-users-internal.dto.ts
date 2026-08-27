@@ -1,12 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class GetUsersInternalDto {
-  @ApiProperty({ description: 'Organization ID to fetch users for', example: 'uuid-here' })
-  @IsUUID()
-  orgId: string;
-
   @ApiPropertyOptional({ description: 'JSON-stringified FilterCondition[]' })
   @IsOptional()
   @IsString()

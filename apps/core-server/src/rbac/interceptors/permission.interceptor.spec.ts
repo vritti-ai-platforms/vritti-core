@@ -24,8 +24,6 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
   let userPermissions: {
     resolveEnabledPermissions: jest.Mock;
     resolveAvailableFeatures: jest.Mock;
-    resolveAppEnabledPermissions: jest.Mock;
-    resolveAppAvailableFeatures: jest.Mock;
   };
   let interceptor: PermissionInterceptor;
   let next: { handle: jest.Mock };
@@ -38,8 +36,6 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     userPermissions = {
       resolveEnabledPermissions: jest.fn().mockResolvedValue(new Set<string>()),
       resolveAvailableFeatures: jest.fn().mockResolvedValue(new Set<string>()),
-      resolveAppEnabledPermissions: jest.fn().mockResolvedValue(new Set<string>()),
-      resolveAppAvailableFeatures: jest.fn().mockResolvedValue(new Set<string>()),
     };
     const primaryDb = { runWithRlsContext: jest.fn((_ctx: unknown, fn: () => unknown) => fn()) } as Any;
     interceptor = new PermissionInterceptor(reflector, userPermissions as Any, primaryDb);
@@ -47,7 +43,7 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/commerce-api/categories/count',
-      sessionInfo: { userId: 'u1', siteId: 'b1', organizationId: 'o1', sessionType: 'WEB' },
+      auth: { kind: 'session', userId: 'u1', siteId: 'b1', organizationId: 'o1', sessionType: 'WEB' },
     });
   });
 
@@ -64,7 +60,11 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['categories', 'uom']));
     const res = await interceptor.intercept(context(), next as Any);
     expect(res).toBe(NEXT);
-    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', { scope: 'SITE', id: 'b1' }, 'web');
+    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith(
+      { kind: 'user', userId: 'u1' },
+      { scope: 'SITE', id: 'b1' },
+      'web',
+    );
     expect(next.handle).toHaveBeenCalledTimes(1);
   });
 
@@ -105,16 +105,20 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/commerce-api/categories/count',
-      sessionInfo: { userId: 'u1', siteId: 'b1', organizationId: 'o1', sessionType: 'MOBILE' },
+      auth: { kind: 'session', userId: 'u1', siteId: 'b1', organizationId: 'o1', sessionType: 'MOBILE' },
     });
     userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['categories']));
     await interceptor.intercept(context(), next as Any);
-    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', { scope: 'SITE', id: 'b1' }, 'mobile');
+    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith(
+      { kind: 'user', userId: 'u1' },
+      { scope: 'SITE', id: 'b1' },
+      'mobile',
+    );
   });
 
   it('denies (403) when the session context is incomplete', async () => {
     reflectorReturns[REQUIRE_FEATURE_KEY] = 'categories';
-    mockGetRequest.mockReturnValue({ method: 'GET', url: '/x', sessionInfo: { siteId: 'b1' } });
+    mockGetRequest.mockReturnValue({ method: 'GET', url: '/x', auth: { kind: 'session', siteId: 'b1' } });
     await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
     expect(userPermissions.resolveAvailableFeatures).not.toHaveBeenCalled();
   });
@@ -124,13 +128,13 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/x',
-      sessionInfo: { userId: 'u1', siteGroupId: 'g1', organizationId: 'o1', sessionType: 'WEB' },
+      auth: { kind: 'session', userId: 'u1', siteGroupId: 'g1', organizationId: 'o1', sessionType: 'WEB' },
     });
     userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['categories.add']));
     const res = await interceptor.intercept(context(), next as Any);
     expect(res).toBe(NEXT);
     expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
-      'u1',
+      { kind: 'user', userId: 'u1' },
       { scope: 'SITE_GROUP', id: 'g1' },
       'web',
     );
@@ -141,12 +145,16 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/x',
-      sessionInfo: { userId: 'u1', legalEntityId: 'le1', organizationId: 'o1', sessionType: 'WEB' },
+      auth: { kind: 'session', userId: 'u1', legalEntityId: 'le1', organizationId: 'o1', sessionType: 'WEB' },
     });
     userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['ledger']));
     const res = await interceptor.intercept(context(), next as Any);
     expect(res).toBe(NEXT);
-    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', { scope: 'LE', id: 'le1' }, 'web');
+    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith(
+      { kind: 'user', userId: 'u1' },
+      { scope: 'LE', id: 'le1' },
+      'web',
+    );
   });
 
   it('falls back to the ORG context when no workspace header was supplied', async () => {
@@ -154,12 +162,16 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/x',
-      sessionInfo: { userId: 'u1', organizationId: 'o1', sessionType: 'WEB' },
+      auth: { kind: 'session', userId: 'u1', organizationId: 'o1', sessionType: 'WEB' },
     });
     userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['dashboard']));
     const res = await interceptor.intercept(context(), next as Any);
     expect(res).toBe(NEXT);
-    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', { scope: 'ORG', id: 'o1' }, 'web');
+    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith(
+      { kind: 'user', userId: 'u1' },
+      { scope: 'ORG', id: 'o1' },
+      'web',
+    );
   });
 
   it('prefers SITE over broader contexts when several ids are present', async () => {
@@ -167,7 +179,8 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/x',
-      sessionInfo: {
+      auth: {
+        kind: 'session',
         userId: 'u1',
         siteId: 'b1',
         siteGroupId: 'g1',
@@ -178,7 +191,11 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     });
     userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['categories.add']));
     await interceptor.intercept(context(), next as Any);
-    expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith('u1', { scope: 'SITE', id: 'b1' }, 'web');
+    expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
+      { kind: 'user', userId: 'u1' },
+      { scope: 'SITE', id: 'b1' },
+      'web',
+    );
   });
 
   it('denies (403) when the required permission is missing in an ORG context', async () => {
@@ -186,7 +203,7 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/x',
-      sessionInfo: { userId: 'u1', organizationId: 'o1', sessionType: 'WEB' },
+      auth: { kind: 'session', userId: 'u1', organizationId: 'o1', sessionType: 'WEB' },
     });
     userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['dashboard.view']));
     await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
@@ -194,42 +211,44 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
   });
 
   describe('app credentials', () => {
-    // What AppRequestResolver puts on the session after a signature verifies
+    // What AppRequestResolver puts on request.auth after a signature verifies
     const appRequest = (permissions: unknown, scope: Record<string, string> = {}) => ({
       method: 'POST',
       url: '/graphql',
-      sessionInfo: {
-        // The app id stands in as the acting principal — there is no user behind the call
-        userId: 'app-1',
+      auth: {
+        // The app IS the principal — named as itself, not standing in as a user
+        kind: 'app',
+        appId: 'app-1',
         organizationId: 'o1',
-        sessionType: 'APP',
         appType: 'GRAPHQL',
-        appPermissions: permissions,
+        permissions,
         ...scope,
       },
     });
 
+    // The grant source an app request must resolve through. Asserting on `kind: 'app'` is what
+    // now proves the user path was not taken, since both share one method.
+    const appSource = (grants: unknown) => ({ kind: 'app', appId: 'app-1', grants });
+
     it('resolves from the credential rather than from role assignments', async () => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.add';
       mockGetRequest.mockReturnValue(appRequest({ people: { graphql: ['view', 'add'] } }));
-      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.add']));
+      userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['org.people.add']));
 
       const res = await interceptor.intercept(context(), next as Any);
 
       expect(res).toBe(NEXT);
-      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
-        { people: { graphql: ['view', 'add'] } },
+      expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
+        appSource({ people: { graphql: ['view', 'add'] } }),
         { scope: 'ORG', id: 'o1' },
         'graphql',
       );
-      // The user path must not be consulted — there are no role assignments behind an app id
-      expect(userPermissions.resolveEnabledPermissions).not.toHaveBeenCalled();
     });
 
     it('denies (403) a permission the credential was not granted', async () => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.delete';
       mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view'] } }));
-      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
+      userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
 
       await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
       expect(next.handle).not.toHaveBeenCalled();
@@ -240,8 +259,8 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
       mockGetRequest.mockReturnValue(appRequest({}));
 
       await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
-      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
-        {},
+      expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
+        appSource({}),
         { scope: 'ORG', id: 'o1' },
         'graphql',
       );
@@ -252,35 +271,37 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
       mockGetRequest.mockReturnValue(appRequest(undefined));
 
       await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
-      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
-        {},
+      expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
+        appSource({}),
         { scope: 'ORG', id: 'o1' },
         'graphql',
       );
-      expect(userPermissions.resolveEnabledPermissions).not.toHaveBeenCalled();
     });
 
     it('gates on the feature switch when no specific permission is required', async () => {
       reflectorReturns[REQUIRE_FEATURE_KEY] = 'people';
       mockGetRequest.mockReturnValue(appRequest({ people: { web: ['view'] } }));
-      userPermissions.resolveAppAvailableFeatures.mockResolvedValue(new Set(['people']));
+      userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['people']));
 
       const res = await interceptor.intercept(context(), next as Any);
 
       expect(res).toBe(NEXT);
-      expect(userPermissions.resolveAppAvailableFeatures).toHaveBeenCalled();
-      expect(userPermissions.resolveAvailableFeatures).not.toHaveBeenCalled();
+      expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith(
+        appSource({ people: { web: ['view'] } }),
+        { scope: 'ORG', id: 'o1' },
+        'graphql',
+      );
     });
 
     it('honours the workspace scope the signed request named', async () => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'site.people.view';
       mockGetRequest.mockReturnValue(appRequest({ people: { graphql: ['view'] } }, { siteId: 's1' }));
-      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['site.people.view']));
+      userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['site.people.view']));
 
       await interceptor.intercept(context(), next as Any);
 
-      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
-        { people: { graphql: ['view'] } },
+      expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
+        appSource({ people: { graphql: ['view'] } }),
         { scope: 'SITE', id: 's1' },
         'graphql',
       );
@@ -289,42 +310,42 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     it('resolves an app against its own surface bucket, never web or mobile', async () => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.view';
       mockGetRequest.mockReturnValue(appRequest({ people: { graphql: ['view'] } }));
-      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
+      userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
 
       await interceptor.intercept(context(), next as Any);
 
-      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
-        expect.anything(),
+      expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'app' }),
         expect.anything(),
         'graphql',
       );
     });
 
-    // The surface check fails closed: a session claiming APP without a recognised credential
-    // type must resolve nothing, not everything — resolution is never even attempted.
-    it.each([undefined, 'SOAP'])('denies (403) an app session whose type is %p', async (appType) => {
+    // The surface check fails closed: an app without a recognised credential type must resolve
+    // nothing, not everything — resolution is never even attempted.
+    it.each([undefined, 'SOAP'])('denies (403) an app whose type is %p', async (appType) => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.view';
       const request = appRequest({ people: { graphql: ['view'] } });
-      request.sessionInfo.appType = appType as never;
+      request.auth.appType = appType as never;
       mockGetRequest.mockReturnValue(request);
 
       await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
-      expect(userPermissions.resolveAppEnabledPermissions).not.toHaveBeenCalled();
+      expect(userPermissions.resolveEnabledPermissions).not.toHaveBeenCalled();
       expect(next.handle).not.toHaveBeenCalled();
     });
 
     it('an HTTP credential resolves the http bucket', async () => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.view';
       const request = appRequest({ people: { http: ['view'] } });
-      request.sessionInfo.appType = 'HTTP';
+      request.auth.appType = 'HTTP';
       mockGetRequest.mockReturnValue(request);
-      userPermissions.resolveAppEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
+      userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['org.people.view']));
 
       const res = await interceptor.intercept(context(), next as Any);
 
       expect(res).toBe(NEXT);
-      expect(userPermissions.resolveAppEnabledPermissions).toHaveBeenCalledWith(
-        expect.anything(),
+      expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'app' }),
         expect.anything(),
         'http',
       );

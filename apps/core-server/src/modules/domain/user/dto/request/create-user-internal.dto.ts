@@ -1,12 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserInternalDto {
-  @ApiProperty({ description: 'Nexus organization ID', example: 'uuid-here' })
-  @IsUUID()
-  @IsNotEmpty()
-  orgId: string;
-
   @ApiProperty({ description: 'User email address', example: 'user@example.com' })
   @IsEmail()
   email: string;

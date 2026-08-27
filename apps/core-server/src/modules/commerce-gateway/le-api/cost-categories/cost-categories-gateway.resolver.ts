@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { MutationResult } from '../../site-api/inventory-items/graphql/mutation-result.type';
 import { CostCategory } from './graphql/cost-category.type';
@@ -17,7 +17,7 @@ export class CostCategoriesResolver {
   constructor(private readonly costCategoriesGatewayService: CostCategoriesGatewayService) {}
 
   // All cost categories (with canDelete) — the mobile list. Small/bounded, so a plain array.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => [CostCategory], { name: 'costCategories' })
   async costCategories(
     @Args('search', { type: () => String, nullable: true }) search?: string,
@@ -27,7 +27,7 @@ export class CostCategoriesResolver {
   }
 
   // Returns the created entity so the client inserts it into the cached list (no refetch).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => CostCategory, { name: 'createCostCategory' })
   async createCostCategory(@Args('input') input: CreateCostCategoryInput): Promise<CostCategory> {
     this.logger.log('MUTATION createCostCategory');
@@ -37,7 +37,7 @@ export class CostCategoriesResolver {
 
   // Re-reads + returns the entity so Apollo auto-merges by id (the gateway update returns only success).
   // The overflow menu's activate/deactivate flows through here as `{ isActive }`.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => CostCategory, { name: 'updateCostCategory' })
   async updateCostCategory(
     @Args('id', { type: () => ID }) id: string,
@@ -49,7 +49,7 @@ export class CostCategoriesResolver {
   }
 
   // Deletes a cost category; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteCostCategory' })
   async deleteCostCategory(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteCostCategory');

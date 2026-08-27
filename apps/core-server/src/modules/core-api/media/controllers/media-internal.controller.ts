@@ -1,16 +1,14 @@
 import { MediaGcService, type SweepResult } from '@domain/media/services/media-gc.service';
-import { Controller, Logger, Post, UseGuards } from '@nestjs/common';
+import { Controller, Logger, Post } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
-import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
-import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 
 // Operator-triggered, not session-authenticated: sweeping deletes objects across every tenant, which is not something
 // an org's own users should be able to start.
 @ApiExcludeController()
 @Controller('media/internal')
-@Public()
-@SkipCsrf()
-@UseGuards(CloudSignatureGuard)
+@Require(AuthType.Cloud)
+// The sweep spans every tenant, so scoping it to one organization would hide the rest from it
 export class MediaInternalController {
   private readonly logger = new Logger(MediaInternalController.name);
 

@@ -1,28 +1,12 @@
 import { CreateRoleInternalDto } from '@domain/organization/dto/request/create-role-internal.dto';
 import { UpdateRoleInternalDto } from '@domain/organization/dto/request/update-role-internal.dto';
 import { RoleDomainService, type RolesByScope } from '@domain/organization/services/role.service';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  Param,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { Role } from '@/db/schema';
-import { OrgIdHeader } from '@/security/decorators/org-id-header.decorator';
-import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
-import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
+import { OrgId } from '@/security/decorators/org-id.decorator';
 import {
   ApiCreateRole,
   ApiDeleteRole,
@@ -37,10 +21,7 @@ import { SelectRolesInternalDto } from '../dto/request/select-roles-internal.dto
 
 @ApiTags('Organization Roles')
 @Controller('organizations/internal/roles')
-@Public()
-@SkipCsrf()
-@UseGuards(CloudSignatureGuard)
-@UseInterceptors(OrgScopeInterceptor)
+@Require(AuthType.Cloud)
 export class RolesController {
   private readonly logger = new Logger(RolesController.name);
 
@@ -66,7 +47,7 @@ export class RolesController {
   @Get('for-target')
   @ApiRolesForTarget()
   async findForTarget(
-    @OrgIdHeader() orgId: string,
+    @OrgId() orgId: string,
     @Query('targetType') targetType: string,
     @Query('targetId') targetId?: string,
   ): Promise<Role[]> {
@@ -77,10 +58,7 @@ export class RolesController {
   // Returns the org's roles matching an exact scope as select options
   @Get('select')
   @ApiSelectRoles()
-  async findForSelect(
-    @OrgIdHeader() orgId: string,
-    @Query() query: SelectRolesInternalDto,
-  ): Promise<SelectQueryResult> {
+  async findForSelect(@OrgId() orgId: string, @Query() query: SelectRolesInternalDto): Promise<SelectQueryResult> {
     this.logger.log(`GET /organizations/internal/roles/select?scope=${query.scope} — org ${orgId}`);
     return this.roleService.findForSelect(orgId, query, query.scope, query.siteId);
   }
@@ -89,9 +67,9 @@ export class RolesController {
   @Post('create')
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateRole()
-  async create(@Body() dto: CreateRoleInternalDto): Promise<CreateResponseDto<Role>> {
-    this.logger.log(`POST /api/organizations/internal/roles/create — "${dto.name}" for org ${dto.orgId}`);
-    return this.roleService.create(dto.orgId, dto);
+  async create(@OrgId() orgId: string, @Body() dto: CreateRoleInternalDto): Promise<CreateResponseDto<Role>> {
+    this.logger.log(`POST /api/organizations/internal/roles/create — "${dto.name}" for org ${orgId}`);
+    return this.roleService.create(orgId, dto);
   }
 
   // Updates an existing role's metadata and features

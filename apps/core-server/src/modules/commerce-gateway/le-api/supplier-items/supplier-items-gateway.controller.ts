@@ -1,16 +1,16 @@
+import { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
 import { Controller, Get, Logger, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { SelectQueryResult } from '@vritti/api-sdk/database';
 import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature } from '@/rbac/decorators';
-import { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
 import { SupplierItemsGatewayService } from './services/supplier-items-gateway.service';
 
 @ApiTags('Commerce - Supplier Items')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(LE_SUPPLIERS.featureCode)
 @Controller('le/supplier-items')
 export class SupplierItemsGatewayController {

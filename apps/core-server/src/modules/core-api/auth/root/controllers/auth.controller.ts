@@ -16,12 +16,13 @@ import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import {
   AccessToken,
+  AuthType,
   CookieName,
   type CookieSerializeOptions,
   Hostname,
-  Public,
   RefreshCookieOptions,
   RefreshTokenCookie,
+  Require,
   SkipCsrf,
   Subdomain,
   UserId,
@@ -67,7 +68,7 @@ export class AuthController {
 
   // Authenticates user credentials and creates a NEXUS session
   @Post('login')
-  @Public()
+  @Require(AuthType.Public)
   @ApiLogin()
   async login(
     @Body() dto: LoginDto,
@@ -98,7 +99,7 @@ export class AuthController {
   // Looks up all organizations associated with the given email
   @Post('mobile/lookup')
   @HttpCode(HttpStatus.OK)
-  @Public()
+  @Require(AuthType.Public)
   @ApiMobileLookup()
   async lookup(@Body() dto: MobileLookupDto): Promise<MobileLookupResponseDto> {
     this.logger.log(`POST /auth/mobile/lookup - Email: ${dto.email}`);
@@ -107,7 +108,7 @@ export class AuthController {
 
   // Authenticates user credentials and creates a MOBILE session
   @Post('mobile/login')
-  @Public()
+  @Require(AuthType.Public)
   @SkipCsrf()
   @ApiMobileLogin()
   async mobileLogin(
@@ -128,7 +129,7 @@ export class AuthController {
   // Rotates tokens using refresh token from request body
   @Post('mobile/refresh-tokens')
   @HttpCode(HttpStatus.OK)
-  @Public()
+  @Require(AuthType.Public)
   @SkipCsrf()
   @ApiMobileRefreshTokens()
   async refreshMobileTokens(@Body() dto: MobileRefreshDto): Promise<MobileTokenResponseDto> {
@@ -180,7 +181,7 @@ export class AuthController {
 
   // Accepts an invitation token and sets the user's password
   @Post('accept-invite')
-  @Public()
+  @Require(AuthType.Public)
   @SkipCsrf()
   @HttpCode(HttpStatus.OK)
   @ApiAcceptInvite()
@@ -191,7 +192,7 @@ export class AuthController {
 
   // Streams auth status and real-time session-revocation events via SSE
   @Sse('status')
-  @Public()
+  @Require(AuthType.Public)
   @ApiGetAuthStatus()
   async getStatus(
     @RefreshTokenCookie() refreshToken: string | undefined,
@@ -210,7 +211,7 @@ export class AuthController {
 
   // Rotates refresh token and issues a new access token
   @Post('refresh-tokens')
-  @Public()
+  @Require(AuthType.Public)
   @ApiRefreshTokens()
   async refreshTokens(
     @RefreshTokenCookie() refreshToken: string | undefined,
@@ -229,7 +230,7 @@ export class AuthController {
 
   // Recovers session from httpOnly cookie without rotating the refresh token
   @Get('access-token')
-  @Public()
+  @Require(AuthType.Public)
   @ApiGetAccessToken()
   async getAccessToken(@RefreshTokenCookie() refreshToken: string | undefined): Promise<TokenResponseDto> {
     this.logger.log('GET /auth/access-token');

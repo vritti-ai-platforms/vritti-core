@@ -16,16 +16,13 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { SelectQueryResult } from '@vritti/api-sdk/database';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { pluralize } from '@vritti/api-sdk/pluralize';
-import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
-import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
+import { OrgId } from '@/security/decorators/org-id.decorator';
 import { OrgStructureSelectQueryDto } from '../dto/request/org-structure-select-query.dto';
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';
 import type { FeatureLocksResponseDto } from '../dto/response/feature-locks-response.dto';
@@ -46,10 +43,7 @@ import { SiteGroupService } from './services/site-group-api.service';
 
 @ApiTags('Site Groups')
 @Controller('site-groups/internal')
-@Public()
-@SkipCsrf()
-@UseGuards(CloudSignatureGuard)
-@UseInterceptors(OrgScopeInterceptor)
+@Require(AuthType.Cloud)
 export class SiteGroupController {
   private readonly logger = new Logger(SiteGroupController.name);
 
@@ -59,9 +53,9 @@ export class SiteGroupController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateSiteGroup()
-  async create(@Body() dto: CreateSiteGroupInternalDto): Promise<SiteGroupDto> {
-    this.logger.log(`POST /site-groups/internal — "${dto.name}" for org ${dto.orgId}`);
-    return this.siteGroupApiService.create(dto.orgId, dto);
+  async create(@OrgId() orgId: string, @Body() dto: CreateSiteGroupInternalDto): Promise<SiteGroupDto> {
+    this.logger.log(`POST /site-groups/internal — "${dto.name}" for org ${orgId}`);
+    return this.siteGroupApiService.create(orgId, dto);
   }
 
   // Lists all site groups for an organization
@@ -115,11 +109,11 @@ export class SiteGroupController {
   // Reorders a batch of sibling site groups
   @Patch('reorder')
   @ApiReorderSiteGroups()
-  async reorder(@Body() dto: ReorderSiteGroupsInternalDto): Promise<SuccessResponseDto> {
+  async reorder(@OrgId() orgId: string, @Body() dto: ReorderSiteGroupsInternalDto): Promise<SuccessResponseDto> {
     this.logger.log(
-      `PATCH /site-groups/internal/reorder — ${pluralize('group', dto.ids.length, true)} for org ${dto.orgId}`,
+      `PATCH /site-groups/internal/reorder — ${pluralize('group', dto.ids.length, true)} for org ${orgId}`,
     );
-    return this.siteGroupApiService.reorder(dto.orgId, dto.ids);
+    return this.siteGroupApiService.reorder(orgId, dto.ids);
   }
 
   // Reparents a site group

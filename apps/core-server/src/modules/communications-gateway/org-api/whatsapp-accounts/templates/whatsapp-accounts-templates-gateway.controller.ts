@@ -17,7 +17,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
 import { SessionTypeValues } from '@/db/schema';
@@ -34,7 +34,7 @@ import { WhatsappAccountsTemplatesGatewayService } from '../services/whatsapp-ac
 
 @ApiTags('Communications - WhatsApp Templates')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_WHATSAPP_ACCOUNTS.featureCode)
 @Controller('whatsapp-accounts/:id/templates')
 export class WhatsappAccountsTemplatesGatewayController {

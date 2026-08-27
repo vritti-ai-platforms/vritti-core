@@ -13,7 +13,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { SessionTypeValues } from '@/db/schema';
@@ -50,7 +50,7 @@ import { RepositoriesGatewayService } from './services/repositories-gateway.serv
 // `runs/:runId`.
 @ApiTags('Gitea - Repositories')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_REPOSITORIES.featureCode)
 @Controller('repositories')
 export class RepositoriesGatewayController {

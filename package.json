@@ -44,6 +44,7 @@
     "db:stop": "nx run vritti-core-server:db:stop",
     "db:tunnel:dev": "nx run vritti-core-server:db:tunnel:dev",
     "db:tunnel:apw1": "nx run vritti-core-server:db:tunnel:apw1",
+    "db:tunnel:stop": "nx run vritti-core-server:db:tunnel:stop",
     "gitea:tunnel:apw1": "nx run vritti-core-server:gitea:tunnel:apw1",
     "gitea:tunnel:apw1:stop": "nx run vritti-core-server:gitea:tunnel:apw1:stop"
   },

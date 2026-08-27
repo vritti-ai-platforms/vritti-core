@@ -2,7 +2,7 @@ import type { PersonResponseDto } from '@commerce/parties/dto/response/person-re
 import type { PartyCommunicationResponseDto } from '@commerce/party-communications/dto/response/party-communication-response.dto';
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { RequireApp } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto } from '@vritti/api-sdk/database';
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { AppTypeValues } from '@/db/schema';
@@ -24,10 +24,10 @@ import { PeopleGatewayService } from './services/people-gateway.service';
  * `@Controller('people')` under the same `commerce-api` prefix; sharing it would
  * collide on `POST /people`.
  *
- * `@RequireApp(HTTP)` is the whole authentication story, and it is enforcing rather
+ * `@Require(AuthType.App, HTTP)` is the whole authentication story, and it is enforcing rather
  * than descriptive: a `GRAPHQL` credential presented here is refused, just as an
  * `HTTP` one is refused at `/graphql`. Nothing else is needed at the class level —
- * no `@Public()`, no `@SkipCsrf()`, no `@UseGuards()`.
+ * no `@Require(AuthType.Public)`, no `@SkipCsrf()`, no `@UseGuards()`.
  *
  * Gated like every other app surface: `@RequireFeature` plus a `@RequirePermission` per operation,
  * resolved against the credential's `app` bucket. So a storefront that may register shoppers is a
@@ -38,7 +38,7 @@ import { PeopleGatewayService } from './services/people-gateway.service';
  * the point, but it does mean the grant is part of provisioning a storefront, not an afterthought.
  */
 @ApiTags('Commerce - People (App)')
-@RequireApp(AppTypeValues.HTTP)
+@Require(AuthType.App, AppTypeValues.HTTP)
 @RequireFeature(ORG_PEOPLE.featureCode)
 @Controller('app/people')
 export class PeopleAppController {

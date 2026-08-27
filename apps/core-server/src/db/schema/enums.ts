@@ -22,7 +22,7 @@ export const SessionTypeValues = {
 /**
  * What an app is allowed to do with its credential.
  *
- * The type is enforced, not descriptive: `@RequireApp(...)` names the types an
+ * The type is enforced, not descriptive: `@Require(AuthType.App, ...)` names the types an
  * endpoint accepts, so a `GRAPHQL` credential cannot call a REST route and an
  * `HTTP` one cannot call `/graphql`.
  *

@@ -30,6 +30,7 @@ const env = envSchema.parse({
   DEV_HOST: process.env.DEV_HOST,
   API_BASE_URL: process.env.API_BASE_URL,
   DEPLOYMENTS_API_BASE_URL: process.env.DEPLOYMENTS_API_BASE_URL,
+  GRAPHQL_PATH: process.env.GRAPHQL_PATH,
 });
 
 // ---------------------------------------------------------------------------
@@ -251,6 +252,7 @@ export default (rspackEnv) => {
           devHost: isDev ? env.DEV_HOST : undefined,
           apiBaseUrl: env.API_BASE_URL,
           deploymentsApiBaseUrl: env.DEPLOYMENTS_API_BASE_URL,
+          graphqlPath: env.GRAPHQL_PATH,
         }),
       }),
       new Repack.RepackPlugin({

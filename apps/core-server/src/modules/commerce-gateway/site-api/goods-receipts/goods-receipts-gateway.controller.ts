@@ -1,8 +1,3 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { SessionTypeValues } from '@/db/schema';
 import {
   AddGoodsReceiptItemFromPurchaseOrderItemDto,
   AddGoodsReceiptItemFromSupplierItemDto,
@@ -27,11 +22,16 @@ import type { GoodsReceiptLotResponseDto } from '@commerce/goods-receipts/dto/re
 import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
 import type { GoodsReceiptTreeNodeResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-tree-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SessionTypeValues } from '@/db/schema';
 import { GoodsReceiptsGatewayService } from './services/goods-receipts-gateway.service';
 
 @ApiTags('Commerce - Goods Receipts')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('goods-receipts')
 export class GoodsReceiptsGatewayController {
   private readonly logger = new Logger(GoodsReceiptsGatewayController.name);

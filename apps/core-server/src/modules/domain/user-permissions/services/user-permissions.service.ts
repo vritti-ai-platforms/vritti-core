@@ -99,6 +99,20 @@ export interface PermissionContext {
 }
 
 /**
+ * The principal whose permissions are being resolved.
+ *
+ * `FeatureUnlocks` is the boundary between producing a grant set and evaluating one. A user's
+ * is derived — role assignments, nearest-wins chain walk, template composition. An app's is
+ * stored, already composed, on its credential row. Same type, different provenance, so the
+ * branch lives here and everything downstream is shared.
+ *
+ * An app's grants travel on the source rather than being looked up: the row was already read
+ * to verify the request signature, and re-reading it by id would be a second query for data
+ * still in hand. `appId` is for logging and cache keys, not a lookup.
+ */
+export type GrantSource = { kind: 'user'; userId: string } | { kind: 'app'; appId: string; grants: FeatureUnlocks };
+
+/**
  * Turns grants into an enforceable permission set.
  *
  * Named for users because that is all it resolved at first; it now also resolves app
@@ -120,50 +134,73 @@ export class UserPermissionsDomainService {
     private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
 
-  // Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a user in a workspace context on a platform
+  /**
+   * Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a principal
+   * in a workspace context on a platform.
+   *
+   * Caching is a property of the SOURCE, not of this method. A user's set is cached because
+   * deriving it walks role assignments and composes templates. An app's never is: its grants
+   * arrive with the request that authenticated it, so a cache keyed by app id would serve a set
+   * built from a grant the caller no longer holds, and a revoked permission would keep working
+   * until the entry expired. Recomputing it is cheap anyway — no assignments, no chain walk, no
+   * composition, just one org read against an already-cached catalog snapshot.
+   */
   async resolveEnabledPermissions(
-    userId: string,
+    source: GrantSource,
     ctx: PermissionContext,
     bucket: PlatformBucket = 'web',
   ): Promise<Set<string>> {
-    const cached = await this.permissionSetCache.get(userId, ctx, bucket);
-    if (cached) return cached;
+    if (source.kind === 'user') {
+      const cached = await this.permissionSetCache.get(source.userId, ctx, bucket);
+      if (cached) return cached;
+    }
 
-    // getPermissionsForContext collapses ClientPlatform → bucket internally; 'android' stands in for the mobile bucket
-    const { features } = await this.getPermissionsForContext(userId, ctx, bucket === 'web' ? 'web' : 'android');
+    const features = await this.resolveFeatures(source, ctx, bucket);
     const enabled = this.flattenEnabled(features, ctx.scope);
 
-    await this.permissionSetCache.set(userId, ctx, bucket, enabled);
+    if (source.kind === 'user') {
+      await this.permissionSetCache.set(source.userId, ctx, bucket, enabled);
+    }
     return enabled;
   }
 
-  /**
-   * Resolves the enabled-permission set for an app credential.
-   *
-   * Deliberately uncached, unlike the user path. Grants arrive with the request that
-   * authenticated it, so caching by app id would serve a set built from a grant the
-   * caller no longer holds — a revoked permission would keep working until the entry
-   * expired. It is also far cheaper to recompute: no role assignments, no nearest-wins
-   * chain walk, no template composition — one org read against an already-cached
-   * catalog snapshot.
-   */
-  async resolveAppEnabledPermissions(
-    grants: FeatureUnlocks,
+  // Resolves the feature codes whose switch is on (present ∧ not plan/node-locked) for a principal in a workspace context
+  async resolveAvailableFeatures(
+    source: GrantSource,
     ctx: PermissionContext,
-    bucket: PlatformBucket,
+    bucket: PlatformBucket = 'web',
   ): Promise<Set<string>> {
-    const features = await this.resolveGrantedFeatures(grants, ctx, bucket);
-    return this.flattenEnabled(features, ctx.scope);
+    const features = await this.resolveFeatures(source, ctx, bucket);
+    return new Set(features.filter((feature) => !feature.locked).map((feature) => feature.code));
   }
 
-  // Resolves the feature codes an app credential may reach — the feature-switch gate, no specific permission
-  async resolveAppAvailableFeatures(
-    grants: FeatureUnlocks,
+  /**
+   * The single entry point every principal's permissions resolve through.
+   *
+   * Producing the grant set is the only thing that differs between a user and an app — the
+   * catalog it is intersected with is identical, and a plan lock, node feature switch,
+   * unprovisioned service or missing prerequisite binds an app exactly as it binds a person.
+   *
+   * The two branches below still run through separate internals (`getPermissionsForContext`
+   * for users, `resolveGrantedFeatures` for apps), which are three near-identical calls to
+   * `resolveUserFeatures`. Merging them is worthwhile but is a change that silently grants or
+   * denies if it is wrong, so it wants characterisation tests across SITE/GROUP/LE/ORG × user/app
+   * first. This unifies the interface without touching the resolution behaviour.
+   * See docs/auth-context-refactor-plan.md §2.4.
+   */
+  private async resolveFeatures(
+    source: GrantSource,
     ctx: PermissionContext,
     bucket: PlatformBucket,
-  ): Promise<Set<string>> {
-    const features = await this.resolveGrantedFeatures(grants, ctx, bucket);
-    return new Set(features.filter((feature) => !feature.locked).map((feature) => feature.code));
+  ): Promise<PermissionFeature[]> {
+    if (source.kind === 'app') {
+      return this.resolveGrantedFeatures(source.grants, ctx, bucket);
+    }
+
+    // getPermissionsForContext collapses ClientPlatform → bucket internally; 'android' stands in
+    // for the mobile bucket. A user never resolves an API bucket, so the two-way mapping holds.
+    const { features } = await this.getPermissionsForContext(source.userId, ctx, bucket === 'web' ? 'web' : 'android');
+    return features;
   }
 
   /**
@@ -266,20 +303,6 @@ export class UserPermissionsDomainService {
       }
     }
     return enabled;
-  }
-
-  // Resolves the set of feature codes whose switch is on (present ∧ not plan/node-locked) for a user in a workspace context
-  async resolveAvailableFeatures(
-    userId: string,
-    ctx: PermissionContext,
-    bucket: PlatformBucket = 'web',
-  ): Promise<Set<string>> {
-    const { features } = await this.getPermissionsForContext(userId, ctx, bucket === 'web' ? 'web' : 'android');
-    const available = new Set<string>();
-    for (const feature of features) {
-      if (!feature.locked) available.add(feature.code);
-    }
-    return available;
   }
 
   // Returns the service codes the organization has provisioned, for gating service-dependent features

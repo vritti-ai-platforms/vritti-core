@@ -77,8 +77,8 @@ export class UserDomainService {
   }
 
   // Creates a portal user from a cloud-server internal request and sends invite email
-  async createFromCloud(dto: CreateUserInternalDto): Promise<SuccessResponseDto> {
-    const existingUser = await this.userRepository.findByEmailAndOrg(dto.email, dto.orgId);
+  async createFromCloud(orgId: string, dto: CreateUserInternalDto): Promise<SuccessResponseDto> {
+    const existingUser = await this.userRepository.findByEmailAndOrg(dto.email, orgId);
     if (existingUser) {
       throw new ConflictException({
         label: 'User Already Exists',
@@ -93,7 +93,7 @@ export class UserDomainService {
       email: dto.email,
       fullName: dto.fullName,
       displayName,
-      organizationId: dto.orgId,
+      organizationId: orgId,
       status: 'PENDING',
       ...(dto.phone && { phone: dto.phone }),
       ...(dto.phoneCountry && { phoneCountry: dto.phoneCountry }),
@@ -101,7 +101,7 @@ export class UserDomainService {
 
     this.logger.log(`Created portal user from cloud: ${user.email} (${user.id})`);
 
-    const org = await this.organizationRepository.findById(dto.orgId);
+    const org = await this.organizationRepository.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found.');
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
     const { accessToken } = await this.sessionService.createSession(user.id, SessionTypeValues.SET_PASSWORD, {

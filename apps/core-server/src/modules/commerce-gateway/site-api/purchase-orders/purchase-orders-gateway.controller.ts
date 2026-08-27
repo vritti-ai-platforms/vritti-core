@@ -1,3 +1,14 @@
+import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
+import { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/add-purchase-order-item.dto';
+import { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
+import { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
+import { CreatePurchaseOrderDto } from '@commerce/purchase-orders/dto/request/create-purchase-order.dto';
+import { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/request/send-purchase-order-email.dto';
+import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
+import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
+import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
+import type { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
+import type { PurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-table-response.dto';
 import {
   Body,
   Controller,
@@ -13,26 +24,15 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
-import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
-import { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/add-purchase-order-item.dto';
-import { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
-import { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
-import { CreatePurchaseOrderDto } from '@commerce/purchase-orders/dto/request/create-purchase-order.dto';
-import { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/request/send-purchase-order-email.dto';
-import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
-import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
-import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
-import type { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
-import type { PurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-table-response.dto';
 import { PurchaseOrdersGatewayService } from './services/purchase-orders-gateway.service';
 
 @ApiTags('Commerce - Purchase Orders')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('purchase-orders')
 export class PurchaseOrdersGatewayController {
   private readonly logger = new Logger(PurchaseOrdersGatewayController.name);
@@ -58,7 +58,7 @@ export class PurchaseOrdersGatewayController {
   @Get(':id/pdf')
   async downloadPdf(@Param('id') id: string, @Req() req: FastifyRequest, @Res() reply: FastifyReply): Promise<void> {
     this.logger.log(`GET /purchase-orders/${id}/pdf`);
-    const { buffer, filename } = await this.service.downloadPdf(id, req.sessionInfo?.siteId ?? '');
+    const { buffer, filename } = await this.service.downloadPdf(id, req.auth?.siteId ?? '');
     void reply
       .header('Content-Type', 'application/pdf')
       .header('Content-Disposition', `inline; filename="${filename}"`)

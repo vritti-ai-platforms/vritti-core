@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { MessageResponse } from '../../../core-api/auth/root/graphql/message-response.type';
 import { AuthHeader } from '../graphql/auth-header.decorator';
@@ -15,7 +15,7 @@ export class SecurityResolver {
   constructor(private readonly securityService: SecurityService) {}
 
   // Verifies the current password and replaces it with a new one
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Mutation(() => MessageResponse, { name: 'changePassword' })
   async changePassword(@UserId() userId: string, @Args('input') input: ChangePasswordInput): Promise<MessageResponse> {
     this.logger.log('MUTATION changePassword');
@@ -23,7 +23,7 @@ export class SecurityResolver {
   }
 
   // Lists all active sessions for the user, marking the current one
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => [UserSession], { name: 'sessions' })
   async sessions(@UserId() userId: string, @AuthHeader() authHeader: string | undefined): Promise<UserSession[]> {
     this.logger.log('QUERY sessions');
@@ -31,7 +31,7 @@ export class SecurityResolver {
   }
 
   // Revokes a specific session
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Mutation(() => MessageResponse, { name: 'revokeSession' })
   async revokeSession(
     @UserId() userId: string,
@@ -43,7 +43,7 @@ export class SecurityResolver {
   }
 
   // Revokes all sessions except the current one
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Mutation(() => MessageResponse, { name: 'revokeAllSessions' })
   async revokeAllSessions(
     @UserId() userId: string,

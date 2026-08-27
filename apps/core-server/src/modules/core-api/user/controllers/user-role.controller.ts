@@ -1,32 +1,15 @@
 import { AssignRoleInternalDto } from '@domain/user-role/dto/request/assign-role-internal.dto';
 import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  Param,
-  Post,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { UserRoleAssignment } from '@/db/schema';
-import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
-import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import { ApiAssignRole, ApiListUserRoles, ApiRemoveRoleAssignment } from '../docs/user-role.docs';
 
 @ApiTags('User Roles')
 @Controller('users/internal')
-@Public()
-@SkipCsrf()
-@UseGuards(CloudSignatureGuard)
-@UseInterceptors(OrgScopeInterceptor)
+@Require(AuthType.Cloud)
 export class UserRoleController {
   private readonly logger = new Logger(UserRoleController.name);
 

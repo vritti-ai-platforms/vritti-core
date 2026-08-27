@@ -1,19 +1,19 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { ORG_TAX_COMPONENTS } from '@vritti/commerce-permissions/tax-components';
-import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { CreateTaxComponentDto } from '@commerce/tax-components/dto/request/create-tax-component.dto';
 import { UpdateTaxComponentDto } from '@commerce/tax-components/dto/request/update-tax-component.dto';
 import type { TaxComponentResponseDto } from '@commerce/tax-components/dto/response/tax-component-response.dto';
 import type { TaxComponentTableResponseDto } from '@commerce/tax-components/dto/response/tax-component-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ORG_TAX_COMPONENTS } from '@vritti/commerce-permissions/tax-components';
+import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { TaxComponentsGatewayService } from './services/tax-components-gateway.service';
 
 @ApiTags('Commerce - Tax Components')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_TAX_COMPONENTS.featureCode)
 @Controller('tax-components')
 export class TaxComponentsGatewayController {

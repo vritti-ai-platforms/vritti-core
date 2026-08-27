@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { InventoryItemStockLevelConnection } from './graphql/inventory-item-stock-level.type';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
@@ -13,7 +13,7 @@ export class InventoryItemStockLevelsResolver {
 
   constructor(private readonly inventoryItemsGatewayService: SiteInventoryItemsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => InventoryItemStockLevelConnection, { name: 'inventoryItemStockLevels' })
   async inventoryItemStockLevels(
     @Args('inventoryItemId', { type: () => ID }) inventoryItemId: string,

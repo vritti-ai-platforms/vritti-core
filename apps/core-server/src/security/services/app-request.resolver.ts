@@ -8,7 +8,7 @@ import {
 } from '@vritti/api-sdk/auth';
 import { UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import { verifySignedRequest } from '@vritti/api-sdk/signing';
-import type { FastifyRequest } from 'fastify';
+import type { VrittiAppAuth } from 'fastify';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
 
 /**
@@ -29,7 +29,7 @@ const header = (requestService: AuthRequestService, name: string): string | unde
  * Authenticates a signed request from an external app and establishes its tenant.
  *
  * Called from `guard.onAuthenticated` in `app.module.ts`, which is where
- * `VrittiAuthGuard` hands off an `@RequireApp()` request. The guard cannot do this
+ * `VrittiAuthGuard` hands off an `@Require(AuthType.App)` request. The guard cannot do this
  * itself: verifying a signature needs the app's public key, and that is a row in
  * this deployment's `apps` table. api-sdk owns the mechanism, this owns the lookup.
  *
@@ -53,10 +53,7 @@ export class AppRequestResolver {
     return Boolean(header(requestService, CLIENT_ID_HEADER));
   }
 
-  async resolve(
-    requestService: AuthRequestService,
-    sessionInfo: NonNullable<FastifyRequest['sessionInfo']>,
-  ): Promise<void> {
+  async resolve(requestService: AuthRequestService, auth: VrittiAppAuth): Promise<void> {
     const clientId = header(requestService, CLIENT_ID_HEADER);
     const timestamp = header(requestService, 'x-timestamp');
     const signature = header(requestService, 'x-signature');
@@ -100,31 +97,19 @@ export class AppRequestResolver {
       throw rejected();
     }
 
-    sessionInfo.organizationId = app.organizationId;
-    sessionInfo.appType = app.type;
+    auth.organizationId = app.organizationId;
+    auth.appId = app.id;
+    auth.appType = app.type;
 
-    // Carried on the session rather than re-read downstream: the row is already in hand,
+    // Carried on the auth context rather than re-read downstream: the row is already in hand,
     // so `PermissionInterceptor` gates the request without a second query, and a grant
     // edited in cloud takes effect on the next request rather than when a cache expires.
-    sessionInfo.appPermissions = app.permissions;
+    auth.permissions = app.permissions;
 
     // The shopper the app is acting for, when it named one. Signed, so it cannot be
     // swapped in transit. The workspace headers are left to `applyContextHeaders`,
     // which both callers share.
-    if (partyId) sessionInfo.partyId = partyId;
-
-    // No user is behind a server-to-server call, but both fields are required and
-    // are what downstream reads as the acting principal. The app id stands in, so
-    // NATS headers and anything that records who acted name the app.
-    sessionInfo.userId = app.id;
-    sessionInfo.sessionId = app.id;
-
-    // Required by the type, and deliberately empty: nothing on the app path reads it.
-    // `@OrgSubdomain()` is used only by the gitea gateway's session endpoints. Filling
-    // it would mean an organization lookup on every signed request to serve a field
-    // no app endpoint consumes — an app endpoint that ever needs it should fetch the
-    // organization itself rather than making every other request pay for it.
-    sessionInfo.subdomain = '';
+    if (partyId) auth.partyId = partyId;
 
     // Bookkeeping only — never allowed to fail a request that was otherwise valid.
     // The service already swallows its own async rejection; this guards a synchronous

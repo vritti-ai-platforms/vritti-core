@@ -1,5 +1,5 @@
 import { generateSigningKeyPair, signRequestHeaders } from '@vritti/api-sdk/signing';
-import type { FastifyRequest } from 'fastify';
+import type { VrittiAppAuth } from 'fastify';
 import type { App } from '@/db/schema';
 import type { AppDomainService } from '@/modules/domain/app/services/app.service';
 import { AppRequestResolver } from './app-request.resolver';
@@ -62,7 +62,7 @@ function makeResolver(app: App | undefined, opts: { touched?: string[] } = {}) {
   return { resolver: new AppRequestResolver(appService), appService };
 }
 
-const emptySessionInfo = () => ({ sessionType: 'APP' }) as NonNullable<FastifyRequest['sessionInfo']>;
+const emptyAppAuth = () => ({ kind: 'app' }) as VrittiAppAuth;
 
 /** Every rejection must look identical — that is the security property under test. */
 async function expectRejected(promise: Promise<unknown>, why: string) {
@@ -86,18 +86,17 @@ describe('AppRequestResolver', () => {
   it('authenticates a correctly signed request and tenants it', async () => {
     const touched: string[] = [];
     const { resolver } = makeResolver(makeApp(), { touched });
-    const sessionInfo = emptySessionInfo();
+    const auth = emptyAppAuth();
 
-    await resolver.resolve(makeRequestService({ ...sign(), 'x-vritti-client-id': CLIENT_ID }), sessionInfo);
+    await resolver.resolve(makeRequestService({ ...sign(), 'x-vritti-client-id': CLIENT_ID }), auth);
 
-    expect(sessionInfo.organizationId).toBe(ORG_ID);
-    expect(sessionInfo.appType).toBe('GRAPHQL');
-    // The app stands in as the acting principal — there is no user behind the call.
-    expect(sessionInfo.userId).toBe(APP_ID);
-    expect(sessionInfo.sessionId).toBe(APP_ID);
-    // Deliberately empty: nothing on the app path reads it, so no organization lookup
-    // is paid for on every request.
-    expect(sessionInfo.subdomain).toBe('');
+    expect(auth.organizationId).toBe(ORG_ID);
+    expect(auth.appType).toBe('GRAPHQL');
+    // The app IS the principal — named as itself rather than standing in as a user.
+    expect(auth.appId).toBe(APP_ID);
+    // Grants ride the request that authenticated it, so a revoked permission stops working
+    // on the next call rather than when a cache expires.
+    expect(auth.permissions).toEqual(makeApp().permissions);
     expect(touched).toEqual([APP_ID]);
   });
 
@@ -106,7 +105,7 @@ describe('AppRequestResolver', () => {
     ['no client id', { ...sign() }],
   ])('refuses a request with %s', async (_label, headers) => {
     const { resolver } = makeResolver(makeApp());
-    await expectRejected(resolver.resolve(makeRequestService(headers), emptySessionInfo()), _label);
+    await expectRejected(resolver.resolve(makeRequestService(headers), emptyAppAuth()), _label);
   });
 
   it.each([
@@ -116,7 +115,7 @@ describe('AppRequestResolver', () => {
   ])('refuses %s', async (_label, app) => {
     const { resolver } = makeResolver(app);
     await expectRejected(
-      resolver.resolve(makeRequestService({ ...sign(), 'x-vritti-client-id': CLIENT_ID }), emptySessionInfo()),
+      resolver.resolve(makeRequestService({ ...sign(), 'x-vritti-client-id': CLIENT_ID }), emptyAppAuth()),
       _label,
     );
   });
@@ -128,7 +127,7 @@ describe('AppRequestResolver', () => {
       'x-vritti-client-id': CLIENT_ID,
     };
     const { resolver } = makeResolver(makeApp());
-    await expectRejected(resolver.resolve(makeRequestService(headers), emptySessionInfo()), 'foreign signature');
+    await expectRejected(resolver.resolve(makeRequestService(headers), emptyAppAuth()), 'foreign signature');
   });
 
   it('refuses a tampered body carrying an otherwise valid signature', async () => {
@@ -137,14 +136,14 @@ describe('AppRequestResolver', () => {
       { ...sign(), 'x-vritti-client-id': CLIENT_ID },
       JSON.stringify({ query: 'mutation { somethingElse { id } }' }),
     );
-    await expectRejected(resolver.resolve(request, emptySessionInfo()), 'tampered body');
+    await expectRejected(resolver.resolve(request, emptyAppAuth()), 'tampered body');
   });
 
   it('refuses a timestamp outside the skew window', async () => {
     const stale = String(Math.floor(Date.now() / 1000) - 3600);
     const headers = { ...sign(), 'x-timestamp': stale, 'x-vritti-client-id': CLIENT_ID };
     const { resolver } = makeResolver(makeApp());
-    await expectRejected(resolver.resolve(makeRequestService(headers), emptySessionInfo()), 'stale timestamp');
+    await expectRejected(resolver.resolve(makeRequestService(headers), emptyAppAuth()), 'stale timestamp');
   });
 
   describe('signed request context', () => {
@@ -152,17 +151,17 @@ describe('AppRequestResolver', () => {
       const query = 'search=salt&page=2';
       const headers = { ...sign({ query }), 'x-vritti-client-id': CLIENT_ID };
       const { resolver } = makeResolver(makeApp());
-      const sessionInfo = emptySessionInfo();
+      const auth = emptyAppAuth();
 
-      await resolver.resolve(makeRequestService(headers, BODY, PATH, query), sessionInfo);
-      expect(sessionInfo.organizationId).toBe(ORG_ID);
+      await resolver.resolve(makeRequestService(headers, BODY, PATH, query), auth);
+      expect(auth.organizationId).toBe(ORG_ID);
     });
 
     it('refuses a query string altered in transit', async () => {
       const headers = { ...sign({ query: 'search=salt' }), 'x-vritti-client-id': CLIENT_ID };
       const { resolver } = makeResolver(makeApp());
       await expectRejected(
-        resolver.resolve(makeRequestService(headers, BODY, PATH, 'search=sugar'), emptySessionInfo()),
+        resolver.resolve(makeRequestService(headers, BODY, PATH, 'search=sugar'), emptyAppAuth()),
         'tampered query',
       );
     });
@@ -171,10 +170,10 @@ describe('AppRequestResolver', () => {
       const partyId = 'party-uuid';
       const headers = { ...sign({ partyId }), 'x-vritti-client-id': CLIENT_ID, 'x-party-id': partyId };
       const { resolver } = makeResolver(makeApp());
-      const sessionInfo = emptySessionInfo();
+      const auth = emptyAppAuth();
 
-      await resolver.resolve(makeRequestService(headers), sessionInfo);
-      expect(sessionInfo.partyId).toBe(partyId);
+      await resolver.resolve(makeRequestService(headers), auth);
+      expect(auth.partyId).toBe(partyId);
     });
 
     it('refuses a swapped party id', async () => {
@@ -184,19 +183,19 @@ describe('AppRequestResolver', () => {
         'x-party-id': 'someone-else',
       };
       const { resolver } = makeResolver(makeApp());
-      await expectRejected(resolver.resolve(makeRequestService(headers), emptySessionInfo()), 'swapped party');
+      await expectRejected(resolver.resolve(makeRequestService(headers), emptyAppAuth()), 'swapped party');
     });
 
     it('accepts an unchanged workspace header', async () => {
       const workspaceHeaders = { 'x-le-id': 'le-uuid' };
       const headers = { ...sign({ workspaceHeaders }), 'x-vritti-client-id': CLIENT_ID, ...workspaceHeaders };
       const { resolver } = makeResolver(makeApp());
-      const sessionInfo = emptySessionInfo();
+      const auth = emptyAppAuth();
 
       // The resolver only verifies it — applyContextHeaders, shared with the session
-      // path, is what puts it on sessionInfo.
-      await resolver.resolve(makeRequestService(headers), sessionInfo);
-      expect(sessionInfo.organizationId).toBe(ORG_ID);
+      // path, is what puts it on auth.
+      await resolver.resolve(makeRequestService(headers), auth);
+      expect(auth.organizationId).toBe(ORG_ID);
     });
 
     it('refuses the same workspace id moved to a different scope header', async () => {
@@ -208,13 +207,13 @@ describe('AppRequestResolver', () => {
         'x-le-id': 'id-1',
       };
       const { resolver } = makeResolver(makeApp());
-      await expectRejected(resolver.resolve(makeRequestService(headers), emptySessionInfo()), 're-scoped request');
+      await expectRejected(resolver.resolve(makeRequestService(headers), emptyAppAuth()), 're-scoped request');
     });
 
     it('refuses a workspace header added in transit', async () => {
       const headers = { ...sign(), 'x-vritti-client-id': CLIENT_ID, 'x-site-id': 'injected' };
       const { resolver } = makeResolver(makeApp());
-      await expectRejected(resolver.resolve(makeRequestService(headers), emptySessionInfo()), 'injected scope');
+      await expectRejected(resolver.resolve(makeRequestService(headers), emptyAppAuth()), 'injected scope');
     });
   });
 
@@ -225,10 +224,10 @@ describe('AppRequestResolver', () => {
     });
 
     // touchLastUsed is fire-and-forget by contract, so a throw here must not surface.
-    const sessionInfo = emptySessionInfo();
+    const auth = emptyAppAuth();
     await expect(
-      resolver.resolve(makeRequestService({ ...sign(), 'x-vritti-client-id': CLIENT_ID }), sessionInfo),
+      resolver.resolve(makeRequestService({ ...sign(), 'x-vritti-client-id': CLIENT_ID }), auth),
     ).resolves.toBeUndefined();
-    expect(sessionInfo.organizationId).toBe(ORG_ID);
+    expect(auth.organizationId).toBe(ORG_ID);
   });
 });

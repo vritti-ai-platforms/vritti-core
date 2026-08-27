@@ -1,7 +1,10 @@
+import {
+  COST_CATEGORY_KINDS,
+  type CostCategoryKind,
+} from '@commerce/cost-categories/dto/request/create-cost-category.dto';
 import { Field, InputType } from '@nestjs/graphql';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
-import { COST_CATEGORY_KINDS, type CostCategoryKind } from '@commerce/cost-categories/dto/request/create-cost-category.dto';
 
 // Mirror create-/update-cost-category.dto.ts. `code` + `kind` are immutable after create (only name +
 // isActive are updatable), so UpdateCostCategoryInput is explicit — NOT PartialType of the create input.

@@ -4,7 +4,7 @@ import type { WhatsappAccountResponseDto } from '@communications/whatsapp-accoun
 import type { WhatsappAccountTableResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-table-response.dto';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
 import { SessionTypeValues } from '@/db/schema';
@@ -20,7 +20,7 @@ import { WhatsappAccountsGatewayService } from './services/whatsapp-accounts-gat
 
 @ApiTags('Communications - WhatsApp Accounts')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_WHATSAPP_ACCOUNTS.featureCode)
 @Controller('whatsapp-accounts')
 export class WhatsappAccountsGatewayController {

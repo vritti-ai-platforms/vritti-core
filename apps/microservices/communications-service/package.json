@@ -36,7 +36,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/microservices": "^11.1.17",
     "@nestjs/swagger": "^11.2.6",
-    "@vritti/api-sdk": "0.3.15",
+    "@vritti/api-sdk": "0.4.0",
     "axios": "^1.7.9",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",

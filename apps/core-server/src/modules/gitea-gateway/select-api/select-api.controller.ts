@@ -1,6 +1,6 @@
 import { Controller, Get, Logger, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { ORG_REPOSITORIES } from '@vritti/gitea-permissions/repository';
 import { SessionTypeValues } from '@/db/schema';
@@ -17,7 +17,7 @@ import { SelectApiGatewayService } from './services/select-api-gateway.service';
 
 @ApiTags('Gitea - Select')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_REPOSITORIES.featureCode)
 @Controller('select-api')
 export class SelectApiController {

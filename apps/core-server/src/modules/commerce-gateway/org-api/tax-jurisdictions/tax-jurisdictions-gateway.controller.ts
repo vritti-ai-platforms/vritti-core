@@ -1,3 +1,10 @@
+import { CreateTaxJurisdictionDto } from '@commerce/tax-jurisdictions/dto/request/create-tax-jurisdiction.dto';
+import { TaxJurisdictionTreeQueryDto } from '@commerce/tax-jurisdictions/dto/request/tax-jurisdiction-tree-query.dto';
+import { UpdateTaxJurisdictionDto } from '@commerce/tax-jurisdictions/dto/request/update-tax-jurisdiction.dto';
+import type { TaxJurisdictionChildrenTableResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-children-table-response.dto';
+import type { TaxJurisdictionCountResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-count-response.dto';
+import type { TaxJurisdictionResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-response.dto';
+import type { TaxJurisdictionTreeResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-tree-response.dto';
 import {
   Body,
   Controller,
@@ -13,23 +20,16 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_TAX_JURISDICTIONS } from '@vritti/commerce-permissions/tax-jurisdictions';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { CreateTaxJurisdictionDto } from '@commerce/tax-jurisdictions/dto/request/create-tax-jurisdiction.dto';
-import { TaxJurisdictionTreeQueryDto } from '@commerce/tax-jurisdictions/dto/request/tax-jurisdiction-tree-query.dto';
-import { UpdateTaxJurisdictionDto } from '@commerce/tax-jurisdictions/dto/request/update-tax-jurisdiction.dto';
-import type { TaxJurisdictionChildrenTableResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-children-table-response.dto';
-import type { TaxJurisdictionCountResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-count-response.dto';
-import type { TaxJurisdictionResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-response.dto';
-import type { TaxJurisdictionTreeResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-tree-response.dto';
 import { TaxJurisdictionsGatewayService } from './services/tax-jurisdictions-gateway.service';
 
 @ApiTags('Commerce - Tax Jurisdictions')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_TAX_JURISDICTIONS.featureCode)
 @Controller('tax-jurisdictions')
 export class TaxJurisdictionsGatewayController {

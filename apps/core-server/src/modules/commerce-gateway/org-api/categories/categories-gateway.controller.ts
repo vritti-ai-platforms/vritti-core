@@ -1,3 +1,11 @@
+import { CreateCategoryDto } from '@commerce/categories/dto/request/create-category.dto';
+import { ReorderCategoriesDto } from '@commerce/categories/dto/request/reorder-categories.dto';
+import { UpdateCategoryDto } from '@commerce/categories/dto/request/update-category.dto';
+import type { CategoryChildrenTableResponseDto } from '@commerce/categories/dto/response/category-children-table-response.dto';
+import type { CategoryCountResponseDto } from '@commerce/categories/dto/response/category-count-response.dto';
+import type { CategoryItemTableResponseDto } from '@commerce/categories/dto/response/category-item-table-response.dto';
+import type { CategoryResponseDto } from '@commerce/categories/dto/response/category-response.dto';
+import type { CategoryTreeResponseDto } from '@commerce/categories/dto/response/category-tree-response.dto';
 import {
   Body,
   Controller,
@@ -13,7 +21,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_CATEGORIES } from '@vritti/commerce-permissions/categories';
 import { SessionTypeValues } from '@/db/schema';
@@ -25,19 +33,11 @@ import {
   ApiGetCategoryItemsTable,
   ApiUpdateCategory,
 } from './docs/categories-gateway.docs';
-import { CreateCategoryDto } from '@commerce/categories/dto/request/create-category.dto';
-import { ReorderCategoriesDto } from '@commerce/categories/dto/request/reorder-categories.dto';
-import { UpdateCategoryDto } from '@commerce/categories/dto/request/update-category.dto';
-import type { CategoryChildrenTableResponseDto } from '@commerce/categories/dto/response/category-children-table-response.dto';
-import type { CategoryCountResponseDto } from '@commerce/categories/dto/response/category-count-response.dto';
-import type { CategoryItemTableResponseDto } from '@commerce/categories/dto/response/category-item-table-response.dto';
-import type { CategoryResponseDto } from '@commerce/categories/dto/response/category-response.dto';
-import type { CategoryTreeResponseDto } from '@commerce/categories/dto/response/category-tree-response.dto';
 import { CategoriesGatewayService } from './services/categories-gateway.service';
 
 @ApiTags('Commerce - Categories')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_CATEGORIES.featureCode)
 @Controller('categories')
 export class CategoriesGatewayController {

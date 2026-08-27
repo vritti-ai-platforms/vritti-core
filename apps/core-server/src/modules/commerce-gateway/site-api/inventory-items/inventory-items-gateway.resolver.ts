@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { InventoryItem } from './graphql/inventory-item.type';
 import { CreateInventoryItemInput, UpdateInventoryItemInput } from './graphql/inventory-item-mutation.input';
@@ -16,7 +16,7 @@ export class InventoryItemsResolver {
   constructor(private readonly inventoryItemsGatewayService: SiteInventoryItemsGatewayService) {}
 
   // Keyset/cursor Relay connection for the mobile infinite feed forwarded from commerce-service.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => InventoryItemConnection, { name: 'inventoryItems' })
   async inventoryItems(
     @Args('first', { type: () => Int, nullable: true }) first?: number,
@@ -36,7 +36,7 @@ export class InventoryItemsResolver {
   }
 
   // Single inventory item — live detail screen + post-update re-fetch. Reuses the findById gateway.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => InventoryItem, { name: 'inventoryItem' })
   async inventoryItem(@Args('id', { type: () => ID }) id: string): Promise<InventoryItem> {
     this.logger.log('QUERY inventoryItem');
@@ -44,7 +44,7 @@ export class InventoryItemsResolver {
   }
 
   // Creates an item; returns the created entity so the client inserts it into the cached connection.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => InventoryItem, { name: 'createInventoryItem' })
   async createInventoryItem(@Args('input') input: CreateInventoryItemInput): Promise<InventoryItem> {
     this.logger.log('MUTATION createInventoryItem');
@@ -53,7 +53,7 @@ export class InventoryItemsResolver {
   }
 
   // Updates an item; re-fetches + returns the entity so Apollo auto-merges by id (no list refetch).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => InventoryItem, { name: 'updateInventoryItem' })
   async updateInventoryItem(
     @Args('id', { type: () => ID }) id: string,
@@ -65,7 +65,7 @@ export class InventoryItemsResolver {
   }
 
   // Deletes an item; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteInventoryItem' })
   async deleteInventoryItem(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteInventoryItem');

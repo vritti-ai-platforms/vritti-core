@@ -1,14 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
-import { IsBoolean, IsObject, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsObject, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateAppInternalDto {
-  @ApiPropertyOptional({
-    description: 'Nexus organization ID — scopes the lookup so one org cannot address another’s app',
-  })
-  @IsUUID()
-  orgId: string;
-
   @ApiPropertyOptional({ description: 'New label' })
   @IsString()
   @IsOptional()

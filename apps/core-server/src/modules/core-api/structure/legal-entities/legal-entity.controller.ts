@@ -17,15 +17,12 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { pluralize } from '@vritti/api-sdk/pluralize';
-import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
-import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
+import { OrgId } from '@/security/decorators/org-id.decorator';
 import { OrgStructureSelectQueryDto } from '../dto/request/org-structure-select-query.dto';
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';
 import type { FeatureLocksResponseDto } from '../dto/response/feature-locks-response.dto';
@@ -45,10 +42,7 @@ import { LegalEntityService } from './services/legal-entity-api.service';
 
 @ApiTags('Legal Entities')
 @Controller('legal-entities/internal')
-@Public()
-@SkipCsrf()
-@UseGuards(CloudSignatureGuard)
-@UseInterceptors(OrgScopeInterceptor)
+@Require(AuthType.Cloud)
 export class LegalEntityController {
   private readonly logger = new Logger(LegalEntityController.name);
 
@@ -58,9 +52,9 @@ export class LegalEntityController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateLegalEntity()
-  async create(@Body() dto: CreateLegalEntityInternalDto): Promise<LegalEntityDto> {
-    this.logger.log(`POST /legal-entities/internal — "${dto.name}" for org ${dto.orgId}`);
-    return this.legalEntityApiService.create(dto);
+  async create(@OrgId() orgId: string, @Body() dto: CreateLegalEntityInternalDto): Promise<LegalEntityDto> {
+    this.logger.log(`POST /legal-entities/internal — "${dto.name}" for org ${orgId}`);
+    return this.legalEntityApiService.create(orgId, dto);
   }
 
   // Returns legal entities as select options with subtree exclusion
@@ -74,11 +68,11 @@ export class LegalEntityController {
   // Reorders a batch of sibling legal entities
   @Patch('reorder')
   @ApiReorderLegalEntities()
-  async reorder(@Body() dto: ReorderLegalEntitiesInternalDto): Promise<SuccessResponseDto> {
+  async reorder(@OrgId() orgId: string, @Body() dto: ReorderLegalEntitiesInternalDto): Promise<SuccessResponseDto> {
     this.logger.log(
-      `PATCH /legal-entities/internal/reorder — ${pluralize('entity', dto.ids.length, true)} for org ${dto.orgId}`,
+      `PATCH /legal-entities/internal/reorder — ${pluralize('entity', dto.ids.length, true)} for org ${orgId}`,
     );
-    return this.legalEntityApiService.reorder(dto.orgId, dto.ids);
+    return this.legalEntityApiService.reorder(orgId, dto.ids);
   }
 
   // Updates a legal entity

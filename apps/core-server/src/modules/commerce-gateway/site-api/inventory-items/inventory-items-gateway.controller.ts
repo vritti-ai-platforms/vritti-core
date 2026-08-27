@@ -1,10 +1,3 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
-import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature } from '@/rbac/decorators';
 import { CreateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item-location.dto';
 import { EnableInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/enable-inventory-item.dto';
 import { UpdateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/update-inventory-item-location.dto';
@@ -16,11 +9,18 @@ import type { InventoryItemQuantTableResponseDto } from '@commerce/inventory-ite
 import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-response.dto';
 import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
 import type { SiteInventoryItemTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-table-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
+import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature } from '@/rbac/decorators';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Inventory Items')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_INVENTORY_ITEMS.featureCode)
 @Controller('site/inventory-items')
 export class SiteInventoryItemsGatewayController {

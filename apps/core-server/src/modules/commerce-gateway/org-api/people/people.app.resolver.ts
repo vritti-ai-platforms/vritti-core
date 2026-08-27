@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireApp } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { AppTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
@@ -18,7 +18,7 @@ import { PeopleGatewayService } from './services/people-gateway.service';
  *
  * Sits beside `people-gateway.controller.ts`, which serves the same feature to
  * staff over REST. The split is the caller, not the data: that one is guarded by a
- * session, this one by `@RequireApp` — a signed request whose app credential
+ * session, this one by `@Require(AuthType.App)` — a signed request whose app credential
  * establishes which organization it speaks for. There is no user session here; the
  * calling app authenticated its own visitor before reaching us.
  *
@@ -37,7 +37,7 @@ import { PeopleGatewayService } from './services/people-gateway.service';
  * the point, but it does mean the grant is part of provisioning a storefront, not an afterthought.
  */
 @Resolver()
-@RequireApp(AppTypeValues.GRAPHQL)
+@Require(AuthType.App, AppTypeValues.GRAPHQL)
 @RequireFeature(ORG_PEOPLE.featureCode)
 export class PeopleAppResolver {
   private readonly logger = new Logger(PeopleAppResolver.name);

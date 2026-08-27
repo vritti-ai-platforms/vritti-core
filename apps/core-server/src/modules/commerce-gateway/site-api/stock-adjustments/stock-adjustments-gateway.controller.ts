@@ -1,9 +1,3 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { SessionTypeValues } from '@/db/schema';
-import { ApiAddStockAdjustmentLineItem } from './docs/stock-adjustments-gateway.docs';
 import { AddChangeStockAdjustmentLineDto } from '@commerce/stock-adjustments/dto/request/add-change-stock-adjustment-line.dto';
 import { AddOpeningStockAdjustmentLineDto } from '@commerce/stock-adjustments/dto/request/add-opening-stock-adjustment-line.dto';
 import { AddStockAdjustmentLineItemDto } from '@commerce/stock-adjustments/dto/request/add-stock-adjustment-line-item.dto';
@@ -23,11 +17,17 @@ import type { StockAdjustmentLotResponseDto } from '@commerce/stock-adjustments/
 import type { StockAdjustmentResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-table-response.dto';
 import type { StockAdjustmentTreeNodeResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-tree-response.dto';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SessionTypeValues } from '@/db/schema';
+import { ApiAddStockAdjustmentLineItem } from './docs/stock-adjustments-gateway.docs';
 import { StockAdjustmentsGatewayService } from './services/stock-adjustments-gateway.service';
 
 @ApiTags('Commerce - Stock Adjustments')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('stock-adjustments')
 export class StockAdjustmentsGatewayController {
   private readonly logger = new Logger(StockAdjustmentsGatewayController.name);

@@ -1,18 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type {
-  CreateResponseDto,
-  FilterCondition,
-  SearchState,
-  SortCondition,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
-import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateSiteInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item.dto';
-import type { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
 import type { EnableInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/enable-inventory-item.dto';
 import type { UpdateSiteInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/update-inventory-item.dto';
-import type { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
 import type { UpdateReorderDto } from '@commerce/inventory-item-sites/dto/request/update-reorder.dto';
 import type { InventoryItemLedgerResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-ledger-response.dto';
 import type { InventoryItemLedgerTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-ledger-table-response.dto';
@@ -24,12 +12,24 @@ import type { InventoryItemQuantResponseDto } from '@commerce/inventory-item-sit
 import type { InventoryItemQuantTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-table-response.dto';
 import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-response.dto';
 import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
+import type { SiteInventoryItemTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-table-response.dto';
+import type { SiteInventoryItemUomConversionResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-uom-conversion-response.dto';
+import type { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
+import type { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
 import type {
   InventoryItemSupplierResponseDto,
   InventoryItemSupplierTableResponseDto,
 } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
-import type { SiteInventoryItemTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-table-response.dto';
-import type { SiteInventoryItemUomConversionResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-uom-conversion-response.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
+  FilterCondition,
+  SearchState,
+  SortCondition,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
 export class SiteInventoryItemsGatewayService {
@@ -302,11 +302,10 @@ export class SiteInventoryItemsGatewayService {
       `inventory-item-${inventoryItemId}-uom-overrides`,
     );
 
-    const { result, count } = await this.nats.send<{ result: SiteInventoryItemUomConversionResponseDto[]; count: number }>(
-      'commerce',
-      'org.inventoryItems.uom.table',
-      { inventoryItemId, ...state },
-    );
+    const { result, count } = await this.nats.send<{
+      result: SiteInventoryItemUomConversionResponseDto[];
+      count: number;
+    }>('commerce', 'org.inventoryItems.uom.table', { inventoryItemId, ...state });
 
     return { result, count, state, activeViewId };
   }

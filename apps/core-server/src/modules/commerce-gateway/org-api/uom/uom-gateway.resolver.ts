@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { MutationResult } from '../../site-api/inventory-items/graphql/mutation-result.type';
 import { Uom } from './graphql/uom.type';
@@ -12,7 +12,7 @@ import { UomGatewayService } from './services/uom-gateway.service';
 
 // UOM GraphQL for the mobile UOM screens: the keyset units feed + by-id read + CRUD. Thin forwards to the
 // gateway service (which NATS-forwards to commerce-service). Select-options (`uomOptions`) now live in the
-// shared SelectApiModule. buId flows via NATS context from @RequireSession.
+// shared SelectApiModule. buId flows via NATS context from @Require(AuthType.Session).
 @Resolver()
 export class UomResolver {
   private readonly logger = new Logger(UomResolver.name);
@@ -22,7 +22,7 @@ export class UomResolver {
   // Keyset/cursor Relay connection of a dimension's units (base + derived) for the mobile infinite feed.
   // Relay args (first/after) map to limit/cursor; the client merges pages via relayStylePagination. The
   // fixed sort (base units first, then name) is applied server-side.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => UomConnection, { name: 'uomsFeed' })
   async uomsFeed(
     @Args('dimensionId', { type: () => ID }) dimensionId: string,
@@ -38,7 +38,7 @@ export class UomResolver {
   }
 
   // Single unit by id — post-update re-fetch + a by-id read source.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => Uom, { name: 'uom' })
   async uom(@Args('id', { type: () => ID }) id: string): Promise<Uom> {
     this.logger.log('QUERY uom');
@@ -46,7 +46,7 @@ export class UomResolver {
   }
 
   // Returns the created entity so the client inserts it into the cached list (no refetch).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => Uom, { name: 'createUom' })
   async createUom(@Args('input') input: CreateUomInput): Promise<Uom> {
     this.logger.log('MUTATION createUom');
@@ -55,7 +55,7 @@ export class UomResolver {
   }
 
   // Re-reads + returns the entity so Apollo auto-merges by id (the gateway update returns only success).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => Uom, { name: 'updateUom' })
   async updateUom(@Args('id', { type: () => ID }) id: string, @Args('input') input: UpdateUomInput): Promise<Uom> {
     this.logger.log('MUTATION updateUom');
@@ -64,7 +64,7 @@ export class UomResolver {
   }
 
   // Deletes a unit; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteUom' })
   async deleteUom(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteUom');
@@ -72,7 +72,7 @@ export class UomResolver {
   }
 
   // Bounded list of dimensions (small enough to skip Relay pagination).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => [UomDimension], { name: 'uomDimensions' })
   async uomDimensions(
     @Args('search', { type: () => String, nullable: true }) search?: string,
@@ -82,7 +82,7 @@ export class UomResolver {
   }
 
   // Single dimension by id — the by-id read redirect + the (later) detail screen read from here.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => UomDimension, { name: 'uomDimension' })
   async uomDimension(@Args('id', { type: () => ID }) id: string): Promise<UomDimension> {
     this.logger.log('QUERY uomDimension');
@@ -90,7 +90,7 @@ export class UomResolver {
   }
 
   // Returns the created entity so the client inserts it into the cached list (no refetch).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => UomDimension, { name: 'createUomDimension' })
   async createUomDimension(@Args('input') input: CreateUomDimensionInput): Promise<UomDimension> {
     this.logger.log('MUTATION createUomDimension');
@@ -99,7 +99,7 @@ export class UomResolver {
   }
 
   // Re-reads + returns the entity so Apollo auto-merges by id (the gateway update returns only success).
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => UomDimension, { name: 'updateUomDimension' })
   async updateUomDimension(
     @Args('id', { type: () => ID }) id: string,
@@ -111,7 +111,7 @@ export class UomResolver {
   }
 
   // Deletes a dimension; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.MOBILE)
+  @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteUomDimension' })
   async deleteUomDimension(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteUomDimension');

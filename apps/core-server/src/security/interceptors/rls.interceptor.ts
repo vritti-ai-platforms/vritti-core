@@ -13,24 +13,24 @@ export class RlsInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = getRequestFromContext(context);
-    const sessionInfo = request?.sessionInfo;
-    const orgId = sessionInfo?.organizationId;
+    const auth = request?.auth;
+    const orgId = auth?.organizationId;
 
     if (!orgId) {
       return next.handle();
     }
 
-    return from(this.executeWithRls(orgId, sessionInfo, next));
+    return from(this.executeWithRls(orgId, auth, next));
   }
 
   // Builds the workspace RLS context — a site workspace derives its legal entity so LE policies apply there too
   private async executeWithRls(
     orgId: string,
-    sessionInfo: { siteId?: string; siteGroupId?: string; legalEntityId?: string } | undefined,
+    auth: { siteId?: string; siteGroupId?: string; legalEntityId?: string } | undefined,
     next: CallHandler,
   ): Promise<unknown> {
-    const siteId = sessionInfo?.siteId;
-    let legalEntityId = sessionInfo?.legalEntityId;
+    const siteId = auth?.siteId;
+    let legalEntityId = auth?.legalEntityId;
 
     if (siteId && !legalEntityId) {
       // The site lookup itself needs the org RLS context — without it the org-isolation policy hides the site
@@ -41,7 +41,7 @@ export class RlsInterceptor implements NestInterceptor {
     const rlsContext = {
       orgId,
       siteId,
-      siteGroupId: sessionInfo?.siteGroupId,
+      siteGroupId: auth?.siteGroupId,
       legalEntityId,
     };
 

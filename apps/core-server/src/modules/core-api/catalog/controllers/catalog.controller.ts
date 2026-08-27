@@ -1,17 +1,15 @@
 import { ReceiveCatalogInternalDto } from '@domain/catalog/dto/request/receive-catalog-internal.dto';
 import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
-import { Body, Controller, HttpCode, HttpStatus, Logger, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Logger, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
-import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { ApiReceiveCatalog } from '../docs/catalog.docs';
 
 @ApiTags('Catalog')
 @Controller('catalog/internal')
-@Public()
-@SkipCsrf()
-@UseGuards(CloudSignatureGuard)
+@Require(AuthType.Cloud)
+// The catalog license is deployment-wide — one active row per database, not per organization
 export class CatalogController {
   private readonly logger = new Logger(CatalogController.name);
 

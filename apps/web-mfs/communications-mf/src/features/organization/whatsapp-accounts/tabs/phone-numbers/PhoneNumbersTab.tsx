@@ -147,6 +147,7 @@ export const PhoneNumbersTab = ({ accountId }: PhoneNumbersTabProps) => {
     <div className="flex flex-col gap-6">
       <DataTable
         table={table}
+        mode="tab"
         isLoading={isLoading}
         permission={ORG_WHATSAPP_ACCOUNTS.phoneNumbers.view}
         enableViews={false}

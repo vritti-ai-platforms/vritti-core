@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Query, Resolver } from '@nestjs/graphql';
-import { RequireApp } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { AppTypeValues } from '@/db/schema';
 import { OrgId } from '@/security/decorators';
 import { WorkspaceOption, Workspaces } from './graphql/workspace.type';
@@ -14,12 +14,12 @@ import { StructureService } from './root/services/structure-api.service';
  * that: list the options, let the app (or its user) pick one, then send it as the
  * matching header.
  *
- * `@OrgId()` reads `sessionInfo.organizationId`, which the app path now fills from the
+ * `@OrgId()` reads `request.auth.organizationId`, which the app path fills from the
  * credential — so the organization is never a parameter here and an app cannot ask what
  * another organization contains.
  */
 @Resolver()
-@RequireApp(AppTypeValues.GRAPHQL)
+@Require(AuthType.App, AppTypeValues.GRAPHQL)
 export class StructureAppResolver {
   private readonly logger = new Logger(StructureAppResolver.name);
 

@@ -3,10 +3,6 @@ import { IsEnum, IsInt, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, Min 
 import { SiteTypeValues } from '@/db/schema';
 
 export class CreateSiteInternalDto {
-  @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
-  @IsUUID()
-  orgId: string;
-
   @ApiProperty({ description: 'Site name', example: 'Mysore Outlet' })
   @IsString()
   @IsNotEmpty()

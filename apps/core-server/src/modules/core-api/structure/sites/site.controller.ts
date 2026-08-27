@@ -15,15 +15,12 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { pluralize } from '@vritti/api-sdk/pluralize';
-import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
-import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
+import { OrgId } from '@/security/decorators/org-id.decorator';
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';
 import {
   ApiCreateSite,
@@ -38,10 +35,7 @@ import { SiteService } from './services/site-api.service';
 
 @ApiTags('Sites')
 @Controller('sites/internal')
-@Public()
-@SkipCsrf()
-@UseGuards(CloudSignatureGuard)
-@UseInterceptors(OrgScopeInterceptor)
+@Require(AuthType.Cloud)
 export class SiteController {
   private readonly logger = new Logger(SiteController.name);
 
@@ -51,9 +45,9 @@ export class SiteController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateSite()
-  async create(@Body() dto: CreateSiteInternalDto): Promise<SiteDto> {
-    this.logger.log(`POST /sites/internal — "${dto.name}" for org ${dto.orgId}`);
-    return this.siteApiService.create(dto.orgId, dto);
+  async create(@OrgId() orgId: string, @Body() dto: CreateSiteInternalDto): Promise<SiteDto> {
+    this.logger.log(`POST /sites/internal — "${dto.name}" for org ${orgId}`);
+    return this.siteApiService.create(orgId, dto);
   }
 
   // Lists all sites for an organization
@@ -90,9 +84,9 @@ export class SiteController {
   // Reorders a batch of sites within a legal entity
   @Patch('reorder')
   @ApiReorderSites()
-  async reorder(@Body() dto: ReorderSitesInternalDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /sites/internal/reorder — ${pluralize('site', dto.ids.length, true)} for org ${dto.orgId}`);
-    return this.siteApiService.reorder(dto.orgId, dto.ids);
+  async reorder(@OrgId() orgId: string, @Body() dto: ReorderSitesInternalDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /sites/internal/reorder — ${pluralize('site', dto.ids.length, true)} for org ${orgId}`);
+    return this.siteApiService.reorder(orgId, dto.ids);
   }
 
   // Updates a site

@@ -1,6 +1,6 @@
 import { Controller, Get, Logger, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk/auth';
+import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
@@ -10,7 +10,7 @@ import { ApiWhatsappAccountsSelect } from './docs/select-api.docs';
 
 @ApiTags('Communications - Select')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.WEB)
+@Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_WHATSAPP_ACCOUNTS.featureCode)
 @Controller('select-api')
 export class SelectApiController {

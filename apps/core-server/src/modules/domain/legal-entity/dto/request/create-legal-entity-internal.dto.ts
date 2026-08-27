@@ -4,10 +4,6 @@ import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Length, Max, M
 import { TaxRegimeValues } from '@/db/schema';
 
 export class CreateLegalEntityInternalDto {
-  @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
-  @IsUUID()
-  orgId: string;
-
   @ApiProperty({ description: 'Legal entity code (unique per organization)', example: 'acme-india' })
   @IsString()
   @IsNotEmpty()

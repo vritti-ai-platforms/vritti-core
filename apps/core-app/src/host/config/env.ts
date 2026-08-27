@@ -3,6 +3,7 @@ declare const __APP_CONFIG__: {
   readonly devHost?: string;
   readonly apiBaseUrl: string;
   readonly deploymentsApiBaseUrl: string;
+  readonly graphqlPath: string;
 };
 
 const DEV_PORTS = { mf: 8081 } as const;
@@ -21,6 +22,8 @@ export const config = {
   api: {
     deploymentsBaseUrl: raw.deploymentsApiBaseUrl,
     fallbackBaseUrl: raw.apiBaseUrl,
+    // core-server serves two GraphQL surfaces on different paths — this app talks to the internal one
+    graphqlPath: raw.graphqlPath,
     // Undefined → real org subdomain is applied; set a value only to force a single raw core host in dev.
     devRawCoreBaseUrl: undefined,
   },
