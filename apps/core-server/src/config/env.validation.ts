@@ -142,6 +142,15 @@ class EnvironmentVariables {
   @IsIn(['lru', 'redis'])
   CACHE_DRIVER?: 'lru' | 'redis';
 
+  // Meta app for tenant WhatsApp — distinct from cloud-server's onboarding app
+  // Verifies X-Hub-Signature-256 on delivery callbacks
+  @IsString()
+  META_CLIENT_SECRET: string;
+
+  // Answers Meta's hub.challenge handshake when the callback URL is registered
+  @IsString()
+  WHATSAPP_VERIFY_TOKEN: string;
+
   // Domains
   @IsString()
   BASE_DOMAIN: string;

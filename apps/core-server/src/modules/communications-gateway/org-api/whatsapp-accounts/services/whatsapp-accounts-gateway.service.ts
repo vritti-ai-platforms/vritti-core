@@ -5,7 +5,10 @@ import type { WhatsappAccountTableResponseDto } from '@communications/whatsapp-a
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import { pluralize } from '@vritti/api-sdk/pluralize';
+import { AppDomainService } from '@/modules/domain/app/services/app.service';
 
 @Injectable()
 export class WhatsappAccountsGatewayService {
@@ -14,6 +17,7 @@ export class WhatsappAccountsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
+    private readonly appService: AppDomainService,
   ) {}
 
   // Returns paginated, filtered, and sorted WhatsApp accounts for the data table
@@ -51,8 +55,19 @@ export class WhatsappAccountsGatewayService {
     return this.nats.send('communications', 'org.whatsappAccounts.update', { id, ...dto });
   }
 
-  // Disconnects a WhatsApp account by ID
-  delete(id: string): Promise<SuccessResponseDto> {
+  // Disconnects a WhatsApp account by ID, refusing while an app still sends sign-in codes from it
+  async delete(id: string, organizationId: string): Promise<SuccessResponseDto> {
+    // No foreign key spans the core/communications boundary, so this server is the only place that
+    // can see both sides — miss it and a live storefront starts failing at Meta instead
+    const dependents = await this.appService.findByOtpAccount(organizationId, id);
+    if (dependents.length > 0) {
+      const names = dependents.map((app) => app.name).join(', ');
+      throw new ConflictException({
+        label: 'Account in use',
+        detail: `Cannot disconnect this account while ${pluralize('app', dependents.length, true)} send sign-in codes from it: ${names}. Change their WhatsApp OTP configuration first.`,
+      });
+    }
+
     this.logger.log(`whatsappAccounts.delete — id: ${id}`);
     return this.nats.send('communications', 'org.whatsappAccounts.delete', { id });
   }

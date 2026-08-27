@@ -2,9 +2,7 @@
   "version": "8",
   "dialect": "postgres",
   "id": "8eb0e584-5ae2-4094-844d-4020467ffbd1",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "communications",
@@ -223,9 +221,7 @@
       "table": "whatsapp_accounts"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "whatsapp_accounts_pkey",
       "schema": "communications",
@@ -234,10 +230,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "waba_id"
-      ],
+      "columns": ["organization_id", "waba_id"],
       "nullsNotDistinct": false,
       "name": "uq_whatsapp_accounts_org_waba",
       "entityType": "uniques",
@@ -247,9 +240,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",

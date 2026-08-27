@@ -9,6 +9,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { OrgId } from '@/security/decorators';
 import {
   ApiCreateWhatsappAccount,
   ApiDeleteWhatsappAccount,
@@ -67,10 +68,10 @@ export class WhatsappAccountsGatewayController {
 
   // Disconnects a WhatsApp account by ID
   @Delete(':id')
-  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.delete)
+  @RequirePermission(ORG_WHATSAPP_ACCOUNTS.disconnect)
   @ApiDeleteWhatsappAccount()
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+  delete(@Param('id') id: string, @OrgId() organizationId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /communications-api/whatsapp-accounts/${id}`);
-    return this.service.delete(id);
+    return this.service.delete(id, organizationId);
   }
 }

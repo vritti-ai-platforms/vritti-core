@@ -11,7 +11,14 @@ import { join } from 'node:path';
 
 const MODULES_DIR = join(__dirname);
 
-const APP_SURFACE_MODULES = ['commerce-app-gateway.module.ts', 'structure-app-api.module.ts'];
+const APP_SURFACE_MODULES = [
+  'commerce-app-gateway.module.ts',
+  'structure-app-api.module.ts',
+  'communications-app-gateway.module.ts',
+];
+
+// Anything named like an app surface must be listed above, or the closure check silently skips it
+const APP_SURFACE_NAME = /-app-(gateway|api)\.module\.ts$/;
 
 function allModuleFiles(dir: string): string[] {
   const out: string[] = [];
@@ -93,5 +100,17 @@ describe('GraphQL surfaces', () => {
     for (const name of APP_SURFACE_MODULES) {
       expect(files.some((f) => f.endsWith(name))).toBe(true);
     }
+  });
+
+  /**
+   * Without this, adding a surface module and forgetting to list it above makes the closure check
+   * pass by never looking at it — the guard reports green on exactly the case it exists to catch.
+   */
+  it('checks every module that looks like an app surface', () => {
+    const unlisted = files
+      .filter((f) => APP_SURFACE_NAME.test(f))
+      .filter((f) => !APP_SURFACE_MODULES.some((name) => f.endsWith(name)))
+      .map((f) => f.replace(`${MODULES_DIR}/`, ''));
+    expect(unlisted).toEqual([]);
   });
 });

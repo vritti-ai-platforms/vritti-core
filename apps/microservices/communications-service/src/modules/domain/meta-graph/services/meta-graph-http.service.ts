@@ -1,4 +1,6 @@
+import { createHmac } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import axios, { type AxiosInstance } from 'axios';
 import { rethrowMetaGraphError } from '../meta-graph-error.util';
 
@@ -12,8 +14,14 @@ const UNREACHABLE_DETAIL = 'Unable to reach WhatsApp. Please try again later.';
 @Injectable()
 export class MetaGraphHttpService {
   private readonly client: AxiosInstance;
+  private readonly appSecret: string;
 
-  constructor() {
+  // The proof is a pure function of the token, and tokens are long-lived and few (one per account),
+  // so deriving it once per token keeps a HMAC off every request
+  private readonly proofCache = new Map<string, string>();
+
+  constructor(private readonly configService: ConfigService) {
+    this.appSecret = this.configService.getOrThrow<string>('META_CLIENT_SECRET');
     this.client = axios.create({
       baseURL: `https://graph.facebook.com/${GRAPH_API_VERSION}`,
       timeout: REQUEST_TIMEOUT_MS,
@@ -23,7 +31,7 @@ export class MetaGraphHttpService {
   async get<T>(accessToken: string, path: string, params?: Record<string, unknown>): Promise<T> {
     try {
       const response = await this.client.get<T>(path, {
-        params,
+        params: { ...params, appsecret_proof: this.appsecretProof(accessToken) },
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       return response.data;
@@ -35,6 +43,7 @@ export class MetaGraphHttpService {
   async post<T>(accessToken: string, path: string, data?: Record<string, unknown>): Promise<T> {
     try {
       const response = await this.client.post<T>(path, data, {
+        params: { appsecret_proof: this.appsecretProof(accessToken) },
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       return response.data;
@@ -46,7 +55,7 @@ export class MetaGraphHttpService {
   async delete<T>(accessToken: string, path: string, params?: Record<string, unknown>): Promise<T> {
     try {
       const response = await this.client.delete<T>(path, {
-        params,
+        params: { ...params, appsecret_proof: this.appsecretProof(accessToken) },
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       return response.data;
@@ -60,13 +69,16 @@ export class MetaGraphHttpService {
   // the OAuth authorization scheme and a file_offset header — that is Meta's spec, not Bearer.
   async uploadFile(accessToken: string, file: Buffer, mimeType: string): Promise<string> {
     try {
+      const proof = this.appsecretProof(accessToken);
+
       const session = await this.client.post<{ id: string }>(
         `/app/uploads?file_length=${file.length}&file_type=${encodeURIComponent(mimeType)}`,
         undefined,
-        { headers: { Authorization: `Bearer ${accessToken}` } },
+        { params: { appsecret_proof: proof }, headers: { Authorization: `Bearer ${accessToken}` } },
       );
 
       const uploaded = await this.client.post<{ h: string }>(`/${session.data.id}`, file, {
+        params: { appsecret_proof: proof },
         headers: {
           Authorization: `OAuth ${accessToken}`,
           file_offset: '0',
@@ -77,5 +89,15 @@ export class MetaGraphHttpService {
     } catch (error) {
       rethrowMetaGraphError(error, UNREACHABLE_DETAIL);
     }
+  }
+
+  // HMAC-SHA256 of the access token keyed with the app secret, which "Require app secret" demands
+  private appsecretProof(accessToken: string): string {
+    const cached = this.proofCache.get(accessToken);
+    if (cached) return cached;
+
+    const proof = createHmac('sha256', this.appSecret).update(accessToken).digest('hex');
+    this.proofCache.set(accessToken, proof);
+    return proof;
   }
 }

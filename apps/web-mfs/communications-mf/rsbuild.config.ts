@@ -71,6 +71,7 @@ export default defineConfig({
         // The key must match cloud.features.web_exposed_module byte-for-byte, or the host cannot
         // resolve the container entry for this feature
         './Org/WhatsappAccounts': './src/features/organization/whatsapp-accounts/index.tsx',
+        './Org/WhatsappOtps': './src/features/organization/whatsapp-otps/index.tsx',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },

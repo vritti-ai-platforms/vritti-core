@@ -12,6 +12,10 @@
     "./whatsapp-accounts": {
       "types": "./dist/whatsapp-accounts.d.ts",
       "default": "./dist/whatsapp-accounts.js"
+    },
+    "./whatsapp-otps": {
+      "types": "./dist/whatsapp-otps.d.ts",
+      "default": "./dist/whatsapp-otps.js"
     }
   },
   "files": [

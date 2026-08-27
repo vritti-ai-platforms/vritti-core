@@ -21,8 +21,7 @@ export const WhatsappAccountDetailPage = () => {
   const { data: account } = useWhatsappAccount(accountId);
   const confirm = useConfirm();
   const updateMutation = useUpdateWhatsappAccount();
-  // Two segments up: the active tab is part of the path, so `..` alone would only land back here
-  const deleteMutation = useDeleteWhatsappAccount({ onSuccess: () => navigate('../..', { relative: 'path' }) });
+  const deleteMutation = useDeleteWhatsappAccount({ onSuccess: () => navigate('..', { relative: 'path' }) });
 
   const handleDelete = async () => {
     const confirmed = await confirm({
@@ -56,9 +55,6 @@ export const WhatsappAccountDetailPage = () => {
       />
 
       <Tabs
-        // The tab is a path segment, not a search param: Breadcrumb links carry the pathname only, so a
-        // `?tab=` would be dropped the moment a crumb is clicked
-        routeParam="accountTab"
         tabs={[
           {
             value: 'overview',
@@ -85,7 +81,7 @@ export const WhatsappAccountDetailPage = () => {
         title="Disconnect this account"
         description="Vritti stops sending from this WhatsApp Business Account and forgets its access token. Nothing is deleted in Meta."
         buttonText="Disconnect Account"
-        permission={ORG_WHATSAPP_ACCOUNTS.delete}
+        permission={ORG_WHATSAPP_ACCOUNTS.disconnect}
         onClick={handleDelete}
       />
     </div>

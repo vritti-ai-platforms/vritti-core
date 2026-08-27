@@ -2,16 +2,16 @@ import { WhatsappPhoneNumberDto } from '@domain/whatsapp-account-phone-numbers/d
 import { WhatsappPhoneNumberProfileDto } from '@domain/whatsapp-account-phone-numbers/dto/entity/whatsapp-phone-number-profile.dto';
 import { CreateWhatsappPhoneNumberDto } from '@domain/whatsapp-account-phone-numbers/dto/request/create-whatsapp-phone-number.dto';
 import { RequestPhoneVerificationCodeDto } from '@domain/whatsapp-account-phone-numbers/dto/request/request-phone-verification-code.dto';
-import { WhatsappAccountPhoneNumbersDomainService } from '@domain/whatsapp-account-phone-numbers/services/whatsapp-account-phone-numbers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { WhatsappPhoneNumbersService } from './services/whatsapp-phone-numbers.service';
 
 @Controller()
 export class WhatsappAccountsPhoneNumbersController {
   private readonly logger = new Logger(WhatsappAccountsPhoneNumbersController.name);
 
-  constructor(private readonly service: WhatsappAccountPhoneNumbersDomainService) {}
+  constructor(private readonly service: WhatsappPhoneNumbersService) {}
 
   @MessagePattern({ cmd: 'org.whatsappAccounts.phoneNumbers.list' })
   async list(@Payload() data: { accountId: string }): Promise<WhatsappPhoneNumberDto[]> {

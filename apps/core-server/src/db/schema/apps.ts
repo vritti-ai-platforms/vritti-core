@@ -4,6 +4,17 @@ import { coreSchema } from './core-schema';
 import { appTypeEnum } from './enums';
 import { organizations } from './organizations';
 
+export interface AppOtpConfig {
+  accountId: string;
+  phoneNumberId: string;
+  templateName: string;
+  templateLanguage: string;
+  codeLength: number;
+  expirySeconds: number;
+  maxAttempts: number;
+  resendCooldownSeconds: number;
+}
+
 /**
  * API credentials an organization issues so an external client can talk to this
  * deployment.
@@ -62,6 +73,7 @@ export const apps = coreSchema.table(
      * can do nothing until it is granted something.
      */
     permissions: jsonb('permissions').$type<FeatureUnlocks>().notNull().default({}),
+    otpConfig: jsonb('otp_config').$type<AppOtpConfig>(),
     /** Ed25519 private key, base64 pkcs8 DER. Goes in the client's environment. */
     signingKey: text('signing_key').notNull(),
     /** Ed25519 public key, base64 spki DER. What request signatures verify against. */

@@ -11,8 +11,10 @@ import { ApiWhatsappAccountsSelect } from './docs/select-api.docs';
 @ApiTags('Communications - Select')
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
-@RequireFeature(ORG_WHATSAPP_ACCOUNTS.featureCode)
 @Controller('select-api')
+// Feature is declared per route, not on the class: this controller serves selectors for the whole
+// communications gateway, so a class-level @RequireFeature would gate a future selector by whichever
+// feature happened to be added first.
 export class SelectApiController {
   private readonly logger = new Logger(SelectApiController.name);
 
@@ -20,6 +22,7 @@ export class SelectApiController {
 
   // Returns paginated WhatsApp account options for select dropdowns
   @Get('whatsapp-accounts')
+  @RequireFeature(ORG_WHATSAPP_ACCOUNTS.featureCode)
   @RequirePermission(ORG_WHATSAPP_ACCOUNTS.view)
   @ApiWhatsappAccountsSelect()
   selectWhatsappAccounts(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {

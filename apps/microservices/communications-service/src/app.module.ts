@@ -8,6 +8,7 @@ import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
 import { OrgWhatsappAccountsModule } from './modules/organization/whatsapp-accounts/whatsapp-accounts.module';
+import { OrgWhatsappOtpsModule } from './modules/organization/whatsapp-otps/whatsapp-otps.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { OrgWhatsappAccountsModule } from './modules/organization/whatsapp-accou
       },
     }),
     OrgWhatsappAccountsModule,
+    OrgWhatsappOtpsModule,
   ],
   providers: [
     {

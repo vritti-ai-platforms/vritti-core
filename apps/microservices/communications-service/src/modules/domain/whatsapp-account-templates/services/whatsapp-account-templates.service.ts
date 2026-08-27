@@ -1,5 +1,4 @@
 import { MetaGraphHttpService } from '@domain/meta-graph/services/meta-graph-http.service';
-import { WhatsappAccountsDomainService } from '@domain/whatsapp-accounts/services/whatsapp-accounts.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { type MetaGraphLibraryTemplate, TemplateLibraryItemDto } from '../dto/entity/template-library-item.dto';
@@ -22,20 +21,32 @@ const LIBRARY_FETCH_LIMIT = 100;
 // actually outgrows it
 const TEMPLATE_PAGE_LIMIT = 100;
 
+export interface GraphCredentials {
+  accountId: string;
+  wabaId: string;
+  accessToken: string;
+}
+
+export interface SendTemplateParams {
+  senderPhoneNumberId: string;
+  to: string;
+  templateName: string;
+  language: string;
+  bodyParams?: string[];
+  category?: string;
+}
+
 // Message templates are read live from Meta — the WABA is the source of truth for review status
 // and quality, so nothing is persisted here (see the communications-permissions note)
 @Injectable()
 export class WhatsappAccountTemplatesDomainService {
   private readonly logger = new Logger(WhatsappAccountTemplatesDomainService.name);
 
-  constructor(
-    private readonly accountsService: WhatsappAccountsDomainService,
-    private readonly metaGraph: MetaGraphHttpService,
-  ) {}
+  constructor(private readonly metaGraph: MetaGraphHttpService) {}
 
   // Lists the WABA's message templates straight from Meta (one row per name+language pair)
-  async list(accountId: string): Promise<WhatsappTemplateDto[]> {
-    const { wabaId, accessToken } = await this.accountsService.resolveGraphCredentials(accountId);
+  async list(credentials: GraphCredentials): Promise<WhatsappTemplateDto[]> {
+    const { wabaId, accessToken } = credentials;
     const response = await this.metaGraph.get<{ data: MetaGraphTemplate[] }>(
       accessToken,
       `/${wabaId}/message_templates`,
@@ -47,10 +58,10 @@ export class WhatsappAccountTemplatesDomainService {
   // Browses Meta's library of pre-written templates. The library is global (not WABA-scoped) but
   // still needs a token, so it is resolved through the account like every other Graph call
   async listLibrary(
-    accountId: string,
+    credentials: GraphCredentials,
     filters: { search?: string; topic?: string; language?: string; category?: string } = {},
   ): Promise<TemplateLibraryItemDto[]> {
-    const { accessToken } = await this.accountsService.resolveGraphCredentials(accountId);
+    const { accessToken } = credentials;
     const response = await this.metaGraph.get<{ data: MetaGraphLibraryTemplate[] }>(
       accessToken,
       '/message_template_library',
@@ -77,8 +88,8 @@ export class WhatsappAccountTemplatesDomainService {
 
   // Distinct languages the library ships templates in — the panel's language selector is fed
   // from Meta rather than a hardcoded list
-  async listLibraryLanguages(accountId: string): Promise<string[]> {
-    const { accessToken } = await this.accountsService.resolveGraphCredentials(accountId);
+  async listLibraryLanguages(credentials: GraphCredentials): Promise<string[]> {
+    const { accessToken } = credentials;
     const response = await this.metaGraph.get<{ data: { language?: string }[] }>(
       accessToken,
       '/message_template_library',
@@ -90,8 +101,11 @@ export class WhatsappAccountTemplatesDomainService {
 
   // Submits a template to Meta — custom content goes through review; a library reference is
   // pre-approved content and usually approves instantly
-  async create(accountId: string, dto: CreateWhatsappTemplateDto): Promise<CreateResponseDto<WhatsappTemplateDto>> {
-    const { wabaId, accessToken } = await this.accountsService.resolveGraphCredentials(accountId);
+  async create(
+    credentials: GraphCredentials,
+    dto: CreateWhatsappTemplateDto,
+  ): Promise<CreateResponseDto<WhatsappTemplateDto>> {
+    const { wabaId, accessToken } = credentials;
 
     const payload: Record<string, unknown> = {
       name: dto.name,
@@ -130,8 +144,8 @@ export class WhatsappAccountTemplatesDomainService {
 
   // Deletes one template node. Meta requires the name alongside hsm_id — the id scopes the delete
   // to this name+language pair, while a name-only delete would wipe every language of the template
-  async delete(accountId: string, templateId: string, name: string): Promise<SuccessResponseDto> {
-    const { wabaId, accessToken } = await this.accountsService.resolveGraphCredentials(accountId);
+  async delete(credentials: GraphCredentials, templateId: string, name: string): Promise<SuccessResponseDto> {
+    const { wabaId, accessToken } = credentials;
 
     await this.metaGraph.delete(accessToken, `/${wabaId}/message_templates`, { hsm_id: templateId, name });
 
@@ -141,38 +155,55 @@ export class WhatsappAccountTemplatesDomainService {
 
   // Sends a real, billable template message from one of the WABA's registered numbers. Meta only
   // sends APPROVED templates and requires a value for every {{n}} body variable
-  async sendTest(accountId: string, dto: SendWhatsappTemplateTestDto): Promise<SuccessResponseDto> {
-    const { accessToken } = await this.accountsService.resolveGraphCredentials(accountId);
+  async sendTemplate(credentials: GraphCredentials, params: SendTemplateParams): Promise<string | undefined> {
+    const { accessToken } = credentials;
 
     const components: Record<string, unknown>[] = [];
-    if (dto.bodyParams?.length) {
-      components.push({ type: 'body', parameters: dto.bodyParams.map((text) => ({ type: 'text', text })) });
+    if (params.bodyParams?.length) {
+      components.push({ type: 'body', parameters: params.bodyParams.map((text) => ({ type: 'text', text })) });
       // Authentication templates carry a copy-code button whose URL is dynamic — Meta requires the
       // code repeated as that button's parameter
-      if (dto.category === 'AUTHENTICATION') {
+      if (params.category === 'AUTHENTICATION') {
         components.push({
           type: 'button',
           sub_type: 'url',
           index: '0',
-          parameters: [{ type: 'text', text: dto.bodyParams[0] }],
+          parameters: [{ type: 'text', text: params.bodyParams[0] }],
         });
       }
     }
 
-    await this.metaGraph.post(accessToken, `/${dto.senderPhoneNumberId}/messages`, {
-      messaging_product: 'whatsapp',
-      to: dto.to,
-      type: 'template',
-      template: {
-        name: dto.templateName,
-        language: { code: dto.language },
-        ...(components.length ? { components } : {}),
+    const response = await this.metaGraph.post<{ messages?: { id?: string }[] }>(
+      accessToken,
+      `/${params.senderPhoneNumberId}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        to: params.to,
+        type: 'template',
+        template: {
+          name: params.templateName,
+          language: { code: params.language },
+          ...(components.length ? { components } : {}),
+        },
       },
-    });
+    );
 
     this.logger.log(
-      `Sent test template ${dto.templateName} (${dto.language}) to ${dto.to} from ${dto.senderPhoneNumberId}`,
+      `Sent template ${params.templateName} (${params.language}) to ${params.to} from ${params.senderPhoneNumberId}`,
     );
+    return response.messages?.[0]?.id;
+  }
+
+  // Sends a template on demand from the Templates tab so an operator can see the real rendering
+  async sendTest(credentials: GraphCredentials, dto: SendWhatsappTemplateTestDto): Promise<SuccessResponseDto> {
+    await this.sendTemplate(credentials, {
+      senderPhoneNumberId: dto.senderPhoneNumberId,
+      to: dto.to,
+      templateName: dto.templateName,
+      language: dto.language,
+      bodyParams: dto.bodyParams,
+      category: dto.category,
+    });
     return { success: true, message: 'Test message sent.' };
   }
 }

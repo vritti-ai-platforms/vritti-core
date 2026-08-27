@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { FeatureUnlocks, PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
 import { PLATFORMS } from '@vritti/api-sdk/catalog-resolver';
 import { generateSigningKeyPair } from '@vritti/api-sdk/signing';
-import type { App, AppType } from '@/db/schema';
+import type { App, AppOtpConfig, AppType } from '@/db/schema';
 import { AppDomainRepository } from '../repositories/app.repository';
 
 /** Marks the value in logs and lets secret scanners recognise a leaked client id. */
@@ -72,6 +72,23 @@ export class AppDomainService {
 
   async setActive(id: string, isActive: boolean): Promise<App> {
     return this.repository.update(id, { isActive });
+  }
+
+  // Stores which WhatsApp sender and template this credential issues sign-in codes with
+  async setOtpConfig(id: string, otpConfig: AppOtpConfig | null): Promise<App> {
+    const app = await this.repository.update(id, { otpConfig });
+    this.logger.log(`${otpConfig ? 'Configured' : 'Cleared'} OTP for app ${app.clientId}`);
+    return app;
+  }
+
+  // The app a delivery callback belongs to, found by the sender it was configured with
+  findByOtpPhoneNumber(phoneNumberId: string): Promise<App | undefined> {
+    return this.repository.findByOtpPhoneNumber(phoneNumberId);
+  }
+
+  // Apps that would be left unable to send if a WhatsApp account were disconnected
+  findByOtpAccount(organizationId: string, accountId: string): Promise<App[]> {
+    return this.repository.findByOtpAccount(organizationId, accountId);
   }
 
   async rename(id: string, name: string): Promise<App> {

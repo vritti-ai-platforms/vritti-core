@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type App, apps } from '@/db/schema';
 
 @Injectable()
@@ -32,6 +32,27 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     return this.model.findFirst({
       where: { id, organizationId },
     });
+  }
+
+  // Apps configured to send sign-in codes from a given WhatsApp account
+  async findByOtpAccount(organizationId: string, accountId: string): Promise<App[]> {
+    return this.db
+      .select()
+      .from(apps)
+      .where(
+        and(eq(apps.organizationId, organizationId), sql`${apps.otpConfig}->>'accountId' = ${accountId}`),
+      ) as Promise<App[]>;
+  }
+
+  // Resolves the app that sends sign-in codes from a given number. Deliberately cross-tenant: a
+  // delivery callback carries no org context, and `apps` has no RLS for exactly this class of lookup.
+  async findByOtpPhoneNumber(phoneNumberId: string): Promise<App | undefined> {
+    const [app] = await this.db
+      .select()
+      .from(apps)
+      .where(sql`${apps.otpConfig}->>'phoneNumberId' = ${phoneNumberId}`)
+      .limit(1);
+    return app;
   }
 
   /** Replaces the keypair, keeping the client id so callers only swap one value. */

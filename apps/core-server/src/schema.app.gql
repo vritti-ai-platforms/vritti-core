@@ -250,6 +250,21 @@ type InventoryItemEdge {
   node: InventoryItem!
 }
 
+type SendWhatsappOtpResult {
+  sent: Boolean!
+  expiresAt: DateTime!
+  resendAvailableAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type VerifyWhatsappOtpResult {
+  verified: Boolean!
+}
+
 type WorkspaceOption {
   kind: String!
   id: ID!
@@ -275,8 +290,19 @@ input FindPeopleByCommunicationInput {
 }
 
 type Mutation {
+  sendWhatsappOtp(input: SendWhatsappOtpInput!): SendWhatsappOtpResult!
+  verifyWhatsappOtp(input: VerifyWhatsappOtpInput!): VerifyWhatsappOtpResult!
   createPerson(input: CreatePersonInput!): Person!
   addPersonCommunication(input: AddPersonCommunicationInput!): PersonCommunication!
+}
+
+input SendWhatsappOtpInput {
+  recipient: String!
+}
+
+input VerifyWhatsappOtpInput {
+  recipient: String!
+  code: String!
 }
 
 input CreatePersonInput {

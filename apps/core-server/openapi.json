@@ -23263,6 +23263,102 @@
         ]
       }
     },
+    "/communications-api/whatsapp-otps/table": {
+      "get": {
+        "description": "Returns paginated, filtered, and sorted sign-in codes using server-stored table state.",
+        "operationId": "WhatsappOtpsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "WhatsApp OTPs table retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsappOtpTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get WhatsApp OTPs table",
+        "tags": [
+          "Communications - WhatsApp OTPs"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-otps/stats": {
+      "get": {
+        "description": "Aggregates the last 30 days of sign-in codes by status, day, and app credential.",
+        "operationId": "WhatsappOtpsGatewayController_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "WhatsApp OTP statistics retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsappOtpStatsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get WhatsApp OTP statistics",
+        "tags": [
+          "Communications - WhatsApp OTPs"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-otps/configured-apps": {
+      "get": {
+        "description": "Reads the app rows, so an app configured but not yet used still appears.",
+        "operationId": "WhatsappOtpsGatewayController_getConfiguredApps",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Configured apps retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConfiguredOtpAppResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List apps configured to send sign-in codes",
+        "tags": [
+          "Communications - WhatsApp OTPs"
+        ]
+      }
+    },
     "/communications-api/select-api/whatsapp-accounts": {
       "get": {
         "description": "Paginated account options for select dropdowns (e.g. the breadcrumb switcher).",
@@ -23415,6 +23511,255 @@
         "summary": "WhatsApp account options",
         "tags": [
           "Communications - Select"
+        ]
+      }
+    },
+    "/communications/internal/otp-accounts": {
+      "get": {
+        "description": "Active accounts connected to the signed organization. Feeds the cloud-web account selector.",
+        "operationId": "CommunicationsInternalController_listAccounts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Accounts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OtpAccountOptionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing cloud signature."
+          }
+        },
+        "summary": "List WhatsApp accounts for OTP configuration",
+        "tags": [
+          "Communications - Internal"
+        ]
+      }
+    },
+    "/communications/internal/otp-accounts/{accountId}/phone-numbers": {
+      "get": {
+        "description": "Numbers registered on the account, read live from Meta.",
+        "operationId": "CommunicationsInternalController_listPhoneNumbers",
+        "parameters": [
+          {
+            "name": "accountId",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Phone numbers retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OtpPhoneNumberOptionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing cloud signature."
+          }
+        },
+        "summary": "List sender phone numbers for OTP configuration",
+        "tags": [
+          "Communications - Internal"
+        ]
+      }
+    },
+    "/communications/internal/otp-accounts/{accountId}/templates": {
+      "get": {
+        "description": "Approved AUTHENTICATION templates only — no other category can carry a sign-in code.",
+        "operationId": "CommunicationsInternalController_listTemplates",
+        "parameters": [
+          {
+            "name": "accountId",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Templates retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OtpTemplateOptionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing cloud signature."
+          }
+        },
+        "summary": "List usable templates for OTP configuration",
+        "tags": [
+          "Communications - Internal"
+        ]
+      }
+    },
+    "/communications/internal/otp-config/{appId}": {
+      "get": {
+        "description": "Returns the stored configuration, or null when the app has never been set up to send codes.",
+        "operationId": "CommunicationsInternalController_getConfig",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App credential ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved."
+          },
+          "404": {
+            "description": "App not found."
+          }
+        },
+        "summary": "Get an app OTP configuration",
+        "tags": [
+          "Communications - Internal"
+        ]
+      },
+      "put": {
+        "description": "Validates the account, sender, and template against Meta before storing, so a broken configuration fails here rather than at send time.",
+        "operationId": "CommunicationsInternalController_setConfig",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App credential ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetOtpConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration stored."
+          },
+          "400": {
+            "description": "Unknown account, sender, or unusable template."
+          },
+          "404": {
+            "description": "App not found."
+          }
+        },
+        "summary": "Set an app OTP configuration",
+        "tags": [
+          "Communications - Internal"
+        ]
+      },
+      "delete": {
+        "description": "Clears the stored configuration. Codes already in flight remain verifiable until they expire.",
+        "operationId": "CommunicationsInternalController_clearConfig",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App credential ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration cleared.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "App not found."
+          }
+        },
+        "summary": "Turn off WhatsApp sign-in codes for an app",
+        "tags": [
+          "Communications - Internal"
+        ]
+      }
+    },
+    "/communications/internal/otp-config/{appId}/test": {
+      "post": {
+        "description": "Issues a real, billable code to the given number using the app's stored configuration, exercising the same path a storefront uses.",
+        "operationId": "CommunicationsInternalController_testConfig",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App credential ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestOtpConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Send attempted; `sent` reports the outcome."
+          },
+          "400": {
+            "description": "No configuration stored for this app."
+          }
+        },
+        "summary": "Send a test sign-in code",
+        "tags": [
+          "Communications - Internal"
         ]
       }
     },
@@ -34334,6 +34679,400 @@
           "to",
           "templateName",
           "language"
+        ]
+      },
+      "WhatsappOtpResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "OTP record ID"
+          },
+          "appId": {
+            "type": "string",
+            "description": "App credential the code was issued for"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "WhatsApp account the code was sent from"
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient phone number in E.164"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SENT",
+              "DELIVERED",
+              "READ",
+              "VERIFIED",
+              "FAILED"
+            ],
+            "description": "Derived from delivery, verification, and expiry"
+          },
+          "attempts": {
+            "type": "number",
+            "description": "Verification attempts made against this code"
+          },
+          "isVerified": {
+            "type": "boolean",
+            "description": "Whether the code was successfully verified"
+          },
+          "messageId": {
+            "type": "object",
+            "description": "Meta's message ID; null when the send failed"
+          },
+          "error": {
+            "type": "object",
+            "description": "Delivery failure reason; null on success"
+          },
+          "deliveryStatus": {
+            "type": "object",
+            "description": "Meta's raw delivery status: sent | delivered | read | failed"
+          },
+          "deliveredAt": {
+            "type": "object",
+            "description": "ISO timestamp Meta confirmed delivery"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "ISO timestamp the code stops being valid"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp the code was issued"
+          },
+          "verifiedAt": {
+            "type": "object",
+            "description": "ISO timestamp the code was verified"
+          }
+        },
+        "required": [
+          "id",
+          "appId",
+          "accountId",
+          "recipient",
+          "status",
+          "attempts",
+          "isVerified",
+          "expiresAt",
+          "createdAt"
+        ]
+      },
+      "WhatsappOtpTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WhatsappOtpResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "WhatsappOtpDailyPointDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Day in YYYY-MM-DD"
+          },
+          "sent": {
+            "type": "number"
+          },
+          "delivered": {
+            "type": "number"
+          },
+          "read": {
+            "type": "number"
+          },
+          "verified": {
+            "type": "number"
+          },
+          "failed": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "sent",
+          "delivered",
+          "read",
+          "verified",
+          "failed"
+        ]
+      },
+      "WhatsappOtpAppBreakdownDto": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "description": "App credential the codes were issued for"
+          },
+          "sent": {
+            "type": "number"
+          },
+          "verified": {
+            "type": "number"
+          },
+          "failed": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "appId",
+          "sent",
+          "verified",
+          "failed"
+        ]
+      },
+      "WhatsappOtpStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "description": "Every code issued in the window"
+          },
+          "sent": {
+            "type": "number",
+            "description": "Accepted by Meta, no delivery confirmation yet"
+          },
+          "delivered": {
+            "type": "number",
+            "description": "Meta confirmed reaching the handset, not yet opened"
+          },
+          "read": {
+            "type": "number",
+            "description": "Opened by the recipient"
+          },
+          "verified": {
+            "type": "number",
+            "description": "Typed back and verified"
+          },
+          "failed": {
+            "type": "number",
+            "description": "Never reached the recipient"
+          },
+          "verificationRate": {
+            "type": "number",
+            "description": "Verified as a percentage of total"
+          },
+          "byDay": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WhatsappOtpDailyPointDto"
+            }
+          },
+          "byApp": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WhatsappOtpAppBreakdownDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "sent",
+          "delivered",
+          "read",
+          "verified",
+          "failed",
+          "verificationRate",
+          "byDay",
+          "byApp"
+        ]
+      },
+      "ConfiguredOtpAppResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App credential ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "App name as cloud shows it"
+          },
+          "type": {
+            "type": "string",
+            "description": "App credential type"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the credential is usable"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "WhatsApp account the codes are sent from"
+          },
+          "templateName": {
+            "type": "string",
+            "description": "Approved AUTHENTICATION template used"
+          },
+          "expirySeconds": {
+            "type": "number",
+            "description": "Seconds a code stays valid"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "isActive",
+          "accountId",
+          "templateName",
+          "expirySeconds"
+        ]
+      },
+      "OtpAccountOptionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "WhatsApp account ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable account name"
+          },
+          "wabaId": {
+            "type": "string",
+            "description": "WhatsApp Business Account ID"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "wabaId"
+        ]
+      },
+      "OtpPhoneNumberOptionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Meta phone number ID — the sender"
+          },
+          "displayPhoneNumber": {
+            "type": "string",
+            "description": "Display phone number"
+          },
+          "verifiedName": {
+            "type": "string",
+            "description": "Verified name shown to recipients"
+          }
+        },
+        "required": [
+          "id",
+          "displayPhoneNumber",
+          "verifiedName"
+        ]
+      },
+      "OtpTemplateOptionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Template name Meta addresses the template by"
+          },
+          "language": {
+            "type": "string",
+            "description": "Template language code"
+          },
+          "status": {
+            "type": "string",
+            "description": "Meta review status"
+          }
+        },
+        "required": [
+          "name",
+          "language",
+          "status"
+        ]
+      },
+      "SetOtpConfigDto": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "description": "WhatsApp account the codes are sent from"
+          },
+          "phoneNumberId": {
+            "type": "string",
+            "description": "Meta phone number ID — the sender"
+          },
+          "templateName": {
+            "type": "string",
+            "description": "Approved AUTHENTICATION template name"
+          },
+          "templateLanguage": {
+            "type": "string",
+            "description": "Template language code"
+          },
+          "codeLength": {
+            "type": "number",
+            "description": "Digits in the generated code",
+            "minimum": 4,
+            "maximum": 10
+          },
+          "expirySeconds": {
+            "type": "number",
+            "description": "Seconds a code stays valid",
+            "minimum": 30,
+            "maximum": 3600
+          },
+          "maxAttempts": {
+            "type": "number",
+            "description": "Guesses allowed before a code is spent",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "resendCooldownSeconds": {
+            "type": "number",
+            "description": "Seconds before a new code may be requested",
+            "minimum": 0,
+            "maximum": 3600
+          }
+        },
+        "required": [
+          "accountId",
+          "phoneNumberId",
+          "templateName",
+          "templateLanguage",
+          "codeLength",
+          "expirySeconds",
+          "maxAttempts",
+          "resendCooldownSeconds"
+        ]
+      },
+      "TestOtpConfigDto": {
+        "type": "object",
+        "properties": {
+          "recipient": {
+            "type": "string",
+            "description": "Recipient in international format",
+            "example": "+919876543210"
+          }
+        },
+        "required": [
+          "recipient"
         ]
       },
       "CreateRepositoryDto": {

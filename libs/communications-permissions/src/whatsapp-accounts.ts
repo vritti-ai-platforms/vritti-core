@@ -1,7 +1,7 @@
 // WhatsApp account permission codes — MUST match the cloud catalog's authored codes exactly.
 // One object per workspace scope the feature is exposed in; codes are scope.feature.permission.
 //
-// The account row is a CRUD record, so it keeps view/add/edit/delete. The two sub-resources are not
+// The account row is a CRUD record, so it keeps view/add/edit/disconnect. The two sub-resources are not
 // stored here — phone numbers and message templates are read live from Meta — but they still carry
 // their own codes, because managing what a business sends from is a meaningfully different grant
 // from managing the connection itself:
@@ -16,7 +16,7 @@ export const ORG_WHATSAPP_ACCOUNTS = {
   view: 'org.whatsapp-accounts.view',
   add: 'org.whatsapp-accounts.add',
   edit: 'org.whatsapp-accounts.edit',
-  delete: 'org.whatsapp-accounts.delete',
+  disconnect: 'org.whatsapp-accounts.disconnect',
   phoneNumbers: {
     view: 'org.whatsapp-accounts.phone-numbers.view',
     edit: 'org.whatsapp-accounts.phone-numbers.edit',

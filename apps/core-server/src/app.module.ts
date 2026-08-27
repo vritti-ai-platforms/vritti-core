@@ -27,7 +27,10 @@ import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceAppGatewayModule } from './modules/commerce-gateway/commerce-app-gateway.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
+import { CommunicationsAppGatewayModule } from './modules/communications-gateway/communications-app-gateway.module';
 import { CommunicationsGatewayModule } from './modules/communications-gateway/communications-gateway.module';
+import { CommunicationsInternalModule } from './modules/communications-gateway/internal/communications-internal.module';
+import { WhatsappWebhookModule } from './modules/communications-gateway/webhooks/whatsapp-webhook.module';
 import { AppApiModule } from './modules/core-api/app/app-api.module';
 import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
@@ -121,7 +124,7 @@ const graphqlBaseOptions = {
       driver: ApolloDriver,
       useFactory: () => ({
         ...graphqlBaseOptions,
-        include: [CommerceAppGatewayModule, StructureAppApiModule],
+        include: [CommerceAppGatewayModule, StructureAppApiModule, CommunicationsAppGatewayModule],
         autoSchemaFile: join(process.cwd(), 'src/schema.app.gql'),
         path: '/graphql',
         // Public product surface: integrators codegen against it rather than reverse-engineering
@@ -332,6 +335,7 @@ const graphqlBaseOptions = {
     StructureApiModule,
     StructureAppApiModule,
     CommerceAppGatewayModule,
+    CommunicationsAppGatewayModule,
     CatalogApiModule,
     UserPermissionsApiModule,
     MediaApiModule,
@@ -341,6 +345,11 @@ const graphqlBaseOptions = {
     CommerceGatewayModule,
     // Forwards requests to communications-service via NATS
     CommunicationsGatewayModule,
+    // Signed internal communications endpoints (OTP config options) — deliberately unprefixed so
+    // their paths match the Ed25519-signed request path
+    CommunicationsInternalModule,
+    // Public Meta delivery callbacks — unprefixed so the path matches what is registered with Meta
+    WhatsappWebhookModule,
     // Forwards requests to the self-hosted Gitea instance over HTTP
     GiteaGatewayModule,
     // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the

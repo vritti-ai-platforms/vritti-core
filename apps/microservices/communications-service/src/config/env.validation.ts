@@ -48,6 +48,10 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   WHATSAPP_API_VERSION: string;
+
+  // Meta app secret — "Require app secret" is on, so every Graph call must carry appsecret_proof
+  @IsString()
+  META_CLIENT_SECRET: string;
 }
 
 // Validates environment variables at application startup

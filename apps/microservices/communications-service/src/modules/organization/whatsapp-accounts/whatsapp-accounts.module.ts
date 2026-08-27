@@ -2,8 +2,10 @@ import { WhatsappAccountPhoneNumbersDomainModule } from '@domain/whatsapp-accoun
 import { WhatsappAccountTemplatesDomainModule } from '@domain/whatsapp-account-templates/whatsapp-account-templates.module';
 import { WhatsappAccountsDomainModule } from '@domain/whatsapp-accounts/whatsapp-accounts.module';
 import { Module } from '@nestjs/common';
+import { WhatsappPhoneNumbersService } from './phone-numbers/services/whatsapp-phone-numbers.service';
 import { WhatsappAccountsPhoneNumbersController } from './phone-numbers/whatsapp-accounts-phone-numbers.controller';
 import { WhatsappAccountsController } from './root/whatsapp-accounts.controller';
+import { WhatsappTemplatesService } from './templates/services/whatsapp-templates.service';
 import { WhatsappAccountsTemplatesController } from './templates/whatsapp-accounts-templates.controller';
 
 @Module({
@@ -17,5 +19,6 @@ import { WhatsappAccountsTemplatesController } from './templates/whatsapp-accoun
     WhatsappAccountsPhoneNumbersController,
     WhatsappAccountsTemplatesController,
   ],
+  providers: [WhatsappTemplatesService, WhatsappPhoneNumbersService],
 })
 export class OrgWhatsappAccountsModule {}
