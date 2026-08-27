@@ -14,6 +14,10 @@ const LIBRARY_FIELDS =
 
 const LIBRARY_PAGE_LIMIT = 24;
 
+// Meta's library browse ignores `category` as a filter (it is a field on entries, not a query
+// param), so filtering happens here — fetch a deep page and narrow it in code
+const LIBRARY_FETCH_LIMIT = 100;
+
 // One page covers every realistic WABA today; Graph paging support is deferred until an account
 // actually outgrows it
 const TEMPLATE_PAGE_LIMIT = 100;
@@ -52,14 +56,23 @@ export class WhatsappAccountTemplatesDomainService {
       '/message_template_library',
       {
         fields: LIBRARY_FIELDS,
-        limit: LIBRARY_PAGE_LIMIT,
+        limit: LIBRARY_FETCH_LIMIT,
         ...(filters.search ? { search: filters.search } : {}),
         ...(filters.topic ? { topic: filters.topic } : {}),
         ...(filters.language ? { language: filters.language } : {}),
         ...(filters.category ? { category: filters.category } : {}),
       },
     );
-    return (response.data ?? []).map(TemplateLibraryItemDto.from);
+
+    // Meta honors search/language/topic but not category — enforce every filter here so the
+    // gallery never shows entries outside the wizard's selection
+    const category = filters.category?.toUpperCase();
+    const matches = (response.data ?? []).filter(
+      (item) =>
+        (!category || item.category?.toUpperCase() === category) &&
+        (!filters.language || item.language === filters.language),
+    );
+    return matches.slice(0, LIBRARY_PAGE_LIMIT).map(TemplateLibraryItemDto.from);
   }
 
   // Distinct languages the library ships templates in — the panel's language selector is fed
