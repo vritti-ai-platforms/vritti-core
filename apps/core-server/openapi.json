@@ -1371,7 +1371,7 @@
     },
     "/users/internal/{id}": {
       "patch": {
-        "description": "Updates a portal user role, status or name. Protected by request signature.",
+        "description": "Updates a portal user’s email, name, status, locale, timezone or phone. Protected by request signature.",
         "operationId": "UserController_updateFromCloud",
         "parameters": [
           {
@@ -1410,9 +1410,52 @@
           },
           "404": {
             "description": "User not found."
+          },
+          "409": {
+            "description": "Email already in use in this organization."
           }
         },
         "summary": "Update portal user",
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "description": "Permanently deletes a portal user. Their sessions, verifications, saved table views and role assignments cascade away, and any live connections are signed out immediately. The organization’s last remaining user cannot be deleted.",
+        "operationId": "UserController_deleteFromCloud",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User removed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "This is the organization’s last remaining portal user."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "User not found in this organization."
+          }
+        },
+        "summary": "Delete portal user",
         "tags": [
           "Users"
         ]
@@ -26522,18 +26565,30 @@
           },
           "phone": {
             "type": "string",
-            "description": "User phone number (E.164 digits)",
-            "example": "919876543210"
+            "description": "User phone number (E.164)",
+            "example": "+919876543210"
           },
           "phoneCountry": {
             "type": "string",
             "description": "Phone country code (ISO 3166-1 alpha-2)",
             "example": "IN"
+          },
+          "locale": {
+            "type": "string",
+            "description": "User locale",
+            "example": "en-IN"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "User timezone",
+            "example": "Asia/Kolkata"
           }
         },
         "required": [
           "email",
-          "fullName"
+          "fullName",
+          "locale",
+          "timezone"
         ]
       },
       "SuccessResponseDto": {
@@ -26673,6 +26728,11 @@
           "timezone": {
             "type": "string",
             "example": "America/New_York"
+          },
+          "phone": {
+            "type": "object",
+            "description": "Phone number (E.164), empty or null to clear",
+            "example": "+919876543210"
           }
         }
       },

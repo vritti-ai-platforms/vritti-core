@@ -54,12 +54,29 @@ export function ApiUpdateUser() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update portal user',
-      description: 'Updates a portal user role, status or name. Protected by request signature.',
+      description:
+        'Updates a portal user’s email, name, status, locale, timezone or phone. Protected by request signature.',
     }),
     ApiParam({ name: 'id', description: 'User ID' }),
     ApiBody({ type: UpdateUserInternalDto }),
     ApiResponse({ status: 200, description: 'User updated successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'User not found.' }),
+    ApiResponse({ status: 409, description: 'Email already in use in this organization.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiDeleteUser() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Delete portal user',
+      description:
+        'Permanently deletes a portal user. Their sessions, verifications, saved table views and role assignments cascade away, and any live connections are signed out immediately. The organization’s last remaining user cannot be deleted.',
+    }),
+    ApiParam({ name: 'id', description: 'User ID' }),
+    ApiResponse({ status: 200, description: 'User removed successfully.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'This is the organization’s last remaining portal user.' }),
+    ApiResponse({ status: 404, description: 'User not found in this organization.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );
 }

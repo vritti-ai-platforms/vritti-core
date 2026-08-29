@@ -16,7 +16,7 @@ import {
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { EmailService } from '@vritti/api-sdk/email';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/common/events/auth-status.events';
+import { AUTH_STATUS_EVENTS, SessionRevokedEvent, UserUpdatedEvent } from '@/common/events/auth-status.events';
 import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
 import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserInternalDto } from '../dto/request/create-user-internal.dto';
@@ -97,6 +97,8 @@ export class UserDomainService {
       status: 'PENDING',
       ...(dto.phone && { phone: dto.phone }),
       ...(dto.phoneCountry && { phoneCountry: dto.phoneCountry }),
+      locale: dto.locale,
+      timezone: dto.timezone,
     });
 
     this.logger.log(`Created portal user from cloud: ${user.email} (${user.id})`);
@@ -231,6 +233,8 @@ export class UserDomainService {
       }),
       ...(dto.locale && { locale: dto.locale }),
       ...(dto.timezone && { timezone: dto.timezone }),
+      // Presence check, not truthiness — an empty phone must actually clear the column
+      ...(dto.phone !== undefined && { phone: dto.phone || null }),
       updatedAt: new Date(),
     });
 
@@ -238,6 +242,31 @@ export class UserDomainService {
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.USER_UPDATED, new UserUpdatedEvent(id));
 
     return { success: true, message: 'User updated successfully.' };
+  }
+
+  // Permanently deletes a portal user from a cloud-server internal request
+  async deleteFromCloud(orgId: string, id: string): Promise<SuccessResponseDto> {
+    const user = await this.userRepository.findById(id);
+    // A user from another organization is reported as missing rather than forbidden
+    if (!user || user.organizationId !== orgId) throw new NotFoundException('User not found.');
+
+    const remaining = await this.userRepository.count(eq(users.organizationId, orgId));
+    if (remaining <= 1) {
+      throw new BadRequestException({
+        label: 'Last User',
+        detail: "This is the organization's only portal user. Invite another user before removing this one.",
+      });
+    }
+
+    // The session rows cascade away with the user, but a cascade fires no event — push the
+    // logout to their live SSE connections first so open tabs do not wait for a token refresh
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SESSION_REVOKED, new SessionRevokedEvent(user.id));
+
+    await this.userRepository.delete(id);
+
+    this.logger.log(`Deleted portal user: ${user.email} (${user.id})`);
+
+    return { success: true, message: 'User removed successfully.' };
   }
 
   // Resends invitation email to a pending user with a fresh SET_PASSWORD token

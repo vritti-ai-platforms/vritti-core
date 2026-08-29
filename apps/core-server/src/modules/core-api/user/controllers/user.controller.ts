@@ -2,7 +2,7 @@ import { CreateUserInternalDto } from '@domain/user/dto/request/create-user-inte
 import { UpdateUserInternalDto } from '@domain/user/dto/request/update-user-internal.dto';
 import type { UsersTableResponseDto } from '@domain/user/dto/response/users-table-response.dto';
 import { UserDomainService } from '@domain/user/services/user.service';
-import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
 import { SelectOptionsQueryDto, type SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
@@ -12,6 +12,7 @@ import { MobileLookupDto } from '../../auth/root/dto/request/mobile-lookup.dto';
 import { MobileLookupResponseDto } from '../../auth/root/dto/response/mobile-lookup-response.dto';
 import {
   ApiCreateUser,
+  ApiDeleteUser,
   ApiGetOrganizationsByEmail,
   ApiGetUsers,
   ApiResendInvite,
@@ -72,6 +73,16 @@ export class UserController {
   async updateFromCloud(@Param('id') id: string, @Body() dto: UpdateUserInternalDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /users/internal/${id}`);
     return this.userService.updateFromCloud(id, dto);
+  }
+
+  // Permanently deletes a portal user and signs out their live connections
+  @Delete('internal/:id')
+  @Require(AuthType.Cloud)
+  @HttpCode(HttpStatus.OK)
+  @ApiDeleteUser()
+  async deleteFromCloud(@OrgId() orgId: string, @Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /users/internal/${id} — org ${orgId}`);
+    return this.userService.deleteFromCloud(orgId, id);
   }
 
   // Resends invitation email to a pending user with a fresh SET_PASSWORD token
