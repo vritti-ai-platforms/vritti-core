@@ -21,8 +21,7 @@ export const UserMenu = () => {
     },
   });
 
-  // Build display name from user data
-  const displayName = user?.displayName || 'User';
+  const displayName = user?.displayName ?? '';
   const displayEmail = user?.email ?? '';
 
   const userInitials = displayName

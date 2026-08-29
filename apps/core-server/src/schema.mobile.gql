@@ -6,7 +6,7 @@ type Profile {
   id: ID!
   email: String!
   fullName: String!
-  displayName: String
+  displayName: String!
   status: String!
   hasPassword: Boolean!
   locale: String!

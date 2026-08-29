@@ -1,0 +1,1 @@
+ALTER TABLE "core"."users" ALTER COLUMN "display_name" SET NOT NULL;

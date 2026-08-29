@@ -10,6 +10,7 @@ export class AuthUserDto {
   @ApiProperty() id: string;
   @ApiProperty() email: string;
   @ApiProperty() fullName: string;
+  @ApiProperty() displayName: string;
   @ApiProperty() status: string;
   @ApiProperty() hasPassword: boolean;
   @ApiProperty() locale: string;

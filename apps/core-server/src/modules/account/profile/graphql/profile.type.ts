@@ -11,8 +11,8 @@ export class Profile {
   @Field(() => String)
   fullName: string;
 
-  @Field(() => String, { nullable: true })
-  displayName?: string | null;
+  @Field(() => String)
+  displayName: string;
 
   @Field(() => String)
   status: string;

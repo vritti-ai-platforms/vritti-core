@@ -32,7 +32,7 @@ export interface ProfileData {
   id: string;
   email: string;
   fullName: string;
-  displayName: string | null;
+  displayName: string;
   status: AccountStatus;
   locale: string;
   timezone: string;

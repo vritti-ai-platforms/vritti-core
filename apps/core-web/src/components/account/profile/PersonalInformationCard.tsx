@@ -26,7 +26,7 @@ export const PersonalInformationCard: React.FC<PersonalInformationCardProps> = (
             <Typography variant="body2" intent="muted" className="mb-1">
               Display Name
             </Typography>
-            <Typography variant="body1">{profile.displayName ?? '—'}</Typography>
+            <Typography variant="body1">{profile.displayName}</Typography>
           </div>
           <div>
             <Typography variant="body2" intent="muted" className="mb-1">

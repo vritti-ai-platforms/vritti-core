@@ -5,10 +5,9 @@ import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup
 
 export interface User {
   id: string;
-  externalId: string | null;
   email: string;
   fullName: string;
-  displayName?: string | null;
+  displayName: string;
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
   hasPassword: boolean;
   locale?: string;

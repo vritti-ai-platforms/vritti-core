@@ -13,7 +13,7 @@ export const users = coreSchema.table(
     email: varchar('email', { length: 255 }).notNull(),
     passwordHash: text('password_hash'),
     fullName: varchar('full_name', { length: 255 }).notNull(),
-    displayName: varchar('display_name', { length: 255 }),
+    displayName: varchar('display_name', { length: 255 }).notNull(),
     status: userStatusEnum('status').notNull().default('PENDING'),
     isActive: boolean('is_active').notNull().default(true),
     phone: varchar('phone', { length: 20 }),

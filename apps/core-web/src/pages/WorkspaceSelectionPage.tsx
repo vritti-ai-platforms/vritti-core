@@ -323,8 +323,8 @@ export const WorkspaceSelectionPage = () => {
     );
   }
 
-  const firstName = (user?.displayName ?? user?.fullName ?? '').trim().split(/\s+/)[0] ?? '';
-  const greeting = `${timeOfDayGreeting()}${firstName ? `, ${firstName.toUpperCase()}` : ''}`;
+  const displayName = (user?.displayName ?? '').trim();
+  const greeting = `${timeOfDayGreeting()}${displayName ? `, ${displayName.toUpperCase()}` : ''}`;
 
   const hasSites = siteCards.length > 0;
   const hasGroups = groupCards.length > 0;

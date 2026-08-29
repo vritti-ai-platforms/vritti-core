@@ -25672,6 +25672,9 @@
           "fullName": {
             "type": "string"
           },
+          "displayName": {
+            "type": "string"
+          },
           "status": {
             "type": "string"
           },
@@ -25695,6 +25698,7 @@
           "id",
           "email",
           "fullName",
+          "displayName",
           "status",
           "hasPassword",
           "locale",
@@ -27996,7 +28000,7 @@
             "example": "Jane Smith"
           },
           "displayName": {
-            "type": "object",
+            "type": "string",
             "description": "User display name",
             "example": "Jane"
           },
@@ -28045,6 +28049,7 @@
           "id",
           "email",
           "fullName",
+          "displayName",
           "status",
           "hasPassword",
           "locale",

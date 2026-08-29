@@ -11,8 +11,8 @@ export class ProfileDto {
   @ApiProperty({ description: 'User full name', example: 'Jane Smith' })
   fullName: string;
 
-  @ApiPropertyOptional({ description: 'User display name', example: 'Jane' })
-  displayName: string | null;
+  @ApiProperty({ description: 'User display name', example: 'Jane' })
+  displayName: string;
 
   @ApiProperty({ description: 'Account status', example: 'ACTIVE', enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] })
   status: string;
@@ -44,7 +44,7 @@ export class ProfileDto {
     dto.id = user.id;
     dto.email = user.email;
     dto.fullName = user.fullName;
-    dto.displayName = user.displayName ?? null;
+    dto.displayName = user.displayName;
     dto.status = user.status;
     dto.hasPassword = user.passwordHash !== null;
     dto.locale = user.locale;

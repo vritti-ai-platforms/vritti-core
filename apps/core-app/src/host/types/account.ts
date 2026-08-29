@@ -20,7 +20,7 @@ export interface Profile {
   id: string;
   email: string;
   fullName: string;
-  displayName: string | null;
+  displayName: string;
   status: string;
   hasPassword: boolean;
   locale: string;
