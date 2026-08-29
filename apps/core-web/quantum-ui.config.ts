@@ -3,8 +3,6 @@ import { getBusinessUnitCurrency, getUserCurrency } from '@vritti/quantum-ui/cur
 import { parseSlug } from '@vritti/quantum-ui/slug';
 import { getBusinessUnitTimeZone, getUserTimeZone } from '@vritti/quantum-ui/timezone';
 
-// Each workspace prefix carries its context two ways: a header on HTTP, and the equivalent query
-// param on SSE — EventSource cannot set headers, so the same value has to ride the URL there.
 const WORKSPACE_HEADERS = [
   { prefix: 'site-', header: 'x-site-id', param: 'siteId' },
   { prefix: 'sg-', header: 'x-sg-id', param: 'sgId' },
@@ -68,8 +66,7 @@ export default defineConfig({
    * Server-Sent Events Configuration
    */
   sse: {
-    // The same single context value axios.onRequest sends as a header, moved to the query string
-    // because EventSource cannot set headers. The server authorizes it identically.
+    // Same context value axios.onRequest sends as a header, on the query string since EventSource can't set headers
     onRequest: (url) => {
       const workspace = getActiveWorkspace();
       if (!workspace) return url;

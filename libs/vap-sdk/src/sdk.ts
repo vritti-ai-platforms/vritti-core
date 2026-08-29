@@ -1,5 +1,5 @@
 import { createSignedClient } from './apollo/client';
-import { type VapSdkOptions, resolveConfig } from './config';
+import { resolveConfig, type VapSdkOptions } from './config';
 import { createPeopleOperations } from './people/operations';
 import type { RequestContext } from './workspaces';
 import { createWorkspacesOperations } from './workspaces/operations';
@@ -15,7 +15,7 @@ import { createWorkspacesOperations } from './workspaces/operations';
  * Distinct from `@vritti/api-sdk`, which is the *server* SDK for building Vritti
  * services. This one is what calls them, and carries no server dependencies.
  *
- * Configuration comes from `CORE_GRAPHQL_URL`, `APP_CLIENT_ID` and `APP_PRIVATE_KEY` unless it is
+ * Configuration comes from `CORE_GRAPHQL_URL`, `VRITTI_APP_CLIENT_ID` and `VRITTI_APP_CLIENT_SECRET` unless it is
  * passed in, so the usual call takes no arguments at all.
  *
  * ```ts

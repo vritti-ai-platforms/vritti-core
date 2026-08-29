@@ -4,9 +4,9 @@
 import type { Field } from 'payload' with { 'resolution-mode': 'import' };
 import type { VapSdkOptions } from '../config';
 import { createVapSdk } from '../sdk';
-import { vapCacheCollection } from './collections/vap-cache';
 import { customerSessionsCollection } from './collections/customer-sessions';
 import { customersCollection } from './collections/customers';
+import { vapCacheCollection } from './collections/vap-cache';
 import { createPostgresResponseCache } from './response-cache-postgres';
 import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime';
 
@@ -47,8 +47,8 @@ export interface VapOptions extends VapSdkOptions {
  * ```
  *
  * That one line generates the `customers` and `customer-sessions` collections and attaches the core
- * client. No credentials to pass: the SDK reads `CORE_GRAPHQL_URL`, `APP_CLIENT_ID` and
- * `APP_PRIVATE_KEY` itself, and anything passed here wins over the environment.
+ * client. No credentials to pass: the SDK reads `CORE_GRAPHQL_URL`, `VRITTI_APP_CLIENT_ID` and
+ * `VRITTI_APP_CLIENT_SECRET` itself, and anything passed here wins over the environment.
  *
  * **Why a plugin and not a module the app imports.** Payload's `Plugin` is
  * `(config: Config) => Config`, and contributing collections is only possible from inside that

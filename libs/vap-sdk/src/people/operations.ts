@@ -1,7 +1,7 @@
 import type { ApolloClient } from '@apollo/client';
 import { requireData, run } from '../apollo/errors';
 import { ADD_PERSON_COMMUNICATION, CREATE_PERSON, PEOPLE_BY_COMMUNICATION_QUERY } from '../graphql/people';
-import { VapError, PartyRollbackError } from '../types';
+import { PartyRollbackError, VapError } from '../types';
 import type { RequestContext } from '../workspaces/types';
 import {
   CHANNELS,

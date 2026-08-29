@@ -56,11 +56,11 @@ export type VapSdkConfig = {
   /**
    * The app credential identifying this client to core.
    *
-   * Server-side only. The private key signs every request, so a browser that
-   * could read it could act as this client against its whole organization.
+   * Server-side only. The secret is an Ed25519 private key that signs every request, so a browser
+   * that could read it could act as this client against its whole organization.
    */
   clientId: string;
-  privateKey: string;
+  clientSecret: string;
 
   /** Overridable for tests. Defaults to the global `fetch`. */
   fetch?: typeof fetch;

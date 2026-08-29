@@ -199,8 +199,7 @@ const graphqlBaseOptions = {
           // and is resolved here, because verifying its signature needs a database
           // lookup the SDK cannot do. Both then share the workspace-context headers.
           onAuthenticated: async (requestService, auth) => {
-            // Context arrives as a header on HTTP and as the equivalent query param on SSE, where
-            // EventSource cannot set headers. Both are client input and both are treated the same.
+            // Reads context from the header, or the equivalent query param on SSE where headers can't be set
             const readContext = (name: string, param: string): string | undefined => {
               const value = requestService.getHeader(name);
               return (Array.isArray(value) ? value[0] : value) || requestService.getQueryParam(param);

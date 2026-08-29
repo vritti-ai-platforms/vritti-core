@@ -40,7 +40,7 @@ export function createSignedFetch(config: VapSdkConfig): typeof fetch {
     // The context goes into the signature as well as onto the wire, so stripping or re-pointing
     // either one in transit invalidates the request.
     for (const [name, value] of Object.entries(
-      signRequest({ method: 'POST', path, body, partyId, workspaceHeaders }, config.privateKey),
+      signRequest({ method: 'POST', path, body, partyId, workspaceHeaders }, config.clientSecret),
     )) {
       headers.set(name, value);
     }

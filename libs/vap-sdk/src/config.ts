@@ -9,8 +9,8 @@ import { VapError, type VapSdkConfig } from './types';
  */
 export const ENV_VARS = {
   endpoint: 'CORE_GRAPHQL_URL',
-  clientId: 'APP_CLIENT_ID',
-  privateKey: 'APP_PRIVATE_KEY',
+  clientId: 'VRITTI_APP_CLIENT_ID',
+  clientSecret: 'VRITTI_APP_CLIENT_SECRET',
 } as const;
 
 /** What a caller may leave out, because the environment can supply it. */
@@ -41,7 +41,7 @@ export function resolveConfig(options: VapSdkOptions = {}): VapSdkConfig {
 
   const endpoint = required(options.endpoint ?? readEnv(ENV_VARS.endpoint), ENV_VARS.endpoint);
   const clientId = required(options.clientId ?? readEnv(ENV_VARS.clientId), ENV_VARS.clientId);
-  const privateKey = required(options.privateKey ?? readEnv(ENV_VARS.privateKey), ENV_VARS.privateKey);
+  const clientSecret = required(options.clientSecret ?? readEnv(ENV_VARS.clientSecret), ENV_VARS.clientSecret);
 
   if (missing.length > 0) {
     // A configuration mistake, not a request failure — but it surfaces as VapError so a caller that
@@ -49,7 +49,7 @@ export function resolveConfig(options: VapSdkOptions = {}): VapSdkConfig {
     throw new VapError(`VAP is not configured — set ${missing.join(', ')}.`, 'Not Configured', undefined);
   }
 
-  return { ...options, endpoint, clientId, privateKey };
+  return { ...options, endpoint, clientId, clientSecret };
 }
 
 function readEnv(name: string): string | undefined {

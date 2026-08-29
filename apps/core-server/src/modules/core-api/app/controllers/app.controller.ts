@@ -81,14 +81,21 @@ export class AppController {
     return new AppResponseDto(app);
   }
 
-  /** New keypair, same client id — the caller swaps one value, not two. */
+  /**
+   * New keypair, same client id — the caller swaps one value, not two.
+   *
+   * Returns the new private key rather than the app row: whoever rotates needs the replacement
+   * immediately, and making them call the reveal route straight afterwards would mean two audited
+   * exposures for one intended act.
+   */
   @Post('internal/:id/rotate')
   @Require(AuthType.Cloud)
   @HttpCode(HttpStatus.OK)
-  async rotateFromCloud(@Param('id') id: string, @OrgId() orgId: string): Promise<AppResponseDto> {
+  async rotateFromCloud(@Param('id') id: string, @OrgId() orgId: string): Promise<AppSigningKeyResponseDto> {
     this.logger.log(`POST /apps/internal/${id}/rotate`);
     await this.requireApp(id, orgId);
-    return new AppResponseDto(await this.appService.rotate(id));
+    const app = await this.appService.rotate(id);
+    return new AppSigningKeyResponseDto(app.clientId, app.signingKey);
   }
 
   /**
