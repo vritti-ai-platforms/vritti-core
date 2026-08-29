@@ -521,7 +521,9 @@ export const WorkspaceSelectionPage = () => {
                 </span>
               </span>
               <span className="ml-auto hidden shrink-0 flex-wrap justify-end gap-1.5 sm:flex">
-                {legalEntities.length > 0 && <Chip>{plural(legalEntities.length, 'legal entity', 'legal entities')}</Chip>}
+                {legalEntities.length > 0 && (
+                  <Chip>{plural(legalEntities.length, 'legal entity', 'legal entities')}</Chip>
+                )}
                 {siteGroups.length > 0 && <Chip>{plural(siteGroups.length, 'group')}</Chip>}
                 {sites.length > 0 && <Chip>{plural(sites.length, 'site')}</Chip>}
               </span>

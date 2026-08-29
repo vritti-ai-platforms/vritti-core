@@ -1,7 +1,7 @@
-import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { LocationItemQuantResponseDto } from '@commerce/locations/dto/response/location-item-quant-response.dto';
 import { LocationItemTableResponseDto } from '@commerce/locations/dto/response/location-item-table-response.dto';
+import { applyDecorators } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 export function ApiGetLocationItemsTable() {
   return applyDecorators(

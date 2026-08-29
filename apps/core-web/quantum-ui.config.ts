@@ -3,17 +3,19 @@ import { getBusinessUnitCurrency, getUserCurrency } from '@vritti/quantum-ui/cur
 import { parseSlug } from '@vritti/quantum-ui/slug';
 import { getBusinessUnitTimeZone, getUserTimeZone } from '@vritti/quantum-ui/timezone';
 
+// Each workspace prefix carries its context two ways: a header on HTTP, and the equivalent query
+// param on SSE — EventSource cannot set headers, so the same value has to ride the URL there.
 const WORKSPACE_HEADERS = [
-  { prefix: 'site-', header: 'x-site-id' },
-  { prefix: 'sg-', header: 'x-sg-id' },
-  { prefix: 'le-', header: 'x-le-id' },
-  { prefix: 'org-', header: 'x-org-id' },
+  { prefix: 'site-', header: 'x-site-id', param: 'siteId' },
+  { prefix: 'sg-', header: 'x-sg-id', param: 'sgId' },
+  { prefix: 'le-', header: 'x-le-id', param: 'leId' },
+  { prefix: 'org-', header: 'x-org-id', param: 'orgId' },
 ] as const;
 
 const getWorkspaceSegment = () => window.location.pathname.split('/').filter(Boolean)[0] ?? null;
 
-// Resolves the active workspace entity id from the URL (site-/sg-/le-/org- slugs)
-const getActiveWorkspaceId = () => {
+// Resolves the active workspace from the URL (site-/sg-/le-/org- slugs) — its id plus how to send it
+const getActiveWorkspace = () => {
   const segment = getWorkspaceSegment();
   if (!segment) return null;
 
@@ -21,8 +23,12 @@ const getActiveWorkspaceId = () => {
   if (!match) return null;
 
   const parsed = parseSlug(segment.slice(match.prefix.length));
-  return parsed?.id ?? null;
+  if (!parsed?.id) return null;
+
+  return { header: match.header, param: match.param, id: parsed.id };
 };
+
+const getActiveWorkspaceId = () => getActiveWorkspace()?.id ?? null;
 
 /**
  * quantum-ui configuration for vritti-web-nexus (host app)
@@ -53,14 +59,23 @@ export default defineConfig({
     },
     onRequest: (config) => {
       // Exactly one context header per request: site- → x-site-id, sg- → x-sg-id, le- → x-le-id, org- → x-org-id
-      const segment = getWorkspaceSegment();
-      if (!segment) return;
+      const workspace = getActiveWorkspace();
+      if (workspace) config.headers[workspace.header] = workspace.id;
+    },
+  },
 
-      const match = WORKSPACE_HEADERS.find(({ prefix }) => segment.startsWith(prefix));
-      if (!match) return;
+  /**
+   * Server-Sent Events Configuration
+   */
+  sse: {
+    // The same single context value axios.onRequest sends as a header, moved to the query string
+    // because EventSource cannot set headers. The server authorizes it identically.
+    onRequest: (url) => {
+      const workspace = getActiveWorkspace();
+      if (!workspace) return url;
 
-      const parsed = parseSlug(segment.slice(match.prefix.length));
-      if (parsed?.id) config.headers[match.header] = parsed.id;
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}${workspace.param}=${encodeURIComponent(workspace.id)}`;
     },
   },
 

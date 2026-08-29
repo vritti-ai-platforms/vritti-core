@@ -199,18 +199,20 @@ const graphqlBaseOptions = {
           // and is resolved here, because verifying its signature needs a database
           // lookup the SDK cannot do. Both then share the workspace-context headers.
           onAuthenticated: async (requestService, auth) => {
-            const readHeader = (name: string): string | undefined => {
+            // Context arrives as a header on HTTP and as the equivalent query param on SSE, where
+            // EventSource cannot set headers. Both are client input and both are treated the same.
+            const readContext = (name: string, param: string): string | undefined => {
               const value = requestService.getHeader(name);
-              return Array.isArray(value) ? value[0] : value;
+              return (Array.isArray(value) ? value[0] : value) || requestService.getQueryParam(param);
             };
 
-            // Workspace context headers: SITE > SITE_GROUP > LE; none = ORG workspace
+            // Workspace context: SITE > SITE_GROUP > LE; none = ORG workspace
             const applyContextHeaders = () => {
-              const siteId = readHeader('x-site-id');
+              const siteId = readContext('x-site-id', 'siteId');
               if (siteId) auth.siteId = siteId;
-              const siteGroupId = readHeader('x-sg-id');
+              const siteGroupId = readContext('x-sg-id', 'sgId');
               if (siteGroupId) auth.siteGroupId = siteGroupId;
-              const legalEntityId = readHeader('x-le-id');
+              const legalEntityId = readContext('x-le-id', 'leId');
               if (legalEntityId) auth.legalEntityId = legalEntityId;
             };
 
@@ -230,8 +232,8 @@ const graphqlBaseOptions = {
               return;
             }
 
-            // x-org-id is a consistency check only — the org always derives from the session
-            const orgIdHeader = readHeader('x-org-id');
+            // The org claim is a consistency check only — the org always derives from the session
+            const orgIdHeader = readContext('x-org-id', 'orgId');
             if (orgIdHeader && orgIdHeader !== auth.organizationId) {
               throw new UnauthorizedException('Organization mismatch — header does not match this session');
             }

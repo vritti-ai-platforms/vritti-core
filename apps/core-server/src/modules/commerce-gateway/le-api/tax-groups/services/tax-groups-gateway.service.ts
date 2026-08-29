@@ -1,3 +1,7 @@
+import type { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
+import type { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
+import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
+import type { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type {
@@ -7,10 +11,6 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
-import type { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
-import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
-import type { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 
 @Injectable()
 export class TaxGroupsGatewayService {

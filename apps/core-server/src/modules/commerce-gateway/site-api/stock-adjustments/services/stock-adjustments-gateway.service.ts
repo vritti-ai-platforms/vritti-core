@@ -1,8 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { majorToMinor } from '@vritti/api-sdk/money';
-import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddChangeStockAdjustmentLineDto } from '@commerce/stock-adjustments/dto/request/add-change-stock-adjustment-line.dto';
 import type { AddOpeningStockAdjustmentLineDto } from '@commerce/stock-adjustments/dto/request/add-opening-stock-adjustment-line.dto';
 import type { AddStockAdjustmentLineItemDto } from '@commerce/stock-adjustments/dto/request/add-stock-adjustment-line-item.dto';
@@ -22,6 +17,11 @@ import type { StockAdjustmentLotResponseDto } from '@commerce/stock-adjustments/
 import type { StockAdjustmentResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-table-response.dto';
 import type { StockAdjustmentTreeNodeResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-tree-response.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { majorToMinor } from '@vritti/api-sdk/money';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
 export class StockAdjustmentsGatewayService {

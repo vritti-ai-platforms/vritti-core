@@ -1,7 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateCategoryDto } from '@commerce/categories/dto/request/create-category.dto';
 import type { ReorderCategoriesDto } from '@commerce/categories/dto/request/reorder-categories.dto';
 import type { UpdateCategoryDto } from '@commerce/categories/dto/request/update-category.dto';
@@ -11,6 +7,10 @@ import type { CategoryItemResponseDto } from '@commerce/categories/dto/response/
 import type { CategoryItemTableResponseDto } from '@commerce/categories/dto/response/category-item-table-response.dto';
 import type { CategoryResponseDto } from '@commerce/categories/dto/response/category-response.dto';
 import type { CategoryTreeResponseDto } from '@commerce/categories/dto/response/category-tree-response.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
 export class CategoriesGatewayService {

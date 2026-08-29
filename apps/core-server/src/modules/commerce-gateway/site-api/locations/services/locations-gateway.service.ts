@@ -1,7 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateLocationDto } from '@commerce/locations/dto/request/create-location.dto';
 import type { ReorderLocationsDto } from '@commerce/locations/dto/request/reorder-locations.dto';
 import type { UpdateLocationDto } from '@commerce/locations/dto/request/update-location.dto';
@@ -12,6 +8,10 @@ import type { LocationItemResponseDto } from '@commerce/locations/dto/response/l
 import type { LocationItemTableResponseDto } from '@commerce/locations/dto/response/location-item-table-response.dto';
 import type { LocationResponseDto } from '@commerce/locations/dto/response/location-response.dto';
 import type { LocationTreeResponseDto } from '@commerce/locations/dto/response/location-tree-response.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
 export class LocationsGatewayService {

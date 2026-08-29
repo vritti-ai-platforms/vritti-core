@@ -1,10 +1,8 @@
 {
+  "root": false,
   "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
   "files": {
-    "includes": [
-      "**",
-      "!src/db/migrations/**"
-    ]
+    "includes": ["**", "!src/db/migrations/**", "!src/*.gql"]
   },
   "assist": {
     "actions": {

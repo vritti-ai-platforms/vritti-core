@@ -1,7 +1,7 @@
+import { LocationRoleValues } from '@commerce/locations/constants/location-role.constants';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
 import { IsOptional, IsString, IsUUID, Matches } from 'class-validator';
-import { LocationRoleValues } from '@commerce/locations/constants/location-role.constants';
 
 const LOCATION_ROLE_VALUES = Object.values(LocationRoleValues);
 const LOCATION_ROLES_CSV_REGEX = new RegExp(

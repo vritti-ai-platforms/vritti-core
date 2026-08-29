@@ -1,10 +1,10 @@
-import { applyDecorators } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { CreatePosTerminalDto } from '@commerce/pos-terminals/dto/request/create-pos-terminal.dto';
 import { UpdatePosTerminalDto } from '@commerce/pos-terminals/dto/request/update-pos-terminal.dto';
 import { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-response.dto';
 import { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
+import { applyDecorators } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
 
 export function ApiTable() {
   return applyDecorators(

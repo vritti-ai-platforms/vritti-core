@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ServiceUnavailableException } from '@vritti/api-sdk/exceptions';
 import type { GiteaCredentials } from '@/db/schema';
-import { type GiteaCredentialsUpsert, GiteaCredentialsRepository } from './gitea-credentials.repository';
+import { GiteaCredentialsRepository, type GiteaCredentialsUpsert } from './gitea-credentials.repository';
 
 // Fixed Gitea user the pull token belongs to — core does not resolve it from Gitea anymore
 const PULL_USERNAME = 'gitea-core';

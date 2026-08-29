@@ -1,7 +1,7 @@
+import type { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import type { SelectQueryResult } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
 
 @Injectable()
 export class SupplierItemsGatewayService {
