@@ -6,10 +6,10 @@ export class SendWhatsappOtpResult {
   sent: boolean;
 
   @Field(() => GraphQLISODateTime)
-  expiresAt: string;
+  expiresAt: Date;
 
   @Field(() => GraphQLISODateTime)
-  resendAvailableAt: string;
+  resendAvailableAt: Date;
 }
 
 @ObjectType()

@@ -13,8 +13,8 @@ import { AppDomainService } from '@/modules/domain/app/services/app.service';
 
 export interface SendOtpResult {
   sent: boolean;
-  expiresAt: string;
-  resendAvailableAt: string;
+  expiresAt: Date;
+  resendAvailableAt: Date;
 }
 
 export interface VerifyOtpResult {
@@ -43,18 +43,31 @@ export class WhatsappOtpsGatewayService {
     }
 
     this.logger.log(`org.whatsappOtps.send — app: ${appId}`);
-    return this.nats.send('communications', 'org.whatsappOtps.send', {
-      appId,
-      accountId: config.accountId,
-      phoneNumberId: config.phoneNumberId,
-      templateName: config.templateName,
-      templateLanguage: config.templateLanguage,
-      recipient,
-      codeLength: config.codeLength,
-      expirySeconds: config.expirySeconds,
-      maxAttempts: config.maxAttempts,
-      resendCooldownSeconds: config.resendCooldownSeconds,
-    });
+    const result = await this.nats.send<{ sent: boolean; expiresAt: string; resendAvailableAt: string }>(
+      'communications',
+      'org.whatsappOtps.send',
+      {
+        appId,
+        accountId: config.accountId,
+        phoneNumberId: config.phoneNumberId,
+        templateName: config.templateName,
+        templateLanguage: config.templateLanguage,
+        recipient,
+        codeLength: config.codeLength,
+        expirySeconds: config.expirySeconds,
+        maxAttempts: config.maxAttempts,
+        resendCooldownSeconds: config.resendCooldownSeconds,
+      },
+    );
+
+    // The two timestamps cross NATS as ISO strings, and GraphQLISODateTime serializes anything that is not a
+    // Date instance to null. Both fields are non-nullable, so passing the strings straight through fails the
+    // whole mutation AFTER the code has already been sent — the caller sees an error for a message that went.
+    return {
+      sent: result.sent,
+      expiresAt: new Date(result.expiresAt),
+      resendAvailableAt: new Date(result.resendAvailableAt),
+    };
   }
 
   // Checks a code against the one live for this credential and number
