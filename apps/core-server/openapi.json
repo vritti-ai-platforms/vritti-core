@@ -4665,20 +4665,6 @@
         ]
       }
     },
-    "/app/workspaces": {
-      "get": {
-        "operationId": "StructureAppController_list",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Structure (App)"
-        ]
-      }
-    },
     "/catalog/internal": {
       "put": {
         "description": "Receives the signed version snapshot (catalog license) from cloud-server, verifies its Ed25519 signature and snapshot hash, stores it append-only, and activates it. Idempotent by snapshot hash. Requires Ed25519 signature headers (x-timestamp, x-signature).",

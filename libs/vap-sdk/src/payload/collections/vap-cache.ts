@@ -5,7 +5,7 @@ import type { CollectionConfig, Field } from 'payload' with { 'resolution-mode':
 import type { CollectionLike } from '../runtime';
 
 /** The table name Payload derives from the slug — hyphens become underscores. */
-export const VAP_CACHE_TABLE = 'vap_cache';
+export { VAP_CACHE_TABLE } from '../../server/cache/postgres';
 
 /**
  * Cached responses from VAP, one row per operation-and-scope.
@@ -48,7 +48,7 @@ export function vapCacheCollection(extraFields: Field[] = []): CollectionLike {
         admin: {
           readOnly: true,
           description:
-            'operation name, then a hash of the credential, party, workspace and variables. The operation leads so a whole operation can be invalidated by prefix.',
+            'operation name, then a hash of the credential, party and variables. The operation leads so a whole operation can be invalidated by prefix.',
         },
       },
       {

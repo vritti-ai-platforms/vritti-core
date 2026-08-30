@@ -410,20 +410,6 @@ type MobileTokens {
   expiresIn: Int!
 }
 
-type WorkspaceOption {
-  kind: String!
-  id: ID!
-  name: String!
-  code: String!
-  parentId: ID
-}
-
-type Workspaces {
-  legalEntities: [WorkspaceOption!]!
-  siteGroups: [WorkspaceOption!]!
-  sites: [WorkspaceOption!]!
-}
-
 type Query {
   inventoryItems(first: Int, after: String, filters: [FeedFilterInput!], search: FeedSearchInput, sort: [FeedSortInput!]): InventoryItemConnection!
   inventoryItem(id: ID!): InventoryItem!

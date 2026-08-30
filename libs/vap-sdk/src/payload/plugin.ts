@@ -2,12 +2,11 @@
 // resolution mode to read its `exports` map under. Safe precisely because it is type-only: nothing here
 // imports a runtime value from payload, so there is no CJS/ESM interop at all in the built output.
 import type { Field } from 'payload' with { 'resolution-mode': 'import' };
-import type { VapSdkOptions } from '../config';
-import { createVapSdk } from '../sdk';
-import { customerSessionsCollection } from './collections/customer-sessions';
+import type { VapSdkOptions } from '../core/config';
+import { createPostgresResponseCache } from '../server/cache/postgres';
+import { createVapSdk } from '../server/sdk';
 import { customersCollection } from './collections/customers';
 import { vapCacheCollection } from './collections/vap-cache';
-import { createPostgresResponseCache } from './response-cache-postgres';
 import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime';
 
 export interface VapOptions extends VapSdkOptions {
@@ -34,7 +33,6 @@ export interface VapOptions extends VapSdkOptions {
   /** Extra fields appended to the generated collections, for a storefront's own columns. */
   fields?: {
     customers?: Field[];
-    customerSessions?: Field[];
     vapCache?: Field[];
   };
 }
@@ -43,12 +41,19 @@ export interface VapOptions extends VapSdkOptions {
  * Everything a storefront needs to talk to VAP, as one Payload plugin.
  *
  * ```ts
- * plugins: [ vap() ]
+ * plugins: [
+ *   vap({
+ *     endpoint: process.env.CORE_GRAPHQL_URL,
+ *     clientId: process.env.VRITTI_APP_CLIENT_ID,
+ *     clientSecret: process.env.VRITTI_APP_CLIENT_SECRET,
+ *   }),
+ * ]
  * ```
  *
- * That one line generates the `customers` and `customer-sessions` collections and attaches the core
- * client. No credentials to pass: the SDK reads `CORE_GRAPHQL_URL`, `VRITTI_APP_CLIENT_ID` and
- * `VRITTI_APP_CLIENT_SECRET` itself, and anything passed here wins over the environment.
+ * That generates the `customers` collection and attaches the core client.
+ * The credentials are read by the host and passed in — the SDK touches no environment variable of
+ * its own, for the reasons in `resolveConfig`. Those three names are what cloud seals into a
+ * provisioned website's container, so on one of those the block above is the whole configuration.
  *
  * **Why a plugin and not a module the app imports.** Payload's `Plugin` is
  * `(config: Config) => Config`, and contributing collections is only possible from inside that
@@ -77,7 +82,6 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
       collections: [
         ...(config.collections ?? []),
         customersCollection(fields?.customers),
-        customerSessionsCollection(fields?.customerSessions),
         vapCacheCollection(fields?.vapCache),
       ],
       custom: {

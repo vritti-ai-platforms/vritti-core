@@ -1,5 +1,12 @@
-import { VapError } from '../../types';
+import { VapError } from '../../core/errors';
 
+/**
+ * The variable names a host conventionally reads these from — cloud seals exactly this set into a
+ * provisioned website's container when an OAuth app is picked for it.
+ *
+ * A name map, not a fallback: nothing here reads the environment. It is exported so a host adopting
+ * the convention does not retype four strings and let one of them drift.
+ */
 export const CLOUD_AUTH_ENV = {
   consentUrl: 'VRITTI_OAUTH_CONSENT_URL',
   apiUrl: 'VRITTI_OAUTH_API_URL',
@@ -16,7 +23,13 @@ export interface CloudAuthCredentials {
 
 export type CloudAuthCredentialOptions = Partial<CloudAuthCredentials>;
 
-// Fills in whatever the caller did not pass, from the environment.
+/**
+ * Checks the caller supplied what cloud login cannot work without.
+ *
+ * The host passes these in — the SDK reads no environment variable of its own, for the reasons in
+ * `../../config.ts`. Resolved per call rather than once at registration so the failure lands on the
+ * login attempt that needs them, not on the admin panel as a whole.
+ */
 export function resolveCloudAuthCredentials(options: CloudAuthCredentialOptions = {}): CloudAuthCredentials {
   const missing: string[] = [];
   const required = (value: string | undefined, name: string): string => {
@@ -27,25 +40,21 @@ export function resolveCloudAuthCredentials(options: CloudAuthCredentialOptions 
     return value;
   };
 
-  const consentUrl = required(options.consentUrl ?? readEnv(CLOUD_AUTH_ENV.consentUrl), CLOUD_AUTH_ENV.consentUrl);
-  const apiUrl = required(options.apiUrl ?? readEnv(CLOUD_AUTH_ENV.apiUrl), CLOUD_AUTH_ENV.apiUrl);
-  const clientId = required(options.clientId ?? readEnv(CLOUD_AUTH_ENV.clientId), CLOUD_AUTH_ENV.clientId);
-  const clientSecret = options.clientSecret ?? readEnv(CLOUD_AUTH_ENV.clientSecret);
+  const consentUrl = required(options.consentUrl, 'consentUrl');
+  const apiUrl = required(options.apiUrl, 'apiUrl');
+  const clientId = required(options.clientId, 'clientId');
 
   if (missing.length > 0) {
     throw new VapError(
-      `Vritti Cloud login is not configured — set ${missing.join(', ')}.`,
+      `Vritti Cloud login is not configured — pass ${missing.join(', ')}.`,
       'Not Configured',
       undefined,
     );
   }
 
-  return { consentUrl: trimSlash(consentUrl), apiUrl: trimSlash(apiUrl), clientId, clientSecret };
-}
-
-function readEnv(name: string): string | undefined {
-  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
-  return env?.[name]?.trim() || undefined;
+  // Optional on purpose: the consent step is public, so a site that only starts the flow needs no
+  // secret. The token exchange is what requires one, and fails there with core's own message.
+  return { consentUrl: trimSlash(consentUrl), apiUrl: trimSlash(apiUrl), clientId, clientSecret: options.clientSecret };
 }
 
 function trimSlash(url: string): string {

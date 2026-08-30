@@ -11,11 +11,11 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
  * `fragmentMasking` is off, matching commerce-ma — typed documents without the unmask ceremony.
  */
 const config: CodegenConfig = {
-  schema: '../../apps/core-server/src/schema.gql',
-  documents: ['src/**/*.ts', '!src/gql/**'],
+  schema: '../../apps/core-server/src/schema.app.gql',
+  documents: ['src/**/*.ts', '!src/core/gql/**'],
   ignoreNoDocuments: true,
   generates: {
-    'src/gql/': {
+    'src/core/gql/': {
       preset: 'client',
       presetConfig: { fragmentMasking: false },
       config: { scalars: { DateTime: 'string' } },

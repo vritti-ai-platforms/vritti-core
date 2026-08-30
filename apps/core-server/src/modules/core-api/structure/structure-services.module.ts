@@ -15,7 +15,7 @@ const services = [StructureService, LegalEntityService, SiteService, SiteGroupSe
  * Structure services, and nothing else.
  *
  * Same reason as `CommerceGatewayServicesModule`: both the internal surface (`StructureApiModule`,
- * which owns the controllers) and the external-app surface (`StructureAppApiModule`) need these,
+ * which owns the controllers) needs these,
  * and neither may import the other without dragging its resolvers into the other's schema.
  */
 @Module({

@@ -36,7 +36,6 @@ import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
 import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
 import { StructureApiModule } from './modules/core-api/structure/structure.module';
-import { StructureAppApiModule } from './modules/core-api/structure/structure-app-api.module';
 import { UserApiModule } from './modules/core-api/user/user.module';
 import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
 import { AppDomainModule } from './modules/domain/app/app.module';
@@ -116,7 +115,7 @@ const graphqlBaseOptions = {
      * BOTH need an explicit `include` — omitting it means "scan every module", which would put
      * the storefront resolvers back into the internal schema. `include` also follows imports
      * transitively, so each listed module's closure must be free of the other surface's
-     * resolvers. That is the whole reason CommerceAppGatewayModule / StructureAppApiModule exist.
+     * resolvers. That is the whole reason the *AppGatewayModule surface modules exist.
      */
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       // `driver` belongs on this object, NOT in useFactory — assertDriver() reads the outer
@@ -124,7 +123,7 @@ const graphqlBaseOptions = {
       driver: ApolloDriver,
       useFactory: () => ({
         ...graphqlBaseOptions,
-        include: [CommerceAppGatewayModule, StructureAppApiModule, CommunicationsAppGatewayModule],
+        include: [CommerceAppGatewayModule, CommunicationsAppGatewayModule],
         autoSchemaFile: join(process.cwd(), 'src/schema.app.gql'),
         path: '/graphql',
         // Public product surface: integrators codegen against it rather than reverse-engineering
@@ -334,8 +333,7 @@ const graphqlBaseOptions = {
     UserApiModule,
     OrganizationApiModule,
     StructureApiModule,
-    StructureAppApiModule,
-    CommerceAppGatewayModule,
+        CommerceAppGatewayModule,
     CommunicationsAppGatewayModule,
     CatalogApiModule,
     UserPermissionsApiModule,

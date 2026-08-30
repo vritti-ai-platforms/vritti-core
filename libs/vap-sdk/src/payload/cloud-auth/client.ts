@@ -1,4 +1,4 @@
-import { VapError } from '../../types';
+import { VapError } from '../../core/errors';
 import type { CloudAuthCredentials } from './config';
 
 export interface CloudUserInfo {

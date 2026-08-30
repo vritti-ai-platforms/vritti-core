@@ -265,23 +265,8 @@ type VerifyWhatsappOtpResult {
   verified: Boolean!
 }
 
-type WorkspaceOption {
-  kind: String!
-  id: ID!
-  name: String!
-  code: String!
-  parentId: ID
-}
-
-type Workspaces {
-  legalEntities: [WorkspaceOption!]!
-  siteGroups: [WorkspaceOption!]!
-  sites: [WorkspaceOption!]!
-}
-
 type Query {
-  peopleByCommunication(input: FindPeopleByCommunicationInput!): [ID!]!
-  workspaces: Workspaces!
+  peopleByCommunication(input: FindPeopleByCommunicationInput!): [Person!]!
 }
 
 input FindPeopleByCommunicationInput {

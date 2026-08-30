@@ -57,9 +57,9 @@ export class PeopleAppController {
    */
   @Get('by-communication')
   @RequirePermission(ORG_PEOPLE.communications.view)
-  findByCommunication(@Query() query: FindPeopleByCommunicationQueryDto): Promise<string[]> {
+  findByCommunication(@Query() query: FindPeopleByCommunicationQueryDto): Promise<PersonResponseDto[]> {
     this.logger.log('GET /commerce-api/app/people/by-communication');
-    return this.service.findPartiesByCommunication(query.channel, query.value);
+    return this.service.findPeopleByCommunication(query.channel, query.value);
   }
 
   /** Creates the person plus their primary EMAIL and PHONE rows, in one transaction. */

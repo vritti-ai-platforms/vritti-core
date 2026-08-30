@@ -13,7 +13,6 @@ const MODULES_DIR = join(__dirname);
 
 const APP_SURFACE_MODULES = [
   'commerce-app-gateway.module.ts',
-  'structure-app-api.module.ts',
   'communications-app-gateway.module.ts',
 ];
 

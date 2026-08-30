@@ -82,6 +82,24 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.communications.findByValue', { channel, value });
   }
 
+  /**
+   * The same lookup, resolved to whole people.
+   *
+   * Composed here rather than in commerce-service because the lookup lives on the communications
+   * domain and the record on the parties domain, and a domain module may not reach across to
+   * another. This gateway is the layer allowed to join them.
+   *
+   * One extra round-trip per match, which in practice is one: a number belonging to several people
+   * is the exception the list exists for, not the common case.
+   */
+  async findPeopleByCommunication(
+    channel: PartyCommunicationChannelValue,
+    value: string,
+  ): Promise<PersonResponseDto[]> {
+    const ids = await this.findPartiesByCommunication(channel, value);
+    return Promise.all(ids.map((id) => this.findById(id)));
+  }
+
   // Creates a new person
   create(dto: CreatePersonDto): Promise<CreateResponseDto<PersonResponseDto>> {
     this.logger.log(`org.people.create — firstName: ${dto.firstName}`);

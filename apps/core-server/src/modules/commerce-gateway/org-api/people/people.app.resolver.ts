@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { AppTypeValues } from '@/db/schema';
@@ -49,12 +49,16 @@ export class PeopleAppResolver {
    *
    * Returns a list because one address legitimately sits on several people — the
    * table's unique is per party. Choosing between them is the caller's policy.
+   *
+   * Whole records rather than ids: a caller resolving somebody they have just authenticated needs
+   * their name to greet them, and a second round-trip for it would be the common case rather than
+   * the exception.
    */
-  @Query(() => [ID], { name: 'peopleByCommunication' })
+  @Query(() => [Person], { name: 'peopleByCommunication' })
   @RequirePermission(ORG_PEOPLE.communications.view)
-  async peopleByCommunication(@Args('input') input: FindPeopleByCommunicationInput): Promise<string[]> {
+  async peopleByCommunication(@Args('input') input: FindPeopleByCommunicationInput): Promise<Person[]> {
     this.logger.log('QUERY peopleByCommunication');
-    return this.peopleGatewayService.findPartiesByCommunication(input.channel, input.value);
+    return this.peopleGatewayService.findPeopleByCommunication(input.channel, input.value);
   }
 
   /** Creates the person plus their primary EMAIL and PHONE rows, in one transaction. */

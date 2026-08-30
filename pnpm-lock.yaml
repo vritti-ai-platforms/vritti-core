@@ -344,16 +344,16 @@ importers:
         version: 1.2.1(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)(keycharm@0.4.0)(typescript@6.0.3)(vis-data@8.0.3(uuid@11.1.0)(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1)))(vis-util@6.0.0(@egjs/hammerjs@2.0.17)(component-emitter@1.3.1))
       '@nestjs/cli':
         specifier: ^11.0.0
-        version: 11.0.16(@swc/cli@0.7.10(@swc/core@1.15.18(@swc/helpers@0.5.21))(chokidar@4.0.3))(@swc/core@1.15.18(@swc/helpers@0.5.21))(@types/node@22.19.15)
+        version: 11.0.16(@swc/cli@0.7.10(@swc/core@1.15.18(@swc/helpers@0.5.21))(chokidar@5.0.0))(@swc/core@1.15.18(@swc/helpers@0.5.21))(@types/node@22.19.15)
       '@nestjs/schematics':
         specifier: ^11.0.0
-        version: 11.0.9(chokidar@4.0.3)(typescript@6.0.3)
+        version: 11.0.9(chokidar@5.0.0)(typescript@6.0.3)
       '@nestjs/testing':
         specifier: ^11.0.1
         version: 11.1.16(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(@nestjs/microservices@11.1.17)
       '@swc/cli':
         specifier: ^0.7.8
-        version: 0.7.10(@swc/core@1.15.18(@swc/helpers@0.5.21))(chokidar@4.0.3)
+        version: 0.7.10(@swc/core@1.15.18(@swc/helpers@0.5.21))(chokidar@5.0.0)
       '@swc/core':
         specifier: ^1.13.5
         version: 1.15.18(@swc/helpers@0.5.21)
@@ -1087,8 +1087,11 @@ importers:
       graphql:
         specifier: ^16.14.2
         version: 16.14.2
+      libphonenumber-js:
+        specifier: ^1.13.12
+        version: 1.13.12
       pg:
-        specifier: ^8.13.1
+        specifier: ^8
         version: 8.20.0
       react:
         specifier: ^19
@@ -10633,9 +10636,6 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  libphonenumber-js@1.12.39:
-    resolution: {integrity: sha512-MW79m7HuOqBk8mwytiXYTMELJiBbV3Zl9Y39dCCn1yC8K+WGNSq1QGvzywbylp5vGShEztMScCWHX/XFOS0rXg==}
-
   libphonenumber-js@1.13.12:
     resolution: {integrity: sha512-uLVeV1c9OTk6qkdqnj+mpMD+ZdnZ0szVyWu58HwMmpwkHA1gCEkyjd3veZQXDnuw9KEwSRjcc9B1pS9XKIN1fA==}
 
@@ -13800,6 +13800,17 @@ snapshots:
     optionalDependencies:
       chokidar: 4.0.3
 
+  '@angular-devkit/core@19.2.17(chokidar@5.0.0)':
+    dependencies:
+      ajv: 8.17.1
+      ajv-formats: 3.0.1(ajv@8.17.1)
+      jsonc-parser: 3.3.1
+      picomatch: 4.0.2
+      rxjs: 7.8.1
+      source-map: 0.7.4
+    optionalDependencies:
+      chokidar: 5.0.0
+
   '@angular-devkit/core@19.2.19(chokidar@4.0.3)':
     dependencies:
       ajv: 8.17.1
@@ -13849,6 +13860,16 @@ snapshots:
   '@angular-devkit/schematics@19.2.17(chokidar@4.0.3)':
     dependencies:
       '@angular-devkit/core': 19.2.17(chokidar@4.0.3)
+      jsonc-parser: 3.3.1
+      magic-string: 0.30.17
+      ora: 5.4.1
+      rxjs: 7.8.1
+    transitivePeerDependencies:
+      - chokidar
+
+  '@angular-devkit/schematics@19.2.17(chokidar@5.0.0)':
+    dependencies:
+      '@angular-devkit/core': 19.2.17(chokidar@5.0.0)
       jsonc-parser: 3.3.1
       magic-string: 0.30.17
       ora: 5.4.1
@@ -19368,6 +19389,35 @@ snapshots:
       - uglify-js
       - webpack-cli
 
+  '@nestjs/cli@11.0.16(@swc/cli@0.7.10(@swc/core@1.15.18(@swc/helpers@0.5.21))(chokidar@5.0.0))(@swc/core@1.15.18(@swc/helpers@0.5.21))(@types/node@22.19.15)':
+    dependencies:
+      '@angular-devkit/core': 19.2.19(chokidar@4.0.3)
+      '@angular-devkit/schematics': 19.2.19(chokidar@4.0.3)
+      '@angular-devkit/schematics-cli': 19.2.19(@types/node@22.19.15)(chokidar@4.0.3)
+      '@inquirer/prompts': 7.10.1(@types/node@22.19.15)
+      '@nestjs/schematics': 11.0.9(chokidar@4.0.3)(typescript@5.9.3)
+      ansis: 4.2.0
+      chokidar: 4.0.3
+      cli-table3: 0.6.5
+      commander: 4.1.1
+      fork-ts-checker-webpack-plugin: 9.1.0(typescript@5.9.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
+      glob: 13.0.0
+      node-emoji: 1.11.0
+      ora: 5.4.1
+      tsconfig-paths: 4.2.0
+      tsconfig-paths-webpack-plugin: 4.2.0
+      typescript: 5.9.3
+      webpack: 5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21))
+      webpack-node-externals: 3.0.0
+    optionalDependencies:
+      '@swc/cli': 0.7.10(@swc/core@1.15.18(@swc/helpers@0.5.21))(chokidar@5.0.0)
+      '@swc/core': 1.15.18(@swc/helpers@0.5.21)
+    transitivePeerDependencies:
+      - '@types/node'
+      - esbuild
+      - uglify-js
+      - webpack-cli
+
   '@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
     dependencies:
       file-type: 21.3.0
@@ -19511,6 +19561,17 @@ snapshots:
     dependencies:
       '@angular-devkit/core': 19.2.17(chokidar@4.0.3)
       '@angular-devkit/schematics': 19.2.17(chokidar@4.0.3)
+      comment-json: 4.4.1
+      jsonc-parser: 3.3.1
+      pluralize: 8.0.0
+      typescript: 6.0.3
+    transitivePeerDependencies:
+      - chokidar
+
+  '@nestjs/schematics@11.0.9(chokidar@5.0.0)(typescript@6.0.3)':
+    dependencies:
+      '@angular-devkit/core': 19.2.17(chokidar@5.0.0)
+      '@angular-devkit/schematics': 19.2.17(chokidar@5.0.0)
       comment-json: 4.4.1
       jsonc-parser: 3.3.1
       pluralize: 8.0.0
@@ -22001,6 +22062,26 @@ snapshots:
       - react-native-b4a
       - supports-color
 
+  '@swc/cli@0.7.10(@swc/core@1.15.18(@swc/helpers@0.5.21))(chokidar@5.0.0)':
+    dependencies:
+      '@swc/core': 1.15.18(@swc/helpers@0.5.21)
+      '@swc/counter': 0.1.3
+      '@xhmikosr/bin-wrapper': 13.2.0
+      commander: 8.3.0
+      minimatch: 9.0.9
+      piscina: 4.9.2
+      semver: 7.7.4
+      slash: 3.0.0
+      source-map: 0.7.6
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      chokidar: 5.0.0
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
   '@swc/core-darwin-arm64@1.15.18':
     optional: true
 
@@ -24086,7 +24167,7 @@ snapshots:
   class-validator@0.14.4:
     dependencies:
       '@types/validator': 13.15.10
-      libphonenumber-js: 1.12.39
+      libphonenumber-js: 1.13.12
       validator: 13.15.26
 
   class-variance-authority@0.7.1:
@@ -26702,8 +26783,6 @@ snapshots:
   lib0@0.2.117:
     dependencies:
       isomorphic.js: 0.2.5
-
-  libphonenumber-js@1.12.39: {}
 
   libphonenumber-js@1.13.12: {}
 
