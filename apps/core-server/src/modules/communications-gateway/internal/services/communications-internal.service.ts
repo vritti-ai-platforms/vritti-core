@@ -1,7 +1,15 @@
+import type { CreateSmsProviderDto } from '@communications/sms-providers/dto/request/create-sms-provider.dto';
+import type { UpdateSmsProviderDto } from '@communications/sms-providers/dto/request/update-sms-provider.dto';
+import type { SmsProviderResponseDto } from '@communications/sms-providers/dto/response/sms-provider-response.dto';
 import type { WhatsappPhoneNumberResponseDto } from '@communications/whatsapp-account-phone-numbers/dto/response/whatsapp-phone-number-response.dto';
 import type { WhatsappTemplateResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AppOtpConfig } from '@/db/schema';
@@ -160,5 +168,27 @@ export class CommunicationsInternalService {
         detail: 'Pick an approved AUTHENTICATION template — only those can carry a sign-in code.',
       });
     }
+  }
+  // ---- Platform SMS providers — the calls carry no org headers, so the microservice's RLS
+  // policy scopes them to the NULL-org rows and they can never touch a client's provider ----
+
+  listPlatformSmsProviders(): Promise<SmsProviderResponseDto[]> {
+    this.logger.log('internal.smsProviders.list');
+    return this.nats.send('communications', 'internal.smsProviders.list', {});
+  }
+
+  createPlatformSmsProvider(dto: CreateSmsProviderDto): Promise<CreateResponseDto<SmsProviderResponseDto>> {
+    this.logger.log(`internal.smsProviders.create — provider: ${dto.provider}`);
+    return this.nats.send('communications', 'internal.smsProviders.create', dto);
+  }
+
+  updatePlatformSmsProvider(id: string, dto: UpdateSmsProviderDto): Promise<SuccessResponseDto> {
+    this.logger.log(`internal.smsProviders.update — id: ${id}`);
+    return this.nats.send('communications', 'internal.smsProviders.update', { id, ...dto });
+  }
+
+  deletePlatformSmsProvider(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`internal.smsProviders.delete — id: ${id}`);
+    return this.nats.send('communications', 'internal.smsProviders.delete', { id });
   }
 }

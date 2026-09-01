@@ -96,3 +96,36 @@ export function ApiTestOtpConfig() {
     ApiResponse({ status: 400, description: 'No configuration stored for this app.' }),
   );
 }
+
+export function ApiPlatformSmsProviders() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List platform SMS providers',
+      description: 'Vritti-owned senders every organization can use.',
+    }),
+    ApiResponse({ status: 200, description: 'Platform providers retrieved.' }),
+  );
+}
+
+export function ApiCreatePlatformSmsProvider() {
+  return applyDecorators(
+    ApiOperation({ summary: 'Create a platform SMS provider' }),
+    ApiResponse({ status: 201, description: 'Platform provider created.' }),
+  );
+}
+
+export function ApiUpdatePlatformSmsProvider() {
+  return applyDecorators(
+    ApiOperation({ summary: 'Update a platform SMS provider' }),
+    ApiParam({ name: 'id', description: 'SMS provider ID' }),
+    ApiResponse({ status: 200, description: 'Platform provider updated.' }),
+  );
+}
+
+export function ApiDeletePlatformSmsProvider() {
+  return applyDecorators(
+    ApiOperation({ summary: 'Delete a platform SMS provider' }),
+    ApiParam({ name: 'id', description: 'SMS provider ID' }),
+    ApiResponse({ status: 200, description: 'Platform provider deleted.' }),
+  );
+}

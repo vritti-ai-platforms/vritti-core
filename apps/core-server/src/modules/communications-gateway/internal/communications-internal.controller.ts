@@ -1,18 +1,37 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Put } from '@nestjs/common';
+import { CreateSmsProviderDto } from '@communications/sms-providers/dto/request/create-sms-provider.dto';
+import { UpdateSmsProviderDto } from '@communications/sms-providers/dto/request/update-sms-provider.dto';
+import type { SmsProviderResponseDto } from '@communications/sms-providers/dto/response/sms-provider-response.dto';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { AppOtpConfig } from '@/db/schema';
 import { OrgId } from '@/security/decorators';
 import type { SendOtpResult } from '../org-api/whatsapp-otps/services/whatsapp-otps-gateway.service';
 import {
   ApiClearOtpConfig,
+  ApiCreatePlatformSmsProvider,
+  ApiDeletePlatformSmsProvider,
   ApiGetOtpConfig,
   ApiListOtpAccounts,
   ApiListOtpPhoneNumbers,
   ApiListOtpTemplates,
+  ApiPlatformSmsProviders,
   ApiSetOtpConfig,
   ApiTestOtpConfig,
+  ApiUpdatePlatformSmsProvider,
 } from './docs/communications-internal.docs';
 import { SetOtpConfigDto } from './dto/request/set-otp-config.dto';
 import { TestOtpConfigDto } from './dto/request/test-otp-config.dto';
@@ -110,5 +129,46 @@ export class CommunicationsInternalController {
     this.logger.log(`DELETE /communications/internal/otp-config/${appId}`);
     await this.service.clearConfig(appId, organizationId);
     return { success: true, message: 'WhatsApp sign-in codes turned off for this app.' };
+  }
+
+  // ---- Platform SMS providers — Vritti-owned rows every org can use, managed only from cloud.
+  // These deliberately carry no org context: the NATS calls run without RLS headers, so the table
+  // policy scopes them to the NULL-org rows and they can never touch a client's provider. ----
+
+  @Get('sms-providers')
+  @Require(AuthType.Cloud)
+  @ApiPlatformSmsProviders()
+  listSmsProviders(): Promise<SmsProviderResponseDto[]> {
+    this.logger.log('GET /communications/internal/sms-providers');
+    return this.service.listPlatformSmsProviders();
+  }
+
+  @Post('sms-providers')
+  @HttpCode(HttpStatus.CREATED)
+  @Require(AuthType.Cloud)
+  @ApiCreatePlatformSmsProvider()
+  createSmsProvider(@Body() dto: CreateSmsProviderDto): Promise<CreateResponseDto<SmsProviderResponseDto>> {
+    this.logger.log('POST /communications/internal/sms-providers');
+    return this.service.createPlatformSmsProvider(dto);
+  }
+
+  @Put('sms-providers/:id')
+  @HttpCode(HttpStatus.OK)
+  @Require(AuthType.Cloud)
+  @ApiUpdatePlatformSmsProvider()
+  updateSmsProvider(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateSmsProviderDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /communications/internal/sms-providers/${id}`);
+    return this.service.updatePlatformSmsProvider(id, dto);
+  }
+
+  @Delete('sms-providers/:id')
+  @Require(AuthType.Cloud)
+  @ApiDeletePlatformSmsProvider()
+  deleteSmsProvider(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /communications/internal/sms-providers/${id}`);
+    return this.service.deletePlatformSmsProvider(id);
   }
 }

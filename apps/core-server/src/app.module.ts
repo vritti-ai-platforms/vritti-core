@@ -288,8 +288,23 @@ const graphqlBaseOptions = {
         services: [{ name: 'commerce' }, { name: 'communications' }],
         contextResolver: async (request) => {
           const auth = request.auth;
-          // Without an organization there is nothing to scope by, and the receiving service
-          // would run with app.org_id unset — matching no rows rather than failing. Refuse here.
+          // A cloud-signed call without an organization IS the platform scope: the send goes out
+          // with no RLS headers, the receiving service sets no GUCs, and its policies resolve only
+          // the NULL-org (platform-owned) rows — e.g. platform SMS providers. Empty values are
+          // omitted from the headers, so this context serializes to none at all.
+          if (auth?.kind === 'cloud' && !auth.organizationId) {
+            return {
+              orgId: '',
+              userId: '',
+              siteId: '',
+              legalEntityId: '',
+              siteGroupId: '',
+              siteTimezone: '',
+              siteCurrencyCode: '',
+            };
+          }
+          // For every other caller an organization is mandatory — without one the receiving
+          // service would run with app.org_id unset, matching no rows rather than failing.
           if (!auth?.organizationId) return null;
 
           const orgId = auth.organizationId;
@@ -333,7 +348,7 @@ const graphqlBaseOptions = {
     UserApiModule,
     OrganizationApiModule,
     StructureApiModule,
-        CommerceAppGatewayModule,
+    CommerceAppGatewayModule,
     CommunicationsAppGatewayModule,
     CatalogApiModule,
     UserPermissionsApiModule,

@@ -3,10 +3,11 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import { ORG_SMS_PROVIDERS } from '@vritti/communications-permissions/sms-providers';
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { ApiWhatsappAccountsSelect } from './docs/select-api.docs';
+import { ApiSmsProvidersSelect, ApiWhatsappAccountsSelect } from './docs/select-api.docs';
 
 @ApiTags('Communications - Select')
 @ApiBearerAuth()
@@ -28,5 +29,15 @@ export class SelectApiController {
   selectWhatsappAccounts(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`GET /communications-api/select-api/whatsapp-accounts (search=${query.search ?? 'none'})`);
     return this.nats.send<SelectQueryResult>('communications', 'select.whatsappAccounts', query);
+  }
+
+  // Returns paginated SMS provider options (the org's own plus platform rows) for select dropdowns
+  @Get('sms-providers')
+  @RequireFeature(ORG_SMS_PROVIDERS.featureCode)
+  @RequirePermission(ORG_SMS_PROVIDERS.view)
+  @ApiSmsProvidersSelect()
+  selectSmsProviders(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(`GET /communications-api/select-api/sms-providers (search=${query.search ?? 'none'})`);
+    return this.nats.send<SelectQueryResult>('communications', 'select.smsProviders', query);
   }
 }

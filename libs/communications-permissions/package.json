@@ -9,6 +9,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./sms-providers": {
+      "types": "./dist/sms-providers.d.ts",
+      "default": "./dist/sms-providers.js"
+    },
     "./whatsapp-accounts": {
       "types": "./dist/whatsapp-accounts.d.ts",
       "default": "./dist/whatsapp-accounts.js"
