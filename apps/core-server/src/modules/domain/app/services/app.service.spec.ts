@@ -9,8 +9,7 @@ import { AppDomainService } from './app.service';
  * The regression that motivates this file: the keep-condition once named only the web and
  * mobile buckets, so an API-only grant — the only shape the credential permission editor
  * actually sends — was silently discarded on save and the credential resolved to nothing.
- * The legacy `app` bucket is deliberately dropped on WRITE (the editor sends per-surface
- * buckets now); stored legacy grants are honoured at read time instead.
+ * Anything outside the four known buckets is dropped on write.
  */
 describe('AppDomainService — setPermissions grant sanitizing', () => {
   const update = jest.fn();
@@ -32,8 +31,8 @@ describe('AppDomainService — setPermissions grant sanitizing', () => {
     expect(stored()).toEqual({ people: { http: ['view'] } });
   });
 
-  it('drops the legacy app bucket on write — new saves carry per-surface buckets', async () => {
-    // Pre-split shape — inexpressible in the public types on purpose, hence the cast
+  it('drops an unknown bucket on write — only the four known surfaces are stored', async () => {
+    // Inexpressible in the public types on purpose, hence the cast
     await service.setPermissions('a1', { people: { app: ['view'], graphql: ['view'] } } as never);
     expect(stored()).toEqual({ people: { graphql: ['view'] } });
   });

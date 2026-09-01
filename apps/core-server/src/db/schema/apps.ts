@@ -65,9 +65,8 @@ export const apps = coreSchema.table(
      *
      * Only the credential's own surface bucket is meaningful: resolution reads the bucket of
      * this row's `type` (GRAPHQL → `graphql`, HTTP → `http`), so a `web`/`mobile` array — or a
-     * grant on the sibling surface — is inert. A legacy `app` bucket from before the split is
-     * still honoured at read time as "either surface". Per-surface buckets are also what let a
-     * plan entitle GraphQL and HTTP access independently.
+     * grant on the sibling surface — is inert. Per-surface buckets are also what let a plan
+     * entitle GraphQL and HTTP access independently.
      *
      * Empty by default, which denies everything: a new credential authenticates but
      * can do nothing until it is granted something.
