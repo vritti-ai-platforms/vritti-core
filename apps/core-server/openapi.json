@@ -22309,6 +22309,102 @@
         ]
       }
     },
+    "/communications-api/sms-otps/table": {
+      "get": {
+        "description": "Issued codes with derived status — codes themselves are never stored or returned.",
+        "operationId": "SmsOtpsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Codes retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmsOtpTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the SMS sign-in codes table",
+        "tags": [
+          "Communications - SMS OTPs"
+        ]
+      }
+    },
+    "/communications-api/sms-otps/stats": {
+      "get": {
+        "description": "Last-30-day aggregates behind the Overview tab: tiles, daily series, per-app breakdown.",
+        "operationId": "SmsOtpsGatewayController_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmsOtpStatsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get SMS OTP statistics",
+        "tags": [
+          "Communications - SMS OTPs"
+        ]
+      }
+    },
+    "/communications-api/sms-otps/configured-apps": {
+      "get": {
+        "description": "Read from the app rows, so it reflects configuration rather than traffic.",
+        "operationId": "SmsOtpsGatewayController_getConfiguredApps",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Apps retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConfiguredSmsOtpAppResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List apps configured for SMS sign-in codes",
+        "tags": [
+          "Communications - SMS OTPs"
+        ]
+      }
+    },
     "/communications-api/sms-providers/table": {
       "get": {
         "description": "The organization's own provider accounts plus the Vritti-managed platform rows.",
@@ -24011,10 +24107,10 @@
         ]
       }
     },
-    "/communications/internal/otp-config/{appId}": {
+    "/communications/internal/whatsapp-otp-config/{appId}": {
       "get": {
         "description": "Returns the stored configuration, or null when the app has never been set up to send codes.",
-        "operationId": "CommunicationsInternalController_getConfig",
+        "operationId": "CommunicationsInternalController_getWhatsappOtpConfig",
         "parameters": [
           {
             "name": "appId",
@@ -24041,7 +24137,7 @@
       },
       "put": {
         "description": "Validates the account, sender, and template against Meta before storing, so a broken configuration fails here rather than at send time.",
-        "operationId": "CommunicationsInternalController_setConfig",
+        "operationId": "CommunicationsInternalController_setWhatsappOtpConfig",
         "parameters": [
           {
             "name": "appId",
@@ -24058,7 +24154,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetOtpConfigDto"
+                "$ref": "#/components/schemas/SetWhatsappOtpConfigDto"
               }
             }
           }
@@ -24081,7 +24177,7 @@
       },
       "delete": {
         "description": "Clears the stored configuration. Codes already in flight remain verifiable until they expire.",
-        "operationId": "CommunicationsInternalController_clearConfig",
+        "operationId": "CommunicationsInternalController_clearWhatsappOtpConfig",
         "parameters": [
           {
             "name": "appId",
@@ -24114,10 +24210,10 @@
         ]
       }
     },
-    "/communications/internal/otp-config/{appId}/test": {
+    "/communications/internal/whatsapp-otp-config/{appId}/test": {
       "post": {
         "description": "Issues a real, billable code to the given number using the app's stored configuration, exercising the same path a storefront uses.",
-        "operationId": "CommunicationsInternalController_testConfig",
+        "operationId": "CommunicationsInternalController_testWhatsappOtpConfig",
         "parameters": [
           {
             "name": "appId",
@@ -24134,7 +24230,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestOtpConfigDto"
+                "$ref": "#/components/schemas/TestWhatsappOtpConfigDto"
               }
             }
           }
@@ -24245,6 +24341,146 @@
           }
         },
         "summary": "Delete a platform SMS provider",
+        "tags": [
+          "Communications - Internal"
+        ]
+      }
+    },
+    "/communications/internal/sms-provider-options": {
+      "get": {
+        "description": "Active providers only — the organization's own plus Vritti's platform rows.",
+        "operationId": "CommunicationsInternalController_listSmsProviderOptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Provider options retrieved."
+          }
+        },
+        "summary": "List SMS providers an OTP config may use",
+        "tags": [
+          "Communications - Internal"
+        ]
+      }
+    },
+    "/communications/internal/sms-otp-config/{appId}": {
+      "get": {
+        "operationId": "CommunicationsInternalController_getSmsOtpConfig",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App credential ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved; null when none is stored."
+          }
+        },
+        "summary": "Get an app's SMS OTP configuration",
+        "tags": [
+          "Communications - Internal"
+        ]
+      },
+      "put": {
+        "description": "Validates the provider exists and is active before storing.",
+        "operationId": "CommunicationsInternalController_setSmsOtpConfig",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App credential ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSmsOtpConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration stored."
+          },
+          "400": {
+            "description": "Provider missing or inactive."
+          }
+        },
+        "summary": "Store an app's SMS OTP configuration",
+        "tags": [
+          "Communications - Internal"
+        ]
+      },
+      "delete": {
+        "operationId": "CommunicationsInternalController_clearSmsOtpConfig",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App credential ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration cleared."
+          }
+        },
+        "summary": "Turn SMS sign-in codes off for an app",
+        "tags": [
+          "Communications - Internal"
+        ]
+      }
+    },
+    "/communications/internal/sms-otp-config/{appId}/test": {
+      "post": {
+        "description": "Issues a real code to the given number using the app's stored configuration.",
+        "operationId": "CommunicationsInternalController_testSmsOtpConfig",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App credential ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestSmsOtpConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Send attempted; `sent` reports the outcome."
+          },
+          "400": {
+            "description": "No configuration stored for this app."
+          }
+        },
+        "summary": "Send a test SMS sign-in code",
         "tags": [
           "Communications - Internal"
         ]
@@ -34545,6 +34781,256 @@
           }
         }
       },
+      "SmsOtpResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "OTP record ID"
+          },
+          "appId": {
+            "type": "string",
+            "description": "App credential the code was issued for"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "SMS provider row the code was sent through"
+          },
+          "provider": {
+            "type": "string",
+            "description": "Provider code, captured at send time"
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient phone number in E.164"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SENT",
+              "DELIVERED",
+              "VERIFIED",
+              "FAILED"
+            ],
+            "description": "Derived from delivery, verification, and expiry"
+          },
+          "attempts": {
+            "type": "number",
+            "description": "Verification attempts made against this code"
+          },
+          "isVerified": {
+            "type": "boolean",
+            "description": "Whether the code was successfully verified"
+          },
+          "messageId": {
+            "type": "object",
+            "description": "The vendor's message ID; null for the console transport or a failed send"
+          },
+          "error": {
+            "type": "object",
+            "description": "Why the send or delivery failed"
+          },
+          "deliveryStatus": {
+            "type": "object",
+            "description": "The vendor's raw delivery status"
+          },
+          "deliveredAt": {
+            "type": "object",
+            "description": "When the vendor confirmed delivery"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "When the code stops being accepted"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the code was issued"
+          },
+          "verifiedAt": {
+            "type": "object",
+            "description": "When the code was verified"
+          }
+        },
+        "required": [
+          "id",
+          "appId",
+          "providerId",
+          "provider",
+          "recipient",
+          "status",
+          "attempts",
+          "isVerified",
+          "expiresAt",
+          "createdAt"
+        ]
+      },
+      "SmsOtpTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SmsOtpResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "SmsOtpDailyPointResponseDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-09-01"
+          },
+          "sent": {
+            "type": "number"
+          },
+          "delivered": {
+            "type": "number"
+          },
+          "verified": {
+            "type": "number"
+          },
+          "failed": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "sent",
+          "delivered",
+          "verified",
+          "failed"
+        ]
+      },
+      "SmsOtpAppBreakdownResponseDto": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "description": "App credential ID"
+          },
+          "sent": {
+            "type": "number"
+          },
+          "verified": {
+            "type": "number"
+          },
+          "failed": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "appId",
+          "sent",
+          "verified",
+          "failed"
+        ]
+      },
+      "SmsOtpStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "description": "Codes issued in the window"
+          },
+          "sent": {
+            "type": "number",
+            "description": "Sent but not yet delivered, verified, or failed"
+          },
+          "delivered": {
+            "type": "number",
+            "description": "Delivered but not verified"
+          },
+          "verified": {
+            "type": "number",
+            "description": "Successfully verified"
+          },
+          "failed": {
+            "type": "number",
+            "description": "Failed to send or deliver"
+          },
+          "verificationRate": {
+            "type": "number",
+            "description": "verified / total, as a whole percentage"
+          },
+          "byDay": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SmsOtpDailyPointResponseDto"
+            }
+          },
+          "byApp": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SmsOtpAppBreakdownResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "sent",
+          "delivered",
+          "verified",
+          "failed",
+          "verificationRate",
+          "byDay",
+          "byApp"
+        ]
+      },
+      "ConfiguredSmsOtpAppResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App credential ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "App name as cloud shows it"
+          },
+          "type": {
+            "type": "string",
+            "description": "App credential type"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the credential is usable"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "SMS provider the codes are sent through"
+          },
+          "expirySeconds": {
+            "type": "number",
+            "description": "Seconds a code stays valid"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "isActive",
+          "providerId",
+          "expirySeconds"
+        ]
+      },
       "SmsProviderResponseDto": {
         "type": "object",
         "properties": {
@@ -35659,7 +36145,7 @@
           "status"
         ]
       },
-      "SetOtpConfigDto": {
+      "SetWhatsappOtpConfigDto": {
         "type": "object",
         "properties": {
           "accountId": {
@@ -35714,7 +36200,64 @@
           "resendCooldownSeconds"
         ]
       },
-      "TestOtpConfigDto": {
+      "TestWhatsappOtpConfigDto": {
+        "type": "object",
+        "properties": {
+          "recipient": {
+            "type": "string",
+            "description": "Recipient in international format",
+            "example": "+919876543210"
+          }
+        },
+        "required": [
+          "recipient"
+        ]
+      },
+      "SetSmsOtpConfigDto": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "description": "SMS provider the codes are sent through — platform or the org's own"
+          },
+          "senderId": {
+            "type": "string",
+            "description": "Per-app override of the provider row's default originator"
+          },
+          "codeLength": {
+            "type": "number",
+            "description": "Digits in the generated code",
+            "minimum": 4,
+            "maximum": 10
+          },
+          "expirySeconds": {
+            "type": "number",
+            "description": "Seconds a code stays valid",
+            "minimum": 30,
+            "maximum": 3600
+          },
+          "maxAttempts": {
+            "type": "number",
+            "description": "Guesses allowed before a code is spent",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "resendCooldownSeconds": {
+            "type": "number",
+            "description": "Seconds before a new code may be requested",
+            "minimum": 0,
+            "maximum": 3600
+          }
+        },
+        "required": [
+          "providerId",
+          "codeLength",
+          "expirySeconds",
+          "maxAttempts",
+          "resendCooldownSeconds"
+        ]
+      },
+      "TestSmsOtpConfigDto": {
         "type": "object",
         "properties": {
           "recipient": {

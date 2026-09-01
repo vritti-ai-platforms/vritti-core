@@ -22,3 +22,22 @@ export const VERIFY_WHATSAPP_OTP = graphql(`
     }
   }
 `);
+
+// The SMS siblings — same shapes, delivered through the credential's configured SMS provider
+export const SEND_SMS_OTP = graphql(`
+  mutation SendSmsOtp($input: SendSmsOtpInput!) {
+    sendSmsOtp(input: $input) {
+      sent
+      expiresAt
+      resendAvailableAt
+    }
+  }
+`);
+
+export const VERIFY_SMS_OTP = graphql(`
+  mutation VerifySmsOtp($input: VerifySmsOtpInput!) {
+    verifySmsOtp(input: $input) {
+      verified
+    }
+  }
+`);

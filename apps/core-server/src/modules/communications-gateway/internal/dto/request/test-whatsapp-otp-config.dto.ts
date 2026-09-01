@@ -4,7 +4,7 @@ import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
 
 const E164 = /^\+[1-9]\d{7,14}$/;
 
-export class TestOtpConfigDto {
+export class TestWhatsappOtpConfigDto {
   @ApiProperty({ description: 'Recipient in international format', example: '+919876543210' })
   @Trim({ nullify: false })
   @IsString()

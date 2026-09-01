@@ -12,14 +12,16 @@ import type {
 } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { AppOtpConfig } from '@/db/schema';
+import type { AppSmsOtpConfig, AppWhatsappOtpConfig } from '@/db/schema';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
+import type { SendSmsOtpResult } from '../../org-api/sms-otps/services/sms-otps-gateway.service';
 import type { SendOtpResult } from '../../org-api/whatsapp-otps/services/whatsapp-otps-gateway.service';
 import type {
   OtpAccountOptionDto,
   OtpPhoneNumberOptionDto,
   OtpTemplateOptionDto,
 } from '../dto/response/otp-option-response.dto';
+import type { SmsProviderOptionDto } from '../dto/response/sms-provider-option-response.dto';
 
 const OTP_TEMPLATE_CATEGORY = 'AUTHENTICATION';
 const APPROVED = 'APPROVED';
@@ -87,32 +89,36 @@ export class CommunicationsInternalService {
   }
 
   // Returns the OTP config stored on an app, or null when it has never been set up
-  async getConfig(appId: string, organizationId: string): Promise<AppOtpConfig | null> {
+  async getWhatsappOtpConfig(appId: string, organizationId: string): Promise<AppWhatsappOtpConfig | null> {
     const app = await this.appService.findInOrg(appId, organizationId);
     if (!app) throw new NotFoundException('App not found.');
-    return app.otpConfig ?? null;
+    return app.whatsappOtpConfig ?? null;
   }
 
   // Validates the selection against Meta before storing it, so a broken config fails here not at send time
-  async setConfig(appId: string, organizationId: string, config: AppOtpConfig): Promise<AppOtpConfig> {
+  async setWhatsappOtpConfig(
+    appId: string,
+    organizationId: string,
+    config: AppWhatsappOtpConfig,
+  ): Promise<AppWhatsappOtpConfig> {
     const app = await this.appService.findInOrg(appId, organizationId);
     if (!app) throw new NotFoundException('App not found.');
 
     await this.validateConfig(config);
     const updated = await this.appService.setOtpConfig(appId, config);
-    return updated.otpConfig as AppOtpConfig;
+    return updated.whatsappOtpConfig as AppWhatsappOtpConfig;
   }
 
   // Turns sign-in codes off for an app
-  async clearConfig(appId: string, organizationId: string): Promise<void> {
+  async clearWhatsappOtpConfig(appId: string, organizationId: string): Promise<void> {
     const app = await this.appService.findInOrg(appId, organizationId);
     if (!app) throw new NotFoundException('App not found.');
     await this.appService.setOtpConfig(appId, null);
   }
 
   // Sends a real code using the app's stored config, so an operator can prove the setup end to end
-  async testConfig(appId: string, organizationId: string, recipient: string): Promise<SendOtpResult> {
-    const config = await this.getConfig(appId, organizationId);
+  async testWhatsappOtpConfig(appId: string, organizationId: string, recipient: string): Promise<SendOtpResult> {
+    const config = await this.getWhatsappOtpConfig(appId, organizationId);
     if (!config) {
       throw new BadRequestException({
         label: 'OTP not configured',
@@ -138,7 +144,7 @@ export class CommunicationsInternalService {
   }
 
   // Rejects a config naming an account, sender, or template that does not exist or cannot carry a code
-  async validateConfig(config: AppOtpConfig): Promise<void> {
+  async validateConfig(config: AppWhatsappOtpConfig): Promise<void> {
     const accounts = await this.listAccounts();
     if (!accounts.some((account) => account.id === config.accountId)) {
       throw new BadRequestException({
@@ -190,5 +196,87 @@ export class CommunicationsInternalService {
   deletePlatformSmsProvider(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`internal.smsProviders.delete — id: ${id}`);
     return this.nats.send('communications', 'internal.smsProviders.delete', { id });
+  }
+  // ---- SMS OTP config — the SMS sibling of the WhatsApp methods above ----
+
+  // Active providers the config screen may pick — the org's own rows plus platform rows, via the
+  // org-scoped select (the signed x-org-id sets the RLS context downstream)
+  async listSmsProviderOptions(): Promise<SmsProviderOptionDto[]> {
+    this.logger.log('select.smsProviders');
+    const { options } = await this.nats.send<SelectQueryResult>('communications', 'select.smsProviders', {
+      valueKey: 'id',
+      labelKey: 'name',
+      additionalKeys: 'provider,type,senderId,isActive',
+      limit: SELECT_LIMIT,
+    } satisfies SelectOptionsQueryDto);
+
+    // A deactivated provider cannot send, so offering one would only produce a config that fails later
+    return options
+      .filter((option) => option.additionals?.isActive !== false)
+      .map((option) => ({
+        id: String(option.value),
+        name: option.label,
+        provider: String(option.additionals?.provider ?? ''),
+        type: String(option.additionals?.type ?? ''),
+        senderId: option.additionals?.senderId ? String(option.additionals.senderId) : null,
+      }));
+  }
+
+  async getSmsOtpConfig(appId: string, organizationId: string): Promise<AppSmsOtpConfig | null> {
+    const app = await this.appService.findInOrg(appId, organizationId);
+    if (!app) throw new NotFoundException('App not found.');
+    return app.smsOtpConfig ?? null;
+  }
+
+  // Validates the provider before storing, so a broken config fails here rather than at send time
+  async setSmsOtpConfig(appId: string, organizationId: string, config: AppSmsOtpConfig): Promise<AppSmsOtpConfig> {
+    const app = await this.appService.findInOrg(appId, organizationId);
+    if (!app) throw new NotFoundException('App not found.');
+
+    // Resolves under the org's RLS scope — a foreign org's provider simply does not exist here
+    const provider = await this.nats.send<{ id: string; isActive: boolean }>(
+      'communications',
+      'org.smsProviders.findById',
+      { id: config.providerId },
+    );
+    if (!provider.isActive) {
+      throw new BadRequestException({
+        label: 'Provider inactive',
+        detail: 'The selected SMS provider is deactivated. Pick another provider or reactivate it.',
+      });
+    }
+
+    const updated = await this.appService.setSmsOtpConfig(appId, config);
+    return updated.smsOtpConfig as AppSmsOtpConfig;
+  }
+
+  // Turns SMS sign-in codes off for an app
+  async clearSmsOtpConfig(appId: string, organizationId: string): Promise<void> {
+    const app = await this.appService.findInOrg(appId, organizationId);
+    if (!app) throw new NotFoundException('App not found.');
+    await this.appService.setSmsOtpConfig(appId, null);
+  }
+
+  // Sends a real code using the app's stored config, so an operator can prove the setup end to end
+  async testSmsOtpConfig(appId: string, organizationId: string, recipient: string): Promise<SendSmsOtpResult> {
+    const config = await this.getSmsOtpConfig(appId, organizationId);
+    if (!config) {
+      throw new BadRequestException({
+        label: 'OTP not configured',
+        detail: 'Save an SMS sign-in configuration for this app before sending a test code.',
+      });
+    }
+
+    this.logger.log(`org.smsOtps.send — test for app ${appId}`);
+    return this.nats.send('communications', 'org.smsOtps.send', {
+      appId,
+      providerId: config.providerId,
+      ...(config.senderId ? { senderId: config.senderId } : {}),
+      recipient,
+      codeLength: config.codeLength,
+      expirySeconds: config.expirySeconds,
+      maxAttempts: config.maxAttempts,
+      resendCooldownSeconds: config.resendCooldownSeconds,
+    });
   }
 }

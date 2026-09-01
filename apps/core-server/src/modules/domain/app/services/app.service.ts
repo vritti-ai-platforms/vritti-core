@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { FeatureUnlocks, PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
 import { PLATFORMS } from '@vritti/api-sdk/catalog-resolver';
 import { generateSigningKeyPair } from '@vritti/api-sdk/signing';
-import type { App, AppOtpConfig, AppType } from '@/db/schema';
+import type { App, AppSmsOtpConfig, AppType, AppWhatsappOtpConfig } from '@/db/schema';
 import { AppDomainRepository } from '../repositories/app.repository';
 
 /** Marks the value in logs and lets secret scanners recognise a leaked client id. */
@@ -75,9 +75,16 @@ export class AppDomainService {
   }
 
   // Stores which WhatsApp sender and template this credential issues sign-in codes with
-  async setOtpConfig(id: string, otpConfig: AppOtpConfig | null): Promise<App> {
-    const app = await this.repository.update(id, { otpConfig });
-    this.logger.log(`${otpConfig ? 'Configured' : 'Cleared'} OTP for app ${app.clientId}`);
+  async setOtpConfig(id: string, whatsappOtpConfig: AppWhatsappOtpConfig | null): Promise<App> {
+    const app = await this.repository.update(id, { whatsappOtpConfig });
+    this.logger.log(`${whatsappOtpConfig ? 'Configured' : 'Cleared'} OTP for app ${app.clientId}`);
+    return app;
+  }
+
+  // Stores which SMS provider and code policy this credential issues sign-in codes with
+  async setSmsOtpConfig(id: string, smsOtpConfig: AppSmsOtpConfig | null): Promise<App> {
+    const app = await this.repository.update(id, { smsOtpConfig });
+    this.logger.log(`${smsOtpConfig ? 'Configured' : 'Cleared'} SMS OTP for app ${app.clientId}`);
     return app;
   }
 

@@ -12,7 +12,7 @@ import { WhatsappOtpsGatewayService } from './services/whatsapp-otps-gateway.ser
 /**
  * Sign-in codes for the organization's own web apps.
  *
- * The sender, template and code policy come from the calling credential's `otpConfig`, never
+ * The sender, template and code policy come from the calling credential's `whatsappOtpConfig`, never
  * from an argument — otherwise one storefront could name another's config and send on their bill.
  *
  * Verifying a number is not signing anyone in. These two operations establish only that whoever

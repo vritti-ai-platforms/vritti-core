@@ -1,8 +1,10 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
-import { SetOtpConfigDto } from '../dto/request/set-otp-config.dto';
-import { TestOtpConfigDto } from '../dto/request/test-otp-config.dto';
+import { SetSmsOtpConfigDto } from '../dto/request/set-sms-otp-config.dto';
+import { SetWhatsappOtpConfigDto } from '../dto/request/set-whatsapp-otp-config.dto';
+import { TestSmsOtpConfigDto } from '../dto/request/test-sms-otp-config.dto';
+import { TestWhatsappOtpConfigDto } from '../dto/request/test-whatsapp-otp-config.dto';
 import {
   OtpAccountOptionDto,
   OtpPhoneNumberOptionDto,
@@ -44,7 +46,7 @@ export function ApiListOtpTemplates() {
   );
 }
 
-export function ApiGetOtpConfig() {
+export function ApiGetWhatsappOtpConfig() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get an app OTP configuration',
@@ -56,7 +58,7 @@ export function ApiGetOtpConfig() {
   );
 }
 
-export function ApiSetOtpConfig() {
+export function ApiSetWhatsappOtpConfig() {
   return applyDecorators(
     ApiOperation({
       summary: 'Set an app OTP configuration',
@@ -64,14 +66,14 @@ export function ApiSetOtpConfig() {
         'Validates the account, sender, and template against Meta before storing, so a broken configuration fails here rather than at send time.',
     }),
     ApiParam({ name: 'appId', description: 'App credential ID' }),
-    ApiBody({ type: SetOtpConfigDto }),
+    ApiBody({ type: SetWhatsappOtpConfigDto }),
     ApiResponse({ status: 200, description: 'Configuration stored.' }),
     ApiResponse({ status: 400, description: 'Unknown account, sender, or unusable template.' }),
     ApiResponse({ status: 404, description: 'App not found.' }),
   );
 }
 
-export function ApiClearOtpConfig() {
+export function ApiClearWhatsappOtpConfig() {
   return applyDecorators(
     ApiOperation({
       summary: 'Turn off WhatsApp sign-in codes for an app',
@@ -83,7 +85,7 @@ export function ApiClearOtpConfig() {
   );
 }
 
-export function ApiTestOtpConfig() {
+export function ApiTestWhatsappOtpConfig() {
   return applyDecorators(
     ApiOperation({
       summary: 'Send a test sign-in code',
@@ -91,7 +93,7 @@ export function ApiTestOtpConfig() {
         "Issues a real, billable code to the given number using the app's stored configuration, exercising the same path a storefront uses.",
     }),
     ApiParam({ name: 'appId', description: 'App credential ID' }),
-    ApiBody({ type: TestOtpConfigDto }),
+    ApiBody({ type: TestWhatsappOtpConfigDto }),
     ApiResponse({ status: 200, description: 'Send attempted; `sent` reports the outcome.' }),
     ApiResponse({ status: 400, description: 'No configuration stored for this app.' }),
   );
@@ -127,5 +129,57 @@ export function ApiDeletePlatformSmsProvider() {
     ApiOperation({ summary: 'Delete a platform SMS provider' }),
     ApiParam({ name: 'id', description: 'SMS provider ID' }),
     ApiResponse({ status: 200, description: 'Platform provider deleted.' }),
+  );
+}
+
+export function ApiListSmsProviderOptions() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List SMS providers an OTP config may use',
+      description: "Active providers only — the organization's own plus Vritti's platform rows.",
+    }),
+    ApiResponse({ status: 200, description: 'Provider options retrieved.' }),
+  );
+}
+
+export function ApiGetSmsOtpConfig() {
+  return applyDecorators(
+    ApiOperation({ summary: "Get an app's SMS OTP configuration" }),
+    ApiParam({ name: 'appId', description: 'App credential ID' }),
+    ApiResponse({ status: 200, description: 'Configuration retrieved; null when none is stored.' }),
+  );
+}
+
+export function ApiSetSmsOtpConfig() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Store an app's SMS OTP configuration",
+      description: 'Validates the provider exists and is active before storing.',
+    }),
+    ApiParam({ name: 'appId', description: 'App credential ID' }),
+    ApiBody({ type: SetSmsOtpConfigDto }),
+    ApiResponse({ status: 200, description: 'Configuration stored.' }),
+    ApiResponse({ status: 400, description: 'Provider missing or inactive.' }),
+  );
+}
+
+export function ApiTestSmsOtpConfig() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Send a test SMS sign-in code',
+      description: "Issues a real code to the given number using the app's stored configuration.",
+    }),
+    ApiParam({ name: 'appId', description: 'App credential ID' }),
+    ApiBody({ type: TestSmsOtpConfigDto }),
+    ApiResponse({ status: 200, description: 'Send attempted; `sent` reports the outcome.' }),
+    ApiResponse({ status: 400, description: 'No configuration stored for this app.' }),
+  );
+}
+
+export function ApiClearSmsOtpConfig() {
+  return applyDecorators(
+    ApiOperation({ summary: 'Turn SMS sign-in codes off for an app' }),
+    ApiParam({ name: 'appId', description: 'App credential ID' }),
+    ApiResponse({ status: 200, description: 'Configuration cleared.' }),
   );
 }

@@ -7,6 +7,7 @@ import { DB_SCHEMA } from '@/db/schema/communications-schema';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
+import { OrgSmsOtpsModule } from './modules/organization/sms-otps/sms-otps.module';
 import { OrgSmsProvidersModule } from './modules/organization/sms-providers/sms-providers.module';
 import { OrgWhatsappAccountsModule } from './modules/organization/whatsapp-accounts/whatsapp-accounts.module';
 import { OrgWhatsappOtpsModule } from './modules/organization/whatsapp-otps/whatsapp-otps.module';
@@ -58,6 +59,7 @@ import { OrgWhatsappOtpsModule } from './modules/organization/whatsapp-otps/what
         return options;
       },
     }),
+    OrgSmsOtpsModule,
     OrgSmsProvidersModule,
     OrgWhatsappAccountsModule,
     OrgWhatsappOtpsModule,

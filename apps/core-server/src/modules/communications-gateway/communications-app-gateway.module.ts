@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CommunicationsGatewayServicesModule } from './communications-gateway-services.module';
+import { SmsOtpsAppResolver } from './org-api/sms-otps/sms-otps.app.resolver';
 import { WhatsappOtpsAppResolver } from './org-api/whatsapp-otps/whatsapp-otps.app.resolver';
 
 /**
@@ -11,6 +12,6 @@ import { WhatsappOtpsAppResolver } from './org-api/whatsapp-otps/whatsapp-otps.a
  */
 @Module({
   imports: [CommunicationsGatewayServicesModule],
-  providers: [WhatsappOtpsAppResolver],
+  providers: [SmsOtpsAppResolver, WhatsappOtpsAppResolver],
 })
 export class CommunicationsAppGatewayModule {}

@@ -70,6 +70,7 @@ export default defineConfig({
       exposes: {
         // The key must match cloud.features.web_exposed_module byte-for-byte, or the host cannot
         // resolve the container entry for this feature
+        './Org/SmsOtps': './src/features/organization/sms-otps/index.tsx',
         './Org/SmsProviders': './src/features/organization/sms-providers/index.tsx',
         './Org/WhatsappAccounts': './src/features/organization/whatsapp-accounts/index.tsx',
         './Org/WhatsappOtps': './src/features/organization/whatsapp-otps/index.tsx',

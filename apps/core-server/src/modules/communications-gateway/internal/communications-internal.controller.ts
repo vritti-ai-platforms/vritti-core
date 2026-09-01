@@ -17,29 +17,38 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import type { AppOtpConfig } from '@/db/schema';
+import type { AppSmsOtpConfig, AppWhatsappOtpConfig } from '@/db/schema';
 import { OrgId } from '@/security/decorators';
+import type { SendSmsOtpResult } from '../org-api/sms-otps/services/sms-otps-gateway.service';
 import type { SendOtpResult } from '../org-api/whatsapp-otps/services/whatsapp-otps-gateway.service';
 import {
-  ApiClearOtpConfig,
+  ApiClearSmsOtpConfig,
+  ApiClearWhatsappOtpConfig,
   ApiCreatePlatformSmsProvider,
   ApiDeletePlatformSmsProvider,
-  ApiGetOtpConfig,
+  ApiGetSmsOtpConfig,
+  ApiGetWhatsappOtpConfig,
   ApiListOtpAccounts,
   ApiListOtpPhoneNumbers,
   ApiListOtpTemplates,
+  ApiListSmsProviderOptions,
   ApiPlatformSmsProviders,
-  ApiSetOtpConfig,
-  ApiTestOtpConfig,
+  ApiSetSmsOtpConfig,
+  ApiSetWhatsappOtpConfig,
+  ApiTestSmsOtpConfig,
+  ApiTestWhatsappOtpConfig,
   ApiUpdatePlatformSmsProvider,
 } from './docs/communications-internal.docs';
-import { SetOtpConfigDto } from './dto/request/set-otp-config.dto';
-import { TestOtpConfigDto } from './dto/request/test-otp-config.dto';
+import { SetSmsOtpConfigDto } from './dto/request/set-sms-otp-config.dto';
+import { SetWhatsappOtpConfigDto } from './dto/request/set-whatsapp-otp-config.dto';
+import { TestSmsOtpConfigDto } from './dto/request/test-sms-otp-config.dto';
+import { TestWhatsappOtpConfigDto } from './dto/request/test-whatsapp-otp-config.dto';
 import type {
   OtpAccountOptionDto,
   OtpPhoneNumberOptionDto,
   OtpTemplateOptionDto,
 } from './dto/response/otp-option-response.dto';
+import type { SmsProviderOptionDto } from './dto/response/sms-provider-option-response.dto';
 import { CommunicationsInternalService } from './services/communications-internal.service';
 
 /**
@@ -85,49 +94,55 @@ export class CommunicationsInternalController {
   }
 
   // Returns the OTP configuration stored on an app
-  @Get('otp-config/:appId')
+  @Get('whatsapp-otp-config/:appId')
   @Require(AuthType.Cloud)
-  @ApiGetOtpConfig()
-  getConfig(@Param('appId') appId: string, @OrgId() organizationId: string): Promise<AppOtpConfig | null> {
-    this.logger.log(`GET /communications/internal/otp-config/${appId}`);
-    return this.service.getConfig(appId, organizationId);
+  @ApiGetWhatsappOtpConfig()
+  getWhatsappOtpConfig(
+    @Param('appId') appId: string,
+    @OrgId() organizationId: string,
+  ): Promise<AppWhatsappOtpConfig | null> {
+    this.logger.log(`GET /communications/internal/whatsapp-otp-config/${appId}`);
+    return this.service.getWhatsappOtpConfig(appId, organizationId);
   }
 
   // Stores the OTP configuration after checking the selection still exists in Meta
-  @Put('otp-config/:appId')
+  @Put('whatsapp-otp-config/:appId')
   @HttpCode(HttpStatus.OK)
   @Require(AuthType.Cloud)
-  @ApiSetOtpConfig()
-  setConfig(
+  @ApiSetWhatsappOtpConfig()
+  setWhatsappOtpConfig(
     @Param('appId') appId: string,
     @OrgId() organizationId: string,
-    @Body() dto: SetOtpConfigDto,
-  ): Promise<AppOtpConfig> {
-    this.logger.log(`PUT /communications/internal/otp-config/${appId}`);
-    return this.service.setConfig(appId, organizationId, dto);
+    @Body() dto: SetWhatsappOtpConfigDto,
+  ): Promise<AppWhatsappOtpConfig> {
+    this.logger.log(`PUT /communications/internal/whatsapp-otp-config/${appId}`);
+    return this.service.setWhatsappOtpConfig(appId, organizationId, dto);
   }
 
   // Sends a real code with the stored config so an operator can prove the setup works
-  @Post('otp-config/:appId/test')
+  @Post('whatsapp-otp-config/:appId/test')
   @HttpCode(HttpStatus.OK)
   @Require(AuthType.Cloud)
-  @ApiTestOtpConfig()
-  testConfig(
+  @ApiTestWhatsappOtpConfig()
+  testWhatsappOtpConfig(
     @Param('appId') appId: string,
     @OrgId() organizationId: string,
-    @Body() dto: TestOtpConfigDto,
+    @Body() dto: TestWhatsappOtpConfigDto,
   ): Promise<SendOtpResult> {
-    this.logger.log(`POST /communications/internal/otp-config/${appId}/test`);
-    return this.service.testConfig(appId, organizationId, dto.recipient);
+    this.logger.log(`POST /communications/internal/whatsapp-otp-config/${appId}/test`);
+    return this.service.testWhatsappOtpConfig(appId, organizationId, dto.recipient);
   }
 
   // Turns sign-in codes off for an app
-  @Delete('otp-config/:appId')
+  @Delete('whatsapp-otp-config/:appId')
   @Require(AuthType.Cloud)
-  @ApiClearOtpConfig()
-  async clearConfig(@Param('appId') appId: string, @OrgId() organizationId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /communications/internal/otp-config/${appId}`);
-    await this.service.clearConfig(appId, organizationId);
+  @ApiClearWhatsappOtpConfig()
+  async clearWhatsappOtpConfig(
+    @Param('appId') appId: string,
+    @OrgId() organizationId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /communications/internal/whatsapp-otp-config/${appId}`);
+    await this.service.clearWhatsappOtpConfig(appId, organizationId);
     return { success: true, message: 'WhatsApp sign-in codes turned off for this app.' };
   }
 
@@ -170,5 +185,62 @@ export class CommunicationsInternalController {
   deleteSmsProvider(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /communications/internal/sms-providers/${id}`);
     return this.service.deletePlatformSmsProvider(id);
+  }
+  // ---- SMS OTP config — the SMS sibling of the whatsapp-otp-config endpoints above ----
+
+  // Active providers an SMS OTP config may send through (org-scoped: own rows + platform rows)
+  @Get('sms-provider-options')
+  @Require(AuthType.Cloud)
+  @ApiListSmsProviderOptions()
+  listSmsProviderOptions(@OrgId() _organizationId: string): Promise<SmsProviderOptionDto[]> {
+    this.logger.log('GET /communications/internal/sms-provider-options');
+    return this.service.listSmsProviderOptions();
+  }
+
+  // Returns the SMS OTP configuration stored on an app
+  @Get('sms-otp-config/:appId')
+  @Require(AuthType.Cloud)
+  @ApiGetSmsOtpConfig()
+  getSmsOtpConfig(@Param('appId') appId: string, @OrgId() organizationId: string): Promise<AppSmsOtpConfig | null> {
+    this.logger.log(`GET /communications/internal/sms-otp-config/${appId}`);
+    return this.service.getSmsOtpConfig(appId, organizationId);
+  }
+
+  // Stores the SMS OTP configuration after checking the provider still exists and is active
+  @Put('sms-otp-config/:appId')
+  @HttpCode(HttpStatus.OK)
+  @Require(AuthType.Cloud)
+  @ApiSetSmsOtpConfig()
+  setSmsOtpConfig(
+    @Param('appId') appId: string,
+    @OrgId() organizationId: string,
+    @Body() dto: SetSmsOtpConfigDto,
+  ): Promise<AppSmsOtpConfig> {
+    this.logger.log(`PUT /communications/internal/sms-otp-config/${appId}`);
+    return this.service.setSmsOtpConfig(appId, organizationId, dto);
+  }
+
+  // Sends a real code with the stored config so an operator can prove the setup works
+  @Post('sms-otp-config/:appId/test')
+  @HttpCode(HttpStatus.OK)
+  @Require(AuthType.Cloud)
+  @ApiTestSmsOtpConfig()
+  testSmsOtpConfig(
+    @Param('appId') appId: string,
+    @OrgId() organizationId: string,
+    @Body() dto: TestSmsOtpConfigDto,
+  ): Promise<SendSmsOtpResult> {
+    this.logger.log(`POST /communications/internal/sms-otp-config/${appId}/test`);
+    return this.service.testSmsOtpConfig(appId, organizationId, dto.recipient);
+  }
+
+  // Turns SMS sign-in codes off for an app
+  @Delete('sms-otp-config/:appId')
+  @Require(AuthType.Cloud)
+  @ApiClearSmsOtpConfig()
+  async clearSmsOtpConfig(@Param('appId') appId: string, @OrgId() organizationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /communications/internal/sms-otp-config/${appId}`);
+    await this.service.clearSmsOtpConfig(appId, organizationId);
+    return { success: true, message: 'SMS sign-in codes turned off for this app.' };
   }
 }

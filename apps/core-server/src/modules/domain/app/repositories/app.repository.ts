@@ -40,7 +40,7 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
       .select()
       .from(apps)
       .where(
-        and(eq(apps.organizationId, organizationId), sql`${apps.otpConfig}->>'accountId' = ${accountId}`),
+        and(eq(apps.organizationId, organizationId), sql`${apps.whatsappOtpConfig}->>'accountId' = ${accountId}`),
       ) as Promise<App[]>;
   }
 
@@ -50,7 +50,7 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     const [app] = await this.db
       .select()
       .from(apps)
-      .where(sql`${apps.otpConfig}->>'phoneNumberId' = ${phoneNumberId}`)
+      .where(sql`${apps.whatsappOtpConfig}->>'phoneNumberId' = ${phoneNumberId}`)
       .limit(1);
     return app;
   }

@@ -1,29 +1,18 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsInt, IsNotEmpty, IsString, IsUUID, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
-export class SetOtpConfigDto {
-  @ApiProperty({ description: 'WhatsApp account the codes are sent from' })
+export class SetSmsOtpConfigDto {
+  @ApiProperty({ description: "SMS provider the codes are sent through — platform or the org's own" })
   @IsUUID()
-  accountId: string;
+  providerId: string;
 
-  @ApiProperty({ description: 'Meta phone number ID — the sender' })
-  @Trim({ nullify: false })
+  @ApiPropertyOptional({ description: "Per-app override of the provider row's default originator" })
+  @IsOptional()
+  @Trim()
   @IsString()
-  @IsNotEmpty()
-  phoneNumberId: string;
-
-  @ApiProperty({ description: 'Approved AUTHENTICATION template name' })
-  @Trim({ nullify: false })
-  @IsString()
-  @IsNotEmpty()
-  templateName: string;
-
-  @ApiProperty({ description: 'Template language code' })
-  @Trim({ nullify: false })
-  @IsString()
-  @IsNotEmpty()
-  templateLanguage: string;
+  @MaxLength(64)
+  senderId?: string;
 
   @ApiProperty({ description: 'Digits in the generated code', minimum: 4, maximum: 10 })
   @IsInt()

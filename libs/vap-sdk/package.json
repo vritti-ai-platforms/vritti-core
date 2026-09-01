@@ -1,11 +1,11 @@
 {
   "name": "@vritti/vap-sdk",
-  "description": "Client for the VAP API — signed requests, identity today, orders and appointments as they land",
+  "description": "Client for the VAP API \u2014 signed requests, identity today, orders and appointments as they land",
   "private": false,
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "sideEffects": false,
   "repository": {
     "type": "git",

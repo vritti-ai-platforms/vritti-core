@@ -374,7 +374,7 @@ type InventoryItemConnection {
   pageInfo: InventoryItemPageInfo!
 }
 
-type SendWhatsappOtpResult {
+type SendSmsOtpResult {
   sent: Boolean!
   expiresAt: DateTime!
   resendAvailableAt: DateTime!
@@ -384,6 +384,16 @@ type SendWhatsappOtpResult {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type VerifySmsOtpResult {
+  verified: Boolean!
+}
+
+type SendWhatsappOtpResult {
+  sent: Boolean!
+  expiresAt: DateTime!
+  resendAvailableAt: DateTime!
+}
 
 type VerifyWhatsappOtpResult {
   verified: Boolean!

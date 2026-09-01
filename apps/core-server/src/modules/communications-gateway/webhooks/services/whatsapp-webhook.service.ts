@@ -97,7 +97,7 @@ export class WhatsappWebhookService {
       return;
     }
 
-    // core.apps carries otpConfig and has no RLS, so the sender resolves to an org without any org context
+    // core.apps carries whatsappOtpConfig and has no RLS, so the sender resolves to an org without any org context
     const app = await this.appService.findByOtpPhoneNumber(phoneNumberId);
     if (!app) {
       this.logger.warn(`[whatsapp-webhook] no app configured for phone_number_id ${phoneNumberId} — ignoring`);

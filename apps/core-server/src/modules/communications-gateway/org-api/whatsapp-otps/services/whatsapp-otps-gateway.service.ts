@@ -8,7 +8,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import type { AppOtpConfig } from '@/db/schema';
+import type { AppWhatsappOtpConfig } from '@/db/schema';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
 
 export interface SendOtpResult {
@@ -34,7 +34,7 @@ export class WhatsappOtpsGatewayService {
   // Issues a sign-in code using the sender and template stored on the calling credential
   async send(appId: string, organizationId: string, recipient: string): Promise<SendOtpResult> {
     const app = await this.appService.findInOrg(appId, organizationId);
-    const config = app?.otpConfig;
+    const config = app?.whatsappOtpConfig;
     if (!config) {
       throw new BadRequestException({
         label: 'OTP not configured',
@@ -104,15 +104,15 @@ export class WhatsappOtpsGatewayService {
   async findConfiguredApps(organizationId: string): Promise<ConfiguredOtpAppResponseDto[]> {
     const apps = await this.appService.listForOrg(organizationId);
     return apps
-      .filter((app) => app.otpConfig)
+      .filter((app) => app.whatsappOtpConfig)
       .map((app) => ({
         id: app.id,
         name: app.name,
         type: app.type,
         isActive: app.isActive,
-        accountId: (app.otpConfig as AppOtpConfig).accountId,
-        templateName: (app.otpConfig as AppOtpConfig).templateName,
-        expirySeconds: (app.otpConfig as AppOtpConfig).expirySeconds,
+        accountId: (app.whatsappOtpConfig as AppWhatsappOtpConfig).accountId,
+        templateName: (app.whatsappOtpConfig as AppWhatsappOtpConfig).templateName,
+        expirySeconds: (app.whatsappOtpConfig as AppWhatsappOtpConfig).expirySeconds,
       }));
   }
 }

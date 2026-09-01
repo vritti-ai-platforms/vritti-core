@@ -1,7 +1,6 @@
 import type { ApolloClient } from '@apollo/client';
-import { VapError } from '../errors';
 import { requireData, run } from '../transport/errors';
-import { SEND_WHATSAPP_OTP, VERIFY_WHATSAPP_OTP } from '../graphql/otp';
+import { SEND_SMS_OTP, SEND_WHATSAPP_OTP, VERIFY_SMS_OTP, VERIFY_WHATSAPP_OTP } from '../graphql/otp';
 import { PEOPLE_BY_COMMUNICATION_QUERY } from '../graphql/people';
 import { CHANNELS } from './people';
 import type { RequestContext } from '../types';
@@ -9,10 +8,9 @@ import type { RequestContext } from '../types';
 /**
  * How a code reaches someone.
  *
- * `sms` is declared before it works, deliberately: core will gain `sendSmsOtp`/`verifySmsOtp`, and
- * having the dimension present from the start means the storefront, the sealed flow state and this
- * SDK all carry it already — adding SMS becomes wiring rather than reshaping. Until then it fails
- * loudly rather than quietly falling back to WhatsApp and charging for the wrong thing.
+ * Both channels are live: WhatsApp sends through the credential's `whatsappOtpConfig` (WABA +
+ * template), SMS through its `smsOtpConfig` (provider account). A credential may carry either or
+ * both — core refuses a channel the credential has no configuration for.
  */
 export const OTP_CHANNELS = { WHATSAPP: 'whatsapp', SMS: 'sms' } as const;
 
@@ -62,7 +60,17 @@ export function createOtpOperations(client: ApolloClient, context: RequestContex
      * can show the wait rather than discovering it as an error.
      */
     send(phone: string, channel: OtpChannel = OTP_CHANNELS.WHATSAPP): Promise<SendOtpResult> {
-      assertSupported(channel);
+      if (channel === OTP_CHANNELS.SMS) {
+        return run(() =>
+          client
+            .mutate({
+              mutation: SEND_SMS_OTP,
+              variables: { input: { recipient: phone } },
+              context: requestContext,
+            })
+            .then((r) => requireData(r.data).sendSmsOtp as SendOtpResult),
+        );
+      }
       return run(() =>
         client
           .mutate({
@@ -96,15 +104,22 @@ export function createOtpOperations(client: ApolloClient, context: RequestContex
      * That is a real case: a household line, or a shop counter.
      */
     async verify(phone: string, code: string, channel: OtpChannel = OTP_CHANNELS.WHATSAPP): Promise<VerifyOtpResult> {
-      assertSupported(channel);
       const { verified } = await run(() =>
-        client
-          .mutate({
-            mutation: VERIFY_WHATSAPP_OTP,
-            variables: { input: { recipient: phone, code } },
-            context: requestContext,
-          })
-          .then((r) => requireData(r.data).verifyWhatsappOtp),
+        channel === OTP_CHANNELS.SMS
+          ? client
+              .mutate({
+                mutation: VERIFY_SMS_OTP,
+                variables: { input: { recipient: phone, code } },
+                context: requestContext,
+              })
+              .then((r) => requireData(r.data).verifySmsOtp)
+          : client
+              .mutate({
+                mutation: VERIFY_WHATSAPP_OTP,
+                variables: { input: { recipient: phone, code } },
+                context: requestContext,
+              })
+              .then((r) => requireData(r.data).verifyWhatsappOtp),
       );
 
       if (!verified) return { verified: false, partyId: null, displayName: null };
@@ -126,15 +141,3 @@ export function createOtpOperations(client: ApolloClient, context: RequestContex
 }
 
 export type OtpOperations = ReturnType<typeof createOtpOperations>;
-
-/**
- * Refuses a channel core cannot serve yet.
- *
- * Throws rather than falling back to WhatsApp: a shopper who chose SMS and silently received a
- * WhatsApp message would look at an empty inbox, and the organization would still be billed.
- */
-function assertSupported(channel: OtpChannel): void {
-  if (channel !== OTP_CHANNELS.WHATSAPP) {
-    throw new VapError(`Sending a code over ${channel} is not available yet.`, 'Channel Unavailable', 501);
-  }
-}

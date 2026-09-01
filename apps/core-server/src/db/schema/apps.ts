@@ -4,11 +4,22 @@ import { coreSchema } from './core-schema';
 import { appTypeEnum } from './enums';
 import { organizations } from './organizations';
 
-export interface AppOtpConfig {
+export interface AppWhatsappOtpConfig {
   accountId: string;
   phoneNumberId: string;
   templateName: string;
   templateLanguage: string;
+  codeLength: number;
+  expirySeconds: number;
+  maxAttempts: number;
+  resendCooldownSeconds: number;
+}
+
+// The SMS sibling: delivery is addressed by an sms_providers row (platform or the org's own)
+// instead of a WABA + number + template; the provider code and credentials live on that row
+export interface AppSmsOtpConfig {
+  providerId: string;
+  senderId?: string;
   codeLength: number;
   expirySeconds: number;
   maxAttempts: number;
@@ -72,7 +83,8 @@ export const apps = coreSchema.table(
      * can do nothing until it is granted something.
      */
     permissions: jsonb('permissions').$type<FeatureUnlocks>().notNull().default({}),
-    otpConfig: jsonb('otp_config').$type<AppOtpConfig>(),
+    whatsappOtpConfig: jsonb('whatsapp_otp_config').$type<AppWhatsappOtpConfig>(),
+    smsOtpConfig: jsonb('sms_otp_config').$type<AppSmsOtpConfig>(),
     /** Ed25519 private key, base64 pkcs8 DER. Goes in the client's environment. */
     signingKey: text('signing_key').notNull(),
     /** Ed25519 public key, base64 spki DER. What request signatures verify against. */
