@@ -3,7 +3,7 @@ import { CreateSiteInternalDto } from '@domain/site/dto/request/create-site-inte
 import { ReorderSitesInternalDto } from '@domain/site/dto/request/reorder-sites-internal.dto';
 import { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site-internal.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
 
@@ -31,7 +31,8 @@ export function ApiListSites() {
   return applyDecorators(
     ApiOperation({
       summary: 'List sites',
-      description: 'Returns a flat list of all sites for an organization, ordered by sort order.',
+      description:
+        'Returns a flat list of all sites for an organization, ordered by sort order. Org resolved from the signed x-org-id header.',
     }),
     ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
     ApiHeader({
@@ -39,7 +40,7 @@ export function ApiListSites() {
       description: 'Ed25519 signature of the canonical request (base64)',
       required: true,
     }),
-    ApiQuery({ name: 'orgId', description: 'Organization ID', required: true }),
+    ApiHeader({ name: 'x-org-id', description: 'Organization ID scoping the request', required: true }),
     ApiResponse({ status: 200, description: 'Sites retrieved successfully.', type: [SiteDto] }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );

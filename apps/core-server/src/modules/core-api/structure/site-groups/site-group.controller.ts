@@ -61,8 +61,8 @@ export class SiteGroupController {
   // Lists all site groups for an organization
   @Get()
   @ApiListSiteGroups()
-  async list(@Query('orgId') orgId: string): Promise<SiteGroupDto[]> {
-    this.logger.log(`GET /site-groups/internal?orgId=${orgId}`);
+  async list(@OrgId() orgId: string): Promise<SiteGroupDto[]> {
+    this.logger.log(`GET /site-groups/internal — org ${orgId}`);
     return this.siteGroupApiService.findByOrg(orgId);
   }
 

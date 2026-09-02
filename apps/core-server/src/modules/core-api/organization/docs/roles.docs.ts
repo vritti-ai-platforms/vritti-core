@@ -9,7 +9,8 @@ export function ApiListRoles() {
   return applyDecorators(
     ApiOperation({
       summary: 'List roles for organization',
-      description: 'Returns all roles for an organization with their feature counts. Protected by request signature.',
+      description:
+        'Returns all roles for an organization with their feature counts. Protected by request signature. Org resolved from the signed x-org-id header.',
     }),
     ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
     ApiHeader({
@@ -17,7 +18,7 @@ export function ApiListRoles() {
       description: 'Ed25519 signature of the canonical request (base64)',
       required: true,
     }),
-    ApiQuery({ name: 'orgId', description: 'Organization ID', required: true }),
+    ApiHeader({ name: 'x-org-id', description: 'Organization ID scoping the request', required: true }),
     ApiResponse({ status: 200, description: 'Roles retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );

@@ -30,8 +30,8 @@ export class RolesController {
   // Lists an organization's roles grouped by scope (SITE by site type)
   @Get()
   @ApiListRoles()
-  async list(@Query('orgId') orgId: string): Promise<RolesByScope> {
-    this.logger.log(`GET /api/organizations/internal/roles?orgId=${orgId}`);
+  async list(@OrgId() orgId: string): Promise<RolesByScope> {
+    this.logger.log(`GET /api/organizations/internal/roles — org ${orgId}`);
     return this.roleService.findByOrgGrouped(orgId);
   }
 

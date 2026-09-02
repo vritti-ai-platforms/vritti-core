@@ -2,20 +2,7 @@ import { SiteDto } from '@domain/site/dto/entity/site.dto';
 import { CreateSiteInternalDto } from '@domain/site/dto/request/create-site-internal.dto';
 import { ReorderSitesInternalDto } from '@domain/site/dto/request/reorder-sites-internal.dto';
 import { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site-internal.dto';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  Param,
-  Patch,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
@@ -53,8 +40,8 @@ export class SiteController {
   // Lists all sites for an organization
   @Get()
   @ApiListSites()
-  async list(@Query('orgId') orgId: string): Promise<SiteDto[]> {
-    this.logger.log(`GET /sites/internal?orgId=${orgId}`);
+  async list(@OrgId() orgId: string): Promise<SiteDto[]> {
+    this.logger.log(`GET /sites/internal — org ${orgId}`);
     return this.siteApiService.findByOrg(orgId);
   }
 
