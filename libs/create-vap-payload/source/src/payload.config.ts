@@ -44,6 +44,21 @@ export default buildConfig({
       titleSuffix: '— __BRAND__',
     },
     /**
+     * Stops React reporting a hydration mismatch on `<html>`.
+     *
+     * Browser extensions — cookie-banner blockers especially — inject a
+     * `<style>` as the first child of `<head>` before React hydrates, so the
+     * first element React compares is not the one it rendered. It surfaces as a
+     * recoverable "server rendered text didn't match the client" naming a
+     * stylesheet full of selectors like `.O-CookieLaw`, which is nothing to do
+     * with this app: the server HTML is correct, and the panel works.
+     *
+     * Payload exposes this flag for the case. It suppresses mismatch reporting
+     * at that one boundary only — it does not hide errors from this site's own
+     * code, which lives under the (frontend) route group and is unaffected.
+     */
+    suppressHydrationWarning: true,
+    /**
      * Live Preview — the site in an iframe beside the fields.
      *
      * The URL is built from the request's own headers rather than from a Site
