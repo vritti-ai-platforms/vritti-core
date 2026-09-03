@@ -1,0 +1,62 @@
+# Postgres. The instance is shared with other apps, so this project's tables are
+# namespaced into their own schema (see src/payload.config.ts).
+DATABASE_URL=postgresql://user:password@localhost:5432/__SITE_CODE__
+
+# The schema this app's tables live in, and the site code the platform knows it
+# by. Every migration hardcodes this value, so it is NOT optional and has no
+# fallback in code: set it here and set the same thing in every environment, or
+# migrations build a schema the app never reads.
+DATABASE_SCHEMA=__SITE_CODE__
+
+# Signs auth cookies and reset tokens. Any long random string; changing it logs
+# everyone out. `pnpm create` prints one — never commit it.
+PAYLOAD_SECRET=change-me
+
+# No site origin here: it lives in the admin under Site settings, so the same
+# build serves any domain with no deployment config.
+
+# #region feature:media
+# Media uploads -> S3-compatible object storage (Cloudflare R2). Required in
+# every environment, local included: there is no disk fallback, so an upload
+# with these unset fails rather than quietly landing next to the app. All four
+# are needed together.
+S3_BUCKET=
+S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+S3_REGION=auto
+S3_ACCESS_KEY_ID=
+S3_SECRET_ACCESS_KEY=
+# #endregion feature:media
+
+# #region feature:vap
+# --- Vritti core: shopper identity ---
+# Shoppers sign in with a one-time code sent to their phone; core verifies it and
+# resolves the person behind the number. Without these, /login renders the
+# editor's "we could not sign you in" message and no account can be made.
+#
+# Create the credential in cloud: Organization -> Apps -> New App, then Show
+# Signing Key. Both values are server-only and must never gain a NEXT_PUBLIC_
+# prefix: the private key signs every request, so a browser that could read it
+# could act as this site against the whole organization.
+#
+# The endpoint is the deployment's api host + /graphql. Do NOT use the
+# /api/graphql form served on the tenant host: that route strips the /api prefix
+# before core sees it, so the signature would never match the path core verifies.
+CORE_GRAPHQL_URL=https://api.vrittiai.com/graphql
+VRITTI_APP_CLIENT_ID=vca_
+VRITTI_APP_CLIENT_SECRET=
+# #endregion feature:vap
+
+# #region feature:cloudAuth
+# --- Vritti Cloud: signing in to the admin panel ---
+# Org members sign in to /admin with the account they already have. On a
+# provisioned website these four are sealed into the container automatically —
+# pick an OAuth app under Organization -> Websites -> Environment.
+#
+# Locally, register an OAuth app under Organization -> OAuth Apps, add
+# http://localhost:3000/api/vritti-cloud/callback to its redirect URIs, and paste
+# the pair below. The secret is shown once; rotate the app if you lose it.
+VRITTI_OAUTH_CONSENT_URL=https://cloud.vrittiai.com
+VRITTI_OAUTH_API_URL=https://api.vrittiai.com
+VRITTI_OAUTH_CLIENT_ID=voa_
+VRITTI_OAUTH_CLIENT_SECRET=
+# #endregion feature:cloudAuth

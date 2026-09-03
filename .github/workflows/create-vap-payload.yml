@@ -1,0 +1,118 @@
+# Verifies the scaffolder by using it.
+#
+# `source/` is excluded from the root tooling — its files reference `@/…` paths
+# and dependencies that only exist once scaffolded — so the only honest check is
+# to run the generator and build what comes out. Every feature combination is
+# built, because the three questions are independent and a combination nobody
+# builds is a combination nobody knows about.
+#
+# The build runs with an EMPTY environment on purpose. That is the contract the
+# shared Gitea build workflow depends on: no NEXT_PUBLIC_*, no database at build
+# time, migrations applied at server startup, so one image runs any environment.
+
+name: create-vap-payload
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'libs/create-vap-payload/**'
+      - 'libs/vap-sdk/**'
+      - '.github/workflows/create-vap-payload.yml'
+  pull_request:
+    paths:
+      - 'libs/create-vap-payload/**'
+      - 'libs/vap-sdk/**'
+  workflow_dispatch: {}
+
+concurrency:
+  group: create-vap-payload-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scaffold:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: all-on
+            flags: --media --cloud-auth --vap
+          - name: minimal
+            flags: --no-media --no-cloud-auth --no-vap
+          - name: media-only
+            flags: --media --no-cloud-auth --no-vap
+          - name: cloud-only
+            flags: --no-media --cloud-auth --no-vap
+          - name: vap-only
+            flags: --no-media --no-cloud-auth --vap
+          - name: media-cloud
+            flags: --media --cloud-auth --no-vap
+          - name: media-vap
+            flags: --media --no-cloud-auth --vap
+          - name: cloud-vap
+            flags: --no-media --cloud-auth --vap
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Packed and installed rather than run out of the working tree, because
+      # the two are not equivalent: npm excludes files like `.gitignore` from a
+      # published tarball, so the canonical tree keeps its dotfiles disguised
+      # (`_gitignore`, `package.json.template`) and un-disguises them on write.
+      # A job that executed `dist/index.js` in place would pass even if npm had
+      # silently dropped half of `source/` — and the first person to install
+      # from the registry would find out instead.
+      - name: Pack the generator
+        working-directory: libs/create-vap-payload
+        run: |
+          pnpm install --ignore-workspace --no-frozen-lockfile
+          pnpm build
+          npm pack --pack-destination /tmp
+
+      - name: Install the packed generator
+        run: |
+          mkdir -p /tmp/host && cd /tmp/host
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund /tmp/vritti-create-vap-payload-*.tgz
+
+      # Every file the canonical tree declares must survive the tarball. Checked
+      # by count rather than by name so a new file cannot be added to `source/`
+      # and silently excluded by the `files` field.
+      - name: Check nothing was stripped from the tarball
+        run: |
+          in_repo=$(find "$GITHUB_WORKSPACE/libs/create-vap-payload/source" -type f | wc -l)
+          in_tar=$(tar -tzf /tmp/vritti-create-vap-payload-*.tgz | grep -c '^package/source/')
+          echo "source/ files — repo: $in_repo, tarball: $in_tar"
+          test "$in_repo" -eq "$in_tar"
+
+      - name: Scaffold
+        run: |
+          mkdir -p /tmp/scaffold && cd /tmp/scaffold
+          /tmp/host/node_modules/.bin/create-vap-payload site \
+            --workspace 00000000-0000-4000-8000-000000000000 \
+            --site-code ci-${{ matrix.name }} \
+            --brand "CI ${{ matrix.name }}" \
+            ${{ matrix.flags }} --yes
+
+      # The directory is `site` while the site code is `ci-<combination>`, on
+      # purpose: they are independent answers and a generator that quietly reused
+      # one for the other would hide that.
+      - name: Install
+        working-directory: /tmp/scaffold/site
+        run: pnpm install --ignore-workspace --no-frozen-lockfile
+
+      - name: Typecheck with no environment
+        working-directory: /tmp/scaffold/site
+        run: pnpm typecheck
+
+      - name: Build with no environment
+        working-directory: /tmp/scaffold/site
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: pnpm build

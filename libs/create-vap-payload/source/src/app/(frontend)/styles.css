@@ -1,0 +1,117 @@
+/*
+ * The starting sheet. Plain CSS with custom properties rather than a framework,
+ * so the first real design decision is yours — swap it for Tailwind or keep
+ * extending this, but keep colours and spacing as tokens here rather than as
+ * literals scattered through components.
+ */
+
+:root {
+  --ink: #1c1712;
+  --text: #4b4239;
+  --muted: #8a7e70;
+  --bg: #faf8f5;
+  --card: #ffffff;
+  --line: #e6e0d6;
+  --accent: #8f6f33;
+
+  --shell: 1120px;
+  --gutter: 24px;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--ink);
+}
+
+img {
+  max-width: 100%;
+}
+
+.site-header,
+.site-main,
+.site-footer {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 72px;
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header__mark {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.site-header__nav {
+  display: flex;
+  gap: 20px;
+}
+
+.site-main {
+  padding-top: 48px;
+  padding-bottom: 64px;
+  min-height: 60vh;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-top: 24px;
+  padding-bottom: 32px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.prose {
+  max-width: 62ch;
+}
+
+.prose h1 {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.1;
+}
+
+.prose .lead {
+  margin: 0 0 20px;
+  font-size: 1.125rem;
+  color: var(--ink);
+}
+
+.prose code {
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--card);
+  font-size: 0.9em;
+}

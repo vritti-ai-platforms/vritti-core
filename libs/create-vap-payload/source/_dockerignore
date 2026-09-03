@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+build
+coverage
+
+.env
+.env.*
+
+# Not needed by the build, and .git in particular is large and churns every
+# commit, busting the layer cache.
+.git
+.gitea
+.github
+.vscode
+.idea
+*.md

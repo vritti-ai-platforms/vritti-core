@@ -1,0 +1,7 @@
+# Not a workspace — this exists only so pnpm runs the native install scripts
+# sharp needs. Without it pnpm skips them and image resizing fails at runtime,
+# on the first upload rather than at boot.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true

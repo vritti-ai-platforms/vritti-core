@@ -1,0 +1,53 @@
+{
+  "name": "__PROJECT_NAME__",
+  "version": "0.1.0",
+  "description": "__BRAND__ — Payload 3 + Next.js site",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build": "node --no-deprecation --max-old-space-size=8000 ./node_modules/next/dist/bin/next build",
+    "db:migrate": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate",
+    "db:migrate:create": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate:create",
+    "db:migrate:down": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate:down",
+    "db:migrate:status": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate:status",
+    "dev": "infisical run -- node --no-deprecation --use-system-ca ./node_modules/next/dist/bin/next dev",
+    "devsafe": "rm -rf .next && infisical run -- node --no-deprecation --use-system-ca ./node_modules/next/dist/bin/next dev",
+    "generate:importmap": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js generate:importmap",
+    "generate:types": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js generate:types",
+    "lint": "node --no-deprecation ./node_modules/eslint/bin/eslint.js .",
+    "payload": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js",
+    "start": "infisical run -- node --no-deprecation ./node_modules/next/dist/bin/next start",
+    "typecheck": "node --no-deprecation ./node_modules/typescript/bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "__PAYLOAD_VERSION__",
+    "@payloadcms/next": "__PAYLOAD_VERSION__",
+    "@payloadcms/richtext-lexical": "__PAYLOAD_VERSION__",
+    // #region feature:media
+    "@payloadcms/storage-s3": "__PAYLOAD_VERSION__",
+    // #endregion feature:media
+    "@payloadcms/ui": "__PAYLOAD_VERSION__",
+    // #region feature:sdk
+    "@vritti/vap-sdk": "__VAP_SDK_VERSION__",
+    // #endregion feature:sdk
+    "graphql": "__GRAPHQL_VERSION__",
+    "next": "__NEXT_VERSION__",
+    "payload": "__PAYLOAD_VERSION__",
+    "react": "__REACT_VERSION__",
+    "react-dom": "__REACT_VERSION__",
+    "sharp": "__SHARP_VERSION__"
+  },
+  "devDependencies": {
+    "@types/node": "__TYPES_NODE_VERSION__",
+    "@types/react": "__TYPES_REACT_VERSION__",
+    "@types/react-dom": "__TYPES_REACT_DOM_VERSION__",
+    "eslint": "__ESLINT_VERSION__",
+    "eslint-config-next": "__NEXT_VERSION__",
+    "typescript": "__TYPESCRIPT_VERSION__"
+  },
+  "engines": {
+    "node": "^18.20.2 || >=20.9.0",
+    "pnpm": "^9 || ^10 || ^11"
+  },
+  "packageManager": "pnpm@__PNPM_VERSION__"
+}

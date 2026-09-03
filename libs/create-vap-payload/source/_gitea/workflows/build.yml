@@ -1,0 +1,23 @@
+# Builds the site image and pushes it to Gitea Packages. Deploying is manual.
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {} # enables the manual "Run workflow" button in the Actions tab
+
+jobs:
+  build:
+    # Gitea picks the runner from the CALLER's `runs-on`, not the called
+    # workflow's, so without this the job has no label to match and sits at
+    # "No runner is online to pick up this job" (go-gitea/gitea#34986).
+    #
+    # A runner LABEL, not a runner name: Gitea matches on labels only, so naming
+    # the runner here leaves the job queued forever. Keep this in sync with
+    # `runner:` below.
+    runs-on: ubuntu-latest
+    uses: https://git.apw1.vrittiai.com/vritti/workflows/.gitea/workflows/build-payload-site.yml@main
+    with:
+      runner: ubuntu-latest
+    secrets: inherit

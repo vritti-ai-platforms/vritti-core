@@ -1,0 +1,41 @@
+{
+  "name": "@vritti/create-vap-payload",
+  "description": "Scaffolds a Vritti Payload 3 + Next site — asks which platform plugins it needs and assembles the config from one canonical source",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vritti-ai-platforms/vritti-core.git",
+    "directory": "libs/create-vap-payload"
+  },
+  "keywords": [
+    "vritti",
+    "payload",
+    "nextjs",
+    "scaffold",
+    "create"
+  ],
+  "bin": {
+    "create-vap-payload": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "source"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node -e \"require('fs').chmodSync('dist/index.js', 0o755)\"",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    // NodeNext, unlike vap-sdk's Node16: this package is "type": "module" and
+    // its only imports are node: builtins, so the ESM emit is what we want.
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "ignoreDeprecations": "6.0",
+    "declaration": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  // `source/` is the canonical app this package emits, not part of this
+  // package's own program. Its files reference `@/…` paths and dependencies
+  // that only exist once scaffolded, so they are never compiled here — CI
+  // verifies them by scaffolding to a temp directory and building there.
+  "exclude": ["source"]
+}
