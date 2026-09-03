@@ -23,6 +23,23 @@ export interface WorkspaceKeys {
   reason?: string;
 }
 
+/**
+ * The environment a scaffolded site resolves secrets from.
+ *
+ * `prod`, because that is the environment Vritti Cloud populates when it seals a
+ * website's configuration — a site pointed at `dev` finds nothing there and will
+ * not start. Named once and imported, rather than repeated as a literal
+ * everywhere the environment is mentioned.
+ *
+ * The cost is real and worth stating: a bare `pnpm dev` therefore resolves
+ * production secrets, `DATABASE_URL` included. That is survivable here only
+ * because `push: false` keeps a dev boot from altering the schema, and because
+ * this scaffold ships no test scripts — a test suite wired to this default is
+ * how a sibling repo ends up creating rows in its live database. Add
+ * per-environment scripts (`dotenv -e .env.dev`) before adding tests.
+ */
+export const DEFAULT_ENVIRONMENT = 'prod';
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** True when this looks like an Infisical project id at all, before any network call. */
@@ -39,7 +56,10 @@ export function isWorkspaceId(value: string): boolean {
  * scaffolder that cannot run without a working Infisical session would be
  * unusable exactly when someone is setting a machine up for the first time.
  */
-export async function readWorkspaceKeys(workspaceId: string, environment = 'dev'): Promise<WorkspaceKeys> {
+export async function readWorkspaceKeys(
+  workspaceId: string,
+  environment: string = DEFAULT_ENVIRONMENT,
+): Promise<WorkspaceKeys> {
   if (!isWorkspaceId(workspaceId)) {
     return { available: false, names: new Set(), reason: 'that is not a workspace id' };
   }

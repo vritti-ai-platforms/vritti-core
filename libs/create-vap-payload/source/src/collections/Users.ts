@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isStaff } from '../globals/pageFields'
+import { isStaff } from '../lib/fields'
 
 /**
  * Staff accounts — the only collection allowed into the admin panel

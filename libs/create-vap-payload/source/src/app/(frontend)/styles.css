@@ -1,23 +1,49 @@
 /*
- * The starting sheet. Plain CSS with custom properties rather than a framework,
- * so the first real design decision is yours — swap it for Tailwind or keep
- * extending this, but keep colours and spacing as tokens here rather than as
- * literals scattered through components.
+ * The starting sheet — the same visual language as the Vritti platform's own
+ * status pages: a bordered document with corner marks, a mono manifest, and one
+ * accent used sparingly.
+ *
+ * Tokens in oklch, defined once on `:root` for light and redefined for dark, so
+ * a reskin is a change of values here rather than a rename across components.
+ * Keep colours and spacing as tokens; a literal in a component is one nobody
+ * finds later.
  */
 
 :root {
-  --ink: #1c1712;
-  --text: #4b4239;
-  --muted: #8a7e70;
-  --bg: #faf8f5;
-  --card: #ffffff;
-  --line: #e6e0d6;
-  --accent: #8f6f33;
+  --bg: oklch(0.985 0.002 250);
+  --paper: oklch(1 0 0);
+  --fg: oklch(0.2302 0.0547 256.1829);
+  --muted: oklch(0.5435 0.0511 251.7257);
+  --faint: oklch(0.62 0.03 252);
+  --line: oklch(0.9 0.012 250);
+  --line-strong: oklch(0.82 0.02 252);
+  --primary: oklch(0.5789 0.1833 256.2496);
+  --warn: oklch(0.58 0.15 55);
+  --accent: var(--primary);
+  --brand-blue: #0066cc;
 
-  --shell: 1120px;
-  --gutter: 24px;
+  --sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Menlo', monospace;
 
   color-scheme: light;
+}
+
+/* Follows the operating system. There is no toggle, deliberately: a switch
+   needs client JavaScript and a place to remember the choice, which is more
+   than a starting page should own. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: oklch(0.145 0.006 265);
+    --paper: oklch(0.178 0.007 266);
+    --fg: oklch(0.96 0.003 248);
+    --muted: oklch(0.72 0.014 257);
+    --faint: oklch(0.55 0.014 257);
+    --line: oklch(0.28 0.01 260);
+    --line-strong: oklch(0.36 0.012 260);
+    --primary: oklch(0.7 0.16 256);
+    --warn: oklch(0.8 0.15 70);
+    color-scheme: dark;
+  }
 }
 
 *,
@@ -26,92 +52,365 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(0.75rem, 2.5vw, 1.75rem);
   background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--fg);
+  font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
 }
 
-a {
-  color: var(--accent);
-  text-decoration: none;
-}
-a:hover {
-  color: var(--ink);
+.mono {
+  font-family: var(--mono);
 }
 
-img {
-  max-width: 100%;
+/* ---- The document ------------------------------------------------------- */
+
+.doc {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  min-height: min(86dvh, 760px);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
 }
 
-.site-header,
-.site-main,
-.site-footer {
-  max-width: var(--shell);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
+/* Crop marks. Drawn as two 1px bars per corner rather than a border, so they
+   sit on the edge instead of inside it. */
+.mark {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  z-index: 2;
+  color: var(--faint);
+}
+.mark::before,
+.mark::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+.mark::before {
+  width: 13px;
+  height: 1px;
+}
+.mark::after {
+  width: 1px;
+  height: 13px;
+}
+.mark.tl { top: -1px; left: -1px; }
+.mark.tr { top: -1px; right: -1px; }
+.mark.tr::before,
+.mark.tr::after { right: 0; }
+.mark.bl { bottom: -1px; left: -1px; }
+.mark.bl::before,
+.mark.bl::after { bottom: 0; }
+.mark.br { bottom: -1px; right: -1px; }
+.mark.br::before,
+.mark.br::after { bottom: 0; right: 0; }
+
+/* ---- Ticker ------------------------------------------------------------- */
+
+.ticker {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
+}
+.ticker .track {
+  display: inline-flex;
+  white-space: nowrap;
+  padding: 7px 0;
+  animation: marq 26s linear infinite;
+  will-change: transform;
+}
+.ticker span {
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--accent) 82%, var(--fg));
+  padding: 0 1.4rem;
+}
+.ticker span::before {
+  content: '✳';
+  margin-right: 1.4rem;
+  opacity: 0.6;
+}
+@keyframes marq {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
-.site-header {
+/* ---- Bars --------------------------------------------------------------- */
+
+.bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  min-height: 72px;
-  border-bottom: 1px solid var(--line);
+  gap: 1rem;
+  padding: clamp(0.85rem, 2.2vw, 1.35rem) clamp(1.1rem, 3vw, 2rem);
 }
+.bar.top { border-bottom: 1px solid var(--line); }
+.bar.bot { border-top: 1px solid var(--line); flex-wrap: wrap; row-gap: 12px; }
 
-.site-header__mark {
-  font-size: 1.125rem;
+.id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.id .frame {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--line-strong);
+  overflow: hidden;
+  background: var(--bg);
+}
+.id .mono-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
   font-weight: 600;
-  color: var(--ink);
+  font-size: 17px;
+  color: #fff;
+  background: var(--brand-blue);
+  letter-spacing: -0.03em;
 }
-
-.site-header__nav {
+.id .meta {
   display: flex;
-  gap: 20px;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.id .meta b {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.id .meta small {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
-.site-main {
-  padding-top: 48px;
-  padding-bottom: 64px;
-  min-height: 60vh;
-}
-
-.site-footer {
+.controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-  padding-top: 24px;
-  padding-bottom: 32px;
-  border-top: 1px solid var(--line);
+  align-items: center;
+  gap: 14px;
+  flex: none;
+}
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-size: 0.875rem;
+}
+.live .dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.live .dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.8s ease-out infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.6); opacity: 0; }
 }
 
-.prose {
-  max-width: 62ch;
+/* ---- Main --------------------------------------------------------------- */
+
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: clamp(1.5rem, 5vw, 4rem);
+  padding: clamp(1.75rem, 5vw, 3.75rem) clamp(1.1rem, 3vw, 2rem);
+}
+@media (max-width: 760px) {
+  .main { grid-template-columns: 1fr; align-items: start; }
 }
 
-.prose h1 {
-  margin: 0 0 12px;
-  color: var(--ink);
-  font-size: clamp(2rem, 5vw, 2.75rem);
-  line-height: 1.1;
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--accent) 85%, var(--fg));
+  margin-bottom: 1.4rem;
+}
+.kicker .code { color: var(--faint); }
+
+h1 {
+  margin: 0;
+  font-weight: 600;
+  font-size: clamp(2.6rem, 8vw, 4.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+h1 .caret {
+  display: inline-block;
+  width: 0.5ch;
+  color: var(--primary);
+  animation: blink 1.2s steps(1) infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
-.prose .lead {
-  margin: 0 0 20px;
-  font-size: 1.125rem;
-  color: var(--ink);
+.lede {
+  margin: 1.6rem 0 0;
+  max-width: 34ch;
+  color: var(--muted);
+  font-size: clamp(0.98rem, 2.4vw, 1.1rem);
+  line-height: 1.6;
+}
+.lede .site {
+  color: var(--fg);
+  font-weight: 500;
+}
+.lede code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  color: var(--fg);
 }
 
-.prose code {
-  padding: 2px 6px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--card);
-  font-size: 0.9em;
+/* ---- Manifest ----------------------------------------------------------- */
+
+.manifest { border-top: 1px solid var(--line); }
+.manifest .r {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 15px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.manifest .k {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.manifest .v {
+  color: var(--fg);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.manifest .v.warn { color: color-mix(in oklab, var(--warn) 88%, var(--fg)); }
+.manifest .v.ok { color: color-mix(in oklab, var(--accent) 88%, var(--fg)); }
+.manifest .x {
+  color: var(--muted);
+  font-size: 12px;
+}
+.manifest a.x {
+  text-decoration: none;
+  border: 1px solid var(--line-strong);
+  padding: 5px 11px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.manifest a.x:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ---- Footer ------------------------------------------------------------- */
+
+.bar.bot .l {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.bar.bot .sep {
+  width: 3px;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1;
+}
+.credit a {
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+.credit a:hover { opacity: 0.56; }
+
+/* ---- Entrance ----------------------------------------------------------- */
+
+.rise {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.d1 { animation-delay: 0.05s; }
+.d2 { animation-delay: 0.12s; }
+.d3 { animation-delay: 0.19s; }
+.d4 { animation-delay: 0.26s; }
+.d5 { animation-delay: 0.33s; }
+@keyframes rise {
+  to { opacity: 1; transform: none; }
+}
+
+/* Nothing here is load-bearing, so all of it stops for anyone who asked. An
+   entrance animation must never be the reason content is invisible: `.rise`
+   ends at opacity 1, and here it starts there too. */
+@media (prefers-reduced-motion: reduce) {
+  .ticker .track,
+  .live .dot::after,
+  h1 .caret {
+    animation: none;
+  }
+  .rise {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }

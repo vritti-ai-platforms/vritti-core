@@ -8,10 +8,11 @@ export interface ResolvedImage {
 /**
  * The shape an upload document arrives in, structurally.
  *
- * Not `Media` from `@/payload-types` for the same reason as `lib/site.ts`: those
- * types are generated, and a freshly scaffolded repo has to compile before
- * `pnpm generate:types` has ever run. Swap this for the generated type once it
- * exists if you want the tighter check.
+ * Not `Media` from `@/payload-types`: those types are *generated*, and a freshly
+ * scaffolded repo has to compile before `pnpm generate:types` has ever run — an
+ * import of them would make a fresh clone fail to typecheck before it had done
+ * anything wrong. Swap this for the generated type once it exists if you want
+ * the tighter check.
  */
 export interface UploadLike {
   url?: string | null

@@ -2,10 +2,11 @@
 # namespaced into their own schema (see src/payload.config.ts).
 DATABASE_URL=postgresql://user:password@localhost:5432/__SITE_CODE__
 
-# The schema this app's tables live in, and the site code the platform knows it
-# by. Every migration hardcodes this value, so it is NOT optional and has no
-# fallback in code: set it here and set the same thing in every environment, or
-# migrations build a schema the app never reads.
+# The schema this app's tables live in. Optional, and if you set it, it MUST be
+# exactly the value below — src/lib/schema.ts declares it and refuses to boot on
+# a mismatch, because every generated migration hardcodes it into its SQL. This
+# is here so a deployment that injects the variable injects the right thing, not
+# so it can be changed.
 DATABASE_SCHEMA=__SITE_CODE__
 
 # Signs auth cookies and reset tokens. Any long random string; changing it logs

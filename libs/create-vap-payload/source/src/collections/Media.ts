@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isStaff } from '../globals/pageFields'
+import { isStaff } from '../lib/fields'
 
 /**
  * Every picture the site renders.

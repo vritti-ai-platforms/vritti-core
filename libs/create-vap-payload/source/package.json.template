@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node --no-deprecation --max-old-space-size=8000 ./node_modules/next/dist/bin/next build",
     "db:migrate": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate",
-    "db:migrate:create": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate:create",
+    "db:migrate:create": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate:create && node ./scripts/ensure-schema.mjs",
     "db:migrate:down": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate:down",
     "db:migrate:status": "infisical run -- node --no-deprecation ./node_modules/payload/bin.js migrate:status",
     "dev": "infisical run -- node --no-deprecation --use-system-ca ./node_modules/next/dist/bin/next dev",

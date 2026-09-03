@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, sep } from 'node:path';
+import { DEFAULT_ENVIRONMENT } from './infisical.js';
 import type { Plan } from './plan.js';
 import { applyRegions, hasMarkers } from './regions.js';
 
@@ -106,16 +107,14 @@ async function walk(root: string, current: string, target: string, plan: Plan, r
 /**
  * The Infisical link, written rather than produced by `infisical init`.
  *
- * `init` is interactive and picks its own defaults; this needs an exact shape,
- * and one field in it is a decision. `defaultEnvironment` is **dev**: both
- * existing sites default to `prod`, which means a bare `pnpm dev` resolves
- * production secrets — including `DATABASE_URL` — and one of them has no
- * non-prod path at all, so its own test suite runs against the live database.
+ * `init` is interactive and picks its own defaults; this needs an exact shape.
+ * `defaultEnvironment` comes from `DEFAULT_ENVIRONMENT`, which explains why it
+ * is what it is.
  */
 export async function writeInfisicalLink(target: string, workspaceId: string): Promise<void> {
   const body = {
     workspaceId,
-    defaultEnvironment: 'dev',
+    defaultEnvironment: DEFAULT_ENVIRONMENT,
     secretPath: '/',
     gitBranchToEnvironmentMapping: null,
   };

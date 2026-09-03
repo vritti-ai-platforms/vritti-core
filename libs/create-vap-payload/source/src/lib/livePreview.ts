@@ -9,8 +9,8 @@
 /** Collections whose edit view gets the preview pane. Slugs, in Payload's order. */
 export const LIVE_PREVIEW_COLLECTIONS: string[] = []
 
-/** Globals whose edit view gets the preview pane. */
-export const LIVE_PREVIEW_GLOBALS: string[] = ['site-settings']
+/** Globals whose edit view gets the preview pane. Slugs, in Payload's order. */
+export const LIVE_PREVIEW_GLOBALS: string[] = []
 
 /**
  * The path a document is shown at, or null when it has none yet.
@@ -28,8 +28,7 @@ export function previewPath({
   collectionSlug?: string
   data?: Record<string, unknown>
 }): string | null {
-  // Site settings appear on every page, so the home page is the honest preview.
-  if (globalSlug === 'site-settings') return '/'
+  // A global affects every page, so the home page is the honest preview for one.
   if (globalSlug) return '/'
 
   const slug = typeof data?.slug === 'string' ? data.slug : ''

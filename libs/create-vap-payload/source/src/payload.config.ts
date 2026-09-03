@@ -21,13 +21,13 @@ import { fileURLToPath } from 'url'
 import { Media } from './collections/Media'
 // #endregion feature:media
 import { Users } from './collections/Users'
-import { SiteSettings } from './globals/SiteSettings'
 import {
   LIVE_PREVIEW_COLLECTIONS,
   LIVE_PREVIEW_GLOBALS,
   originFromHeaders,
   previewPath,
 } from './lib/livePreview'
+import { DATABASE_SCHEMA } from './lib/schema'
 import { migrations } from './migrations'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -90,29 +90,16 @@ export default buildConfig({
     Media,
     // #endregion feature:media
   ],
-  globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: postgresAdapter({
-    /**
-     * The site code. The instance is shared with other apps, so this project's
-     * tables are namespaced rather than loose in `public`.
-     *
-     * The fallback is safe here and only here: `__SITE_CODE__` was written into
-     * this file, into `.env.example` and into every generated migration from one
-     * answer, so the literal and the SQL cannot disagree. That is the whole
-     * point of asking for it once — a sibling repo hardcodes one schema in three
-     * files and a different one in every migration, so following its own setup
-     * instructions builds tables the app never reads, and the failure looks like
-     * an empty site rather than an error.
-     *
-     * Change it in one place and you must regenerate the migrations. Better: set
-     * DATABASE_SCHEMA in the environment and leave this alone.
-     */
-    schemaName: process.env.DATABASE_SCHEMA || '__SITE_CODE__',
+    // The instance is shared with other apps, so this project's tables are
+    // namespaced rather than loose in `public`. Declared in src/lib/schema.ts,
+    // which explains why it is a constant and not read from the environment.
+    schemaName: DATABASE_SCHEMA,
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
@@ -209,10 +196,10 @@ export default buildConfig({
       clientId: process.env.VRITTI_APP_CLIENT_ID,
       clientSecret: process.env.VRITTI_APP_CLIENT_SECRET,
       databaseUrl: process.env.DATABASE_URL,
-      // Must resolve to the same value as postgresAdapter's schemaName above, or
-      // the cache addresses a table that is not there — it falls back to
-      // `public` when this is empty, which is a table nothing created.
-      databaseSchema: process.env.DATABASE_SCHEMA || '__SITE_CODE__',
+      // The same constant as postgresAdapter's schemaName above. Anything else
+      // and the cache addresses a table that is not there — it falls back to
+      // `public` when empty, which is a table nothing created.
+      databaseSchema: DATABASE_SCHEMA,
     }),
     // #endregion feature:vap
     // #region feature:cloudAuth

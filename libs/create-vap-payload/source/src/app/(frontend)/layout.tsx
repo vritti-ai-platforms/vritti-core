@@ -1,60 +1,34 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import React from 'react'
 
-import { getSiteSettings } from '@/lib/site'
 import './styles.css'
 
 /**
- * Content lives in Postgres and the site origin is an admin setting, so nothing
- * here can be computed at build time — and the Docker image is built with no
- * database at all. Every route is rendered per request.
+ * The frontend shell — html, body and the stylesheet, and nothing else.
+ *
+ * No header or footer here on purpose. This scaffold declares no globals, so
+ * there is nothing in the database for a shared header to read, and a chrome
+ * hardcoded in the layout is one only a developer can change. The status page
+ * owns its own furniture; when this site grows a real header, add it here and
+ * give it a global to read from.
+ *
+ * Every route renders per request: content lives in Postgres, the site origin is
+ * not build config, and the Docker image is built with no database at all.
  */
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSiteSettings()
-  const name = settings.brand?.wordmark || '__BRAND__'
-  return {
-    // Next appends the site name to every page's own title through this
-    // template, which is why a page sets only its half.
-    title: { default: name, template: `%s — ${name}` },
-    description: settings.brand?.description || undefined,
-  }
+const SITE_NAME = '__BRAND__'
+
+export const metadata: Metadata = {
+  // Next appends the site name to every page's own title through this template,
+  // so a page sets only its half.
+  title: { default: SITE_NAME, template: `%s — ${SITE_NAME}` },
 }
 
-export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getSiteSettings()
-  const name = settings.brand?.wordmark || '__BRAND__'
-  const links = settings.nav ?? []
-
+export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <header className="site-header">
-          <Link className="site-header__mark" href="/">
-            {name}
-          </Link>
-          {links.length > 0 && (
-            <nav className="site-header__nav" aria-label="Main">
-              {links.map((link) => (
-                <Link key={link.id ?? link.href} href={link.href}>
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          )}
-        </header>
-
-        <main className="site-main">{children}</main>
-
-        <footer className="site-footer">
-          <span>
-            © {new Date().getFullYear()} {name}
-          </span>
-          {settings.footer?.note && <span>{settings.footer.note}</span>}
-        </footer>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }

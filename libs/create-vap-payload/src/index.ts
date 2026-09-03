@@ -4,7 +4,7 @@ import { exit, stdout } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { isWorkspaceId, readWorkspaceKeys, type WorkspaceKeys } from './infisical.js';
+import { DEFAULT_ENVIRONMENT, isWorkspaceId, readWorkspaceKeys, type WorkspaceKeys } from './infisical.js';
 import { type Answers, buildPlan, validateProjectName, validateSiteCode } from './plan.js';
 import { type Asker, defaultingAsker, interactiveAsker } from './prompts.js';
 import { generatePayloadSecret, isUsableTarget, scaffold, writeInfisicalLink } from './scaffold.js';
@@ -246,10 +246,11 @@ function summarise(answers: Answers, keys: WorkspaceKeys, written: number, skipp
     '',
     '  Store a signing secret (generated here, written nowhere):',
     `    infisical secrets set PAYLOAD_SECRET=${secret} \\`,
-    `      --projectId=${answers.workspaceId} --env=dev`,
+    `      --projectId=${answers.workspaceId} --env=${DEFAULT_ENVIRONMENT}`,
     '',
     '  Then create the schema and start:',
-    `    infisical secrets set DATABASE_SCHEMA=${answers.siteCode} --projectId=${answers.workspaceId} --env=dev`,
+    `    infisical secrets set DATABASE_SCHEMA=${answers.siteCode} \\`,
+    `      --projectId=${answers.workspaceId} --env=${DEFAULT_ENVIRONMENT}`,
     '    pnpm generate:types',
     '    pnpm db:migrate:create      # needs a real terminal; writes src/migrations/',
     '    pnpm db:migrate',
