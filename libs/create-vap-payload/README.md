@@ -79,6 +79,11 @@ fine and breaks much later.
 
 ## What it deliberately does not do
 
+- **No import map.** `src/app/(payload)/admin/importMap.js` ships empty because
+  generating it needs a resolved dependency tree. `pnpm generate:importmap` is in
+  the printed steps; skip it and /admin renders
+  "PayloadComponent not found in importMap" for every component a plugin
+  registers.
 - **No secrets, and no `.env`.** The one exception is `PAYLOAD_SECRET`, which is
   randomness rather than an issued credential: it is generated, printed with the
   command that stores it, and written nowhere.

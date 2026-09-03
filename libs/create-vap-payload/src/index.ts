@@ -252,6 +252,10 @@ function summarise(answers: Answers, keys: WorkspaceKeys, written: number, skipp
     `    infisical secrets set DATABASE_SCHEMA=${answers.siteCode} \\`,
     `      --projectId=${answers.workspaceId} --env=${DEFAULT_ENVIRONMENT}`,
     '    pnpm generate:types',
+    // Ships as an empty stub, so the admin panel cannot resolve a single plugin
+    // component until this has run once — it fails with
+    // "PayloadComponent not found in importMap".
+    '    pnpm generate:importmap',
     '    pnpm db:migrate:create      # needs a real terminal; writes src/migrations/',
     '    pnpm db:migrate',
     '    pnpm dev',
