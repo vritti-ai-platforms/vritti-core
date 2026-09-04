@@ -1,4 +1,8 @@
-import type { CustomTemplateFormData, TemplateLibraryItemData } from '@/schemas/whatsapp-templates';
+import type {
+  CustomTemplateFormData,
+  TemplateLibraryItemData,
+  WhatsappTemplateCategory,
+} from '@/schemas/whatsapp-templates';
 
 // Highest {{n}} placeholder in the body — Meta numbers variables 1..n contiguously
 export function countTemplateVariables(body: string): number {
@@ -56,11 +60,23 @@ export function customPreviewButtons(data: CustomTemplateFormData): string[] {
   return labels;
 }
 
-// A library template with URL buttons needs the business's base URL supplied at creation time
+/**
+ * Button inputs Meta requires alongside a library template reference.
+ *
+ * AUTHENTICATION is not optional: Meta rejects the create outright with "Message templates in the
+ * AUTHENTICATION category must have exactly one button, which must be of the OTP type" (code 100,
+ * subcode 2388148) unless exactly one OTP button is supplied. COPY_CODE is the variant our sender
+ * already renders — it passes the code as the button's parameter.
+ *
+ * For every other category the only input a library entry may need is the base URL behind a website
+ * button, and only when the entry actually has one.
+ */
 export function buildLibraryButtonInputs(
   item: TemplateLibraryItemData,
+  category: WhatsappTemplateCategory,
   websiteUrl?: string,
 ): Record<string, unknown>[] | undefined {
+  if (category === 'AUTHENTICATION') return [{ type: 'OTP', otp_type: 'COPY_CODE' }];
   if (!libraryItemNeedsUrl(item) || !websiteUrl?.trim()) return undefined;
   return [{ type: 'URL', url: { base_url: websiteUrl.trim() } }];
 }

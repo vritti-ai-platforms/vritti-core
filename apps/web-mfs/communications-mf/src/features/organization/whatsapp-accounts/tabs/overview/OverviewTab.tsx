@@ -34,6 +34,17 @@ export const OverviewTab = ({ account }: OverviewTabProps) => (
             )
           }
         />
+        <DetailField
+          label="Webhooks"
+          type="string"
+          value={
+            account.webhooksSubscribed ? (
+              <Badge variant="success">Subscribed</Badge>
+            ) : (
+              <Badge variant="destructive">Not subscribed</Badge>
+            )
+          }
+        />
         <DetailField label="WABA ID" type="string" value={account.wabaId} mono />
         <DetailField label="Business portfolio ID" type="string" value={account.metaBusinessId} mono />
         <DetailField label="Connected" type="dateTime" value={account.createdAt} />

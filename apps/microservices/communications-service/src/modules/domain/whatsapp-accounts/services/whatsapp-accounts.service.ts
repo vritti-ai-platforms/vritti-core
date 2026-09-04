@@ -92,6 +92,7 @@ export class WhatsappAccountsDomainService {
       accessToken: data.accessToken,
       isDefault,
       isActive: data.isActive ?? true,
+      webhooksSubscribed: data.webhooksSubscribed ?? false,
     });
 
     this.logger.log(`Connected WhatsApp account ${entity.wabaId} (${entity.id})`);
@@ -109,6 +110,32 @@ export class WhatsappAccountsDomainService {
     return WhatsappAccountDto.from(entity);
   }
 
+  // The account holding this WABA in the current organization, if any. RLS scopes the lookup, so a
+  // WABA connected by a different organization reads as absent here.
+  async findByWabaId(wabaId: string): Promise<WhatsappAccountDto | undefined> {
+    const entity = await this.repository.findByWabaId(wabaId);
+    return entity ? WhatsappAccountDto.from(entity) : undefined;
+  }
+
+  /**
+   * Overwrites the stored credential after a re-run of Embedded Signup.
+   *
+   * `isActive` is deliberately left alone: it is an operator's own switch, and a reconnect is a
+   * credential repair, not a decision to start sending again. Name and business portfolio are
+   * refreshed because Meta is authoritative for both and either can change between connects.
+   */
+  async replaceCredentials(
+    id: string,
+    data: { accessToken: string; name: string; metaBusinessId: string; webhooksSubscribed: boolean },
+  ): Promise<WhatsappAccountDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('WhatsApp account not found.');
+
+    const entity = await this.repository.update(id, data);
+    this.logger.log(`Replaced credentials on WhatsApp account ${existing.wabaId} (${id})`);
+    return WhatsappAccountDto.from(entity);
+  }
+
   // Resolves the WABA id and access token for Meta Graph calls made by sibling domain services.
   // Internal to the domain layer — never exposed through a message pattern, so the credential
   // stays inside this service's boundary
@@ -118,7 +145,7 @@ export class WhatsappAccountsDomainService {
     return { wabaId: entity.wabaId, accessToken: entity.accessToken };
   }
 
-  // Updates a WhatsApp account; an omitted accessToken leaves the stored credential untouched
+  // Updates a WhatsApp account's own settings. Credentials go through replaceCredentials instead.
   async update(id: string, data: Omit<UpdateWhatsappAccountDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('WhatsApp account not found.');

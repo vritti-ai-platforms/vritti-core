@@ -1,6 +1,6 @@
 import { CreateWhatsappTemplateDto } from '@communications/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
 import { SendWhatsappTemplateTestDto } from '@communications/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
-import type { TemplateLibraryItemResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-item-response.dto';
+import type { TemplateLibraryPageResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-page-response.dto';
 import type { WhatsappTemplateResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-response.dto';
 import type { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
 import {
@@ -64,9 +64,21 @@ export class WhatsappAccountsTemplatesGatewayController {
     @Query('topic') topic?: string,
     @Query('language') language?: string,
     @Query('category') category?: string,
-  ): Promise<TemplateLibraryItemResponseDto[]> {
+    @Query('cursor') cursor?: string,
+    // Coerced here rather than with a pipe: a garbage value should fall back to the service default
+    // instead of 400-ing a gallery browse
+    @Query('limit') limit?: string,
+  ): Promise<TemplateLibraryPageResponseDto> {
     this.logger.log(`GET /communications-api/whatsapp-accounts/${id}/templates/library`);
-    return this.service.listLibrary(id, { search, topic, language, category });
+    const parsed = Number(limit);
+    return this.service.listLibrary(id, {
+      search,
+      topic,
+      language,
+      category,
+      cursor,
+      limit: Number.isFinite(parsed) && parsed > 0 ? parsed : undefined,
+    });
   }
 
   // Distinct languages the library ships templates in — feeds the create wizard's language selector

@@ -1,5 +1,7 @@
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+// No accessToken field on purpose: a credential may only be written by the Embedded Signup flow,
+// which verifies the grant against Meta first. forbidNonWhitelisted rejects one sent here.
+import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateWhatsappAccountDto {
   @IsUUID()
@@ -14,12 +16,6 @@ export class UpdateWhatsappAccountDto {
   @IsString()
   @MaxLength(255)
   name?: string;
-
-  @Trim({ nullify: false })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  accessToken?: string;
 
   @IsOptional()
   @IsBoolean()

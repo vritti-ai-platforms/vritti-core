@@ -33,6 +33,14 @@ export interface TemplateLibraryItemData {
   buttons: Record<string, unknown>[];
 }
 
+// Mirrors TemplateLibraryPageResponseDto. Fewer than the requested count alongside a non-null
+// cursor is normal: Meta ignores `category` as a query param, so the server narrows it while walking
+// cursor pages — the cursor, not the item count, says whether more remain.
+export interface TemplateLibraryPageData {
+  items: TemplateLibraryItemData[];
+  nextCursor: string | null;
+}
+
 export interface CreateWhatsappTemplateData {
   name: string;
   language: string;

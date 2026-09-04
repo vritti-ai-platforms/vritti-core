@@ -2,6 +2,7 @@ import { MetaGraphHttpService } from '@domain/meta-graph/services/meta-graph-htt
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { type MetaGraphLibraryTemplate, TemplateLibraryItemDto } from '../dto/entity/template-library-item.dto';
+import type { TemplateLibraryPageDto } from '../dto/entity/template-library-page.dto';
 import { type MetaGraphTemplate, WhatsappTemplateDto } from '../dto/entity/whatsapp-template.dto';
 import type { CreateWhatsappTemplateDto } from '../dto/request/create-whatsapp-template.dto';
 import type { SendWhatsappTemplateTestDto } from '../dto/request/send-whatsapp-template-test.dto';
@@ -11,11 +12,30 @@ const TEMPLATE_FIELDS = 'id,name,status,category,language,quality_score,rejected
 const LIBRARY_FIELDS =
   'id,name,language,category,topic,usecase,industry,header,body,body_params,body_param_types,buttons';
 
+// How many matching entries a page of the gallery asks for
 const LIBRARY_PAGE_LIMIT = 24;
 
-// Meta's library browse ignores `category` as a filter (it is a field on entries, not a query
-// param), so filtering happens here — fetch a deep page and narrow it in code
+// Entries requested per underlying Meta call while collecting that page
 const LIBRARY_FETCH_LIMIT = 100;
+
+/**
+ * Ceiling on Meta calls per request.
+ *
+ * `category` is NOT honoured as a query parameter — verified against Graph: `language=en_US` filters
+ * correctly, `language=en_US&category=UTILITY` still returns AUTHENTICATION entries. So category is
+ * narrowed here, which means a page of matches can require walking several Meta pages. The cap stops
+ * a rare category/language combination from turning one request into an unbounded crawl.
+ */
+const LIBRARY_MAX_PAGES = 8;
+
+// Pages walked when collecting the distinct language list. Bounded for the same reason, and the
+// result is cached hard by the caller since it never meaningfully changes.
+const LANGUAGE_MAX_PAGES = 6;
+
+interface MetaGraphPagedResponse<T> {
+  data?: T[];
+  paging?: { cursors?: { after?: string }; next?: string };
+}
 
 // One page covers every realistic WABA today; Graph paging support is deferred until an account
 // actually outgrows it
@@ -55,47 +75,92 @@ export class WhatsappAccountTemplatesDomainService {
     return (response.data ?? []).map(WhatsappTemplateDto.from);
   }
 
-  // Browses Meta's library of pre-written templates. The library is global (not WABA-scoped) but
-  // still needs a token, so it is resolved through the account like every other Graph call
+  /**
+   * Browses Meta's library of pre-written templates. The library is global (not WABA-scoped) but
+   * still needs a token, so it is resolved through the account like every other Graph call.
+   *
+   * Walks Meta's cursor pages until it has a full page of matches, because the library is far larger
+   * than one page and `category` is filtered here rather than by Meta. Returning fewer than
+   * `limit` items alongside a non-null cursor is normal — the caller keeps asking.
+   */
   async listLibrary(
     credentials: GraphCredentials,
-    filters: { search?: string; topic?: string; language?: string; category?: string } = {},
-  ): Promise<TemplateLibraryItemDto[]> {
+    filters: {
+      search?: string;
+      topic?: string;
+      language?: string;
+      category?: string;
+      limit?: number;
+      cursor?: string;
+    } = {},
+  ): Promise<TemplateLibraryPageDto> {
     const { accessToken } = credentials;
-    const response = await this.metaGraph.get<{ data: MetaGraphLibraryTemplate[] }>(
-      accessToken,
-      '/message_template_library',
-      {
-        fields: LIBRARY_FIELDS,
-        limit: LIBRARY_FETCH_LIMIT,
-        ...(filters.search ? { search: filters.search } : {}),
-        ...(filters.topic ? { topic: filters.topic } : {}),
-        ...(filters.language ? { language: filters.language } : {}),
-        ...(filters.category ? { category: filters.category } : {}),
-      },
+    const wanted = filters.limit ?? LIBRARY_PAGE_LIMIT;
+    const category = filters.category?.toUpperCase();
+
+    const matches: MetaGraphLibraryTemplate[] = [];
+    let cursor = filters.cursor;
+    let pages = 0;
+
+    do {
+      const response = await this.metaGraph.get<MetaGraphPagedResponse<MetaGraphLibraryTemplate>>(
+        accessToken,
+        '/message_template_library',
+        {
+          fields: LIBRARY_FIELDS,
+          limit: LIBRARY_FETCH_LIMIT,
+          ...(filters.search ? { search: filters.search } : {}),
+          ...(filters.topic ? { topic: filters.topic } : {}),
+          // Honoured by Meta, unlike category — still sent so the crawl starts already narrowed
+          ...(filters.language ? { language: filters.language } : {}),
+          ...(cursor ? { after: cursor } : {}),
+        },
+      );
+      pages += 1;
+
+      for (const item of response.data ?? []) {
+        if (category && item.category?.toUpperCase() !== category) continue;
+        matches.push(item);
+      }
+
+      // A missing `next` means the library is exhausted, so there is nothing to resume from
+      cursor = response.paging?.next ? response.paging.cursors?.after : undefined;
+    } while (cursor && matches.length < wanted && pages < LIBRARY_MAX_PAGES);
+
+    this.logger.log(
+      `Library browse — ${matches.length} match(es) over ${pages} Meta page(s) (category=${category ?? 'any'}, language=${filters.language ?? 'any'})`,
     );
 
-    // Meta honors search/language/topic but not category — enforce every filter here so the
-    // gallery never shows entries outside the wizard's selection
-    const category = filters.category?.toUpperCase();
-    const matches = (response.data ?? []).filter(
-      (item) =>
-        (!category || item.category?.toUpperCase() === category) &&
-        (!filters.language || item.language === filters.language),
-    );
-    return matches.slice(0, LIBRARY_PAGE_LIMIT).map(TemplateLibraryItemDto.from);
+    // Whole pages only: slicing to `wanted` would drop matches the cursor has already advanced past
+    return { items: matches.map(TemplateLibraryItemDto.from), nextCursor: cursor ?? null };
   }
 
-  // Distinct languages the library ships templates in — the panel's language selector is fed
-  // from Meta rather than a hardcoded list
+  /**
+   * Distinct languages the library ships templates in, fed to the wizard's selector.
+   *
+   * Pages rather than reading one batch: entries are not grouped by language, so a single page
+   * surfaces an arbitrary handful (nb, fr, mr, hu, sv…) and the selector ends up neither complete
+   * nor stable. Bounded by LANGUAGE_MAX_PAGES, and the caller caches the result.
+   */
   async listLibraryLanguages(credentials: GraphCredentials): Promise<string[]> {
     const { accessToken } = credentials;
-    const response = await this.metaGraph.get<{ data: { language?: string }[] }>(
-      accessToken,
-      '/message_template_library',
-      { fields: 'language', limit: 100 },
-    );
-    const languages = new Set((response.data ?? []).map((item) => item.language).filter((l): l is string => !!l));
+    const languages = new Set<string>();
+    let cursor: string | undefined;
+    let pages = 0;
+
+    do {
+      const response = await this.metaGraph.get<MetaGraphPagedResponse<{ language?: string }>>(
+        accessToken,
+        '/message_template_library',
+        { fields: 'language', limit: LIBRARY_FETCH_LIMIT, ...(cursor ? { after: cursor } : {}) },
+      );
+      pages += 1;
+      for (const item of response.data ?? []) {
+        if (item.language) languages.add(item.language);
+      }
+      cursor = response.paging?.next ? response.paging.cursors?.after : undefined;
+    } while (cursor && pages < LANGUAGE_MAX_PAGES);
+
     return [...languages].sort();
   }
 

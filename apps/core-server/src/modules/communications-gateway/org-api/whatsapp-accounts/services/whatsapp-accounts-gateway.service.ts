@@ -1,14 +1,20 @@
-import type { CreateWhatsappAccountDto } from '@communications/whatsapp-accounts/dto/request/create-whatsapp-account.dto';
+import type { ConnectEmbeddedSignupDto } from '@communications/whatsapp-accounts/dto/request/connect-embedded-signup.dto';
 import type { UpdateWhatsappAccountDto } from '@communications/whatsapp-accounts/dto/request/update-whatsapp-account.dto';
+import type { EmbeddedSignupConfigResponseDto } from '@communications/whatsapp-accounts/dto/response/embedded-signup-config-response.dto';
 import type { WhatsappAccountResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-response.dto';
 import type { WhatsappAccountTableResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
+
+// Must track GRAPH_API_VERSION in communications-service's MetaGraphHttpService: the popup and the
+// server-side calls that follow it have to speak the same Graph version.
+const GRAPH_API_VERSION = 'v25.0';
 
 @Injectable()
 export class WhatsappAccountsGatewayService {
@@ -18,7 +24,29 @@ export class WhatsappAccountsGatewayService {
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
     private readonly appService: AppDomainService,
+    private readonly configService: ConfigService,
   ) {}
+
+  // Public values only — the app secret stays in communications-service, which is where the code
+  // exchange happens, so the minted token never crosses NATS
+  embeddedSignupConfig(): EmbeddedSignupConfigResponseDto {
+    const configId = this.configService.get<string>('META_EMBEDDED_SIGNUP_CONFIG_ID') ?? null;
+    return {
+      appId: this.configService.getOrThrow<string>('META_CLIENT_ID'),
+      configId,
+      graphVersion: GRAPH_API_VERSION,
+      // Unset until the Meta app's Facebook Login for Business configuration exists, so the UI can
+      // hide the button instead of opening a popup that fails
+      enabled: Boolean(configId),
+    };
+  }
+
+  // Connects a WABA from an Embedded Signup result. The authorization code is forwarded, never the
+  // token — the exchange and the ownership check both happen downstream.
+  connectEmbedded(dto: ConnectEmbeddedSignupDto): Promise<CreateResponseDto<WhatsappAccountResponseDto>> {
+    this.logger.log(`whatsappAccounts.connectEmbedded — waba: ${dto.wabaId}, event: ${dto.event}`);
+    return this.nats.send('communications', 'org.whatsappAccounts.connectEmbedded', dto);
+  }
 
   // Returns paginated, filtered, and sorted WhatsApp accounts for the data table
   async findForTable(userId: string): Promise<WhatsappAccountTableResponseDto> {
@@ -37,10 +65,10 @@ export class WhatsappAccountsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Connects a WhatsApp Business Account to this organization
-  create(dto: CreateWhatsappAccountDto): Promise<CreateResponseDto<WhatsappAccountResponseDto>> {
-    this.logger.log(`whatsappAccounts.create — waba: ${dto.wabaId}`);
-    return this.nats.send('communications', 'org.whatsappAccounts.create', dto);
+  // Replaces one account's credential from a fresh signup result, keeping its id
+  reconnect(id: string, dto: ConnectEmbeddedSignupDto): Promise<SuccessResponseDto> {
+    this.logger.log(`whatsappAccounts.reconnectEmbedded — id: ${id}, waba: ${dto.wabaId}`);
+    return this.nats.send('communications', 'org.whatsappAccounts.reconnectEmbedded', { id, ...dto });
   }
 
   // Finds a WhatsApp account by ID

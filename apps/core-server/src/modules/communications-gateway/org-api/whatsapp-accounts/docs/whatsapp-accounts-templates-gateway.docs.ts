@@ -1,6 +1,6 @@
 import { CreateWhatsappTemplateDto } from '@communications/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
 import { SendWhatsappTemplateTestDto } from '@communications/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
-import { TemplateLibraryItemResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-item-response.dto';
+import { TemplateLibraryPageResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-page-response.dto';
 import { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
@@ -31,7 +31,7 @@ export function ApiGetWhatsappTemplateLibrary() {
     ApiQuery({ name: 'topic', required: false }),
     ApiQuery({ name: 'language', required: false }),
     ApiQuery({ name: 'category', required: false }),
-    ApiResponse({ status: 200, description: 'Library entries retrieved.', type: [TemplateLibraryItemResponseDto] }),
+    ApiResponse({ status: 200, description: 'Library entries retrieved.', type: TemplateLibraryPageResponseDto }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

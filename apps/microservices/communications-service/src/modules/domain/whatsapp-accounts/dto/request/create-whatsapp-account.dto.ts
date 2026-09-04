@@ -36,4 +36,8 @@ export class CreateWhatsappAccountDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  webhooksSubscribed?: boolean;
 }

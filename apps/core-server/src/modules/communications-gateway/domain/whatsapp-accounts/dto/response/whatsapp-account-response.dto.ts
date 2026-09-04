@@ -22,6 +22,9 @@ export class WhatsappAccountResponseDto {
   @ApiProperty({ description: 'Whether the connection is usable' })
   isActive: boolean;
 
+  @ApiProperty({ description: 'Whether Vritti is subscribed to this WABA’s Meta webhooks' })
+  webhooksSubscribed: boolean;
+
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
 

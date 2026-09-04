@@ -3,7 +3,7 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type {
   CreateWhatsappTemplateData,
   SendWhatsappTemplateTestData,
-  TemplateLibraryItemData,
+  TemplateLibraryPageData,
   WhatsappTemplateData,
   WhatsappTemplatesTableResponse,
 } from '@/schemas/whatsapp-templates';
@@ -21,14 +21,16 @@ export interface TemplateLibraryFilters {
   category?: string;
 }
 
-// Browses Meta's library of pre-written, pre-approved templates
+// Browses Meta's library of pre-written, pre-approved templates. One cursor page per call — the
+// library is far larger than a page and the server narrows category while walking it.
 export function getWhatsappTemplateLibrary(
   accountId: string,
   filters: TemplateLibraryFilters,
-): Promise<TemplateLibraryItemData[]> {
+  cursor?: string,
+): Promise<TemplateLibraryPageData> {
   return axios
-    .get<TemplateLibraryItemData[]>(`communications-api/whatsapp-accounts/${accountId}/templates/library`, {
-      params: filters,
+    .get<TemplateLibraryPageData>(`communications-api/whatsapp-accounts/${accountId}/templates/library`, {
+      params: { ...filters, ...(cursor ? { cursor } : {}) },
     })
     .then((r) => r.data);
 }

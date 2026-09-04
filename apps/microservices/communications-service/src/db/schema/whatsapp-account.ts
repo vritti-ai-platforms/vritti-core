@@ -24,6 +24,10 @@ export const whatsappAccounts = communicationsSchema.table(
     accessToken: text('access_token').notNull(),
     isDefault: boolean('is_default').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
+    // Whether POST /{waba}/subscribed_apps succeeded. Not derivable without a Graph call per row,
+    // and the subscription can fail after the single-use signup code is already spent — so the
+    // connect stores the row anyway and this flag drives the repair action.
+    webhooksSubscribed: boolean('webhooks_subscribed').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

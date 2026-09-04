@@ -143,9 +143,19 @@ class EnvironmentVariables {
   CACHE_DRIVER?: 'lru' | 'redis';
 
   // Meta app for tenant WhatsApp — distinct from cloud-server's onboarding app
+  // Public app id, served to the browser so it can open the Embedded Signup popup
+  @IsString()
+  META_CLIENT_ID: string;
+
   // Verifies X-Hub-Signature-256 on delivery callbacks
   @IsString()
   META_CLIENT_SECRET: string;
+
+  // Facebook Login for Business configuration id that drives Embedded Signup. Optional on purpose:
+  // a deployment whose Meta app is not configured yet still boots, and the UI reports it disabled.
+  @IsOptional()
+  @IsString()
+  META_EMBEDDED_SIGNUP_CONFIG_ID?: string;
 
   // Answers Meta's hub.challenge handshake when the callback URL is registered
   @IsString()

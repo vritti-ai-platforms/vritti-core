@@ -4,10 +4,13 @@ import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Star } from 'lucide-react';
+import { Facebook, Star } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   useDeleteWhatsappAccount,
+  useEmbeddedSignup,
+  useEmbeddedSignupConfig,
+  useReconnectWhatsappAccount,
   useUpdateWhatsappAccount,
   useWhatsappAccount,
 } from '@/hooks/organization/whatsapp-accounts';
@@ -23,11 +26,20 @@ export const WhatsappAccountDetailPage = () => {
   const updateMutation = useUpdateWhatsappAccount();
   const deleteMutation = useDeleteWhatsappAccount({ onSuccess: () => navigate('..', { relative: 'path' }) });
 
+  // Reconnect is the only way to supply a fresh credential — there is no manual token entry — so it
+  // stays available at all times rather than appearing only once something has visibly broken
+  const { data: signupConfig } = useEmbeddedSignupConfig();
+  const reconnectMutation = useReconnectWhatsappAccount();
+  const { open: openReconnect, isOpening } = useEmbeddedSignup({
+    config: signupConfig,
+    onComplete: (result) => reconnectMutation.mutate({ id: account.id, data: result }),
+  });
+
   const handleDelete = async () => {
     const confirmed = await confirm({
       title: `Disconnect "${account.name}"?`,
       description:
-        'Vritti stops sending from this WhatsApp Business Account and forgets its access token. The account itself is untouched in Meta and can be reconnected.',
+        'Vritti stops sending from this WhatsApp Business Account and forgets its access token. The account itself is untouched in Meta and can be connected again.',
       confirmLabel: 'Disconnect',
       variant: 'destructive',
     });
@@ -40,17 +52,35 @@ export const WhatsappAccountDetailPage = () => {
         title={account.name}
         description={`WABA ${account.wabaId}`}
         actions={
-          !account.isDefault && (
+          <>
+            {!account.isDefault && (
+              <Button
+                variant="outline"
+                startAdornment={<Star className="size-4" />}
+                permission={ORG_WHATSAPP_ACCOUNTS.edit}
+                isLoading={updateMutation.isPending}
+                onClick={() => updateMutation.mutate({ id: account.id, data: { isDefault: true } })}
+              >
+                Set as default
+              </Button>
+            )}
             <Button
               variant="outline"
-              startAdornment={<Star className="size-4" />}
+              startAdornment={<Facebook className="size-4" />}
               permission={ORG_WHATSAPP_ACCOUNTS.edit}
-              isLoading={updateMutation.isPending}
-              onClick={() => updateMutation.mutate({ id: account.id, data: { isDefault: true } })}
+              isLoading={isOpening || reconnectMutation.isPending}
+              loadingText="Reconnecting..."
+              disabled={!signupConfig?.enabled}
+              disabledTip={
+                signupConfig && !signupConfig.enabled
+                  ? 'WhatsApp sign-up is not configured for this environment yet.'
+                  : undefined
+              }
+              onClick={openReconnect}
             >
-              Set as default
+              Reconnect
             </Button>
-          )
+          </>
         }
       />
 

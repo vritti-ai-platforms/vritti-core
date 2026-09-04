@@ -1,4 +1,4 @@
-import { TemplateLibraryItemDto } from '@domain/whatsapp-account-templates/dto/entity/template-library-item.dto';
+import { TemplateLibraryPageDto } from '@domain/whatsapp-account-templates/dto/entity/template-library-page.dto';
 import { WhatsappTemplateDto } from '@domain/whatsapp-account-templates/dto/entity/whatsapp-template.dto';
 import { CreateWhatsappTemplateDto } from '@domain/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
 import { SendWhatsappTemplateTestDto } from '@domain/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
@@ -21,8 +21,17 @@ export class WhatsappAccountsTemplatesController {
 
   @MessagePattern({ cmd: 'org.whatsappAccounts.templates.libraryList' })
   async libraryList(
-    @Payload() data: { accountId: string; search?: string; topic?: string; language?: string; category?: string },
-  ): Promise<TemplateLibraryItemDto[]> {
+    @Payload()
+    data: {
+      accountId: string;
+      search?: string;
+      topic?: string;
+      language?: string;
+      category?: string;
+      limit?: number;
+      cursor?: string;
+    },
+  ): Promise<TemplateLibraryPageDto> {
     const { accountId, ...filters } = data;
     this.logger.log(`whatsappAccounts.templates.libraryList — account: ${accountId}`);
     return this.service.listLibrary(accountId, filters);

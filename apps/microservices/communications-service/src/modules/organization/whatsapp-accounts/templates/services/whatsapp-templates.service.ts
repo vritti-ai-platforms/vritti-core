@@ -1,4 +1,4 @@
-import type { TemplateLibraryItemDto } from '@domain/whatsapp-account-templates/dto/entity/template-library-item.dto';
+import type { TemplateLibraryPageDto } from '@domain/whatsapp-account-templates/dto/entity/template-library-page.dto';
 import type { WhatsappTemplateDto } from '@domain/whatsapp-account-templates/dto/entity/whatsapp-template.dto';
 import type { CreateWhatsappTemplateDto } from '@domain/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
 import type { SendWhatsappTemplateTestDto } from '@domain/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
@@ -24,11 +24,11 @@ export class WhatsappTemplatesService {
     return this.templatesService.list(await this.credentials(accountId));
   }
 
-  // Browses Meta's library of pre-written templates
+  // Browses Meta's library of pre-written templates, one cursor page of matches at a time
   async listLibrary(
     accountId: string,
-    filters: { search?: string; topic?: string; language?: string; category?: string },
-  ): Promise<TemplateLibraryItemDto[]> {
+    filters: { search?: string; topic?: string; language?: string; category?: string; limit?: number; cursor?: string },
+  ): Promise<TemplateLibraryPageDto> {
     return this.templatesService.listLibrary(await this.credentials(accountId), filters);
   }
 

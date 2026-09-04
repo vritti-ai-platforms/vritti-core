@@ -1,6 +1,6 @@
 import type { CreateWhatsappTemplateDto } from '@communications/whatsapp-account-templates/dto/request/create-whatsapp-template.dto';
 import type { SendWhatsappTemplateTestDto } from '@communications/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
-import type { TemplateLibraryItemResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-item-response.dto';
+import type { TemplateLibraryPageResponseDto } from '@communications/whatsapp-account-templates/dto/response/template-library-page-response.dto';
 import type { WhatsappTemplateResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-response.dto';
 import type { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
@@ -35,11 +35,11 @@ export class WhatsappAccountsTemplatesGatewayService {
     return { result, count: result.length, state, activeViewId };
   }
 
-  // Browses Meta's library of pre-written templates
+  // Browses Meta's library of pre-written templates, one cursor page of matches at a time
   listLibrary(
     accountId: string,
-    filters: { search?: string; topic?: string; language?: string; category?: string },
-  ): Promise<TemplateLibraryItemResponseDto[]> {
+    filters: { search?: string; topic?: string; language?: string; category?: string; limit?: number; cursor?: string },
+  ): Promise<TemplateLibraryPageResponseDto> {
     this.logger.log(`whatsappAccounts.templates.libraryList — account: ${accountId}`);
     return this.nats.send('communications', 'org.whatsappAccounts.templates.libraryList', {
       accountId,

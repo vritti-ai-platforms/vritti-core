@@ -49,6 +49,10 @@ class EnvironmentVariables {
   @IsOptional()
   WHATSAPP_API_VERSION: string;
 
+  // Meta app id — pairs with the secret for the Embedded Signup code exchange and /debug_token
+  @IsString()
+  META_CLIENT_ID: string;
+
   // Meta app secret — "Require app secret" is on, so every Graph call must carry appsecret_proof
   @IsString()
   META_CLIENT_SECRET: string;

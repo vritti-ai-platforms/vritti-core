@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   BadRequestException,
   InternalServerErrorException,
@@ -6,20 +7,39 @@ import {
 } from '@vritti/api-sdk/exceptions';
 import { isAxiosError } from 'axios';
 
-// Meta Graph reports failures as { error: { message, type, code, error_data: { details } } }
+const logger = new Logger('MetaGraphError');
+
+// Meta Graph's error envelope. `error_user_title` / `error_user_msg` carry the human-readable
+// explanation and are the only fields worth showing an operator — `message` is frequently the
+// useless generic "Invalid parameter".
 interface MetaGraphApiError {
   error?: {
     message?: string;
     type?: string;
     code?: number;
+    error_subcode?: number;
+    error_user_title?: string;
+    error_user_msg?: string;
+    fbtrace_id?: string;
     error_data?: { details?: string };
   };
 }
 
+/**
+ * Codes that actually mean the stored credential is dead.
+ *
+ * Deliberately NOT keyed on `type === 'OAuthException'`: that is Meta's catch-all error type and it
+ * accompanies ordinary validation failures too (a rejected template button configuration comes back
+ * as OAuthException code 100). Treating the type as an auth failure told operators to reconnect a
+ * perfectly good account and threw away the real reason.
+ */
+const TOKEN_ERROR_CODES = new Set([190]);
+const TOKEN_ERROR_SUBCODES = new Set([102, 463, 467]);
+
 const TOKEN_REJECTED = {
   label: 'WhatsApp Token Rejected',
   detail:
-    'Meta rejected the access token stored for this account. Reconnect the account with a valid system-user token that has the whatsapp_business_management permission.',
+    'Meta rejected the access token stored for this account. This usually means Vritti was removed from the business portfolio. Use Reconnect on the account to grant access again.',
 };
 
 // Rethrows a failed Meta Graph call as an RFC 9457 problem. Unlike the git service's deployment-owned
@@ -39,12 +59,22 @@ export function rethrowMetaGraphError(error: unknown, detail: string): never {
   }
 
   const upstream = (error.response?.data as MetaGraphApiError | undefined)?.error;
-  const upstreamDetail = upstream?.error_data?.details ?? upstream?.message;
+  // error_user_msg first — it is the sentence Meta writes for a human. error_data.details and
+  // message are fallbacks, and message alone is often just "Invalid parameter".
+  const upstreamDetail = upstream?.error_user_msg ?? upstream?.error_data?.details ?? upstream?.message;
 
-  // Meta reports expired/invalidated tokens (OAuthException, code 190 — "session is invalid",
-  // "session has expired") with HTTP 400 as often as 401, so catch them by error type rather
-  // than status and surface the actionable reconnect message instead of Meta's raw session text
-  if (upstream?.code === 190 || upstream?.type === 'OAuthException') {
+  if (upstream) {
+    logger.warn(
+      `Meta Graph ${status} — code=${upstream.code ?? '?'} subcode=${upstream.error_subcode ?? '-'} type=${upstream.type ?? '?'} trace=${upstream.fbtrace_id ?? '-'} :: ${upstream.error_user_title ?? ''} ${upstreamDetail ?? ''}`.trim(),
+    );
+  }
+
+  // A dead token is reported with HTTP 400 as often as 401, so it is caught by code rather than
+  // status — but only by the codes that genuinely mean it, never by the OAuthException type
+  if (
+    (upstream?.code !== undefined && TOKEN_ERROR_CODES.has(upstream.code)) ||
+    (upstream?.error_subcode !== undefined && TOKEN_ERROR_SUBCODES.has(upstream.error_subcode))
+  ) {
     throw new BadRequestException(TOKEN_REJECTED);
   }
 
@@ -57,7 +87,8 @@ export function rethrowMetaGraphError(error: unknown, detail: string): never {
     default:
       if (status >= 400 && status < 500) {
         throw new BadRequestException({
-          label: 'WhatsApp Request Rejected',
+          // Meta's own title when it wrote one — it names the problem better than a generic label
+          label: upstream?.error_user_title ?? 'WhatsApp Request Rejected',
           detail: upstreamDetail ?? detail,
         });
       }

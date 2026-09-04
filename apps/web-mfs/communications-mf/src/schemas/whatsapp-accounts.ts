@@ -1,25 +1,4 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
-import { z } from '@vritti/quantum-ui/zod';
-
-// Meta ids are numeric strings, not Vritti entity codes, so zodCodeField() does not apply.
-// Mirrors CreateWhatsappAccountDto on the gateway.
-export const connectWhatsappAccountSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255, 'Name must be at most 255 characters'),
-  metaBusinessId: z
-    .string()
-    .min(1, 'Business portfolio ID is required')
-    .max(64, 'Business portfolio ID must be at most 64 characters')
-    .regex(/^\d+$/, 'Numbers only'),
-  wabaId: z
-    .string()
-    .min(1, 'WABA ID is required')
-    .max(64, 'WABA ID must be at most 64 characters')
-    .regex(/^\d+$/, 'Numbers only'),
-  accessToken: z.string().min(1, 'Access token is required'),
-  isDefault: z.boolean(),
-});
-
-export type ConnectWhatsappAccountFormData = z.infer<typeof connectWhatsappAccountSchema>;
 
 export interface WhatsappAccountData {
   id: string;
@@ -29,26 +8,48 @@ export interface WhatsappAccountData {
   name: string;
   isDefault: boolean;
   isActive: boolean;
+  webhooksSubscribed: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export type WhatsappAccountsTableResponse = TableResponse<WhatsappAccountData>;
 
-export interface CreateWhatsappAccountData {
+export interface UpdateWhatsappAccountData {
   legalEntityId?: string | null;
-  metaBusinessId: string;
-  wabaId: string;
-  name: string;
-  accessToken: string;
+  name?: string;
   isDefault?: boolean;
   isActive?: boolean;
 }
 
-export interface UpdateWhatsappAccountData {
-  legalEntityId?: string | null;
-  name?: string;
-  accessToken?: string;
-  isDefault?: boolean;
-  isActive?: boolean;
+// Mirrors EmbeddedSignupConfigResponseDto — served per environment rather than baked into the bundle
+export interface EmbeddedSignupConfigData {
+  appId: string;
+  configId: string | null;
+  graphVersion: string;
+  enabled: boolean;
+}
+
+/**
+ * Terminal events the popup reports as a successful finish. CANCEL and ERROR are handled in the hook
+ * and never submitted.
+ *
+ * All five are treated as success because Meta says so — closing the popup on the final screen
+ * counts as completion, and each variant still returns the token code plus the asset ids.
+ */
+export type EmbeddedSignupEventName =
+  | 'FINISH'
+  | 'FINISH_ONLY_WABA'
+  | 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'
+  | 'FINISH_OBO_MIGRATION'
+  | 'FINISH_GRANT_ONLY_API_ACCESS';
+
+// Mirrors ConnectEmbeddedSignupDto. No zod schema: none of this is typed by a human, it is
+// assembled from the popup's two callbacks, and the server re-derives everything it trusts.
+export interface ConnectEmbeddedSignupData {
+  code: string;
+  wabaId: string;
+  phoneNumberId?: string;
+  businessId?: string;
+  event: EmbeddedSignupEventName;
 }

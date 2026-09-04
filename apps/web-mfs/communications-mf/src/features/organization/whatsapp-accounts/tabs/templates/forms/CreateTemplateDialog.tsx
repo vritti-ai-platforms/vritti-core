@@ -77,7 +77,13 @@ export const CreateTemplateDialog = ({ accountId, onSuccess, onCancel }: CreateT
     [languages],
   );
 
-  const { data: libraryItems, isLoading: isLibraryLoading } = useWhatsappTemplateLibrary(
+  const {
+    items: libraryItems,
+    isLoading: isLibraryLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useWhatsappTemplateLibrary(
     accountId,
     { search: debouncedSearch || undefined, language, category },
     { enabled: step === 'library' },
@@ -199,7 +205,7 @@ export const CreateTemplateDialog = ({ accountId, onSuccess, onCancel }: CreateT
                 <Skeleton className="h-36 w-full" />
                 <Skeleton className="h-36 w-full" />
               </>
-            ) : !libraryItems?.length ? (
+            ) : !libraryItems.length && !hasNextPage ? (
               <Typography variant="body2" intent="muted" className="col-span-full py-8 text-center">
                 No library templates match this category, language, and search.
               </Typography>
@@ -221,6 +227,23 @@ export const CreateTemplateDialog = ({ accountId, onSuccess, onCancel }: CreateT
               ))
             )}
           </div>
+
+          {/* A short page means the server ran out of Meta pages to scan, not out of matches —
+              category is narrowed server-side because Meta ignores it as a query parameter */}
+          {hasNextPage && (
+            <div className="flex justify-center pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                isLoading={isFetchingNextPage}
+                loadingText="Loading..."
+                onClick={() => fetchNextPage()}
+              >
+                Load more templates
+              </Button>
+            </div>
+          )}
         </div>
         <DialogActions>
           <Button
@@ -241,16 +264,21 @@ export const CreateTemplateDialog = ({ accountId, onSuccess, onCancel }: CreateT
       <Form
         form={libraryForm}
         mutation={createMutation}
-        transformSubmit={(data: LibraryConfigFormData) => ({
-          accountId,
-          data: {
-            name: data.name,
-            language,
-            category: (selected.category as WhatsappTemplateCategory) ?? category,
-            libraryTemplateName: selected.name,
-            libraryTemplateButtonInputs: buildLibraryButtonInputs(selected, data.websiteUrl),
-          },
-        })}
+        transformSubmit={(data: LibraryConfigFormData) => {
+          // The library entry's own category wins — it is what Meta will file the template under,
+          // and it decides which button inputs are mandatory
+          const resolvedCategory = (selected.category as WhatsappTemplateCategory) ?? category;
+          return {
+            accountId,
+            data: {
+              name: data.name,
+              language,
+              category: resolvedCategory,
+              libraryTemplateName: selected.name,
+              libraryTemplateButtonInputs: buildLibraryButtonInputs(selected, resolvedCategory, data.websiteUrl),
+            },
+          };
+        }}
       >
         <div className="space-y-4">
           <div className="flex justify-center">

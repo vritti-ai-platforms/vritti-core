@@ -10,25 +10,77 @@ import {
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
-import { Eye, MessageCircle, Plus } from 'lucide-react';
+import { Eye, Facebook, MessageCircle, Smartphone } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWhatsappAccounts, WHATSAPP_ACCOUNTS_TABLE_KEY } from '@/hooks/organization/whatsapp-accounts';
+import {
+  useConnectWhatsappAccountEmbedded,
+  useEmbeddedSignup,
+  useEmbeddedSignupConfig,
+  useWhatsappAccounts,
+  WHATSAPP_ACCOUNTS_TABLE_KEY,
+} from '@/hooks/organization/whatsapp-accounts';
 import type { WhatsappAccountData } from '@/schemas/whatsapp-accounts';
-import { ConnectWhatsappAccountDialog } from './forms/ConnectWhatsappAccountDialog';
 
 export const WhatsappAccountsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useWhatsappAccounts();
-  const connectDialog = useDialog();
 
-  // Every column carries an explicit size: DataTable takes the table's minWidth from their total, so the
-  // TanStack default of 150px each would force a horizontal scrollbar the content does not need.
+  const { data: signupConfig } = useEmbeddedSignupConfig();
+  const connectMutation = useConnectWhatsappAccountEmbedded();
+
+  // Two launchers over one mutation. The default flow refuses a number already live on the WhatsApp
+  // Business app, and only the coexistence flag takes one — Meta decides eligibility on its own
+  // screen, so the choice has to be the operator's, made before the popup opens.
+  const { open: openSignup, isOpening } = useEmbeddedSignup({
+    config: signupConfig,
+    onComplete: connectMutation.mutate,
+  });
+  const { open: openCoexistence, isOpening: isOpeningCoexistence } = useEmbeddedSignup({
+    config: signupConfig,
+    onComplete: connectMutation.mutate,
+    featureType: 'whatsapp_business_app_onboarding',
+  });
+
+  const signupDisabledTip =
+    signupConfig && !signupConfig.enabled ? 'WhatsApp sign-up is not configured for this environment yet.' : undefined;
+
+  // Plain functions, not components: an inline component would be a new type every render and
+  // remount the button mid-flight
+  const connectButton = (size?: 'sm') => (
+    <Button
+      size={size}
+      startAdornment={<Facebook className="size-4" />}
+      permission={ORG_WHATSAPP_ACCOUNTS.add}
+      isLoading={isOpening || connectMutation.isPending}
+      loadingText="Connecting..."
+      disabled={!signupConfig?.enabled}
+      disabledTip={signupDisabledTip}
+      onClick={openSignup}
+    >
+      Connect with Facebook
+    </Button>
+  );
+
+  const coexistenceButton = (size?: 'sm') => (
+    <Button
+      size={size}
+      variant="outline"
+      startAdornment={<Smartphone className="size-4" />}
+      permission={ORG_WHATSAPP_ACCOUNTS.add}
+      isLoading={isOpeningCoexistence}
+      loadingText="Connecting..."
+      disabled={!signupConfig?.enabled}
+      disabledTip={signupDisabledTip}
+      onClick={openCoexistence}
+    >
+      Use an existing number
+    </Button>
+  );
+
   const columns = useMemo<ColumnDef<WhatsappAccountData>[]>(
     () => [
       {
@@ -151,38 +203,24 @@ export const WhatsappAccountsPage = () => {
         ]}
         toolbarActions={{
           actions: (
-            <Button
-              size="sm"
-              startAdornment={<Plus className="size-4" />}
-              onClick={connectDialog.open}
-              permission={ORG_WHATSAPP_ACCOUNTS.add}
-            >
-              Connect account
-            </Button>
+            <>
+              {coexistenceButton('sm')}
+              {connectButton('sm')}
+            </>
           ),
         }}
         emptyStateConfig={{
           icon: MessageCircle,
           title: 'No WhatsApp accounts yet',
-          description: 'Connect a WhatsApp Business Account to send messages from your own number.',
+          description:
+            'Sign in with Facebook to grant Vritti access to a WhatsApp Business Account — nothing to copy or paste. Already running WhatsApp Business on the number you want? Pick "Use an existing number".',
           action: (
-            <Button
-              startAdornment={<Plus className="size-4" />}
-              onClick={connectDialog.open}
-              permission={ORG_WHATSAPP_ACCOUNTS.add}
-            >
-              Connect account
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {connectButton()}
+              {coexistenceButton()}
+            </div>
           ),
         }}
-      />
-
-      <Dialog
-        handle={connectDialog}
-        icon={MessageCircle}
-        title="Connect WhatsApp account"
-        description="Links a WhatsApp Business Account using a Meta system-user access token."
-        content={(close) => <ConnectWhatsappAccountDialog onSuccess={close} onCancel={close} />}
       />
     </div>
   );

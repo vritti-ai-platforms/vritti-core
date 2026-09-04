@@ -2028,18 +2028,9 @@
     },
     "/organizations/internal/roles": {
       "get": {
-        "description": "Returns all roles for an organization with their feature counts. Protected by request signature.",
+        "description": "Returns all roles for an organization with their feature counts. Protected by request signature. Org resolved from the signed x-org-id header.",
         "operationId": "RolesController_list",
         "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "query",
-            "description": "Organization ID",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "x-timestamp",
             "in": "header",
@@ -2053,6 +2044,15 @@
             "name": "x-signature",
             "in": "header",
             "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
             "required": true,
             "schema": {
               "type": "string"
@@ -3495,18 +3495,9 @@
         ]
       },
       "get": {
-        "description": "Returns a flat list of all sites for an organization, ordered by sort order.",
+        "description": "Returns a flat list of all sites for an organization, ordered by sort order. Org resolved from the signed x-org-id header.",
         "operationId": "SiteController_list",
         "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "query",
-            "description": "Organization ID",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "x-timestamp",
             "in": "header",
@@ -3520,6 +3511,15 @@
             "name": "x-signature",
             "in": "header",
             "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
             "required": true,
             "schema": {
               "type": "string"
@@ -3936,18 +3936,9 @@
         ]
       },
       "get": {
-        "description": "Returns a flat list of all site groups for an organization. Client builds the tree from parentId.",
+        "description": "Returns a flat list of all site groups for an organization. Client builds the tree from parentId. Org resolved from the signed x-org-id header.",
         "operationId": "SiteGroupController_list",
         "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "query",
-            "description": "Organization ID",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "x-timestamp",
             "in": "header",
@@ -3961,6 +3952,15 @@
             "name": "x-signature",
             "in": "header",
             "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
             "required": true,
             "schema": {
               "type": "string"
@@ -22642,17 +22642,48 @@
         ]
       }
     },
-    "/communications-api/whatsapp-accounts": {
+    "/communications-api/whatsapp-accounts/embedded-signup/config": {
+      "get": {
+        "description": "Returns the public Meta app id and Facebook Login for Business configuration id the browser needs to open the signup popup.",
+        "operationId": "WhatsappAccountsGatewayController_getEmbeddedSignupConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Embedded Signup configuration retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmbeddedSignupConfigResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get Embedded Signup configuration",
+        "tags": [
+          "Communications - WhatsApp Accounts"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/embedded-signup": {
       "post": {
-        "description": "Stores the WABA and its access token. The first account connected becomes the default sender.",
-        "operationId": "WhatsappAccountsGatewayController_create",
+        "description": "Exchanges the popup's authorization code for a business integration token, verifies the token actually grants whatsapp_business_management on the reported WABA, then stores the account with its name and business portfolio read from Meta. The first account connected becomes the default sender.",
+        "operationId": "WhatsappAccountsGatewayController_connectEmbedded",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateWhatsappAccountDto"
+                "$ref": "#/components/schemas/ConnectEmbeddedSignupDto"
               }
             }
           }
@@ -22668,6 +22699,9 @@
               }
             }
           },
+          "400": {
+            "description": "The signup code was rejected, or the token does not grant access to that WABA."
+          },
           "401": {
             "description": "Unauthorized."
           },
@@ -22680,7 +22714,61 @@
             "bearer": []
           }
         ],
-        "summary": "Connect a WhatsApp Business Account",
+        "summary": "Connect a WhatsApp Business Account via Embedded Signup",
+        "tags": [
+          "Communications - WhatsApp Accounts"
+        ]
+      }
+    },
+    "/communications-api/whatsapp-accounts/{id}/reconnect": {
+      "post": {
+        "description": "Replaces the stored credential from a fresh signup result, keeping the same account row so an app OTP configuration pointing at it survives. The selected WABA must match the one this connection already holds.",
+        "operationId": "WhatsappAccountsGatewayController_reconnect",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "WhatsApp account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectEmbeddedSignupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "WhatsApp account reconnected.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A different WABA was selected, the signup code was rejected, or access was not granted."
+          },
+          "404": {
+            "description": "WhatsApp account not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reconnect a WhatsApp account via Embedded Signup",
         "tags": [
           "Communications - WhatsApp Accounts"
         ]
@@ -22726,7 +22814,7 @@
         ]
       },
       "patch": {
-        "description": "Omitting accessToken leaves the stored credential untouched.",
+        "description": "Updates the account's own settings. Credentials cannot be written here — use reconnect, which verifies the grant with Meta first.",
         "operationId": "WhatsappAccountsGatewayController_update",
         "parameters": [
           {
@@ -23352,6 +23440,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "cursor",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -23360,10 +23464,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TemplateLibraryItemResponseDto"
-                  }
+                  "$ref": "#/components/schemas/TemplateLibraryPageResponseDto"
                 }
               }
             }
@@ -35205,6 +35306,10 @@
             "type": "boolean",
             "description": "Whether the connection is usable"
           },
+          "webhooksSubscribed": {
+            "type": "boolean",
+            "description": "Whether Vritti is subscribed to this WABA’s Meta webhooks"
+          },
           "createdAt": {
             "type": "string",
             "description": "ISO timestamp of creation"
@@ -35221,6 +35326,7 @@
           "name",
           "isDefault",
           "isActive",
+          "webhooksSubscribed",
           "createdAt",
           "updatedAt"
         ]
@@ -35252,43 +35358,71 @@
           "state"
         ]
       },
-      "CreateWhatsappAccountDto": {
+      "EmbeddedSignupConfigResponseDto": {
         "type": "object",
         "properties": {
-          "legalEntityId": {
+          "appId": {
+            "type": "string",
+            "description": "Meta app id"
+          },
+          "configId": {
             "type": "object",
-            "description": "Legal entity that owns this WABA; omit for an organization-wide account"
+            "description": "Facebook Login for Business configuration id. Absent until the Meta app is configured."
           },
-          "metaBusinessId": {
+          "graphVersion": {
             "type": "string",
-            "example": "1234567890123456"
+            "description": "Graph API version the popup should initialise with",
+            "example": "v25.0"
           },
-          "wabaId": {
-            "type": "string",
-            "example": "9876543210987654"
-          },
-          "name": {
-            "type": "string",
-            "example": "Desi Taakat"
-          },
-          "accessToken": {
-            "type": "string",
-            "description": "Long-lived Meta system-user access token"
-          },
-          "isDefault": {
+          "enabled": {
             "type": "boolean",
-            "default": false
-          },
-          "isActive": {
-            "type": "boolean",
-            "default": true
+            "description": "Whether Embedded Signup can be started. False while the configuration id is unset."
           }
         },
         "required": [
-          "metaBusinessId",
+          "appId",
+          "graphVersion",
+          "enabled"
+        ]
+      },
+      "ConnectEmbeddedSignupDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Short-lived, single-use OAuth authorization code from the Facebook Login for Business callback. Never stored."
+          },
+          "wabaId": {
+            "type": "string",
+            "description": "WABA id from the popup's WA_EMBEDDED_SIGNUP message. Untrusted — the exchanged token's granular scopes are what prove control of the account.",
+            "example": "9876543210987654"
+          },
+          "phoneNumberId": {
+            "type": "string",
+            "description": "Sender the popup provisioned. Absent when the user finished without adding a number.",
+            "example": "1234567890123456"
+          },
+          "businessId": {
+            "type": "string",
+            "description": "The customer's business portfolio, reported by the popup. Preferred over deriving it from the WABA's owner_business_info, which needs business_management advanced access.",
+            "example": "2729063490586005"
+          },
+          "event": {
+            "type": "string",
+            "enum": [
+              "FINISH",
+              "FINISH_ONLY_WABA",
+              "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING",
+              "FINISH_OBO_MIGRATION",
+              "FINISH_GRANT_ONLY_API_ACCESS"
+            ],
+            "description": "Terminal event the popup reported. CANCEL and ERROR are dropped client-side."
+          }
+        },
+        "required": [
+          "code",
           "wabaId",
-          "name",
-          "accessToken"
+          "event"
         ]
       },
       "UpdateWhatsappAccountDto": {
@@ -35299,10 +35433,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "accessToken": {
-            "type": "string",
-            "description": "Send only to rotate the token; omitting it leaves the stored one in place"
           },
           "isDefault": {
             "type": "boolean"
@@ -35727,6 +35857,24 @@
           "body",
           "bodyParams",
           "buttons"
+        ]
+      },
+      "TemplateLibraryPageResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TemplateLibraryItemResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "object",
+            "description": "Meta's opaque cursor to resume from; null when the library is exhausted."
+          }
+        },
+        "required": [
+          "items"
         ]
       },
       "CreateWhatsappTemplateDto": {
