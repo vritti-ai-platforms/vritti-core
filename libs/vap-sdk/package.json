@@ -1,6 +1,6 @@
 {
   "name": "@vritti/vap-sdk",
-  "description": "Client for the VAP API \u2014 signed requests, identity today, orders and appointments as they land",
+  "description": "Client for the VAP API — signed requests, identity today, orders and appointments as they land",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -58,7 +58,7 @@
     "check:tiers": "node scripts/check-tiers.mjs"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^7.1.3",
+    "@graphql-codegen/cli": "^7.4.0",
     "@graphql-codegen/client-preset": "^6.0.1",
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.0",
@@ -66,7 +66,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@apollo/client": "^4.2.3",
+    "@apollo/client": "^4.2.12",
     "graphql": "^16.14.2",
     "libphonenumber-js": "^1.13.12"
   },

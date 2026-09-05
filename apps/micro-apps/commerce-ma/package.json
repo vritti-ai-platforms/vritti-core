@@ -11,11 +11,11 @@
     "codegen:watch": "graphql-codegen --config codegen.ts --watch"
   },
   "dependencies": {
-    "@apollo/client": "^4.2.3",
-    "@vritti/commerce-permissions": "workspace:*",
+    "@apollo/client": "^4.2.12",
     "@hookform/resolvers": "^5.2.2",
     "@react-navigation/elements": "3.0.0-alpha.20",
     "@react-navigation/native": "8.0.0-alpha.17",
+    "@vritti/commerce-permissions": "workspace:*",
     "@vritti/quantum-ui-native": "0.2.0",
     "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
@@ -23,7 +23,7 @@
     "colorjs.io": "^0.5.0",
     "graphql": "^16.14.2",
     "nativewind": "5.0.0-preview.3",
-    "postcss": "^8.5.23",
+    "postcss": "^8.5.28",
     "react": "19.2.3",
     "react-hook-form": "^7.71.2",
     "react-native": "0.83.2",
@@ -39,14 +39,13 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@callstack/repack": "5.2.5",
-    "@callstack/repack-plugin-reanimated": "^5.2.5",
-    "@graphql-codegen/cli": "^7.1.3",
+    "@callstack/repack": "5.3.0",
+    "@callstack/repack-plugin-reanimated": "^5.3.0",
+    "@graphql-codegen/cli": "^7.4.0",
     "@graphql-codegen/client-preset": "^6.0.1",
-    "@react-native-community/cli": "20.0.0",
-    "@react-native-community/cli-platform-android": "20.0.0",
-    "@react-native-community/cli-platform-ios": "20.0.0",
-    "react-native-safe-area-context": "^5.7.0",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native-community/cli-platform-android": "20.2.0",
+    "@react-native-community/cli-platform-ios": "20.2.0",
     "@rspack/core": "^1.7.11",
     "@swc/helpers": "^0.5.17",
     "@tailwindcss/postcss": "4.2.2",
@@ -54,6 +53,7 @@
     "babel-loader": "^9.2.1",
     "lightningcss": "1.30.1",
     "postcss-loader": "^8.2.1",
+    "react-native-safe-area-context": "^5.7.0",
     "typescript": "^6.0.3"
   },
   "private": true
