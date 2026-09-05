@@ -132,7 +132,7 @@
       "^@domain/(.*)$": "<rootDir>/modules/domain/$1"
     },
     "transformIgnorePatterns": [
-      "/node_modules/(?!(@nestjs|@nats-io)/)"
+      "/node_modules/(?!\\.pnpm)(?!@nestjs)(?!@nats-io)"
     ]
   }
 }
