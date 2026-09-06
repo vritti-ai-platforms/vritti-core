@@ -7,14 +7,10 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
+  DateTime: { input: string; output: string; }
   /** Arbitrary JSON value (used for Select option `additionals`). */
   JSON: { input: unknown; output: unknown; }
-};
-
-export type AddPersonCommunicationInput = {
-  channel: Scalars['String']['input'];
-  personId: Scalars['ID']['input'];
-  value: Scalars['String']['input'];
 };
 
 export type ChangePasswordInput = {
@@ -63,13 +59,6 @@ export type CreateInventoryItemUomConversionInput = {
   uomQty: Scalars['Int']['input'];
 };
 
-export type CreatePersonInput = {
-  email?: InputMaybe<Scalars['String']['input']>;
-  firstName: Scalars['String']['input'];
-  lastName?: InputMaybe<Scalars['String']['input']>;
-  phone?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type CreateTaxGroupInput = {
   name: Scalars['String']['input'];
   taxRates: Array<TaxRateInput>;
@@ -105,11 +94,6 @@ export type FeedSearchInput = {
 export type FeedSortInput = {
   direction: Scalars['String']['input'];
   field: Scalars['String']['input'];
-};
-
-export type FindPeopleByCommunicationInput = {
-  channel: Scalars['String']['input'];
-  value: Scalars['String']['input'];
 };
 
 export type GoodsReceipt = {
@@ -414,13 +398,11 @@ export type MobileTokens = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  addPersonCommunication: PersonCommunication;
   changePassword: MessageResponse;
   createCostCategory: CostCategory;
   createInventoryItem: InventoryItem;
   createInventoryItemLocation: InventoryItemLocation;
   createInventoryItemUomConversion: InventoryItemUomConversion;
-  createPerson: Person;
   createTaxGroup: TaxGroup;
   createUom: Uom;
   createUomDimension: UomDimension;
@@ -443,11 +425,6 @@ export type Mutation = {
   updateTaxGroup: TaxGroup;
   updateUom: Uom;
   updateUomDimension: UomDimension;
-};
-
-
-export type MutationAddPersonCommunicationArgs = {
-  input: AddPersonCommunicationInput;
 };
 
 
@@ -475,11 +452,6 @@ export type MutationCreateInventoryItemLocationArgs = {
 export type MutationCreateInventoryItemUomConversionArgs = {
   input: CreateInventoryItemUomConversionInput;
   inventoryItemId: Scalars['ID']['input'];
-};
-
-
-export type MutationCreatePersonArgs = {
-  input: CreatePersonInput;
 };
 
 
@@ -618,7 +590,7 @@ export type PersonCommunication = {
 export type Profile = {
   __typename?: 'Profile';
   createdAt: Scalars['String']['output'];
-  displayName?: Maybe<Scalars['String']['output']>;
+  displayName: Scalars['String']['output'];
   email: Scalars['String']['output'];
   fullName: Scalars['String']['output'];
   hasPassword: Scalars['Boolean']['output'];
@@ -652,7 +624,6 @@ export type Query = {
   inventoryItemsOptions: SelectOptions;
   locationsOptions: SelectOptions;
   organizationsByEmail: Array<LookupOrganization>;
-  peopleByCommunication: Array<Scalars['ID']['output']>;
   profile: Profile;
   purchaseOrderItemsOptions: SelectOptions;
   purchaseOrdersOptions: SelectOptions;
@@ -666,8 +637,6 @@ export type Query = {
   uomDimensions: Array<UomDimension>;
   uomOptions: SelectOptions;
   uomsFeed: UomConnection;
-  usersOptions: SelectOptions;
-  workspaces: Workspaces;
 };
 
 
@@ -795,11 +764,6 @@ export type QueryOrganizationsByEmailArgs = {
 };
 
 
-export type QueryPeopleByCommunicationArgs = {
-  input: FindPeopleByCommunicationInput;
-};
-
-
 export type QueryPurchaseOrderItemsOptionsArgs = {
   excludeOnGoodsReceiptId?: InputMaybe<Scalars['String']['input']>;
   input?: InputMaybe<SelectOptionsInput>;
@@ -866,11 +830,6 @@ export type QueryUomsFeedArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
 };
 
-
-export type QueryUsersOptionsArgs = {
-  input?: InputMaybe<SelectOptionsInput>;
-};
-
 export type SelectGroup = {
   __typename?: 'SelectGroup';
   id: Scalars['String']['output'];
@@ -907,6 +866,20 @@ export type SelectOptionsInput = {
   search?: InputMaybe<Scalars['String']['input']>;
   valueKey?: InputMaybe<Scalars['String']['input']>;
   values?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SendSmsOtpResult = {
+  __typename?: 'SendSmsOtpResult';
+  expiresAt: Scalars['DateTime']['output'];
+  resendAvailableAt: Scalars['DateTime']['output'];
+  sent: Scalars['Boolean']['output'];
+};
+
+export type SendWhatsappOtpResult = {
+  __typename?: 'SendWhatsappOtpResult';
+  expiresAt: Scalars['DateTime']['output'];
+  resendAvailableAt: Scalars['DateTime']['output'];
+  sent: Scalars['Boolean']['output'];
 };
 
 export type SupplierUnitPrice = {
@@ -1039,18 +1012,12 @@ export type UserSession = {
   sessionId: Scalars['ID']['output'];
 };
 
-export type WorkspaceOption = {
-  __typename?: 'WorkspaceOption';
-  code: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  kind: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  parentId?: Maybe<Scalars['ID']['output']>;
+export type VerifySmsOtpResult = {
+  __typename?: 'VerifySmsOtpResult';
+  verified: Scalars['Boolean']['output'];
 };
 
-export type Workspaces = {
-  __typename?: 'Workspaces';
-  legalEntities: Array<WorkspaceOption>;
-  siteGroups: Array<WorkspaceOption>;
-  sites: Array<WorkspaceOption>;
+export type VerifyWhatsappOtpResult = {
+  __typename?: 'VerifyWhatsappOtpResult';
+  verified: Scalars['Boolean']['output'];
 };
