@@ -2,9 +2,7 @@
   "version": "8",
   "dialect": "postgres",
   "id": "19598413-e6f9-4f6a-be01-3b14b6c5d7be",
-  "prevIds": [
-    "94d84677-e9d0-4fe0-a828-625996d5dc3a"
-  ],
+  "prevIds": ["94d84677-e9d0-4fe0-a828-625996d5dc3a"],
   "ddl": [
     {
       "name": "communications",
@@ -975,9 +973,7 @@
       "table": "whatsapp_otps"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sms_otps_pkey",
       "schema": "communications",
@@ -985,9 +981,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sms_providers_pkey",
       "schema": "communications",
@@ -995,9 +989,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "whatsapp_accounts_pkey",
       "schema": "communications",
@@ -1005,9 +997,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "whatsapp_otps_pkey",
       "schema": "communications",
@@ -1016,10 +1006,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "name"
-      ],
+      "columns": ["organization_id", "name"],
       "nullsNotDistinct": false,
       "name": "uq_sms_providers_org_name",
       "entityType": "uniques",
@@ -1028,10 +1015,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "waba_id"
-      ],
+      "columns": ["organization_id", "waba_id"],
       "nullsNotDistinct": false,
       "name": "uq_whatsapp_accounts_org_waba",
       "entityType": "uniques",
@@ -1041,9 +1025,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -1054,9 +1036,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id IS NULL OR organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -1067,9 +1047,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -1080,9 +1058,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",

@@ -5,7 +5,7 @@ import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import axios, { type AxiosInstance, isAxiosError } from 'axios';
 import { rethrowMetaGraphError } from '../meta-graph-error.util';
 
-const GRAPH_API_VERSION = 'v25.0';
+const GRAPH_API_VERSION = 'v26.0';
 const REQUEST_TIMEOUT_MS = 15000;
 const UNREACHABLE_DETAIL = 'Unable to reach WhatsApp. Please try again later.';
 

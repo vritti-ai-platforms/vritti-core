@@ -2323,7 +2323,12 @@
             "in": "query",
             "description": "Exact scope: ORG, LE, SITE_GROUP, or SITE",
             "schema": {
-              "$ref": "#/components/schemas/Object"
+              "example": "SITE",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
             }
           },
           {
@@ -29512,6 +29517,7 @@
           "mrp": {
             "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -29587,6 +29593,7 @@
           "mrp": {
             "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -29618,6 +29625,7 @@
           "mrp": {
             "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -29792,6 +29800,7 @@
           },
           "totalValue": {
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -29859,6 +29868,7 @@
           },
           "unitCost": {
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -29867,6 +29877,7 @@
           },
           "quantValue": {
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -32035,6 +32046,7 @@
           "mrp": {
             "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -32065,6 +32077,7 @@
           "mrp": {
             "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"

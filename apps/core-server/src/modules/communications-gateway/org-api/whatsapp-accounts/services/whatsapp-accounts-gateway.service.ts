@@ -14,7 +14,7 @@ import { AppDomainService } from '@/modules/domain/app/services/app.service';
 
 // Must track GRAPH_API_VERSION in communications-service's MetaGraphHttpService: the popup and the
 // server-side calls that follow it have to speak the same Graph version.
-const GRAPH_API_VERSION = 'v25.0';
+const GRAPH_API_VERSION = 'v26.0';
 
 @Injectable()
 export class WhatsappAccountsGatewayService {
