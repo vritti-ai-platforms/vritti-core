@@ -16,9 +16,6 @@ export class WhatsappAccountResponseDto {
   @ApiProperty({ description: 'Human-readable name' })
   name: string;
 
-  @ApiProperty({ description: 'Whether this account sends when nothing narrows the choice' })
-  isDefault: boolean;
-
   @ApiProperty({ description: 'Whether the connection is usable' })
   isActive: boolean;
 

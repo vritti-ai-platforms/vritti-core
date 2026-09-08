@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, ne } from '@vritti/api-sdk/drizzle-orm';
 import { type WhatsappAccount, whatsappAccounts } from '@/db/schema';
 
 @Injectable()
@@ -14,17 +13,15 @@ export class WhatsappAccountsDomainRepository extends PrimaryBaseRepository<type
     return this.model.findFirst({ where: { wabaId } });
   }
 
-  // The account the sender falls back to when nothing narrows the choice
-  async findDefault(): Promise<WhatsappAccount | undefined> {
-    return this.model.findFirst({ where: { isDefault: true, isActive: true } });
-  }
-
-  // Clears the default flag on other rows so a new default cannot collide with the partial unique index
-  async clearDefaults(exceptId?: string): Promise<void> {
-    const where = exceptId
-      ? and(eq(whatsappAccounts.isDefault, true), ne(whatsappAccounts.id, exceptId))
-      : eq(whatsappAccounts.isDefault, true);
-
-    await this.db.update(whatsappAccounts).set({ isDefault: false }).where(where);
+  /**
+   * Every WABA this organization already holds.
+   *
+   * RLS scopes it, so it is exactly the set that must be excluded when deriving which granted WABA a
+   * connect is for — a token's grant accumulates across every account the operator has ever
+   * authorised, so on its own it cannot say which one is new.
+   */
+  async findAllWabaIds(): Promise<string[]> {
+    const rows = await this.db.select({ wabaId: whatsappAccounts.wabaId }).from(whatsappAccounts);
+    return rows.map((row) => row.wabaId);
   }
 }

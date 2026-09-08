@@ -18,10 +18,5 @@ export class UpdateWhatsappAccountDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
-  isDefault?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
   isActive?: boolean;
 }

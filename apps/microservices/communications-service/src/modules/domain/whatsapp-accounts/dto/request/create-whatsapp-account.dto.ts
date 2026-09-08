@@ -31,10 +31,6 @@ export class CreateWhatsappAccountDto {
 
   @IsOptional()
   @IsBoolean()
-  isDefault?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
   isActive?: boolean;
 
   @IsOptional()

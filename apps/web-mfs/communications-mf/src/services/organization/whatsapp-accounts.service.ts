@@ -1,8 +1,9 @@
 import { axios } from '@vritti/quantum-ui/axios';
-import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
+import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
-  ConnectEmbeddedSignupData,
+  CreateEmbeddedSignupStateData,
   EmbeddedSignupConfigData,
+  EmbeddedSignupStateData,
   UpdateWhatsappAccountData,
   WhatsappAccountData,
   WhatsappAccountsTableResponse,
@@ -29,24 +30,33 @@ export function deleteWhatsappAccount(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`communications-api/whatsapp-accounts/${id}`).then((r) => r.data);
 }
 
-// Public Meta app values the browser needs before it can open the signup popup
+// Whether this deployment can run Embedded Signup at all
 export function getEmbeddedSignupConfig(): Promise<EmbeddedSignupConfigData> {
   return axios
     .get<EmbeddedSignupConfigData>('communications-api/whatsapp-accounts/embedded-signup/config')
     .then((r) => r.data);
 }
 
-// Connects a WABA from an Embedded Signup result. Name, business portfolio, and the access token are
-// all resolved server-side from Meta — only the authorization code and the reported ids are sent.
-export function connectWhatsappAccountEmbedded(
-  data: ConnectEmbeddedSignupData,
-): Promise<CreateResponse<WhatsappAccountData>> {
+/**
+ * Starts a connect and returns the broker URL to open.
+ *
+ * The popup cannot be opened from this origin: Meta enforces the signup SDK's host against a fixed
+ * allowed-domain list and every organization has its own subdomain, so the flow runs on one shared
+ * origin. This call is what authorises the attempt and hands back where to run it.
+ */
+export function createWhatsappConnectState(data: CreateEmbeddedSignupStateData): Promise<EmbeddedSignupStateData> {
   return axios
-    .post<CreateResponse<WhatsappAccountData>>('communications-api/whatsapp-accounts/embedded-signup', data)
+    .post<EmbeddedSignupStateData>('communications-api/whatsapp-accounts/embedded-signup/state', data)
     .then((r) => r.data);
 }
 
-// Replaces one account's credential from a fresh signup result, keeping the same account row
-export function reconnectWhatsappAccount(id: string, data: ConnectEmbeddedSignupData): Promise<SuccessResponse> {
-  return axios.post<SuccessResponse>(`communications-api/whatsapp-accounts/${id}/reconnect`, data).then((r) => r.data);
+// Starts a credential replacement for one account. The account id is bound into the minted state,
+// so the completion on the broker origin cannot be pointed at a different row.
+export function createWhatsappReconnectState(
+  id: string,
+  data: CreateEmbeddedSignupStateData,
+): Promise<EmbeddedSignupStateData> {
+  return axios
+    .post<EmbeddedSignupStateData>(`communications-api/whatsapp-accounts/${id}/reconnect/state`, data)
+    .then((r) => r.data);
 }

@@ -22649,7 +22649,7 @@
     },
     "/communications-api/whatsapp-accounts/embedded-signup/config": {
       "get": {
-        "description": "Returns the public Meta app id and Facebook Login for Business configuration id the browser needs to open the signup popup.",
+        "description": "Reports whether this deployment can run Embedded Signup, which requires a Facebook Login for Business configuration. The ids are informational; the popup is spawned by the broker page, which reads them server-side.",
         "operationId": "WhatsappAccountsGatewayController_getEmbeddedSignupConfig",
         "parameters": [],
         "responses": {
@@ -22678,40 +22678,37 @@
         ]
       }
     },
-    "/communications-api/whatsapp-accounts/embedded-signup": {
+    "/communications-api/whatsapp-accounts/embedded-signup/state": {
       "post": {
-        "description": "Exchanges the popup's authorization code for a business integration token, verifies the token actually grants whatsapp_business_management on the reported WABA, then stores the account with its name and business portfolio read from Meta. The first account connected becomes the default sender.",
-        "operationId": "WhatsappAccountsGatewayController_connectEmbedded",
+        "description": "Mints a single-use, short-lived state and returns the broker URL to open. Meta enforces the signup SDK's host against a fixed allowed-domain list, so the popup runs on one shared origin rather than the tenant subdomain — this state is what carries the organization across to it. The account itself is created when the broker reports the popup's result.",
+        "operationId": "WhatsappAccountsGatewayController_createConnectState",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConnectEmbeddedSignupDto"
+                "$ref": "#/components/schemas/CreateEmbeddedSignupStateDto"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "WhatsApp account connected successfully.",
+            "description": "Connect started.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateResponseDto"
+                  "$ref": "#/components/schemas/EmbeddedSignupStateResponseDto"
                 }
               }
             }
           },
           "400": {
-            "description": "The signup code was rejected, or the token does not grant access to that WABA."
+            "description": "The return URL is outside this deployment."
           },
           "401": {
             "description": "Unauthorized."
-          },
-          "409": {
-            "description": "This WABA is already connected to the organization."
           }
         },
         "security": [
@@ -22719,16 +22716,16 @@
             "bearer": []
           }
         ],
-        "summary": "Connect a WhatsApp Business Account via Embedded Signup",
+        "summary": "Start an Embedded Signup connect",
         "tags": [
           "Communications - WhatsApp Accounts"
         ]
       }
     },
-    "/communications-api/whatsapp-accounts/{id}/reconnect": {
+    "/communications-api/whatsapp-accounts/{id}/reconnect/state": {
       "post": {
-        "description": "Replaces the stored credential from a fresh signup result, keeping the same account row so an app OTP configuration pointing at it survives. The selected WABA must match the one this connection already holds.",
-        "operationId": "WhatsappAccountsGatewayController_reconnect",
+        "description": "Mints a single-use state bound to this account and returns the broker URL to open. Completing it replaces the stored credential while keeping the same account row, so an app OTP configuration pointing at it survives. The selected WABA must match the one this connection already holds.",
+        "operationId": "WhatsappAccountsGatewayController_createReconnectState",
         "parameters": [
           {
             "name": "id",
@@ -22745,27 +22742,27 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConnectEmbeddedSignupDto"
+                "$ref": "#/components/schemas/CreateEmbeddedSignupStateDto"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "WhatsApp account reconnected.",
+          "201": {
+            "description": "Reconnect started.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SuccessResponseDto"
+                  "$ref": "#/components/schemas/EmbeddedSignupStateResponseDto"
                 }
               }
             }
           },
           "400": {
-            "description": "A different WABA was selected, the signup code was rejected, or access was not granted."
+            "description": "The return URL is outside this deployment."
           },
-          "404": {
-            "description": "WhatsApp account not found."
+          "401": {
+            "description": "Unauthorized."
           }
         },
         "security": [
@@ -22773,7 +22770,7 @@
             "bearer": []
           }
         ],
-        "summary": "Reconnect a WhatsApp account via Embedded Signup",
+        "summary": "Start an Embedded Signup reconnect",
         "tags": [
           "Communications - WhatsApp Accounts"
         ]
@@ -35311,10 +35308,6 @@
             "type": "string",
             "description": "Human-readable name"
           },
-          "isDefault": {
-            "type": "boolean",
-            "description": "Whether this account sends when nothing narrows the choice"
-          },
           "isActive": {
             "type": "boolean",
             "description": "Whether the connection is usable"
@@ -35337,7 +35330,6 @@
           "metaBusinessId",
           "wabaId",
           "name",
-          "isDefault",
           "isActive",
           "webhooksSubscribed",
           "createdAt",
@@ -35374,68 +35366,39 @@
       "EmbeddedSignupConfigResponseDto": {
         "type": "object",
         "properties": {
-          "appId": {
-            "type": "string",
-            "description": "Meta app id"
-          },
-          "configId": {
-            "type": "object",
-            "description": "Facebook Login for Business configuration id. Absent until the Meta app is configured."
-          },
-          "graphVersion": {
-            "type": "string",
-            "description": "Graph API version the popup should initialise with",
-            "example": "v25.0"
-          },
           "enabled": {
             "type": "boolean",
-            "description": "Whether Embedded Signup can be started. False while the configuration id is unset."
+            "description": "Whether Embedded Signup can be started. False while META_EMBEDDED_SIGNUP_CONFIG_ID is unset — the one prerequisite a deployment can be missing."
           }
         },
         "required": [
-          "appId",
-          "graphVersion",
           "enabled"
         ]
       },
-      "ConnectEmbeddedSignupDto": {
+      "CreateEmbeddedSignupStateDto": {
         "type": "object",
         "properties": {
-          "code": {
+          "returnUrl": {
             "type": "string",
-            "description": "Short-lived, single-use OAuth authorization code from the Facebook Login for Business callback. Never stored."
-          },
-          "wabaId": {
-            "type": "string",
-            "description": "WABA id from the popup's WA_EMBEDDED_SIGNUP message. Untrusted — the exchanged token's granular scopes are what prove control of the account.",
-            "example": "9876543210987654"
-          },
-          "phoneNumberId": {
-            "type": "string",
-            "description": "Sender the popup provisioned. Absent when the user finished without adding a number.",
-            "example": "1234567890123456"
-          },
-          "businessId": {
-            "type": "string",
-            "description": "The customer's business portfolio, reported by the popup. Preferred over deriving it from the WABA's owner_business_info, which needs business_management advanced access.",
-            "example": "2729063490586005"
-          },
-          "event": {
-            "type": "string",
-            "enum": [
-              "FINISH",
-              "FINISH_ONLY_WABA",
-              "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING",
-              "FINISH_OBO_MIGRATION",
-              "FINISH_GRANT_ONLY_API_ACCESS"
-            ],
-            "description": "Terminal event the popup reported. CANCEL and ERROR are dropped client-side."
+            "description": "Absolute URL on the caller's own console to return to when the flow finishes.",
+            "example": "https://acme.vrittiai.com/settings/whatsapp-accounts"
           }
         },
         "required": [
-          "code",
-          "wabaId",
-          "event"
+          "returnUrl"
+        ]
+      },
+      "EmbeddedSignupStateResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Absolute URL of the broker page, including the single-use state nonce.",
+            "example": "https://api.vrittiai.com/communications/whatsapp/connect?state=Zm9vYmFy"
+          }
+        },
+        "required": [
+          "url"
         ]
       },
       "UpdateWhatsappAccountDto": {
@@ -35446,9 +35409,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "isDefault": {
-            "type": "boolean"
           },
           "isActive": {
             "type": "boolean"

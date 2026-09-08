@@ -13,15 +13,16 @@ export class WhatsappAccountsEmbeddedSignupController {
 
   @MessagePattern({ cmd: 'org.whatsappAccounts.connectEmbedded' })
   async connect(@Payload() dto: ConnectEmbeddedSignupDto): Promise<CreateResponseDto<WhatsappAccountDto>> {
-    // The code is single-use and short-lived, so it is never logged
-    this.logger.log(`whatsappAccounts.connectEmbedded — waba: ${dto.wabaId}, event: ${dto.event}`);
+    // Nothing identifying is logged: the code is single-use and short-lived, and the account is not
+    // known until the token has been exchanged
+    this.logger.log('whatsappAccounts.connectEmbedded');
     return this.service.connect(dto);
   }
 
   @MessagePattern({ cmd: 'org.whatsappAccounts.reconnectEmbedded' })
   async reconnect(@Payload() data: { id: string } & ConnectEmbeddedSignupDto): Promise<SuccessResponseDto> {
     const { id, ...dto } = data;
-    this.logger.log(`whatsappAccounts.reconnectEmbedded — id: ${id}, waba: ${dto.wabaId}`);
+    this.logger.log(`whatsappAccounts.reconnectEmbedded — id: ${id}`);
     return this.service.reconnect(id, dto);
   }
 }

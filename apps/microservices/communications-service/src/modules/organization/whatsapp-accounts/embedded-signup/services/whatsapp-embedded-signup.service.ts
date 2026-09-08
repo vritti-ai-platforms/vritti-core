@@ -2,10 +2,12 @@ import type { WhatsappAccountDto } from '@domain/whatsapp-accounts/dto/entity/wh
 import { WhatsappAccountsDomainService } from '@domain/whatsapp-accounts/services/whatsapp-accounts.service';
 import type { ResolvedWabaDto } from '@domain/whatsapp-embedded-signup/dto/entity/resolved-waba.dto';
 import type { ConnectEmbeddedSignupDto } from '@domain/whatsapp-embedded-signup/dto/request/connect-embedded-signup.dto';
-import { WhatsappEmbeddedSignupDomainService } from '@domain/whatsapp-embedded-signup/services/whatsapp-embedded-signup.service';
+import {
+  type ResolveWabaOptions,
+  WhatsappEmbeddedSignupDomainService,
+} from '@domain/whatsapp-embedded-signup/services/whatsapp-embedded-signup.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
 
 // Coordinates the two domains a connect touches — the Graph resolve and the account row. Domain
 // modules never import each other, so the sequencing lives here, mirroring WhatsappPhoneNumbersService.
@@ -27,8 +29,14 @@ export class WhatsappEmbeddedSignupService {
    * the manual form gone it is the only way to supply a fresh credential.
    */
   async connect(dto: ConnectEmbeddedSignupDto): Promise<CreateResponseDto<WhatsappAccountDto>> {
-    const existing = await this.accountsService.findByWabaId(dto.wabaId);
-    const resolved = await this.resolveAndSubscribe(dto);
+    /**
+     * The org's existing accounts are read BEFORE the exchange, because they are what makes the
+     * derivation unambiguous: Meta's grant accumulates across every account the operator has ever
+     * authorised, so excluding the ones already stored is what identifies the new one.
+     */
+    const alreadyConnectedWabaIds = await this.accountsService.listConnectedWabaIds();
+    const resolved = await this.resolveAndSubscribe(dto, { alreadyConnectedWabaIds });
+    const existing = await this.accountsService.findByWabaId(resolved.waba.wabaId);
 
     if (existing) {
       this.logger.log(`WABA ${resolved.waba.wabaId} already connected (${existing.id}) — replacing its credential`);
@@ -48,17 +56,18 @@ export class WhatsappEmbeddedSignupService {
   // Repairs one account's credential in place. The row keeps its id, so anything pointing at it —
   // an app's OTP configuration, a cached detail query — keeps working.
   async reconnect(id: string, dto: ConnectEmbeddedSignupDto): Promise<SuccessResponseDto> {
-    // Checked before the exchange: the authorization code is single-use, so spending it on a request
-    // that cannot succeed would force the operator through the popup twice
     const existing = await this.accountsService.findById(id);
-    if (existing.wabaId !== dto.wabaId) {
-      throw new BadRequestException({
-        label: 'Wrong account selected',
-        detail: `This connection is for WhatsApp Business Account ${existing.wabaId}, but ${dto.wabaId} was selected. Run the flow again and pick the same account.`,
-      });
-    }
 
-    const resolved = await this.resolveAndSubscribe(dto);
+    /**
+     * The account is named up front rather than compared afterwards.
+     *
+     * A reconnect already knows which WABA it is for, so the id is handed to the resolve as the
+     * expected one and verified against the token's grant — if the new credential does not cover
+     * this account, that check refuses it. The previous version compared `existing.wabaId` against a
+     * value the popup used to report, which the redirect flow does not send at all, so it rejected
+     * every reconnect as "wrong account selected".
+     */
+    const resolved = await this.resolveAndSubscribe(dto, { expectedWabaId: existing.wabaId });
     const data = await this.applyCredentials(id, resolved);
     return { success: true, message: `WhatsApp account "${data.name}" reconnected successfully.` };
   }
@@ -66,14 +75,14 @@ export class WhatsappEmbeddedSignupService {
   // Resolve then subscribe, in that order — the subscription needs the token the resolve mints
   private async resolveAndSubscribe(
     dto: ConnectEmbeddedSignupDto,
+    options: ResolveWabaOptions,
   ): Promise<{ waba: ResolvedWabaDto; webhooksSubscribed: boolean }> {
-    const waba = await this.embeddedSignupService.resolve(dto);
+    const waba = await this.embeddedSignupService.resolve(dto, options);
     const webhooksSubscribed = await this.embeddedSignupService.subscribeWebhooks(waba.accessToken, waba.wabaId);
 
-    if (dto.event === 'FINISH_ONLY_WABA') {
-      this.logger.log(`WABA ${waba.wabaId} has no phone number yet — it cannot send until one is added`);
-    }
-
+    // A WABA with no phone number yet is a legitimate half-done state and used to be reported by the
+    // popup's terminal event. The redirect flow reports no event, and the empty phone-numbers list
+    // says the same thing — so nothing is inferred here.
     return { waba, webhooksSubscribed };
   }
 

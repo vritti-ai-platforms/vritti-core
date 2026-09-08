@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class ConnectEmbeddedSignupDto {
   @ApiProperty({
@@ -12,25 +12,28 @@ export class ConnectEmbeddedSignupDto {
   @IsNotEmpty()
   code: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
-      "WABA id from the popup's WA_EMBEDDED_SIGNUP message. Untrusted — the exchanged token's granular scopes are what prove control of the account.",
+      "WABA id, when something reported one. Absent on the redirect flow, which has no window to post it back — it is then derived from the exchanged token's granular scopes, which are what prove control either way.",
     example: '9876543210987654',
   })
   @Trim({ nullify: false })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   @MaxLength(64)
-  wabaId: string;
+  wabaId?: string;
 
   @ApiPropertyOptional({
-    description: 'Sender the popup provisioned. Absent when the user finished without adding a number.',
-    example: '1234567890123456',
+    description:
+      'The exact redirect URI the authorization request used. Repeated on the token exchange because OAuth binds a code to the URI it was issued for; Meta rejects the code without it.',
   })
+  @Trim({ nullify: false })
   @IsOptional()
   @IsString()
-  @MaxLength(64)
-  phoneNumberId?: string;
+  @IsNotEmpty()
+  @MaxLength(500)
+  redirectUri?: string;
 
   @ApiPropertyOptional({
     description:
@@ -41,23 +44,4 @@ export class ConnectEmbeddedSignupDto {
   @IsString()
   @MaxLength(64)
   businessId?: string;
-
-  @ApiProperty({
-    enum: [
-      'FINISH',
-      'FINISH_ONLY_WABA',
-      'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING',
-      'FINISH_OBO_MIGRATION',
-      'FINISH_GRANT_ONLY_API_ACCESS',
-    ],
-    description: 'Terminal event the popup reported. CANCEL and ERROR are dropped client-side.',
-  })
-  @IsIn([
-    'FINISH',
-    'FINISH_ONLY_WABA',
-    'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING',
-    'FINISH_OBO_MIGRATION',
-    'FINISH_GRANT_ONLY_API_ACCESS',
-  ])
-  event: string;
 }

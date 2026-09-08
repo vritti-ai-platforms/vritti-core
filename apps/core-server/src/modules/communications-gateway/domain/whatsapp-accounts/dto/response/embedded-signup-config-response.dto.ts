@@ -1,21 +1,17 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
-// Public values the browser needs to open the Embedded Signup popup. Served rather than baked into
-// the micro-frontend bundle: one remote build serves every environment, and these differ per deployment.
+/**
+ * Whether the console may offer WhatsApp sign-up, and nothing else.
+ *
+ * Deliberately down to one flag. The Meta app id, login configuration id and Graph version used to
+ * ship here because the browser opened the popup itself; since the flow moved to a server-side
+ * redirect they are read only by the broker, so sending them would be telling the client things it
+ * has no use for.
+ */
 export class EmbeddedSignupConfigResponseDto {
-  @ApiProperty({ description: 'Meta app id' })
-  appId: string;
-
-  @ApiPropertyOptional({
-    description: 'Facebook Login for Business configuration id. Absent until the Meta app is configured.',
-  })
-  configId: string | null;
-
-  @ApiProperty({ description: 'Graph API version the popup should initialise with', example: 'v25.0' })
-  graphVersion: string;
-
   @ApiProperty({
-    description: 'Whether Embedded Signup can be started. False while the configuration id is unset.',
+    description:
+      'Whether Embedded Signup can be started. False while META_EMBEDDED_SIGNUP_CONFIG_ID is unset — the one prerequisite a deployment can be missing.',
   })
   enabled: boolean;
 }

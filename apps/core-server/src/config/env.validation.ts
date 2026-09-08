@@ -143,7 +143,7 @@ class EnvironmentVariables {
   CACHE_DRIVER?: 'lru' | 'redis';
 
   // Meta app for tenant WhatsApp — distinct from cloud-server's onboarding app
-  // Public app id, served to the browser so it can open the Embedded Signup popup
+  // Public app id, read server-side to initialise the Embedded Signup broker page
   @IsString()
   META_CLIENT_ID: string;
 

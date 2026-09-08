@@ -1,11 +1,9 @@
 import { WhatsappAccountDto } from '@domain/whatsapp-accounts/dto/entity/whatsapp-account.dto';
-import { CreateWhatsappAccountDto } from '@domain/whatsapp-accounts/dto/request/create-whatsapp-account.dto';
 import { UpdateWhatsappAccountDto } from '@domain/whatsapp-accounts/dto/request/update-whatsapp-account.dto';
 import { WhatsappAccountsDomainService } from '@domain/whatsapp-accounts/services/whatsapp-accounts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
-  CreateResponseDto,
   SelectOptionsQueryDto,
   SelectQueryResult,
   SuccessResponseDto,
@@ -22,12 +20,6 @@ export class WhatsappAccountsController {
   async table(@Payload() state: TableViewState): Promise<{ result: WhatsappAccountDto[]; count: number }> {
     this.logger.log('whatsappAccounts.table');
     return this.service.findForTable(state);
-  }
-
-  @MessagePattern({ cmd: 'org.whatsappAccounts.create' })
-  async create(@Payload() dto: CreateWhatsappAccountDto): Promise<CreateResponseDto<WhatsappAccountDto>> {
-    this.logger.log(`whatsappAccounts.create — waba: ${dto.wabaId}`);
-    return this.service.create(dto);
   }
 
   @MessagePattern({ cmd: 'select.whatsappAccounts' })

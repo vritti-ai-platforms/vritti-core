@@ -24,7 +24,6 @@ export class WhatsappAccountsDomainService {
     name: { column: whatsappAccounts.name, type: 'string' },
     wabaId: { column: whatsappAccounts.wabaId, type: 'string' },
     metaBusinessId: { column: whatsappAccounts.metaBusinessId, type: 'string' },
-    isDefault: { column: whatsappAccounts.isDefault, type: 'boolean' },
     isActive: { column: whatsappAccounts.isActive, type: 'boolean' },
     createdAt: { column: whatsappAccounts.createdAt, type: 'string' },
   };
@@ -77,20 +76,12 @@ export class WhatsappAccountsDomainService {
       });
     }
 
-    // The first account connected becomes the default sender, so an org is never left unable to send
-    const isFirst = !(await this.repository.findDefault());
-    const isDefault = data.isDefault ?? isFirst;
-
-    // Cleared first, not after: the partial unique index rejects a second default outright
-    if (isDefault) await this.repository.clearDefaults();
-
     const entity = await this.repository.create({
       legalEntityId: data.legalEntityId ?? null,
       metaBusinessId: data.metaBusinessId,
       wabaId: data.wabaId,
       name: data.name,
       accessToken: data.accessToken,
-      isDefault,
       isActive: data.isActive ?? true,
       webhooksSubscribed: data.webhooksSubscribed ?? false,
     });
@@ -115,6 +106,11 @@ export class WhatsappAccountsDomainService {
   async findByWabaId(wabaId: string): Promise<WhatsappAccountDto | undefined> {
     const entity = await this.repository.findByWabaId(wabaId);
     return entity ? WhatsappAccountDto.from(entity) : undefined;
+  }
+
+  // WABAs this organization already holds, for narrowing an accumulated Meta grant to the new one
+  listConnectedWabaIds(): Promise<string[]> {
+    return this.repository.findAllWabaIds();
   }
 
   /**
@@ -150,28 +146,16 @@ export class WhatsappAccountsDomainService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('WhatsApp account not found.');
 
-    if (data.isDefault) await this.repository.clearDefaults(id);
-
     await this.repository.update(id, data);
 
     this.logger.log(`Updated WhatsApp account ${existing.wabaId} (${id})`);
     return { success: true, message: `WhatsApp account "${data.name ?? existing.name}" updated successfully.` };
   }
 
-  // Disconnects a WhatsApp account; refuses the default while another account could take its place
+  // Disconnects a WhatsApp account
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('WhatsApp account not found.');
-
-    if (existing.isDefault) {
-      const count = await this.repository.count();
-      if (count > 1) {
-        throw new ConflictException({
-          label: 'Default account',
-          detail: `Cannot disconnect "${existing.name}" while it is the default sender. Make another account the default first.`,
-        });
-      }
-    }
 
     await this.repository.delete(id);
     this.logger.log(`Disconnected WhatsApp account ${existing.wabaId} (${id})`);

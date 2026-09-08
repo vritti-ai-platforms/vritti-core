@@ -8,13 +8,12 @@ export {
   WHATSAPP_PHONE_NUMBER_PROFILE_KEY,
 } from './keys';
 export { useAddWhatsappPhoneNumber } from './useAddWhatsappPhoneNumber';
-export { useConnectWhatsappAccountEmbedded } from './useConnectWhatsappAccountEmbedded';
 export { useCreateWhatsappTemplate } from './useCreateWhatsappTemplate';
 export { useDeleteWhatsappAccount } from './useDeleteWhatsappAccount';
 export { useDeleteWhatsappTemplate } from './useDeleteWhatsappTemplate';
-export { type EmbeddedSignupFeatureType, useEmbeddedSignup } from './useEmbeddedSignup';
+export { useEmbeddedSignup } from './useEmbeddedSignup';
 export { useEmbeddedSignupConfig } from './useEmbeddedSignupConfig';
-export { useReconnectWhatsappAccount } from './useReconnectWhatsappAccount';
+export { useEmbeddedSignupResult } from './useEmbeddedSignupResult';
 export { useRegisterWhatsappPhoneNumber } from './useRegisterWhatsappPhoneNumber';
 export { useRequestPhoneNumberNameChange } from './useRequestPhoneNumberNameChange';
 export { useRequestPhoneVerificationCode } from './useRequestPhoneVerificationCode';

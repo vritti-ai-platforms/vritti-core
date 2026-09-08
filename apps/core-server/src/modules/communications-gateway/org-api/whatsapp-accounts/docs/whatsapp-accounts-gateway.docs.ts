@@ -1,11 +1,12 @@
-import { ConnectEmbeddedSignupDto } from '@communications/whatsapp-accounts/dto/request/connect-embedded-signup.dto';
+import { CreateEmbeddedSignupStateDto } from '@communications/whatsapp-accounts/dto/request/create-embedded-signup-state.dto';
 import { UpdateWhatsappAccountDto } from '@communications/whatsapp-accounts/dto/request/update-whatsapp-account.dto';
 import { EmbeddedSignupConfigResponseDto } from '@communications/whatsapp-accounts/dto/response/embedded-signup-config-response.dto';
+import { EmbeddedSignupStateResponseDto } from '@communications/whatsapp-accounts/dto/response/embedded-signup-state-response.dto';
 import { WhatsappAccountResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-response.dto';
 import { WhatsappAccountTableResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
 
 export function ApiGetWhatsappAccountsTable() {
   return applyDecorators(
@@ -60,7 +61,7 @@ export function ApiGetEmbeddedSignupConfig() {
     ApiOperation({
       summary: 'Get Embedded Signup configuration',
       description:
-        'Returns the public Meta app id and Facebook Login for Business configuration id the browser needs to open the signup popup.',
+        'Reports whether this deployment can run Embedded Signup, which requires a Facebook Login for Business configuration. The ids are informational; the popup is spawned by the broker page, which reads them server-side.',
     }),
     ApiResponse({
       status: 200,
@@ -71,38 +72,37 @@ export function ApiGetEmbeddedSignupConfig() {
   );
 }
 
-export function ApiConnectWhatsappAccountEmbedded() {
+export function ApiCreateWhatsappConnectState() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Connect a WhatsApp Business Account via Embedded Signup',
+      summary: 'Start an Embedded Signup connect',
       description:
-        "Exchanges the popup's authorization code for a business integration token, verifies the token actually grants whatsapp_business_management on the reported WABA, then stores the account with its name and business portfolio read from Meta. The first account connected becomes the default sender.",
+        "Mints a single-use, short-lived state and returns the broker URL to open. Meta enforces the signup SDK's host against a fixed allowed-domain list, so the popup runs on one shared origin rather than the tenant subdomain — this state is what carries the organization across to it. The account itself is created when the broker reports the popup's result.",
     }),
-    ApiBody({ type: ConnectEmbeddedSignupDto }),
-    ApiResponse({ status: 201, description: 'WhatsApp account connected successfully.', type: CreateResponseDto }),
+    ApiBody({ type: CreateEmbeddedSignupStateDto }),
+    ApiResponse({ status: 201, description: 'Connect started.', type: EmbeddedSignupStateResponseDto }),
     ApiResponse({
       status: 400,
-      description: 'The signup code was rejected, or the token does not grant access to that WABA.',
+      description: 'The return URL is outside this deployment.',
     }),
-    ApiResponse({ status: 409, description: 'This WABA is already connected to the organization.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }
 
-export function ApiReconnectWhatsappAccount() {
+export function ApiCreateWhatsappReconnectState() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Reconnect a WhatsApp account via Embedded Signup',
+      summary: 'Start an Embedded Signup reconnect',
       description:
-        'Replaces the stored credential from a fresh signup result, keeping the same account row so an app OTP configuration pointing at it survives. The selected WABA must match the one this connection already holds.',
+        'Mints a single-use state bound to this account and returns the broker URL to open. Completing it replaces the stored credential while keeping the same account row, so an app OTP configuration pointing at it survives. The selected WABA must match the one this connection already holds.',
     }),
     ApiParam({ name: 'id', description: 'WhatsApp account ID' }),
-    ApiBody({ type: ConnectEmbeddedSignupDto }),
-    ApiResponse({ status: 200, description: 'WhatsApp account reconnected.', type: SuccessResponseDto }),
+    ApiBody({ type: CreateEmbeddedSignupStateDto }),
+    ApiResponse({ status: 201, description: 'Reconnect started.', type: EmbeddedSignupStateResponseDto }),
     ApiResponse({
       status: 400,
-      description: 'A different WABA was selected, the signup code was rejected, or access was not granted.',
+      description: 'The return URL is outside this deployment.',
     }),
-    ApiResponse({ status: 404, description: 'WhatsApp account not found.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

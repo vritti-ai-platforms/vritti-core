@@ -1,15 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  boolean,
-  index,
-  pgPolicy,
-  text,
-  timestamp,
-  unique,
-  uniqueIndex,
-  uuid,
-  varchar,
-} from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { communicationsSchema } from './communications-schema';
 
 export const whatsappAccounts = communicationsSchema.table(
@@ -22,7 +12,6 @@ export const whatsappAccounts = communicationsSchema.table(
     wabaId: varchar('waba_id', { length: 64 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     accessToken: text('access_token').notNull(),
-    isDefault: boolean('is_default').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     // Whether POST /{waba}/subscribed_apps succeeded. Not derivable without a Graph call per row,
     // and the subscription can fail after the single-use signup code is already spent — so the
@@ -36,8 +25,6 @@ export const whatsappAccounts = communicationsSchema.table(
   },
   (table) => [
     unique('uq_whatsapp_accounts_org_waba').on(table.organizationId, table.wabaId),
-    // Partial index so only one row per org can hold the default sender flag
-    uniqueIndex('uq_whatsapp_accounts_org_default').on(table.organizationId).where(sql`is_default = true`),
     index('idx_whatsapp_accounts_org').on(table.organizationId),
     index('idx_whatsapp_accounts_le').on(table.legalEntityId),
     pgPolicy('org_isolation', {

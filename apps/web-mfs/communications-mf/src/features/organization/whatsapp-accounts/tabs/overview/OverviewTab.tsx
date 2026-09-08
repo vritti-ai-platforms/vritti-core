@@ -24,17 +24,6 @@ export const OverviewTab = ({ account }: OverviewTabProps) => (
           }
         />
         <DetailField
-          label="Default sender"
-          type="string"
-          value={
-            account.isDefault ? (
-              <Badge variant="secondary">Default</Badge>
-            ) : (
-              <Badge variant="outline">Not default</Badge>
-            )
-          }
-        />
-        <DetailField
           label="Webhooks"
           type="string"
           value={

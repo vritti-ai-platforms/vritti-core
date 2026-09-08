@@ -19,9 +19,5 @@ export class UpdateWhatsappAccountDto {
 
   @IsOptional()
   @IsBoolean()
-  isDefault?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
   isActive?: boolean;
 }

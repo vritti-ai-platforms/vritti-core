@@ -6,7 +6,6 @@ export class WhatsappAccountDto {
   metaBusinessId: string;
   wabaId: string;
   name: string;
-  isDefault: boolean;
   isActive: boolean;
   webhooksSubscribed: boolean;
   createdAt: string;
@@ -20,7 +19,6 @@ export class WhatsappAccountDto {
     dto.metaBusinessId = entity.metaBusinessId;
     dto.wabaId = entity.wabaId;
     dto.name = entity.name;
-    dto.isDefault = entity.isDefault;
     dto.isActive = entity.isActive;
     dto.webhooksSubscribed = entity.webhooksSubscribed;
     dto.createdAt = entity.createdAt.toISOString();

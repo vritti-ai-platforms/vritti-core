@@ -4,14 +4,13 @@ import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Facebook, Star } from 'lucide-react';
+import { Facebook } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   useDeleteWhatsappAccount,
   useEmbeddedSignup,
   useEmbeddedSignupConfig,
-  useReconnectWhatsappAccount,
-  useUpdateWhatsappAccount,
+  useEmbeddedSignupResult,
   useWhatsappAccount,
 } from '@/hooks/organization/whatsapp-accounts';
 import { OverviewTab } from './tabs/overview/OverviewTab';
@@ -23,16 +22,19 @@ export const WhatsappAccountDetailPage = () => {
   const navigate = useNavigate();
   const { data: account } = useWhatsappAccount(accountId);
   const confirm = useConfirm();
-  const updateMutation = useUpdateWhatsappAccount();
   const deleteMutation = useDeleteWhatsappAccount({ onSuccess: () => navigate('..', { relative: 'path' }) });
 
   // Reconnect is the only way to supply a fresh credential — there is no manual token entry — so it
   // stays available at all times rather than appearing only once something has visibly broken
   const { data: signupConfig } = useEmbeddedSignupConfig();
-  const reconnectMutation = useReconnectWhatsappAccount();
-  const { open: openReconnect, isOpening } = useEmbeddedSignup({
+
+  // A reconnect returns to this page, so its outcome arrives on the query string
+  useEmbeddedSignupResult();
+
+  const { open: openReconnect, isRunning } = useEmbeddedSignup({
     config: signupConfig,
-    onComplete: (result) => reconnectMutation.mutate({ id: account.id, data: result }),
+    mode: 'reconnect',
+    accountId: account.id,
   });
 
   const handleDelete = async () => {
@@ -52,35 +54,22 @@ export const WhatsappAccountDetailPage = () => {
         title={account.name}
         description={`WABA ${account.wabaId}`}
         actions={
-          <>
-            {!account.isDefault && (
-              <Button
-                variant="outline"
-                startAdornment={<Star className="size-4" />}
-                permission={ORG_WHATSAPP_ACCOUNTS.edit}
-                isLoading={updateMutation.isPending}
-                onClick={() => updateMutation.mutate({ id: account.id, data: { isDefault: true } })}
-              >
-                Set as default
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              startAdornment={<Facebook className="size-4" />}
-              permission={ORG_WHATSAPP_ACCOUNTS.edit}
-              isLoading={isOpening || reconnectMutation.isPending}
-              loadingText="Reconnecting..."
-              disabled={!signupConfig?.enabled}
-              disabledTip={
-                signupConfig && !signupConfig.enabled
-                  ? 'WhatsApp sign-up is not configured for this environment yet.'
-                  : undefined
-              }
-              onClick={openReconnect}
-            >
-              Reconnect
-            </Button>
-          </>
+          <Button
+            variant="outline"
+            startAdornment={<Facebook className="size-4" />}
+            permission={ORG_WHATSAPP_ACCOUNTS.edit}
+            isLoading={isRunning}
+            loadingText="Redirecting..."
+            disabled={!signupConfig?.enabled}
+            disabledTip={
+              signupConfig && !signupConfig.enabled
+                ? 'WhatsApp sign-up is not configured for this environment yet.'
+                : undefined
+            }
+            onClick={openReconnect}
+          >
+            Reconnect
+          </Button>
         }
       />
 

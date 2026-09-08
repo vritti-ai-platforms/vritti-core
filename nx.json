@@ -2,27 +2,45 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "main",
   "namedInputs": {
-    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
     "sharedGlobals": []
   },
   "targetDefaults": {
     "build": {
       "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["default", "^default"],
-      "outputs": ["{projectRoot}/dist"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "default",
+        "^default"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
     },
     "test": {
       "cache": true,
-      "inputs": ["default", "^default"]
+      "inputs": [
+        "default",
+        "^default"
+      ]
     },
     "lint": {
       "cache": true,
-      "inputs": ["default"]
+      "inputs": [
+        "default"
+      ]
     },
     "typecheck": {
       "cache": true,
-      "inputs": ["default", "^default"]
+      "inputs": [
+        "default",
+        "^default"
+      ]
     },
     "e2e": {
       "cache": false
@@ -74,7 +92,11 @@
     }
   },
   "release": {
-    "projects": ["vritti-core-server", "vritti-core-web", "vritti-core-app"],
+    "projects": [
+      "vritti-core-server",
+      "vritti-core-web",
+      "vritti-core-app"
+    ],
     "projectsRelationship": "fixed",
     "version": {
       "conventionalCommits": true
@@ -83,5 +105,6 @@
       "projectChangelogs": true,
       "workspaceChangelog": true
     }
-  }
+  },
+  "analytics": false
 }

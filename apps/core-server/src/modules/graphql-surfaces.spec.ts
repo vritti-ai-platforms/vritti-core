@@ -11,10 +11,7 @@ import { join } from 'node:path';
 
 const MODULES_DIR = join(__dirname);
 
-const APP_SURFACE_MODULES = [
-  'commerce-app-gateway.module.ts',
-  'communications-app-gateway.module.ts',
-];
+const APP_SURFACE_MODULES = ['commerce-app-gateway.module.ts', 'communications-app-gateway.module.ts'];
 
 // Anything named like an app surface must be listed above, or the closure check silently skips it
 const APP_SURFACE_NAME = /-app-(gateway|api)\.module\.ts$/;

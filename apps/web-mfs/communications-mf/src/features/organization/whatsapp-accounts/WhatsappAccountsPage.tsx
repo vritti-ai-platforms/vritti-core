@@ -12,13 +12,13 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
-import { Eye, Facebook, MessageCircle, Smartphone } from 'lucide-react';
+import { Eye, Facebook, MessageCircle } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  useConnectWhatsappAccountEmbedded,
   useEmbeddedSignup,
   useEmbeddedSignupConfig,
+  useEmbeddedSignupResult,
   useWhatsappAccounts,
   WHATSAPP_ACCOUNTS_TABLE_KEY,
 } from '@/hooks/organization/whatsapp-accounts';
@@ -30,20 +30,14 @@ export const WhatsappAccountsPage = () => {
   const { data: response, isLoading } = useWhatsappAccounts();
 
   const { data: signupConfig } = useEmbeddedSignupConfig();
-  const connectMutation = useConnectWhatsappAccountEmbedded();
 
-  // Two launchers over one mutation. The default flow refuses a number already live on the WhatsApp
-  // Business app, and only the coexistence flag takes one — Meta decides eligibility on its own
-  // screen, so the choice has to be the operator's, made before the popup opens.
-  const { open: openSignup, isOpening } = useEmbeddedSignup({
-    config: signupConfig,
-    onComplete: connectMutation.mutate,
-  });
-  const { open: openCoexistence, isOpening: isOpeningCoexistence } = useEmbeddedSignup({
-    config: signupConfig,
-    onComplete: connectMutation.mutate,
-    featureType: 'whatsapp_business_app_onboarding',
-  });
+  // The flow leaves this page and comes back to it, so the outcome arrives on the query string
+  useEmbeddedSignupResult();
+
+  // One launcher. A number already live on the WhatsApp Business app needed its own opt-in on the
+  // older flow; on v4 the signup detects that case itself and routes to coexistence, so there is
+  // nothing for the operator to choose up front.
+  const { open: openSignup, isRunning } = useEmbeddedSignup({ config: signupConfig, mode: 'connect' });
 
   const signupDisabledTip =
     signupConfig && !signupConfig.enabled ? 'WhatsApp sign-up is not configured for this environment yet.' : undefined;
@@ -55,8 +49,8 @@ export const WhatsappAccountsPage = () => {
       size={size}
       startAdornment={<Facebook className="size-4" />}
       permission={ORG_WHATSAPP_ACCOUNTS.add}
-      isLoading={isOpening || connectMutation.isPending}
-      loadingText="Connecting..."
+      isLoading={isRunning}
+      loadingText="Redirecting..."
       disabled={!signupConfig?.enabled}
       disabledTip={signupDisabledTip}
       onClick={openSignup}
@@ -65,35 +59,12 @@ export const WhatsappAccountsPage = () => {
     </Button>
   );
 
-  const coexistenceButton = (size?: 'sm') => (
-    <Button
-      size={size}
-      variant="outline"
-      startAdornment={<Smartphone className="size-4" />}
-      permission={ORG_WHATSAPP_ACCOUNTS.add}
-      isLoading={isOpeningCoexistence}
-      loadingText="Connecting..."
-      disabled={!signupConfig?.enabled}
-      disabledTip={signupDisabledTip}
-      onClick={openCoexistence}
-    >
-      Use an existing number
-    </Button>
-  );
-
   const columns = useMemo<ColumnDef<WhatsappAccountData>[]>(
     () => [
       {
         accessorKey: 'name',
         header: 'Name',
-        cell: ({ row }) => (
-          // inline-flex so the group flows within the cell's text-center like every other column;
-          // a block flex would pack left and break column alignment
-          <span className="inline-flex items-center gap-2">
-            <StringCell value={row.original.name} />
-            {row.original.isDefault && <Badge variant="secondary">Default</Badge>}
-          </span>
-        ),
+        cell: ({ row }) => <StringCell value={row.original.name} />,
         enableSorting: true,
         size: 240,
       },
@@ -191,35 +162,14 @@ export const WhatsappAccountsPage = () => {
               { label: 'Disabled', value: 'false' },
             ]}
           />,
-          <SelectFilter
-            key="isDefault"
-            name="isDefault"
-            label="Default sender"
-            options={[
-              { label: 'Default', value: 'true' },
-              { label: 'Not default', value: 'false' },
-            ]}
-          />,
         ]}
-        toolbarActions={{
-          actions: (
-            <>
-              {coexistenceButton('sm')}
-              {connectButton('sm')}
-            </>
-          ),
-        }}
+        toolbarActions={{ actions: connectButton('sm') }}
         emptyStateConfig={{
           icon: MessageCircle,
           title: 'No WhatsApp accounts yet',
           description:
-            'Sign in with Facebook to grant Vritti access to a WhatsApp Business Account — nothing to copy or paste. Already running WhatsApp Business on the number you want? Pick "Use an existing number".',
-          action: (
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {connectButton()}
-              {coexistenceButton()}
-            </div>
-          ),
+            'Sign in with Facebook to grant Vritti access to a WhatsApp Business Account — nothing to copy or paste. A number already running on the WhatsApp Business app works too; the signup detects it and connects it in place.',
+          action: connectButton(),
         }}
       />
     </div>

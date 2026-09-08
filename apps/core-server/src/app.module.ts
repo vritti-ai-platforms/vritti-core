@@ -29,6 +29,7 @@ import { CommerceAppGatewayModule } from './modules/commerce-gateway/commerce-ap
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
 import { CommunicationsAppGatewayModule } from './modules/communications-gateway/communications-app-gateway.module';
 import { CommunicationsGatewayModule } from './modules/communications-gateway/communications-gateway.module';
+import { WhatsappEmbeddedSignupBrokerModule } from './modules/communications-gateway/embedded-signup/whatsapp-embedded-signup-broker.module';
 import { CommunicationsInternalModule } from './modules/communications-gateway/internal/communications-internal.module';
 import { WhatsappWebhookModule } from './modules/communications-gateway/webhooks/whatsapp-webhook.module';
 import { AppApiModule } from './modules/core-api/app/app-api.module';
@@ -364,6 +365,9 @@ const graphqlBaseOptions = {
     CommunicationsInternalModule,
     // Public Meta delivery callbacks — unprefixed so the path matches what is registered with Meta
     WhatsappWebhookModule,
+    // The one fixed origin allowed to spawn Meta's Embedded Signup popup — unprefixed for the same
+    // reason: its absolute URL is registered in the Meta app's allowed-domain lists
+    WhatsappEmbeddedSignupBrokerModule,
     // Forwards requests to the self-hosted Gitea instance over HTTP
     GiteaGatewayModule,
     // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the

@@ -6,7 +6,6 @@ export interface WhatsappAccountData {
   metaBusinessId: string;
   wabaId: string;
   name: string;
-  isDefault: boolean;
   isActive: boolean;
   webhooksSubscribed: boolean;
   createdAt: string;
@@ -18,38 +17,50 @@ export type WhatsappAccountsTableResponse = TableResponse<WhatsappAccountData>;
 export interface UpdateWhatsappAccountData {
   legalEntityId?: string | null;
   name?: string;
-  isDefault?: boolean;
   isActive?: boolean;
 }
 
-// Mirrors EmbeddedSignupConfigResponseDto — served per environment rather than baked into the bundle
+// Mirrors EmbeddedSignupConfigResponseDto — one flag. The Meta ids stay server-side now that the
+// broker spawns the flow, so there is nothing else for the console to know.
 export interface EmbeddedSignupConfigData {
-  appId: string;
-  configId: string | null;
-  graphVersion: string;
   enabled: boolean;
 }
 
-/**
- * Terminal events the popup reports as a successful finish. CANCEL and ERROR are handled in the hook
- * and never submitted.
- *
- * All five are treated as success because Meta says so — closing the popup on the final screen
- * counts as completion, and each variant still returns the token code plus the asset ids.
- */
-export type EmbeddedSignupEventName =
-  | 'FINISH'
-  | 'FINISH_ONLY_WABA'
-  | 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'
-  | 'FINISH_OBO_MIGRATION'
-  | 'FINISH_GRANT_ONLY_API_ACCESS';
+// Mirrors CreateEmbeddedSignupStateDto — the console names its own return route, because that route
+// belongs to the micro-frontend rather than to the server
+export interface CreateEmbeddedSignupStateData {
+  returnUrl: string;
+}
 
-// Mirrors ConnectEmbeddedSignupDto. No zod schema: none of this is typed by a human, it is
-// assembled from the popup's two callbacks, and the server re-derives everything it trusts.
-export interface ConnectEmbeddedSignupData {
-  code: string;
-  wabaId: string;
-  phoneNumberId?: string;
-  businessId?: string;
-  event: EmbeddedSignupEventName;
+// Mirrors EmbeddedSignupStateResponseDto — where to send the operator, signed state included
+export interface EmbeddedSignupStateData {
+  url: string;
+}
+
+/**
+ * Query keys the flow comes back on.
+ *
+ * The whole round trip happens in one tab: the console navigates away into Meta and the callback
+ * redirects back here with the outcome attached, so there is no popup to message and no page of ours
+ * in between. Must match RESULT_PARAM / MESSAGE_PARAM in core-server's broker service.
+ */
+export const EMBEDDED_SIGNUP_RESULT_PARAM = 'whatsapp';
+export const EMBEDDED_SIGNUP_MESSAGE_PARAM = 'whatsappMessage';
+
+/**
+ * Relay from the popup back to the console window that opened it.
+ *
+ * The popup ends the round trip on this same app — the callback redirects it to the console URL it
+ * started from — so the window that has the result is not the window the operator is looking at. It
+ * hands the outcome over and closes itself.
+ *
+ * Same-origin by construction (both windows are this app on the tenant host), which is why the
+ * listener can compare against `window.location.origin` exactly.
+ */
+export const EMBEDDED_SIGNUP_RELAY_MESSAGE = 'VRITTI_WHATSAPP_CONNECT_RELAY';
+
+export interface EmbeddedSignupRelayMessage {
+  type: typeof EMBEDDED_SIGNUP_RELAY_MESSAGE;
+  ok: boolean;
+  message?: string;
 }

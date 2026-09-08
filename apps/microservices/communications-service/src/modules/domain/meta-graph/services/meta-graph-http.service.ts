@@ -56,11 +56,22 @@ export class MetaGraphHttpService {
    *
    * Deliberately not routed through `get()`: there is no token yet, so there is neither a bearer to
    * send nor anything to derive `appsecret_proof` from — the app id + secret pair IS the credential.
+   *
+   * `redirectUri` is REQUIRED whenever the authorization request carried one, and must be byte
+   * identical to it — that is the OAuth code-binding rule, and Meta enforces it by rejecting the
+   * code outright. The old JS-SDK flow sent no redirect URI at all (the popup returned the code
+   * through `postMessage`), so this was correctly absent; the redirect flow supplies one, and
+   * omitting it here produced "Meta rejected the setup code" for every otherwise-valid attempt.
    */
-  async exchangeCode(code: string): Promise<string> {
+  async exchangeCode(code: string, redirectUri?: string): Promise<string> {
     try {
       const response = await this.client.get<{ access_token?: string }>('/oauth/access_token', {
-        params: { client_id: this.appId, client_secret: this.appSecret, code },
+        params: {
+          client_id: this.appId,
+          client_secret: this.appSecret,
+          code,
+          ...(redirectUri ? { redirect_uri: redirectUri } : {}),
+        },
       });
       // A 200 with no token has never been observed, but the field is optional in Meta's schema
       if (!response.data.access_token) throw new BadRequestException(SIGNUP_CODE_REJECTED);

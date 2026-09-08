@@ -1,23 +1,24 @@
-import { ConnectEmbeddedSignupDto } from '@communications/whatsapp-accounts/dto/request/connect-embedded-signup.dto';
+import { CreateEmbeddedSignupStateDto } from '@communications/whatsapp-accounts/dto/request/create-embedded-signup-state.dto';
 import { UpdateWhatsappAccountDto } from '@communications/whatsapp-accounts/dto/request/update-whatsapp-account.dto';
 import type { EmbeddedSignupConfigResponseDto } from '@communications/whatsapp-accounts/dto/response/embedded-signup-config-response.dto';
+import type { EmbeddedSignupStateResponseDto } from '@communications/whatsapp-accounts/dto/response/embedded-signup-state-response.dto';
 import type { WhatsappAccountResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-response.dto';
 import type { WhatsappAccountTableResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-table-response.dto';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgId } from '@/security/decorators';
 import {
-  ApiConnectWhatsappAccountEmbedded,
+  ApiCreateWhatsappConnectState,
+  ApiCreateWhatsappReconnectState,
   ApiDeleteWhatsappAccount,
   ApiGetEmbeddedSignupConfig,
   ApiGetWhatsappAccount,
   ApiGetWhatsappAccountsTable,
-  ApiReconnectWhatsappAccount,
   ApiUpdateWhatsappAccount,
 } from './docs/whatsapp-accounts-gateway.docs';
 import { WhatsappAccountsGatewayService } from './services/whatsapp-accounts-gateway.service';
@@ -41,7 +42,8 @@ export class WhatsappAccountsGatewayController {
     return this.service.findForTable(userId);
   }
 
-  // Public Meta app values the browser needs to open the Embedded Signup popup.
+  // Whether this deployment can run Embedded Signup at all, so the UI can hide its buttons rather
+  // than starting a flow that cannot finish.
   // Declared above @Get(':id') — that route is not UUID-piped, so a single-segment path here would
   // be swallowed by it.
   @Get('embedded-signup/config')
@@ -52,24 +54,42 @@ export class WhatsappAccountsGatewayController {
     return this.service.embeddedSignupConfig();
   }
 
-  // Connects a WhatsApp Business Account from an Embedded Signup result
-  @Post('embedded-signup')
+  /**
+   * Starts a connect and returns where to run it.
+   *
+   * This route replaces the old `POST embedded-signup`, which took the popup's result directly.
+   * That could not survive per-organization subdomains: Meta enforces the SDK's host against a
+   * fixed allowed-domain list, so the popup now runs on one shared origin and the account is
+   * created there. This is consequently the last point at which the caller's grants are visible,
+   * which is why `add` is enforced here and not on the completion endpoint.
+   */
+  @Post('embedded-signup/state')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_WHATSAPP_ACCOUNTS.add)
-  @ApiConnectWhatsappAccountEmbedded()
-  connectEmbedded(@Body() dto: ConnectEmbeddedSignupDto): Promise<CreateResponseDto<WhatsappAccountResponseDto>> {
-    this.logger.log('POST /communications-api/whatsapp-accounts/embedded-signup');
-    return this.service.connectEmbedded(dto);
+  @ApiCreateWhatsappConnectState()
+  createConnectState(
+    @OrgId() organizationId: string,
+    @UserId() userId: string,
+    @Body() dto: CreateEmbeddedSignupStateDto,
+  ): EmbeddedSignupStateResponseDto {
+    this.logger.log('POST /communications-api/whatsapp-accounts/embedded-signup/state');
+    return this.service.createConnectState(organizationId, userId, dto);
   }
 
-  // Replaces an account's credential from a fresh Embedded Signup result
-  @Post(':id/reconnect')
-  @HttpCode(HttpStatus.OK)
+  // Starts a credential replacement for one existing account. The account id rides in the minted
+  // state, so the completion cannot be redirected onto a different row.
+  @Post(':id/reconnect/state')
+  @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_WHATSAPP_ACCOUNTS.edit)
-  @ApiReconnectWhatsappAccount()
-  reconnect(@Param('id') id: string, @Body() dto: ConnectEmbeddedSignupDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /communications-api/whatsapp-accounts/${id}/reconnect`);
-    return this.service.reconnect(id, dto);
+  @ApiCreateWhatsappReconnectState()
+  createReconnectState(
+    @Param('id') id: string,
+    @OrgId() organizationId: string,
+    @UserId() userId: string,
+    @Body() dto: CreateEmbeddedSignupStateDto,
+  ): EmbeddedSignupStateResponseDto {
+    this.logger.log(`POST /communications-api/whatsapp-accounts/${id}/reconnect/state`);
+    return this.service.createReconnectState(id, organizationId, userId, dto);
   }
 
   // Returns a WhatsApp account by ID

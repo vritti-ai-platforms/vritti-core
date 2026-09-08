@@ -9,11 +9,6 @@ import { StructureServicesModule } from './structure-services.module';
 // the external-app surface can reach them without importing this module's resolvers.
 @Module({
   imports: [StructureServicesModule],
-  controllers: [
-    StructureController,
-    LegalEntityController,
-    SiteController,
-    SiteGroupController,
-  ],
+  controllers: [StructureController, LegalEntityController, SiteController, SiteGroupController],
 })
 export class StructureApiModule {}
