@@ -4,6 +4,7 @@ import { catalogs } from './catalogs';
 import { commerceSchema } from './commerce-schema';
 import { catalogChannelTypeEnum } from './enums';
 import { posTerminals } from './pos-terminals';
+import { workspaceScopeColumns, workspaceScopePolicies } from './workspace-scope';
 
 export const catalogChannels = commerceSchema.table(
   'catalog_channels',
@@ -14,8 +15,8 @@ export const catalogChannels = commerceSchema.table(
       .notNull()
       .references(() => catalogs.id, { onDelete: 'cascade' }),
     type: catalogChannelTypeEnum('type').notNull(),
-    legalEntityId: uuid('legal_entity_id'),
-    siteId: uuid('site_id'),
+    legalEntityId: workspaceScopeColumns.legalEntityId,
+    siteId: workspaceScopeColumns.siteId,
     appId: uuid('app_id'),
     terminalId: uuid('terminal_id').references(() => posTerminals.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -42,10 +43,7 @@ export const catalogChannels = commerceSchema.table(
     check('ck_catalog_channels_site_needs_le', sql`${table.siteId} is null or ${table.legalEntityId} is not null`),
     index('idx_catalog_channels_catalog').on(table.catalogId),
     index('idx_catalog_channels_resolve').on(table.type, table.organizationId, table.legalEntityId, table.siteId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    ...workspaceScopePolicies('catalog_channel_reach'),
   ],
 );
 

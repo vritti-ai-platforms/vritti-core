@@ -1,172 +1,96 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { ORG_CATALOG_CHANNELS } from '@vritti/commerce-permissions/catalog-channels';
-import { Badge } from '@vritti/quantum-ui/Badge';
-import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, type RowAction, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { Card, CardContent } from '@vritti/quantum-ui/Card';
+import { cn } from '@vritti/quantum-ui/cn';
+import { Empty } from '@vritti/quantum-ui/Empty';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { SelectFilter } from '@vritti/quantum-ui/Select';
-import { Route, Shuffle, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { ChevronRight, Monitor, Receipt, Route, Smartphone } from 'lucide-react';
+import type React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  CATALOG_CHANNELS_TABLE_KEY,
-  useCatalogChannelsTable,
-  useDeleteCatalogChannel,
-} from '@/hooks/organization/catalog-channels';
-import { CATALOG_CHANNEL_TYPES, type CatalogChannelData, CHANNEL_TYPE_META } from '@/schemas/catalog-channels';
-import { ResolveChannelCard } from './components/ResolveChannelCard';
-import { AddChannelDialog } from './forms/AddChannelDialog';
-import { RepointChannelDialog } from './forms/RepointChannelDialog';
+  type CatalogChannelType,
+  CHANNEL_TYPE_META,
+  type ChannelOverviewData,
+  SCOPE_LABEL,
+} from '@/schemas/catalog-channels';
+import type { CatalogChannelsBinding } from './types';
 
-// Broadest first, so the fallback order reads down the column the way resolution walks it
-const scopeLabel = (row: CatalogChannelData) =>
-  row.siteId ? 'One outlet' : row.legalEntityId ? 'One company' : 'Whole organization';
+const TYPE_ICON: Record<CatalogChannelType, React.ElementType> = {
+  APP: Smartphone,
+  POS: Monitor,
+  B2B: Receipt,
+};
 
-export const CatalogChannelsPage = () => {
-  const queryClient = useQueryClient();
-  const { data: response, isLoading } = useCatalogChannelsTable();
-  const addDialog = useDialog();
-  const confirm = useConfirm();
-  const deleteMutation = useDeleteCatalogChannel();
+// Only App is built; the others are shown so the shape of the feature is visible
+const LIVE_TYPES: CatalogChannelType[] = ['APP'];
 
-  const handleDelete = useCallback(
-    async (row: CatalogChannelData) => {
-      const ok = await confirm({
-        title: 'Remove this channel?',
-        description: `Nothing will resolve for ${CHANNEL_TYPE_META[row.type].label} at this scope until another catalog claims it.`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
+interface CatalogChannelsPageProps {
+  binding: CatalogChannelsBinding;
+}
 
-  const columns = useMemo<ColumnDef<CatalogChannelData>[]>(
-    () => [
-      {
-        accessorKey: 'type',
-        header: 'Type',
-        cell: ({ row }) => <Badge variant="outline">{CHANNEL_TYPE_META[row.original.type].label}</Badge>,
-        enableSorting: true,
-      },
-      {
-        id: 'target',
-        header: 'Specific',
-        cell: ({ row }) => {
-          const r = row.original;
-          if (r.terminalId) return r.terminalName ?? 'One till';
-          if (r.appId) return 'One app';
-          return <span className="text-muted-foreground">{r.type === 'POS' ? 'Any till' : 'Any app'}</span>;
-        },
-        enableSorting: false,
-      },
-      {
-        id: 'scope',
-        header: 'Selling from',
-        cell: ({ row }) => scopeLabel(row.original),
-        enableSorting: false,
-      },
-      {
-        accessorKey: 'catalogName',
-        header: 'Sells',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{row.original.catalogName ?? '—'}</span>
-            {row.original.catalogIsActive ? null : <Badge variant="warning">Draft</Badge>}
-          </div>
-        ),
-        enableSorting: false,
-      },
-      {
-        id: 'actions',
-        header: '',
-        cell: ({ row }) => {
-          const r = row.original;
-          const actions: RowAction[] = [
-            {
-              id: 'repoint',
-              icon: Shuffle,
-              label: 'Repoint',
-              permission: ORG_CATALOG_CHANNELS.edit,
-              dialog: {
-                title: 'Repoint Channel',
-                description: 'Point this channel at a different catalog. Its type and scope stay as they are.',
-                content: (close) => <RepointChannelDialog channel={r} onSuccess={close} onCancel={close} />,
-              },
-            },
-            {
-              id: 'delete',
-              icon: Trash2,
-              label: 'Remove',
-              variant: 'destructive',
-              permission: ORG_CATALOG_CHANNELS.delete,
-              onClick: () => handleDelete(r),
-            },
-          ];
-          return <RowActions actions={actions} />;
-        },
-        enableSorting: false,
-        enableHiding: false,
-      },
-    ],
-    [handleDelete],
-  );
+export const CatalogChannelsPage: React.FC<CatalogChannelsPageProps> = ({ binding }) => {
+  const navigate = useNavigate();
+  const { data: channels = [], isLoading } = binding.useOverview();
 
-  const { table } = useDataTable({
-    columns,
-    slug: 'commerce-org-catalog-channels',
-    label: 'channel',
-    serverState: response,
-    enableRowSelection: false,
-    enableSorting: true,
-    enableMultiSort: false,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: CATALOG_CHANNELS_TABLE_KEY }),
-  });
+  // Where the catalog came from only tells you something when it is not this workspace's own
+  const provenanceOf = (channel: ChannelOverviewData) => {
+    if (!channel.catalogName) return <span className="text-warning text-xs">Nothing assigned</span>;
+    if (!channel.isOverride) {
+      return (
+        <span className="text-muted-foreground text-xs">
+          Inherited from the {SCOPE_LABEL[channel.inheritedFrom ?? 'ORGANIZATION']}
+        </span>
+      );
+    }
+    if (binding.scopeSegment === 'org') return null;
+    return <span className="text-muted-foreground text-xs">Overridden for this {binding.scopeNoun}</span>;
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Catalog Channels"
-        description="Which catalog each channel sells. The most specific binding wins — a till beats an outlet, an outlet beats a company."
-      />
+      <PageHeader title="Catalog Channels" description={binding.description} />
 
-      <ResolveChannelCard />
+      {!isLoading && channels.length === 0 ? (
+        <Empty icon={<Route className="size-5" />} title="No channels" description="Nothing to configure here yet." />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-3">
+          {channels.map((channel) => {
+            const meta = CHANNEL_TYPE_META[channel.type];
+            const Icon = TYPE_ICON[channel.type];
+            const isLive = LIVE_TYPES.includes(channel.type);
+            return (
+              <Card
+                key={channel.type}
+                className={cn(isLive && 'cursor-pointer transition-colors hover:border-primary/40')}
+                onClick={isLive ? () => navigate(channel.type.toLowerCase()) : undefined}
+              >
+                <CardContent className="flex h-full flex-col gap-3 py-5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Icon className="size-5 text-muted-foreground" />
+                      <span className="font-semibold">{meta.label}</span>
+                    </div>
+                    {isLive ? <ChevronRight className="size-4 text-muted-foreground" /> : null}
+                  </div>
 
-      <DataTable
-        table={table}
-        isLoading={isLoading}
-        permission={ORG_CATALOG_CHANNELS.view}
-        filters={[
-          <SelectFilter
-            key="type"
-            name="type"
-            label="Type"
-            options={CATALOG_CHANNEL_TYPES.map((value) => ({ label: CHANNEL_TYPE_META[value].label, value }))}
-          />,
-        ]}
-        toolbarActions={{
-          actions: (
-            <Button size="sm" onClick={addDialog.open} permission={ORG_CATALOG_CHANNELS.add}>
-              Add Channel
-            </Button>
-          ),
-        }}
-        emptyStateConfig={{
-          icon: Route,
-          title: 'No channels yet',
-          description: 'Until a channel points at a catalog, nothing you sell is reachable. Add one to start.',
-        }}
-      />
+                  <p className="text-muted-foreground text-xs">{meta.description}</p>
 
-      <Dialog
-        handle={addDialog}
-        icon={Route}
-        title="Add Channel"
-        description="Bind a channel to the catalog it sells. Leave the company and outlet empty to cover the whole organization."
-        content={(close) => <AddChannelDialog onSuccess={close} onCancel={close} />}
-      />
+                  <div className="mt-auto flex flex-col items-start gap-1.5 pt-2">
+                    {isLive ? (
+                      <>
+                        {channel.catalogName ? (
+                          <span className="font-medium text-sm">{channel.catalogName}</span>
+                        ) : null}
+                        {provenanceOf(channel)}
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">Coming soon</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

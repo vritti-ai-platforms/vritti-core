@@ -69,6 +69,8 @@ export default defineConfig({
       filename: 'remoteEntry.js',
       exposes: {
         './Org/CatalogChannels': './src/features/organization/catalog-channels/index.tsx',
+        './Le/CatalogChannels': './src/features/legal-entity/catalog-channels/index.tsx',
+        './Site/CatalogChannels': './src/features/site/catalog-channels/index.tsx',
         './Org/Catalogs': './src/features/organization/catalogs/index.tsx',
         './Org/Categories': './src/features/organization/categories/index.tsx',
         './Org/Companies': './src/features/organization/companies/index.tsx',

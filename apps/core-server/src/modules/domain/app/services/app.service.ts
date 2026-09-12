@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import type { FeatureUnlocks, PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
 import { PLATFORMS } from '@vritti/api-sdk/catalog-resolver';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
 import { generateSigningKeyPair } from '@vritti/api-sdk/signing';
 import type { App, AppSmsOtpConfig, AppType, AppWhatsappOtpConfig } from '@/db/schema';
 import { AppDomainRepository } from '../repositories/app.repository';
@@ -21,6 +22,11 @@ export class AppDomainService {
   private readonly logger = new Logger(AppDomainService.name);
 
   constructor(private readonly repository: AppDomainRepository) {}
+
+  // Options for the app picker, scoped to the caller's organization
+  findForSelect(organizationId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findAppsForSelect(organizationId, query);
+  }
 
   /**
    * Mints an app and its keypair.

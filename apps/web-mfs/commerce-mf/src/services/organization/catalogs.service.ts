@@ -123,3 +123,17 @@ export function setCatalogListingChannelVisibility({
     .patch<SuccessResponse>(`${BASE}/${catalogId}/listings/${listingId}/channels/${channelId}`, { visible })
     .then((r) => r.data);
 }
+
+export interface CatalogOption {
+  value: string;
+  label: string;
+}
+
+export function getCatalogOptions(): Promise<CatalogOption[]> {
+  return axios
+    .get<{ options: CatalogOption[] }>('commerce-api/select-api/catalogs', {
+      params: { valueKey: 'id', labelKey: 'name' },
+      showSuccessToast: false,
+    })
+    .then((r) => r.data.options);
+}

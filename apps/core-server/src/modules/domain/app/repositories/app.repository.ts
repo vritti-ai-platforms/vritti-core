@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  PrimaryBaseRepository,
+  PrimaryDatabaseService,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+} from '@vritti/api-sdk/database';
+import { and, eq, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type App, apps } from '@/db/schema';
 
 @Injectable()
@@ -13,6 +18,25 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
   async findByClientId(clientId: string): Promise<App | undefined> {
     return this.model.findFirst({
       where: { clientId },
+    });
+  }
+
+  /** Options for the app picker — active, unrevoked credentials only. */
+  async findAppsForSelect(organizationId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return super.findForSelect({
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: 'clientId',
+      additionalKeys: query.additionalKeys,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+      where: { organizationId, isActive: true },
+      conditions: [isNull(apps.revokedAt)],
     });
   }
 

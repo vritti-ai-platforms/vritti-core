@@ -1,3 +1,4 @@
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 
@@ -10,21 +11,32 @@ export const CHANNEL_TYPE_META: Record<CatalogChannelType, { label: string; desc
   B2B: { label: 'B2B', description: 'The wholesale invoice generator' },
 };
 
-export const createCatalogChannelSchema = z.object({
+export type ChannelScope = 'SITE' | 'LEGAL_ENTITY' | 'ORGANIZATION';
+
+export const SCOPE_LABEL: Record<ChannelScope, string> = {
+  SITE: 'outlet',
+  LEGAL_ENTITY: 'company',
+  ORGANIZATION: 'organization',
+};
+
+export const SCOPE_TITLE: Record<ChannelScope, string> = {
+  SITE: 'Outlet',
+  LEGAL_ENTITY: 'Company',
+  ORGANIZATION: 'Organization',
+};
+
+export const addAppChannelSchema = z.object({
   catalogId: z.string().uuid('Catalog is required'),
-  type: z.enum(CATALOG_CHANNEL_TYPES),
-  legalEntityId: z.string().uuid().nullable().optional(),
-  siteId: z.string().uuid().nullable().optional(),
   appId: z.string().uuid().nullable().optional(),
-  terminalId: z.string().uuid().nullable().optional(),
 });
 
-export const repointCatalogChannelSchema = z.object({
+export type AddAppChannelFormData = z.infer<typeof addAppChannelSchema>;
+
+export const editAppChannelSchema = z.object({
   catalogId: z.string().uuid('Catalog is required'),
 });
 
-export type CreateCatalogChannelFormData = z.infer<typeof createCatalogChannelSchema>;
-export type RepointCatalogChannelFormData = z.infer<typeof repointCatalogChannelSchema>;
+export type EditAppChannelFormData = z.infer<typeof editAppChannelSchema>;
 
 export interface CatalogChannelData {
   id: string;
@@ -32,22 +44,39 @@ export interface CatalogChannelData {
   catalogName: string | null;
   catalogIsActive: boolean;
   type: CatalogChannelType;
+  label: string;
+  isFallback: boolean;
   legalEntityId: string | null;
   siteId: string | null;
   appId: string | null;
   terminalId: string | null;
   terminalName: string | null;
+  isOwn: boolean;
+  setAt: ChannelScope;
+  itemsTotal: number;
+  itemsSelling: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface ResolvedCatalogData {
-  catalogId: string;
-  catalogName: string;
-  taxInclusive: boolean;
-  channelId: string;
-  matchedScope: 'SITE' | 'LEGAL_ENTITY' | 'ORGANIZATION';
-  matchedTarget: boolean;
+export interface ChannelOverviewData {
+  type: CatalogChannelType;
+  catalogId: string | null;
+  catalogName: string | null;
+  catalogIsActive: boolean | null;
+  isOverride: boolean;
+  inheritedFrom: ChannelScope | null;
 }
 
+export interface ChannelItemData {
+  listingId: string;
+  offeringVariantId: string;
+  sku: string | null;
+  variantName: string | null;
+  mrp: CurrencyValue | null;
+  price: CurrencyValue | null;
+  sellsHere: boolean;
+}
+
+export type ChannelItemsTableResponse = TableResponse<ChannelItemData>;
 export type CatalogChannelsTableResponse = TableResponse<CatalogChannelData>;

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateCatalogDto {
   @ApiProperty({ example: 'Retail' })
@@ -18,10 +18,4 @@ export class CreateCatalogDto {
   @IsOptional()
   @IsBoolean()
   taxInclusive?: boolean;
-
-  @ApiPropertyOptional({ description: 'Higher wins when two catalogs reach the same channel' })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  priority?: number;
 }

@@ -1,5 +1,8 @@
+import { AppDomainModule } from '@domain/app/app.module';
 import { SiteDomainModule } from '@domain/site/site.module';
 import { Module } from '@nestjs/common';
+import { LeAppCatalogChannelGatewayService } from './le-api/catalog-channels/services/app-catalog-channel-gateway.service';
+import { LeCatalogChannelsGatewayService } from './le-api/catalog-channels/services/catalog-channels-gateway.service';
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
 import { LeOfferingDimensionTemplatesGatewayService } from './le-api/offering-dimension-templates/services/offering-dimension-templates-gateway.service';
 import { LeOfferingsGatewayService } from './le-api/offerings/services/offerings-gateway.service';
@@ -7,6 +10,7 @@ import { SupplierItemsGatewayService } from './le-api/supplier-items/services/su
 import { SuppliersGatewayService } from './le-api/suppliers/services/suppliers-gateway.service';
 import { TaxGroupsGatewayService } from './le-api/tax-groups/services/tax-groups-gateway.service';
 import { TaxRegistrationsGatewayService } from './le-api/tax-registrations/services/tax-registrations-gateway.service';
+import { AppCatalogChannelGatewayService } from './org-api/catalog-channels/services/app-catalog-channel-gateway.service';
 import { CatalogChannelsGatewayService } from './org-api/catalog-channels/services/catalog-channels-gateway.service';
 import { CatalogsGatewayService } from './org-api/catalogs/services/catalogs-gateway.service';
 import { CategoriesGatewayService } from './org-api/categories/services/categories-gateway.service';
@@ -19,6 +23,8 @@ import { TaxClassesGatewayService } from './org-api/tax-classes/services/tax-cla
 import { TaxComponentsGatewayService } from './org-api/tax-components/services/tax-components-gateway.service';
 import { TaxJurisdictionsGatewayService } from './org-api/tax-jurisdictions/services/tax-jurisdictions-gateway.service';
 import { UomGatewayService } from './org-api/uom/services/uom-gateway.service';
+import { SiteAppCatalogChannelGatewayService } from './site-api/catalog-channels/services/app-catalog-channel-gateway.service';
+import { SiteCatalogChannelsGatewayService } from './site-api/catalog-channels/services/catalog-channels-gateway.service';
 import { CreditNotesGatewayService } from './site-api/credit-notes/services/credit-notes-gateway.service';
 import { CustomersGatewayService } from './site-api/customers/services/customers-gateway.service';
 import { GoodsReceiptsGatewayService } from './site-api/goods-receipts/services/goods-receipts-gateway.service';
@@ -51,6 +57,11 @@ const services = [
   LocationsGatewayService,
   InvoicesGatewayService,
   CatalogChannelsGatewayService,
+  AppCatalogChannelGatewayService,
+  LeAppCatalogChannelGatewayService,
+  SiteAppCatalogChannelGatewayService,
+  LeCatalogChannelsGatewayService,
+  SiteCatalogChannelsGatewayService,
   CatalogsGatewayService,
   OrdersGatewayService,
   PosTerminalsGatewayService,
@@ -89,7 +100,7 @@ const services = [
 @Module({
   // Three gateway services inject SiteDomainService / SiteDomainRepository, so the domain module
   // must be imported HERE, where those services are provided.
-  imports: [SiteDomainModule],
+  imports: [SiteDomainModule, AppDomainModule],
   providers: services,
   exports: services,
 })

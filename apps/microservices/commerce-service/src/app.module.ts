@@ -7,6 +7,7 @@ import { DB_SCHEMA } from '@/db/schema/commerce-schema';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
+import { LeCatalogChannelsModule } from './modules/legal-entity/catalog-channels/catalog-channels.module';
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
 import { LeOfferingDimensionTemplatesModule } from './modules/legal-entity/offering-dimension-templates/offering-dimension-templates.module';
 import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.module';
@@ -26,6 +27,7 @@ import { OrgTaxComponentsModule } from './modules/organization/tax-components/ta
 import { OrgTaxJurisdictionsModule } from './modules/organization/tax-jurisdictions/tax-jurisdictions.module';
 import { OrgUomModule } from './modules/organization/uom/uom.module';
 import { SelectModule } from './modules/select/select.module';
+import { SiteCatalogChannelsModule } from './modules/site/catalog-channels/catalog-channels.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
 import { SiteCustomersModule } from './modules/site/customers/customers.module';
 import { SiteGoodsReceiptsModule } from './modules/site/goods-receipts/goods-receipts.module';
@@ -100,6 +102,8 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     OrgUomModule,
     OrgCatalogsModule,
     OrgCatalogChannelsModule,
+    LeCatalogChannelsModule,
+    SiteCatalogChannelsModule,
     OrgInventoryItemsModule,
     OrgOfferingDimensionTemplatesModule,
     OrgOfferingsModule,

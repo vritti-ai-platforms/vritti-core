@@ -2,150 +2,86 @@
   "version": "8",
   "dialect": "postgres",
   "id": "779b8428-6d79-4db9-9bb3-2e048f6f5ee1",
-  "prevIds": [
-    "5df9d267-f4ee-4e8a-8e67-570b2e1a66de"
-  ],
+  "prevIds": ["5df9d267-f4ee-4e8a-8e67-570b2e1a66de"],
   "ddl": [
     {
       "name": "commerce",
       "entityType": "schemas"
     },
     {
-      "values": [
-        "GROUP",
-        "CATEGORY"
-      ],
+      "values": ["GROUP", "CATEGORY"],
       "name": "category_role",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "DRAFT",
-        "IN_PROGRESS",
-        "COMPLETED",
-        "CANCELLED"
-      ],
+      "values": ["DRAFT", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
       "name": "conversion_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "ITEM",
-        "FREIGHT",
-        "DUTY",
-        "INSURANCE",
-        "SERVICE",
-        "OTHER"
-      ],
+      "values": ["ITEM", "FREIGHT", "DUTY", "INSURANCE", "SERVICE", "OTHER"],
       "name": "cost_category_kind",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "by_value",
-        "by_quantity",
-        "equal"
-      ],
+      "values": ["by_value", "by_quantity", "equal"],
       "name": "cost_distribution_method",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "goods_receipt",
-        "stock_adjustment",
-        "stock_transfer",
-        "manual_adjustment"
-      ],
+      "values": ["goods_receipt", "stock_adjustment", "stock_transfer", "manual_adjustment"],
       "name": "cost_source_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "DRAFT",
-        "ISSUED",
-        "PARTIALLY_APPLIED",
-        "FULLY_APPLIED"
-      ],
+      "values": ["DRAFT", "ISSUED", "PARTIALLY_APPLIED", "FULLY_APPLIED"],
       "name": "credit_note_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "PAYABLE",
-        "RECEIVABLE"
-      ],
+      "values": ["PAYABLE", "RECEIVABLE"],
       "name": "credit_note_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "FIXED",
-        "VARIABLE"
-      ],
+      "values": ["FIXED", "VARIABLE"],
       "name": "exchange_rate_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "text",
-        "number",
-        "boolean",
-        "select"
-      ],
+      "values": ["text", "number", "boolean", "select"],
       "name": "field_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "STOCK",
-        "ASSEMBLY",
-        "COMPOSITE",
-        "SERVICE"
-      ],
+      "values": ["STOCK", "ASSEMBLY", "COMPOSITE", "SERVICE"],
       "name": "fulfilment_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "DRAFT",
-        "PUBLISHED"
-      ],
+      "values": ["DRAFT", "PUBLISHED"],
       "name": "goods_receipt_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "PAN",
-        "AADHAAR",
-        "PASSPORT",
-        "DRIVING_LICENSE",
-        "VOTER_ID",
-        "CIVIL_ID",
-        "NATIONAL_ID"
-      ],
+      "values": ["PAN", "AADHAAR", "PASSPORT", "DRIVING_LICENSE", "VOTER_ID", "CIVIL_ID", "NATIONAL_ID"],
       "name": "govt_id_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "GOODS_RECEIPT",
-        "STOCK_ADJUSTMENT",
-        "CONVERSION",
-        "STOCK_TRANSFER",
-        "ORDER"
-      ],
+      "values": ["GOODS_RECEIPT", "STOCK_ADJUSTMENT", "CONVERSION", "STOCK_TRANSFER", "ORDER"],
       "name": "inventory_item_ledger_reference_type",
       "entityType": "enums",
       "schema": "commerce"
@@ -168,167 +104,91 @@
       "schema": "commerce"
     },
     {
-      "values": [
-        "RAW_MATERIAL",
-        "SEMI_FINISHED",
-        "FINISHED_GOOD",
-        "PACKAGING",
-        "CONSUMABLE"
-      ],
+      "values": ["RAW_MATERIAL", "SEMI_FINISHED", "FINISHED_GOOD", "PACKAGING", "CONSUMABLE"],
       "name": "inventory_item_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "none",
-        "fifo",
-        "fefo"
-      ],
+      "values": ["none", "fifo", "fefo"],
       "name": "inventory_pick_strategy",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "quantity",
-        "lot",
-        "lot_serial",
-        "serial"
-      ],
+      "values": ["quantity", "lot", "lot_serial", "serial"],
       "name": "inventory_tracking",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "SUPPLIER",
-        "CUSTOMER",
-        "AGGREGATOR"
-      ],
+      "values": ["SUPPLIER", "CUSTOMER", "AGGREGATOR"],
       "name": "invoice_party_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "DRAFT",
-        "ISSUED",
-        "PARTIALLY_PAID",
-        "PAID",
-        "OVERDUE",
-        "VOID"
-      ],
+      "values": ["DRAFT", "ISSUED", "PARTIALLY_PAID", "PAID", "OVERDUE", "VOID"],
       "name": "invoice_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "PAYABLE",
-        "RECEIVABLE"
-      ],
+      "values": ["PAYABLE", "RECEIVABLE"],
       "name": "invoice_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "STORAGE",
-        "RESERVED_STORAGE",
-        "ZONE"
-      ],
+      "values": ["STORAGE", "RESERVED_STORAGE", "ZONE"],
       "name": "location_role",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "WHATSAPP",
-        "TELEGRAM",
-        "SIGNAL",
-        "IMO",
-        "VIBER",
-        "WECHAT"
-      ],
+      "values": ["WHATSAPP", "TELEGRAM", "SIGNAL", "IMO", "VIBER", "WECHAT"],
       "name": "messaging_app",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "SINGLE",
-        "MULTI"
-      ],
+      "values": ["SINGLE", "MULTI"],
       "name": "modifier_selection_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "PENDING",
-        "PREPARING",
-        "READY",
-        "SERVED",
-        "CANCELLED"
-      ],
+      "values": ["PENDING", "PREPARING", "READY", "SERVED", "CANCELLED"],
       "name": "order_item_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "ONLINE",
-        "WALK_IN"
-      ],
+      "values": ["ONLINE", "WALK_IN"],
       "name": "order_source",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "PENDING",
-        "ACCEPTED",
-        "PREPARING",
-        "READY",
-        "COMPLETED",
-        "CANCELLED"
-      ],
+      "values": ["PENDING", "ACCEPTED", "PREPARING", "READY", "COMPLETED", "CANCELLED"],
       "name": "order_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "DINE_IN",
-        "TAKEAWAY",
-        "DELIVERY"
-      ],
+      "values": ["DINE_IN", "TAKEAWAY", "DELIVERY"],
       "name": "order_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "EMAIL",
-        "PHONE",
-        "WEB_APP"
-      ],
+      "values": ["EMAIL", "PHONE", "WEB_APP"],
       "name": "party_communication_channel",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "REGISTERED",
-        "BILLING",
-        "SHIPPING",
-        "ORDERING",
-        "ORDER",
-        "ACCOUNTS",
-        "LOGISTICS",
-        "ESCALATION"
-      ],
+      "values": ["REGISTERED", "BILLING", "SHIPPING", "ORDERING", "ORDER", "ACCOUNTS", "LOGISTICS", "ESCALATION"],
       "name": "party_function_type",
       "entityType": "enums",
       "schema": "commerce"
@@ -351,44 +211,25 @@
       "schema": "commerce"
     },
     {
-      "values": [
-        "DRUG",
-        "EXCISE",
-        "FSSAI",
-        "OTHER"
-      ],
+      "values": ["DRUG", "EXCISE", "FSSAI", "OTHER"],
       "name": "party_license_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "PERSON",
-        "COMPANY"
-      ],
+      "values": ["PERSON", "COMPANY"],
       "name": "party_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "CASH",
-        "CARD",
-        "UPI",
-        "BANK_TRANSFER",
-        "WALLET",
-        "ONLINE"
-      ],
+      "values": ["CASH", "CARD", "UPI", "BANK_TRANSFER", "WALLET", "ONLINE"],
       "name": "payment_method",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "COMPLETED",
-        "FAILED",
-        "REFUNDED"
-      ],
+      "values": ["COMPLETED", "FAILED", "REFUNDED"],
       "name": "payment_status",
       "entityType": "enums",
       "schema": "commerce"
@@ -411,128 +252,67 @@
       "schema": "commerce"
     },
     {
-      "values": [
-        "IN_STORE",
-        "ONLINE",
-        "ZOMATO",
-        "SWIGGY",
-        "OTHER"
-      ],
+      "values": ["IN_STORE", "ONLINE", "ZOMATO", "SWIGGY", "OTHER"],
       "name": "sales_channel_kind",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "AVAILABLE",
-        "RESERVED",
-        "CONSUMED"
-      ],
+      "values": ["AVAILABLE", "RESERVED", "CONSUMED"],
       "name": "quant_item_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "INSTAGRAM",
-        "FACEBOOK",
-        "LINKEDIN",
-        "X",
-        "YOUTUBE",
-        "TIKTOK",
-        "WEBSITE"
-      ],
+      "values": ["INSTAGRAM", "FACEBOOK", "LINKEDIN", "X", "YOUTUBE", "TIKTOK", "WEBSITE"],
       "name": "social_platform",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "DRAFT",
-        "PUBLISHED"
-      ],
+      "values": ["DRAFT", "PUBLISHED"],
       "name": "stock_adjustment_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "WASTE",
-        "DAMAGE",
-        "THEFT",
-        "EXPIRED",
-        "CORRECTION",
-        "OPENING_STOCK"
-      ],
+      "values": ["WASTE", "DAMAGE", "THEFT", "EXPIRED", "CORRECTION", "OPENING_STOCK"],
       "name": "stock_adjustment_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "REQUESTED",
-        "IN_TRANSIT",
-        "RECEIVED",
-        "CANCELLED"
-      ],
+      "values": ["REQUESTED", "IN_TRANSIT", "RECEIVED", "CANCELLED"],
       "name": "stock_transfer_status",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "QUOTATION",
-        "MANUAL",
-        "IMPORT"
-      ],
+      "values": ["QUOTATION", "MANUAL", "IMPORT"],
       "name": "supplier_price_source",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "FEDERAL",
-        "STATE",
-        "COUNTY",
-        "CITY",
-        "SPECIAL"
-      ],
+      "values": ["FEDERAL", "STATE", "COUNTY", "CITY", "SPECIAL"],
       "name": "tax_authority_level",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "GST",
-        "VAT",
-        "EIN",
-        "SALES_TAX",
-        "OTHER"
-      ],
+      "values": ["GST", "VAT", "EIN", "SALES_TAX", "OTHER"],
       "name": "tax_id_type",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "COUNTRY",
-        "STATE",
-        "COUNTY",
-        "CITY",
-        "DISTRICT"
-      ],
+      "values": ["COUNTRY", "STATE", "COUNTY", "CITY", "DISTRICT"],
       "name": "tax_jurisdiction_level",
       "entityType": "enums",
       "schema": "commerce"
     },
     {
-      "values": [
-        "GSTIN",
-        "VAT",
-        "TIN",
-        "PAN",
-        "OTHER"
-      ],
+      "values": ["GSTIN", "VAT", "TIN", "PAN", "OTHER"],
       "name": "tax_registration_type",
       "entityType": "enums",
       "schema": "commerce"
@@ -15946,14 +15726,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_item_id"
-      ],
+      "columns": ["catalog_item_id"],
       "schemaTo": "commerce",
       "tableTo": "catalog_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "catalog_item_channel_exclusions_Faha7PuwT4iG_fkey",
@@ -15963,14 +15739,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "sales_channel_id"
-      ],
+      "columns": ["sales_channel_id"],
       "schemaTo": "commerce",
       "tableTo": "sales_channels",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "catalog_item_channel_exclusions_ZypHIgR0FTnO_fkey",
@@ -15980,14 +15752,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_item_id"
-      ],
+      "columns": ["catalog_item_id"],
       "schemaTo": "commerce",
       "tableTo": "catalog_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "catalog_item_prices_catalog_item_id_catalog_items_id_fkey",
@@ -15997,14 +15765,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_id"
-      ],
+      "columns": ["catalog_id"],
       "schemaTo": "commerce",
       "tableTo": "catalogs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "catalog_items_catalog_id_catalogs_id_fkey",
@@ -16014,14 +15778,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_variant_id"
-      ],
+      "columns": ["offering_variant_id"],
       "schemaTo": "commerce",
       "tableTo": "offering_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "catalog_items_offering_variant_id_offering_variants_id_fkey",
@@ -16031,14 +15791,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_mrp_id"
-      ],
+      "columns": ["inventory_item_mrp_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_mrps",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "catalog_items_inventory_item_mrp_id_inventory_item_mrps_id_fkey",
@@ -16048,14 +15804,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_id"
-      ],
+      "columns": ["catalog_id"],
       "schemaTo": "commerce",
       "tableTo": "catalogs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "catalog_sales_channels_catalog_id_catalogs_id_fkey",
@@ -16065,14 +15817,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "sales_channel_id"
-      ],
+      "columns": ["sales_channel_id"],
       "schemaTo": "commerce",
       "tableTo": "sales_channels",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "catalog_sales_channels_sales_channel_id_sales_channels_id_fkey",
@@ -16082,14 +15830,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "default_tax_class_id"
-      ],
+      "columns": ["default_tax_class_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_classes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "categories_default_tax_class_id_tax_classes_id_fkey",
@@ -16099,14 +15843,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "credit_note_id"
-      ],
+      "columns": ["credit_note_id"],
       "schemaTo": "commerce",
       "tableTo": "credit_notes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "credit_note_applications_credit_note_id_credit_notes_id_fkey",
@@ -16116,14 +15856,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "invoice_id"
-      ],
+      "columns": ["invoice_id"],
       "schemaTo": "commerce",
       "tableTo": "invoices",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "credit_note_applications_invoice_id_invoices_id_fkey",
@@ -16133,14 +15869,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_id"
-      ],
+      "columns": ["goods_receipt_id"],
       "schemaTo": "commerce",
       "tableTo": "goods_receipts",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_items_goods_receipt_id_goods_receipts_id_fkey",
@@ -16150,14 +15882,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipt_items_inventory_item_id_inventory_items_id_fkey",
@@ -16167,14 +15895,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipt_items_uom_id_uom_id_fkey",
@@ -16184,14 +15908,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_line_id"
-      ],
+      "columns": ["goods_receipt_line_id"],
       "schemaTo": "commerce",
       "tableTo": "goods_receipt_lines",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_line_items_xPce4mspmdCq_fkey",
@@ -16201,14 +15921,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_item_id"
-      ],
+      "columns": ["goods_receipt_item_id"],
       "schemaTo": "commerce",
       "tableTo": "goods_receipt_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_lines_LCQNKaQNEtiW_fkey",
@@ -16218,14 +15934,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_lot_id"
-      ],
+      "columns": ["goods_receipt_lot_id"],
       "schemaTo": "commerce",
       "tableTo": "goods_receipt_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_lines_V70jEkCkMhay_fkey",
@@ -16235,14 +15947,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "commerce",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipt_lines_location_id_locations_id_fkey",
@@ -16252,14 +15960,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "resolved_quant_id"
-      ],
+      "columns": ["resolved_quant_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "goods_receipt_lines_bDwzM4gXMdkg_fkey",
@@ -16269,14 +15973,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_item_id"
-      ],
+      "columns": ["goods_receipt_item_id"],
       "schemaTo": "commerce",
       "tableTo": "goods_receipt_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_lots_CLiJ36meIGXj_fkey",
@@ -16286,14 +15986,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "resolved_lot_id"
-      ],
+      "columns": ["resolved_lot_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "goods_receipt_lots_resolved_lot_id_inventory_item_lots_id_fkey",
@@ -16303,14 +15999,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_id"
-      ],
+      "columns": ["supplier_id"],
       "schemaTo": "commerce",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipts_supplier_id_suppliers_id_fkey",
@@ -16320,14 +16012,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "purchase_order_id"
-      ],
+      "columns": ["purchase_order_id"],
       "schemaTo": "commerce",
       "tableTo": "purchase_orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipts_purchase_order_id_purchase_orders_id_fkey",
@@ -16337,14 +16025,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "category_id"
-      ],
+      "columns": ["category_id"],
       "schemaTo": "commerce",
       "tableTo": "cost_categories",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_costs_category_id_cost_categories_id_fkey",
@@ -16354,14 +16038,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_ledger_inventory_item_id_inventory_items_id_fkey",
@@ -16371,14 +16051,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_locations_a712NwWdDuJg_fkey",
@@ -16388,14 +16064,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "commerce",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_locations_location_id_locations_id_fkey",
@@ -16405,14 +16077,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_lots_inventory_item_id_inventory_items_id_fkey",
@@ -16422,14 +16090,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "mrp_id"
-      ],
+      "columns": ["mrp_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_mrps",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_lots_mrp_id_inventory_item_mrps_id_fkey",
@@ -16439,14 +16103,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_mrps_inventory_item_id_inventory_items_id_fkey",
@@ -16456,14 +16116,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inventory_item_mrps_uom_id_uom_id_fkey",
@@ -16473,14 +16129,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "source_lot_id"
-      ],
+      "columns": ["source_lot_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "inventory_item_mrps_source_lot_id_inventory_item_lots_id_fkey",
@@ -16490,14 +16142,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "quant_id"
-      ],
+      "columns": ["quant_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_quant_costs_c3KpiPKUQ4N1_fkey",
@@ -16507,14 +16155,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "cost_id"
-      ],
+      "columns": ["cost_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_costs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_quant_costs_cost_id_inventory_item_costs_id_fkey",
@@ -16524,14 +16168,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_quants_inventory_item_id_inventory_items_id_fkey",
@@ -16541,14 +16181,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "commerce",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inventory_item_quants_location_id_locations_id_fkey",
@@ -16558,14 +16194,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "lot_id"
-      ],
+      "columns": ["lot_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_quants_lot_id_inventory_item_lots_id_fkey",
@@ -16575,14 +16207,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_id"
-      ],
+      "columns": ["supplier_id"],
       "schemaTo": "commerce",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_quants_supplier_id_suppliers_id_fkey",
@@ -16592,14 +16220,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_quant_id"
-      ],
+      "columns": ["inventory_item_quant_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "inventory_item_serials_s63VhASWzVvD_fkey",
@@ -16609,14 +16233,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_serials_OfOoSAD2LK8t_fkey",
@@ -16626,14 +16246,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_sites_inventory_item_id_inventory_items_id_fkey",
@@ -16643,14 +16259,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_uom_conversions_rzKG09lM3ksH_fkey",
@@ -16660,14 +16272,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_uom_conversions_uom_id_uom_id_fkey",
@@ -16677,14 +16285,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "category_id"
-      ],
+      "columns": ["category_id"],
       "schemaTo": "commerce",
       "tableTo": "categories",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inventory_items_category_id_categories_id_fkey",
@@ -16694,14 +16298,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inventory_items_uom_id_uom_id_fkey",
@@ -16711,14 +16311,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "invoice_id"
-      ],
+      "columns": ["invoice_id"],
       "schemaTo": "commerce",
       "tableTo": "invoices",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "invoice_items_invoice_id_invoices_id_fkey",
@@ -16728,14 +16324,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "item_id"
-      ],
+      "columns": ["item_id"],
       "schemaTo": "commerce",
       "tableTo": "offerings",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "item_field_values_item_id_offerings_id_fkey",
@@ -16745,14 +16337,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "field_definition_id"
-      ],
+      "columns": ["field_definition_id"],
       "schemaTo": "commerce",
       "tableTo": "item_field_definitions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "item_field_values_V0gaE4dkunFk_fkey",
@@ -16762,14 +16350,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "template_id"
-      ],
+      "columns": ["template_id"],
       "schemaTo": "commerce",
       "tableTo": "offering_dimension_templates",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offering_dimension_template_values_UgIfXIhZu0DU_fkey",
@@ -16779,14 +16363,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "dimension_id"
-      ],
+      "columns": ["dimension_id"],
       "schemaTo": "commerce",
       "tableTo": "offering_dimensions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offering_dimension_values_oa1uhT1oZcsq_fkey",
@@ -16796,14 +16376,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_id"
-      ],
+      "columns": ["offering_id"],
       "schemaTo": "commerce",
       "tableTo": "offerings",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offering_dimensions_offering_id_offerings_id_fkey",
@@ -16813,14 +16389,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "variant_id"
-      ],
+      "columns": ["variant_id"],
       "schemaTo": "commerce",
       "tableTo": "offering_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offering_bom_variant_id_offering_variants_id_fkey",
@@ -16830,14 +16402,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "offering_bom_inventory_item_id_inventory_items_id_fkey",
@@ -16847,14 +16415,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "offering_bom_uom_id_uom_id_fkey",
@@ -16864,14 +16428,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "variant_id"
-      ],
+      "columns": ["variant_id"],
       "schemaTo": "commerce",
       "tableTo": "offering_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offering_variant_values_variant_id_offering_variants_id_fkey",
@@ -16881,14 +16441,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "dimension_id"
-      ],
+      "columns": ["dimension_id"],
       "schemaTo": "commerce",
       "tableTo": "offering_dimensions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "offering_variant_values_B8XGfRHQTL2B_fkey",
@@ -16898,14 +16454,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "value_id"
-      ],
+      "columns": ["value_id"],
       "schemaTo": "commerce",
       "tableTo": "offering_dimension_values",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "offering_variant_values_LAgGv6q1Xfy4_fkey",
@@ -16915,14 +16467,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_id"
-      ],
+      "columns": ["offering_id"],
       "schemaTo": "commerce",
       "tableTo": "offerings",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offering_variants_offering_id_offerings_id_fkey",
@@ -16932,14 +16480,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "sales_uom_id"
-      ],
+      "columns": ["sales_uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "offering_variants_sales_uom_id_uom_id_fkey",
@@ -16949,14 +16493,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "tax_class_id"
-      ],
+      "columns": ["tax_class_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_classes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "offering_variants_tax_class_id_tax_classes_id_fkey",
@@ -16966,14 +16506,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "tax_class_id"
-      ],
+      "columns": ["tax_class_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_classes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "offerings_tax_class_id_tax_classes_id_fkey",
@@ -16983,14 +16519,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "order_item_id"
-      ],
+      "columns": ["order_item_id"],
       "schemaTo": "commerce",
       "tableTo": "order_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "order_item_modifiers_order_item_id_order_items_id_fkey",
@@ -17000,14 +16532,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "order_id"
-      ],
+      "columns": ["order_id"],
       "schemaTo": "commerce",
       "tableTo": "orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "order_items_order_id_orders_id_fkey",
@@ -17017,14 +16545,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_id"
-      ],
+      "columns": ["offering_id"],
       "schemaTo": "commerce",
       "tableTo": "offerings",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "order_items_offering_id_offerings_id_fkey",
@@ -17034,14 +16558,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_variant_id"
-      ],
+      "columns": ["offering_variant_id"],
       "schemaTo": "commerce",
       "tableTo": "offering_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "order_items_offering_variant_id_offering_variants_id_fkey",
@@ -17051,14 +16571,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "channel_id"
-      ],
+      "columns": ["channel_id"],
       "schemaTo": "commerce",
       "tableTo": "sales_channels",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "orders_channel_id_sales_channels_id_fkey",
@@ -17068,14 +16584,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "customer_id"
-      ],
+      "columns": ["customer_id"],
       "schemaTo": "commerce",
       "tableTo": "customers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "orders_customer_id_customers_id_fkey",
@@ -17085,14 +16597,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "jurisdiction_id"
-      ],
+      "columns": ["jurisdiction_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_jurisdictions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "parties_jurisdiction_id_tax_jurisdictions_id_fkey",
@@ -17102,14 +16610,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_addresses_party_id_parties_id_fkey",
@@ -17119,14 +16623,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_bank_accounts_party_id_parties_id_fkey",
@@ -17136,14 +16636,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "communication_id"
-      ],
+      "columns": ["communication_id"],
       "schemaTo": "commerce",
       "tableTo": "party_communications",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_communication_apps_HpL6A3GLe64m_fkey",
@@ -17153,14 +16649,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_communications_party_id_parties_id_fkey",
@@ -17170,14 +16662,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_functions_party_id_parties_id_fkey",
@@ -17187,16 +16675,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_id",
-        "party_address_id"
-      ],
+      "columns": ["party_id", "party_address_id"],
       "schemaTo": "commerce",
       "tableTo": "party_addresses",
-      "columnsTo": [
-        "party_id",
-        "id"
-      ],
+      "columnsTo": ["party_id", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "fk_party_functions_address",
@@ -17206,16 +16688,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_id",
-        "party_relationship_id"
-      ],
+      "columns": ["party_id", "party_relationship_id"],
       "schemaTo": "commerce",
       "tableTo": "party_relationships",
-      "columnsTo": [
-        "parent_party_id",
-        "id"
-      ],
+      "columnsTo": ["parent_party_id", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "fk_party_functions_relationship",
@@ -17225,14 +16701,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_identifiers_party_id_parties_id_fkey",
@@ -17242,14 +16714,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_licenses_party_id_parties_id_fkey",
@@ -17259,14 +16727,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parent_party_id"
-      ],
+      "columns": ["parent_party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_relationships_parent_party_id_parties_id_fkey",
@@ -17276,14 +16740,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "child_party_id"
-      ],
+      "columns": ["child_party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_relationships_child_party_id_parties_id_fkey",
@@ -17293,14 +16753,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_social_profiles_party_id_parties_id_fkey",
@@ -17310,14 +16766,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "party_tax_registrations_party_id_parties_id_fkey",
@@ -17327,14 +16779,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "jurisdiction_id"
-      ],
+      "columns": ["jurisdiction_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_jurisdictions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "party_tax_registrations_xGgR76RblL4y_fkey",
@@ -17344,14 +16792,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "invoice_id"
-      ],
+      "columns": ["invoice_id"],
       "schemaTo": "commerce",
       "tableTo": "invoices",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "payments_invoice_id_invoices_id_fkey",
@@ -17361,14 +16805,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "commerce",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "pos_terminals_location_id_locations_id_fkey",
@@ -17378,14 +16818,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "purchase_order_id"
-      ],
+      "columns": ["purchase_order_id"],
       "schemaTo": "commerce",
       "tableTo": "purchase_orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "purchase_order_items_purchase_order_id_purchase_orders_id_fkey",
@@ -17395,14 +16831,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "purchase_order_items_inventory_item_id_inventory_items_id_fkey",
@@ -17412,14 +16844,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "purchase_order_items_uom_id_uom_id_fkey",
@@ -17429,14 +16857,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_id"
-      ],
+      "columns": ["supplier_id"],
       "schemaTo": "commerce",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "purchase_orders_supplier_id_suppliers_id_fkey",
@@ -17446,14 +16870,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stock_adjustment_line_id"
-      ],
+      "columns": ["stock_adjustment_line_id"],
       "schemaTo": "commerce",
       "tableTo": "stock_adjustment_lines",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "stock_adjustment_line_items_BAKtyY4jjSIv_fkey",
@@ -17463,14 +16883,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stock_adjustment_id"
-      ],
+      "columns": ["stock_adjustment_id"],
       "schemaTo": "commerce",
       "tableTo": "stock_adjustments",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "stock_adjustment_lines_V8pV4VOOh3IT_fkey",
@@ -17480,14 +16896,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stock_adjustment_lot_id"
-      ],
+      "columns": ["stock_adjustment_lot_id"],
       "schemaTo": "commerce",
       "tableTo": "stock_adjustment_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "stock_adjustment_lines_DEs4DyxRxJef_fkey",
@@ -17497,14 +16909,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "commerce",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "stock_adjustment_lines_location_id_locations_id_fkey",
@@ -17514,14 +16922,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "quant_id"
-      ],
+      "columns": ["quant_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "stock_adjustment_lines_quant_id_inventory_item_quants_id_fkey",
@@ -17531,14 +16935,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "stock_adjustment_lines_uom_id_uom_id_fkey",
@@ -17548,14 +16948,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "resolved_quant_id"
-      ],
+      "columns": ["resolved_quant_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "stock_adjustment_lines_0KyHHNwJ6NwT_fkey",
@@ -17565,14 +16961,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stock_adjustment_id"
-      ],
+      "columns": ["stock_adjustment_id"],
       "schemaTo": "commerce",
       "tableTo": "stock_adjustments",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "stock_adjustment_lots_QCXPZmh9zfIK_fkey",
@@ -17582,14 +16974,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "resolved_lot_id"
-      ],
+      "columns": ["resolved_lot_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_item_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "stock_adjustment_lots_2xbHGAUPqlLg_fkey",
@@ -17599,14 +16987,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_adjustments_inventory_item_id_inventory_items_id_fkey",
@@ -17616,14 +17000,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "stock_transfers_inventory_item_id_inventory_items_id_fkey",
@@ -17633,14 +17013,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_item_id"
-      ],
+      "columns": ["supplier_item_id"],
       "schemaTo": "commerce",
       "tableTo": "supplier_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "supplier_item_prices_supplier_item_id_supplier_items_id_fkey",
@@ -17650,14 +17026,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_item_id"
-      ],
+      "columns": ["supplier_item_id"],
       "schemaTo": "commerce",
       "tableTo": "supplier_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "supplier_item_sites_supplier_item_id_supplier_items_id_fkey",
@@ -17667,14 +17039,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_id"
-      ],
+      "columns": ["supplier_id"],
       "schemaTo": "commerce",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "supplier_sites_supplier_id_suppliers_id_fkey",
@@ -17684,14 +17052,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_tax_registration_id"
-      ],
+      "columns": ["party_tax_registration_id"],
       "schemaTo": "commerce",
       "tableTo": "party_tax_registrations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "fk_supplier_sites_tax_registration",
@@ -17701,14 +17065,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_bank_account_id"
-      ],
+      "columns": ["party_bank_account_id"],
       "schemaTo": "commerce",
       "tableTo": "party_bank_accounts",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "fk_supplier_sites_bank_account",
@@ -17718,14 +17078,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "order_relationship_id"
-      ],
+      "columns": ["order_relationship_id"],
       "schemaTo": "commerce",
       "tableTo": "party_relationships",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "fk_supplier_sites_order_relationship",
@@ -17735,14 +17091,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "commerce",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "supplier_items_inventory_item_id_inventory_items_id_fkey",
@@ -17752,14 +17104,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "tax_class_id"
-      ],
+      "columns": ["tax_class_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_classes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "supplier_items_tax_class_id_tax_classes_id_fkey",
@@ -17769,14 +17117,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "commerce",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "supplier_items_uom_id_uom_id_fkey",
@@ -17786,16 +17130,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "supplier_id",
-        "currency_code"
-      ],
+      "columns": ["supplier_id", "currency_code"],
       "schemaTo": "commerce",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id",
-        "currency_code"
-      ],
+      "columnsTo": ["id", "currency_code"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "fk_supplier_items_supplier_currency",
@@ -17805,14 +17143,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "party_id"
-      ],
+      "columns": ["party_id"],
       "schemaTo": "commerce",
       "tableTo": "parties",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "suppliers_party_id_parties_id_fkey",
@@ -17822,14 +17156,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parent_id"
-      ],
+      "columns": ["parent_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_jurisdictions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "tax_jurisdictions_parent_id_tax_jurisdictions_id_fkey",
@@ -17839,14 +17169,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "tax_group_id"
-      ],
+      "columns": ["tax_group_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_groups",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "tax_rates_tax_group_id_tax_groups_id_fkey",
@@ -17856,14 +17182,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "jurisdiction_id"
-      ],
+      "columns": ["jurisdiction_id"],
       "schemaTo": "commerce",
       "tableTo": "tax_jurisdictions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "tax_registrations_jurisdiction_id_tax_jurisdictions_id_fkey",
@@ -17873,14 +17195,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "dimension_id"
-      ],
+      "columns": ["dimension_id"],
       "schemaTo": "commerce",
       "tableTo": "uom_dimensions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "uom_dimension_id_uom_dimensions_id_fkey",
@@ -17889,10 +17207,7 @@
       "table": "uom"
     },
     {
-      "columns": [
-        "quant_id",
-        "cost_id"
-      ],
+      "columns": ["quant_id", "cost_id"],
       "nameExplicit": true,
       "name": "pk_inventory_item_quant_costs",
       "entityType": "pks",
@@ -17900,10 +17215,7 @@
       "table": "inventory_item_quant_costs"
     },
     {
-      "columns": [
-        "offering_id",
-        "group_id"
-      ],
+      "columns": ["offering_id", "group_id"],
       "nameExplicit": false,
       "name": "offering_modifier_groups_pkey",
       "entityType": "pks",
@@ -17911,9 +17223,7 @@
       "table": "offering_modifier_groups"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "catalog_item_channel_exclusions_pkey",
       "schema": "commerce",
@@ -17921,9 +17231,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "catalog_item_prices_pkey",
       "schema": "commerce",
@@ -17931,9 +17239,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "catalog_items_pkey",
       "schema": "commerce",
@@ -17941,9 +17247,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "catalog_sales_channels_pkey",
       "schema": "commerce",
@@ -17951,9 +17255,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "catalogs_pkey",
       "schema": "commerce",
@@ -17961,9 +17263,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "categories_pkey",
       "schema": "commerce",
@@ -17971,9 +17271,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "cost_categories_pkey",
       "schema": "commerce",
@@ -17981,9 +17279,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "credit_note_applications_pkey",
       "schema": "commerce",
@@ -17991,9 +17287,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "credit_notes_pkey",
       "schema": "commerce",
@@ -18001,9 +17295,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "customers_pkey",
       "schema": "commerce",
@@ -18011,9 +17303,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipt_items_pkey",
       "schema": "commerce",
@@ -18021,9 +17311,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipt_line_items_pkey",
       "schema": "commerce",
@@ -18031,9 +17319,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipt_lines_pkey",
       "schema": "commerce",
@@ -18041,9 +17327,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipt_lots_pkey",
       "schema": "commerce",
@@ -18051,9 +17335,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipts_pkey",
       "schema": "commerce",
@@ -18061,9 +17343,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_costs_pkey",
       "schema": "commerce",
@@ -18071,9 +17351,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_ledger_pkey",
       "schema": "commerce",
@@ -18081,9 +17359,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_locations_pkey",
       "schema": "commerce",
@@ -18091,9 +17367,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_lots_pkey",
       "schema": "commerce",
@@ -18101,9 +17375,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_mrps_pkey",
       "schema": "commerce",
@@ -18111,9 +17383,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_quants_pkey",
       "schema": "commerce",
@@ -18121,9 +17391,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_serials_pkey",
       "schema": "commerce",
@@ -18131,9 +17399,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_sites_pkey",
       "schema": "commerce",
@@ -18141,9 +17407,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_uom_conversions_pkey",
       "schema": "commerce",
@@ -18151,9 +17415,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_items_pkey",
       "schema": "commerce",
@@ -18161,9 +17423,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "invoice_items_pkey",
       "schema": "commerce",
@@ -18171,9 +17431,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "invoices_pkey",
       "schema": "commerce",
@@ -18181,9 +17439,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "item_field_definitions_pkey",
       "schema": "commerce",
@@ -18191,9 +17447,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "item_field_values_pkey",
       "schema": "commerce",
@@ -18201,9 +17455,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "locations_pkey",
       "schema": "commerce",
@@ -18211,9 +17463,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "modifier_groups_pkey",
       "schema": "commerce",
@@ -18221,9 +17471,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "modifier_options_pkey",
       "schema": "commerce",
@@ -18231,9 +17479,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offering_dimension_template_values_pkey",
       "schema": "commerce",
@@ -18241,9 +17487,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offering_dimension_templates_pkey",
       "schema": "commerce",
@@ -18251,9 +17495,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offering_dimension_values_pkey",
       "schema": "commerce",
@@ -18261,9 +17503,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offering_dimensions_pkey",
       "schema": "commerce",
@@ -18271,9 +17511,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offering_bom_pkey",
       "schema": "commerce",
@@ -18281,9 +17519,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offering_variant_values_pkey",
       "schema": "commerce",
@@ -18291,9 +17527,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offering_variants_pkey",
       "schema": "commerce",
@@ -18301,9 +17535,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offerings_pkey",
       "schema": "commerce",
@@ -18311,9 +17543,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "order_item_modifiers_pkey",
       "schema": "commerce",
@@ -18321,9 +17551,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "order_items_pkey",
       "schema": "commerce",
@@ -18331,9 +17559,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "orders_pkey",
       "schema": "commerce",
@@ -18341,9 +17567,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "parties_pkey",
       "schema": "commerce",
@@ -18351,9 +17575,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_addresses_pkey",
       "schema": "commerce",
@@ -18361,9 +17583,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_bank_accounts_pkey",
       "schema": "commerce",
@@ -18371,9 +17591,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_communication_apps_pkey",
       "schema": "commerce",
@@ -18381,9 +17599,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_communications_pkey",
       "schema": "commerce",
@@ -18391,9 +17607,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_functions_pkey",
       "schema": "commerce",
@@ -18401,9 +17615,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_identifiers_pkey",
       "schema": "commerce",
@@ -18411,9 +17623,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_licenses_pkey",
       "schema": "commerce",
@@ -18421,9 +17631,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_relationships_pkey",
       "schema": "commerce",
@@ -18431,9 +17639,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_social_profiles_pkey",
       "schema": "commerce",
@@ -18441,9 +17647,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "party_tax_registrations_pkey",
       "schema": "commerce",
@@ -18451,9 +17655,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "payments_pkey",
       "schema": "commerce",
@@ -18461,9 +17663,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "pos_terminals_pkey",
       "schema": "commerce",
@@ -18471,9 +17671,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "purchase_order_items_pkey",
       "schema": "commerce",
@@ -18481,9 +17679,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "purchase_orders_pkey",
       "schema": "commerce",
@@ -18491,9 +17687,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sales_channels_pkey",
       "schema": "commerce",
@@ -18501,9 +17695,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_adjustment_line_items_pkey",
       "schema": "commerce",
@@ -18511,9 +17703,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_adjustment_lines_pkey",
       "schema": "commerce",
@@ -18521,9 +17711,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_adjustment_lots_pkey",
       "schema": "commerce",
@@ -18531,9 +17719,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_adjustments_pkey",
       "schema": "commerce",
@@ -18541,9 +17727,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_transfers_pkey",
       "schema": "commerce",
@@ -18551,9 +17735,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "supplier_item_prices_pkey",
       "schema": "commerce",
@@ -18561,9 +17743,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "supplier_item_sites_pkey",
       "schema": "commerce",
@@ -18571,9 +17751,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "supplier_sites_pkey",
       "schema": "commerce",
@@ -18581,9 +17759,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "supplier_items_pkey",
       "schema": "commerce",
@@ -18591,9 +17767,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "suppliers_pkey",
       "schema": "commerce",
@@ -18601,9 +17775,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "tax_classes_pkey",
       "schema": "commerce",
@@ -18611,9 +17783,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "tax_components_pkey",
       "schema": "commerce",
@@ -18621,9 +17791,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "tax_groups_pkey",
       "schema": "commerce",
@@ -18631,9 +17799,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "tax_jurisdictions_pkey",
       "schema": "commerce",
@@ -18641,9 +17807,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "tax_rates_pkey",
       "schema": "commerce",
@@ -18651,9 +17815,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "tax_registrations_pkey",
       "schema": "commerce",
@@ -18661,9 +17823,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "uom_pkey",
       "schema": "commerce",
@@ -18671,9 +17831,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "uom_dimensions_pkey",
       "schema": "commerce",
@@ -18682,10 +17840,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "catalog_item_id",
-        "sales_channel_id"
-      ],
+      "columns": ["catalog_item_id", "sales_channel_id"],
       "nullsNotDistinct": false,
       "name": "uq_catalog_item_channel_exclusions",
       "entityType": "uniques",
@@ -18694,11 +17849,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "catalog_item_id",
-        "currency_code",
-        "site_id"
-      ],
+      "columns": ["catalog_item_id", "currency_code", "site_id"],
       "nullsNotDistinct": true,
       "name": "uq_catalog_item_prices_scope",
       "entityType": "uniques",
@@ -18707,12 +17858,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "catalog_id",
-        "offering_variant_id",
-        "legal_entity_id",
-        "inventory_item_mrp_id"
-      ],
+      "columns": ["catalog_id", "offering_variant_id", "legal_entity_id", "inventory_item_mrp_id"],
       "nullsNotDistinct": true,
       "name": "uq_catalog_items_listing",
       "entityType": "uniques",
@@ -18721,12 +17867,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "catalog_id",
-        "sales_channel_id",
-        "legal_entity_id",
-        "site_id"
-      ],
+      "columns": ["catalog_id", "sales_channel_id", "legal_entity_id", "site_id"],
       "nullsNotDistinct": true,
       "name": "uq_catalog_sales_channels_mapping",
       "entityType": "uniques",
@@ -18735,10 +17876,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "name"
-      ],
+      "columns": ["organization_id", "name"],
       "nullsNotDistinct": false,
       "name": "uq_catalogs_org_name",
       "entityType": "uniques",
@@ -18747,10 +17885,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "parent_id",
-        "path_label"
-      ],
+      "columns": ["parent_id", "path_label"],
       "nullsNotDistinct": false,
       "name": "uq_categories_parent_path_label",
       "entityType": "uniques",
@@ -18759,10 +17894,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_cost_categories_org_code",
       "entityType": "uniques",
@@ -18771,10 +17903,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "site_id",
-        "credit_note_number"
-      ],
+      "columns": ["site_id", "credit_note_number"],
       "nullsNotDistinct": false,
       "name": "uq_credit_notes_bu_number",
       "entityType": "uniques",
@@ -18783,11 +17912,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "goods_receipt_id",
-        "inventory_item_id",
-        "uom_id"
-      ],
+      "columns": ["goods_receipt_id", "inventory_item_id", "uom_id"],
       "nullsNotDistinct": false,
       "name": "uq_goods_receipt_items_gr_item_uom",
       "entityType": "uniques",
@@ -18796,10 +17921,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "goods_receipt_line_id",
-        "serial_number"
-      ],
+      "columns": ["goods_receipt_line_id", "serial_number"],
       "nullsNotDistinct": false,
       "name": "uq_goods_receipt_line_items_line_serial",
       "entityType": "uniques",
@@ -18808,11 +17930,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "goods_receipt_item_id",
-        "goods_receipt_lot_id",
-        "location_id"
-      ],
+      "columns": ["goods_receipt_item_id", "goods_receipt_lot_id", "location_id"],
       "nullsNotDistinct": true,
       "name": "uq_goods_receipt_lines_item_lot_location",
       "entityType": "uniques",
@@ -18821,10 +17939,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "goods_receipt_item_id",
-        "lot_number"
-      ],
+      "columns": ["goods_receipt_item_id", "lot_number"],
       "nullsNotDistinct": false,
       "name": "uq_goods_receipt_lots_item_lot",
       "entityType": "uniques",
@@ -18833,10 +17948,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "gr_number"
-      ],
+      "columns": ["organization_id", "gr_number"],
       "nullsNotDistinct": false,
       "name": "uq_goods_receipts_org_gr_number",
       "entityType": "uniques",
@@ -18845,10 +17957,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "inventory_item_id",
-        "location_id"
-      ],
+      "columns": ["inventory_item_id", "location_id"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_item_locations",
       "entityType": "uniques",
@@ -18857,11 +17966,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "inventory_item_id",
-        "lot_number"
-      ],
+      "columns": ["organization_id", "inventory_item_id", "lot_number"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_item_lots_org_item_number",
       "entityType": "uniques",
@@ -18870,12 +17975,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "inventory_item_id",
-        "uom_id",
-        "currency_code",
-        "amount"
-      ],
+      "columns": ["inventory_item_id", "uom_id", "currency_code", "amount"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_item_mrps_item_uom_currency_amount",
       "entityType": "uniques",
@@ -18884,11 +17984,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "inventory_item_id",
-        "serial_number"
-      ],
+      "columns": ["organization_id", "inventory_item_id", "serial_number"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_item_serials_serial",
       "entityType": "uniques",
@@ -18897,10 +17993,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "inventory_item_id",
-        "site_id"
-      ],
+      "columns": ["inventory_item_id", "site_id"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_item_sites",
       "entityType": "uniques",
@@ -18909,10 +18002,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "sku"
-      ],
+      "columns": ["organization_id", "sku"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_items_org_sku",
       "entityType": "uniques",
@@ -18921,10 +18011,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "site_id",
-        "invoice_number"
-      ],
+      "columns": ["site_id", "invoice_number"],
       "nullsNotDistinct": false,
       "name": "uq_invoices_bu_number",
       "entityType": "uniques",
@@ -18933,11 +18020,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "site_id",
-        "parent_id",
-        "code"
-      ],
+      "columns": ["site_id", "parent_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_locations_bu_parent_code",
       "entityType": "uniques",
@@ -18946,11 +18029,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "site_id",
-        "name"
-      ],
+      "columns": ["organization_id", "site_id", "name"],
       "nullsNotDistinct": false,
       "name": "uq_modifier_groups_site_name",
       "entityType": "uniques",
@@ -18959,10 +18038,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "group_id",
-        "name"
-      ],
+      "columns": ["group_id", "name"],
       "nullsNotDistinct": false,
       "name": "uq_modifier_options_group_name",
       "entityType": "uniques",
@@ -18971,10 +18047,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "template_id",
-        "value"
-      ],
+      "columns": ["template_id", "value"],
       "nullsNotDistinct": false,
       "name": "uq_offering_dimension_template_values_template_value",
       "entityType": "uniques",
@@ -18983,10 +18056,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "template_id",
-        "code"
-      ],
+      "columns": ["template_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_offering_dimension_template_values_template_code",
       "entityType": "uniques",
@@ -18995,10 +18065,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_offering_dimension_templates_org_code",
       "entityType": "uniques",
@@ -19007,12 +18074,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "legal_entity_id",
-        "site_id",
-        "name"
-      ],
+      "columns": ["organization_id", "legal_entity_id", "site_id", "name"],
       "nullsNotDistinct": true,
       "name": "uq_offering_dimension_templates_owner_name",
       "entityType": "uniques",
@@ -19021,10 +18083,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "dimension_id",
-        "code"
-      ],
+      "columns": ["dimension_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_offering_dimension_values_dimension_code",
       "entityType": "uniques",
@@ -19033,10 +18092,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "dimension_id",
-        "value"
-      ],
+      "columns": ["dimension_id", "value"],
       "nullsNotDistinct": false,
       "name": "uq_offering_dimension_values_dimension_value",
       "entityType": "uniques",
@@ -19045,10 +18101,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "offering_id",
-        "code"
-      ],
+      "columns": ["offering_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_offering_dimensions_offering_code",
       "entityType": "uniques",
@@ -19057,10 +18110,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "offering_id",
-        "name"
-      ],
+      "columns": ["offering_id", "name"],
       "nullsNotDistinct": false,
       "name": "uq_offering_dimensions_offering_name",
       "entityType": "uniques",
@@ -19069,11 +18119,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "variant_id",
-        "inventory_item_id",
-        "uom_id"
-      ],
+      "columns": ["variant_id", "inventory_item_id", "uom_id"],
       "nullsNotDistinct": false,
       "name": "uq_offering_bom_variant_item_uom",
       "entityType": "uniques",
@@ -19082,10 +18128,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "variant_id",
-        "dimension_id"
-      ],
+      "columns": ["variant_id", "dimension_id"],
       "nullsNotDistinct": false,
       "name": "uq_offering_variant_values_variant_dimension",
       "entityType": "uniques",
@@ -19094,10 +18137,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "sku"
-      ],
+      "columns": ["organization_id", "sku"],
       "nullsNotDistinct": false,
       "name": "uq_offering_variants_org_sku",
       "entityType": "uniques",
@@ -19106,10 +18146,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "external_sku"
-      ],
+      "columns": ["organization_id", "external_sku"],
       "nullsNotDistinct": false,
       "name": "uq_offering_variants_org_external_sku",
       "entityType": "uniques",
@@ -19118,10 +18155,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_offerings_org_code",
       "entityType": "uniques",
@@ -19130,12 +18164,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "legal_entity_id",
-        "site_id",
-        "name"
-      ],
+      "columns": ["organization_id", "legal_entity_id", "site_id", "name"],
       "nullsNotDistinct": true,
       "name": "uq_offerings_owner_name",
       "entityType": "uniques",
@@ -19144,10 +18173,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "order_number"
-      ],
+      "columns": ["organization_id", "order_number"],
       "nullsNotDistinct": false,
       "name": "uq_orders_org_number",
       "entityType": "uniques",
@@ -19156,10 +18182,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_id",
-        "id"
-      ],
+      "columns": ["party_id", "id"],
       "nullsNotDistinct": false,
       "name": "uq_party_addresses_party_id",
       "entityType": "uniques",
@@ -19168,10 +18191,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_id",
-        "account_number"
-      ],
+      "columns": ["party_id", "account_number"],
       "nullsNotDistinct": false,
       "name": "uq_party_bank_accounts_party_number",
       "entityType": "uniques",
@@ -19180,10 +18200,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "communication_id",
-        "app"
-      ],
+      "columns": ["communication_id", "app"],
       "nullsNotDistinct": false,
       "name": "uq_party_communication_apps_comm_app",
       "entityType": "uniques",
@@ -19192,11 +18209,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_id",
-        "channel",
-        "value"
-      ],
+      "columns": ["party_id", "channel", "value"],
       "nullsNotDistinct": false,
       "name": "uq_party_communications_party_channel_value",
       "entityType": "uniques",
@@ -19205,10 +18218,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_relationship_id",
-        "function"
-      ],
+      "columns": ["party_relationship_id", "function"],
       "nullsNotDistinct": false,
       "name": "uq_party_functions_relationship_function",
       "entityType": "uniques",
@@ -19217,10 +18227,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_address_id",
-        "function"
-      ],
+      "columns": ["party_address_id", "function"],
       "nullsNotDistinct": false,
       "name": "uq_party_functions_address_function",
       "entityType": "uniques",
@@ -19229,11 +18236,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "id_type",
-        "id_value"
-      ],
+      "columns": ["organization_id", "id_type", "id_value"],
       "nullsNotDistinct": false,
       "name": "uq_party_identifiers_org_type_value",
       "entityType": "uniques",
@@ -19242,11 +18245,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "license_type",
-        "license_number"
-      ],
+      "columns": ["organization_id", "license_type", "license_number"],
       "nullsNotDistinct": false,
       "name": "uq_party_licenses_org_type_number",
       "entityType": "uniques",
@@ -19255,10 +18254,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "parent_party_id",
-        "child_party_id"
-      ],
+      "columns": ["parent_party_id", "child_party_id"],
       "nullsNotDistinct": false,
       "name": "uq_party_rel_parent_child",
       "entityType": "uniques",
@@ -19267,10 +18263,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "parent_party_id",
-        "id"
-      ],
+      "columns": ["parent_party_id", "id"],
       "nullsNotDistinct": false,
       "name": "uq_party_rel_parent_id",
       "entityType": "uniques",
@@ -19279,10 +18272,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "party_id",
-        "jurisdiction_id"
-      ],
+      "columns": ["party_id", "jurisdiction_id"],
       "nullsNotDistinct": false,
       "name": "uq_party_tax_reg_party_juris",
       "entityType": "uniques",
@@ -19291,10 +18281,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "registration_number"
-      ],
+      "columns": ["organization_id", "registration_number"],
       "nullsNotDistinct": false,
       "name": "uq_party_tax_reg_org_number",
       "entityType": "uniques",
@@ -19303,10 +18290,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "site_id",
-        "code"
-      ],
+      "columns": ["site_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_pos_terminals_bu_code",
       "entityType": "uniques",
@@ -19315,11 +18299,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "purchase_order_id",
-        "inventory_item_id",
-        "uom_id"
-      ],
+      "columns": ["purchase_order_id", "inventory_item_id", "uom_id"],
       "nullsNotDistinct": false,
       "name": "uq_purchase_order_items_po_item_uom",
       "entityType": "uniques",
@@ -19328,10 +18308,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "po_number"
-      ],
+      "columns": ["organization_id", "po_number"],
       "nullsNotDistinct": false,
       "name": "uq_purchase_orders_org_po_number",
       "entityType": "uniques",
@@ -19340,10 +18317,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_sales_channels_org_code",
       "entityType": "uniques",
@@ -19352,10 +18326,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "stock_adjustment_line_id",
-        "serial_number"
-      ],
+      "columns": ["stock_adjustment_line_id", "serial_number"],
       "nullsNotDistinct": false,
       "name": "uq_stock_adjustment_line_items_line_serial",
       "entityType": "uniques",
@@ -19364,10 +18335,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "stock_adjustment_id",
-        "lot_number"
-      ],
+      "columns": ["stock_adjustment_id", "lot_number"],
       "nullsNotDistinct": false,
       "name": "uq_stock_adjustment_lots_adj_lot",
       "entityType": "uniques",
@@ -19376,10 +18344,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_stock_adjustments_org_code",
       "entityType": "uniques",
@@ -19388,10 +18353,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "supplier_item_id",
-        "site_id"
-      ],
+      "columns": ["supplier_item_id", "site_id"],
       "nullsNotDistinct": false,
       "name": "uq_supplier_item_sites",
       "entityType": "uniques",
@@ -19400,10 +18362,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "supplier_id",
-        "site_id"
-      ],
+      "columns": ["supplier_id", "site_id"],
       "nullsNotDistinct": false,
       "name": "uq_supplier_sites",
       "entityType": "uniques",
@@ -19412,10 +18371,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "id",
-        "currency_code"
-      ],
+      "columns": ["id", "currency_code"],
       "nullsNotDistinct": false,
       "name": "uq_suppliers_id_currency",
       "entityType": "uniques",
@@ -19424,10 +18380,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_tax_classes_org_code",
       "entityType": "uniques",
@@ -19436,10 +18389,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_tax_components_org_code",
       "entityType": "uniques",
@@ -19448,10 +18398,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_tax_jurisdictions_org_code",
       "entityType": "uniques",
@@ -19460,10 +18407,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "legal_entity_id",
-        "jurisdiction_id"
-      ],
+      "columns": ["legal_entity_id", "jurisdiction_id"],
       "nullsNotDistinct": false,
       "name": "uq_tax_registrations_le_juris",
       "entityType": "uniques",
@@ -19472,10 +18416,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "registration_number"
-      ],
+      "columns": ["organization_id", "registration_number"],
       "nullsNotDistinct": false,
       "name": "uq_tax_registrations_org_number",
       "entityType": "uniques",
@@ -19484,10 +18425,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_uom_dimensions_org_code",
       "entityType": "uniques",
@@ -19716,9 +18654,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19729,9 +18665,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19742,9 +18676,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19755,9 +18687,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19768,9 +18698,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19781,9 +18709,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19794,9 +18720,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19807,9 +18731,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19820,9 +18742,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -19833,9 +18753,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -19846,9 +18764,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -19859,9 +18775,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -19872,9 +18786,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19885,9 +18797,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -19898,9 +18808,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -19911,9 +18819,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -19924,9 +18830,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -19937,9 +18841,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "\"commerce\".\"document_counters\".\"organization_id\" = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": "\"commerce\".\"document_counters\".\"organization_id\" = (select current_setting('app.org_id', true)::uuid)",
       "name": "org_isolation",
@@ -19950,9 +18852,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -19963,9 +18863,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -19976,9 +18874,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -19989,9 +18885,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20002,9 +18896,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20015,9 +18907,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20028,9 +18918,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20041,9 +18929,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20054,9 +18940,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20067,9 +18951,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20080,9 +18962,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20093,9 +18973,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20106,9 +18984,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20119,9 +18995,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20132,9 +19006,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20145,9 +19017,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20158,9 +19028,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20171,9 +19039,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20184,9 +19050,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20197,9 +19061,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20210,9 +19072,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20223,9 +19083,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20236,9 +19094,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20249,9 +19105,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20262,9 +19116,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20275,9 +19127,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20288,9 +19138,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20301,9 +19149,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20314,9 +19160,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20327,9 +19171,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20340,9 +19182,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20353,9 +19193,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20366,9 +19204,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20379,9 +19215,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20392,9 +19226,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20405,9 +19237,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20418,9 +19248,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20431,9 +19259,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20444,9 +19270,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20457,9 +19281,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20470,9 +19292,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20483,9 +19303,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20496,9 +19314,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20509,9 +19325,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20522,9 +19336,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20535,9 +19347,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20548,9 +19358,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20561,9 +19369,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20574,9 +19380,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20587,9 +19391,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20600,9 +19402,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20613,9 +19413,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20626,9 +19424,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20639,9 +19435,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20652,9 +19446,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20665,9 +19457,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20678,9 +19468,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20691,9 +19479,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20704,9 +19490,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20717,9 +19501,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20730,9 +19512,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20743,9 +19523,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20756,9 +19534,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20769,9 +19545,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20782,9 +19556,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20795,9 +19567,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20808,9 +19578,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20821,9 +19589,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20834,9 +19600,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20847,9 +19611,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20860,9 +19622,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20873,9 +19633,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -20886,9 +19644,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -20899,9 +19655,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -20912,9 +19666,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -20925,9 +19677,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20938,9 +19688,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -20951,9 +19699,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "\n        -- upward: org-owned rows are visible from every workspace\n        (legal_entity_id is null and site_id is null)\n        -- downward: the org workspace sees every row in the organization\n        or (cast(nullif(current_setting('app.le_id', true), '') as uuid) is null and cast(nullif(current_setting('app.site_id', true), '') as uuid) is null)\n        -- upward: my legal entity's own rows, whether I am that LE or a site beneath it\n        or (site_id is null and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid))\n        -- downward: an LE workspace also sees the rows its sites own\n        or (cast(nullif(current_setting('app.site_id', true), '') as uuid) is null and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid))\n        -- my own site's rows (a sibling site's are never visible)\n        or site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "withCheck": null,
       "name": "reach_read",
@@ -20964,9 +19710,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is null\n    else legal_entity_id is null and site_id is null\n  end",
       "name": "owner_insert",
@@ -20977,9 +19721,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is null\n    else legal_entity_id is null and site_id is null\n  end",
       "withCheck": null,
       "name": "owner_update",
@@ -20990,9 +19732,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is null\n    else legal_entity_id is null and site_id is null\n  end",
       "withCheck": null,
       "name": "owner_delete",
@@ -21003,9 +19743,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21016,9 +19754,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "exists (select 1 from commerce.offering_dimensions d where d.id = dimension_id)",
       "withCheck": null,
       "name": "offering_reach",
@@ -21029,9 +19765,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21042,9 +19776,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "exists (select 1 from commerce.offerings o where o.id = offering_id)",
       "withCheck": null,
       "name": "offering_reach",
@@ -21055,9 +19787,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21068,9 +19798,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "exists (select 1 from commerce.offering_variants v where v.id = variant_id)",
       "withCheck": null,
       "name": "offering_reach",
@@ -21081,9 +19809,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21094,9 +19820,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "exists (select 1 from commerce.offering_variants v where v.id = variant_id)",
       "withCheck": null,
       "name": "offering_reach",
@@ -21107,9 +19831,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21120,9 +19842,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "exists (select 1 from commerce.offerings o where o.id = offering_id)",
       "withCheck": null,
       "name": "offering_reach",
@@ -21133,9 +19853,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21146,9 +19864,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "\n        -- upward: org-owned rows are visible from every workspace\n        (legal_entity_id is null and site_id is null)\n        -- downward: the org workspace sees every row in the organization\n        or (cast(nullif(current_setting('app.le_id', true), '') as uuid) is null and cast(nullif(current_setting('app.site_id', true), '') as uuid) is null)\n        -- upward: my legal entity's own rows, whether I am that LE or a site beneath it\n        or (site_id is null and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid))\n        -- downward: an LE workspace also sees the rows its sites own\n        or (cast(nullif(current_setting('app.site_id', true), '') as uuid) is null and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid))\n        -- my own site's rows (a sibling site's are never visible)\n        or site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "withCheck": null,
       "name": "reach_read",
@@ -21159,9 +19875,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is null\n    else legal_entity_id is null and site_id is null\n  end",
       "name": "owner_insert",
@@ -21172,9 +19886,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is null\n    else legal_entity_id is null and site_id is null\n  end",
       "withCheck": null,
       "name": "owner_update",
@@ -21185,9 +19897,7 @@
     {
       "as": "RESTRICTIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is null\n    else legal_entity_id is null and site_id is null\n  end",
       "withCheck": null,
       "name": "owner_delete",
@@ -21198,9 +19908,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21211,9 +19919,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21224,9 +19930,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21237,9 +19941,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21250,9 +19952,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21263,9 +19963,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21276,9 +19974,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21289,9 +19985,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21302,9 +19996,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21315,9 +20007,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21328,9 +20018,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21341,9 +20029,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21354,9 +20040,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21367,9 +20051,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21380,9 +20062,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21393,9 +20073,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21406,9 +20084,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21419,9 +20095,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21432,9 +20106,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21445,9 +20117,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21458,9 +20128,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21471,9 +20139,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21484,9 +20150,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21497,9 +20161,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21510,9 +20172,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21523,9 +20183,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21536,9 +20194,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21549,9 +20205,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21562,9 +20216,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21575,9 +20227,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21588,9 +20238,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21601,9 +20249,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21614,9 +20260,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21627,9 +20271,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21640,9 +20282,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21653,9 +20293,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21666,9 +20304,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21679,9 +20315,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21692,9 +20326,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21705,9 +20337,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21718,9 +20348,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21731,9 +20359,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21744,9 +20370,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21757,9 +20381,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21770,9 +20392,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21783,9 +20403,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21796,9 +20414,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21809,9 +20425,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21822,9 +20436,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21835,9 +20447,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id IS NULL OR site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21848,9 +20458,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21861,9 +20469,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21874,9 +20480,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21887,9 +20491,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21900,9 +20502,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -21913,9 +20513,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -21926,9 +20524,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -21939,9 +20535,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -21952,9 +20546,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -21965,9 +20557,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_read",
@@ -21978,9 +20568,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "name": "le_write",
@@ -21991,9 +20579,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_update",
@@ -22004,9 +20590,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_delete",
@@ -22017,9 +20601,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_read",
@@ -22030,9 +20612,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "name": "site_write",
@@ -22043,9 +20623,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_update",
@@ -22056,9 +20634,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "site_id = (select current_setting('app.site_id', true)::uuid)",
       "withCheck": null,
       "name": "site_delete",
@@ -22069,9 +20645,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -22082,9 +20656,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_read",
@@ -22095,9 +20667,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "name": "le_write",
@@ -22108,9 +20678,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_update",
@@ -22121,9 +20689,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_delete",
@@ -22134,9 +20700,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -22147,9 +20711,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -22160,9 +20722,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -22173,9 +20733,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_read",
@@ -22186,9 +20744,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "name": "le_write",
@@ -22199,9 +20755,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_update",
@@ -22212,9 +20766,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "legal_entity_id = (select current_setting('app.le_id', true)::uuid)",
       "withCheck": null,
       "name": "le_delete",
@@ -22225,9 +20777,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -22238,9 +20788,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -22251,9 +20799,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -22264,9 +20810,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",

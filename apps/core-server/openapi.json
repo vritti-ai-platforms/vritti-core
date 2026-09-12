@@ -537,6 +537,158 @@
         ]
       }
     },
+    "/select-api/apps": {
+      "get": {
+        "description": "Active, unrevoked API credentials this organization owns. Revoked apps drop out of the picker.",
+        "operationId": "CoreSelectApiController_selectApps",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Select options."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "App options",
+        "tags": [
+          "Core - Select"
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "description": "Authenticates a nexus user with email and password. Returns an access token and sets a refresh token in an httpOnly cookie.",
@@ -11943,10 +12095,41 @@
         ]
       }
     },
-    "/commerce-api/org/catalog-channels/table": {
+    "/commerce-api/org/catalog-channels": {
       "get": {
-        "description": "Every channel and the catalog it currently sells.",
-        "operationId": "CatalogChannelsGatewayController_getTable",
+        "description": "Always returns every type. A type this workspace has not set still reports the catalog it inherits, and from which scope.",
+        "operationId": "CatalogChannelsGatewayController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChannelOverviewResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What this workspace sells through each channel",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/org/catalog-channels/app/table": {
+      "get": {
+        "description": "One row per channel: the wildcard every unnamed caller falls back to, plus any named app that overrides it. App names come from the core app registry, so a revoked app drops out.",
+        "operationId": "AppCatalogChannelGatewayController_findForTable",
         "parameters": [],
         "responses": {
           "200": {
@@ -11965,104 +12148,23 @@
             "bearer": []
           }
         ],
-        "summary": "List channel bindings",
+        "summary": "App channels",
         "tags": [
-          "Commerce - Catalog Channels"
+          "Commerce - App Catalog Channel"
         ]
       }
     },
-    "/commerce-api/org/catalog-channels/resolve": {
-      "get": {
-        "description": "Diagnostic. Real callers never pass a type — theirs is fixed by the API surface they authenticated against.",
-        "operationId": "CatalogChannelsGatewayController_resolve",
-        "parameters": [
-          {
-            "name": "type",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APP",
-                "POS",
-                "B2B"
-              ]
-            }
-          },
-          {
-            "name": "legalEntityId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "name": "siteId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "name": "appId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "name": "terminalId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "nullable": true,
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResolvedCatalogResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No catalog is configured for this channel."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Which catalog does this channel sell?",
-        "tags": [
-          "Commerce - Catalog Channels"
-        ]
-      }
-    },
-    "/commerce-api/org/catalog-channels": {
+    "/commerce-api/org/catalog-channels/app": {
       "post": {
-        "description": "One catalog per channel per scope, so resolution never has a tie to break.",
-        "operationId": "CatalogChannelsGatewayController_create",
+        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
+        "operationId": "AppCatalogChannelGatewayController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCatalogChannelDto"
+                "$ref": "#/components/schemas/CreateAppChannelDto"
               }
             }
           }
@@ -12079,7 +12181,7 @@
             }
           },
           "409": {
-            "description": "Another catalog already sells on this channel at this scope."
+            "description": "That combination already has a catalog at this scope."
           }
         },
         "security": [
@@ -12087,19 +12189,19 @@
             "bearer": []
           }
         ],
-        "summary": "Bind a channel to a catalog",
+        "summary": "Add a catalog to the App channel",
         "tags": [
-          "Commerce - Catalog Channels"
+          "Commerce - App Catalog Channel"
         ]
       }
     },
-    "/commerce-api/org/catalog-channels/{id}": {
+    "/commerce-api/org/catalog-channels/app/{channelId}": {
       "patch": {
-        "description": "Scope and target are fixed once a channel exists — only the catalog changes.",
-        "operationId": "CatalogChannelsGatewayController_repoint",
+        "description": "Rejected when the channel is inherited — change it in the workspace that set it.",
+        "operationId": "AppCatalogChannelGatewayController_update",
         "parameters": [
           {
-            "name": "id",
+            "name": "channelId",
             "required": true,
             "in": "path",
             "description": "Channel identifier",
@@ -12113,7 +12215,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RepointCatalogChannelDto"
+                "$ref": "#/components/schemas/UpdateAppChannelDto"
               }
             }
           }
@@ -12122,8 +12224,8 @@
           "200": {
             "description": "Channel repointed."
           },
-          "404": {
-            "description": "Channel or catalog not found."
+          "409": {
+            "description": "The channel is set by a wider scope."
           }
         },
         "security": [
@@ -12133,14 +12235,15 @@
         ],
         "summary": "Point a channel at a different catalog",
         "tags": [
-          "Commerce - Catalog Channels"
+          "Commerce - App Catalog Channel"
         ]
       },
       "delete": {
-        "operationId": "CatalogChannelsGatewayController_delete",
+        "description": "A named app falls back to the wildcard. Removing the wildcard leaves the channel resolving to a wider scope, or to nothing at the organization.",
+        "operationId": "AppCatalogChannelGatewayController_remove",
         "parameters": [
           {
-            "name": "id",
+            "name": "channelId",
             "required": true,
             "in": "path",
             "description": "Channel identifier",
@@ -12152,6 +12255,9 @@
         "responses": {
           "200": {
             "description": "Channel removed."
+          },
+          "409": {
+            "description": "The channel is set by a wider scope."
           }
         },
         "security": [
@@ -12159,7 +12265,632 @@
             "bearer": []
           }
         ],
-        "summary": "Remove a channel binding",
+        "summary": "Remove a channel",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/org/catalog-channels/app/{channelId}/items/table": {
+      "get": {
+        "description": "The resolved catalog — every active listing, each flagged with whether this channel excludes it. Inactive listings never reach a channel and are not returned.",
+        "operationId": "AppCatalogChannelGatewayController_findItemsForTable",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelItemTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What one channel sells",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/org/catalog-channels/app/{channelId}/items/{listingId}": {
+      "patch": {
+        "description": "Writes an exclusion against this channel only. Rejected when the channel is inherited — override it first, or the change would alter what every sibling inheriting it sells.",
+        "operationId": "AppCatalogChannelGatewayController_setItemVisibility",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "listingId",
+            "required": true,
+            "in": "path",
+            "description": "Catalog listing identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetItemVisibilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visibility updated."
+          },
+          "409": {
+            "description": "The channel is set by a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Exclude or re-include an item",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels/app/table": {
+      "get": {
+        "description": "One row per channel: the wildcard every unnamed caller falls back to, plus any named app that overrides it. App names come from the core app registry, so a revoked app drops out.",
+        "operationId": "LeAppCatalogChannelGatewayController_findForTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "App channels",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels/app": {
+      "post": {
+        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
+        "operationId": "LeAppCatalogChannelGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "That combination already has a catalog at this scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a catalog to the App channel",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels/app/{channelId}": {
+      "patch": {
+        "description": "Rejected when the channel is inherited — change it in the workspace that set it.",
+        "operationId": "LeAppCatalogChannelGatewayController_update",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Channel repointed."
+          },
+          "409": {
+            "description": "The channel is set by a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Point a channel at a different catalog",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      },
+      "delete": {
+        "description": "A named app falls back to the wildcard. Removing the wildcard leaves the channel resolving to a wider scope, or to nothing at the organization.",
+        "operationId": "LeAppCatalogChannelGatewayController_remove",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel removed."
+          },
+          "409": {
+            "description": "The channel is set by a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a channel",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels/app/{channelId}/items/table": {
+      "get": {
+        "description": "The resolved catalog — every active listing, each flagged with whether this channel excludes it. Inactive listings never reach a channel and are not returned.",
+        "operationId": "LeAppCatalogChannelGatewayController_findItemsForTable",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelItemTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What one channel sells",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels/app/{channelId}/items/{listingId}": {
+      "patch": {
+        "description": "Writes an exclusion against this channel only. Rejected when the channel is inherited — override it first, or the change would alter what every sibling inheriting it sells.",
+        "operationId": "LeAppCatalogChannelGatewayController_setItemVisibility",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "listingId",
+            "required": true,
+            "in": "path",
+            "description": "Catalog listing identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetItemVisibilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visibility updated."
+          },
+          "409": {
+            "description": "The channel is set by a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Exclude or re-include an item",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/app/table": {
+      "get": {
+        "description": "One row per channel: the wildcard every unnamed caller falls back to, plus any named app that overrides it. App names come from the core app registry, so a revoked app drops out.",
+        "operationId": "SiteAppCatalogChannelGatewayController_findForTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "App channels",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/app": {
+      "post": {
+        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
+        "operationId": "SiteAppCatalogChannelGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "That combination already has a catalog at this scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a catalog to the App channel",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/app/{channelId}": {
+      "patch": {
+        "description": "Rejected when the channel is inherited — change it in the workspace that set it.",
+        "operationId": "SiteAppCatalogChannelGatewayController_update",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Channel repointed."
+          },
+          "409": {
+            "description": "The channel is set by a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Point a channel at a different catalog",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      },
+      "delete": {
+        "description": "A named app falls back to the wildcard. Removing the wildcard leaves the channel resolving to a wider scope, or to nothing at the organization.",
+        "operationId": "SiteAppCatalogChannelGatewayController_remove",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel removed."
+          },
+          "409": {
+            "description": "The channel is set by a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a channel",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/app/{channelId}/items/table": {
+      "get": {
+        "description": "The resolved catalog — every active listing, each flagged with whether this channel excludes it. Inactive listings never reach a channel and are not returned.",
+        "operationId": "SiteAppCatalogChannelGatewayController_findItemsForTable",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelItemTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What one channel sells",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/app/{channelId}/items/{listingId}": {
+      "patch": {
+        "description": "Writes an exclusion against this channel only. Rejected when the channel is inherited — override it first, or the change would alter what every sibling inheriting it sells.",
+        "operationId": "SiteAppCatalogChannelGatewayController_setItemVisibility",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "listingId",
+            "required": true,
+            "in": "path",
+            "description": "Catalog listing identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetItemVisibilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visibility updated."
+          },
+          "409": {
+            "description": "The channel is set by a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Exclude or re-include an item",
+        "tags": [
+          "Commerce - App Catalog Channel"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels": {
+      "get": {
+        "description": "Always returns every type. A type this workspace has not set still reports the catalog it inherits, and from which scope.",
+        "operationId": "LeCatalogChannelsGatewayController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChannelOverviewResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What this workspace sells through each channel",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels": {
+      "get": {
+        "description": "Always returns every type. A type this workspace has not set still reports the catalog it inherits, and from which scope.",
+        "operationId": "SiteCatalogChannelsGatewayController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChannelOverviewResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What this workspace sells through each channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -35491,6 +36222,48 @@
           }
         }
       },
+      "ChannelOverviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "APP",
+              "POS",
+              "B2B"
+            ]
+          },
+          "catalogId": {
+            "type": "object",
+            "nullable": true
+          },
+          "catalogName": {
+            "type": "object",
+            "nullable": true
+          },
+          "catalogIsActive": {
+            "type": "object",
+            "nullable": true
+          },
+          "isOverride": {
+            "type": "boolean",
+            "description": "Whether this workspace set it, rather than inheriting it"
+          },
+          "inheritedFrom": {
+            "type": "string",
+            "enum": [
+              "SITE",
+              "LEGAL_ENTITY",
+              "ORGANIZATION"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "type",
+          "isOverride"
+        ]
+      },
       "CatalogChannelResponseDto": {
         "type": "object",
         "properties": {
@@ -35515,6 +36288,14 @@
               "B2B"
             ]
           },
+          "label": {
+            "type": "string",
+            "description": "Display name — the app or till, or the fallback label"
+          },
+          "isFallback": {
+            "type": "boolean",
+            "description": "True for the wildcard every unnamed caller falls back to"
+          },
           "legalEntityId": {
             "type": "object",
             "nullable": true
@@ -35537,6 +36318,24 @@
             "type": "object",
             "nullable": true
           },
+          "isOwn": {
+            "type": "boolean",
+            "description": "False when inherited — the channel is read-only here"
+          },
+          "setAt": {
+            "type": "string",
+            "enum": [
+              "SITE",
+              "LEGAL_ENTITY",
+              "ORGANIZATION"
+            ]
+          },
+          "itemsTotal": {
+            "type": "number"
+          },
+          "itemsSelling": {
+            "type": "number"
+          },
           "createdAt": {
             "type": "string"
           },
@@ -35549,6 +36348,12 @@
           "catalogId",
           "catalogIsActive",
           "type",
+          "label",
+          "isFallback",
+          "isOwn",
+          "setAt",
+          "itemsTotal",
+          "itemsSelling",
           "createdAt",
           "updatedAt"
         ]
@@ -35566,8 +36371,7 @@
             "type": "number"
           },
           "state": {
-            "type": "object",
-            "description": "Current active filter/sort/visibility state"
+            "type": "object"
           },
           "activeViewId": {
             "type": "object",
@@ -35580,83 +36384,24 @@
           "state"
         ]
       },
-      "ResolvedCatalogResponseDto": {
-        "type": "object",
-        "properties": {
-          "catalogId": {
-            "type": "string"
-          },
-          "catalogName": {
-            "type": "string"
-          },
-          "taxInclusive": {
-            "type": "boolean"
-          },
-          "channelId": {
-            "type": "string"
-          },
-          "matchedScope": {
-            "type": "string",
-            "enum": [
-              "SITE",
-              "LEGAL_ENTITY",
-              "ORGANIZATION"
-            ]
-          },
-          "matchedTarget": {
-            "type": "boolean",
-            "description": "Whether a named app or till matched rather than a wildcard"
-          }
-        },
-        "required": [
-          "catalogId",
-          "catalogName",
-          "taxInclusive",
-          "channelId",
-          "matchedScope",
-          "matchedTarget"
-        ]
-      },
-      "CreateCatalogChannelDto": {
+      "CreateAppChannelDto": {
         "type": "object",
         "properties": {
           "catalogId": {
             "type": "string",
             "description": "Catalog this channel sells"
           },
-          "type": {
-            "type": "string",
-            "enum": [
-              "APP",
-              "POS",
-              "B2B"
-            ]
-          },
-          "legalEntityId": {
-            "type": "object",
-            "nullable": true
-          },
-          "siteId": {
-            "type": "object",
-            "nullable": true
-          },
           "appId": {
             "type": "object",
             "nullable": true,
-            "description": "Named app; omit for any app"
-          },
-          "terminalId": {
-            "type": "object",
-            "nullable": true,
-            "description": "Named till; omit for any till"
+            "description": "Named app. Omit for the fallback every unnamed caller resolves to."
           }
         },
         "required": [
-          "catalogId",
-          "type"
+          "catalogId"
         ]
       },
-      "RepointCatalogChannelDto": {
+      "UpdateAppChannelDto": {
         "type": "object",
         "properties": {
           "catalogId": {
@@ -35666,6 +36411,90 @@
         },
         "required": [
           "catalogId"
+        ]
+      },
+      "ChannelItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "listingId": {
+            "type": "string"
+          },
+          "offeringVariantId": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "object",
+            "nullable": true
+          },
+          "variantName": {
+            "type": "object",
+            "nullable": true
+          },
+          "mrp": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "price": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "sellsHere": {
+            "type": "boolean",
+            "description": "False when this channel excludes the item"
+          }
+        },
+        "required": [
+          "listingId",
+          "offeringVariantId",
+          "sellsHere"
+        ]
+      },
+      "ChannelItemTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChannelItemResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "SetItemVisibilityDto": {
+        "type": "object",
+        "properties": {
+          "sellsHere": {
+            "type": "boolean",
+            "description": "False excludes the item from this channel"
+          }
+        },
+        "required": [
+          "sellsHere"
         ]
       },
       "CatalogResponseDto": {
@@ -35683,9 +36512,6 @@
           },
           "taxInclusive": {
             "type": "boolean"
-          },
-          "priority": {
-            "type": "number"
           },
           "isActive": {
             "type": "boolean"
@@ -35707,7 +36533,6 @@
           "id",
           "name",
           "taxInclusive",
-          "priority",
           "isActive",
           "listingCount",
           "channelCount",
@@ -35757,10 +36582,6 @@
           "taxInclusive": {
             "type": "boolean",
             "description": "Whether prices in this catalog include tax"
-          },
-          "priority": {
-            "type": "number",
-            "description": "Higher wins when two catalogs reach the same channel"
           }
         },
         "required": [
@@ -35996,9 +36817,6 @@
           },
           "taxInclusive": {
             "type": "boolean"
-          },
-          "priority": {
-            "type": "number"
           },
           "isActive": {
             "type": "boolean"

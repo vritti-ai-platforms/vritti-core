@@ -52,13 +52,7 @@ export class OfferingDimensionTemplatesDomainService {
         `Dimension template list hit the ${MAX_PAGE_SIZE}-row cap — later templates are not being returned. Narrow with search.`,
       );
     }
-    const values = await this.repository.findValuesForTemplates(rows.map((row) => row.id));
-    return rows.map((row) =>
-      this.toDto(
-        row,
-        values.filter((value) => value.templateId === row.id),
-      ),
-    );
+    return rows.map((row) => this.toDto(row));
   }
 
   // Returns template options for select dropdowns, restricted to active templates
@@ -81,7 +75,7 @@ export class OfferingDimensionTemplatesDomainService {
 
   async findById(id: string): Promise<OfferingDimensionTemplateDto> {
     const row = await this.requireReachable(id);
-    return this.toDto(row, await this.repository.findValues(id));
+    return this.toDto(row);
   }
 
   // Creates a template owned by the calling workspace; the database stamps the owner from its GUCs.
@@ -100,7 +94,7 @@ export class OfferingDimensionTemplatesDomainService {
     return {
       success: true,
       message: `Template "${entity.name}" created successfully. Add values, then activate it.`,
-      data: this.toDto({ ...entity, isOwned: true }, []),
+      data: this.toDto({ ...entity, isOwned: true, values: [] }),
     };
   }
 
@@ -187,10 +181,10 @@ export class OfferingDimensionTemplatesDomainService {
     }
   }
 
-  private toDto(row: TemplateWithMeta, values: OfferingDimensionTemplateValue[]): OfferingDimensionTemplateDto {
+  private toDto(row: TemplateWithMeta): OfferingDimensionTemplateDto {
     return OfferingDimensionTemplateDto.from(row, {
-      values,
-      valueCount: values.length,
+      values: row.values,
+      valueCount: row.values.length,
       isOwned: row.isOwned,
       // Only the owning workspace can delete. Phase 2 adds a reference check here once
       // offering_dimensions.template_id exists — a seeded template must not be removable.

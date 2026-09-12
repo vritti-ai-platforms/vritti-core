@@ -12,9 +12,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
-
-const LE_GUC = "cast(nullif(current_setting('app.le_id', true), '') as uuid)";
-const SITE_GUC = "cast(nullif(current_setting('app.site_id', true), '') as uuid)";
+import { LE_GUC, SITE_GUC } from './workspace-scope';
 
 const OWNER_MATCHES_WORKSPACE_SQL = `
   case
@@ -24,8 +22,6 @@ const OWNER_MATCHES_WORKSPACE_SQL = `
   end`;
 
 const OWNER_MATCHES_WORKSPACE = sql.raw(OWNER_MATCHES_WORKSPACE_SQL);
-
-export const ownedByWorkspace = () => sql<boolean>`coalesce(${sql.raw(OWNER_MATCHES_WORKSPACE_SQL)}, false)`;
 
 export const offeringDimensionTemplates = commerceSchema.table(
   'offering_dimension_templates',

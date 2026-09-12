@@ -42,7 +42,6 @@ export interface CatalogData {
   name: string;
   ownerLegalEntityId: string | null;
   taxInclusive: boolean;
-  priority: number;
   isActive: boolean;
   listingCount: number;
   channelCount: number;

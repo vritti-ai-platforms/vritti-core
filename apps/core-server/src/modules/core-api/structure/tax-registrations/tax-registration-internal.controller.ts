@@ -1,24 +1,12 @@
 import { CreateTaxRegistrationDto } from '@commerce/tax-registrations/dto/request/create-tax-registration.dto';
 import { UpdateTaxRegistrationDto } from '@commerce/tax-registrations/dto/request/update-tax-registration.dto';
 import type { TaxRegistrationResponseDto } from '@commerce/tax-registrations/dto/response/tax-registration-response.dto';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  Param,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { GetTaxRegistrationsInternalDto } from './dto/get-tax-registrations-internal.dto';
 import { TaxRegistrationsGatewayService } from '@/modules/commerce-gateway/le-api/tax-registrations/services/tax-registrations-gateway.service';
+import { GetTaxRegistrationsInternalDto } from './dto/get-tax-registrations-internal.dto';
 
 // The cloud-facing surface. Signed cloud auth rather than a session, because cloud-server calls this
 // on behalf of an operator setting up a legal entity — there is no RBAC context to gate on.

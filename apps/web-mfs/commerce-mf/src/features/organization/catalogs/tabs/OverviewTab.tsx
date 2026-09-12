@@ -61,7 +61,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ catalog }) => (
             )
           }
         />
-        <DetailField label="Priority" type="number" value={catalog.priority} />
       </CardContent>
     </Card>
   </div>

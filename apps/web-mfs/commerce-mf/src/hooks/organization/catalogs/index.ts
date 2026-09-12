@@ -3,6 +3,7 @@ export { useAddCatalogListing } from './useAddCatalogListing';
 export { useCatalog } from './useCatalog';
 export { useCatalogListingMrpOptions } from './useCatalogListingMrpOptions';
 export { useCatalogListingsTable } from './useCatalogListingsTable';
+export * from './useCatalogOptions';
 export { useCatalogsTable } from './useCatalogsTable';
 export { useCreateCatalog } from './useCreateCatalog';
 export { useDeleteCatalog } from './useDeleteCatalog';

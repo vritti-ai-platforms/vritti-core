@@ -1,18 +1,18 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { deleteCatalogChannel } from '@/services/organization/catalog-channels.service';
-import { CATALOG_CHANNELS_KEY } from './keys';
+import { deleteAppChannel } from '@/services/legal-entity/app-catalog-channels.service';
+import { APP_CHANNEL_KEY } from './keys';
 
-export function useDeleteCatalogChannel(
+export function useDeleteAppChannel(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, string>({
     ...options,
-    mutationFn: deleteCatalogChannel,
+    mutationFn: deleteAppChannel,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CATALOG_CHANNELS_KEY });
+      queryClient.invalidateQueries({ queryKey: APP_CHANNEL_KEY });
       options?.onSuccess?.(...args);
     },
   });

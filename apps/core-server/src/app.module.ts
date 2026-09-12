@@ -36,6 +36,7 @@ import { AppApiModule } from './modules/core-api/app/app-api.module';
 import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
 import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
+import { CoreSelectApiModule } from './modules/core-api/select-api/select-api.module';
 import { StructureApiModule } from './modules/core-api/structure/structure.module';
 import { UserApiModule } from './modules/core-api/user/user.module';
 import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
@@ -350,6 +351,7 @@ const graphqlBaseOptions = {
 
     // --- API modules (controllers + DTOs + docs) ---
     AppApiModule,
+    CoreSelectApiModule,
     AuthApiModule,
     // Public storefront surface — one signed mutation, tenant from the app's client id
     UserApiModule,

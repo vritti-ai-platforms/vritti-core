@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MAX_PAGE_SIZE, PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type OfferingDimensionTemplate,
   type OfferingDimensionTemplateValue,
@@ -9,7 +9,10 @@ import {
   ownedByWorkspace,
 } from '@/db/schema';
 
-export type TemplateWithMeta = OfferingDimensionTemplate & { isOwned: boolean };
+export type TemplateWithMeta = OfferingDimensionTemplate & {
+  isOwned: boolean;
+  values: OfferingDimensionTemplateValue[];
+};
 
 @Injectable()
 export class OfferingDimensionTemplatesDomainRepository extends PrimaryBaseRepository<
@@ -33,6 +36,14 @@ export class OfferingDimensionTemplatesDomainRepository extends PrimaryBaseRepos
       createdAt: offeringDimensionTemplates.createdAt,
       updatedAt: offeringDimensionTemplates.updatedAt,
       isOwned: ownedByWorkspace(),
+      values: sql<OfferingDimensionTemplateValue[]>`coalesce(
+        (
+          select json_agg(v order by v.sort_order, v.value)
+          from ${offeringDimensionTemplateValues} v
+          where v.template_id = ${offeringDimensionTemplates.id}
+        ),
+        '[]'::json
+      )`,
     };
   }
 
@@ -76,16 +87,6 @@ export class OfferingDimensionTemplatesDomainRepository extends PrimaryBaseRepos
       .select()
       .from(offeringDimensionTemplateValues)
       .where(eq(offeringDimensionTemplateValues.templateId, templateId))
-      .orderBy(offeringDimensionTemplateValues.sortOrder, offeringDimensionTemplateValues.value);
-  }
-
-  // Returns values for many templates in one round trip
-  async findValuesForTemplates(templateIds: string[]): Promise<OfferingDimensionTemplateValue[]> {
-    if (templateIds.length === 0) return [];
-    return this.db
-      .select()
-      .from(offeringDimensionTemplateValues)
-      .where(inArray(offeringDimensionTemplateValues.templateId, templateIds))
       .orderBy(offeringDimensionTemplateValues.sortOrder, offeringDimensionTemplateValues.value);
   }
 }

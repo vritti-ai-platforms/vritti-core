@@ -60,3 +60,4 @@ export * from './tax-rates';
 export * from './tax-registrations';
 export * from './uom';
 export * from './uom-dimensions';
+export * from './workspace-scope';

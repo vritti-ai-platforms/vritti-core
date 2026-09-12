@@ -5,7 +5,6 @@ export class CatalogResponseDto {
   @ApiProperty() name: string;
   @ApiPropertyOptional({ nullable: true }) ownerLegalEntityId: string | null;
   @ApiProperty() taxInclusive: boolean;
-  @ApiProperty() priority: number;
   @ApiProperty() isActive: boolean;
   @ApiProperty() listingCount: number;
   @ApiProperty() channelCount: number;

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateCatalogDto {
   @ApiPropertyOptional()
@@ -14,12 +14,6 @@ export class UpdateCatalogDto {
   @IsOptional()
   @IsBoolean()
   taxInclusive?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  priority?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
