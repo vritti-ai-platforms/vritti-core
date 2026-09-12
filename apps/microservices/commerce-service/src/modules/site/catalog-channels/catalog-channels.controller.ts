@@ -1,8 +1,7 @@
 import type { ChannelOverviewDto } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Controller()
 export class SiteCatalogChannelsController {
