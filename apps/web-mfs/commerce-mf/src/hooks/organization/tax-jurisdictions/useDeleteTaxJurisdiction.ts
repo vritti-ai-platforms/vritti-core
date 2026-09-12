@@ -1,8 +1,8 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { deleteTaxJurisdiction } from '@/services/organization/tax-jurisdictions.service';
 import type { SuccessResponse } from '@/schemas/tax-jurisdictions';
+import { deleteTaxJurisdiction } from '@/services/organization/tax-jurisdictions.service';
 import { TAX_JURISDICTIONS_KEY } from './keys';
 
 export function useDeleteTaxJurisdiction(

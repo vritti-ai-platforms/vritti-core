@@ -17,7 +17,7 @@ export class UpdateInventoryItemDto {
   @IsString()
   @MaxLength(100)
   @IsCode()
-  code?: string;
+  sku?: string;
 
   @IsOptional()
   @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
@@ -40,10 +40,6 @@ export class UpdateInventoryItemDto {
   @IsEnum(['none', 'fifo', 'fefo'])
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;
-
-  @IsOptional()
-  @IsUUID()
-  taxClassId?: string;
 
   @Trim()
   @IsOptional()

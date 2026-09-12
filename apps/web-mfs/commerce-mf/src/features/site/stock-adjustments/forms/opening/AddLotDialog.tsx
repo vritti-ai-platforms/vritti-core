@@ -7,8 +7,8 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { ClipboardMinus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { type AddStockAdjustmentLotFormData, addStockAdjustmentLotSchema } from '@/schemas/stock-adjustments';
 import { useAddStockAdjustmentLot } from '@/hooks/site/stock-adjustments';
+import { type AddStockAdjustmentLotFormData, addStockAdjustmentLotSchema } from '@/schemas/stock-adjustments';
 
 const AddLotForm = ({
   adjustmentId,

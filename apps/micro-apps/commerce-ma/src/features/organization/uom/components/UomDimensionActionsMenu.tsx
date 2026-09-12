@@ -41,10 +41,13 @@ export function UomDimensionActionsMenu({ dimension, onEdit }: UomDimensionActio
       permission: ORG_UOM.dim.delete,
       lockedPresentation: 'alert',
       onSelect: handleDelete,
-      confirm: { name: dimension.name, message: `The "${dimension.name}" dimension will be removed. This can't be undone.` },
+      confirm: {
+        name: dimension.name,
+        message: `The "${dimension.name}" dimension will be removed. This can't be undone.`,
+      },
     },
   ];
-  
+
   const actions: MenuAction[] = defs.filter((d) => dimension[d.cap]).map(({ cap, ...action }) => action);
   if (actions.length === 0) return null;
 

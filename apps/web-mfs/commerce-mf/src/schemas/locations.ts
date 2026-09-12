@@ -1,3 +1,4 @@
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
@@ -76,11 +77,11 @@ export type LocationChildrenTableResponse = TableResponse<LocationData>;
 export interface LocationItemRow {
   inventoryItemId: string;
   itemName: string;
-  itemCode: string;
+  itemSku: string;
   uomSymbol: string | null;
   totalQuantity: number;
   availableQuantity: number;
-  totalValue: { currency: string; value: string } | null;
+  totalValue: CurrencyValue | null;
   batchCount: number;
 }
 
@@ -90,8 +91,8 @@ export interface LocationItemQuantRow {
   expiryDate: string | null;
   quantity: number;
   availableQuantity: number;
-  unitCost: { currency: string; value: string } | null;
-  quantValue: { currency: string; value: string } | null;
+  unitCost: CurrencyValue | null;
+  quantValue: CurrencyValue | null;
 }
 
 export type LocationItemsTableResponse = TableResponse<LocationItemRow>;

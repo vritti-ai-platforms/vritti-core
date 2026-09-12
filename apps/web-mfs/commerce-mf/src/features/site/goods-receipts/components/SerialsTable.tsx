@@ -19,7 +19,6 @@ import { ScanBarcodeButton } from '@vritti/quantum-ui/ScanBarcodeButton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { PackageCheck, Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
-import type { GoodsReceiptLineData, GoodsReceiptLineItemData } from '@/schemas/goods-receipts';
 import {
   GOODS_RECEIPT_LINE_ITEMS_TABLE_KEY,
   useAddGoodsReceiptLineItem,
@@ -27,6 +26,7 @@ import {
   useRemoveGoodsReceiptLine,
   useRemoveGoodsReceiptLineItem,
 } from '@/hooks/site/goods-receipts';
+import type { GoodsReceiptLineData, GoodsReceiptLineItemData } from '@/schemas/goods-receipts';
 import { AddSerialDialog } from '../forms/AddSerialDialog';
 import { EditLineForm } from '../forms/EditLineForm';
 

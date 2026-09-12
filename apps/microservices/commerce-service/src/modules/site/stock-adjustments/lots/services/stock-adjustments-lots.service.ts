@@ -76,7 +76,11 @@ export class StockAdjustmentsLotsService {
 
   // Used by the publish flow: creates the matching inventory_item_lots row from this draft lot.
   // Throws if a lot with the same (item, number) already exists in inventory (cannot reuse).
-  async resolveInventoryLot(inventoryItemId: string, lotId: string): Promise<InventoryItemLot> {
+  async resolveInventoryLot(
+    inventoryItemId: string,
+    lotId: string,
+    siteCurrencyCode: string,
+  ): Promise<InventoryItemLot> {
     const sa = await this.lotsRepository.findById(lotId);
     if (!sa) throw new NotFoundException(`Stock adjustment lot ${lotId} not found.`);
     if (!sa.expiryDate) {
@@ -89,6 +93,7 @@ export class StockAdjustmentsLotsService {
         manufacturingDate: sa.manufacturingDate ?? null,
         expiryDate: sa.expiryDate,
         mrp: sa.mrp ?? null,
+        mrpCurrencyCode: sa.mrp != null ? siteCurrencyCode : null,
       });
       await this.lotsRepository.setResolvedLotId(lotId, inserted.id);
       this.logger.log(`Resolved draft lot ${lotId} → inventory lot ${inserted.id}`);

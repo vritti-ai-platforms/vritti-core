@@ -11,12 +11,12 @@ export class CreateInventoryItemDto {
   name: string;
 
   @Trim({ nullify: false })
-  @ApiProperty({ description: 'Item code', example: 'RAW-RICE-BAS' })
+  @ApiProperty({ description: 'Item SKU', example: 'raw-rice-bas' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   @IsCode()
-  code: string;
+  sku: string;
 
   @ApiProperty({
     description: 'Item type',
@@ -56,10 +56,6 @@ export class CreateInventoryItemDto {
   @ApiProperty({ description: 'Unit of measure ID' })
   @IsUUID()
   uomId: string;
-
-  @ApiProperty({ description: 'Tax classification (prefilled from the category default; required)' })
-  @IsUUID()
-  taxClassId: string;
 
   @Trim()
   @ApiPropertyOptional({ description: 'HSN code for tax reporting' })

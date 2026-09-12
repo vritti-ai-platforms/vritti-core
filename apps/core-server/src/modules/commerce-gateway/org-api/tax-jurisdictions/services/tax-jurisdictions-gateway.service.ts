@@ -6,7 +6,12 @@ import type { TaxJurisdictionResponseDto } from '@commerce/tax-jurisdictions/dto
 import type { TaxJurisdictionTreeResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-tree-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
@@ -45,6 +50,12 @@ export class TaxJurisdictionsGatewayService {
   }
 
   // Creates a new tax jurisdiction
+  // Options for a jurisdiction picker — the same select the session surface exposes, reachable by cloud
+  async findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.taxJurisdictions');
+    return this.nats.send('commerce', 'select.taxJurisdictions', query);
+  }
+
   async create(dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionResponseDto>> {
     this.logger.log(`org.taxJurisdictions.create — name: ${dto.name}`);
     return this.nats.send('commerce', 'org.taxJurisdictions.create', dto);

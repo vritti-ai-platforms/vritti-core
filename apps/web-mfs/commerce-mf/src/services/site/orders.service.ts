@@ -5,7 +5,6 @@ import type { OrderData, OrderDetail, OrderStatus, OrdersTableResponse } from '@
 export interface CreateOrderPayload {
   type: string;
   channel: string;
-  channelId?: string | null;
   customerId?: string;
   customerName?: string;
   customerPhone?: string;

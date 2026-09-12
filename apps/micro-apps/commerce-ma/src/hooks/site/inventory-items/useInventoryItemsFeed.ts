@@ -1,7 +1,7 @@
 import { type UseInfiniteListReturn, useApolloInfiniteQuery } from '@vritti/quantum-ui-native/hooks';
 import { useCallback } from 'react';
-import type { FilterCondition, InventoryItem, SearchState, SortCondition } from '../../../types/inventory-items';
 import { INVENTORY_ITEMS_QUERY } from '../../../graphql/inventory-items';
+import type { FilterCondition, InventoryItem, SearchState, SortCondition } from '../../../types/inventory-items';
 
 const PAGE_SIZE = 20;
 

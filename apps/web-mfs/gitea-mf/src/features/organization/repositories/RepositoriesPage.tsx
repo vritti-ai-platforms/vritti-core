@@ -107,7 +107,6 @@ export const RepositoriesPage = () => {
         // Named views round-trip table state through the backend; the git service has none, so the
         // views chrome would only issue pointless table-views requests.
         enableViews={false}
-        onRowClick={(repository) => navigate(repository.name)}
         toolbarActions={{
           actions: (
             <Button

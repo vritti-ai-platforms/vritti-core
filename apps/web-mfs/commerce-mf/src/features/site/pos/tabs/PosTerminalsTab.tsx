@@ -16,8 +16,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Monitor, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { PosTerminalData } from '@/schemas/pos-terminals';
 import { POS_TERMINALS_TABLE_KEY, useDeletePosTerminal, usePosTerminalsTable } from '@/hooks/site/pos-terminals';
+import type { PosTerminalData } from '@/schemas/pos-terminals';
 import { getErrorMessage } from '@/utils/error';
 import { PosTerminalForm } from '../forms/PosTerminalForm';
 

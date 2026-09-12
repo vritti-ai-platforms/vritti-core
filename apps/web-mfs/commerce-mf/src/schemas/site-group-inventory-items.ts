@@ -8,7 +8,7 @@ export interface SiteGroupInventoryItemData {
   id: string;
   inventoryItemId: string;
   itemName: string;
-  itemCode: string;
+  itemSku: string;
   siteId: string;
   isStocked: boolean;
   reorderPoint: number;
@@ -20,7 +20,7 @@ export interface SiteGroupInventoryItemData {
 export interface SiteGroupItemAvailabilityData {
   inventoryItemId: string;
   itemName: string;
-  itemCode: string;
+  itemSku: string;
   siteIds: string[];
 }
 
@@ -28,7 +28,7 @@ export interface SiteGroupItemAvailabilityData {
 export interface SiteGroupItemLevelsData {
   inventoryItemId: string;
   itemName: string;
-  itemCode: string;
+  itemSku: string;
   siteId: string;
   reorderPoint: number;
   maxStockLevel: number;

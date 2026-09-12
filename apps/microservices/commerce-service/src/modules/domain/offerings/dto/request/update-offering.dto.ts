@@ -1,45 +1,37 @@
-import { Trim } from '@vritti/api-sdk/decorators';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
-import type { FulfilmentType } from '@/db/schema';
+import { IsCode, Trim } from '@vritti/api-sdk/decorators';
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class UpdateOfferingDto {
-  @IsOptional()
   @IsUUID()
-  categoryId?: string | null;
-
-  @IsOptional()
-  @IsArray()
-  @IsUUID(undefined, { each: true })
-  variantOptionIds?: string[];
-
-  @IsOptional()
-  @IsEnum(['STOCK', 'SERVICE', 'COMPOSITE'])
-  fulfilmentType?: FulfilmentType;
+  id: string;
 
   @Trim({ nullify: false })
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
+  @IsCode()
+  code?: string;
+
+  @Trim({ nullify: false })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   name?: string;
 
   @Trim()
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   description?: string | null;
 
-  @IsUUID()
-  salesTaxGroupId: string;
-
   @IsOptional()
-  @IsBoolean()
-  isAvailable?: boolean;
+  @IsUUID()
+  categoryId?: string | null;
 
   @IsOptional()
   @IsInt()
   @Min(0)
   sortOrder?: number;
-}
-
-export class UpdateOfferingPayloadDto extends UpdateOfferingDto {
-  @IsUUID()
-  offeringId: string;
 }

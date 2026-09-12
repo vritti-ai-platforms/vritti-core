@@ -51,7 +51,7 @@ export const InventoryItemForm = ({ form, isSubmitting, onSubmit, mode }: Invent
   return (
     <Form form={sharedForm}>
       <TextField name="name" label="Name" placeholder="e.g. Steel bolt M6" autoCapitalize="words" />
-      <TextField name="code" label="Code" placeholder="e.g. BOLT-M6" autoCapitalize="characters" autoCorrect={false} />
+      <TextField name="sku" label="SKU" placeholder="e.g. bolt-m6" autoCapitalize="none" autoCorrect={false} />
 
       <RadioGroup name="type" label="Type" options={TYPE_RADIO} />
       {mode === 'create' ? <RadioGroup name="tracking" label="Tracking" options={TRACKING_RADIO} /> : null}

@@ -1,5 +1,5 @@
-import { ORG_UOM } from '@vritti/commerce-permissions/uom';
 import { useQuery } from '@apollo/client/react';
+import { ORG_UOM } from '@vritti/commerce-permissions/uom';
 import { usePermission } from '@vritti/quantum-ui-native/context';
 import { UOM_DIMENSIONS_QUERY } from '../../../graphql/uom-dimensions';
 

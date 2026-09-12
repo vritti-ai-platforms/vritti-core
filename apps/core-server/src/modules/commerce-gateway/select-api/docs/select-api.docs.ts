@@ -27,18 +27,6 @@ export function ApiCategoriesSelect() {
   );
 }
 
-export function ApiCatalogsSelect() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Get catalog select options',
-      description: 'Returns paginated catalog options for the select component, scoped to the session site.',
-    }),
-    ...BASE_SELECT_QUERIES,
-    ApiResponse({ status: 200, description: 'Catalog select options retrieved successfully.' }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
 export function ApiCostCategoriesSelect() {
   return applyDecorators(
     ApiOperation({
@@ -151,6 +139,49 @@ export function ApiLocationsSelect() {
   );
 }
 
+export function ApiOfferingVariantsSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Offering variant options',
+      description:
+        'Variants of one offering, keyed by SKU. Scoped by offeringId — a SKU only means anything next to its siblings.',
+    }),
+    ApiResponse({ status: 200, description: 'Variant options.' }),
+  );
+}
+
+export function ApiOfferingsSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get offering select options',
+      description: 'Returns paginated active offering options for the select component.',
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Offering select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiOfferingDimensionTemplatesSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get dimension template select options',
+      description:
+        'Returns paginated active dimension template options for the select component. Templates owned by a wider scope are included, so a site sees its own plus those of its legal entity and organization.',
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Dimension template select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiCatalogsSelect() {
+  return applyDecorators(
+    ApiOperation({ summary: 'Catalog options', description: 'Price lists, for binding a channel to one.' }),
+    ApiResponse({ status: 200, description: 'Catalog options.' }),
+  );
+}
+
 export function ApiPosTerminalsSelect() {
   return applyDecorators(
     ApiOperation({
@@ -195,18 +226,6 @@ export function ApiPurchaseOrdersSelect() {
     ApiQuery({ name: 'status', description: 'Optional status filter (single or comma-separated)', required: false }),
     ApiQuery({ name: 'supplierId', description: 'Optional supplier filter', required: false }),
     ApiResponse({ status: 200, description: 'Purchase order select options retrieved successfully.' }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
-export function ApiSalesChannelsSelect() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Get sales channel select options',
-      description: 'Returns paginated sales channel options for the select component.',
-    }),
-    ...BASE_SELECT_QUERIES,
-    ApiResponse({ status: 200, description: 'Sales channel select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

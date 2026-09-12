@@ -13,7 +13,6 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, Eye, PackageCheck, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { type GoodsReceiptLineData, type InventoryTracking, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import {
   GOODS_RECEIPT_LINES_BY_LOT_TABLE_KEY,
   GOODS_RECEIPT_LINES_TABLE_KEY,
@@ -21,6 +20,7 @@ import {
   useGoodsReceiptLinesTable,
   useRemoveGoodsReceiptLine,
 } from '@/hooks/site/goods-receipts';
+import { type GoodsReceiptLineData, type InventoryTracking, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import { AddLineForm } from '../forms/AddLineForm';
 import { EditLineForm } from '../forms/EditLineForm';
 

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
-import { type PartyFunctionType, type PartyRelationship, PartyFunctionTypeValues } from '@/db/schema';
+import { type PartyFunctionType, PartyFunctionTypeValues, type PartyRelationship } from '@/db/schema';
 import type { PartyFunctionAssignmentInput } from '../dto/request/party-function-assignment-input.dto';
 import { PartyFunctionsDomainRepository } from '../repositories/party-functions.repository';
 

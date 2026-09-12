@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, getTableColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   type PartyBankAccount,
+  PartyCommunicationChannelValues,
   type PartyRelationship,
   type PartyTaxRegistration,
-  PartyCommunicationChannelValues,
   parties,
   partyBankAccounts,
   partyCommunications,
@@ -85,7 +85,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
     return this.findAllAndCount<SupplierSiteWithPicks>({
       select: {
-        ...getTableColumns(supplierSites),
+        ...getColumns(supplierSites),
         registrationNumber: partyTaxRegistrations.registrationNumber,
         registrationType: partyTaxRegistrations.registrationType,
         bankAccountName: partyBankAccounts.accountName,
@@ -113,7 +113,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
     return this.findAllAndCount<SiteSupplierRow>({
       select: {
-        ...getTableColumns(supplierSites),
+        ...getColumns(supplierSites),
         supplierName: parties.displayName,
         supplierCode: suppliers.code,
         currencyCode: suppliers.currencyCode,
@@ -167,7 +167,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
   // Loads an enrollment joined with the owning supplier's party for pick validation
   async findByIdWithPartyId(id: string): Promise<(SupplierSite & { partyId: string | null }) | undefined> {
     const [row] = await this.db
-      .select({ ...getTableColumns(supplierSites), partyId: suppliers.partyId })
+      .select({ ...getColumns(supplierSites), partyId: suppliers.partyId })
       .from(supplierSites)
       .leftJoin(suppliers, eq(suppliers.id, supplierSites.supplierId))
       .where(eq(supplierSites.id, id))
@@ -179,7 +179,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
   async findBySupplierAndSite(supplierId: string, siteId: string): Promise<SupplierSiteWithPicks | undefined> {
     const [row] = await this.db
       .select({
-        ...getTableColumns(supplierSites),
+        ...getColumns(supplierSites),
         registrationNumber: partyTaxRegistrations.registrationNumber,
         registrationType: partyTaxRegistrations.registrationType,
         bankAccountName: partyBankAccounts.accountName,
@@ -216,7 +216,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
   async findSiteSupplier(supplierId: string, siteId: string): Promise<SiteSupplierRow | undefined> {
     const [row] = await this.db
       .select({
-        ...getTableColumns(supplierSites),
+        ...getColumns(supplierSites),
         supplierName: parties.displayName,
         supplierCode: suppliers.code,
         currencyCode: suppliers.currencyCode,

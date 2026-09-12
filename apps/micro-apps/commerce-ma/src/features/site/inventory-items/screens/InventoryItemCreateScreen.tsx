@@ -19,7 +19,7 @@ export function InventoryItemCreate() {
     resolver: zodResolver(createInventoryItemSchema),
     defaultValues: {
       name: '',
-      code: '',
+      sku: '',
       type: 'RAW_MATERIAL',
       tracking: 'quantity',
       pickStrategy: 'none',

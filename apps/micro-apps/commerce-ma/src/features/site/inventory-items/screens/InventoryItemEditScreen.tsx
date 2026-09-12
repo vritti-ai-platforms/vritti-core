@@ -42,7 +42,7 @@ export function InventoryItemEdit({
     values: item
       ? {
           name: item.name,
-          code: item.code,
+          sku: item.sku,
           type: item.type,
           pickStrategy: item.pickStrategy,
           categoryId: item.categoryId,

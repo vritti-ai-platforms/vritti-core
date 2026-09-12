@@ -22,11 +22,11 @@ export const AvailabilityTab: React.FC<AvailabilityTabProps> = ({ siteIds }) => 
 
   // Group rows per item and mark availability by (itemId, siteId)
   const items = useMemo(() => {
-    const map = new Map<string, { itemName: string; itemCode: string; available: Set<string> }>();
+    const map = new Map<string, { itemName: string; itemSku: string; available: Set<string> }>();
     for (const row of data ?? []) {
       let entry = map.get(row.inventoryItemId);
       if (!entry) {
-        entry = { itemName: row.itemName, itemCode: row.itemCode, available: new Set<string>() };
+        entry = { itemName: row.itemName, itemSku: row.itemSku, available: new Set<string>() };
         map.set(row.inventoryItemId, entry);
       }
       if (row.isStocked) entry.available.add(row.siteId);
@@ -62,7 +62,7 @@ export const AvailabilityTab: React.FC<AvailabilityTabProps> = ({ siteIds }) => 
             <tr key={item.inventoryItemId} className="border-b last:border-b-0">
               <td className="p-3">
                 <div className="font-medium">{item.itemName}</div>
-                <div className="font-mono text-xs text-muted-foreground">{item.itemCode}</div>
+                <div className="font-mono text-xs text-muted-foreground">{item.itemSku}</div>
               </td>
               {columns.map((siteId) => (
                 <td key={siteId} className="p-3 text-center">

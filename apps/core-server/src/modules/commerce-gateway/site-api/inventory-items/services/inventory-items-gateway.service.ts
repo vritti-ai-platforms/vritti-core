@@ -74,7 +74,7 @@ export class SiteInventoryItemsGatewayService {
 
   // Creates a new inventory item
   async create(dto: CreateSiteInventoryItemDto): Promise<CreateResponseDto<SiteInventoryItemResponseDto>> {
-    this.logger.log(`org.inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
+    this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
     return this.nats.send('commerce', 'org.inventoryItems.create', dto);
   }
 

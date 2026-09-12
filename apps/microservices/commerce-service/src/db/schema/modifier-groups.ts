@@ -12,7 +12,6 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
-import { catalogs } from './catalogs';
 import { commerceSchema } from './commerce-schema';
 import { modifierSelectionTypeEnum } from './enums';
 
@@ -22,9 +21,6 @@ export const modifierGroups = commerceSchema.table(
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
-    catalogId: uuid('catalog_id')
-      .notNull()
-      .references(() => catalogs.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
     selectionType: modifierSelectionTypeEnum('selection_type').notNull(),
     minSelections: integer('min_selections').notNull().default(0),
@@ -34,9 +30,8 @@ export const modifierGroups = commerceSchema.table(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    unique('uq_modifier_groups_catalog_name').on(table.catalogId, table.name),
+    unique('uq_modifier_groups_site_name').on(table.organizationId, table.siteId, table.name),
     index('idx_modifier_groups_site').on(table.organizationId, table.siteId),
-    index('idx_modifier_groups_catalog').on(table.catalogId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

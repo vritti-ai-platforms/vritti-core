@@ -19,7 +19,7 @@ export function InventoryItemCard({ item, onPress }: InventoryItemCardProps) {
             {item.name}
           </Text>
           <Text className="font-mono text-xs text-muted-foreground" numberOfLines={1}>
-            {item.code}
+            {item.sku}
           </Text>
         </View>
         {item.uomSymbol ? <Text className="text-sm font-medium text-muted-foreground">{item.uomSymbol}</Text> : null}

@@ -15,6 +15,7 @@ import {
 import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
 import { parties } from './parties';
+import { taxClasses } from './tax-classes';
 import { uom } from './uom';
 
 export const suppliers = commerceSchema.table(
@@ -90,6 +91,11 @@ export const supplierItems = commerceSchema.table(
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     supplierItemCode: varchar('supplier_item_code', { length: 100 }),
+    // The buy-side classification. Required: the same goods can be invoiced differently by different
+    // suppliers (goods vs job work), and there is no fallback to the item or its category.
+    taxClassId: uuid('tax_class_id')
+      .notNull()
+      .references(() => taxClasses.id),
     // Price lives in supplier_item_prices (validity timeline); currency stays anchored here via the composite FK.
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     uomId: uuid('uom_id')

@@ -1,3 +1,4 @@
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import { z, zodCurrencyField } from '@vritti/quantum-ui/zod';
 
 export interface InventoryItemMrpData {
@@ -5,7 +6,7 @@ export interface InventoryItemMrpData {
   inventoryItemId: string;
   uomId: string;
   uomSymbol: string | null;
-  amount: { currency: string; value: string };
+  amount: CurrencyValue;
   sourceLotId: string | null;
   sourcedAt: string | null;
   createdAt: string;

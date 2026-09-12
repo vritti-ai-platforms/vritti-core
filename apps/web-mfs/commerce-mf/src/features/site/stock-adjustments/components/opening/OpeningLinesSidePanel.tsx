@@ -6,8 +6,8 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { ClipboardList, ClipboardMinus, Plus } from 'lucide-react';
-import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { useStockAdjustmentLines } from '@/hooks/site/stock-adjustments';
+import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { AddOpeningLineForm } from '../../forms/opening/AddOpeningLineForm';
 
 interface OpeningLinesSidePanelProps {

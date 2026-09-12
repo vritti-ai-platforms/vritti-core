@@ -4,6 +4,7 @@ import { SiteDomainService } from '@domain/site/services/site.service';
 import { SiteGroupDomainService } from '@domain/site-group/services/site-group.service';
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
+import { TaxRegistrationsGatewayService } from '@/modules/commerce-gateway/le-api/tax-registrations/services/tax-registrations-gateway.service';
 import { StructureResponseDto } from '../../dto/response/structure-response.dto';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class StructureService {
     private readonly legalEntityService: LegalEntityDomainService,
     private readonly siteService: SiteDomainService,
     private readonly siteGroupService: SiteGroupDomainService,
+    private readonly taxRegistrationsService: TaxRegistrationsGatewayService,
   ) {}
 
   // Returns the organization structure aggregate
@@ -20,8 +22,9 @@ export class StructureService {
     const organization = await this.organizationService.getById(orgId);
     if (!organization) throw new NotFoundException('Organization not found.');
 
-    const [{ legalEntities, taxRegistrations }, siteGroups, sites] = await Promise.all([
+    const [legalEntities, taxRegistrations, siteGroups, sites] = await Promise.all([
       this.legalEntityService.listByOrg(orgId),
+      this.taxRegistrationsService.listAll(),
       this.siteGroupService.findByOrg(orgId),
       this.siteService.findByOrg(orgId),
     ]);

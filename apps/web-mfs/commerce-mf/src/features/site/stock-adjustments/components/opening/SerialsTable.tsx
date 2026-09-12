@@ -23,7 +23,6 @@ import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { ClipboardMinus, Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
-import type { StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
   useAddStockAdjustmentLineItem,
@@ -32,6 +31,7 @@ import {
   useStockAdjustmentLine,
   useStockAdjustmentLineItemsTable,
 } from '@/hooks/site/stock-adjustments';
+import type { StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
 import { AddSerialDialog } from '../../forms/opening/AddSerialDialog';
 import { EditOpeningLineForm } from '../../forms/opening/EditOpeningLineForm';
 

@@ -50,11 +50,7 @@ export const AddTaxComponentDialog: React.FC<AddTaxComponentDialogProps> = ({ on
           label="Recoverable"
           description="Recoverable components can be claimed back as input tax credit"
         />
-        <Switch
-          name="isWithholding"
-          label="Withholding"
-          description="Withholding components are deducted at source"
-        />
+        <Switch name="isWithholding" label="Withholding" description="Withholding components are deducted at source" />
         <Switch
           name="isActive"
           label="Active"

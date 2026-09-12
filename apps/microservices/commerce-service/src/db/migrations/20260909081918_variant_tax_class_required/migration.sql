@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."offering_variants" ALTER COLUMN "tax_class_id" SET NOT NULL;

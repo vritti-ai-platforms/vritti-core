@@ -17,7 +17,7 @@ const screens: ReadonlyArray<PushScreenConfig<InventoryRoute>> = [
         title="Inventory Items"
         subtitle="Browse and manage your stock items"
         searchable
-        searchPlaceholder="Search by name or code"
+        searchPlaceholder="Search by name or SKU"
         createLabel="Create item"
       />
     ),

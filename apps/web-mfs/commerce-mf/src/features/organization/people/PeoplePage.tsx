@@ -93,7 +93,6 @@ export const PeoplePage = () => {
         table={table}
         isLoading={isLoading}
         permission={ORG_PEOPLE.view}
-        onRowClick={(row) => navigate(buildSlug(row.displayName, row.id))}
         searchConfig={{
           columns: [{ id: 'displayName', label: 'Name' }],
           searchAll: true,

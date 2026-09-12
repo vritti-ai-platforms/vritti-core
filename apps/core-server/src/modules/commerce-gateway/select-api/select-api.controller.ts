@@ -27,10 +27,12 @@ import {
   ApiInventoryItemSerialsSelect,
   ApiInventoryItemsSelect,
   ApiLocationsSelect,
+  ApiOfferingDimensionTemplatesSelect,
+  ApiOfferingsSelect,
+  ApiOfferingVariantsSelect,
   ApiPosTerminalsSelect,
   ApiPurchaseOrderItemsSelect,
   ApiPurchaseOrdersSelect,
-  ApiSalesChannelsSelect,
   ApiSupplierItemsSelect,
   ApiSuppliersSelect,
   ApiTaxClassesSelect,
@@ -38,6 +40,7 @@ import {
   ApiUomDimensionsSelect,
   ApiUomSelect,
 } from './docs/select-api.docs';
+import { OfferingVariantsSelectQueryDto } from './dto/offering-variants-select-query.dto';
 
 @ApiTags('Commerce - Select')
 @ApiBearerAuth()
@@ -50,12 +53,6 @@ export class SelectApiController {
   @ApiCategoriesSelect()
   selectCategories(@Query() query: CategoriesSelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.categories', query);
-  }
-
-  @Get('catalogs')
-  @ApiCatalogsSelect()
-  selectCatalogs(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'select.catalogs', query);
   }
 
   @Get('cost-categories')
@@ -100,6 +97,30 @@ export class SelectApiController {
     return this.nats.send<SelectQueryResult>('commerce', 'select.locations', query);
   }
 
+  @Get('offerings')
+  @ApiOfferingsSelect()
+  selectOfferings(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.offerings', query);
+  }
+
+  @Get('offering-variants')
+  @ApiOfferingVariantsSelect()
+  selectOfferingVariants(@Query() query: OfferingVariantsSelectQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.offeringVariants', query);
+  }
+
+  @Get('offering-dimension-templates')
+  @ApiOfferingDimensionTemplatesSelect()
+  selectOfferingDimensionTemplates(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.offeringDimensionTemplates', query);
+  }
+
+  @Get('catalogs')
+  @ApiCatalogsSelect()
+  selectCatalogs(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'org.catalogs.select', query);
+  }
+
   @Get('pos-terminals')
   @ApiPosTerminalsSelect()
   selectPosTerminals(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
@@ -116,12 +137,6 @@ export class SelectApiController {
   @ApiPurchaseOrdersSelect()
   selectPurchaseOrders(@Query() query: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.purchaseOrders', query);
-  }
-
-  @Get('sales-channels')
-  @ApiSalesChannelsSelect()
-  selectSalesChannels(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'select.salesChannels', query);
   }
 
   @Get('supplier-items')

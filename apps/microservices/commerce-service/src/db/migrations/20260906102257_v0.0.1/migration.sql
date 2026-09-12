@@ -1,0 +1,11 @@
+ALTER TABLE "commerce"."cost_categories" DROP CONSTRAINT "cost_categories_code_chk", ADD CONSTRAINT "cost_categories_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."inventory_items" DROP CONSTRAINT "inventory_items_code_chk", ADD CONSTRAINT "inventory_items_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."offering_dimension_template_values" DROP CONSTRAINT "offering_dimension_template_values_code_chk", ADD CONSTRAINT "offering_dimension_template_values_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."offering_dimension_templates" DROP CONSTRAINT "offering_dimension_templates_code_chk", ADD CONSTRAINT "offering_dimension_templates_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."offering_dimension_values" DROP CONSTRAINT "offering_dimension_values_code_chk", ADD CONSTRAINT "offering_dimension_values_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."offering_dimensions" DROP CONSTRAINT "offering_dimensions_code_chk", ADD CONSTRAINT "offering_dimensions_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."offerings" DROP CONSTRAINT "offerings_code_chk", ADD CONSTRAINT "offerings_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."tax_classes" DROP CONSTRAINT "tax_classes_code_chk", ADD CONSTRAINT "tax_classes_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."tax_components" DROP CONSTRAINT "tax_components_code_chk", ADD CONSTRAINT "tax_components_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."tax_jurisdictions" DROP CONSTRAINT "tax_jurisdictions_code_chk", ADD CONSTRAINT "tax_jurisdictions_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');--> statement-breakpoint
+ALTER TABLE "commerce"."uom_dimensions" DROP CONSTRAINT "uom_dimensions_code_chk", ADD CONSTRAINT "uom_dimensions_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');

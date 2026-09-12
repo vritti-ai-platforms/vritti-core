@@ -1,6 +1,15 @@
 import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 import { type PartyIdentifierType, PartyIdentifierTypeValues } from '@/db/schema';
 import { CompanyAddressInputDto } from './company-address-input.dto';
 

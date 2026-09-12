@@ -122,7 +122,7 @@ export class GoodsReceiptsPublishService {
     siteCurrencyCode: string,
   ): Promise<void> {
     const grLines = await this.grLinesRepository.findByItemId(grItem.id);
-    const inventoryLotByGrLot = await this.resolveLots(grItem, grLines);
+    const inventoryLotByGrLot = await this.resolveLots(grItem, grLines, siteCurrencyCode);
 
     // Sum the primary-UOM qty added per quant — a line may merge into an already-seen quant.
     const qtyByQuant = new Map<string, number>();
@@ -208,7 +208,11 @@ export class GoodsReceiptsPublishService {
   }
 
   // Find-or-create the inventory lot for each distinct receipt lot once → { grLotId: inventoryLotId }.
-  private async resolveLots(grItem: PublishItem, grLines: GoodsReceiptLineWithRefs[]): Promise<Map<string, string>> {
+  private async resolveLots(
+    grItem: PublishItem,
+    grLines: GoodsReceiptLineWithRefs[],
+    siteCurrencyCode: string,
+  ): Promise<Map<string, string>> {
     const inventoryLotByGrLot = new Map<string, string>();
     for (const grLine of grLines) {
       const grLotId = grLine.goodsReceiptLotId;
@@ -219,6 +223,7 @@ export class GoodsReceiptsPublishService {
         inventoryItemId: grItem.inventoryItemId,
         ...lotInfo,
         mrp: grLine.lotMrp,
+        mrpCurrencyCode: grLine.lotMrp != null ? siteCurrencyCode : null,
       });
       inventoryLotByGrLot.set(grLotId, inventoryLot.id);
       await this.grLotsRepository.setResolvedLotId(grLotId, inventoryLot.id);

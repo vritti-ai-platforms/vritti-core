@@ -15,13 +15,13 @@ Every entity identifier `code` (app, feature, role, uom-dimension, item SKU, sit
 business, region, …) uses ONE canonical format — **lowercase-kebab**:
 
 ```
-^[a-z][a-z0-9-]*$          # start with a lowercase letter, then lowercase letters / digits / hyphens
+^[a-z0-9][a-z0-9-]*$       # start with a lowercase letter or digit, then lowercase letters / digits / hyphens
 ```
 
 Permission codes use the **dotted** variant (dot-separated segments, e.g. `add.salt`, `pos.view`):
 
 ```
-^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$
+^[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)*$
 ```
 
 **Never hand-roll a code regex.** Use the shared helper for each layer — one source of truth.
@@ -62,7 +62,15 @@ code: zodCodeField({ dotted: true }),                 // permission code
 code: zodCodeField({ message: 'Enter a valid SKU' }), // custom format message
 ```
 
-Never inline `.regex(/^[a-z][a-z0-9-]*$/, '…')` for a code field.
+Never inline `.regex(/^[a-z0-9][a-z0-9-]*$/, '…')` for a code field.
+
+For a **list** of codes (a `TokenInput` whose entries are stored verbatim as codes), use
+`zodCodeArrayField()` — same options plus `min`/`minMessage`. It names the offending entries in one
+message on the array, since a token list has nowhere to show a per-item error.
+
+```typescript
+values: zodCodeArrayField({ max: 100 }),
+```
 
 ## Rules
 
@@ -72,7 +80,7 @@ Never inline `.regex(/^[a-z][a-z0-9-]*$/, '…')` for a code field.
   / "Lowercase words separated by dots". Pass `message` (zod) or `{ message }` (class-validator) to override
   per field; never bake an entity name into the shared default.
 - **NOT codes — leave alone:** passwords, OTP (`\d{6}`), semver version, currency (`[A-Z]{3}`),
-  country (`[A-Z]{2}`), org subdomain (`^[a-z0-9-]+$` — allows a leading digit).
+  country (`[A-Z]{2}`), org subdomain (`^[a-z0-9-]+$` — also allows a leading hyphen).
 - **Keep the mirror in sync.** The canonical pattern lives in `@vritti/api-sdk/decorators`
   (`code-pattern.ts`). `quantum-ui` and `quantum-ui-native` `lib/utils/zod.ts` mirror it (the frontend can't
   import the server SDK) — change all of them together, or they drift.

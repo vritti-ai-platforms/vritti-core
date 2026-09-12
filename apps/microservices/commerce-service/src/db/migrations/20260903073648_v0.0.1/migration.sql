@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."offering_dimension_templates" ALTER COLUMN "is_active" SET DEFAULT false;

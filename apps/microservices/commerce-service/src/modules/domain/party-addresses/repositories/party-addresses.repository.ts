@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, getTableColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type NewPartyAddress,
   type PartyAddress,
@@ -28,7 +28,7 @@ export class PartyAddressesDomainRepository extends PrimaryBaseRepository<typeof
     count: number;
   }> {
     return this.findAllAndCount<PartyAddressWithFunctions>({
-      select: { ...getTableColumns(partyAddresses), functions: functionsAgg },
+      select: { ...getColumns(partyAddresses), functions: functionsAgg },
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,

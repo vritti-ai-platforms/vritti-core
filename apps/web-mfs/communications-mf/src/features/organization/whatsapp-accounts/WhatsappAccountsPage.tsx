@@ -143,7 +143,6 @@ export const WhatsappAccountsPage = () => {
         table={table}
         isLoading={isLoading}
         permission={ORG_WHATSAPP_ACCOUNTS.view}
-        onRowClick={(account) => navigate(account.id)}
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },

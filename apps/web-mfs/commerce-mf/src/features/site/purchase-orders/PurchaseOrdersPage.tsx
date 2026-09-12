@@ -19,9 +19,9 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ClipboardList, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PURCHASE_ORDERS_TABLE_KEY, usePurchaseOrdersTable } from '@/hooks/site/purchase-orders';
 import type { PurchaseOrderData } from '@/schemas/purchase-orders';
 import { purchaseOrderStatusConfig } from '@/schemas/purchase-orders';
-import { PURCHASE_ORDERS_TABLE_KEY, usePurchaseOrdersTable } from '@/hooks/site/purchase-orders';
 import { CreatePurchaseOrderDialog } from './forms/CreatePurchaseOrderDialog';
 
 export const PurchaseOrdersPage = () => {

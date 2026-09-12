@@ -17,6 +17,7 @@ import { ConfigService } from '@nestjs/config';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { SiteDomainService } from '@/modules/domain/site/services/site.service';
@@ -296,7 +297,7 @@ export class PurchaseOrdersGatewayService {
       if (!value) return '-';
       return new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     };
-    const formatAmount = (value: { currency: string; value: string } | null): string => {
+    const formatAmount = (value: CurrencyAmountDto | null): string => {
       if (value == null) return '-';
       return `${value.currency} ${value.value}`;
     };

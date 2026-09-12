@@ -18,7 +18,7 @@ export class OrgInventoryItemsService {
   ) {}
 
   async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
-    this.logger.log(`create — name=${dto.name}, code=${dto.code}, categoryId=${dto.categoryId}`);
+    this.logger.log(`create — name=${dto.name}, sku=${dto.sku}, categoryId=${dto.categoryId}`);
     await this.categoriesService.assertIsLeaf(dto.categoryId);
     return this.inventoryItemsService.create(dto);
   }

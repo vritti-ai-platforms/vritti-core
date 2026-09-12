@@ -41,7 +41,7 @@ export class InventoryItemsMrpService {
       if (this.isUniqueViolation(error)) {
         throw new ConflictException({
           label: 'Duplicate MRP',
-          detail: 'An MRP for this unit and currency already exists — edit it instead.',
+          detail: 'This unit, currency and amount is already recorded — set it current instead.',
         });
       }
       throw error;
@@ -52,6 +52,16 @@ export class InventoryItemsMrpService {
   async update(dto: UpdateInventoryItemMrpDto): Promise<InventoryItemMrpDto> {
     this.logger.log(`update — id=${dto.id}, currency=${dto.amount.currency}`);
     const row = await this.mrpsService.updateAmount(dto);
+    if (!row) {
+      throw new NotFoundException({ label: 'MRP Not Found', detail: 'MRP not found.' });
+    }
+    return InventoryItemMrpDto.from(row);
+  }
+
+  // Promotes one recorded MRP to the current one shown on listings
+  async setCurrent(id: string): Promise<InventoryItemMrpDto> {
+    this.logger.log(`setCurrent — id=${id}`);
+    const row = await this.mrpsService.setCurrent(id);
     if (!row) {
       throw new NotFoundException({ label: 'MRP Not Found', detail: 'MRP not found.' });
     }

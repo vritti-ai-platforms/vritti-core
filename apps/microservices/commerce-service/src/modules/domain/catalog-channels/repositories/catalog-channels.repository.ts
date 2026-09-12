@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, inArray, ne, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type CatalogChannel, catalogChannels, type SalesChannelKind, salesChannels } from '@/db/schema';
-
-type CatalogChannelRow = {
-  id: string;
-  catalogId: string;
-  siteId: string;
-  channelId: string;
-  channelName: string;
-  channelKind: SalesChannelKind;
-};
+import { MAX_PAGE_SIZE, PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import { and, asc, eq, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  type CatalogChannel,
+  type CatalogChannelType,
+  catalogChannels,
+  catalogs,
+  type NewCatalogChannel,
+  posTerminals,
+} from '@/db/schema';
+import type { CatalogChannelRow } from '../dto/entity/catalog-channel.dto';
 
 @Injectable()
 export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeof catalogChannels> {
@@ -18,98 +17,132 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     super(database, catalogChannels);
   }
 
-  // Lists a catalog's channel assignments joined with the channel name and kind
-  async listByCatalog(catalogId: string): Promise<CatalogChannelRow[]> {
-    return this.db
-      .select({
-        id: catalogChannels.id,
-        catalogId: catalogChannels.catalogId,
-        siteId: catalogChannels.siteId,
-        channelId: catalogChannels.channelId,
-        channelName: salesChannels.name,
-        channelKind: salesChannels.kind,
-      })
-      .from(catalogChannels)
-      .innerJoin(salesChannels, eq(catalogChannels.channelId, salesChannels.id))
-      .where(eq(catalogChannels.catalogId, catalogId))
-      .orderBy(asc(salesChannels.name));
-  }
-
-  // Inserts a catalog-channel assignment (RLS bu_write guards the site)
-  // and returns it joined with the channel name and kind
-  async assign(data: { catalogId: string; siteId: string; channelId: string }): Promise<CatalogChannelRow> {
-    const [inserted] = (await this.db.insert(catalogChannels).values(data).returning()) as CatalogChannel[];
-    const [channel] = await this.db
-      .select({ name: salesChannels.name, kind: salesChannels.kind })
-      .from(salesChannels)
-      .where(eq(salesChannels.id, inserted.channelId));
+  private selection() {
     return {
-      id: inserted.id,
-      catalogId: inserted.catalogId,
-      siteId: inserted.siteId,
-      channelId: inserted.channelId,
-      channelName: channel.name,
-      channelKind: channel.kind,
+      id: catalogChannels.id,
+      catalogId: catalogChannels.catalogId,
+      catalogName: catalogs.name,
+      catalogIsActive: catalogs.isActive,
+      type: catalogChannels.type,
+      legalEntityId: catalogChannels.legalEntityId,
+      siteId: catalogChannels.siteId,
+      appId: catalogChannels.appId,
+      terminalId: catalogChannels.terminalId,
+      terminalName: posTerminals.name,
+      createdAt: catalogChannels.createdAt,
+      updatedAt: catalogChannels.updatedAt,
     };
   }
 
-  // Removes a catalog-channel assignment by ID
-  async unassign(id: string): Promise<void> {
+  private joins() {
+    return [
+      { table: catalogs, on: eq(catalogs.id, catalogChannels.catalogId) },
+      { table: posTerminals, on: eq(posTerminals.id, catalogChannels.terminalId) },
+    ];
+  }
+
+  async findForTable(options: {
+    where?: SQL;
+    orderBy: SQL[];
+    limit: number;
+    offset: number;
+  }): Promise<{ result: CatalogChannelRow[]; count: number }> {
+    return this.findAllAndCount<CatalogChannelRow>({
+      select: this.selection(),
+      leftJoins: this.joins(),
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
+      offset: options.offset,
+    });
+  }
+
+  // Every channel pointing at one catalog — the read-only tab on the catalog detail
+  async findByCatalog(catalogId: string): Promise<CatalogChannelRow[]> {
+    const { result } = await this.findAllAndCount<CatalogChannelRow>({
+      select: this.selection(),
+      leftJoins: this.joins(),
+      where: eq(catalogChannels.catalogId, catalogId),
+      orderBy: [asc(catalogChannels.type)],
+      limit: MAX_PAGE_SIZE,
+      offset: 0,
+    });
+    return result;
+  }
+
+  async findByIdWithRefs(id: string): Promise<CatalogChannelRow | undefined> {
+    const { result } = await this.findAllAndCount<CatalogChannelRow>({
+      select: this.selection(),
+      leftJoins: this.joins(),
+      where: eq(catalogChannels.id, id),
+      limit: 1,
+      offset: 0,
+    });
+    return result[0];
+  }
+
+  async findById(id: string): Promise<CatalogChannel | undefined> {
+    return this.model.findFirst({ where: { id } });
+  }
+
+  async insertChannel(row: NewCatalogChannel): Promise<CatalogChannel> {
+    const [created] = (await this.db.insert(catalogChannels).values(row).returning()) as CatalogChannel[];
+    return created;
+  }
+
+  async repoint(id: string, catalogId: string): Promise<void> {
+    await this.db.update(catalogChannels).set({ catalogId }).where(eq(catalogChannels.id, id));
+  }
+
+  async deleteChannel(id: string): Promise<void> {
     await this.db.delete(catalogChannels).where(eq(catalogChannels.id, id));
   }
 
-  // Returns a map of catalogId -> assignment count for the catalogs table
-  async findCountsByCatalogIds(ids: string[]): Promise<Map<string, number>> {
-    if (ids.length === 0) return new Map();
-    const rows = await this.db
-      .select({
-        catalogId: catalogChannels.catalogId,
-        count: sql<number>`count(*)`,
-      })
+  // Every binding that could serve this context. A NULL scope column applies everywhere, so the
+  // caller's own scope and the wildcards both match; the service then picks the most specific.
+  async findCandidates(context: {
+    type: CatalogChannelType;
+    legalEntityId?: string | null;
+    siteId?: string | null;
+    appId?: string | null;
+    terminalId?: string | null;
+  }): Promise<CatalogChannelRow[]> {
+    const scopeMatches = (column: typeof catalogChannels.legalEntityId, value: string | null | undefined) =>
+      value ? or(isNull(column), eq(column, value)) : isNull(column);
+
+    const { result } = await this.findAllAndCount<CatalogChannelRow>({
+      select: this.selection(),
+      leftJoins: this.joins(),
+      where: and(
+        eq(catalogChannels.type, context.type),
+        eq(catalogs.isActive, true),
+        scopeMatches(catalogChannels.legalEntityId, context.legalEntityId),
+        scopeMatches(catalogChannels.siteId, context.siteId),
+        scopeMatches(catalogChannels.appId, context.appId),
+        scopeMatches(catalogChannels.terminalId, context.terminalId),
+      ) as SQL,
+      orderBy: [asc(catalogChannels.createdAt)],
+      limit: MAX_PAGE_SIZE,
+      offset: 0,
+    });
+    return result;
+  }
+
+  // The catalog a channel points at, for the resolve response
+  async findCatalog(catalogId: string) {
+    const [row] = await this.db
+      .select({ id: catalogs.id, name: catalogs.name, taxInclusive: catalogs.taxInclusive })
+      .from(catalogs)
+      .where(eq(catalogs.id, catalogId))
+      .limit(1);
+    return row;
+  }
+
+  async countForCatalog(catalogId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ n: sql<number>`count(*)::int` })
       .from(catalogChannels)
-      .where(inArray(catalogChannels.catalogId, ids))
-      .groupBy(catalogChannels.catalogId);
-    return new Map(rows.map((row) => [row.catalogId, Number(row.count)]));
-  }
-
-  // Finds the assignment for a site + channel pair (catalog discovery helper)
-  async findBySiteAndChannel(siteId: string, channelId: string): Promise<CatalogChannel | undefined> {
-    return this.model.findFirst({ where: { siteId, channelId } });
-  }
-
-  // Returns the raw channel-assignment rows for a catalog
-  async findByCatalogId(catalogId: string): Promise<CatalogChannel[]> {
-    return this.model.findMany({ where: { catalogId } });
-  }
-
-  // Returns names of channels already mapped to a different catalog for this site
-  async findConflictingChannelNames(siteId: string, channelIds: string[], excludeCatalogId: string): Promise<string[]> {
-    if (channelIds.length === 0) return [];
-    const rows = await this.db
-      .select({ name: salesChannels.name })
-      .from(catalogChannels)
-      .innerJoin(salesChannels, eq(catalogChannels.channelId, salesChannels.id))
-      .where(
-        and(
-          eq(catalogChannels.siteId, siteId),
-          inArray(catalogChannels.channelId, channelIds),
-          ne(catalogChannels.catalogId, excludeCatalogId),
-        ),
-      );
-    return rows.map((row) => row.name);
-  }
-
-  // Removes specific channel assignments from a catalog
-  async deleteByCatalogAndChannels(catalogId: string, channelIds: string[]): Promise<void> {
-    if (channelIds.length === 0) return;
-    await this.db
-      .delete(catalogChannels)
-      .where(and(eq(catalogChannels.catalogId, catalogId), inArray(catalogChannels.channelId, channelIds)));
-  }
-
-  // Bulk-inserts channel assignments (RLS bu_write guards the site)
-  async bulkInsert(rows: { catalogId: string; siteId: string; channelId: string }[]): Promise<void> {
-    if (rows.length === 0) return;
-    await this.db.insert(catalogChannels).values(rows);
+      .where(eq(catalogChannels.catalogId, catalogId));
+    return row?.n ?? 0;
   }
 }

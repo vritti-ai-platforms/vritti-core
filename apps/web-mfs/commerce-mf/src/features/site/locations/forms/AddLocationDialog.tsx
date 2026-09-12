@@ -8,13 +8,13 @@ import { UserSelector } from '@vritti/quantum-ui/selects/user';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
+import { useCreateLocation } from '@/hooks/site/locations';
 import {
   type LocationFormData,
   LocationRoleLabels,
   LocationRoleValues,
   locationFormResolver,
 } from '@/schemas/locations';
-import { useCreateLocation } from '@/hooks/site/locations';
 
 interface AddLocationDialogProps {
   defaultParentId?: string | null;
@@ -48,7 +48,11 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
 
   return (
     <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
-      <FormSection title="Details" description="What the location is and where it sits in the hierarchy." contentClassName="block">
+      <FormSection
+        title="Details"
+        description="What the location is and where it sits in the hierarchy."
+        contentClassName="block"
+      >
         <div className="grid grid-cols-2 gap-4">
           <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
           <TextField name="code" label="Code" placeholder="e.g. WIF" />

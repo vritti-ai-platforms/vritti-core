@@ -1,0 +1,42 @@
+import { Trim } from '@vritti/api-sdk/decorators';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import type { InventoryItemType, InventoryPickStrategy, InventoryTracking } from '@/db/schema';
+
+export class CreateVariantInventoryItemDto {
+  @IsUUID()
+  variantId: string;
+
+  @Trim({ nullify: false })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  name: string;
+
+  @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
+  type: InventoryItemType;
+
+  @IsEnum(['quantity', 'lot', 'lot_serial', 'serial'])
+  tracking: InventoryTracking;
+
+  @IsEnum(['none', 'fifo', 'fefo'])
+  @IsOptional()
+  pickStrategy?: InventoryPickStrategy;
+
+  @IsUUID()
+  categoryId: string;
+
+  @IsUUID()
+  uomId: string;
+
+  @Trim()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  description?: string | null;
+
+  @Trim()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  hsnCode?: string | null;
+}

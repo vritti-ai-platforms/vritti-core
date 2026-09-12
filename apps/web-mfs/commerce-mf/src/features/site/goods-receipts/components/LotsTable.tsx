@@ -10,8 +10,8 @@ import {
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Boxes, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
-import type { GoodsReceiptLotData } from '@/schemas/goods-receipts';
 import { useGoodsReceiptLots } from '@/hooks/site/goods-receipts';
+import type { GoodsReceiptLotData } from '@/schemas/goods-receipts';
 import { AddLotDialog } from '../forms/AddLotDialog';
 
 interface LotsTableProps {

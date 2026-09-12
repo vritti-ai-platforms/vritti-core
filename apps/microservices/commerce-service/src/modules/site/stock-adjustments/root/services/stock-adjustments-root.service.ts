@@ -138,7 +138,7 @@ export class StockAdjustmentsService {
     await this.database.runInTransaction(async () => {
       // Phase A: resolve lots (OPENING_STOCK, lot/item tracking) → create inventory_item_lots, set resolvedLotId
       for (const lot of lots) {
-        await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id);
+        await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id, siteCurrencyCode);
       }
 
       // Re-fetch lots after Phase A so each draft carries its now-populated `resolvedLotId`. The

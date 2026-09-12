@@ -33,6 +33,13 @@ export class InventoryItemsMrpController {
     return this.service.update(dto);
   }
 
+  // Promotes one recorded MRP to the current one shown on listings
+  @MessagePattern({ cmd: 'org.inventoryItems.mrp.setCurrent' })
+  async setCurrent(@Payload() data: { id: string }): Promise<InventoryItemMrpDto> {
+    this.logger.log(`inventoryItems.mrp.setCurrent — id: ${data.id}`);
+    return this.service.setCurrent(data.id);
+  }
+
   // Deletes an MRP row by id
   @MessagePattern({ cmd: 'org.inventoryItems.mrp.delete' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {

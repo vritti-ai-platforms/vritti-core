@@ -14,7 +14,6 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { pickStrategyEnum, siteTypeEnum } from './enums';
-import { leTaxRegistrations } from './le-tax-registration';
 import { legalEntities } from './legal-entity';
 import { organizations } from './organizations';
 import { siteGroups } from './site-group';
@@ -50,7 +49,9 @@ export const sites = coreSchema.table(
     legalEntityId: uuid('legal_entity_id')
       .notNull()
       .references(() => legalEntities.id, { onDelete: 'restrict' }),
-    registrationId: uuid('registration_id').references(() => leTaxRegistrations.id, { onDelete: 'restrict' }),
+    registrationId: uuid('registration_id'),
+    registrationNumber: varchar('registration_number', { length: 50 }),
+    jurisdictionId: uuid('jurisdiction_id'),
     pickStrategy: pickStrategyEnum('pick_strategy').notNull().default('FEFO'),
     metadata: jsonb('metadata').$type<SiteMetadata>(),
     createdAt: timestamp('created_at').defaultNow().notNull(),

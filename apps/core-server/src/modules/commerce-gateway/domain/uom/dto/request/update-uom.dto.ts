@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
   @ApiPropertyOptional({ description: 'Updated dimension UUID' })
@@ -40,4 +40,9 @@ export class UpdateUomDto {
   @IsInt()
   @IsPositive()
   uomQty?: number;
+
+  @ApiPropertyOptional({ description: 'Whether this unit allows decimal quantities' })
+  @IsOptional()
+  @IsBoolean()
+  allowDecimal?: boolean;
 }

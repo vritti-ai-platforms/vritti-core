@@ -9,7 +9,7 @@ export const itemFieldValues = commerceSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    itemId: uuid('item_id')
+    listingId: uuid('item_id')
       .notNull()
       .references(() => offerings.id, { onDelete: 'cascade' }),
     fieldDefinitionId: uuid('field_definition_id')
@@ -22,7 +22,7 @@ export const itemFieldValues = commerceSchema.table(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (table) => [uniqueIndex('uq_item_field_value').on(table.itemId, table.fieldDefinitionId)],
+  (table) => [uniqueIndex('uq_item_field_value').on(table.listingId, table.fieldDefinitionId)],
 );
 
 export type ItemFieldValue = typeof itemFieldValues.$inferSelect;

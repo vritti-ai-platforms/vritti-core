@@ -78,19 +78,6 @@ export const relations = defineRelations(schema, (r) => ({
     subsidiaries: r.many.legalEntities({
       alias: 'leParent',
     }),
-    taxRegistrations: r.many.leTaxRegistrations(),
-    sites: r.many.sites(),
-  },
-
-  leTaxRegistrations: {
-    organization: r.one.organizations({
-      from: r.leTaxRegistrations.organizationId,
-      to: r.organizations.id,
-    }),
-    legalEntity: r.one.legalEntities({
-      from: r.leTaxRegistrations.legalEntityId,
-      to: r.legalEntities.id,
-    }),
     sites: r.many.sites(),
   },
 
@@ -124,10 +111,6 @@ export const relations = defineRelations(schema, (r) => ({
     legalEntity: r.one.legalEntities({
       from: r.sites.legalEntityId,
       to: r.legalEntities.id,
-    }),
-    registration: r.one.leTaxRegistrations({
-      from: r.sites.registrationId,
-      to: r.leTaxRegistrations.id,
     }),
   },
 

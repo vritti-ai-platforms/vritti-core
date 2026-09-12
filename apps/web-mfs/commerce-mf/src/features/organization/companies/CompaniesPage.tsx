@@ -96,7 +96,6 @@ export const CompaniesPage = () => {
         table={table}
         isLoading={isLoading}
         permission={ORG_COMPANIES.view}
-        onRowClick={(row) => navigate(buildSlug(row.displayName, row.id))}
         searchConfig={{
           columns: [{ id: 'displayName', label: 'Name' }],
           searchAll: true,

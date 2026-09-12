@@ -11,12 +11,12 @@ export class UpdateInventoryItemDto {
   name?: string;
 
   @Trim({ nullify: false })
-  @ApiPropertyOptional({ description: 'Item code' })
+  @ApiPropertyOptional({ description: 'Item SKU' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   @IsCode()
-  code?: string;
+  sku?: string;
 
   @ApiPropertyOptional({
     description: 'Item type',
@@ -51,11 +51,6 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   @IsEnum(['none', 'fifo', 'fefo'])
   pickStrategy?: 'none' | 'fifo' | 'fefo';
-
-  @ApiPropertyOptional({ description: 'Tax classification (required on the item; cannot be cleared)' })
-  @IsOptional()
-  @IsUUID()
-  taxClassId?: string;
 
   @Trim()
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })

@@ -1,8 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { updateUomDimension } from '@/services/organization/uom-dimensions.service';
 import type { UpdateUomDimensionData } from '@/schemas/uom-dimensions';
+import { updateUomDimension } from '@/services/organization/uom-dimensions.service';
 import { UOM_DIMENSIONS_KEY } from './keys';
 
 export function useUpdateUomDimension(

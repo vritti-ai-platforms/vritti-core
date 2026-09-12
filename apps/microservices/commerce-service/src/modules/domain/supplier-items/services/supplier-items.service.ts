@@ -280,6 +280,7 @@ export class SupplierItemsDomainService {
         supplierId,
         inventoryItemId: data.inventoryItemId,
         supplierItemCode: data.supplierItemCode ?? null,
+        taxClassId: data.taxClassId,
         currencyCode: supplier.currencyCode,
         uomId: data.uomId,
         minOrderQuantity: data.minOrderQuantity ?? null,

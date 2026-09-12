@@ -1,3 +1,4 @@
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
@@ -72,7 +73,7 @@ export interface PurchaseOrderData {
   expectedBy: string | null;
   timezone: string;
   notes: string | null;
-  totalAmount: { currency: string; value: string };
+  totalAmount: CurrencyValue;
   goodsReceiptExists: boolean;
   createdAt: string;
   updatedAt: string;
@@ -86,12 +87,12 @@ export interface PurchaseOrderItemData {
   uomQty: number;
   receivedQuantity: number;
   currencyCode: string;
-  unitPrice: { currency: string; value: string };
-  totalPrice: { currency: string; value: string };
+  unitPrice: CurrencyValue;
+  totalPrice: CurrencyValue;
   primaryUomQty: number;
   orderUomSymbol: string | null;
   primaryUomSymbol: string | null;
-  primaryUomUnitPrice: { currency: string; value: string };
+  primaryUomUnitPrice: CurrencyValue;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
   hasScheme: boolean;
@@ -109,7 +110,7 @@ export interface GoodsReceiptData {
     poNumber: string;
     orderDate: string;
     expectedBy: string | null;
-    totalAmount: { currency: string; value: string };
+    totalAmount: CurrencyValue;
   } | null;
   receivedDate: string;
   notes: string | null;

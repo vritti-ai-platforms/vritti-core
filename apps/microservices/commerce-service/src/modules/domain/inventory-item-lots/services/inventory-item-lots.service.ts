@@ -39,7 +39,7 @@ export class InventoryItemLotsDomainService {
       offset,
     });
 
-    return { result: result.map((row) => InventoryItemLotDto.from(row, siteCurrencyCode)), count };
+    return { result: result.map((row) => InventoryItemLotDto.from(row)), count };
   }
 
   // Returns existing lot or creates a new one. Lot identity is (orgId, inventoryItemId, lotNumber).
@@ -49,10 +49,13 @@ export class InventoryItemLotsDomainService {
     manufacturingDate?: string | null;
     expiryDate: string;
     mrp?: bigint | null;
+    mrpCurrencyCode?: string | null;
   }): Promise<InventoryItemLot> {
     const existing = await this.repository.findByItemAndNumber(params.inventoryItemId, params.lotNumber);
     if (existing) {
-      if (params.mrp != null) await this.repository.updateMrp(existing.id, params.mrp);
+      if (params.mrp != null) {
+        await this.repository.updateMrp(existing.id, params.mrp, params.mrpCurrencyCode ?? null);
+      }
       return existing;
     }
 
@@ -62,6 +65,7 @@ export class InventoryItemLotsDomainService {
       manufacturingDate: params.manufacturingDate ?? null,
       expiryDate: params.expiryDate,
       mrp: params.mrp ?? null,
+      mrpCurrencyCode: params.mrpCurrencyCode ?? null,
     });
   }
 
@@ -78,6 +82,7 @@ export class InventoryItemLotsDomainService {
     manufacturingDate?: string | null;
     expiryDate: string;
     mrp?: bigint | null;
+    mrpCurrencyCode?: string | null;
   }): Promise<InventoryItemLot> {
     return this.repository.createLot({
       inventoryItemId: data.inventoryItemId,
@@ -85,6 +90,7 @@ export class InventoryItemLotsDomainService {
       manufacturingDate: data.manufacturingDate ?? null,
       expiryDate: data.expiryDate,
       mrp: data.mrp ?? null,
+      mrpCurrencyCode: data.mrpCurrencyCode ?? null,
     });
   }
 

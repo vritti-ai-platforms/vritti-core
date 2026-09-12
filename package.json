@@ -46,7 +46,8 @@
     "db:tunnel:apw1": "nx run vritti-core-server:db:tunnel:apw1",
     "db:tunnel:stop": "nx run vritti-core-server:db:tunnel:stop",
     "gitea:tunnel:apw1": "nx run vritti-core-server:gitea:tunnel:apw1",
-    "gitea:tunnel:apw1:stop": "nx run vritti-core-server:gitea:tunnel:apw1:stop"
+    "gitea:tunnel:apw1:stop": "nx run vritti-core-server:gitea:tunnel:apw1:stop",
+    "clear-symlinks": "node scripts/clear-symlinks.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.2",

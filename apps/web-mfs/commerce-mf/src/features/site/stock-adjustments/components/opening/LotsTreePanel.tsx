@@ -8,8 +8,8 @@ import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/Tree
 import { TreeView } from '@vritti/quantum-ui/TreeView';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Boxes, MapPin, Plus } from 'lucide-react';
-import type { StockAdjustmentTreeNode } from '@/schemas/stock-adjustments';
 import { useStockAdjustmentTree } from '@/hooks/site/stock-adjustments';
+import type { StockAdjustmentTreeNode } from '@/schemas/stock-adjustments';
 import { AddLotDialog } from '../../forms/opening/AddLotDialog';
 
 interface LotsTreePanelProps {

@@ -39,7 +39,7 @@ export class InventoryItemsDomainService {
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     name: { column: inventoryItems.name, type: 'string' },
-    code: { column: inventoryItems.code, type: 'string' },
+    sku: { column: inventoryItems.sku, type: 'string' },
   };
   private static readonly FILTER_FIELD_MAP: FieldMap = {
     type: { column: inventoryItems.type, type: 'string' },
@@ -236,12 +236,11 @@ export class InventoryItemsDomainService {
   async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     const entity = await this.repository.create({
       name: data.name,
-      code: data.code,
+      sku: data.sku,
       type: data.type,
       ...(data.tracking ? { tracking: data.tracking } : {}),
       ...(data.pickStrategy ? { pickStrategy: data.pickStrategy } : {}),
       categoryId: data.categoryId,
-      taxClassId: data.taxClassId,
       description: data.description ?? null,
       uomId: data.uomId,
       hsnCode: data.hsnCode ?? null,
@@ -250,10 +249,10 @@ export class InventoryItemsDomainService {
       this.repository.findUomSymbol(entity.uomId),
       this.repository.findCategoryName(entity.categoryId),
     ]);
-    this.logger.log(`Created inventory item: ${entity.name} (${entity.code})`);
+    this.logger.log(`Created inventory item: ${entity.name} (${entity.sku})`);
     return {
       success: true,
-      message: `Inventory item "${entity.name}" (${entity.code}) created successfully.`,
+      message: `Inventory item "${entity.name}" (${entity.sku}) created successfully.`,
       data: InventoryItemDto.from(entity, uomSymbol, true, categoryName),
     };
   }
@@ -290,7 +289,7 @@ export class InventoryItemsDomainService {
     }
 
     const updated = await this.repository.update(id, data);
-    this.logger.log(`Updated inventory item: ${updated.name} (${updated.code})`);
+    this.logger.log(`Updated inventory item: ${updated.name} (${updated.sku})`);
     return {
       success: true,
       message: `Inventory item "${updated.name}" updated successfully.`,

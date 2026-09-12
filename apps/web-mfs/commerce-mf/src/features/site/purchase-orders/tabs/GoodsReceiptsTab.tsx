@@ -11,9 +11,9 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 import { GOODS_RECEIPTS_KEY } from '@/hooks/site/goods-receipts/keys';
 import { useGoodsReceipts } from '@/hooks/site/goods-receipts/useGoodsReceipts';
+import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 
 interface GoodsReceiptsTabProps {
   poId: string;

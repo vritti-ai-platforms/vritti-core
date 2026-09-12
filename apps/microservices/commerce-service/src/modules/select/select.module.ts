@@ -1,4 +1,3 @@
-import { CatalogsDomainModule } from '@domain/catalogs/catalogs.module';
 import { CategoriesDomainModule } from '@domain/categories/categories.module';
 import { CostCategoriesDomainModule } from '@domain/cost-categories/cost-categories.module';
 import { CustomersDomainModule } from '@domain/customers/customers.module';
@@ -7,13 +6,15 @@ import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/i
 import { InventoryItemSerialsDomainModule } from '@domain/inventory-item-serials/inventory-item-serials.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { LocationsDomainModule } from '@domain/locations/locations.module';
+import { OfferingDimensionTemplatesDomainModule } from '@domain/offering-dimension-templates/offering-dimension-templates.module';
+import { OfferingVariantsDomainModule } from '@domain/offering-variants/offering-variants.module';
+import { OfferingsDomainModule } from '@domain/offerings/offerings.module';
 import { PartiesDomainModule } from '@domain/parties/parties.module';
 import { PartyBankAccountsDomainModule } from '@domain/party-bank-accounts/party-bank-accounts.module';
 import { PartyRelationshipsDomainModule } from '@domain/party-relationships/party-relationships.module';
 import { PosTerminalsDomainModule } from '@domain/pos-terminals/pos-terminals.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
-import { SalesChannelsDomainModule } from '@domain/sales-channels/sales-channels.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
 import { TaxClassesDomainModule } from '@domain/tax-classes/tax-classes.module';
@@ -29,10 +30,11 @@ import { SelectController } from './select.controller';
   imports: [
     CategoriesDomainModule,
     InventoryItemsDomainModule,
-    SalesChannelsDomainModule,
+    OfferingDimensionTemplatesDomainModule,
+    OfferingsDomainModule,
+    OfferingVariantsDomainModule,
     UomDomainModule,
     UomDimensionsDomainModule,
-    CatalogsDomainModule,
     PartiesDomainModule,
     CustomersDomainModule,
     LocationsDomainModule,

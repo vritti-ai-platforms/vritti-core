@@ -4,7 +4,7 @@ import type { LocationItemRow } from '../../repositories/inventory-item-quants.r
 export class LocationItemDto {
   inventoryItemId: string;
   itemName: string;
-  itemCode: string;
+  itemSku: string;
   uomSymbol: string | null;
   totalQuantity: number;
   availableQuantity: number;
@@ -17,7 +17,7 @@ export class LocationItemDto {
     const dto = new LocationItemDto();
     dto.inventoryItemId = row.inventoryItemId;
     dto.itemName = row.itemName;
-    dto.itemCode = row.itemCode;
+    dto.itemSku = row.itemSku;
     dto.uomSymbol = row.uomSymbol;
     dto.totalQuantity = row.totalQuantity;
     dto.availableQuantity = row.totalQuantity - row.reservedQuantity;

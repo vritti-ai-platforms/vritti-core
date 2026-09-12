@@ -9,8 +9,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Plus, Users } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { CustomerData } from '@/schemas/customers';
 import { CUSTOMERS_TABLE_KEY, useCustomersTable } from '@/hooks/site/customers';
+import type { CustomerData } from '@/schemas/customers';
 import { AddCustomerDialog } from './forms/AddCustomerDialog';
 
 export const CustomersPage = () => {

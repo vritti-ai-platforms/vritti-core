@@ -9,8 +9,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, FileText, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { InvoiceData, InvoiceStatus, InvoiceType } from '@/schemas/invoices';
 import { INVOICES_TABLE_KEY, useInvoicesTable } from '@/hooks/site/invoices';
+import type { InvoiceData, InvoiceStatus, InvoiceType } from '@/schemas/invoices';
 import { CreateInvoiceDialog } from './forms/CreateInvoiceDialog';
 
 const statusConfig: Record<

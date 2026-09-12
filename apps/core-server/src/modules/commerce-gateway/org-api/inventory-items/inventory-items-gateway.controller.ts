@@ -125,6 +125,14 @@ export class InventoryItemsGatewayController {
     return this.service.updateMrp(id, mrpId, dto);
   }
 
+  // Promotes one recorded MRP to the current one shown on listings
+  @Patch(':id/mrp/:mrpId/current')
+  @RequirePermission(ORG_INVENTORY_ITEMS.mrp.edit)
+  setMrpCurrent(@Param('id') id: string, @Param('mrpId') mrpId: string): Promise<InventoryItemMrpResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/inventory-items/${id}/mrp/${mrpId}/current`);
+    return this.service.setMrpCurrent(id, mrpId);
+  }
+
   // Deletes a manual MRP for an inventory item
   @Delete(':id/mrp/:mrpId')
   @RequirePermission(ORG_INVENTORY_ITEMS.mrp.delete)

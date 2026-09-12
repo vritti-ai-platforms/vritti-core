@@ -1,23 +1,24 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
+import { useUpdateStockAdjustment } from '@/hooks/site/stock-adjustments';
 import {
   type StockAdjustmentType,
   type UpdateStockAdjustmentFormData,
   updateStockAdjustmentSchema,
 } from '@/schemas/stock-adjustments';
-import { useUpdateStockAdjustment } from '@/hooks/site/stock-adjustments';
 
 interface EditStockAdjustmentDialogProps {
   adjustmentId: string;
   reason: string | null;
   type: StockAdjustmentType;
-  unitCost: { currency: string; value: string } | null;
+  unitCost: CurrencyValue | null;
   onSuccess: () => void;
   onCancel: () => void;
 }

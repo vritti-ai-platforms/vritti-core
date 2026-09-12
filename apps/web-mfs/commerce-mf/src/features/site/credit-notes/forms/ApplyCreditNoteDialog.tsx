@@ -6,9 +6,9 @@ import { zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useApplyCreditNote } from '@/hooks/site/credit-notes';
 import type { ApplyCreditNoteFormData } from '@/schemas/credit-notes';
 import { applyCreditNoteSchema } from '@/schemas/credit-notes';
-import { useApplyCreditNote } from '@/hooks/site/credit-notes';
 
 interface ApplyCreditNoteDialogProps {
   creditNoteId: string;

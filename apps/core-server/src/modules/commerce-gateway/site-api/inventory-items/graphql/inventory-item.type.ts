@@ -9,7 +9,7 @@ export class InventoryItem {
   name: string;
 
   @Field(() => String)
-  code: string;
+  sku: string;
 
   @Field(() => String)
   type: string;

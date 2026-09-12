@@ -1,4 +1,3 @@
-import { CatalogsDomainService } from '@domain/catalogs/services/catalogs.service';
 import { CategoriesSelectQueryDto } from '@domain/categories/dto/request/categories-select-query.dto';
 import { CategoriesDomainService } from '@domain/categories/services/categories.service';
 import { CostCategoriesDomainService } from '@domain/cost-categories/services/cost-categories.service';
@@ -8,13 +7,15 @@ import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/
 import { InventoryItemSerialsDomainService } from '@domain/inventory-item-serials/services/inventory-item-serials.service';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { LocationsDomainService } from '@domain/locations/services/locations.service';
+import { OfferingDimensionTemplatesDomainService } from '@domain/offering-dimension-templates/services/offering-dimension-templates.service';
+import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
+import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { PartyBankAccountsDomainService } from '@domain/party-bank-accounts/services/party-bank-accounts.service';
 import { PartyRelationshipsDomainService } from '@domain/party-relationships/services/party-relationships.service';
 import { PosTerminalsDomainService } from '@domain/pos-terminals/services/pos-terminals.service';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
-import { SalesChannelsDomainService } from '@domain/sales-channels/services/sales-channels.service';
 import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { TaxClassesDomainService } from '@domain/tax-classes/services/tax-classes.service';
@@ -32,6 +33,7 @@ import { InventoryItemQuantsSelectQueryDto } from './dto/request/inventory-item-
 import { InventoryItemSerialsSelectQueryDto } from './dto/request/inventory-item-serials-select-query.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
+import { OfferingVariantsSelectQueryDto } from './dto/request/offering-variants-select-query.dto';
 import { PartyContactSelectQueryDto } from './dto/request/party-contact-select-query.dto';
 import { PartySelectQueryDto } from './dto/request/party-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from './dto/request/purchase-order-items-select-query.dto';
@@ -47,10 +49,11 @@ export class SelectController {
   constructor(
     private readonly categoriesService: CategoriesDomainService,
     private readonly inventoryItemsService: InventoryItemsDomainService,
-    private readonly salesChannelsService: SalesChannelsDomainService,
+    private readonly offeringDimensionTemplatesService: OfferingDimensionTemplatesDomainService,
+    private readonly offeringsService: OfferingsDomainService,
+    private readonly offeringVariantsService: OfferingVariantsDomainService,
     private readonly uomService: UomDomainService,
     private readonly uomDimensionsService: UomDimensionsDomainService,
-    private readonly catalogsService: CatalogsDomainService,
     private readonly partiesService: PartiesDomainService,
     private readonly customersService: CustomersDomainService,
     private readonly locationsService: LocationsDomainService,
@@ -86,11 +89,26 @@ export class SelectController {
     return this.inventoryItemsService.findForSelect(query, { excludeOnSupplierId });
   }
 
-  // Returns paginated sales channel options for the select component
-  @MessagePattern({ cmd: 'select.salesChannels' })
-  async salesChannels(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('select.salesChannels');
-    return this.salesChannelsService.findForSelect(data);
+  // Returns paginated offering options for the select component
+  @MessagePattern({ cmd: 'select.offerings' })
+  async offerings(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.offerings');
+    return this.offeringsService.findForSelect(query);
+  }
+
+  // Variants of one offering — scoped, because a SKU only means anything next to its siblings
+  @MessagePattern({ cmd: 'select.offeringVariants' })
+  async offeringVariants(@Payload() data: OfferingVariantsSelectQueryDto): Promise<SelectQueryResult> {
+    const { offeringId, ...query } = data;
+    this.logger.log(`select.offeringVariants — offeringId: ${offeringId}`);
+    return this.offeringVariantsService.findForSelect(offeringId, query as SelectOptionsQueryDto);
+  }
+
+  // Returns paginated dimension template options for the select component
+  @MessagePattern({ cmd: 'select.offeringDimensionTemplates' })
+  async offeringDimensionTemplates(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.offeringDimensionTemplates');
+    return this.offeringDimensionTemplatesService.findForSelect(query);
   }
 
   // Returns paginated UOM options for the select component
@@ -112,13 +130,6 @@ export class SelectController {
   async uomDimensions(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.uomDimensions');
     return this.uomDimensionsService.findForSelect(query);
-  }
-
-  // Returns paginated catalog options for the select component
-  @MessagePattern({ cmd: 'select.catalogs' })
-  async catalogs(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('select.catalogs');
-    return this.catalogsService.findForSelect(data);
   }
 
   // Returns paginated PERSON party options for the people select component

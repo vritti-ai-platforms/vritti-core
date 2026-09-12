@@ -6,6 +6,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useUpdateGoodsReceiptLine } from '@/hooks/site/goods-receipts';
 import {
   type AddGoodsReceiptLineFormData,
   buildAddGoodsReceiptLineSchema,
@@ -14,7 +15,6 @@ import {
   InventoryTrackingValues,
 } from '@/schemas/goods-receipts';
 import { LocationRoleValues } from '@/schemas/locations';
-import { useUpdateGoodsReceiptLine } from '@/hooks/site/goods-receipts';
 
 interface EditLineFormProps {
   goodsReceiptId: string;

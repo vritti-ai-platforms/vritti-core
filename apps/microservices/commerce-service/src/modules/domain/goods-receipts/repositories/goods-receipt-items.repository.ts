@@ -328,7 +328,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
   async findGrItemsForAutoCost(goodsReceiptId: string): Promise<
     {
       grItemId: string;
-      inventoryItemCode: string;
+      inventoryItemSku: string;
       uomSymbol: string;
       primaryUomUnitPrice: bigint;
       currencyCode: string;
@@ -338,7 +338,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
     const rows = await this.db
       .select({
         grItemId: goodsReceiptItems.id,
-        inventoryItemCode: inventoryItems.code,
+        inventoryItemSku: inventoryItems.sku,
         uomSymbol: uom.symbol,
         primaryUomUnitPrice: goodsReceiptItems.primaryUomUnitPrice,
         currencyCode: goodsReceiptItems.currencyCode,
@@ -361,7 +361,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
 
     return rows.map((r) => ({
       grItemId: r.grItemId,
-      inventoryItemCode: r.inventoryItemCode,
+      inventoryItemSku: r.inventoryItemSku,
       uomSymbol: r.uomSymbol,
       primaryUomUnitPrice: BigInt(r.primaryUomUnitPrice as unknown as string),
       currencyCode: r.currencyCode as string,

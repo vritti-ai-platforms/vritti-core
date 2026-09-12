@@ -11,12 +11,12 @@ import { PeopleAddressesController } from './addresses/people-addresses.controll
 import { PeopleBankAccountsController } from './bank-accounts/people-bank-accounts.controller';
 import { PeopleCommunicationsController } from './communications/people-communications.controller';
 import { PeopleCompaniesController } from './companies/people-companies.controller';
-import { PeopleSocialProfilesController } from './social-profiles/people-social-profiles.controller';
 import { PeopleIdentifiersController } from './identifiers/people-identifiers.controller';
 import { PeopleLicensesController } from './licenses/people-licenses.controller';
 import { PeopleRegistrationsController } from './registrations/people-registrations.controller';
 import { PeopleController } from './root/people.controller';
 import { PeopleService } from './root/services/people-root.service';
+import { PeopleSocialProfilesController } from './social-profiles/people-social-profiles.controller';
 
 @Module({
   imports: [

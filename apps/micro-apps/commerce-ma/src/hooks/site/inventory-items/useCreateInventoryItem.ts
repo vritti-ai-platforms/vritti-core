@@ -10,7 +10,12 @@ export function useCreateInventoryItem() {
     update(cache, { data }) {
       const created = data?.createInventoryItem;
       if (created) {
-        prependEdgeToConnection({ cache, connectionField: 'inventoryItems', entity: created, edgeTypename: 'InventoryItemEdge' });
+        prependEdgeToConnection({
+          cache,
+          connectionField: 'inventoryItems',
+          entity: created,
+          edgeTypename: 'InventoryItemEdge',
+        });
       }
     },
   });

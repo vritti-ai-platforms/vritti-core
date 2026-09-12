@@ -17,7 +17,6 @@ export * from './gitea-credentials';
 export * from './catalogs';
 export * from './table-views';
 export * from './legal-entity';
-export * from './le-tax-registration';
 export * from './site-group';
 export * from './site';
 export * from './role';

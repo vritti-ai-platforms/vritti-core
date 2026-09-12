@@ -8,6 +8,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import { ClipboardMinus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useUpdateChangeStockAdjustmentLine } from '@/hooks/site/stock-adjustments';
 import {
   buildUpdateChangeLineSchema,
   type InventoryTracking,
@@ -16,7 +17,6 @@ import {
   StockAdjustmentTypeValues,
   type UpdateChangeLineFormData,
 } from '@/schemas/stock-adjustments';
-import { useUpdateChangeStockAdjustmentLine } from '@/hooks/site/stock-adjustments';
 
 // Edit allows changing quantity + UOM; quant binding cannot change after creation.
 export const EditChangeLineForm = ({

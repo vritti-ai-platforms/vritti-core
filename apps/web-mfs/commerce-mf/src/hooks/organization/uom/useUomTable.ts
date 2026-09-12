@@ -2,8 +2,8 @@ import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { ORG_UOM } from '@vritti/commerce-permissions/uom';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
-import { getUomTable } from '@/services/organization/uom.service';
 import type { UomTableResponse } from '@/schemas/uom';
+import { getUomTable } from '@/services/organization/uom.service';
 import { UOM_TABLE_KEY } from './keys';
 
 export function useUomTable(

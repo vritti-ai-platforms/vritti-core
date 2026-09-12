@@ -10,9 +10,9 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CreditCard, FileText } from 'lucide-react';
 import { useState } from 'react';
-import type { InvoiceStatus, InvoiceType } from '@/schemas/invoices';
 import { useInvoice } from '@/hooks/site/invoices';
 import { usePayments } from '@/hooks/site/payments';
+import type { InvoiceStatus, InvoiceType } from '@/schemas/invoices';
 import { RecordPaymentDialog } from './forms/RecordPaymentDialog';
 
 const statusConfig: Record<

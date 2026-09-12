@@ -13,6 +13,14 @@
       "types": "./dist/uom.d.ts",
       "default": "./dist/uom.js"
     },
+    "./catalog-channels": {
+      "types": "./dist/catalog-channels.d.ts",
+      "default": "./dist/catalog-channels.js"
+    },
+    "./catalogs": {
+      "types": "./dist/catalogs.d.ts",
+      "default": "./dist/catalogs.js"
+    },
     "./categories": {
       "types": "./dist/categories.d.ts",
       "default": "./dist/categories.js"
@@ -33,13 +41,13 @@
       "types": "./dist/suppliers.d.ts",
       "default": "./dist/suppliers.js"
     },
-    "./sales-channels": {
-      "types": "./dist/sales-channels.d.ts",
-      "default": "./dist/sales-channels.js"
-    },
     "./locations": {
       "types": "./dist/locations.d.ts",
       "default": "./dist/locations.js"
+    },
+    "./offering-dimension-templates": {
+      "types": "./dist/offering-dimension-templates.d.ts",
+      "default": "./dist/offering-dimension-templates.js"
     },
     "./tax-classes": {
       "types": "./dist/tax-classes.d.ts",
@@ -53,9 +61,17 @@
       "types": "./dist/tax-jurisdictions.d.ts",
       "default": "./dist/tax-jurisdictions.js"
     },
+    "./tax-registrations": {
+      "types": "./dist/tax-registrations.d.ts",
+      "default": "./dist/tax-registrations.js"
+    },
     "./tax-groups": {
       "types": "./dist/tax-groups.d.ts",
       "default": "./dist/tax-groups.js"
+    },
+    "./offerings": {
+      "types": "./dist/offerings.d.ts",
+      "default": "./dist/offerings.js"
     }
   },
   "files": [

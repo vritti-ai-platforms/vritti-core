@@ -38,7 +38,7 @@ export const LevelsTab: React.FC<LevelsTabProps> = ({ siteIds }) => {
             <tr key={`${row.inventoryItemId}-${row.siteId}`} className="border-b last:border-b-0">
               <td className="p-3">
                 <div className="font-medium">{row.itemName}</div>
-                <div className="font-mono text-xs text-muted-foreground">{row.itemCode}</div>
+                <div className="font-mono text-xs text-muted-foreground">{row.itemSku}</div>
               </td>
               <td className="p-3 font-mono text-xs text-muted-foreground">{shortSiteId(row.siteId)}</td>
               <td className="p-3 text-right">

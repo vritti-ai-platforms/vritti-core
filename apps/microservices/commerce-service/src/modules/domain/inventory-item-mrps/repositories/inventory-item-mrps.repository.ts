@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type InventoryItemMrp, inventoryItemMrps, inventoryItems, uom } from '@/db/schema';
 
 export type InventoryItemMrpWithUom = InventoryItemMrp & { uomSymbol: string | null };
@@ -11,7 +11,7 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
     super(database, inventoryItemMrps);
   }
 
-  // Inserts or updates the suggested MRP for an (item, uom, currency) triple; latest lot wins.
+  // Records an MRP observed at goods receipt and makes it current, keeping every prior amount
   async upsert(
     inventoryItemId: string,
     uomId: string,
@@ -19,15 +19,68 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
     amount: bigint,
     sourceLotId: string | null,
   ): Promise<InventoryItemMrp> {
-    const [row] = (await this.db
-      .insert(inventoryItemMrps)
-      .values({ inventoryItemId, uomId, currencyCode, amount, sourceLotId, sourcedAt: new Date() })
-      .onConflictDoUpdate({
-        target: [inventoryItemMrps.inventoryItemId, inventoryItemMrps.uomId, inventoryItemMrps.currencyCode],
-        set: { amount, sourceLotId, sourcedAt: new Date() },
-      })
-      .returning()) as InventoryItemMrp[];
-    return row;
+    return this.transaction(async () => {
+      await this.clearCurrent(inventoryItemId, uomId, currencyCode);
+      const [row] = (await this.db
+        .insert(inventoryItemMrps)
+        .values({ inventoryItemId, uomId, currencyCode, amount, sourceLotId, sourcedAt: new Date(), isCurrent: true })
+        .onConflictDoUpdate({
+          target: [
+            inventoryItemMrps.inventoryItemId,
+            inventoryItemMrps.uomId,
+            inventoryItemMrps.currencyCode,
+            inventoryItemMrps.amount,
+          ],
+          set: { sourceLotId, sourcedAt: new Date(), isCurrent: true },
+        })
+        .returning()) as InventoryItemMrp[];
+      return row;
+    });
+  }
+
+  // Promotes one MRP to current for its (item, uom, currency) triple; returns undefined when no row matches
+  async setCurrent(id: string): Promise<InventoryItemMrp | undefined> {
+    return this.transaction(async () => {
+      const target = await this.model.findFirst({ where: { id } });
+      if (!target) return undefined;
+      await this.clearCurrent(target.inventoryItemId, target.uomId, target.currencyCode);
+      const [row] = (await this.db
+        .update(inventoryItemMrps)
+        .set({ isCurrent: true })
+        .where(eq(inventoryItemMrps.id, id))
+        .returning()) as InventoryItemMrp[];
+      return row;
+    });
+  }
+
+  // Counts the MRPs recorded for an (item, uom, currency) triple
+  async countForTriple(inventoryItemId: string, uomId: string, currencyCode: string): Promise<number> {
+    const [row] = await this.db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(inventoryItemMrps)
+      .where(
+        and(
+          eq(inventoryItemMrps.inventoryItemId, inventoryItemId),
+          eq(inventoryItemMrps.uomId, uomId),
+          eq(inventoryItemMrps.currencyCode, currencyCode),
+        ),
+      );
+    return row?.n ?? 0;
+  }
+
+  // The partial unique index permits one current row per triple, so the old one is cleared first
+  private async clearCurrent(inventoryItemId: string, uomId: string, currencyCode: string): Promise<void> {
+    await this.db
+      .update(inventoryItemMrps)
+      .set({ isCurrent: false })
+      .where(
+        and(
+          eq(inventoryItemMrps.inventoryItemId, inventoryItemId),
+          eq(inventoryItemMrps.uomId, uomId),
+          eq(inventoryItemMrps.currencyCode, currencyCode),
+          eq(inventoryItemMrps.isCurrent, true),
+        ),
+      );
   }
 
   // Inserts a new MRP row for an (item, uom, currency) triple; the unique constraint surfaces conflicts
@@ -80,6 +133,7 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
         amount: inventoryItemMrps.amount,
         sourceLotId: inventoryItemMrps.sourceLotId,
         sourcedAt: inventoryItemMrps.sourcedAt,
+        isCurrent: inventoryItemMrps.isCurrent,
         createdAt: inventoryItemMrps.createdAt,
         updatedAt: inventoryItemMrps.updatedAt,
         uomSymbol: uom.symbol,

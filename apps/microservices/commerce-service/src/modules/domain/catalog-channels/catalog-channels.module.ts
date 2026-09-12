@@ -3,7 +3,7 @@ import { CatalogChannelsDomainRepository } from './repositories/catalog-channels
 import { CatalogChannelsDomainService } from './services/catalog-channels.service';
 
 @Module({
-  providers: [CatalogChannelsDomainService, CatalogChannelsDomainRepository],
-  exports: [CatalogChannelsDomainService, CatalogChannelsDomainRepository],
+  providers: [CatalogChannelsDomainRepository, CatalogChannelsDomainService],
+  exports: [CatalogChannelsDomainService],
 })
 export class CatalogChannelsDomainModule {}

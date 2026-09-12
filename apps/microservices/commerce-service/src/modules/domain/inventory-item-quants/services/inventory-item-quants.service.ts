@@ -77,7 +77,7 @@ export class InventoryItemQuantsDomainService {
   // Search/sort for a location's grouped items table is on the joined inventory item name + code.
   private static readonly LOCATION_ITEMS_FIELD_MAP: FieldMap = {
     itemName: { column: inventoryItems.name, type: 'string' },
-    itemCode: { column: inventoryItems.code, type: 'string' },
+    itemSku: { column: inventoryItems.sku, type: 'string' },
   };
 
   constructor(

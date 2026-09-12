@@ -28,7 +28,5 @@ export function CostCategoryActionsMenu({ category, onToggleActive, onDelete }: 
     });
   }
 
-  return (
-    <MenuButton actions={actions} accessibilityLabel="Cost category actions" />
-  );
+  return <MenuButton actions={actions} accessibilityLabel="Cost category actions" />;
 }

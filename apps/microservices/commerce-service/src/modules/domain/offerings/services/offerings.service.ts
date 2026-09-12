@@ -1,463 +1,300 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk/database';
-import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type CurrencyAmountDto, type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
-import { type FulfilmentType, FulfilmentTypeValues, offerings, type VariantOptionValue } from '@/db/schema';
+import {
+  type CreateResponseDto,
+  type FieldMap,
+  FilterProcessor,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+  type SuccessResponseDto,
+  type TableViewState,
+} from '@vritti/api-sdk/database';
+import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
+import { FulfilmentTypeValues, offerings } from '@/db/schema';
 import { OfferingDto } from '../dto/entity/offering.dto';
-import {
-  OfferingDetailDto,
-  OfferingOptionDto,
-  OfferingVariantDto,
-  type VariantComponentDto,
-} from '../dto/entity/offering-detail.dto';
-import type { CreateOfferingDto, DefaultVariantInput } from '../dto/request/create-offering.dto';
-import type { CreateVariantDto, VariantComponentInput } from '../dto/request/create-variant.dto';
+import type { BulkSetOfferingStatusDto } from '../dto/request/bulk-set-offering-status.dto';
+import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
+import type { SetOfferingStatusDto } from '../dto/request/set-offering-status.dto';
+import type { SetOfferingTaxClassDto } from '../dto/request/set-offering-tax-class.dto';
 import type { UpdateOfferingDto } from '../dto/request/update-offering.dto';
-import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
-import {
-  type OfferingAxis,
-  OfferingsDomainRepository,
-  type VariantComponentRow,
-} from '../repositories/offerings.repository';
+import { OfferingsDomainRepository, type OfferingWithMeta } from '../repositories/offerings.repository';
+
+// Postgres reports a unique violation as 23505 with the constraint name attached
+function isUniqueViolation(error: unknown, constraint: string): boolean {
+  const candidate = error as { code?: string; constraint?: string; constraint_name?: string };
+  return candidate?.code === '23505' && (candidate.constraint ?? candidate.constraint_name) === constraint;
+}
 
 @Injectable()
 export class OfferingsDomainService {
   private readonly logger = new Logger(OfferingsDomainService.name);
 
-  private static readonly FIELD_MAP: FieldMap = {
+  private static readonly SEARCH_FIELD_MAP: FieldMap = {
     name: { column: offerings.name, type: 'string' },
+    code: { column: offerings.code, type: 'string' },
+  };
+  private static readonly FILTER_FIELD_MAP: FieldMap = {
     fulfilmentType: { column: offerings.fulfilmentType, type: 'string' },
-    isAvailable: { column: offerings.isAvailable, type: 'boolean' },
     categoryId: { column: offerings.categoryId, type: 'string' },
+    taxClassId: { column: offerings.taxClassId, type: 'string' },
+    isActive: { column: offerings.isActive, type: 'boolean' },
   };
 
-  constructor(private readonly offeringsRepository: OfferingsDomainRepository) {}
+  constructor(private readonly repository: OfferingsDomainRepository) {}
 
-  // Returns paginated, filtered, and sorted offerings for a catalog (RLS scopes to org + site ancestors)
-  async findForTable(catalogId: string, state: TableViewState): Promise<{ result: OfferingDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsDomainService.FIELD_MAP);
-    const where = and(eq(offerings.catalogId, catalogId), filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, OfferingsDomainService.FIELD_MAP);
+  // Returns paginated, filtered, and sorted offerings for the data table
+  async findForTable(state: TableViewState): Promise<{ result: OfferingDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsDomainService.SEARCH_FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...OfferingsDomainService.SEARCH_FIELD_MAP,
+      ...OfferingsDomainService.FILTER_FIELD_MAP,
+    });
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.offeringsRepository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(offerings.createdAt)],
+    const { result: rows, count } = await this.repository.findForTable({
+      where: where || undefined,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offerings.sortOrder), asc(offerings.name)],
       limit,
       offset,
     });
 
-    const modifierGroupCounts = await this.offeringsRepository.findModifierGroupCountsByOfferingIds(
-      result.map((row) => row.id),
-    );
+    const counts = await this.repository.countChildren(rows.map((row) => row.id));
+    const result = rows.map((row) => {
+      const count = counts.get(row.id);
+      return this.toDto(row, count?.dimensions ?? 0, count?.variants ?? 0, count?.variantsWithoutBom ?? 0);
+    });
 
+    return { result, count };
+  }
+
+  // Offering options for select dropdowns, restricted to active offerings
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+      conditions: [eq(offerings.isActive, true)],
+    });
+  }
+
+  async findById(id: string): Promise<OfferingDto> {
+    const row = await this.requireReachable(id);
+    const counts = await this.repository.countChildren([id]);
+    const count = counts.get(id);
+    return this.toDto(row, count?.dimensions ?? 0, count?.variants ?? 0, count?.variantsWithoutBom ?? 0);
+  }
+
+  // Creates an offering owned by the calling workspace; the database stamps the owner from its GUCs
+  async create(data: CreateOfferingDto): Promise<CreateResponseDto<OfferingDto>> {
+    await this.assertNameFree(data.name);
+    const created = await this.createOrConflict(data);
+    this.logger.log(`Created offering ${created.code} (${created.id})`);
     return {
-      result: result.map((row) =>
-        OfferingDto.from(row, row.currencyCode, row.categoryName, modifierGroupCounts.get(row.id) ?? 0),
-      ),
-      count,
+      success: true,
+      message: `"${created.name}" created. Add its dimensions, then generate variants.`,
+      data: OfferingDto.from(created, { isOwned: true, canDelete: true }),
     };
   }
 
-  // Creates a new offering, its axes, and (for single-variant types) one default variant
-  async create(data: CreateOfferingDto): Promise<OfferingDto> {
-    const currencyCode = await this.resolveCatalogCurrency(data.catalogId);
-    const entity = await this.offeringsRepository.transaction(async () => {
-      const offering = await this.offeringsRepository.create({
-        catalogId: data.catalogId,
-        categoryId: data.categoryId ?? null,
-        fulfilmentType: data.fulfilmentType,
-        name: data.name,
-        description: data.description ?? null,
-        salesTaxGroupId: data.salesTaxGroupId ?? null,
-        isAvailable: data.isAvailable ?? true,
-        sortOrder: data.sortOrder ?? 0,
+  async update(id: string, data: Omit<UpdateOfferingDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.requireOwned(id);
+    if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) await this.assertNameFree(data.name);
+    if (data.code && data.code !== existing.code) await this.assertCodeChangeable(id, existing);
+    await this.updateOrConflict(id, data);
+    return { success: true, message: `"${data.name ?? existing.name}" updated.` };
+  }
+
+  // Sets the offering's tax class and cascades it to every variant that has not been overridden
+  async setTaxClass(id: string, data: SetOfferingTaxClassDto): Promise<SuccessResponseDto> {
+    const existing = await this.requireOwned(id);
+    if (existing.taxClassId === data.taxClassId) {
+      return { success: true, message: `"${existing.name}" already uses that tax class.` };
+    }
+
+    const cascaded = await this.repository.transaction(async (tx) => {
+      await this.repository.update(id, { taxClassId: data.taxClassId }, tx);
+      return this.repository.applyTaxClassToVariants(id, data.taxClassId, tx);
+    });
+
+    const overridden = await this.repository.countTaxClassOverrides(id);
+    this.logger.log(`Set tax class on offering ${existing.code} (${id}), cascaded to ${cascaded} variants`);
+    return {
+      success: true,
+      message: `Tax class updated on "${existing.name}" and ${pluralize('variant', cascaded, true)}${
+        overridden > 0 ? `. ${pluralize('variant', overridden, true)} kept their own` : ''
+      }.`,
+    };
+  }
+
+  // An offering with no variants would be sellable with nothing to sell, so activation is gated on one
+  async setStatus(id: string, data: SetOfferingStatusDto): Promise<SuccessResponseDto> {
+    const existing = await this.requireOwned(id);
+    if (data.isActive) {
+      const variantCount = await this.repository.countVariants(id);
+      if (variantCount === 0) {
+        throw new ConflictException({
+          label: 'No Variants',
+          detail: `"${existing.name}" has no variants yet. Generate at least one before activating it.`,
+        });
+      }
+    }
+    await this.repository.update(id, { isActive: data.isActive });
+    return { success: true, message: `"${existing.name}" ${data.isActive ? 'activated' : 'deactivated'}.` };
+  }
+
+  // The batch form of setStatus. Every id is checked before anything is written, so the whole
+  // selection either moves together or nothing does — a half-applied bulk action is worse than a refusal.
+  async bulkSetStatus(data: BulkSetOfferingStatusDto): Promise<SuccessResponseDto> {
+    const rows = await this.repository.findManyWithMeta(data.ids);
+    if (rows.length !== data.ids.length) {
+      throw new NotFoundException({
+        label: 'Offerings Not Found',
+        detail: 'Some of the selected offerings no longer exist. Refresh and try again.',
       });
+    }
 
-      if (data.variantOptionIds && data.variantOptionIds.length > 0) {
-        await this.assertOptionsBelongToCatalog(data.variantOptionIds, offering.catalogId);
-        await this.offeringsRepository.setAxes(offering.id, data.variantOptionIds);
-      }
+    const foreign = rows.filter((row) => !row.isOwned);
+    if (foreign.length > 0) {
+      throw new ForbiddenException({
+        label: 'Not Your Offerings',
+        detail: `${pluralize('offering', foreign.length, true)} in this selection belong to a wider scope. Switch to the workspace that owns them.`,
+      });
+    }
 
-      if (data.defaultVariant) {
-        await this.createDefaultVariant(
-          offering.id,
-          offering.name,
-          offering.fulfilmentType,
-          currencyCode,
-          data.defaultVariant,
-        );
-      }
-
-      return offering;
-    });
-
-    const categoryName = await this.offeringsRepository.findCategoryName(entity.categoryId);
-    this.logger.log(`Created offering: ${entity.name} (${entity.id})`);
-    return OfferingDto.from(entity, currencyCode, categoryName);
-  }
-
-  // Creates the single default variant (no option values) for a non-variant offering
-  private async createDefaultVariant(
-    offeringId: string,
-    offeringName: string,
-    fulfilmentType: FulfilmentType,
-    currencyCode: string,
-    data: DefaultVariantInput,
-  ): Promise<void> {
-    const components = data.components ?? [];
-    this.assertComponentsMatchType(fulfilmentType, components);
-
-    const name = offeringName || 'Default';
-    const sku = data.sku ?? (await this.deriveUniqueSku(offeringId, offeringName, []));
-    const price = this.toMinorPrice(data.price, currencyCode);
-
-    const variant = await this.offeringsRepository.createVariant({
-      offeringId,
-      sku,
-      name,
-      price,
-      isAvailable: data.isAvailable ?? true,
-      sortOrder: 0,
-    });
-
-    await this.offeringsRepository.replaceComponents(variant.id, components);
-  }
-
-  // Returns an offering by ID with full details including axes and variants
-  async findById(id: string): Promise<OfferingDetailDto> {
-    const entity = await this.offeringsRepository.findById(id);
-    if (!entity) throw new NotFoundException('Offering not found.');
-
-    const currencyCode = await this.resolveCatalogCurrency(entity.catalogId);
-    const categoryName = await this.offeringsRepository.findCategoryName(entity.categoryId);
-    const categoryPath = await this.offeringsRepository.findCategoryPath(entity.categoryId);
-    const optionDtos = await this.buildAxisDtos(id);
-
-    const variantEntities = await this.offeringsRepository.findVariantsByOfferingId(id);
-    const variantIds = variantEntities.map((v) => v.id);
-    const variantOptionValues = await this.offeringsRepository.findVariantOptionValues(variantIds);
-    const componentRows = await this.offeringsRepository.findComponentsByVariantIds(variantIds);
-    const variantDtos = variantEntities.map((v) => {
-      const valueIds = variantOptionValues
-        .filter((vov) => vov.offeringVariantId === v.id)
-        .map((vov) => vov.variantOptionValueId);
-      return OfferingVariantDto.from(v, currencyCode, valueIds, this.groupComponents(componentRows, v.id));
-    });
-
-    return OfferingDetailDto.from(entity, currencyCode, categoryName, categoryPath, optionDtos, variantDtos);
-  }
-
-  // Updates an offering's basic info and (optionally) its axes. App-layer validates leaf category.
-  async update(id: string, data: UpdateOfferingDto): Promise<OfferingDto> {
-    const existing = await this.offeringsRepository.findById(id);
-    if (!existing) throw new NotFoundException('Offering not found.');
-
-    const { variantOptionIds, ...fields } = data;
-
-    if (variantOptionIds !== undefined) {
-      const currentAxes = await this.offeringsRepository.findAxesByOfferingId(id);
-      const currentIds = new Set(currentAxes.map((a) => a.id));
-      const changed =
-        currentIds.size !== variantOptionIds.length || variantOptionIds.some((vid) => !currentIds.has(vid));
-      if (changed) {
-        const variantCount = await this.offeringsRepository.countVariantsByOfferingId(id);
-        if (variantCount > 0) {
-          throw new BadRequestException('Variant options cannot be changed once the offering has variants.');
-        }
-        if (variantOptionIds.length > 0) {
-          await this.assertOptionsBelongToCatalog(variantOptionIds, existing.catalogId);
-        }
-        await this.offeringsRepository.setAxes(id, variantOptionIds);
+    if (data.isActive) {
+      const counts = await this.repository.countChildren(data.ids);
+      const empty = rows.filter((row) => (counts.get(row.id)?.variants ?? 0) === 0);
+      if (empty.length > 0) {
+        throw new ConflictException({
+          label: 'No Variants',
+          detail: `${pluralize('offering', empty.length, true)} in this selection have no variants yet. Generate at least one before activating.`,
+        });
       }
     }
 
-    const entity = Object.keys(fields).length > 0 ? await this.offeringsRepository.update(id, fields) : existing;
-    const currencyCode = await this.resolveCatalogCurrency(entity.catalogId);
-    const categoryName = await this.offeringsRepository.findCategoryName(entity.categoryId);
-    this.logger.log(`Updated offering: ${entity.name} (${entity.id})`);
-    return OfferingDto.from(entity, currencyCode, categoryName);
+    await this.repository.bulkSetStatus(data.ids, data.isActive);
+    this.logger.log(`Bulk ${data.isActive ? 'activated' : 'deactivated'} ${data.ids.length} offerings`);
+    return {
+      success: true,
+      message: `${pluralize('offering', rows.length, true)} marked ${data.isActive ? 'active' : 'draft'}.`,
+    };
   }
 
-  // Deletes an offering by ID (cascades to axes, variants)
+  // Deleting cascades into dimensions and variants, so it is blocked while any variant exists —
+  // a variant may already carry stock or sit on an order line.
   async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.offeringsRepository.findById(id);
-    if (!existing) throw new NotFoundException('Offering not found.');
-
-    await this.offeringsRepository.deleteVariantsByOfferingId(id);
-    await this.offeringsRepository.deleteAxesByOfferingId(id);
-    await this.offeringsRepository.delete(id);
-    this.logger.log(`Deleted offering: ${existing.name} (${id})`);
-    return { success: true, message: `Offering "${existing.name}" deleted successfully.` };
-  }
-
-  // Creates a single variant from an explicit option-value combination across the offering's axes
-  async createVariant(data: CreateVariantDto): Promise<OfferingVariantDto> {
-    const offering = await this.offeringsRepository.findById(data.offeringId);
-    if (!offering) throw new NotFoundException('Offering not found.');
-
-    const currencyCode = await this.resolveCatalogCurrency(offering.catalogId);
-    const axes = await this.offeringsRepository.findAxesByOfferingId(data.offeringId);
-    const optionIds = axes.map((a) => a.id);
-    const values = await this.offeringsRepository.findValuesByOptionIds(optionIds);
-    const selected = this.resolveSelectedValues(axes, values, data.optionValueIds);
-
-    const components = data.components ?? [];
-    this.assertComponentsMatchType(offering.fulfilmentType, components);
-
-    await this.assertNoDuplicateCombo(data.offeringId, data.optionValueIds);
-
-    const name = this.deriveVariantName(selected, offering.name);
-    const sku = data.sku ?? (await this.deriveUniqueSku(data.offeringId, offering.name, selected));
-    const price = this.toMinorPrice(data.price, currencyCode);
-
-    const existingVariants = await this.offeringsRepository.findVariantsByOfferingId(data.offeringId);
-
-    const variant = await this.offeringsRepository.createVariant({
-      offeringId: data.offeringId,
-      sku,
-      name,
-      price,
-      isAvailable: data.isAvailable ?? true,
-      sortOrder: existingVariants.length,
-      taxClassId: data.taxClassId ?? null,
-    });
-
-    await this.offeringsRepository.createVariantOptionValues(
-      data.optionValueIds.map((variantOptionValueId) => ({ offeringVariantId: variant.id, variantOptionValueId })),
-    );
-    await this.offeringsRepository.replaceComponents(variant.id, components);
-
-    const componentRows = await this.offeringsRepository.findComponentsByVariantIds([variant.id]);
-    this.logger.log(`Created variant: ${variant.sku} (${variant.id})`);
-    return OfferingVariantDto.from(
-      variant,
-      currencyCode,
-      data.optionValueIds,
-      this.groupComponents(componentRows, variant.id),
-    );
-  }
-
-  // Returns all variants for an offering with their option value links
-  async listVariants(offeringId: string): Promise<OfferingVariantDto[]> {
-    const existing = await this.offeringsRepository.findById(offeringId);
-    if (!existing) throw new NotFoundException('Offering not found.');
-
-    const currencyCode = await this.resolveCatalogCurrency(existing.catalogId);
-    const variantEntities = await this.offeringsRepository.findVariantsByOfferingId(offeringId);
-    const variantIds = variantEntities.map((v) => v.id);
-    const variantOptionValues = await this.offeringsRepository.findVariantOptionValues(variantIds);
-    const componentRows = await this.offeringsRepository.findComponentsByVariantIds(variantIds);
-
-    return variantEntities.map((v) => {
-      const valueIds = variantOptionValues
-        .filter((vov) => vov.offeringVariantId === v.id)
-        .map((vov) => vov.variantOptionValueId);
-      return OfferingVariantDto.from(v, currencyCode, valueIds, this.groupComponents(componentRows, v.id));
-    });
-  }
-
-  // Updates a single variant's fields and (optionally) replaces its components
-  async updateVariant(variantId: string, data: UpdateVariantDto): Promise<OfferingVariantDto> {
-    const existing = await this.offeringsRepository.findVariantById(variantId);
-    if (!existing) throw new NotFoundException('Variant not found.');
-
-    const offering = await this.offeringsRepository.findById(existing.offeringId);
-    if (!offering) throw new NotFoundException('Offering not found.');
-
-    const currencyCode = await this.resolveCatalogCurrency(offering.catalogId);
-
-    if (data.components !== undefined) {
-      this.assertComponentsMatchType(offering.fulfilmentType, data.components);
-    }
-
-    const { price, components: _components, ...rest } = data;
-    if (Object.keys(rest).length > 0 || price != null) {
-      await this.offeringsRepository.updateVariant(variantId, {
-        ...rest,
-        ...(price != null && { price: this.toMinorPrice(price, currencyCode) }),
+    const existing = await this.requireOwned(id);
+    const variantCount = await this.repository.countVariants(id);
+    if (variantCount > 0) {
+      throw new ConflictException({
+        label: 'Offering In Use',
+        detail: `"${existing.name}" still has ${pluralize('variant', variantCount, true)}. Remove them first.`,
       });
     }
-
-    if (data.components !== undefined) {
-      await this.offeringsRepository.replaceComponents(variantId, data.components);
-    }
-
-    const updated = await this.offeringsRepository.findVariantById(variantId);
-    if (!updated) throw new NotFoundException('Variant not found.');
-
-    const variantOptionValues = await this.offeringsRepository.findVariantOptionValues([variantId]);
-    const valueIds = variantOptionValues.map((vov) => vov.variantOptionValueId);
-    const componentRows = await this.offeringsRepository.findComponentsByVariantIds([variantId]);
-
-    this.logger.log(`Updated variant: ${updated.sku} (${updated.id})`);
-    return OfferingVariantDto.from(updated, currencyCode, valueIds, this.groupComponents(componentRows, variantId));
+    await this.repository.delete(id);
+    this.logger.log(`Deleted offering ${existing.code} (${id})`);
+    return { success: true, message: `"${existing.name}" deleted.` };
   }
 
-  // Deletes a single variant and its option-value links
-  async deleteVariant(variantId: string): Promise<SuccessResponseDto> {
-    const existing = await this.offeringsRepository.findVariantById(variantId);
-    if (!existing) throw new NotFoundException('Variant not found.');
-
-    await this.offeringsRepository.deleteVariant(variantId);
-    this.logger.log(`Deleted variant: ${existing.name} (${variantId})`);
-    return { success: true, message: `Variant "${existing.name}" deleted successfully.` };
-  }
-
-  // Builds the offering's axis DTOs from its variant options and their values
-  private async buildAxisDtos(offeringId: string): Promise<OfferingOptionDto[]> {
-    const axes = await this.offeringsRepository.findAxesByOfferingId(offeringId);
-    const values = await this.offeringsRepository.findValuesByOptionIds(axes.map((a) => a.id));
-    return axes.map((axis) =>
-      OfferingOptionDto.from(
-        axis,
-        axis.axisSortOrder,
-        values.filter((v) => v.variantOptionId === axis.id),
-      ),
-    );
-  }
-
-  // Enforces the per-type component rule: STOCK/COMPOSITE need >=1 component, SERVICE needs none
-  private assertComponentsMatchType(fulfilmentType: FulfilmentType, components: VariantComponentInput[]): void {
-    if (fulfilmentType === FulfilmentTypeValues.SERVICE) {
-      if (components.length > 0) {
-        throw new BadRequestException('A service variant cannot have inventory components.');
-      }
-      return;
-    }
-    if (components.length === 0) {
-      throw new BadRequestException('A stocked or composite variant requires at least one inventory component.');
-    }
-  }
-
-  // Groups component rows for a variant into DTO shape
-  private groupComponents(rows: VariantComponentRow[], variantId: string): VariantComponentDto[] {
-    return rows
-      .filter((r) => r.offeringVariantId === variantId)
-      .map((r) => ({
-        inventoryItemId: r.inventoryItemId,
-        inventoryItemName: r.inventoryItemName,
-        quantity: r.quantity,
-      }));
-  }
-
-  // Resolves the catalog's currency code, used to serialize/parse variant prices
-  private async resolveCatalogCurrency(catalogId: string): Promise<string> {
-    const currencyCode = await this.offeringsRepository.findCatalogCurrency(catalogId);
-    if (!currencyCode) throw new NotFoundException('Catalog not found.');
-    return currencyCode;
-  }
-
-  // Converts a {currency, value} price to stored minor units, rejecting a currency mismatch
-  private toMinorPrice(price: CurrencyAmountDto, currencyCode: string): bigint {
-    if (price.currency !== currencyCode) {
-      throw new BadRequestException({
-        label: 'Currency Mismatch',
-        detail: `Price currency must match the catalog currency (${currencyCode}).`,
-        errors: [{ field: 'price', message: 'Wrong currency' }],
+  // The code is the first segment of every SKU derived from it. Stored SKUs are never recomputed, so
+  // changing it once variants exist would leave them carrying a prefix the offering no longer has —
+  // recognisable to nobody. Free to change until the first variant.
+  private async assertCodeChangeable(id: string, existing: { name: string; code: string }): Promise<void> {
+    const variantCount = await this.repository.countVariants(id);
+    if (variantCount > 0) {
+      throw new ConflictException({
+        label: 'Code Locked',
+        detail: `"${existing.name}" already has ${pluralize('variant', variantCount, true)}, whose SKUs were built from "${existing.code}". Delete them before recoding.`,
+        errors: [{ field: 'code', message: 'Locked once variants exist' }],
       });
     }
-    return majorToMinor(price.value, currencyCode as CurrencyCode, 'price');
   }
 
-  // Validates that all variant option IDs belong to the given catalog
-  private async assertOptionsBelongToCatalog(variantOptionIds: string[], catalogId: string): Promise<void> {
-    const options = await this.offeringsRepository.findVariantOptionsByIds(variantOptionIds);
-    if (options.length !== variantOptionIds.length || options.some((o) => o.catalogId !== catalogId)) {
-      throw new BadRequestException('A variant option does not belong to this catalog.');
-    }
-  }
-
-  // Validates the requested option values map to distinct axes of this offering and returns them ordered
-  private resolveSelectedValues(
-    axes: OfferingAxis[],
-    values: VariantOptionValue[],
-    optionValueIds: string[],
-  ): { axis: OfferingAxis; value: VariantOptionValue }[] {
-    if (axes.length === 0) {
-      if (optionValueIds.length > 0) {
-        throw new BadRequestException('This offering has no options; no option values may be selected.');
+  private async updateOrConflict(id: string, data: Omit<UpdateOfferingDto, 'id'>) {
+    try {
+      return await this.repository.update(id, data);
+    } catch (error) {
+      if (isUniqueViolation(error, 'uq_offerings_org_code')) {
+        throw new ConflictException({
+          label: 'Code Already Used',
+          detail: `The code "${data.code}" is already in use in this organization.`,
+          errors: [{ field: 'code', message: 'Code already used' }],
+        });
       }
-      return [];
+      throw error;
     }
+  }
 
-    if (optionValueIds.length === 0) {
-      throw new BadRequestException('Select at least one option value.');
-    }
-
-    const axisById = new Map(axes.map((axis) => [axis.id, axis]));
-    const valueLookup = new Map<string, { axis: OfferingAxis; value: VariantOptionValue }>();
-    for (const value of values) {
-      const axis = axisById.get(value.variantOptionId);
-      if (axis) valueLookup.set(value.id, { axis, value });
-    }
-
-    const seenAxisIds = new Set<string>();
-    const selected: { axis: OfferingAxis; value: VariantOptionValue }[] = [];
-    for (const id of optionValueIds) {
-      const match = valueLookup.get(id);
-      if (!match) throw new BadRequestException('An option value does not belong to this offering.');
-      if (seenAxisIds.has(match.axis.id)) {
-        throw new BadRequestException('Only one value per option may be selected.');
+  // `code` is unique per ORGANIZATION, but reach only shows this workspace its own subtree, so a
+  // sibling's clashing code is invisible to a pre-check. The database is the arbiter.
+  private async createOrConflict(data: CreateOfferingDto) {
+    try {
+      return await this.repository.create(data);
+    } catch (error) {
+      if (isUniqueViolation(error, 'uq_offerings_org_code')) {
+        throw new ConflictException({
+          label: 'Code Already Used',
+          detail: `The code "${data.code}" is already in use in this organization. Codes must be unique because every variant SKU is built from them.`,
+          errors: [{ field: 'code', message: 'Code already used' }],
+        });
       }
-      seenAxisIds.add(match.axis.id);
-      selected.push(match);
-    }
-
-    selected.sort((a, b) => a.axis.axisSortOrder - b.axis.axisSortOrder);
-    return selected;
-  }
-
-  // Rejects creating a variant whose option-value set already exists on the offering
-  private async assertNoDuplicateCombo(offeringId: string, optionValueIds: string[]): Promise<void> {
-    const variants = await this.offeringsRepository.findVariantsByOfferingId(offeringId);
-    const variantIds = variants.map((v) => v.id);
-    const links = await this.offeringsRepository.findVariantOptionValues(variantIds);
-
-    const target = [...optionValueIds].sort().join('|');
-    for (const variant of variants) {
-      const combo = links
-        .filter((l) => l.offeringVariantId === variant.id)
-        .map((l) => l.variantOptionValueId)
-        .sort()
-        .join('|');
-      if (combo === target) {
-        throw new ConflictException('A variant with this combination already exists.');
-      }
+      throw error;
     }
   }
 
-  // Derives the variant name from selected values, falling back to the offering name
-  private deriveVariantName(
-    selected: { axis: OfferingAxis; value: VariantOptionValue }[],
-    fallbackName: string,
-  ): string {
-    if (selected.length === 0) return fallbackName || 'Default';
-    return selected.map((s) => s.value.value).join(' / ');
+  private async assertNameFree(name: string): Promise<void> {
+    const clash = await this.repository.findOwnedByName(name);
+    if (clash) {
+      throw new ConflictException({
+        label: 'Name Already Used',
+        detail: `You already have an offering called "${name}".`,
+        errors: [{ field: 'name', message: 'Name already used' }],
+      });
+    }
   }
 
-  // Builds a SKU from offering name initials + value initials, suffixing on per-offering collisions
-  private async deriveUniqueSku(
-    offeringId: string,
-    name: string,
-    selected: { axis: OfferingAxis; value: VariantOptionValue }[],
-  ): Promise<string> {
-    const base =
-      name
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .slice(0, 3)
-        .toUpperCase() || 'VAR';
-    const initials = selected.map((s) => s.value.value.slice(0, 3).toUpperCase()).join('-');
-    const candidate = initials ? `${base}-${initials}` : base;
+  private async requireReachable(id: string): Promise<OfferingWithMeta> {
+    const row = await this.repository.findByIdWithMeta(id);
+    if (!row) throw new NotFoundException('Offering not found.');
+    return row;
+  }
 
-    const variants = await this.offeringsRepository.findVariantsByOfferingId(offeringId);
-    const used = new Set(variants.map((v) => v.sku));
+  // RLS already rejects the write; this fails earlier with a message that explains why
+  private async requireOwned(id: string): Promise<OfferingWithMeta> {
+    const row = await this.requireReachable(id);
+    if (!row.isOwned) {
+      throw new ForbiddenException({
+        label: 'Not Your Offering',
+        detail: `"${row.name}" belongs to a wider scope. Switch to the workspace that owns it, or create your own.`,
+      });
+    }
+    return row;
+  }
 
-    if (!used.has(candidate)) return candidate;
-    let suffix = 2;
-    while (used.has(`${candidate}-${suffix}`)) suffix++;
-    return `${candidate}-${suffix}`;
+  // A SERVICE offering needs no BOM line, so nothing is ever "missing" for one
+  private toDto(
+    row: OfferingWithMeta,
+    dimensionCount: number,
+    variantCount: number,
+    variantsWithoutBom = 0,
+  ): OfferingDto {
+    return OfferingDto.from(row, {
+      dimensionCount,
+      variantCount,
+      variantsMissingBomCount: row.fulfilmentType === FulfilmentTypeValues.SERVICE ? 0 : variantsWithoutBom,
+      isOwned: row.isOwned,
+      canDelete: row.isOwned && variantCount === 0,
+    });
   }
 }

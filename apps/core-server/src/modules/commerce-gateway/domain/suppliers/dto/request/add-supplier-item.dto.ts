@@ -9,6 +9,13 @@ export class AddSupplierItemDto {
   @IsNotEmpty()
   inventoryItemId: string;
 
+  @ApiProperty({
+    description:
+      "How this supplier's invoice classifies the goods — the same item can be goods from one supplier and job work from another",
+  })
+  @IsUUID()
+  taxClassId: string;
+
   @Trim()
   @ApiPropertyOptional({ description: 'Supplier-specific item code' })
   @IsOptional()

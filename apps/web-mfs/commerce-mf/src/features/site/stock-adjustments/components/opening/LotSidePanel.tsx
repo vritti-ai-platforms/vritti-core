@@ -6,8 +6,8 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Boxes, Plus } from 'lucide-react';
-import type { StockAdjustmentLotData } from '@/schemas/stock-adjustments';
 import { useStockAdjustmentLots } from '@/hooks/site/stock-adjustments';
+import type { StockAdjustmentLotData } from '@/schemas/stock-adjustments';
 import { AddLotDialog } from '../../forms/opening/AddLotDialog';
 
 interface LotSidePanelProps {

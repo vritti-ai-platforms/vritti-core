@@ -9,12 +9,10 @@ import { AUTH_STATUS_EVENTS, LegalEntityUpdatedEvent } from '@/common/events/aut
 import type { TaxRegime } from '@/db/schema';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { sequentialSortOrders } from '@/utils/sort-order';
-import { LeTaxRegistrationDto } from '../dto/entity/le-tax-registration.dto';
 import { LegalEntityDto } from '../dto/entity/legal-entity.dto';
 import type { CreateLeTaxRegistrationInternalDto } from '../dto/request/create-le-tax-registration-internal.dto';
 import type { CreateLegalEntityInternalDto } from '../dto/request/create-legal-entity-internal.dto';
 import type { UpdateLegalEntityInternalDto } from '../dto/request/update-legal-entity-internal.dto';
-import { LeTaxRegistrationDomainRepository } from '../repositories/le-tax-registration.repository';
 import { LegalEntityDomainRepository } from '../repositories/legal-entity.repository';
 
 @Injectable()
@@ -23,7 +21,6 @@ export class LegalEntityDomainService {
 
   constructor(
     private readonly legalEntityRepository: LegalEntityDomainRepository,
-    private readonly leTaxRegistrationRepository: LeTaxRegistrationDomainRepository,
     private readonly catalogService: CatalogDomainService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
@@ -105,11 +102,8 @@ export class LegalEntityDomainService {
     }
 
     if (dto.currencyCode && dto.currencyCode.toUpperCase() !== legalEntity.currencyCode) {
-      const [siteCount, registrationCount] = await Promise.all([
-        this.legalEntityRepository.countSitesByLegalEntity(id),
-        this.leTaxRegistrationRepository.countByLegalEntity(id),
-      ]);
-      if (siteCount > 0 || registrationCount > 0) {
+      const siteCount = await this.legalEntityRepository.countSitesByLegalEntity(id);
+      if (siteCount > 0) {
         throw new ConflictException({
           label: 'Currency Locked',
           detail: 'The base currency cannot change once the legal entity has sites or tax registrations.',
@@ -229,66 +223,11 @@ export class LegalEntityDomainService {
     await this.legalEntityRepository.setSortOrders(sequentialSortOrders(siblings.map((sibling) => sibling.id)));
   }
 
-  // Adds a tax registration to a legal entity
-  async addRegistration(legalEntityId: string, dto: CreateLeTaxRegistrationInternalDto): Promise<LeTaxRegistrationDto> {
-    const legalEntity = await this.legalEntityRepository.findById(legalEntityId);
-    if (!legalEntity) throw new NotFoundException('Legal entity not found.');
-
-    const existing = await this.leTaxRegistrationRepository.findByLegalEntityAndTaxNumber(legalEntityId, dto.taxNumber);
-    if (existing) {
-      throw new ConflictException({
-        label: 'Duplicate Registration',
-        detail: `Tax number "${dto.taxNumber}" is already registered on this legal entity.`,
-      });
-    }
-
-    const registration = await this.leTaxRegistrationRepository.create({
-      organizationId: legalEntity.organizationId,
-      legalEntityId,
-      taxNumber: dto.taxNumber,
-      region: dto.region ?? null,
-    });
-
-    this.logger.log(`Added tax registration "${dto.taxNumber}" to legal entity ${legalEntityId}`);
-    return LeTaxRegistrationDto.from(registration);
-  }
-
-  // Deletes a tax registration after reference checks
-  async removeRegistration(legalEntityId: string, registrationId: string): Promise<SuccessResponseDto> {
-    const registration = await this.leTaxRegistrationRepository.findById(registrationId);
-    if (!registration || registration.legalEntityId !== legalEntityId) {
-      throw new NotFoundException('Tax registration not found.');
-    }
-
-    const siteCount = await this.leTaxRegistrationRepository.countSitesByRegistration(registrationId);
-    if (siteCount > 0) {
-      throw new ConflictException({
-        label: 'Cannot Delete',
-        detail: `This tax registration is linked to ${pluralize('site', siteCount, true)}. Unlink them before deleting.`,
-      });
-    }
-
-    await this.leTaxRegistrationRepository.delete(registrationId);
-
-    this.logger.log(
-      `Deleted tax registration "${registration.taxNumber}" (${registrationId}) from legal entity ${legalEntityId}`,
-    );
-    return { success: true, message: 'Tax registration deleted successfully.' };
-  }
-
   // Returns the org's legal entities and tax registrations
-  async listByOrg(
-    orgId: string,
-  ): Promise<{ legalEntities: LegalEntityDto[]; taxRegistrations: LeTaxRegistrationDto[] }> {
-    const [entities, registrations] = await Promise.all([
-      this.legalEntityRepository.findByOrg(orgId),
-      this.leTaxRegistrationRepository.findByOrg(orgId),
-    ]);
-
-    return {
-      legalEntities: entities.map(LegalEntityDto.from),
-      taxRegistrations: registrations.map(LeTaxRegistrationDto.from),
-    };
+  // Registrations moved to commerce, so the aggregate assembles them in the API layer
+  async listByOrg(orgId: string): Promise<LegalEntityDto[]> {
+    const entities = await this.legalEntityRepository.findByOrg(orgId);
+    return entities.map(LegalEntityDto.from);
   }
 
   // Ensures the parent exists in the same organization

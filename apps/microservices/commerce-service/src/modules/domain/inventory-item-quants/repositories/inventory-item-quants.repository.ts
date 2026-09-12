@@ -28,7 +28,7 @@ export type InventoryItemQuantWithRefs = InventoryItemQuant & {
 export interface LocationItemRow {
   inventoryItemId: string;
   itemName: string;
-  itemCode: string;
+  itemSku: string;
   uomSymbol: string | null;
   totalQuantity: number;
   reservedQuantity: number;
@@ -423,7 +423,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
       select: {
         inventoryItemId: inventoryItemQuants.inventoryItemId,
         itemName: inventoryItems.name,
-        itemCode: inventoryItems.code,
+        itemSku: inventoryItems.sku,
         uomSymbol: uom.symbol,
         totalQuantity: sql<number>`SUM(${inventoryItemQuants.quantity})`.mapWith(Number),
         reservedQuantity: sql<number>`SUM(${inventoryItemQuants.reservedQuantity})`.mapWith(Number),
@@ -435,7 +435,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         { table: inventoryItems, on: eq(inventoryItemQuants.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(inventoryItems.uomId, uom.id) },
       ],
-      groupBy: [inventoryItemQuants.inventoryItemId, inventoryItems.name, inventoryItems.code, uom.symbol],
+      groupBy: [inventoryItemQuants.inventoryItemId, inventoryItems.name, inventoryItems.sku, uom.symbol],
       where,
       orderBy: options.orderBy?.length ? options.orderBy : [asc(inventoryItems.name)],
       limit: options.limit,

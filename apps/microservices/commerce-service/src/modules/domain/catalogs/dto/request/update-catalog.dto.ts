@@ -1,12 +1,14 @@
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateCatalogDto {
-  @Trim({ nullify: false })
+  @IsUUID('all')
+  id: string;
+
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(255)
+  @Trim()
   name?: string;
 
   @IsOptional()
@@ -16,14 +18,4 @@ export class UpdateCatalogDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
-  @IsOptional()
-  @IsArray()
-  @IsUUID(undefined, { each: true })
-  channelIds?: string[];
-}
-
-export class UpdateCatalogPayloadDto extends UpdateCatalogDto {
-  @IsUUID()
-  id: string;
 }

@@ -8,8 +8,8 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { PackageCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { type AddGoodsReceiptLotFormData, addGoodsReceiptLotSchema } from '@/schemas/goods-receipts';
 import { useAddGoodsReceiptLot } from '@/hooks/site/goods-receipts';
+import { type AddGoodsReceiptLotFormData, addGoodsReceiptLotSchema } from '@/schemas/goods-receipts';
 
 const AddLotForm = ({
   goodsReceiptId,

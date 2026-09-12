@@ -10,9 +10,9 @@ import { useForm } from 'react-hook-form';
 import { useUpdateTaxComponent } from '@/hooks/organization/tax-components';
 import {
   authorityLevelOptions,
+  type EditTaxComponentFormData,
+  editTaxComponentFormSchema,
   type TaxComponentData,
-  type UpdateTaxComponentFormData,
-  updateTaxComponentSchema,
 } from '@/schemas/tax-components';
 
 interface EditTaxComponentDialogProps {
@@ -26,9 +26,10 @@ export const EditTaxComponentDialog: React.FC<EditTaxComponentDialogProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<UpdateTaxComponentFormData>({
-    resolver: zodResolver(updateTaxComponentSchema),
+  const form = useForm<EditTaxComponentFormData>({
+    resolver: zodResolver(editTaxComponentFormSchema),
     defaultValues: {
+      code: taxComponent.code,
       name: taxComponent.name,
       authorityLevel: taxComponent.authorityLevel,
       isRecoverable: taxComponent.isRecoverable,
@@ -56,7 +57,7 @@ export const EditTaxComponentDialog: React.FC<EditTaxComponentDialogProps> = ({
       })}
     >
       <div className="space-y-4">
-        <TextField name="code" label="Code" value={taxComponent.code} disabled description="Code cannot be changed" />
+        <TextField name="code" label="Code" disabled description="Code cannot be changed" />
         <TextField name="name" label="Name" placeholder="e.g. Central GST" />
         <Select
           name="authorityLevel"
@@ -69,11 +70,7 @@ export const EditTaxComponentDialog: React.FC<EditTaxComponentDialogProps> = ({
           label="Recoverable"
           description="Recoverable components can be claimed back as input tax credit"
         />
-        <Switch
-          name="isWithholding"
-          label="Withholding"
-          description="Withholding components are deducted at source"
-        />
+        <Switch name="isWithholding" label="Withholding" description="Withholding components are deducted at source" />
         <Switch
           name="isActive"
           label="Active"

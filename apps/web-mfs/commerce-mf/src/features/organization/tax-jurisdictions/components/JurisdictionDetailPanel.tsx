@@ -118,7 +118,8 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
     slug: `commerce-org-tax-jurisdiction-${jurisdiction.id}-children`,
     label: 'child jurisdiction',
     enableRowSelection: false,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: TAX_JURISDICTION_CHILDREN_TABLE_KEY(jurisdiction.id) }),
+    onStatePush: () =>
+      queryClient.invalidateQueries({ queryKey: TAX_JURISDICTION_CHILDREN_TABLE_KEY(jurisdiction.id) }),
   });
 
   const handleDelete = async () => {
@@ -179,12 +180,7 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
       <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
         <DetailSection wrap>
           <DetailField className="px-4 py-2" label="Code" type="string" value={jurisdiction.code} mono />
-          <DetailField
-            className="px-4 py-2"
-            label="Level"
-            type="string"
-            value={LEVEL_LABELS[jurisdiction.level]}
-          />
+          <DetailField className="px-4 py-2" label="Level" type="string" value={LEVEL_LABELS[jurisdiction.level]} />
           <DetailField className="px-4 py-2" label="Country" type="string" value={jurisdiction.countryCode} />
           <DetailField className="px-4 py-2" label="Region Code" type="string" value={jurisdiction.regionCode} />
           <DetailField className="px-4 py-2" label="Tax Union" type="string" value={jurisdiction.taxUnion} />

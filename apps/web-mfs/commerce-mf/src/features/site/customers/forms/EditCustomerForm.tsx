@@ -7,8 +7,8 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { type CustomerDetail, type UpdateCustomerFormData, updateCustomerSchema } from '@/schemas/customers';
 import { useUpdateCustomer } from '@/hooks/site/customers';
+import { type CustomerDetail, type UpdateCustomerFormData, updateCustomerSchema } from '@/schemas/customers';
 
 interface EditCustomerFormProps {
   customer: CustomerDetail;

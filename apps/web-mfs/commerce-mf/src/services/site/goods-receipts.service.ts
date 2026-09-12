@@ -1,4 +1,5 @@
 import axios from '@vritti/quantum-ui/axios';
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   GoodsReceiptData,
@@ -27,7 +28,7 @@ export interface AddGoodsReceiptItemFromSupplierItemPayload {
   supplierItemId: string;
   orderedQty: number;
   rejectedQuantity?: number;
-  unitPrice?: { currency: string; value: string };
+  unitPrice?: CurrencyValue;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   hasScheme?: boolean;
@@ -37,7 +38,7 @@ export interface AddGoodsReceiptItemFromPurchaseOrderItemPayload {
   purchaseOrderItemId: string;
   orderedQty: number;
   rejectedQuantity?: number;
-  unitPrice?: { currency: string; value: string };
+  unitPrice?: CurrencyValue;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   hasScheme?: boolean;
@@ -46,7 +47,7 @@ export interface AddGoodsReceiptItemFromPurchaseOrderItemPayload {
 export interface UpdateGoodsReceiptItemPayload {
   orderedQty?: number;
   rejectedQuantity?: number;
-  unitPrice?: { currency: string; value: string };
+  unitPrice?: CurrencyValue;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   hasScheme?: boolean;

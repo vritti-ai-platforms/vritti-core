@@ -8,19 +8,24 @@ import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
+import { LeOfferingDimensionTemplatesModule } from './modules/legal-entity/offering-dimension-templates/offering-dimension-templates.module';
+import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.module';
 import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
+import { LeTaxRegistrationsModule } from './modules/legal-entity/tax-registrations/tax-registrations.module';
+import { OrgCatalogChannelsModule } from './modules/organization/catalog-channels/catalog-channels.module';
+import { OrgCatalogsModule } from './modules/organization/catalogs/catalogs.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
 import { OrgCompaniesModule } from './modules/organization/companies/companies.module';
 import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
+import { OrgOfferingDimensionTemplatesModule } from './modules/organization/offering-dimension-templates/offering-dimension-templates.module';
+import { OrgOfferingsModule } from './modules/organization/offerings/offerings.module';
 import { OrgPeopleModule } from './modules/organization/people/people.module';
-import { OrgSalesChannelsModule } from './modules/organization/sales-channels/sales-channels.module';
 import { OrgTaxClassesModule } from './modules/organization/tax-classes/tax-classes.module';
 import { OrgTaxComponentsModule } from './modules/organization/tax-components/tax-components.module';
 import { OrgTaxJurisdictionsModule } from './modules/organization/tax-jurisdictions/tax-jurisdictions.module';
 import { OrgUomModule } from './modules/organization/uom/uom.module';
 import { SelectModule } from './modules/select/select.module';
-import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
 import { SiteCustomersModule } from './modules/site/customers/customers.module';
 import { SiteGoodsReceiptsModule } from './modules/site/goods-receipts/goods-receipts.module';
@@ -28,6 +33,8 @@ import { SiteInventoryItemsModule } from './modules/site/inventory-items/invento
 import { SiteInvoicesModule } from './modules/site/invoices/invoices.module';
 import { SiteLocationsModule } from './modules/site/locations/locations.module';
 import { SiteLocationQuantsModule } from './modules/site/locations/quants/location-quants.module';
+import { SiteOfferingDimensionTemplatesModule } from './modules/site/offering-dimension-templates/offering-dimension-templates.module';
+import { SiteOfferingsModule } from './modules/site/offerings/offerings.module';
 import { SiteOrdersModule } from './modules/site/orders/orders.module';
 import { SitePaymentsModule } from './modules/site/payments/payments.module';
 import { SitePosTerminalsModule } from './modules/site/pos-terminals/pos-terminals.module';
@@ -87,16 +94,23 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     OrgCategoriesModule,
     OrgPeopleModule,
     OrgCompaniesModule,
-    OrgSalesChannelsModule,
     OrgTaxClassesModule,
     OrgTaxComponentsModule,
     OrgTaxJurisdictionsModule,
     OrgUomModule,
+    OrgCatalogsModule,
+    OrgCatalogChannelsModule,
     OrgInventoryItemsModule,
+    OrgOfferingDimensionTemplatesModule,
+    OrgOfferingsModule,
     LeCostCategoriesModule,
     LeTaxGroupsModule,
+    LeTaxRegistrationsModule,
     LeSuppliersModule,
-    SiteCatalogsModule,
+    LeOfferingDimensionTemplatesModule,
+    LeOfferingsModule,
+    SiteOfferingDimensionTemplatesModule,
+    SiteOfferingsModule,
     SiteInventoryItemsModule,
     SiteGroupInventoryItemsModule,
     SitePurchaseOrdersModule,

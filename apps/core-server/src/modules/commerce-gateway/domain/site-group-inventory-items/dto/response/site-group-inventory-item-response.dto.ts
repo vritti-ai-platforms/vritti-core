@@ -4,7 +4,7 @@ export class SiteGroupInventoryItemResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() inventoryItemId: string;
   @ApiProperty() itemName: string;
-  @ApiProperty() itemCode: string;
+  @ApiProperty() itemSku: string;
   @ApiProperty() siteId: string;
   @ApiProperty() isStocked: boolean;
   @ApiProperty() reorderPoint: number;

@@ -21,7 +21,7 @@ export class CreateInventoryItemInput {
   @IsNotEmpty()
   @MaxLength(100)
   @IsCode()
-  code: string;
+  sku: string;
 
   @Field(() => String)
   @IsEnum(ITEM_TYPES)
@@ -78,7 +78,7 @@ export class UpdateInventoryItemInput {
   @IsString()
   @MaxLength(100)
   @IsCode()
-  code?: string;
+  sku?: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()

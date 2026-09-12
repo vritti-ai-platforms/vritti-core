@@ -1,6 +1,4 @@
-import { LeTaxRegistrationDto } from '@domain/legal-entity/dto/entity/le-tax-registration.dto';
 import { LegalEntityDto } from '@domain/legal-entity/dto/entity/legal-entity.dto';
-import { CreateLeTaxRegistrationInternalDto } from '@domain/legal-entity/dto/request/create-le-tax-registration-internal.dto';
 import { CreateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/create-legal-entity-internal.dto';
 import { ReorderLegalEntitiesInternalDto } from '@domain/legal-entity/dto/request/reorder-legal-entities-internal.dto';
 import { UpdateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/update-legal-entity-internal.dto';
@@ -27,10 +25,8 @@ import { OrgStructureSelectQueryDto } from '../dto/request/org-structure-select-
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';
 import type { FeatureLocksResponseDto } from '../dto/response/feature-locks-response.dto';
 import {
-  ApiAddLeTaxRegistration,
   ApiCreateLegalEntity,
   ApiDeleteLegalEntity,
-  ApiDeleteLeTaxRegistration,
   ApiGetLegalEntityLocks,
   ApiListLegalEntityRoleAssignments,
   ApiReorderLegalEntities,
@@ -107,18 +103,6 @@ export class LegalEntityController {
     return this.legalEntityApiService.setFeatureLocks(id, dto);
   }
 
-  // Adds a tax registration to a legal entity
-  @Post(':id/registrations')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiAddLeTaxRegistration()
-  async addRegistration(
-    @Param('id') id: string,
-    @Body() dto: CreateLeTaxRegistrationInternalDto,
-  ): Promise<LeTaxRegistrationDto> {
-    this.logger.log(`POST /legal-entities/internal/${id}/registrations`);
-    return this.legalEntityApiService.addRegistration(id, dto);
-  }
-
   // Deletes a legal entity
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
@@ -126,14 +110,5 @@ export class LegalEntityController {
   async remove(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /legal-entities/internal/${id}`);
     return this.legalEntityApiService.remove(id);
-  }
-
-  // Deletes a tax registration from a legal entity
-  @Delete(':id/registrations/:regId')
-  @HttpCode(HttpStatus.OK)
-  @ApiDeleteLeTaxRegistration()
-  async removeRegistration(@Param('id') id: string, @Param('regId') regId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /legal-entities/internal/${id}/registrations/${regId}`);
-    return this.legalEntityApiService.deleteRegistration(id, regId);
   }
 }

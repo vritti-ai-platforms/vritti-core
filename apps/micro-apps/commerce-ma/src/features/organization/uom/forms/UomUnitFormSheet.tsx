@@ -99,9 +99,7 @@ export const UomUnitFormSheet = forwardRef<BottomSheetRef, UomUnitFormSheetProps
       name: values.name,
       symbol: values.symbol,
       allowDecimal,
-      ...(isDerived
-        ? { baseUnitId: values.baseUnitId, uomQty: values.uomQty, baseUomQty: values.baseUomQty }
-        : {}),
+      ...(isDerived ? { baseUnitId: values.baseUnitId, uomQty: values.uomQty, baseUomQty: values.baseUomQty } : {}),
     };
     const result = await createUom({ variables: { input } });
     if (!result.error) close();

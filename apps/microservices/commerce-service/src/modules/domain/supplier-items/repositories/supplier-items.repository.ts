@@ -5,18 +5,7 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk/database';
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  getTableColumns,
-  inArray,
-  ne,
-  notInArray,
-  type SQL,
-  sql,
-} from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, getColumns, inArray, ne, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
   goodsReceiptItems,
@@ -144,7 +133,7 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       SupplierItem & { inventoryItemName: string; uomSymbol: string; currentUnitPrice: bigint | null }
     >({
       select: {
-        ...getTableColumns(supplierItems),
+        ...getColumns(supplierItems),
         inventoryItemName: inventoryItems.name,
         uomSymbol: uom.symbol,
         currentUnitPrice: currentPriceSql(),
@@ -179,7 +168,7 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string; currentUnitPrice: bigint | null }
     >({
       select: {
-        ...getTableColumns(supplierItems),
+        ...getColumns(supplierItems),
         supplierName: parties.displayName,
         supplierCode: suppliers.code,
         uomSymbol: uom.symbol,
@@ -215,7 +204,7 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string; currentUnitPrice: bigint | null }
     >({
       select: {
-        ...getTableColumns(supplierItems),
+        ...getColumns(supplierItems),
         supplierName: parties.displayName,
         supplierCode: suppliers.code,
         uomSymbol: uom.symbol,
@@ -312,7 +301,7 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   ): Promise<(SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined> {
     const [row] = await this.db
       .select({
-        ...getTableColumns(supplierItems),
+        ...getColumns(supplierItems),
         inventoryItemName: inventoryItems.name,
         uomSymbol: uom.symbol,
       })
@@ -337,7 +326,7 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   > {
     const [row] = await this.db
       .select({
-        ...getTableColumns(supplierItems),
+        ...getColumns(supplierItems),
         inventoryItemName: inventoryItems.name,
         uomSymbol: uom.symbol,
         supplierCode: suppliers.code,

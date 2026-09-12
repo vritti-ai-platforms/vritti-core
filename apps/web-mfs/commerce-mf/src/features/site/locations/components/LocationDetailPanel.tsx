@@ -20,7 +20,6 @@ import { Typography } from '@vritti/quantum-ui/Typography';
 import { Boxes, Eye, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import { type LocationData, type LocationItemRow, LocationRoleLabels } from '@/schemas/locations';
 import {
   LOCATION_CHILDREN_TABLE_KEY,
   LOCATION_ITEMS_TABLE_KEY,
@@ -29,6 +28,7 @@ import {
   useLocationChildrenTable,
   useLocationItemsTable,
 } from '@/hooks/site/locations';
+import { type LocationData, type LocationItemRow, LocationRoleLabels } from '@/schemas/locations';
 import { AddLocationDialog } from '../forms/AddLocationDialog';
 import { EditLocationDialog } from '../forms/EditLocationDialog';
 import { LocationDetailPanelSkeleton } from './LocationDetailPanelSkeleton';
@@ -297,7 +297,7 @@ const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId 
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span>{row.original.itemName}</span>
-            <span className="text-xs text-muted-foreground font-mono">{row.original.itemCode}</span>
+            <span className="text-xs text-muted-foreground font-mono">{row.original.itemSku}</span>
           </div>
         ),
       },

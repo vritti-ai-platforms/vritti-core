@@ -1,7 +1,7 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { getCostCategoriesTable } from '@/services/legal-entity/cost-categories.service';
 import type { CostCategoriesTableResponse } from '@/schemas/cost-categories';
+import { getCostCategoriesTable } from '@/services/legal-entity/cost-categories.service';
 import { COST_CATEGORIES_TABLE_KEY } from './keys';
 
 export function useCostCategoriesTable(

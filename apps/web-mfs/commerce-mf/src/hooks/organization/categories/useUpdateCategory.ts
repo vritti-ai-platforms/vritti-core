@@ -1,8 +1,8 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { updateCategory } from '@/services/organization/categories.service';
 import type { CategoryFormData, SuccessResponse } from '@/schemas/categories';
+import { updateCategory } from '@/services/organization/categories.service';
 import { CATEGORIES_KEY } from './keys';
 
 type UpdateCategoryVariables = { id: string; data: Partial<CategoryFormData> };

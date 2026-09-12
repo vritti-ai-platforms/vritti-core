@@ -1,46 +1,50 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { check, index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogs } from './catalogs';
 import { commerceSchema } from './commerce-schema';
-import { salesChannels } from './sales-channels';
+import { catalogChannelTypeEnum } from './enums';
+import { posTerminals } from './pos-terminals';
 
 export const catalogChannels = commerceSchema.table(
   'catalog_channels',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     catalogId: uuid('catalog_id')
       .notNull()
       .references(() => catalogs.id, { onDelete: 'cascade' }),
-    channelId: uuid('channel_id')
-      .notNull()
-      .references(() => salesChannels.id, { onDelete: 'cascade' }),
+    type: catalogChannelTypeEnum('type').notNull(),
+    legalEntityId: uuid('legal_entity_id'),
+    siteId: uuid('site_id'),
+    appId: uuid('app_id'),
+    terminalId: uuid('terminal_id').references(() => posTerminals.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_catalog_channels_bu_channel').on(table.siteId, table.channelId),
+    // One catalog per channel per scope, so resolution never has a tie to break
+    unique('uq_catalog_channels_scope')
+      .on(table.type, table.organizationId, table.legalEntityId, table.siteId, table.appId, table.terminalId)
+      .nullsNotDistinct(),
+    check(
+      'ck_catalog_channels_target_matches_type',
+      sql`case ${table.type}
+            when 'APP' then ${table.terminalId} is null
+            when 'POS' then ${table.appId} is null
+            else ${table.appId} is null and ${table.terminalId} is null
+          end`,
+    ),
+    // A till belongs to an outlet, so naming one without its site is incoherent
+    check('ck_catalog_channels_terminal_needs_site', sql`${table.terminalId} is null or ${table.siteId} is not null`),
+    check('ck_catalog_channels_site_needs_le', sql`${table.siteId} is null or ${table.legalEntityId} is not null`),
     index('idx_catalog_channels_catalog').on(table.catalogId),
-    index('idx_catalog_channels_channel').on(table.channelId),
+    index('idx_catalog_channels_resolve').on(table.type, table.organizationId, table.legalEntityId, table.siteId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
     }),
   ],
 );

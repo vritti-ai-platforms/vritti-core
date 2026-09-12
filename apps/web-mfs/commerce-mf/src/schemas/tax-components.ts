@@ -38,6 +38,10 @@ export const updateTaxComponentSchema = z.object({
 export type CreateTaxComponentFormData = z.infer<typeof createTaxComponentSchema>;
 export type UpdateTaxComponentFormData = z.infer<typeof updateTaxComponentSchema>;
 
+// `code` is immutable but shown disabled in the edit form, so it belongs to the form type only
+export const editTaxComponentFormSchema = updateTaxComponentSchema.extend({ code: z.string() });
+export type EditTaxComponentFormData = z.infer<typeof editTaxComponentFormSchema>;
+
 export interface TaxComponentData {
   id: string;
   code: string;

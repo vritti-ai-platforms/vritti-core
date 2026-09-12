@@ -1,6 +1,7 @@
 import { Breadcrumb } from '@vritti/quantum-ui/Breadcrumb';
 import { Button } from '@vritti/quantum-ui/Button';
 import { cn } from '@vritti/quantum-ui/cn';
+import { parseSlug } from '@vritti/quantum-ui/slug';
 import {
   Bell,
   Building2,
@@ -22,7 +23,9 @@ import { useAuth } from '../../providers/AuthProvider';
 import { usePermissionContext } from '../../providers/PermissionProvider';
 import type { WorkspaceKind } from '../../utils/workspace';
 import { WORKSPACE_SLUG_PREFIXES } from '../../utils/workspace';
+import { OfferingSwitcher } from './switchers/OfferingSwitcher';
 import { RepositorySwitcher } from './switchers/RepositorySwitcher';
+import { VariantSwitcher } from './switchers/VariantSwitcher';
 import { WhatsappAccountSwitcher } from './switchers/WhatsappAccountSwitcher';
 import { UserMenu } from './UserMenu';
 
@@ -43,9 +46,10 @@ const KIND_ICONS: Record<WorkspaceKind, LucideIcon> = {
 // Detail-crumb switchers keyed by the catalog routePrefix that owns them. A remote's detail crumb is inert
 // on its own — it links back to the page you are already on — so the host swaps it for a switcher. Future
 // features register one line here.
-const DETAIL_SWITCHERS: Record<string, ComponentType<{ repoName: string; basePath: string }>> = {
+const DETAIL_SWITCHERS: Record<string, ComponentType<{ segment: string; basePath: string }>> = {
   repositories: RepositorySwitcher,
   'whatsapp-accounts': WhatsappAccountSwitcher,
+  offerings: OfferingSwitcher,
 };
 
 const SITE_TYPE_ICONS: Record<string, LucideIcon> = {
@@ -95,13 +99,32 @@ export const TopBar = () => {
                   // Feature routes mount at `/:workspaceSlug/<routePrefix>/*`, so a depth of exactly 4 is the
                   // detail segment — deeper ones (a tab, or `actions/:runId`) stay plain crumbs
                   const parts = segment.path.split('/');
+                  // A static child route sits at the same depth as a detail id — `/variants/generate`
+                  // reads as a variant slug otherwise, and the switcher queries for an id of "generate"
+                  if (!parseSlug(segment.raw)) return undefined;
+
                   if (parts.length === 4) {
                     const Switcher = DETAIL_SWITCHERS[parts[2]];
                     if (Switcher) {
                       return (
-                        <Switcher key={segment.raw} repoName={segment.raw} basePath={parts.slice(0, 3).join('/')} />
+                        <Switcher key={segment.raw} segment={segment.raw} basePath={parts.slice(0, 3).join('/')} />
                       );
                     }
+                  }
+
+                  // A variant sits two levels deeper — `/:ws/offerings/<offering>/variants/<variant>` —
+                  // and its options are scoped by the offering above it, so it takes the parent's id
+                  if (parts.length === 6 && parts[2] === 'offerings' && parts[4] === 'variants') {
+                    const parent = parseSlug(parts[3]);
+                    if (!parent) return undefined;
+                    return (
+                      <VariantSwitcher
+                        key={segment.raw}
+                        segment={segment.raw}
+                        offeringId={parent.id}
+                        basePath={parts.slice(0, 5).join('/')}
+                      />
+                    );
                   }
 
                   const isWorkspace = WORKSPACE_SLUG_PREFIXES.some(({ prefix }) => segment.raw.startsWith(prefix));

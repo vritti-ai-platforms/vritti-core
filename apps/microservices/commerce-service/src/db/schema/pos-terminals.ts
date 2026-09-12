@@ -1,6 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { catalogs } from './catalogs';
 import { commerceSchema } from './commerce-schema';
 import { locations } from './locations';
 
@@ -15,7 +14,6 @@ export const posTerminals = commerceSchema.table(
     locationId: uuid('location_id')
       .notNull()
       .references(() => locations.id, { onDelete: 'restrict' }),
-    catalogId: uuid('catalog_id').references(() => catalogs.id, { onDelete: 'set null' }),
     description: varchar('description', { length: 500 }),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

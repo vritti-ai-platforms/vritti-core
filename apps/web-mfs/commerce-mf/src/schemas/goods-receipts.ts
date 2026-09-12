@@ -1,3 +1,4 @@
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
@@ -33,7 +34,7 @@ export interface GoodsReceiptPoData {
   poNumber: string;
   orderDate: string;
   expectedBy: string | null;
-  totalAmount: { currency: string; value: string };
+  totalAmount: CurrencyValue;
 }
 
 export interface GoodsReceiptData {
@@ -89,9 +90,9 @@ export interface GoodsReceiptItemData {
   poOrderedQuantity: number | null;
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
-  unitPrice: { currency: string; value: string } | null;
-  unitCost: { currency: string; value: string } | null;
-  lineTotal: { currency: string; value: string } | null;
+  unitPrice: CurrencyValue | null;
+  unitCost: CurrencyValue | null;
+  lineTotal: CurrencyValue | null;
   metadata: Record<string, unknown>;
   createdAt: string;
 }
@@ -104,16 +105,16 @@ export interface GoodsReceiptItemsCostRow {
   orderedQty: number;
   freeQty: number;
   totalQty: number;
-  unitPrice: { currency: string; value: string } | null;
-  unitCost: { currency: string; value: string } | null;
-  lineTotal: { currency: string; value: string } | null;
-  mrp: { currency: string; value: string } | null;
+  unitPrice: CurrencyValue | null;
+  unitCost: CurrencyValue | null;
+  lineTotal: CurrencyValue | null;
+  mrp: CurrencyValue | null;
 }
 
 export interface GoodsReceiptItemsCostData {
   rows: GoodsReceiptItemsCostRow[];
   currencyCode: string | null;
-  grandTotal: { currency: string; value: string } | null;
+  grandTotal: CurrencyValue | null;
 }
 
 export interface GoodsReceiptItemQuantRow {
@@ -121,16 +122,16 @@ export interface GoodsReceiptItemQuantRow {
   locationName: string | null;
   lotNumber: string | null;
   quantity: number;
-  unitCost: { currency: string; value: string } | null;
-  totalCost: { currency: string; value: string } | null;
-  quantCost: { currency: string; value: string } | null;
-  quantValue: { currency: string; value: string } | null;
+  unitCost: CurrencyValue | null;
+  totalCost: CurrencyValue | null;
+  quantCost: CurrencyValue | null;
+  quantValue: CurrencyValue | null;
 }
 
 export interface GoodsReceiptItemQuantsData {
   rows: GoodsReceiptItemQuantRow[];
   currencyCode: string | null;
-  grandTotal: { currency: string; value: string } | null;
+  grandTotal: CurrencyValue | null;
 }
 
 export interface GoodsReceiptLotData {
@@ -140,7 +141,7 @@ export interface GoodsReceiptLotData {
   manufacturingDate: string | null;
   expiryDate: string | null;
   resolvedLotId: string | null;
-  mrp: { currency: string; value: string } | null;
+  mrp: CurrencyValue | null;
   linesCount: number;
   totalQuantity: number;
   metadata: Record<string, unknown>;

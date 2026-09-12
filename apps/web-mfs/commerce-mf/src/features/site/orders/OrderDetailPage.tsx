@@ -8,8 +8,8 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CheckCircle, ChefHat, PackageCheck, ThumbsUp, XCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import type { OrderChannel, OrderStatus, OrderType } from '@/schemas/orders';
 import { useOrder, useUpdateOrderStatus } from '@/hooks/site/orders';
+import type { OrderChannel, OrderStatus, OrderType } from '@/schemas/orders';
 
 const statusConfig: Record<
   OrderStatus,

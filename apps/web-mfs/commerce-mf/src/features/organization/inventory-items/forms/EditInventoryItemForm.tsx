@@ -4,7 +4,6 @@ import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
-import { TaxClassSelector } from '@vritti/quantum-ui/selects/tax-class';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -15,6 +14,7 @@ import { useUpdateInventoryItem } from '@/hooks/organization/inventory-items';
 import {
   type InventoryItemData,
   inventoryItemTypeOptions,
+  pickStrategyOptions,
   type UpdateOrgInventoryItemFormData,
   updateOrgInventoryItemSchema,
 } from '@/schemas/inventory-items';
@@ -25,25 +25,18 @@ interface EditInventoryItemFormProps {
   onCancel: () => void;
 }
 
-const pickStrategyOptions = [
-  { value: 'none', label: 'None — free pick' },
-  { value: 'fifo', label: 'FIFO — oldest received first' },
-  { value: 'fefo', label: 'FEFO — nearest expiry first' },
-];
-
 export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ item, onSuccess, onCancel }) => {
   const form = useForm<UpdateOrgInventoryItemFormData>({
     resolver: zodResolver(updateOrgInventoryItemSchema),
     defaultValues: {
       name: item.name,
-      code: item.code,
+      sku: item.sku,
       type: item.type,
       pickStrategy: item.pickStrategy,
       categoryId: item.categoryId,
       description: item.description ?? '',
       uomId: item.uomId,
       hsnCode: item.hsnCode ?? '',
-      taxClassId: item.taxClassId ?? undefined,
     },
   });
 
@@ -63,18 +56,16 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
         <FormSection title="Basic Info" contentClassName="block">
           <div className="grid grid-cols-3 gap-4">
             <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
-            <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
+            <TextField name="sku" label="SKU" placeholder="e.g. raw-rice-bas" />
             <Select name="type" label="Type" placeholder="Select type" options={inventoryItemTypeOptions} />
             <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
             <div className="col-span-2">
               <CategorySelector
                 name="categoryId"
-                fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'path', additionalKeys: 'defaultTaxClassId' }}
-                onOptionSelect={(o) => {
-                  const defaultTaxClassId = o?.additionals?.defaultTaxClassId as string | null | undefined;
-                  if (defaultTaxClassId) {
-                    form.setValue('taxClassId', defaultTaxClassId, { shouldValidate: true, shouldDirty: true });
-                  }
+                fieldKeys={{
+                  valueKey: 'id',
+                  labelKey: 'name',
+                  descriptionKey: 'path',
                 }}
               />
             </div>
@@ -90,7 +81,6 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
         <FormSection title="Compliance" contentClassName="block">
           <div className="grid grid-cols-2 gap-4">
             <TextField name="hsnCode" label="HSN Code" placeholder="e.g. 1006" />
-            <TaxClassSelector name="taxClassId" />
           </div>
         </FormSection>
 

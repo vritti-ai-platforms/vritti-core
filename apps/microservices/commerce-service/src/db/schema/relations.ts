@@ -10,92 +10,74 @@ export const relations = defineRelations(schema, (r) => ({
     inventoryItems: r.many.inventoryItems(),
   },
   offerings: {
-    catalog: r.one.catalogs({
-      from: r.offerings.catalogId,
-      to: r.catalogs.id,
+    taxClass: r.one.taxClasses({
+      from: r.offerings.taxClassId,
+      to: r.taxClasses.id,
     }),
-    salesTaxGroup: r.one.taxGroups({
-      from: r.offerings.salesTaxGroupId,
-      to: r.taxGroups.id,
-    }),
-    offeringOptions: r.many.offeringOptions(),
+    dimensions: r.many.offeringDimensions(),
+    variants: r.many.offeringVariants(),
     itemFieldValues: r.many.itemFieldValues(),
     orderItems: r.many.orderItems(),
   },
-  offeringOptions: {
+  offeringDimensions: {
     offering: r.one.offerings({
-      from: r.offeringOptions.offeringId,
+      from: r.offeringDimensions.offeringId,
       to: r.offerings.id,
     }),
-    variantOption: r.one.variantOptions({
-      from: r.offeringOptions.variantOptionId,
-      to: r.variantOptions.id,
-    }),
+    values: r.many.offeringDimensionValues(),
   },
-  variantOptions: {
-    catalog: r.one.catalogs({
-      from: r.variantOptions.catalogId,
-      to: r.catalogs.id,
-    }),
-    values: r.many.variantOptionValues(),
-  },
-  variantOptionValues: {
-    variantOption: r.one.variantOptions({
-      from: r.variantOptionValues.variantOptionId,
-      to: r.variantOptions.id,
+  offeringDimensionValues: {
+    dimension: r.one.offeringDimensions({
+      from: r.offeringDimensionValues.dimensionId,
+      to: r.offeringDimensions.id,
     }),
   },
   offeringVariants: {
-    components: r.many.offeringVariantComponents(),
+    offering: r.one.offerings({
+      from: r.offeringVariants.offeringId,
+      to: r.offerings.id,
+    }),
+    salesUom: r.one.uom({
+      from: r.offeringVariants.salesUomId,
+      to: r.uom.id,
+    }),
+    dimensionValues: r.many.offeringVariantValues(),
+    bom: r.many.offeringBom(),
     orderItems: r.many.orderItems(),
   },
-  offeringVariantOptionValues: {
-    variantOptionValue: r.one.variantOptionValues({
-      from: r.offeringVariantOptionValues.variantOptionValueId,
-      to: r.variantOptionValues.id,
+  offeringVariantValues: {
+    variant: r.one.offeringVariants({
+      from: r.offeringVariantValues.variantId,
+      to: r.offeringVariants.id,
+    }),
+    dimension: r.one.offeringDimensions({
+      from: r.offeringVariantValues.dimensionId,
+      to: r.offeringDimensions.id,
+    }),
+    value: r.one.offeringDimensionValues({
+      from: r.offeringVariantValues.valueId,
+      to: r.offeringDimensionValues.id,
     }),
   },
-  offeringVariantComponents: {
+  offeringBom: {
     variant: r.one.offeringVariants({
-      from: r.offeringVariantComponents.offeringVariantId,
+      from: r.offeringBom.variantId,
       to: r.offeringVariants.id,
     }),
     inventoryItem: r.one.inventoryItems({
-      from: r.offeringVariantComponents.inventoryItemId,
+      from: r.offeringBom.inventoryItemId,
       to: r.inventoryItems.id,
     }),
-  },
-  modifierGroups: {
-    catalog: r.one.catalogs({
-      from: r.modifierGroups.catalogId,
-      to: r.catalogs.id,
+    uom: r.one.uom({
+      from: r.offeringBom.uomId,
+      to: r.uom.id,
     }),
   },
+  modifierGroups: {},
   modifierOptions: {},
   offeringModifierGroups: {},
-  salesChannels: {
-    catalogChannels: r.many.catalogChannels(),
-    orders: r.many.orders(),
-  },
-  catalogs: {
-    channelAssignments: r.many.catalogChannels(),
-    offerings: r.many.offerings(),
-    modifierGroups: r.many.modifierGroups(),
-    variantOptions: r.many.variantOptions(),
-  },
-  catalogChannels: {
-    catalog: r.one.catalogs({
-      from: r.catalogChannels.catalogId,
-      to: r.catalogs.id,
-    }),
-    channel: r.one.salesChannels({
-      from: r.catalogChannels.channelId,
-      to: r.salesChannels.id,
-    }),
-  },
   taxGroups: {
     taxRates: r.many.taxRates(),
-    offerings: r.many.offerings(),
   },
   taxRates: {
     taxGroup: r.one.taxGroups({
@@ -108,7 +90,7 @@ export const relations = defineRelations(schema, (r) => ({
   },
   itemFieldValues: {
     offering: r.one.offerings({
-      from: r.itemFieldValues.itemId,
+      from: r.itemFieldValues.listingId,
       to: r.offerings.id,
     }),
     fieldDefinition: r.one.itemFieldDefinitions({
@@ -165,10 +147,6 @@ export const relations = defineRelations(schema, (r) => ({
     location: r.one.locations({
       from: r.posTerminals.locationId,
       to: r.locations.id,
-    }),
-    catalog: r.one.catalogs({
-      from: r.posTerminals.catalogId,
-      to: r.catalogs.id,
     }),
   },
   inventoryItemQuants: {
@@ -521,10 +499,6 @@ export const relations = defineRelations(schema, (r) => ({
     }),
   },
   orders: {
-    salesChannel: r.one.salesChannels({
-      from: r.orders.channelId,
-      to: r.salesChannels.id,
-    }),
     customer: r.one.customers({
       from: r.orders.customerId,
       to: r.customers.id,
@@ -609,6 +583,15 @@ export const relations = defineRelations(schema, (r) => ({
     uom: r.one.uom({
       from: r.inventoryItemUomConversions.uomId,
       to: r.uom.id,
+    }),
+  },
+  offeringDimensionTemplates: {
+    values: r.many.offeringDimensionTemplateValues(),
+  },
+  offeringDimensionTemplateValues: {
+    template: r.one.offeringDimensionTemplates({
+      from: r.offeringDimensionTemplateValues.templateId,
+      to: r.offeringDimensionTemplates.id,
     }),
   },
 }));

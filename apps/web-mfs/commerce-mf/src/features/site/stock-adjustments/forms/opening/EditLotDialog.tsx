@@ -7,12 +7,12 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { ClipboardMinus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useUpdateStockAdjustmentLot } from '@/hooks/site/stock-adjustments';
 import {
   type AddStockAdjustmentLotFormData,
   addStockAdjustmentLotSchema,
   type StockAdjustmentLotData,
 } from '@/schemas/stock-adjustments';
-import { useUpdateStockAdjustmentLot } from '@/hooks/site/stock-adjustments';
 
 const toDateInput = (value: string | null): string => (value ? value.slice(0, 10) : '');
 

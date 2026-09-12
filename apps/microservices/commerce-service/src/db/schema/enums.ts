@@ -2,28 +2,25 @@ import { commerceSchema } from './commerce-schema';
 
 export const modifierSelectionTypeEnum = commerceSchema.enum('modifier_selection_type', ['SINGLE', 'MULTI']);
 
-export const salesChannelKindEnum = commerceSchema.enum('sales_channel_kind', [
-  'IN_STORE',
-  'ONLINE',
-  'ZOMATO',
-  'SWIGGY',
-  'OTHER',
-]);
-export const fulfilmentTypeEnum = commerceSchema.enum('fulfilment_type', ['STOCK', 'SERVICE', 'COMPOSITE']);
+// How a sale reaches us, decided by which API surface the caller authenticated against — never sent
+// by the client. Arrival mechanics only: a marketplace's tax status belongs on the catalog, not here.
+export const catalogChannelTypeEnum = commerceSchema.enum('catalog_channel_type', ['APP', 'POS', 'B2B']);
+// STOCK = resolves to one stocked item · ASSEMBLY = made to order, components transformed
+// COMPOSITE = bundled at fulfilment, not transformed · SERVICE = nothing physical
+export const fulfilmentTypeEnum = commerceSchema.enum('fulfilment_type', ['STOCK', 'ASSEMBLY', 'COMPOSITE', 'SERVICE']);
 
-export type SalesChannelKind = (typeof salesChannelKindEnum.enumValues)[number];
+export type CatalogChannelType = (typeof catalogChannelTypeEnum.enumValues)[number];
 export type FulfilmentType = (typeof fulfilmentTypeEnum.enumValues)[number];
-export const SalesChannelKindValues = {
-  IN_STORE: 'IN_STORE' as const,
-  ONLINE: 'ONLINE' as const,
-  ZOMATO: 'ZOMATO' as const,
-  SWIGGY: 'SWIGGY' as const,
-  OTHER: 'OTHER' as const,
+export const CatalogChannelTypeValues = {
+  APP: 'APP' as const,
+  POS: 'POS' as const,
+  B2B: 'B2B' as const,
 };
 export const FulfilmentTypeValues = {
   STOCK: 'STOCK' as const,
-  SERVICE: 'SERVICE' as const,
+  ASSEMBLY: 'ASSEMBLY' as const,
   COMPOSITE: 'COMPOSITE' as const,
+  SERVICE: 'SERVICE' as const,
 };
 
 export const orderSourceEnum = commerceSchema.enum('order_source', ['ONLINE', 'WALK_IN']);

@@ -1,8 +1,8 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { createTaxJurisdiction } from '@/services/organization/tax-jurisdictions.service';
 import type { TaxJurisdictionCreateResponse, TaxJurisdictionFormData } from '@/schemas/tax-jurisdictions';
+import { createTaxJurisdiction } from '@/services/organization/tax-jurisdictions.service';
 import { TAX_JURISDICTIONS_KEY } from './keys';
 
 export function useCreateTaxJurisdiction(

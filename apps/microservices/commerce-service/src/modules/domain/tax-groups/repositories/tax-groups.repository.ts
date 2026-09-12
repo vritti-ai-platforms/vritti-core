@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { offerings, type TaxGroup, type TaxRate, taxGroups, taxRates } from '@/db/schema';
+import { type TaxGroup, type TaxRate, taxGroups, taxRates } from '@/db/schema';
 
 @Injectable()
 export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxGroups> {
@@ -36,19 +36,11 @@ export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxG
     return byGroup;
   }
 
-  // Returns the set of tax-group ids still referenced by offerings (sale side); referenced groups
-  // cannot be deleted. The purchase side (inventory items) no longer carries a tax group.
-  async findReferencedIds(ids: string[]): Promise<Set<string>> {
-    if (ids.length === 0) return new Set();
-    const referenced = new Set<string>();
-
-    const saleRows = await this.db
-      .selectDistinct({ id: offerings.salesTaxGroupId })
-      .from(offerings)
-      .where(inArray(offerings.salesTaxGroupId, ids));
-    for (const row of saleRows) if (row.id) referenced.add(row.id);
-
-    return referenced;
+  // Nothing references a tax group directly any more: products carry a tax CLASS, and a class is
+  // mapped to a group per LE by tax_class_rates — which does not exist yet. Until it does, no group
+  // is referenced, so none is protected from deletion.
+  async findReferencedIds(_ids: string[]): Promise<Set<string>> {
+    return new Set();
   }
 
   // Returns tax rates for a specific tax group

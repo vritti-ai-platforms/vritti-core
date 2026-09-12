@@ -24,10 +24,18 @@ export class InventoryItemMrpsDomainService {
   }
 
   // Inserts a new suggested MRP for an (item, uom, currency); the unique constraint surfaces conflicts
-  create(dto: AddInventoryItemMrpDto): Promise<InventoryItemMrp> {
+  async create(dto: AddInventoryItemMrpDto): Promise<InventoryItemMrp> {
     const currencyCode = dto.amount.currency;
     const amount = majorToMinor(dto.amount.value, currencyCode, 'amount');
-    return this.repository.createMrp(dto.inventoryItemId, dto.uomId, currencyCode, amount);
+    const row = await this.repository.createMrp(dto.inventoryItemId, dto.uomId, currencyCode, amount);
+    const total = await this.repository.countForTriple(dto.inventoryItemId, dto.uomId, currencyCode);
+    if (total === 1) return (await this.repository.setCurrent(row.id)) ?? row;
+    return row;
+  }
+
+  // Promotes one recorded MRP to the current one for its triple; resolves undefined when none matched
+  setCurrent(id: string): Promise<InventoryItemMrp | undefined> {
+    return this.repository.setCurrent(id);
   }
 
   // Updates an existing MRP row's amount by id; resolves undefined when no row matched

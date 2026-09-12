@@ -6,16 +6,7 @@ import {
   type SelectQueryResult,
 } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type LegalEntity,
-  type LeTaxRegistration,
-  legalEntities,
-  leTaxRegistrations,
-  type Site,
-  type SiteGroup,
-  siteGroups,
-  sites,
-} from '@/db/schema';
+import { type LegalEntity, legalEntities, type Site, type SiteGroup, siteGroups, sites } from '@/db/schema';
 
 @Injectable()
 export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
@@ -144,10 +135,14 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
     return rows[0];
   }
 
-  // Finds a tax registration by ID for link validation
-  async findTaxRegistrationById(id: string): Promise<LeTaxRegistration | undefined> {
-    const rows = await this.db.select().from(leTaxRegistrations).where(eq(leTaxRegistrations.id, id)).limit(1);
-    return rows[0];
+  // Sites trading under a registration. The reference is a loose uuid now that registrations live in
+  // commerce, so this stands in for the foreign key that used to restrict the delete.
+  async countByRegistration(registrationId: string): Promise<number> {
+    const rows = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(sites)
+      .where(eq(sites.registrationId, registrationId));
+    return rows[0]?.count ?? 0;
   }
 
   // Resolves a site's currency from its owning legal entity

@@ -3,8 +3,8 @@ import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/Det
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Trash2 } from 'lucide-react';
-import { type GoodsReceiptItemData, type GoodsReceiptLotData, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import { useGoodsReceiptItem, useGoodsReceiptLots, useRemoveGoodsReceiptLot } from '@/hooks/site/goods-receipts';
+import { type GoodsReceiptItemData, type GoodsReceiptLotData, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import { EditLotDialog } from '../forms/EditLotDialog';
 import { GoodsReceiptDetailSkeleton } from './GoodsReceiptDetailSkeleton';
 import type { TreeSelection } from './GoodsReceiptTreePanel';

@@ -179,12 +179,11 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         id: inventoryItems.id,
         organizationId: inventoryItems.organizationId,
         name: inventoryItems.name,
-        code: inventoryItems.code,
+        sku: inventoryItems.sku,
         type: inventoryItems.type,
         tracking: inventoryItems.tracking,
         pickStrategy: inventoryItems.pickStrategy,
         categoryId: inventoryItems.categoryId,
-        taxClassId: inventoryItems.taxClassId,
         description: inventoryItems.description,
         uomId: inventoryItems.uomId,
         hsnCode: inventoryItems.hsnCode,
@@ -227,12 +226,11 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         id: inventoryItems.id,
         organizationId: inventoryItems.organizationId,
         name: inventoryItems.name,
-        code: inventoryItems.code,
+        sku: inventoryItems.sku,
         type: inventoryItems.type,
         tracking: inventoryItems.tracking,
         pickStrategy: inventoryItems.pickStrategy,
         categoryId: inventoryItems.categoryId,
-        taxClassId: inventoryItems.taxClassId,
         description: inventoryItems.description,
         uomId: inventoryItems.uomId,
         hsnCode: inventoryItems.hsnCode,
@@ -277,7 +275,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
   }
 
   // Item × site availability across the given sites — one projection row per (item, site) that is enabled.
-  async findGroupMatrix(siteIds: string[]): Promise<(InventoryItemSite & { itemName: string; itemCode: string })[]> {
+  async findGroupMatrix(siteIds: string[]): Promise<(InventoryItemSite & { itemName: string; itemSku: string })[]> {
     if (siteIds.length === 0) return [];
     return this.db
       .select({
@@ -292,7 +290,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         createdAt: inventoryItemSites.createdAt,
         updatedAt: inventoryItemSites.updatedAt,
         itemName: inventoryItems.name,
-        itemCode: inventoryItems.code,
+        itemSku: inventoryItems.sku,
       })
       .from(inventoryItemSites)
       .innerJoin(inventoryItems, eq(inventoryItemSites.inventoryItemId, inventoryItems.id))

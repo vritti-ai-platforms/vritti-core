@@ -1,82 +1,39 @@
-import { Trim } from '@vritti/api-sdk/decorators';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUUID,
-  Min,
-  ValidateNested,
-} from 'class-validator';
-import type { FulfilmentType } from '@/db/schema';
-import { VariantComponentInput } from './create-variant.dto';
-
-export class DefaultVariantInput {
-  @Trim({ nullify: false })
-  @IsOptional()
-  @IsString()
-  sku?: string;
-
-  @IsCurrency()
-  price: CurrencyAmountDto;
-
-  @IsOptional()
-  @IsBoolean()
-  isAvailable?: boolean;
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => VariantComponentInput)
-  components?: VariantComponentInput[];
-}
+import { IsCode, Trim } from '@vritti/api-sdk/decorators';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { FulfilmentTypeValues } from '@/db/schema';
 
 export class CreateOfferingDto {
-  @IsUUID()
+  @Trim({ nullify: false })
+  @IsString()
   @IsNotEmpty()
-  catalogId: string;
-
-  @IsOptional()
-  @IsUUID()
-  categoryId?: string;
-
-  @IsEnum(['STOCK', 'SERVICE', 'COMPOSITE'])
-  fulfilmentType: FulfilmentType;
+  @MaxLength(50)
+  @IsCode()
+  code: string;
 
   @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   name: string;
 
   @Trim()
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   description?: string | null;
 
-  @IsUUID()
-  salesTaxGroupId: string;
-
   @IsOptional()
-  @IsBoolean()
-  isAvailable?: boolean;
+  @IsUUID()
+  categoryId?: string | null;
+
+  @IsEnum(FulfilmentTypeValues)
+  fulfilmentType: keyof typeof FulfilmentTypeValues;
+
+  @IsUUID()
+  taxClassId: string;
 
   @IsOptional()
   @IsInt()
   @Min(0)
   sortOrder?: number;
-
-  @IsOptional()
-  @IsArray()
-  @IsUUID(undefined, { each: true })
-  variantOptionIds?: string[];
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => DefaultVariantInput)
-  defaultVariant?: DefaultVariantInput;
 }

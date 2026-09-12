@@ -96,14 +96,11 @@ export class SiteDomainService {
 
     const effectiveLegalEntityId = dto.legalEntityId !== undefined ? dto.legalEntityId : site.legalEntityId;
 
-    let effectiveRegistrationId = dto.registrationId !== undefined ? dto.registrationId : site.registrationId;
+    // Registrations live in commerce now, so a legal-entity change drops the link rather than
+    // re-checking ownership here — the API layer validates it when one is set
     const legalEntityChanged = dto.legalEntityId !== undefined && dto.legalEntityId !== site.legalEntityId;
-    if (legalEntityChanged && dto.registrationId === undefined && site.registrationId) {
-      const registration = await this.siteRepository.findTaxRegistrationById(site.registrationId);
-      if (!registration || registration.legalEntityId !== effectiveLegalEntityId) {
-        effectiveRegistrationId = null;
-      }
-    }
+    const effectiveRegistrationId =
+      dto.registrationId !== undefined ? dto.registrationId : legalEntityChanged ? null : site.registrationId;
 
     if (dto.legalEntityId !== undefined || dto.registrationId !== undefined) {
       await this.validateEntityLinks(site.organizationId, {
@@ -245,13 +242,6 @@ export class SiteDomainService {
         throw new BadRequestException({
           label: 'Missing Legal Entity',
           detail: 'Assign a legal entity before attaching a tax registration.',
-        });
-      }
-      const registration = await this.siteRepository.findTaxRegistrationById(effective.registrationId);
-      if (!registration || registration.legalEntityId !== legalEntity.id) {
-        throw new BadRequestException({
-          label: 'Registration Mismatch',
-          detail: "The tax registration does not belong to the site's legal entity.",
         });
       }
     }

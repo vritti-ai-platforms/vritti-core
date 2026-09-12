@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Car
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import type React from 'react';
-import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 import { useGoodsReceiptItemsCost } from '@/hooks/site/goods-receipts';
+import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 
 interface OverviewTabProps {
   receipt: GoodsReceiptData;

@@ -1,19 +1,24 @@
 import { SiteDomainModule } from '@domain/site/site.module';
 import { Module } from '@nestjs/common';
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
+import { LeOfferingDimensionTemplatesGatewayService } from './le-api/offering-dimension-templates/services/offering-dimension-templates-gateway.service';
+import { LeOfferingsGatewayService } from './le-api/offerings/services/offerings-gateway.service';
 import { SupplierItemsGatewayService } from './le-api/supplier-items/services/supplier-items-gateway.service';
 import { SuppliersGatewayService } from './le-api/suppliers/services/suppliers-gateway.service';
 import { TaxGroupsGatewayService } from './le-api/tax-groups/services/tax-groups-gateway.service';
+import { TaxRegistrationsGatewayService } from './le-api/tax-registrations/services/tax-registrations-gateway.service';
+import { CatalogChannelsGatewayService } from './org-api/catalog-channels/services/catalog-channels-gateway.service';
+import { CatalogsGatewayService } from './org-api/catalogs/services/catalogs-gateway.service';
 import { CategoriesGatewayService } from './org-api/categories/services/categories-gateway.service';
 import { CompaniesGatewayService } from './org-api/companies/services/companies-gateway.service';
 import { InventoryItemsGatewayService as OrgInventoryItemsGatewayService } from './org-api/inventory-items/services/inventory-items-gateway.service';
+import { OrgOfferingDimensionTemplatesGatewayService } from './org-api/offering-dimension-templates/services/offering-dimension-templates-gateway.service';
+import { OrgOfferingsGatewayService } from './org-api/offerings/services/offerings-gateway.service';
 import { PeopleGatewayService } from './org-api/people/services/people-gateway.service';
-import { SalesChannelsGatewayService } from './org-api/sales-channels/services/sales-channels-gateway.service';
 import { TaxClassesGatewayService } from './org-api/tax-classes/services/tax-classes-gateway.service';
 import { TaxComponentsGatewayService } from './org-api/tax-components/services/tax-components-gateway.service';
 import { TaxJurisdictionsGatewayService } from './org-api/tax-jurisdictions/services/tax-jurisdictions-gateway.service';
 import { UomGatewayService } from './org-api/uom/services/uom-gateway.service';
-import { CatalogsGatewayService } from './site-api/catalogs/services/catalogs-gateway.service';
 import { CreditNotesGatewayService } from './site-api/credit-notes/services/credit-notes-gateway.service';
 import { CustomersGatewayService } from './site-api/customers/services/customers-gateway.service';
 import { GoodsReceiptsGatewayService } from './site-api/goods-receipts/services/goods-receipts-gateway.service';
@@ -21,6 +26,8 @@ import { InventoryItemQuantsGatewayService } from './site-api/inventory-item-qua
 import { SiteInventoryItemsGatewayService } from './site-api/inventory-items/services/inventory-items-gateway.service';
 import { InvoicesGatewayService } from './site-api/invoices/services/invoices-gateway.service';
 import { LocationsGatewayService } from './site-api/locations/services/locations-gateway.service';
+import { SiteOfferingDimensionTemplatesGatewayService } from './site-api/offering-dimension-templates/services/offering-dimension-templates-gateway.service';
+import { SiteOfferingsGatewayService } from './site-api/offerings/services/offerings-gateway.service';
 import { OrdersGatewayService } from './site-api/orders/services/orders-gateway.service';
 import { PaymentsGatewayService } from './site-api/payments/services/payments-gateway.service';
 import { PosTerminalsGatewayService } from './site-api/pos-terminals/services/pos-terminals-gateway.service';
@@ -32,6 +39,9 @@ import { SiteGroupInventoryItemsGatewayService } from './site-group-api/inventor
 
 const services = [
   CategoriesGatewayService,
+  OrgOfferingsGatewayService,
+  LeOfferingsGatewayService,
+  SiteOfferingsGatewayService,
   InventoryItemQuantsGatewayService,
   CostCategoriesGatewayService,
   CreditNotesGatewayService,
@@ -40,8 +50,8 @@ const services = [
   SiteInventoryItemsGatewayService,
   LocationsGatewayService,
   InvoicesGatewayService,
+  CatalogChannelsGatewayService,
   CatalogsGatewayService,
-  SalesChannelsGatewayService,
   OrdersGatewayService,
   PosTerminalsGatewayService,
   PaymentsGatewayService,
@@ -58,7 +68,11 @@ const services = [
   TaxClassesGatewayService,
   TaxComponentsGatewayService,
   TaxJurisdictionsGatewayService,
+  OrgOfferingDimensionTemplatesGatewayService,
+  LeOfferingDimensionTemplatesGatewayService,
+  SiteOfferingDimensionTemplatesGatewayService,
   TaxGroupsGatewayService,
+  TaxRegistrationsGatewayService,
   UomGatewayService,
 ];
 

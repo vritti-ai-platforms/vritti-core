@@ -1,4 +1,4 @@
-import { LeTaxRegistrationDto } from '@domain/legal-entity/dto/entity/le-tax-registration.dto';
+import { TaxRegistrationResponseDto } from '@commerce/tax-registrations/dto/response/tax-registration-response.dto';
 import { LegalEntityDto } from '@domain/legal-entity/dto/entity/legal-entity.dto';
 import { SiteDto } from '@domain/site/dto/entity/site.dto';
 import { SiteGroupDto } from '@domain/site-group/dto/entity/site-group.dto';
@@ -22,8 +22,8 @@ export class StructureResponseDto {
   @ApiProperty({ type: [LegalEntityDto] })
   legalEntities: LegalEntityDto[];
 
-  @ApiProperty({ type: [LeTaxRegistrationDto] })
-  taxRegistrations: LeTaxRegistrationDto[];
+  @ApiProperty({ type: [TaxRegistrationResponseDto] })
+  taxRegistrations: TaxRegistrationResponseDto[];
 
   @ApiProperty({ type: [SiteGroupDto] })
   siteGroups: SiteGroupDto[];
@@ -35,7 +35,7 @@ export class StructureResponseDto {
   static from(
     organization: { id: string; name: string; subdomain: string },
     legalEntities: LegalEntityDto[],
-    taxRegistrations: LeTaxRegistrationDto[],
+    taxRegistrations: TaxRegistrationResponseDto[],
     siteGroups: SiteGroupDto[],
     sites: SiteDto[],
   ): StructureResponseDto {

@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { minorToMajor } from '@vritti/quantum-ui/money';
@@ -12,12 +13,12 @@ import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FreeQtyPreview } from '@/components/FreeQtyPreview';
+import { useAddPurchaseOrderItem } from '@/hooks/site/purchase-orders';
 import {
   type AddPurchaseOrderItemFormData,
   addPurchaseOrderItemSchema,
   type PurchaseOrderDetail,
 } from '@/schemas/purchase-orders';
-import { useAddPurchaseOrderItem } from '@/hooks/site/purchase-orders';
 import { computeFreeQty } from '@/utils/freeQty';
 
 const toOptionalNumber = (raw: unknown): number | undefined => {
@@ -86,7 +87,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         id: purchaseOrder.id,
         supplierItemId: data.supplierItemId,
         uomQty: data.uomQty,
-        unitPrice: data.unitPrice as { currency: string; value: string },
+        unitPrice: data.unitPrice as CurrencyValue,
         schemeBuyQty: data.schemeBuyQty,
         schemeFreeQty: data.schemeFreeQty,
         hasScheme: data.hasScheme,

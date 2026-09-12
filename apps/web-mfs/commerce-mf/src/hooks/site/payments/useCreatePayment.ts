@@ -1,8 +1,8 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type { PaymentData } from '@/schemas/invoices';
 import { INVOICE_KEY, INVOICES_TABLE_KEY } from '@/hooks/site/invoices';
+import type { PaymentData } from '@/schemas/invoices';
 import { type CreatePaymentPayload, createPayment } from '@/services/site/payments.service';
 import { INVOICE_PAYMENTS_KEY } from './keys';
 

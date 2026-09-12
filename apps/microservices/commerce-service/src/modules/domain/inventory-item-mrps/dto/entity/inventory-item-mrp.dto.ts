@@ -9,6 +9,7 @@ export class InventoryItemMrpDto {
   amount: CurrencyAmountDto;
   sourceLotId: string | null;
   sourcedAt: string | null;
+  isCurrent: boolean;
   createdAt: string;
   updatedAt: string;
 
@@ -21,6 +22,7 @@ export class InventoryItemMrpDto {
     dto.amount = CurrencyAmountDto.from(entity.amount, entity.currencyCode);
     dto.sourceLotId = entity.sourceLotId ?? null;
     dto.sourcedAt = entity.sourcedAt ? entity.sourcedAt.toISOString() : null;
+    dto.isCurrent = entity.isCurrent;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

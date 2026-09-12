@@ -8,12 +8,12 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { PackageCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useUpdateGoodsReceiptLot } from '@/hooks/site/goods-receipts';
 import {
   type AddGoodsReceiptLotFormData,
   addGoodsReceiptLotSchema,
   type GoodsReceiptLotData,
 } from '@/schemas/goods-receipts';
-import { useUpdateGoodsReceiptLot } from '@/hooks/site/goods-receipts';
 
 const toDateInput = (value: string | null): string => (value ? value.slice(0, 10) : '');
 

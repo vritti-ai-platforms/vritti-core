@@ -1,4 +1,5 @@
 import axios from '@vritti/quantum-ui/axios';
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
 import type {
@@ -22,7 +23,7 @@ export interface AddPurchaseOrderItemPayload {
   id: string;
   supplierItemId: string;
   uomQty: number;
-  unitPrice: { currency: string; value: string };
+  unitPrice: CurrencyValue;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   hasScheme?: boolean;
@@ -33,7 +34,7 @@ export interface UpdatePurchaseOrderItemPayload {
   itemId: string;
   inventoryItemId?: string;
   uomQty?: number;
-  unitPrice?: { currency: string; value: string };
+  unitPrice?: CurrencyValue;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   hasScheme?: boolean;
@@ -213,9 +214,9 @@ export function getSupplierItemPrice(
   supplierId: string,
   inventoryItemId: string,
   uomId: string,
-): Promise<{ unitPrice: { currency: string; value: string } | null }> {
+): Promise<{ unitPrice: CurrencyValue | null }> {
   return axios
-    .get<{ unitPrice: { currency: string; value: string } | null }>('commerce-api/site/suppliers/items/price', {
+    .get<{ unitPrice: CurrencyValue | null }>('commerce-api/site/suppliers/items/price', {
       params: { supplierId, inventoryItemId, uomId },
       showSuccessToast: false,
     } as Parameters<typeof axios.get>[1])

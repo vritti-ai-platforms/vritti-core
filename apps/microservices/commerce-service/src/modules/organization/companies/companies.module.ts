@@ -14,9 +14,9 @@ import { CompanyIdentifiersController } from './identifiers/company-identifiers.
 import { CompanyLicensesController } from './licenses/company-licenses.controller';
 import { CompanyPeopleController } from './people/company-people.controller';
 import { CompanyRegistrationsController } from './registrations/company-registrations.controller';
-import { CompanySocialProfilesController } from './social-profiles/company-social-profiles.controller';
 import { CompaniesController } from './root/companies.controller';
 import { CompaniesService } from './root/services/companies-root.service';
+import { CompanySocialProfilesController } from './social-profiles/company-social-profiles.controller';
 
 @Module({
   imports: [

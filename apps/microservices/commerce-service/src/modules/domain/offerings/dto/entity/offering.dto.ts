@@ -1,41 +1,66 @@
 import type { FulfilmentType, Offering } from '@/db/schema';
 
+export type OfferingOwnerScope = 'ORG' | 'LE' | 'SITE';
+
 export class OfferingDto {
   id: string;
-  siteId: string;
-  categoryId: string | null;
-  categoryName: string | null;
-  fulfilmentType: FulfilmentType;
+  code: string;
   name: string;
   description: string | null;
-  salesTaxGroupId: string | null;
-  currencyCode: string;
-  isAvailable: boolean;
+  categoryId: string | null;
+  fulfilmentType: FulfilmentType;
+  taxClassId: string;
+  isActive: boolean;
   sortOrder: number;
-  modifierGroupCount: number;
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: OfferingOwnerScope;
+  dimensionCount: number;
+  variantCount: number;
+  // Variants with no bill of materials — they cannot be activated until one is added
+  variantsMissingBomCount: number;
+  canEdit: boolean;
+  canMarkActive: boolean;
+  canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 
-  // Maps an Offering entity to an OfferingDto
   static from(
     entity: Offering,
-    currencyCode: string,
-    categoryName?: string | null,
-    modifierGroupCount = 0,
+    options: {
+      dimensionCount?: number;
+      variantCount?: number;
+      variantsMissingBomCount?: number;
+      isOwned?: boolean;
+      canDelete?: boolean;
+    } = {},
   ): OfferingDto {
+    const {
+      dimensionCount = 0,
+      variantCount = 0,
+      variantsMissingBomCount = 0,
+      isOwned = false,
+      canDelete = false,
+    } = options;
     const dto = new OfferingDto();
     dto.id = entity.id;
-    dto.siteId = entity.siteId;
-    dto.currencyCode = currencyCode;
-    dto.categoryId = entity.categoryId ?? null;
-    dto.categoryName = categoryName ?? null;
-    dto.fulfilmentType = entity.fulfilmentType;
+    dto.code = entity.code;
     dto.name = entity.name;
     dto.description = entity.description ?? null;
-    dto.salesTaxGroupId = entity.salesTaxGroupId ?? null;
-    dto.isAvailable = entity.isAvailable;
+    dto.categoryId = entity.categoryId ?? null;
+    dto.fulfilmentType = entity.fulfilmentType;
+    dto.taxClassId = entity.taxClassId;
+    dto.isActive = entity.isActive;
     dto.sortOrder = entity.sortOrder;
-    dto.modifierGroupCount = modifierGroupCount;
+    dto.variantsMissingBomCount = variantsMissingBomCount;
+    dto.legalEntityId = entity.legalEntityId ?? null;
+    dto.siteId = entity.siteId ?? null;
+    dto.ownerScope = entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG';
+    dto.dimensionCount = dimensionCount;
+    dto.variantCount = variantCount;
+    dto.canEdit = isOwned;
+    dto.canMarkActive = isOwned && (entity.isActive || variantCount > 0);
+    dto.canDelete = isOwned && canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

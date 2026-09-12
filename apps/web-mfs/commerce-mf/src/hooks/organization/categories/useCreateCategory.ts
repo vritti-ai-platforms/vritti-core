@@ -1,8 +1,8 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { createCategory } from '@/services/organization/categories.service';
 import type { CategoryCreateResponse, CategoryFormData } from '@/schemas/categories';
+import { createCategory } from '@/services/organization/categories.service';
 import { CATEGORIES_KEY } from './keys';
 
 export function useCreateCategory(

@@ -63,8 +63,7 @@ export class OrdersDomainRepository extends PrimaryBaseRepository<typeof orders>
         offeringId: string;
         offeringName: string;
         variantName: string;
-        price: bigint;
-        salesTaxGroupId: string | null;
+        taxClassId: string;
       }
     | undefined
   > {
@@ -73,8 +72,7 @@ export class OrdersDomainRepository extends PrimaryBaseRepository<typeof orders>
         offeringId: offerings.id,
         offeringName: offerings.name,
         variantName: offeringVariants.name,
-        price: offeringVariants.price,
-        salesTaxGroupId: offerings.salesTaxGroupId,
+        taxClassId: offeringVariants.taxClassId,
       })
       .from(offeringVariants)
       .innerJoin(offerings, eq(offeringVariants.offeringId, offerings.id))

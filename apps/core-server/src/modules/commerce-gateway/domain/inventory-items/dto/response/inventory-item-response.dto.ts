@@ -8,7 +8,7 @@ export class InventoryItemResponseDto {
   name: string;
 
   @ApiProperty()
-  code: string;
+  sku: string;
 
   @ApiProperty({ enum: ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] })
   type: string;
@@ -38,7 +38,6 @@ export class InventoryItemResponseDto {
     description: 'Tax class override, or null when inheriting the category default',
     nullable: true,
   })
-  taxClassId: string | null;
 
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
   hsnCode: string | null;

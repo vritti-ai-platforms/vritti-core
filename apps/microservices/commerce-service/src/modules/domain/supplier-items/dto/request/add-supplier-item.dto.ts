@@ -10,6 +10,11 @@ export class AddSupplierItemDto {
   @IsUUID()
   inventoryItemId: string;
 
+  // How this supplier's invoice classifies the goods — the same item can be goods from one supplier
+  // and job work from another. Required: there is no fallback to the item or its category.
+  @IsUUID()
+  taxClassId: string;
+
   @Trim()
   @IsOptional()
   @IsString()

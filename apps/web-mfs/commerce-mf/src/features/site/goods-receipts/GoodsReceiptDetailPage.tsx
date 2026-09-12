@@ -8,7 +8,6 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CheckCircle, Link2, PackageCheck, Unlink } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoodsReceiptStatus, goodsReceiptStatusLabels } from '@/schemas/goods-receipts';
 import {
   useDeleteGoodsReceipt,
   useGoodsReceipt,
@@ -16,6 +15,7 @@ import {
   usePublishGoodsReceipt,
   useUnlinkGoodsReceiptPurchaseOrder,
 } from '@/hooks/site/goods-receipts';
+import { GoodsReceiptStatus, goodsReceiptStatusLabels } from '@/schemas/goods-receipts';
 import { LinkPurchaseOrderDialog } from './forms/LinkPurchaseOrderDialog';
 import { BreakdownTab } from './tabs/BreakdownTab';
 import { ItemsCostTab } from './tabs/ItemsCostTab';

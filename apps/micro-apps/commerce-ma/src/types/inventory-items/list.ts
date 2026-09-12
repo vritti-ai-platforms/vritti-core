@@ -42,7 +42,7 @@ export type InventoryItemPickStrategy = 'none' | 'fifo' | 'fefo';
 export interface InventoryItem {
   id: string;
   name: string;
-  code: string;
+  sku: string;
   type: InventoryItemType;
   tracking: InventoryItemTracking;
   pickStrategy: InventoryItemPickStrategy;

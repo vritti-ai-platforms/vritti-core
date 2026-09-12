@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."tax_registrations" ALTER COLUMN "legal_entity_id" SET DEFAULT cast(current_setting('app.le_id') as uuid);

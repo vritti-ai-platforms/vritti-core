@@ -26,8 +26,8 @@ export const InventoryItemsPage = () => {
   const columns = useMemo<ColumnDef<InventoryItemData>[]>(
     () => [
       {
-        accessorKey: 'code',
-        header: 'Code',
+        accessorKey: 'sku',
+        header: 'SKU',
         enableSorting: true,
       },
       {
@@ -104,7 +104,7 @@ export const InventoryItemsPage = () => {
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },
-            { id: 'code', label: 'Code' },
+            { id: 'sku', label: 'SKU' },
           ],
           searchAll: true,
         }}

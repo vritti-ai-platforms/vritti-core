@@ -1,0 +1,2 @@
+ALTER TABLE "commerce"."offering_dimension_templates" ALTER COLUMN "legal_entity_id" SET DEFAULT (case when current_setting('app.site_id', true) is not null then null else cast(current_setting('app.le_id', true) as uuid) end);--> statement-breakpoint
+ALTER TABLE "commerce"."offering_dimension_templates" ALTER COLUMN "site_id" SET DEFAULT cast(current_setting('app.site_id', true) as uuid);

@@ -66,7 +66,6 @@ export class OrdersDomainService {
       orderNumber,
       type: data.type as OrderType,
       channel: data.channel as OrderSource,
-      channelId: data.channelId ?? null,
       customerId: data.customerId ?? null,
       customerName: data.customerName ?? null,
       customerPhone: data.customerPhone ?? null,
@@ -227,8 +226,11 @@ export class OrdersDomainService {
         throw new NotFoundException(`Variant ${item.offeringVariantId} not found.`);
       }
 
-      const taxRate = new Decimal(await this.repository.getEffectiveTaxRate(variant.salesTaxGroupId));
-      const unitPrice = new Decimal(variant.price.toString());
+      const taxRate = new Decimal(await this.repository.getEffectiveTaxRate(variant.taxClassId));
+      // TODO(pricing): offering_variants.price was removed with the catalog teardown — a variant's
+      // price now resolves from the price layer (Layer 2), which does not exist yet. Until it does,
+      // every line prices at zero. Orders is empty in production, so nothing has been mispriced.
+      const unitPrice = new Decimal(0);
 
       // Resolve each submitted modifier against the offering's valid options, using authoritative DB values
       const submittedModifiers = item.modifiers ?? [];
@@ -269,7 +271,7 @@ export class OrdersDomainService {
         itemName: variant.offeringName,
         variantName: variant.variantName,
         quantity: item.quantity,
-        unitPrice: variant.price,
+        unitPrice: 0n,
         taxRate,
         taxAmount: lineTax,
         subtotal: lineSubtotal,

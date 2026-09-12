@@ -56,7 +56,7 @@ export class InventoryItemsGatewayService {
 
   // Creates a new org inventory item
   async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
-    this.logger.log(`org.inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
+    this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
     return this.nats.send('commerce', 'org.inventoryItems.create', dto);
   }
 
@@ -139,6 +139,12 @@ export class InventoryItemsGatewayService {
   ): Promise<InventoryItemMrpResponseDto> {
     this.logger.log(`org.inventoryItems.mrp.update — inventoryItemId: ${inventoryItemId}, id: ${mrpId}`);
     return this.nats.send('commerce', 'org.inventoryItems.mrp.update', { inventoryItemId, id: mrpId, ...dto });
+  }
+
+  // Promotes one recorded MRP to the current one shown on listings
+  async setMrpCurrent(inventoryItemId: string, mrpId: string): Promise<InventoryItemMrpResponseDto> {
+    this.logger.log(`org.inventoryItems.mrp.setCurrent — inventoryItemId: ${inventoryItemId}, id: ${mrpId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.mrp.setCurrent', { id: mrpId });
   }
 
   // Deletes a manual MRP for an inventory item

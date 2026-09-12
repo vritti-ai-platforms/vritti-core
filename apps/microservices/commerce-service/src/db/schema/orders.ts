@@ -16,7 +16,6 @@ import { customers } from './customers';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
 import { offeringVariants } from './offering-variants';
 import { offerings } from './offerings';
-import { salesChannels } from './sales-channels';
 
 export const orders = commerceSchema.table(
   'orders',
@@ -27,7 +26,6 @@ export const orders = commerceSchema.table(
     orderNumber: varchar('order_number', { length: 50 }).notNull(),
     type: orderTypeEnum('type').notNull(),
     channel: orderSourceEnum('channel').notNull(),
-    channelId: uuid('channel_id').references(() => salesChannels.id, { onDelete: 'set null' }),
     status: orderStatusEnum('status').notNull().default('PENDING'),
     customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'set null' }),
     customerName: varchar('customer_name', { length: 255 }),
@@ -108,7 +106,12 @@ export const orderItems = commerceSchema.table(
     notes: text('notes'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index('idx_order_items_order').on(table.orderId)],
+  (table) => [
+    index('idx_order_items_order').on(table.orderId),
+    // Answers "is this variant on any order" — the FK is NO ACTION, so that decides whether a
+    // variant can be deleted, and it is asked once per row on the variants table
+    index('idx_order_items_variant').on(table.offeringVariantId),
+  ],
 );
 
 export type OrderItem = typeof orderItems.$inferSelect;

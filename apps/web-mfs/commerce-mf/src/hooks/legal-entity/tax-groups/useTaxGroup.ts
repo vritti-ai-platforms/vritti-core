@@ -1,7 +1,7 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { getTaxGroup } from '@/services/legal-entity/tax-groups.service';
 import type { TaxGroupData } from '@/schemas/tax-groups';
+import { getTaxGroup } from '@/services/legal-entity/tax-groups.service';
 import { TAX_GROUP_KEY } from './keys';
 
 type UseTaxGroupOptions = Omit<UseQueryOptions<TaxGroupData, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>;

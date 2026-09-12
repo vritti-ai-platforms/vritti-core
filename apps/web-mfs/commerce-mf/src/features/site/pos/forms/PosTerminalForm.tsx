@@ -8,8 +8,8 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { type PosTerminalData, type PosTerminalFormData, posTerminalFormSchema } from '@/schemas/pos-terminals';
 import { useCreatePosTerminal, useUpdatePosTerminal } from '@/hooks/site/pos-terminals';
+import { type PosTerminalData, type PosTerminalFormData, posTerminalFormSchema } from '@/schemas/pos-terminals';
 
 interface PosTerminalFormProps {
   terminal?: PosTerminalData;

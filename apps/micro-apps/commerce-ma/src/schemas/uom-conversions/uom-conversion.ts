@@ -7,8 +7,7 @@ const qtyField = zodNumericField({ required: 'Value is required', positive: true
 // so exactly one side of the ratio must be 1. Enforce it client-side so the user gets a clear inline error
 // instead of a 422 on submit. (Runs only after both qty fields individually pass — zod skips object
 // refinements when the shape already has issues.)
-const ratioOneSideIsOne = (v: { primaryUomQty: number; uomQty: number }) =>
-  v.primaryUomQty === 1 || v.uomQty === 1;
+const ratioOneSideIsOne = (v: { primaryUomQty: number; uomQty: number }) => v.primaryUomQty === 1 || v.uomQty === 1;
 const RATIO_RULE = { message: 'One side of the ratio must be 1 (e.g. 1:10 or 50:1).', path: ['uomQty'] };
 
 // CREATE — pick the alternative UOM + the ratio pair. UPDATE — ratio only (the UOM can't change).

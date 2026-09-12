@@ -6,7 +6,7 @@ export const InventoryItemFieldsFragment = graphql(`
   fragment InventoryItemFields on InventoryItem {
     id
     name
-    code
+    sku
     type
     tracking
     pickStrategy

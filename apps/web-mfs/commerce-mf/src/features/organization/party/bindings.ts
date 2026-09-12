@@ -21,15 +21,15 @@ import type {
 } from '@/schemas/party-identifiers';
 import type { PartyLicensePayload, PartyLicenseRow, PartyLicensesTableResponse } from '@/schemas/party-licenses';
 import type {
-  PartySocialProfilePayload,
-  PartySocialProfileRow,
-  PartySocialProfilesTableResponse,
-} from '@/schemas/party-social-profiles';
-import type {
   PartyRegistrationFormData,
   PartyRegistrationsTableResponse,
   PartyTaxRegistrationRow,
 } from '@/schemas/party-registrations';
+import type {
+  PartySocialProfilePayload,
+  PartySocialProfileRow,
+  PartySocialProfilesTableResponse,
+} from '@/schemas/party-social-profiles';
 
 type SelectorOption = { value: string; label: string };
 

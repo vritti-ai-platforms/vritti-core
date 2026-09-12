@@ -1,4 +1,3 @@
-import { LeTaxRegistrationDto } from '@domain/legal-entity/dto/entity/le-tax-registration.dto';
 import { LegalEntityDto } from '@domain/legal-entity/dto/entity/legal-entity.dto';
 import { CreateLeTaxRegistrationInternalDto } from '@domain/legal-entity/dto/request/create-le-tax-registration-internal.dto';
 import { CreateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/create-legal-entity-internal.dto';
@@ -101,28 +100,6 @@ export function ApiReorderLegalEntities() {
   );
 }
 
-export function ApiAddLeTaxRegistration() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Add tax registration',
-      description:
-        'Adds a tax registration (GSTIN, TRN, VAT number) to a legal entity. Requires Ed25519 signature headers (x-timestamp, x-signature).',
-    }),
-    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
-    ApiHeader({
-      name: 'x-signature',
-      description: 'Ed25519 signature of the canonical request (base64)',
-      required: true,
-    }),
-    ApiParam({ name: 'id', description: 'Legal entity ID' }),
-    ApiBody({ type: CreateLeTaxRegistrationInternalDto }),
-    ApiResponse({ status: 201, description: 'Tax registration added successfully.', type: LeTaxRegistrationDto }),
-    ApiResponse({ status: 404, description: 'Legal entity not found.' }),
-    ApiResponse({ status: 409, description: 'Tax number already registered on the legal entity.' }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-  );
-}
-
 export function ApiDeleteLegalEntity() {
   return applyDecorators(
     ApiOperation({
@@ -139,27 +116,6 @@ export function ApiDeleteLegalEntity() {
     ApiResponse({ status: 200, description: 'Legal entity deleted successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Legal entity not found.' }),
     ApiResponse({ status: 409, description: 'Legal entity is linked to sites or has child legal entities.' }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-  );
-}
-
-export function ApiDeleteLeTaxRegistration() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Delete tax registration',
-      description: 'Deletes a tax registration from a legal entity. Fails if any sites are linked to it.',
-    }),
-    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
-    ApiHeader({
-      name: 'x-signature',
-      description: 'Ed25519 signature of the canonical request (base64)',
-      required: true,
-    }),
-    ApiParam({ name: 'id', description: 'Legal entity ID' }),
-    ApiParam({ name: 'regId', description: 'Tax registration ID' }),
-    ApiResponse({ status: 200, description: 'Tax registration deleted successfully.', type: SuccessResponseDto }),
-    ApiResponse({ status: 404, description: 'Legal entity or tax registration not found.' }),
-    ApiResponse({ status: 409, description: 'Tax registration is linked to sites.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );
 }

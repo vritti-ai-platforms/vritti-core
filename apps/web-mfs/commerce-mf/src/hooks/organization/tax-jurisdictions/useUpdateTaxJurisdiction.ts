@@ -1,8 +1,8 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { updateTaxJurisdiction } from '@/services/organization/tax-jurisdictions.service';
 import type { SuccessResponse, TaxJurisdictionFormData } from '@/schemas/tax-jurisdictions';
+import { updateTaxJurisdiction } from '@/services/organization/tax-jurisdictions.service';
 import { TAX_JURISDICTIONS_KEY } from './keys';
 
 type UpdateTaxJurisdictionVariables = { id: string; data: Partial<TaxJurisdictionFormData> };

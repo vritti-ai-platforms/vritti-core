@@ -5,7 +5,7 @@ import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 export class LocationItemResponseDto {
   @ApiProperty() inventoryItemId: string;
   @ApiProperty() itemName: string;
-  @ApiProperty() itemCode: string;
+  @ApiProperty() itemSku: string;
   @ApiPropertyOptional({ nullable: true }) uomSymbol: string | null;
   @ApiProperty() totalQuantity: number;
   @ApiProperty() availableQuantity: number;

@@ -12,12 +12,12 @@ export class CreateSiteInventoryItemDto {
   name: string;
 
   @Trim({ nullify: false })
-  @ApiProperty({ description: 'Item code', example: 'RAW-RICE-BAS' })
+  @ApiProperty({ description: 'Item SKU', example: 'raw-rice-bas' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   @IsCode()
-  code: string;
+  sku: string;
 
   @ApiProperty({
     description: 'Item type',
@@ -63,7 +63,7 @@ export class CreateSiteInventoryItemDto {
   purchaseTaxGroupId: string;
 
   @Trim()
-  @ApiPropertyOptional({ description: 'HSN code for tax reporting' })
+  @ApiPropertyOptional({ description: 'HSN sku for tax reporting' })
   @IsOptional()
   @IsString()
   @MaxLength(20)

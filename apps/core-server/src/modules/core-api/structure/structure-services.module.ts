@@ -4,6 +4,7 @@ import { SiteDomainModule } from '@domain/site/site.module';
 import { SiteGroupDomainModule } from '@domain/site-group/site-group.module';
 import { UserRoleDomainModule } from '@domain/user-role/user-role.module';
 import { Module } from '@nestjs/common';
+import { CommerceGatewayServicesModule } from '@/modules/commerce-gateway/commerce-gateway-services.module';
 import { LegalEntityService } from './legal-entities/services/legal-entity-api.service';
 import { StructureService } from './root/services/structure-api.service';
 import { SiteGroupService } from './site-groups/services/site-group-api.service';
@@ -20,6 +21,7 @@ const services = [StructureService, LegalEntityService, SiteService, SiteGroupSe
  */
 @Module({
   imports: [
+    CommerceGatewayServicesModule,
     LegalEntityDomainModule,
     SiteDomainModule,
     SiteGroupDomainModule,

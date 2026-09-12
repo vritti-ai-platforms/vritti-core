@@ -9,6 +9,11 @@ import { CheckCircle, ClipboardMinus, Pencil } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  useDeleteStockAdjustment,
+  usePublishStockAdjustment,
+  useStockAdjustment,
+} from '@/hooks/site/stock-adjustments';
+import {
   type InventoryTracking,
   InventoryTrackingValues,
   type StockAdjustmentStatus,
@@ -16,11 +21,6 @@ import {
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
 } from '@/schemas/stock-adjustments';
-import {
-  useDeleteStockAdjustment,
-  usePublishStockAdjustment,
-  useStockAdjustment,
-} from '@/hooks/site/stock-adjustments';
 import { EditStockAdjustmentDialog } from './forms/EditStockAdjustmentDialog';
 import { BreakdownTab } from './tabs/BreakdownTab';
 import { OverviewTab } from './tabs/OverviewTab';

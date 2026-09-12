@@ -5,7 +5,7 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk/database';
-import { asc, desc, eq, getTableColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { asc, desc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type PartyLicense,
   type PartyTaxRegistration,
@@ -56,7 +56,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
     count: number;
   }> {
     return this.findAllAndCount<Supplier & { partyName: string | null }>({
-      select: { ...getTableColumns(suppliers), partyName: parties.displayName },
+      select: { ...getColumns(suppliers), partyName: parties.displayName },
       leftJoins: [{ table: parties, on: eq(parties.id, suppliers.partyId) }],
       where: options?.where,
       orderBy: options?.orderBy,
@@ -84,7 +84,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
   > {
     const [row] = await this.db
       .select({
-        ...getTableColumns(suppliers),
+        ...getColumns(suppliers),
         partyName: parties.displayName,
         partyType: parties.partyType,
         enrolledSiteCount: sql<number>`(

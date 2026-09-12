@@ -21,12 +21,7 @@ export const ReorderTab: React.FC<ReorderTabProps> = ({ item }) => {
       <CardContent className="flex flex-col gap-6 pt-6">
         <div className="flex items-start justify-between">
           <h3 className="text-sm font-semibold">Reorder Configuration</h3>
-          <Button
-            variant="outline"
-            size="sm"
-            startAdornment={<Pencil className="size-4" />}
-            onClick={editDialog.open}
-          >
+          <Button variant="outline" size="sm" startAdornment={<Pencil className="size-4" />} onClick={editDialog.open}>
             Edit
           </Button>
         </div>

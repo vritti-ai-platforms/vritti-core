@@ -9,8 +9,8 @@ import { Users } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { type CreateCustomerFormData, type CustomerData, createCustomerSchema } from '@/schemas/customers';
 import { useCreateCustomer } from '@/hooks/site/customers';
+import { type CreateCustomerFormData, type CustomerData, createCustomerSchema } from '@/schemas/customers';
 
 interface QuickCreateCustomerModalProps {
   open: boolean;

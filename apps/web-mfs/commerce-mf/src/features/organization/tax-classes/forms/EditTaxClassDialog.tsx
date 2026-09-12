@@ -7,7 +7,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateTaxClass } from '@/hooks/organization/tax-classes';
-import { type TaxClassData, type UpdateTaxClassFormData, updateTaxClassSchema } from '@/schemas/tax-classes';
+import { type EditTaxClassFormData, editTaxClassFormSchema, type TaxClassData } from '@/schemas/tax-classes';
 
 interface EditTaxClassDialogProps {
   taxClass: TaxClassData;
@@ -16,9 +16,10 @@ interface EditTaxClassDialogProps {
 }
 
 export const EditTaxClassDialog: React.FC<EditTaxClassDialogProps> = ({ taxClass, onSuccess, onCancel }) => {
-  const form = useForm<UpdateTaxClassFormData>({
-    resolver: zodResolver(updateTaxClassSchema),
+  const form = useForm<EditTaxClassFormData>({
+    resolver: zodResolver(editTaxClassFormSchema),
     defaultValues: {
+      code: taxClass.code,
       name: taxClass.name,
       isActive: taxClass.isActive,
     },
@@ -34,7 +35,7 @@ export const EditTaxClassDialog: React.FC<EditTaxClassDialogProps> = ({ taxClass
       transformSubmit={(data) => ({ id: taxClass.id, data: { name: data.name, isActive: data.isActive } })}
     >
       <div className="space-y-4">
-        <TextField name="code" label="Code" value={taxClass.code} disabled description="Code cannot be changed" />
+        <TextField name="code" label="Code" disabled description="Code cannot be changed" />
         <TextField name="name" label="Name" placeholder="e.g. Standard Rate" />
         <Switch
           name="isActive"

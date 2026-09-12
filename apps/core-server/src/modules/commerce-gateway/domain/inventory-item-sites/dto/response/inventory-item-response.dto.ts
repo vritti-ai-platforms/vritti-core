@@ -9,7 +9,7 @@ export class SiteInventoryItemResponseDto {
   name: string;
 
   @ApiProperty()
-  code: string;
+  sku: string;
 
   @ApiProperty({ enum: ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] })
   type: string;
@@ -41,7 +41,7 @@ export class SiteInventoryItemResponseDto {
   @ApiPropertyOptional({ description: 'Purchase tax group name', nullable: true })
   purchaseTaxGroupName: string | null;
 
-  @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
+  @ApiPropertyOptional({ description: 'HSN sku for tax reporting', nullable: true })
   hsnCode: string | null;
 
   @ApiPropertyOptional({ type: () => CurrencyAmountDto, description: 'Default MRP (site currency)', nullable: true })

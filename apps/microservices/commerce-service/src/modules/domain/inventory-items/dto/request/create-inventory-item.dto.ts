@@ -14,7 +14,7 @@ export class CreateInventoryItemDto {
   @IsNotEmpty()
   @MaxLength(100)
   @IsCode()
-  code: string;
+  sku: string;
 
   @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
   type: InventoryItemType;
@@ -37,9 +37,6 @@ export class CreateInventoryItemDto {
 
   @IsUUID()
   uomId: string;
-
-  @IsUUID()
-  taxClassId: string;
 
   @Trim()
   @IsOptional()

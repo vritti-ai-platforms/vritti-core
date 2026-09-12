@@ -17,8 +17,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Plus, ShoppingCart } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { OrderChannel, OrderData, OrderStatus, OrderType } from '@/schemas/orders';
 import { ORDERS_TABLE_KEY, useOrdersTable } from '@/hooks/site/orders';
+import type { OrderChannel, OrderData, OrderStatus, OrderType } from '@/schemas/orders';
 import { CreateOrderDialog } from './forms/CreateOrderDialog';
 
 const statusConfig: Record<

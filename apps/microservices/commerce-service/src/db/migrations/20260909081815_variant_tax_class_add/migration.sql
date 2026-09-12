@@ -1,0 +1,3 @@
+ALTER TABLE "commerce"."offering_variants" ADD COLUMN "tax_class_id" uuid;--> statement-breakpoint
+ALTER TABLE "commerce"."offering_variants" ADD COLUMN "is_tax_class_overridden" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "commerce"."offering_variants" ADD CONSTRAINT "offering_variants_tax_class_id_tax_classes_id_fkey" FOREIGN KEY ("tax_class_id") REFERENCES "commerce"."tax_classes"("id");

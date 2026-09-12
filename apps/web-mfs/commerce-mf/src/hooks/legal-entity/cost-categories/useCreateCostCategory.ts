@@ -1,8 +1,8 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { type CreateCostCategoryPayload, createCostCategory } from '@/services/legal-entity/cost-categories.service';
 import type { CostCategoryData } from '@/schemas/cost-categories';
+import { type CreateCostCategoryPayload, createCostCategory } from '@/services/legal-entity/cost-categories.service';
 import { COST_CATEGORIES_TABLE_KEY } from './keys';
 
 export function useCreateCostCategory(

@@ -1,5 +1,16 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  type AnyPgColumn,
+  bigint,
+  boolean,
+  index,
+  pgPolicy,
+  timestamp,
+  unique,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemLots } from './inventory-item-lots';
 import { inventoryItems } from './inventory-items';
@@ -18,8 +29,9 @@ export const inventoryItemMrps = commerceSchema.table(
       .references(() => uom.id),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     amount: bigint('amount', { mode: 'bigint' }).notNull(),
-    sourceLotId: uuid('source_lot_id').references(() => inventoryItemLots.id, { onDelete: 'set null' }),
+    sourceLotId: uuid('source_lot_id').references((): AnyPgColumn => inventoryItemLots.id, { onDelete: 'set null' }),
     sourcedAt: timestamp('sourced_at', { withTimezone: true }),
+    isCurrent: boolean('is_current').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -27,7 +39,15 @@ export const inventoryItemMrps = commerceSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_inventory_item_mrps_item_uom_currency').on(table.inventoryItemId, table.uomId, table.currencyCode),
+    unique('uq_inventory_item_mrps_item_uom_currency_amount').on(
+      table.inventoryItemId,
+      table.uomId,
+      table.currencyCode,
+      table.amount,
+    ),
+    uniqueIndex('uq_inventory_item_mrps_current')
+      .on(table.inventoryItemId, table.uomId, table.currencyCode)
+      .where(sql`${table.isCurrent}`),
     index('idx_inventory_item_mrps_uom').on(table.uomId),
     pgPolicy('org_isolation', {
       for: 'all',

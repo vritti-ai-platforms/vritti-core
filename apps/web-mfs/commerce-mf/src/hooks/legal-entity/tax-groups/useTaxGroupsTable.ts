@@ -2,8 +2,8 @@ import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { LE_TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
-import { getTaxGroupsTable } from '@/services/legal-entity/tax-groups.service';
 import type { TaxGroupsTableResponse } from '@/schemas/tax-groups';
+import { getTaxGroupsTable } from '@/services/legal-entity/tax-groups.service';
 import { TAX_GROUPS_TABLE_KEY } from './keys';
 
 type UseTaxGroupsTableOptions = Omit<UseQueryOptions<TaxGroupsTableResponse, AxiosError>, 'queryKey' | 'queryFn'>;

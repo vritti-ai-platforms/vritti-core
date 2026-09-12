@@ -59,7 +59,7 @@ export class InventoryItemLotsDomainRepository extends PrimaryBaseRepository<typ
     return results[0] as InventoryItemLot;
   }
 
-  async updateMrp(id: string, mrp: bigint | null): Promise<void> {
-    await this.db.update(inventoryItemLots).set({ mrp }).where(eq(inventoryItemLots.id, id));
+  async updateMrp(id: string, mrp: bigint | null, mrpCurrencyCode: string | null): Promise<void> {
+    await this.db.update(inventoryItemLots).set({ mrp, mrpCurrencyCode }).where(eq(inventoryItemLots.id, id));
   }
 }

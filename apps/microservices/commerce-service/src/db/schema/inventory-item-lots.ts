@@ -1,6 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, check, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
+import { inventoryItemMrps } from './inventory-item-mrps';
 import { inventoryItems } from './inventory-items';
 
 export const inventoryItemLots = commerceSchema.table(
@@ -16,6 +17,8 @@ export const inventoryItemLots = commerceSchema.table(
     manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
     expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }).notNull(),
     mrp: bigint('mrp', { mode: 'bigint' }),
+    mrpCurrencyCode: varchar('mrp_currency_code', { length: 3 }),
+    mrpId: uuid('mrp_id').references(() => inventoryItemMrps.id, { onDelete: 'restrict' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -30,6 +33,8 @@ export const inventoryItemLots = commerceSchema.table(
       'ck_inventory_item_lots_expiry_after_mfg',
       sql`${table.manufacturingDate} IS NULL OR ${table.expiryDate} > ${table.manufacturingDate}`,
     ),
+    check('ck_inventory_item_lots_mrp_currency', sql`(${table.mrp} IS NULL) = (${table.mrpCurrencyCode} IS NULL)`),
+    index('idx_inventory_item_lots_mrp').on(table.mrpId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

@@ -5,12 +5,12 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
+import { useUpdatePurchaseOrderNotes } from '@/hooks/site/purchase-orders';
 import {
   type PurchaseOrderDetail,
   type UpdatePurchaseOrderNotesFormData,
   updatePurchaseOrderNotesSchema,
 } from '@/schemas/purchase-orders';
-import { useUpdatePurchaseOrderNotes } from '@/hooks/site/purchase-orders';
 
 interface UpdatePurchaseOrderNotesDialogProps {
   purchaseOrder: PurchaseOrderDetail;

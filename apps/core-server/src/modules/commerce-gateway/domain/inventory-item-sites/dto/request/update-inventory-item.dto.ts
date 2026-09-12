@@ -12,12 +12,12 @@ export class UpdateSiteInventoryItemDto {
   name?: string;
 
   @Trim({ nullify: false })
-  @ApiPropertyOptional({ description: 'Item code' })
+  @ApiPropertyOptional({ description: 'Item SKU' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   @IsCode()
-  code?: string;
+  sku?: string;
 
   @ApiPropertyOptional({
     description: 'Item type',
@@ -58,7 +58,7 @@ export class UpdateSiteInventoryItemDto {
   purchaseTaxGroupId: string;
 
   @Trim()
-  @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
+  @ApiPropertyOptional({ description: 'HSN sku for tax reporting', nullable: true })
   @IsOptional()
   @IsString()
   @MaxLength(20)

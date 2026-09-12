@@ -1,4 +1,5 @@
 import axios from '@vritti/quantum-ui/axios';
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { SiteSupplierRow, SiteSuppliersTableResponse } from '@/schemas/site-suppliers';
 import type {
@@ -23,7 +24,7 @@ export interface UpdateSiteEnrollmentPayload {
 }
 
 export interface AddSiteSupplierItemPricePayload {
-  unitPrice?: { currency: string; value: string };
+  unitPrice?: CurrencyValue;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   validFrom: string;
@@ -31,7 +32,7 @@ export interface AddSiteSupplierItemPricePayload {
 }
 
 export interface UpdateSiteSupplierItemPricePayload {
-  unitPrice?: { currency: string; value: string };
+  unitPrice?: CurrencyValue;
   schemeBuyQty?: number | null;
   schemeFreeQty?: number | null;
   validTo?: string | null;

@@ -2,15 +2,15 @@ export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
   /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
-  DateTime: { input: string; output: string; }
+  DateTime: { input: string; output: string };
   /** Arbitrary JSON value (used for Select option `additionals`). */
-  JSON: { input: unknown; output: unknown; }
+  JSON: { input: unknown; output: unknown };
 };
 
 export type ChangePasswordInput = {
@@ -37,12 +37,12 @@ export type CreateCostCategoryInput = {
 
 export type CreateInventoryItemInput = {
   categoryId: Scalars['String']['input'];
-  code: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   hsnCode?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   pickStrategy?: InputMaybe<Scalars['String']['input']>;
   purchaseTaxGroupId: Scalars['String']['input'];
+  sku: Scalars['String']['input'];
   tracking: Scalars['String']['input'];
   type: Scalars['String']['input'];
   uomId: Scalars['String']['input'];
@@ -150,7 +150,6 @@ export type InventoryItem = {
   canDelete: Scalars['Boolean']['output'];
   categoryId: Scalars['String']['output'];
   categoryName?: Maybe<Scalars['String']['output']>;
-  code: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   hsnCode?: Maybe<Scalars['String']['output']>;
@@ -158,6 +157,7 @@ export type InventoryItem = {
   name: Scalars['String']['output'];
   pickStrategy: Scalars['String']['output'];
   purchaseTaxGroupId?: Maybe<Scalars['String']['output']>;
+  sku: Scalars['String']['output'];
   tracking: Scalars['String']['output'];
   type: Scalars['String']['output'];
   uomId: Scalars['String']['output'];
@@ -427,134 +427,109 @@ export type Mutation = {
   updateUomDimension: UomDimension;
 };
 
-
 export type MutationChangePasswordArgs = {
   input: ChangePasswordInput;
 };
-
 
 export type MutationCreateCostCategoryArgs = {
   input: CreateCostCategoryInput;
 };
 
-
 export type MutationCreateInventoryItemArgs = {
   input: CreateInventoryItemInput;
 };
-
 
 export type MutationCreateInventoryItemLocationArgs = {
   input: CreateInventoryItemLocationInput;
   inventoryItemId: Scalars['ID']['input'];
 };
 
-
 export type MutationCreateInventoryItemUomConversionArgs = {
   input: CreateInventoryItemUomConversionInput;
   inventoryItemId: Scalars['ID']['input'];
 };
 
-
 export type MutationCreateTaxGroupArgs = {
   input: CreateTaxGroupInput;
 };
-
 
 export type MutationCreateUomArgs = {
   input: CreateUomInput;
 };
 
-
 export type MutationCreateUomDimensionArgs = {
   input: CreateUomDimensionInput;
 };
-
 
 export type MutationDeleteCostCategoryArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 export type MutationDeleteInventoryItemArgs = {
   id: Scalars['ID']['input'];
 };
-
 
 export type MutationDeleteInventoryItemLocationArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 export type MutationDeleteInventoryItemUomConversionArgs = {
   id: Scalars['ID']['input'];
 };
-
 
 export type MutationDeleteTaxGroupArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 export type MutationDeleteUomArgs = {
   id: Scalars['ID']['input'];
 };
-
 
 export type MutationDeleteUomDimensionArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 export type MutationMobileLoginArgs = {
   input: MobileLoginInput;
 };
-
 
 export type MutationMobileRefreshTokensArgs = {
   input: MobileRefreshInput;
 };
 
-
 export type MutationRevokeSessionArgs = {
   sessionId: Scalars['ID']['input'];
 };
-
 
 export type MutationUpdateCostCategoryArgs = {
   id: Scalars['ID']['input'];
   input: UpdateCostCategoryInput;
 };
 
-
 export type MutationUpdateInventoryItemArgs = {
   id: Scalars['ID']['input'];
   input: UpdateInventoryItemInput;
 };
-
 
 export type MutationUpdateInventoryItemLocationArgs = {
   id: Scalars['ID']['input'];
   input: UpdateInventoryItemLocationInput;
 };
 
-
 export type MutationUpdateInventoryItemUomConversionArgs = {
   id: Scalars['ID']['input'];
   input: UpdateInventoryItemUomConversionInput;
 };
-
 
 export type MutationUpdateTaxGroupArgs = {
   id: Scalars['ID']['input'];
   input: UpdateTaxGroupInput;
 };
 
-
 export type MutationUpdateUomArgs = {
   id: Scalars['ID']['input'];
   input: UpdateUomInput;
 };
-
 
 export type MutationUpdateUomDimensionArgs = {
   id: Scalars['ID']['input'];
@@ -639,31 +614,25 @@ export type Query = {
   uomsFeed: UomConnection;
 };
 
-
 export type QueryCategoriesOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
 };
-
 
 export type QueryCostCategoriesArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryCostCategoriesOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
 };
-
 
 export type QueryCustomersOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
 };
 
-
 export type QueryGoodsReceiptArgs = {
   id: Scalars['ID']['input'];
 };
-
 
 export type QueryGoodsReceiptsFeedArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -671,11 +640,9 @@ export type QueryGoodsReceiptsFeedArgs = {
   search?: InputMaybe<FeedSearchInput>;
 };
 
-
 export type QueryInventoryItemArgs = {
   id: Scalars['ID']['input'];
 };
-
 
 export type QueryInventoryItemLedgerArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -683,19 +650,16 @@ export type QueryInventoryItemLedgerArgs = {
   inventoryItemId: Scalars['ID']['input'];
 };
 
-
 export type QueryInventoryItemLocationsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   inventoryItemId: Scalars['ID']['input'];
 };
 
-
 export type QueryInventoryItemLotsOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
   inventoryItemId?: InputMaybe<Scalars['ID']['input']>;
 };
-
 
 export type QueryInventoryItemQuantsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -703,18 +667,15 @@ export type QueryInventoryItemQuantsArgs = {
   inventoryItemId: Scalars['ID']['input'];
 };
 
-
 export type QueryInventoryItemQuantsOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
   inventoryItemId?: InputMaybe<Scalars['ID']['input']>;
 };
 
-
 export type QueryInventoryItemSerialsOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
   quantId?: InputMaybe<Scalars['ID']['input']>;
 };
-
 
 export type QueryInventoryItemStockLevelsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -722,18 +683,15 @@ export type QueryInventoryItemStockLevelsArgs = {
   inventoryItemId: Scalars['ID']['input'];
 };
 
-
 export type QueryInventoryItemSuppliersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   inventoryItemId: Scalars['ID']['input'];
 };
 
-
 export type QueryInventoryItemUomConversionsArgs = {
   inventoryItemId: Scalars['ID']['input'];
 };
-
 
 export type QueryInventoryItemsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -743,12 +701,10 @@ export type QueryInventoryItemsArgs = {
   sort?: InputMaybe<Array<FeedSortInput>>;
 };
 
-
 export type QueryInventoryItemsOptionsArgs = {
   excludeOnSupplierId?: InputMaybe<Scalars['ID']['input']>;
   input?: InputMaybe<SelectOptionsInput>;
 };
-
 
 export type QueryLocationsOptionsArgs = {
   excludeUsedOnGoodsReceiptItemId?: InputMaybe<Scalars['ID']['input']>;
@@ -758,11 +714,9 @@ export type QueryLocationsOptionsArgs = {
   locationRoles?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryOrganizationsByEmailArgs = {
   email: Scalars['String']['input'];
 };
-
 
 export type QueryPurchaseOrderItemsOptionsArgs = {
   excludeOnGoodsReceiptId?: InputMaybe<Scalars['String']['input']>;
@@ -770,13 +724,11 @@ export type QueryPurchaseOrderItemsOptionsArgs = {
   purchaseOrderId: Scalars['String']['input'];
 };
 
-
 export type QueryPurchaseOrdersOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
   status?: InputMaybe<Scalars['String']['input']>;
   supplierId?: InputMaybe<Scalars['ID']['input']>;
 };
-
 
 export type QuerySupplierItemsOptionsArgs = {
   excludeOnGoodsReceiptId?: InputMaybe<Scalars['String']['input']>;
@@ -785,36 +737,29 @@ export type QuerySupplierItemsOptionsArgs = {
   supplierId?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QuerySuppliersOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
 };
-
 
 export type QueryTaxGroupsArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryTaxGroupsOptionsArgs = {
   input?: InputMaybe<SelectOptionsInput>;
 };
-
 
 export type QueryUomArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 export type QueryUomDimensionArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 export type QueryUomDimensionsArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
 };
-
 
 export type QueryUomOptionsArgs = {
   baseOnly?: InputMaybe<Scalars['Boolean']['input']>;
@@ -822,7 +767,6 @@ export type QueryUomOptionsArgs = {
   dimensionId?: InputMaybe<Scalars['ID']['input']>;
   input?: InputMaybe<SelectOptionsInput>;
 };
-
 
 export type QueryUomsFeedArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -962,12 +906,12 @@ export type UpdateCostCategoryInput = {
 
 export type UpdateInventoryItemInput = {
   categoryId?: InputMaybe<Scalars['String']['input']>;
-  code?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   hsnCode?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   pickStrategy?: InputMaybe<Scalars['String']['input']>;
   purchaseTaxGroupId: Scalars['String']['input'];
+  sku?: InputMaybe<Scalars['String']['input']>;
   type?: InputMaybe<Scalars['String']['input']>;
   uomId?: InputMaybe<Scalars['String']['input']>;
 };

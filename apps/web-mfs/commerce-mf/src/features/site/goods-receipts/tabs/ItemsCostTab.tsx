@@ -11,9 +11,9 @@ import {
 import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Coins, Eye } from 'lucide-react';
 import { useMemo } from 'react';
-import type { GoodsReceiptItemData } from '@/schemas/goods-receipts';
 import { ItemQuantsDialogContent } from '@/features/site/goods-receipts/components/ItemQuantsDialogContent';
 import { GOODS_RECEIPT_ITEMS_TABLE_KEY, useGoodsReceiptItemsTable } from '@/hooks/site/goods-receipts';
+import type { GoodsReceiptItemData } from '@/schemas/goods-receipts';
 
 interface ItemsCostTabProps {
   goodsReceiptId: string;

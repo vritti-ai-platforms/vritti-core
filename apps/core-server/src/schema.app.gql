@@ -224,7 +224,7 @@ type InventoryItemSupplierEdge {
 type InventoryItem {
   id: ID!
   name: String!
-  code: String!
+  sku: String!
   type: String!
   tracking: String!
   pickStrategy: String!

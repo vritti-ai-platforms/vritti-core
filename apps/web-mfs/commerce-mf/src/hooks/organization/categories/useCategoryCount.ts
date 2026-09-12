@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { ORG_CATEGORIES } from '@vritti/commerce-permissions/categories';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
-import { getCategoryCount } from '@/services/organization/categories.service';
 import type { CategoryCountData } from '@/schemas/categories';
+import { getCategoryCount } from '@/services/organization/categories.service';
 import { CATEGORY_COUNT_KEY } from './keys';
 
 export function useCategoryCount() {

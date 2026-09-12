@@ -9,6 +9,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import { ClipboardMinus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useAddChangeStockAdjustmentLine } from '@/hooks/site/stock-adjustments';
 import {
   type AddChangeLineFormData,
   buildAddChangeLineSchema,
@@ -16,7 +17,6 @@ import {
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
 } from '@/schemas/stock-adjustments';
-import { useAddChangeStockAdjustmentLine } from '@/hooks/site/stock-adjustments';
 
 const AddChangeLineForm = ({
   adjustmentId,

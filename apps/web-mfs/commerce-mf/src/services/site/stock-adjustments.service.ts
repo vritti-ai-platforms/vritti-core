@@ -1,4 +1,5 @@
 import axios from '@vritti/quantum-ui/axios';
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   StockAdjustmentData,
@@ -17,12 +18,12 @@ export interface CreateStockAdjustmentPayload {
   inventoryItemId: string;
   type: StockAdjustmentType;
   reason: string;
-  unitCost?: { currency: string; value: string };
+  unitCost?: CurrencyValue;
 }
 
 export interface UpdateStockAdjustmentPayload {
   reason?: string;
-  unitCost?: { currency: string; value: string };
+  unitCost?: CurrencyValue;
 }
 
 export interface AddStockAdjustmentLotPayload {

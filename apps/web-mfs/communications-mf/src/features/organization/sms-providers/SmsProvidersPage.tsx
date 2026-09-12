@@ -125,7 +125,6 @@ export const SmsProvidersPage = () => {
         isLoading={isLoading}
         permission={ORG_SMS_PROVIDERS.view}
         enableViews={false}
-        onRowClick={(provider) => navigate(provider.id)}
         toolbarActions={{
           actions: (
             <Button

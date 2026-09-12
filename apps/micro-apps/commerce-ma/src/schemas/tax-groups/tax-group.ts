@@ -5,7 +5,13 @@ import { z, zodNumericField } from '@vritti/quantum-ui-native/zod';
 // Checkbox isn't quantum-<Form> name-wirable.
 export const taxRateSchema = z.object({
   name: z.string().min(1, 'Rate name is required').max(100, 'Rate name must be 100 characters or fewer'),
-  rate: zodNumericField({ required: 'Rate is required', min: 0, max: 100, positive: true, positiveMessage: 'must be > 0' }),
+  rate: zodNumericField({
+    required: 'Rate is required',
+    min: 0,
+    max: 100,
+    positive: true,
+    positiveMessage: 'must be > 0',
+  }),
 });
 
 export const taxGroupSchema = z.object({

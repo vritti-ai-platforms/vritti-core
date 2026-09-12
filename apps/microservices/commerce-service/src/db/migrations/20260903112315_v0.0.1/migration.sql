@@ -1,0 +1,3 @@
+ALTER TABLE "commerce"."offering_dimension_templates" ADD COLUMN "code" varchar(50);--> statement-breakpoint
+ALTER TABLE "commerce"."offering_dimension_templates" ADD CONSTRAINT "uq_offering_dimension_templates_org_code" UNIQUE("organization_id","code");--> statement-breakpoint
+ALTER TABLE "commerce"."offering_dimension_templates" ADD CONSTRAINT "offering_dimension_templates_code_chk" CHECK ("code" ~ '^[a-z][a-z0-9-]*$');

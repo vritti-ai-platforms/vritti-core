@@ -3,13 +3,12 @@ import type { InventoryItem, InventoryItemType, InventoryPickStrategy, Inventory
 export class InventoryItemDto {
   id: string;
   name: string;
-  code: string;
+  sku: string;
   type: InventoryItemType;
   tracking: InventoryTracking;
   pickStrategy: InventoryPickStrategy;
   categoryId: string;
   categoryName: string | null;
-  taxClassId: string | null;
   description: string | null;
   uomId: string;
   uomSymbol: string | null;
@@ -27,13 +26,12 @@ export class InventoryItemDto {
     const dto = new InventoryItemDto();
     dto.id = entity.id;
     dto.name = entity.name;
-    dto.code = entity.code;
+    dto.sku = entity.sku;
     dto.type = entity.type;
     dto.tracking = entity.tracking;
     dto.pickStrategy = entity.pickStrategy;
     dto.categoryId = entity.categoryId;
     dto.categoryName = categoryName ?? null;
-    dto.taxClassId = entity.taxClassId ?? null;
     dto.description = entity.description ?? null;
     dto.uomId = entity.uomId;
     dto.uomSymbol = uomSymbol ?? null;

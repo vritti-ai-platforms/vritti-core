@@ -9,9 +9,9 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
+import { useCreateStockAdjustment } from '@/hooks/site/stock-adjustments';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { type CreateStockAdjustmentFormData, createStockAdjustmentSchema } from '@/schemas/stock-adjustments';
-import { useCreateStockAdjustment } from '@/hooks/site/stock-adjustments';
 
 interface CreateStockAdjustmentDialogProps {
   onSuccess: (adjustment: StockAdjustmentData) => void;

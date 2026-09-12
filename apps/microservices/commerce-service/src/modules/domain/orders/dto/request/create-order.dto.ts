@@ -62,10 +62,6 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsUUID()
-  channelId?: string;
-
-  @IsOptional()
-  @IsUUID()
   customerId?: string;
 
   @IsOptional()

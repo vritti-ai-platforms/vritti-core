@@ -20,7 +20,7 @@ export function OverviewTab({ item }: { item: InventoryItem }) {
   return (
     <ScreenContainer scrollable contentContainerStyle={{ padding: 16, gap: 16 }}>
       <Card className="gap-3 p-4">
-        <DetailRow label="Code" value={item.code} />
+        <DetailRow label="SKU" value={item.sku} />
         <DetailRow label="Type" value={typeLabel(item.type)} />
         <DetailRow label="Tracking" value={trackingLabel(item.tracking)} />
         <DetailRow label="Pick strategy" value={item.pickStrategy} />

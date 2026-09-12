@@ -1,3 +1,4 @@
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField, zodPhoneField } from '@vritti/quantum-ui/zod';
 import type { PartyLicenseType } from './party-licenses';
@@ -135,7 +136,7 @@ export interface SupplierItemData {
   inventoryItemId: string;
   inventoryItemName: string;
   supplierItemCode: string | null;
-  unitPrice: { currency: string; value: string } | null;
+  unitPrice: CurrencyValue | null;
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;
@@ -160,7 +161,7 @@ export interface InventoryItemSupplierData {
   supplierName: string;
   supplierCode: string;
   supplierItemCode: string | null;
-  unitPrice: { currency: string; value: string } | null;
+  unitPrice: CurrencyValue | null;
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;
@@ -233,7 +234,7 @@ export interface SupplierItemPriceRow {
   id: string;
   supplierItemId: string;
   siteId: string | null;
-  unitPrice: { currency: string; value: string };
+  unitPrice: CurrencyValue;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
   validFrom: string;

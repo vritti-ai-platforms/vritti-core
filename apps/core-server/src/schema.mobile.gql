@@ -343,7 +343,7 @@ type InventoryItemUomConversion {
 type InventoryItem {
   id: ID!
   name: String!
-  code: String!
+  sku: String!
   type: String!
   tracking: String!
   pickStrategy: String!
@@ -519,7 +519,7 @@ type Mutation {
 
 input CreateInventoryItemInput {
   name: String!
-  code: String!
+  sku: String!
   type: String!
   tracking: String!
   pickStrategy: String
@@ -532,7 +532,7 @@ input CreateInventoryItemInput {
 
 input UpdateInventoryItemInput {
   name: String
-  code: String
+  sku: String
   type: String
   categoryId: String
   description: String

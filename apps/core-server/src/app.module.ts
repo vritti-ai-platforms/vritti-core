@@ -231,6 +231,12 @@ const graphqlBaseOptions = {
               return;
             }
 
+            if (auth.kind === 'oauth') {
+              // No route here declares AuthType.OAuth, so this cannot happen today. It fails closed
+              // so a future OAuth route never silently inherits the session host checks below.
+              throw new UnauthorizedException('OAuth credentials are not accepted on this server');
+            }
+
             // The org claim is a consistency check only — the org always derives from the session
             const orgIdHeader = readContext('x-org-id', 'orgId');
             if (orgIdHeader && orgIdHeader !== auth.organizationId) {

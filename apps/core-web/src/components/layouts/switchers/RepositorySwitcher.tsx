@@ -6,18 +6,18 @@ import { useNavigate } from 'react-router-dom';
 
 interface RepositorySwitcherProps {
   // Repositories are keyed by name, so the raw breadcrumb segment is both the value and the fallback label
-  repoName: string;
+  segment: string;
   // The repositories root, e.g. `/<workspaceSlug>/repositories`
   basePath: string;
 }
 
 // Renders the repository switcher dropdown in the top bar breadcrumb
-export const RepositorySwitcher = ({ repoName, basePath }: RepositorySwitcherProps) => {
+export const RepositorySwitcher = ({ segment, basePath }: RepositorySwitcherProps) => {
   const navigate = useNavigate();
 
   return (
     <RepositorySelector
-      value={repoName}
+      value={segment}
       // The anchor replaces the trigger but not the surrounding Field, so a label would still render above it
       label={undefined}
       searchPlaceholder="Find repository..."
@@ -28,7 +28,7 @@ export const RepositorySwitcher = ({ repoName, basePath }: RepositorySwitcherPro
           variant="ghost"
           className="h-auto min-w-25 p-0 gap-1.5 text-sm font-normal hover:bg-transparent"
         >
-          <span className="flex-1 text-left font-normal text-foreground">{selectedOption?.label ?? repoName}</span>
+          <span className="flex-1 text-left font-normal text-foreground">{selectedOption?.label ?? segment}</span>
           <span className="flex items-center justify-center size-6 rounded-full border border-border hover:bg-accent transition-colors">
             <ChevronsUpDown className="size-3.5 text-muted-foreground" />
           </span>
@@ -50,7 +50,7 @@ export const RepositorySwitcher = ({ repoName, basePath }: RepositorySwitcherPro
       }
       onOptionSelect={(option) => {
         // Skip the on-mount initial-resolve fire (same repository) — only navigate on a real switch
-        if (option && String(option.value) !== repoName) {
+        if (option && String(option.value) !== segment) {
           // The tab resets rather than carrying over: a tab that suits one repository (an empty one has
           // no code or runs) need not suit the next
           navigate(`${basePath}/${option.value}/overview`);

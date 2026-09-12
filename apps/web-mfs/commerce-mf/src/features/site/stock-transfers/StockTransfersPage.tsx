@@ -17,8 +17,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ArrowRightLeft, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { StockTransferData, StockTransferStatus } from '@/schemas/stock-transfers';
 import { STOCK_TRANSFERS_TABLE_KEY, useStockTransfersTable } from '@/hooks/site/stock-transfers';
+import type { StockTransferData, StockTransferStatus } from '@/schemas/stock-transfers';
 import { CreateStockTransferDialog } from './forms/CreateStockTransferDialog';
 
 const statusConfig: Record<

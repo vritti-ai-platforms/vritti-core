@@ -1,3 +1,4 @@
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { InventoryTracking } from './inventory-items';
@@ -108,7 +109,7 @@ export interface StockAdjustmentData {
   totalQuantity: number;
   status: StockAdjustmentStatus;
   reason: string | null;
-  unitCost: { currency: string; value: string } | null;
+  unitCost: CurrencyValue | null;
   isPublishable: boolean;
   metadata: Record<string, unknown>;
   publishedAt: string | null;
