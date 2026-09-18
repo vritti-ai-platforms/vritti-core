@@ -64,7 +64,7 @@ export const EditSmsProviderDialog = ({ provider, onSuccess, onCancel }: EditSms
             name="authKey"
             label="New auth key"
             type="password"
-            description="Leave blank to keep the stored key"
+            description="Leave blank to keep the stored key. A new key is checked against MSG91 before it replaces the old one."
           />
         )}
         {provider.provider === 'TWILIO' && (

@@ -1,22 +1,21 @@
 import { ORG_SMS_PROVIDERS } from '@vritti/communications-permissions/sms-providers';
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
-import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Typography } from '@vritti/quantum-ui/Typography';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { MessageSquareText, Pencil } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDeleteSmsProvider, useSmsProvider } from '@/hooks/organization/sms-providers';
 import { EditSmsProviderDialog } from './forms/EditSmsProviderDialog';
+import { OverviewTab } from './tabs/overview/OverviewTab';
+import { TemplatesTab } from './tabs/templates/TemplatesTab';
 
 export const SmsProviderDetailPage = () => {
-  const { providerId = '' } = useParams<{ providerId: string }>();
+  const { id } = useSlugParams('slug');
   const navigate = useNavigate();
-  const { data: provider } = useSmsProvider(providerId);
+  const { data: provider } = useSmsProvider(id);
   const confirm = useConfirm();
   const editDialog = useDialog();
   const deleteMutation = useDeleteSmsProvider({ onSuccess: () => navigate('..', { relative: 'path' }) });
@@ -27,7 +26,7 @@ export const SmsProviderDetailPage = () => {
     const confirmed = await confirm({
       title: `Remove "${provider.name}"?`,
       description:
-        'Vritti forgets this provider and its credentials. Apps configured to send through it will fail until they pick another provider.',
+        'Vritti forgets this provider, its credentials, and the templates registered against it. Apps configured to send through it will fail until they pick another provider. Nothing changes at the vendor.',
       confirmLabel: 'Remove',
       variant: 'destructive',
     });
@@ -53,63 +52,28 @@ export const SmsProviderDetailPage = () => {
         }
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Details</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <DetailField
-            label="Provider"
-            type="string"
-            value={<Badge variant="outline">{provider.provider.toLowerCase()}</Badge>}
-          />
-          <DetailField
-            label="Type"
-            type="string"
-            value={
-              isPlatform ? (
-                <Badge variant="secondary">Platform — managed by Vritti</Badge>
-              ) : (
-                <Badge variant="outline">Client — your organization</Badge>
-              )
-            }
-          />
-          <DetailField
-            label="Status"
-            type="string"
-            value={
-              provider.isActive ? (
-                <Badge variant="success">Active</Badge>
-              ) : (
-                <Badge variant="destructive">Inactive</Badge>
-              )
-            }
-          />
-          <DetailField
-            label="Credentials"
-            type="string"
-            value={
-              provider.hasCredentials ? (
-                <Badge variant="success">Configured</Badge>
-              ) : (
-                <Badge variant="outline">None required</Badge>
-              )
-            }
-          />
-          <DetailField label="Sender ID" type="string" value={provider.senderId ?? '—'} mono />
-          <DetailField label="Connected" type="dateTime" value={provider.createdAt} />
-          <DetailField label="Last updated" type="dateTime" value={provider.updatedAt} />
-        </CardContent>
-      </Card>
+      <Tabs
+        routeParam="tab"
+        tabs={[
+          {
+            value: 'overview',
+            label: 'Overview',
+            permission: ORG_SMS_PROVIDERS.view,
+            content: <OverviewTab provider={provider} />,
+          },
+          {
+            value: 'templates',
+            label: 'Templates',
+            permission: ORG_SMS_PROVIDERS.templates.view,
+            content: <TemplatesTab provider={provider} />,
+          },
+        ]}
+      />
 
-      {isPlatform ? (
-        <Typography variant="body2" intent="muted">
-          This sender is managed by Vritti and cannot be changed here.
-        </Typography>
-      ) : (
+      {!isPlatform && (
         <DangerZone
           title="Remove this provider"
-          description="Vritti forgets this provider account and its credentials. Nothing changes at the vendor."
+          description="Vritti forgets this provider account, its credentials, and its templates. Nothing changes at the vendor."
           buttonText="Remove Provider"
           permission={ORG_SMS_PROVIDERS.delete}
           onClick={handleDelete}

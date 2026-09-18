@@ -3,6 +3,7 @@ import { AppDomainModule } from '@/modules/domain/app/app.module';
 import { EmbeddedSignupStateService } from './embedded-signup/services/embedded-signup-state.service';
 import { CommunicationsInternalService } from './internal/services/communications-internal.service';
 import { SmsOtpsGatewayService } from './org-api/sms-otps/services/sms-otps-gateway.service';
+import { SmsProviderTemplatesGatewayService } from './org-api/sms-providers/services/sms-provider-templates-gateway.service';
 import { SmsProvidersGatewayService } from './org-api/sms-providers/services/sms-providers-gateway.service';
 import { WhatsappAccountsGatewayService } from './org-api/whatsapp-accounts/services/whatsapp-accounts-gateway.service';
 import { WhatsappAccountsPhoneNumbersGatewayService } from './org-api/whatsapp-accounts/services/whatsapp-accounts-phone-numbers-gateway.service';
@@ -13,6 +14,7 @@ const services = [
   EmbeddedSignupStateService,
   SmsOtpsGatewayService,
   SmsProvidersGatewayService,
+  SmsProviderTemplatesGatewayService,
   WhatsappAccountsGatewayService,
   WhatsappAccountsPhoneNumbersGatewayService,
   WhatsappAccountsTemplatesGatewayService,

@@ -1,3 +1,4 @@
+import type { SmsProviderTemplateResponseDto } from '@communications/sms-provider-templates/dto/response/sms-provider-template-response.dto';
 import { CreateSmsProviderDto } from '@communications/sms-providers/dto/request/create-sms-provider.dto';
 import { UpdateSmsProviderDto } from '@communications/sms-providers/dto/request/update-sms-provider.dto';
 import type { SmsProviderResponseDto } from '@communications/sms-providers/dto/response/sms-provider-response.dto';
@@ -32,6 +33,7 @@ import {
   ApiListOtpPhoneNumbers,
   ApiListOtpTemplates,
   ApiListSmsProviderOptions,
+  ApiListSmsProviderTemplates,
   ApiPlatformSmsProviders,
   ApiSetSmsOtpConfig,
   ApiSetWhatsappOtpConfig,
@@ -195,6 +197,18 @@ export class CommunicationsInternalController {
   listSmsProviderOptions(@OrgId() _organizationId: string): Promise<SmsProviderOptionDto[]> {
     this.logger.log('GET /communications/internal/sms-provider-options');
     return this.service.listSmsProviderOptions();
+  }
+
+  // The templates registered against one provider — the OTP config's template picker
+  @Get('sms-providers/:providerId/templates')
+  @Require(AuthType.Cloud)
+  @ApiListSmsProviderTemplates()
+  listSmsProviderTemplates(
+    @Param('providerId', new ParseUUIDPipe()) providerId: string,
+    @OrgId() _organizationId: string,
+  ): Promise<SmsProviderTemplateResponseDto[]> {
+    this.logger.log(`GET /communications/internal/sms-providers/${providerId}/templates`);
+    return this.service.listSmsProviderTemplates(providerId);
   }
 
   // Returns the SMS OTP configuration stored on an app

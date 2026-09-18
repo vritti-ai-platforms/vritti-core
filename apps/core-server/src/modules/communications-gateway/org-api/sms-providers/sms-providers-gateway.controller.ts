@@ -1,5 +1,6 @@
 import { CreateSmsProviderDto } from '@communications/sms-providers/dto/request/create-sms-provider.dto';
 import { UpdateSmsProviderDto } from '@communications/sms-providers/dto/request/update-sms-provider.dto';
+import type { SmsProviderCapabilitiesResponseDto } from '@communications/sms-providers/dto/response/sms-provider-capabilities-response.dto';
 import type { SmsProviderResponseDto } from '@communications/sms-providers/dto/response/sms-provider-response.dto';
 import type { SmsProviderTableResponseDto } from '@communications/sms-providers/dto/response/sms-provider-table-response.dto';
 import {
@@ -24,6 +25,7 @@ import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import {
   ApiCreateSmsProvider,
   ApiDeleteSmsProvider,
+  ApiGetAvailableSmsProviders,
   ApiGetSmsProvider,
   ApiGetSmsProvidersTable,
   ApiUpdateSmsProvider,
@@ -39,6 +41,16 @@ export class SmsProvidersGatewayController {
   private readonly logger = new Logger(SmsProvidersGatewayController.name);
 
   constructor(private readonly service: SmsProvidersGatewayService) {}
+
+  // Which providers can be connected at all — read by the connect form
+  // Gated on view, not add: the Templates tab reads it too, and add already depends on view
+  @Get('available')
+  @RequirePermission(ORG_SMS_PROVIDERS.view)
+  @ApiGetAvailableSmsProviders()
+  getAvailable(): Promise<SmsProviderCapabilitiesResponseDto[]> {
+    this.logger.log('GET /communications-api/sms-providers/available');
+    return this.service.listAvailable();
+  }
 
   // The org's own providers plus the Vritti-managed platform rows
   @Get('table')

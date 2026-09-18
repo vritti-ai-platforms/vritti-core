@@ -27380,6 +27380,37 @@
         ]
       }
     },
+    "/communications-api/sms-providers/available": {
+      "get": {
+        "description": "The provider implementations registered in the service, with what each supports. The connect form builds its options from this, so a provider with no transport behind it is never offered.",
+        "operationId": "SmsProvidersGatewayController_getAvailable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Providers retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SmsProviderCapabilitiesResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List connectable SMS providers",
+        "tags": [
+          "Communications - SMS Providers"
+        ]
+      }
+    },
     "/communications-api/sms-providers/table": {
       "get": {
         "description": "The organization's own provider accounts plus the Vritti-managed platform rows.",
@@ -27583,6 +27614,201 @@
         "summary": "Connect an SMS provider",
         "tags": [
           "Communications - SMS Providers"
+        ]
+      }
+    },
+    "/communications-api/sms-providers/{id}/templates/table": {
+      "get": {
+        "description": "Returns the templates registered in Vritti against this provider. MSG91 offers no endpoint that lists the SMS templates on an account, so these rows are the list — each was confirmed with the vendor when it was added.",
+        "operationId": "SmsProviderTemplatesGatewayController_getTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "SMS provider ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Templates retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmsProviderTemplateTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List a provider's templates",
+        "tags": [
+          "Communications - SMS Provider Templates"
+        ]
+      }
+    },
+    "/communications-api/sms-providers/{id}/templates": {
+      "post": {
+        "description": "Reads the template from the vendor with the provider's stored credentials and records it only if it exists. This is also the first real proof that the stored auth key works.",
+        "operationId": "SmsProviderTemplatesGatewayController_add",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "SMS provider ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSmsProviderTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Template added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The vendor rejected the template ID or the stored credentials."
+          },
+          "409": {
+            "description": "Template already registered against this provider."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register a template against a provider",
+        "tags": [
+          "Communications - SMS Provider Templates"
+        ]
+      }
+    },
+    "/communications-api/sms-providers/{id}/templates/{templateId}/refresh": {
+      "post": {
+        "description": "Replaces the stored snapshot, so a template edited in the MSG91 panel stops being stale here.",
+        "operationId": "SmsProviderTemplatesGatewayController_refresh",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "SMS provider ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "templateId",
+            "required": true,
+            "in": "path",
+            "description": "Vritti template row ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template refreshed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmsProviderTemplateResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Re-read a template from the vendor",
+        "tags": [
+          "Communications - SMS Provider Templates"
+        ]
+      }
+    },
+    "/communications-api/sms-providers/{id}/templates/{templateId}": {
+      "delete": {
+        "description": "Forgets the row. The template itself is untouched in MSG91.",
+        "operationId": "SmsProviderTemplatesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "SMS provider ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "templateId",
+            "required": true,
+            "in": "path",
+            "description": "Vritti template row ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a template from Vritti",
+        "tags": [
+          "Communications - SMS Provider Templates"
         ]
       }
     },
@@ -29430,6 +29656,32 @@
           }
         },
         "summary": "List SMS providers an OTP config may use",
+        "tags": [
+          "Communications - Internal"
+        ]
+      }
+    },
+    "/communications/internal/sms-providers/{providerId}/templates": {
+      "get": {
+        "description": "The templates registered in Vritti against one SMS provider — what an app's OTP config picks from.",
+        "operationId": "CommunicationsInternalController_listSmsProviderTemplates",
+        "parameters": [
+          {
+            "name": "providerId",
+            "required": true,
+            "in": "path",
+            "description": "SMS provider ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Templates retrieved."
+          }
+        },
+        "summary": "List a provider's templates",
         "tags": [
           "Communications - Internal"
         ]
@@ -40634,6 +40886,34 @@
           "expirySeconds"
         ]
       },
+      "SmsProviderCapabilitiesResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Registry code of the provider implementation",
+            "example": "MSG91"
+          },
+          "requiresTemplate": {
+            "type": "boolean",
+            "description": "Whether a send is addressed by a vendor template (DLT, for MSG91)"
+          },
+          "requiresCredentials": {
+            "type": "boolean",
+            "description": "Whether connecting it needs credentials at all"
+          },
+          "supportsTemplates": {
+            "type": "boolean",
+            "description": "Whether templates can be listed and registered against it"
+          }
+        },
+        "required": [
+          "code",
+          "requiresTemplate",
+          "requiresCredentials",
+          "supportsTemplates"
+        ]
+      },
       "SmsProviderResponseDto": {
         "type": "object",
         "properties": {
@@ -40797,6 +41077,100 @@
             "type": "boolean"
           }
         }
+      },
+      "SmsProviderTemplateResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Vritti row ID"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "SMS provider this template belongs to"
+          },
+          "templateId": {
+            "type": "string",
+            "description": "The vendor's own template ID, passed as template_id when sending"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name given in Vritti"
+          },
+          "details": {
+            "type": "object",
+            "description": "The vendor payload as returned, stored whole. MSG91 publishes no response schema for getVersions, so the shape is the vendor’s and is not reinterpreted here.",
+            "additionalProperties": true
+          },
+          "syncedAt": {
+            "type": "string",
+            "description": "ISO timestamp of the last read from the vendor"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "id",
+          "providerId",
+          "templateId",
+          "name",
+          "details",
+          "syncedAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SmsProviderTemplateTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SmsProviderTemplateResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "AddSmsProviderTemplateDto": {
+        "type": "object",
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "example": "68b3f2a17c1e4a0f9c2b1d34",
+            "description": "MSG91's own template ID, copied from its panel. An opaque string, not a UUID."
+          },
+          "name": {
+            "type": "string",
+            "example": "Sign-in code",
+            "description": "What this template is called in Vritti"
+          }
+        },
+        "required": [
+          "templateId",
+          "name"
+        ]
       },
       "WhatsappAccountResponseDto": {
         "type": "object",
@@ -41853,6 +42227,10 @@
           "providerId": {
             "type": "string",
             "description": "SMS provider the codes are sent through — platform or the org's own"
+          },
+          "templateId": {
+            "type": "string",
+            "description": "The provider's template the code is rendered into. Required when the provider sends through templates."
           },
           "senderId": {
             "type": "string",

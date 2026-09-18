@@ -1,10 +1,22 @@
 import { CreateSmsProviderDto } from '@communications/sms-providers/dto/request/create-sms-provider.dto';
 import { UpdateSmsProviderDto } from '@communications/sms-providers/dto/request/update-sms-provider.dto';
+import { SmsProviderCapabilitiesResponseDto } from '@communications/sms-providers/dto/response/sms-provider-capabilities-response.dto';
 import { SmsProviderResponseDto } from '@communications/sms-providers/dto/response/sms-provider-response.dto';
 import { SmsProviderTableResponseDto } from '@communications/sms-providers/dto/response/sms-provider-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+
+export function ApiGetAvailableSmsProviders() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List connectable SMS providers',
+      description:
+        'The provider implementations registered in the service, with what each supports. The connect form builds its options from this, so a provider with no transport behind it is never offered.',
+    }),
+    ApiResponse({ status: 200, description: 'Providers retrieved.', type: [SmsProviderCapabilitiesResponseDto] }),
+  );
+}
 
 export function ApiGetSmsProvidersTable() {
   return applyDecorators(

@@ -1,7 +1,7 @@
 import { SmsProviderDto } from '@domain/sms-providers/dto/entity/sms-provider.dto';
 import { CreateSmsProviderDto } from '@domain/sms-providers/dto/request/create-sms-provider.dto';
 import { UpdateSmsProviderDto } from '@domain/sms-providers/dto/request/update-sms-provider.dto';
-import { SmsProvidersDomainService } from '@domain/sms-providers/services/sms-providers.service';
+import type { SmsProviderCapabilities } from '@domain/sms-providers/services/sms-provider-transports';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
@@ -11,12 +11,19 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
+import { SmsProvidersService } from './services/sms-providers.service';
 
 @Controller()
 export class SmsProvidersController {
   private readonly logger = new Logger(SmsProvidersController.name);
 
-  constructor(private readonly service: SmsProvidersDomainService) {}
+  constructor(private readonly service: SmsProvidersService) {}
+
+  @MessagePattern({ cmd: 'org.smsProviders.available' })
+  async available(): Promise<SmsProviderCapabilities[]> {
+    this.logger.log('smsProviders.available');
+    return this.service.listAvailable();
+  }
 
   @MessagePattern({ cmd: 'org.smsProviders.table' })
   async table(@Payload() state: TableViewState): Promise<{ result: SmsProviderDto[]; count: number }> {

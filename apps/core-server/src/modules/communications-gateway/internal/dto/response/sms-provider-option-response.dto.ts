@@ -16,4 +16,10 @@ export class SmsProviderOptionDto {
 
   @ApiPropertyOptional({ nullable: true, description: 'Default originator, overridable per app' })
   senderId: string | null;
+
+  @ApiProperty({
+    description:
+      'Whether sending through this provider needs one of its templates. From the transport registry, so the config screen never has to infer it from the provider code.',
+  })
+  requiresTemplate: boolean;
 }

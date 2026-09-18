@@ -49,6 +49,7 @@ export class SmsOtpsGatewayService {
       {
         appId,
         providerId: config.providerId,
+        ...(config.templateId ? { templateId: config.templateId } : {}),
         ...(config.senderId ? { senderId: config.senderId } : {}),
         recipient,
         codeLength: config.codeLength,

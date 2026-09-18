@@ -4,6 +4,7 @@ import type { SmsOtpStatsDto } from '@domain/sms-otps/dto/entity/sms-otp-stats.d
 import type { SendSmsOtpDto } from '@domain/sms-otps/dto/request/send-sms-otp.dto';
 import type { VerifySmsOtpDto } from '@domain/sms-otps/dto/request/verify-sms-otp.dto';
 import { SmsOtpsDomainService } from '@domain/sms-otps/services/sms-otps.service';
+import { SmsProviderTemplatesDomainService } from '@domain/sms-provider-templates/services/sms-provider-templates.service';
 import { SmsProviderRegistry } from '@domain/sms-providers/services/sms-provider-transports';
 import { SmsProvidersDomainService } from '@domain/sms-providers/services/sms-providers.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -19,6 +20,7 @@ export class SmsOtpsService {
   constructor(
     private readonly otpsService: SmsOtpsDomainService,
     private readonly providersService: SmsProvidersDomainService,
+    private readonly templatesService: SmsProviderTemplatesDomainService,
     private readonly registry: SmsProviderRegistry,
   ) {}
 
@@ -27,6 +29,12 @@ export class SmsOtpsService {
     // Resolved first: an inactive or unknown provider fails the request before any row is written
     const config = await this.providersService.resolveSendConfig(dto.providerId);
     const transport = this.registry.resolve(config.provider);
+
+    // Resolved before anything is written, alongside the provider. Passed to the transport as-is —
+    // what a template means (placeholder grammar, variable count) is the transport's business.
+    const template = dto.templateId
+      ? await this.templatesService.findSnapshot(dto.providerId, dto.templateId)
+      : undefined;
 
     const prepared = await this.otpsService.startSend(dto, config.provider);
 
@@ -41,6 +49,8 @@ export class SmsOtpsService {
         senderId: dto.senderId ?? config.senderId,
         credentials: config.credentials,
         appId: dto.appId,
+        ...(dto.templateId ? { templateId: dto.templateId } : {}),
+        ...(template ? { template } : {}),
       });
 
       await this.otpsService.recordSent(prepared.id, messageId);

@@ -1,3 +1,4 @@
+import type { SmsProviderTemplateResponseDto } from '@communications/sms-provider-templates/dto/response/sms-provider-template-response.dto';
 import type { CreateSmsProviderDto } from '@communications/sms-providers/dto/request/create-sms-provider.dto';
 import type { UpdateSmsProviderDto } from '@communications/sms-providers/dto/request/update-sms-provider.dto';
 import type { SmsProviderResponseDto } from '@communications/sms-providers/dto/response/sms-provider-response.dto';
@@ -210,16 +211,36 @@ export class CommunicationsInternalService {
       limit: SELECT_LIMIT,
     } satisfies SelectOptionsQueryDto);
 
+    // Merged in so the config screen knows whether to demand a template without inferring it from
+    // the provider code — the registry is the only thing that actually knows
+    const capabilities = await this.nats.send<{ code: string; requiresTemplate: boolean }[]>(
+      'communications',
+      'org.smsProviders.available',
+      {},
+    );
+    const requiresTemplate = new Map(capabilities.map((entry) => [entry.code, entry.requiresTemplate]));
+
     // A deactivated provider cannot send, so offering one would only produce a config that fails later
     return options
       .filter((option) => option.additionals?.isActive !== false)
-      .map((option) => ({
-        id: String(option.value),
-        name: option.label,
-        provider: String(option.additionals?.provider ?? ''),
-        type: String(option.additionals?.type ?? ''),
-        senderId: option.additionals?.senderId ? String(option.additionals.senderId) : null,
-      }));
+      .map((option) => {
+        const code = String(option.additionals?.provider ?? '');
+        return {
+          id: String(option.value),
+          name: option.label,
+          provider: code,
+          type: String(option.additionals?.type ?? ''),
+          senderId: option.additionals?.senderId ? String(option.additionals.senderId) : null,
+          requiresTemplate: requiresTemplate.get(code) ?? false,
+        };
+      });
+  }
+
+  // The templates registered against one provider — what the app's OTP config picks from. Vritti's
+  // own rows: a provider's vendor may have no endpoint that lists them (MSG91 has none for SMS).
+  listSmsProviderTemplates(providerId: string): Promise<SmsProviderTemplateResponseDto[]> {
+    this.logger.log(`org.smsProviders.templates.list — provider: ${providerId}`);
+    return this.nats.send('communications', 'org.smsProviders.templates.list', { providerId });
   }
 
   async getSmsOtpConfig(appId: string, organizationId: string): Promise<AppSmsOtpConfig | null> {
@@ -234,7 +255,7 @@ export class CommunicationsInternalService {
     if (!app) throw new NotFoundException('App not found.');
 
     // Resolves under the org's RLS scope — a foreign org's provider simply does not exist here
-    const provider = await this.nats.send<{ id: string; isActive: boolean }>(
+    const provider = await this.nats.send<{ id: string; isActive: boolean; provider: string }>(
       'communications',
       'org.smsProviders.findById',
       { id: config.providerId },
@@ -246,8 +267,42 @@ export class CommunicationsInternalService {
       });
     }
 
+    await this.validateSmsTemplate(provider.provider, config);
+
     const updated = await this.appService.setSmsOtpConfig(appId, config);
     return updated.smsOtpConfig as AppSmsOtpConfig;
+  }
+
+  /**
+   * Rejects a config whose template is missing or belongs to another provider.
+   *
+   * Whether a template is needed at all is the transport registry's answer, not a provider code
+   * checked here — a provider that sends a bare body needs none, and hardcoding the distinction
+   * would rot the moment a transport is added.
+   */
+  private async validateSmsTemplate(providerCode: string, config: AppSmsOtpConfig): Promise<void> {
+    const capabilities = await this.nats.send<{ code: string; requiresTemplate: boolean }[]>(
+      'communications',
+      'org.smsProviders.available',
+      {},
+    );
+    const requiresTemplate = capabilities.find((entry) => entry.code === providerCode)?.requiresTemplate ?? false;
+    if (!requiresTemplate) return;
+
+    if (!config.templateId) {
+      throw new BadRequestException({
+        label: 'Template required',
+        detail: `${providerCode} sends through an approved template. Pick one registered against this provider.`,
+      });
+    }
+
+    const templates = await this.listSmsProviderTemplates(config.providerId);
+    if (!templates.some((template) => template.templateId === config.templateId)) {
+      throw new BadRequestException({
+        label: 'Unknown template',
+        detail: 'That template is not registered against the selected provider. Add it on the provider first.',
+      });
+    }
   }
 
   // Turns SMS sign-in codes off for an app
@@ -271,6 +326,7 @@ export class CommunicationsInternalService {
     return this.nats.send('communications', 'org.smsOtps.send', {
       appId,
       providerId: config.providerId,
+      ...(config.templateId ? { templateId: config.templateId } : {}),
       ...(config.senderId ? { senderId: config.senderId } : {}),
       recipient,
       codeLength: config.codeLength,

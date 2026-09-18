@@ -36,11 +36,22 @@ export interface UpdateSmsProviderData {
   isActive?: boolean;
 }
 
-export const SMS_PROVIDER_OPTIONS = [
-  { value: 'MSG91', label: 'MSG91', description: 'Auth-key based; DLT sender IDs' },
-  { value: 'TWILIO', label: 'Twilio', description: 'Account SID + auth token' },
-  { value: 'CONSOLE', label: 'Console (dev)', description: 'Logs codes to the server console — never production' },
-];
+// What the server says a provider implementation supports. The set of connectable providers comes
+// from the transport registry, never from a constant here — a hardcoded list drifts the moment a
+// transport is added or removed, which is how Twilio came to be offered with nothing behind it.
+export interface SmsProviderCapabilities {
+  code: SmsProviderCode;
+  requiresTemplate: boolean;
+  requiresCredentials: boolean;
+  supportsTemplates: boolean;
+}
+
+// Presentation only — how a code reads to a person. Keyed by code so an unknown one still renders.
+export const SMS_PROVIDER_LABELS: Record<string, { label: string; description: string }> = {
+  MSG91: { label: 'MSG91', description: 'Auth-key based; DLT sender IDs' },
+  TWILIO: { label: 'Twilio', description: 'Account SID + auth token' },
+  CONSOLE: { label: 'Console (dev)', description: 'Logs codes to the server console — never production' },
+};
 
 const providerName = z.string().trim().min(1, 'Name is required').max(255);
 const senderId = z.string().max(64).optional();

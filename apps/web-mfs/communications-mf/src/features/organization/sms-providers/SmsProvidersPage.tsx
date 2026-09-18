@@ -6,13 +6,13 @@ import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from 
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Eye, MessageSquareText, Pencil, Plus } from 'lucide-react';
+import { buildSlug } from '@vritti/quantum-ui/slug';
+import { Eye, MessageSquareText, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SMS_PROVIDERS_TABLE_KEY, useSmsProviders } from '@/hooks/organization/sms-providers';
 import type { SmsProviderData } from '@/schemas/sms-providers';
 import { ConnectSmsProviderDialog } from './forms/ConnectSmsProviderDialog';
-import { EditSmsProviderDialog } from './forms/EditSmsProviderDialog';
 
 // PLATFORM rows are Vritti-managed and read-only here; CLIENT rows belong to the organization
 const TypeBadge = ({ type }: { type: SmsProviderData['type'] }) =>
@@ -73,27 +73,14 @@ export const SmsProvidersPage = () => {
         cell: ({ row }) => (
           <RowActions
             actions={[
+              // View only — editing lives on the detail page, which is where the credential
+              // fields and the platform/client distinction are already in front of the operator
               {
                 id: 'view',
                 icon: Eye,
                 label: 'View',
                 permission: ORG_SMS_PROVIDERS.view,
-                onClick: () => navigate(row.original.id),
-              },
-              {
-                id: 'edit',
-                icon: Pencil,
-                label: 'Edit',
-                permission: ORG_SMS_PROVIDERS.edit,
-                // Platform rows are Vritti-managed — the org API rejects writes on them anyway
-                hidden: row.original.type === 'PLATFORM',
-                dialog: {
-                  title: 'Edit SMS provider',
-                  description: 'Update the name, sender ID, or replace the stored credentials.',
-                  content: (close) => (
-                    <EditSmsProviderDialog provider={row.original} onSuccess={close} onCancel={close} />
-                  ),
-                },
+                onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
               },
             ]}
           />

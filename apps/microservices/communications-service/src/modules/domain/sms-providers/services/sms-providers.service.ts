@@ -10,11 +10,12 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type SmsProvider, smsProviders } from '@/db/schema';
+import { type SmsProvider, type SmsProviderCode, smsProviders } from '@/db/schema';
 import { SmsProviderDto, type SmsProviderSendConfig } from '../dto/entity/sms-provider.dto';
 import type { CreateSmsProviderDto } from '../dto/request/create-sms-provider.dto';
 import type { UpdateSmsProviderDto } from '../dto/request/update-sms-provider.dto';
 import { SmsProvidersDomainRepository } from '../repositories/sms-providers.repository';
+import { type SmsProviderCapabilities, SmsProviderRegistry } from './sms-provider-transports';
 
 /**
  * One table serves two owners. CLIENT rows belong to the organization in the RLS context and take
@@ -35,7 +36,16 @@ export class SmsProvidersDomainService {
     createdAt: { column: smsProviders.createdAt, type: 'string' },
   };
 
-  constructor(private readonly repository: SmsProvidersDomainRepository) {}
+  constructor(
+    private readonly repository: SmsProvidersDomainRepository,
+    private readonly registry: SmsProviderRegistry,
+  ) {}
+
+  // The providers that can actually be connected, straight from the registry. The UI builds its
+  // dropdown from this rather than a static enum, so a code with no transport is never offered.
+  listAvailable(): SmsProviderCapabilities[] {
+    return this.registry.available();
+  }
 
   // Returns paginated, filtered, and sorted providers — the org's own rows plus platform rows
   async findForTable(state: TableViewState): Promise<{ result: SmsProviderDto[]; count: number }> {
@@ -79,6 +89,10 @@ export class SmsProvidersDomainService {
 
   // Connects an organization-owned provider account (org RLS context fills organization_id)
   async create(data: CreateSmsProviderDto): Promise<CreateResponseDto<SmsProviderDto>> {
+    // Before the row exists: a key that does not work is worth refusing now rather than discovering
+    // at send time, when the failure is someone's sign-in rather than an operator's form
+    await this.registry.verifyCredentials(data.provider, data.credentials ?? {});
+
     const entity = await this.repository.create({
       type: 'CLIENT',
       provider: data.provider,
@@ -95,6 +109,13 @@ export class SmsProvidersDomainService {
   async update(id: string, data: Omit<UpdateSmsProviderDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.requireById(id);
     this.rejectPlatformWrite(existing);
+
+    // Only when the operator actually supplied credentials — an absent field means "keep the stored
+    // ones", and re-probing those would fail an unrelated edit whenever the vendor is down.
+    // The provider code is immutable, so it comes from the row rather than the payload.
+    if (data.credentials !== undefined) {
+      await this.registry.verifyCredentials(existing.provider, data.credentials);
+    }
 
     await this.repository.update(id, {
       ...(data.name !== undefined ? { name: data.name } : {}),
@@ -126,6 +147,8 @@ export class SmsProvidersDomainService {
   }
 
   async createPlatform(data: CreateSmsProviderDto): Promise<CreateResponseDto<SmsProviderDto>> {
+    await this.registry.verifyCredentials(data.provider, data.credentials ?? {});
+
     const entity = await this.repository.create({
       // Explicit null bypasses the column default, which would error with no org GUC set
       organizationId: null,
@@ -142,7 +165,11 @@ export class SmsProvidersDomainService {
   }
 
   async updatePlatform(id: string, data: Omit<UpdateSmsProviderDto, 'id'>): Promise<SuccessResponseDto> {
-    await this.requireById(id);
+    const existing = await this.requireById(id);
+
+    if (data.credentials !== undefined) {
+      await this.registry.verifyCredentials(existing.provider, data.credentials);
+    }
 
     await this.repository.update(id, {
       ...(data.name !== undefined ? { name: data.name } : {}),
@@ -172,6 +199,16 @@ export class SmsProvidersDomainService {
       });
     }
     return { provider: provider.provider, credentials: provider.credentials ?? {}, senderId: provider.senderId };
+  }
+
+  // Provider code + credentials for a vendor call that is not a send — reading this row's
+  // templates, say. Unlike resolveSendConfig it does NOT require the provider to be active: an
+  // operator can still inspect and curate the templates of a provider they have paused.
+  async resolveTemplateContext(
+    id: string,
+  ): Promise<{ provider: SmsProviderCode; credentials: Record<string, unknown> }> {
+    const provider = await this.requireById(id);
+    return { provider: provider.provider, credentials: provider.credentials ?? {} };
   }
 
   private async requireById(id: string): Promise<SmsProvider> {

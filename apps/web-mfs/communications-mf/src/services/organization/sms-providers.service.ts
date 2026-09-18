@@ -2,10 +2,16 @@ import { axios } from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   CreateSmsProviderData,
+  SmsProviderCapabilities,
   SmsProviderData,
   SmsProvidersTableResponse,
   UpdateSmsProviderData,
 } from '@/schemas/sms-providers';
+
+// Fetches the providers that can actually be connected, straight from the server's transport registry
+export function getAvailableSmsProviders(): Promise<SmsProviderCapabilities[]> {
+  return axios.get<SmsProviderCapabilities[]>('communications-api/sms-providers/available').then((r) => r.data);
+}
 
 // Fetches the SMS providers table — the org's own rows plus Vritti's platform rows
 export function getSmsProvidersTable(): Promise<SmsProvidersTableResponse> {

@@ -7,6 +7,16 @@ export class SetSmsOtpConfigDto {
   @IsUUID()
   providerId: string;
 
+  @ApiPropertyOptional({
+    description:
+      "The provider's template the code is rendered into. Required when the provider sends through templates.",
+  })
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @MaxLength(64)
+  templateId?: string;
+
   @ApiPropertyOptional({ description: "Per-app override of the provider row's default originator" })
   @IsOptional()
   @Trim()

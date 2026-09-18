@@ -9,6 +9,14 @@ export class SendSmsOtpDto {
   @IsUUID()
   providerId: string;
 
+  // The provider's template the code is rendered into. Required by providers whose transport
+  // declares requiresTemplate; absent for the console transport.
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @MaxLength(64)
+  templateId?: string;
+
   // Per-app override of the provider row's default originator
   @IsOptional()
   @Trim()

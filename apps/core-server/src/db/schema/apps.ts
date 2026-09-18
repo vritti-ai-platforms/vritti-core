@@ -19,6 +19,9 @@ export interface AppWhatsappOtpConfig {
 // instead of a WABA + number + template; the provider code and credentials live on that row
 export interface AppSmsOtpConfig {
   providerId: string;
+  // The provider's template the code is rendered into. Required for providers whose transport
+  // declares requiresTemplate (MSG91, for DLT); absent for the console transport.
+  templateId?: string;
   senderId?: string;
   codeLength: number;
   expirySeconds: number;

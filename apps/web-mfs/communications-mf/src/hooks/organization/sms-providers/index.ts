@@ -1,4 +1,5 @@
-export { SMS_PROVIDER_KEY, SMS_PROVIDERS_KEY, SMS_PROVIDERS_TABLE_KEY } from './keys';
+export { SMS_PROVIDER_KEY, SMS_PROVIDERS_AVAILABLE_KEY, SMS_PROVIDERS_KEY, SMS_PROVIDERS_TABLE_KEY } from './keys';
+export { useAvailableSmsProviders } from './useAvailableSmsProviders';
 export { useCreateSmsProvider } from './useCreateSmsProvider';
 export { useDeleteSmsProvider } from './useDeleteSmsProvider';
 export { useSmsProvider } from './useSmsProvider';

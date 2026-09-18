@@ -25,6 +25,7 @@ import type { WorkspaceKind } from '../../utils/workspace';
 import { WORKSPACE_SLUG_PREFIXES } from '../../utils/workspace';
 import { OfferingSwitcher } from './switchers/OfferingSwitcher';
 import { RepositorySwitcher } from './switchers/RepositorySwitcher';
+import { SmsProviderSwitcher } from './switchers/SmsProviderSwitcher';
 import { VariantSwitcher } from './switchers/VariantSwitcher';
 import { WhatsappAccountSwitcher } from './switchers/WhatsappAccountSwitcher';
 import { UserMenu } from './UserMenu';
@@ -49,6 +50,7 @@ const KIND_ICONS: Record<WorkspaceKind, LucideIcon> = {
 const DETAIL_SWITCHERS: Record<string, ComponentType<{ segment: string; basePath: string }>> = {
   repositories: RepositorySwitcher,
   'whatsapp-accounts': WhatsappAccountSwitcher,
+  'sms-providers': SmsProviderSwitcher,
   offerings: OfferingSwitcher,
 };
 

@@ -142,6 +142,17 @@ export function ApiListSmsProviderOptions() {
   );
 }
 
+export function ApiListSmsProviderTemplates() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "List a provider's templates",
+      description: "The templates registered in Vritti against one SMS provider — what an app's OTP config picks from.",
+    }),
+    ApiParam({ name: 'providerId', description: 'SMS provider ID' }),
+    ApiResponse({ status: 200, description: 'Templates retrieved.' }),
+  );
+}
+
 export function ApiGetSmsOtpConfig() {
   return applyDecorators(
     ApiOperation({ summary: "Get an app's SMS OTP configuration" }),
