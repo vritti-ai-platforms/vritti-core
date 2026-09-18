@@ -36,21 +36,38 @@ export class OfferingDimensionTemplatesDomainRepository extends PrimaryBaseRepos
       createdAt: offeringDimensionTemplates.createdAt,
       updatedAt: offeringDimensionTemplates.updatedAt,
       isOwned: ownedByWorkspace(),
+      // Keys are spelled out because json_agg of a whole row yields snake_case, which the DTO cannot read
       values: sql<OfferingDimensionTemplateValue[]>`coalesce(
-        (
-          select json_agg(v order by v.sort_order, v.value)
-          from ${offeringDimensionTemplateValues} v
-          where v.template_id = ${offeringDimensionTemplates.id}
-        ),
+        json_agg(
+          json_build_object(
+            'id', ${offeringDimensionTemplateValues.id},
+            'templateId', ${offeringDimensionTemplateValues.templateId},
+            'code', ${offeringDimensionTemplateValues.code},
+            'value', ${offeringDimensionTemplateValues.value},
+            'sortOrder', ${offeringDimensionTemplateValues.sortOrder}
+          )
+          order by ${offeringDimensionTemplateValues.sortOrder}, ${offeringDimensionTemplateValues.value}
+        ) filter (where ${offeringDimensionTemplateValues.id} is not null),
         '[]'::json
       )`,
     };
+  }
+
+  private static joins() {
+    return [
+      {
+        table: offeringDimensionTemplateValues,
+        on: eq(offeringDimensionTemplateValues.templateId, offeringDimensionTemplates.id),
+      },
+    ];
   }
 
   // Returns every reachable template with ownership and value counts (RLS scopes the rows)
   async findAllWithMeta(where?: SQL): Promise<TemplateWithMeta[]> {
     const { result } = await this.findAllAndCount<TemplateWithMeta>({
       select: OfferingDimensionTemplatesDomainRepository.selection(),
+      leftJoins: OfferingDimensionTemplatesDomainRepository.joins(),
+      groupBy: [offeringDimensionTemplates.id],
       where,
       orderBy: [asc(offeringDimensionTemplates.sortOrder), asc(offeringDimensionTemplates.name)],
       limit: MAX_PAGE_SIZE,
@@ -63,6 +80,8 @@ export class OfferingDimensionTemplatesDomainRepository extends PrimaryBaseRepos
   async findByIdWithMeta(id: string): Promise<TemplateWithMeta | undefined> {
     const { result } = await this.findAllAndCount<TemplateWithMeta>({
       select: OfferingDimensionTemplatesDomainRepository.selection(),
+      leftJoins: OfferingDimensionTemplatesDomainRepository.joins(),
+      groupBy: [offeringDimensionTemplates.id],
       where: eq(offeringDimensionTemplates.id, id),
       orderBy: [asc(offeringDimensionTemplates.name)],
       limit: 1,
