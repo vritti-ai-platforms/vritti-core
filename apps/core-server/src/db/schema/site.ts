@@ -1,4 +1,4 @@
-import type { SiteFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
+import type { WorkspaceFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   boolean,
@@ -44,7 +44,7 @@ export const sites = coreSchema.table(
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
     // Per-feature lock deny-list within the plan; null = inherit the full plan
-    featureLocks: jsonb('feature_locks').$type<SiteFeatureLocks>(),
+    featureLocks: jsonb('feature_locks').$type<WorkspaceFeatureLocks>(),
     timezone: varchar('timezone', { length: 50 }).notNull(),
     legalEntityId: uuid('legal_entity_id')
       .notNull()

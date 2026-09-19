@@ -48,45 +48,19 @@ app-doctor env="":
     warn() { printf '  \033[33m!\033[0m %s\n' "$1"; }
 
     echo "── env ($sel) ──"
-    # Read through `infisical run` so personal overrides resolve exactly as the bundler will see them.
-    # `.env*` files are loaded by rspack with override:false, so they only FILL GAPS — Infisical always
-    # wins. That asymmetry is why GRAPHQL_PATH is fixable in .env.local but DEV_HOST is not.
+    # Infisical is the ONLY source — the bundlers no longer read .env* files at all, so what is dumped
+    # here is exactly what they will see. The dev host is not among these: both bundlers detect it
+    # themselves (LAN address at bundle time, the bundle's own origin at runtime), so there is no
+    # per-machine value left to drift.
     envdump=$(cd {{app}} && infisical run --env="$sel" --path=/core-app --silent -- \
-      bash -c 'printf "%s\n%s\n%s\n%s\n" "${GRAPHQL_PATH:-}" "${DEV_HOST:-}" "${API_BASE_URL:-}" "${DEPLOYMENTS_API_BASE_URL:-}"' 2>/dev/null)
-    gql=$(sed -n 1p <<<"$envdump"); devhost=$(sed -n 2p <<<"$envdump")
-    api=$(sed -n 3p <<<"$envdump"); deployments=$(sed -n 4p <<<"$envdump")
+      bash -c 'printf "%s\n%s\n" "${API_BASE_URL:-}" "${DEPLOYMENTS_API_BASE_URL:-}"' 2>/dev/null)
+    api=$(sed -n 1p <<<"$envdump"); deployments=$(sed -n 2p <<<"$envdump")
 
-    # rspack validates with zod at startup — a missing key is a hard stop, not a warning.
-    if [ -n "$gql" ]; then ok "GRAPHQL_PATH=$gql"
-    elif grep -qs '^GRAPHQL_PATH=' {{app}}/.env.local; then ok "GRAPHQL_PATH from .env.local (gap-filled)"
-    else bad "GRAPHQL_PATH unset — Metro dies on zod validation before it serves anything. Fix: just app-bootstrap"; fi
-
-    # DEV_HOST has TWO independent consumers that read it from different places, so it gets two checks:
-    #   core-app    — started under `infisical run`; its rspack loads .env* with override:false, so the
-    #                 Infisical value always wins and a file can never correct it.
-    #   commerce-ma — NO infisical wrapper at all. Its rspack reads apps/core-app/.env* directly
-    #                 ("shares core-app's .env as single source of truth") and HARD-THROWS if unset.
-    # One of them being right tells you nothing about the other. `just app-ip` writes both.
     lan=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)
-    filehost=""
-    for f in .env .env.development .env.local .env.development.local; do
-      [ -f "{{app}}/$f" ] || continue
-      v=$(grep -m1 '^DEV_HOST=' "{{app}}/$f" 2>/dev/null | cut -d= -f2- | tr -d "\"'" | xargs || true)
-      [ -n "$v" ] && { filehost="$v"; break; }
-    done
     if [ -z "$lan" ]; then
       warn "no LAN address on en0/en1 — a physical device cannot reach this machine"
     else
-      [ "$devhost" = "$lan" ] \
-        && ok "DEV_HOST=$devhost (core-app, via Infisical) matches this machine" \
-        || bad "core-app DEV_HOST=${devhost:-unset} but this Mac is $lan — Metro connects, then every feature tab 404s fetching the remote. Fix: just app-ip $sel"
-      if [ -z "$filehost" ]; then
-        bad "commerce-ma has no DEV_HOST — it reads {{app}}/.env* (never Infisical) and throws on startup without it. Fix: just app-ip $sel"
-      elif [ "$filehost" = "$lan" ]; then
-        ok "DEV_HOST=$filehost (commerce-ma, via {{app}}/.env*) matches this machine"
-      else
-        bad "commerce-ma DEV_HOST=$filehost in {{app}}/.env* but this Mac is $lan. Fix: just app-ip $sel"
-      fi
+      ok "dev host auto-detected as $lan"
     fi
 
     # A loopback API host is correct for the simulator and fatal on a real phone, so this is a warning
@@ -125,7 +99,7 @@ app-doctor env="":
     echo
     if [ $fail -eq 0 ]; then echo "✓ ready — next: just app-start $sel, then just app-build"; else echo "✗ fix the ✗ lines above, then re-run"; exit 1; fi
 
-# One-time machine setup — gap-fill GRAPHQL_PATH, pin DEV_HOST, install pods, run codegen; picker if omitted
+# One-time machine setup — install pods, run codegen; picker if omitted
 app-bootstrap env="":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -134,48 +108,10 @@ app-bootstrap env="":
       echo "Select a core-app env to bootstrap:" >&2; PS3="> "
       select sel in {{app_envs}}; do [ -n "$sel" ] && break; done
     fi
-    # GRAPHQL_PATH is absent from every Infisical env, so .env.local (gitignored, loaded by rspack,
-    # gap-fill only) is the right home for it until someone adds it upstream.
-    if ! grep -qs '^GRAPHQL_PATH=' {{app}}/.env.local; then
-      echo "── writing GRAPHQL_PATH to {{app}}/.env.local ──"
-      echo 'GRAPHQL_PATH=/mobile-graphql' >> {{app}}/.env.local
-    fi
-    just app-ip "$sel"
     just app-pods
     just app-codegen
     echo "✓ bootstrapped — run: just app-doctor $sel"
 
-# Pin DEV_HOST to this machine's LAN IP for BOTH bundlers (Infisical override + .env.local); picker if omitted
-app-ip env="":
-    #!/usr/bin/env bash
-    set -euo pipefail
-    sel="{{env}}"; sel="${sel#env=}"
-    if [ -z "$sel" ]; then
-      echo "Select a core-app env:" >&2; PS3="> "
-      select sel in {{app_envs}}; do [ -n "$sel" ] && break; done
-    fi
-    lan=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null) \
-      || { echo "no LAN address on en0/en1 — are you on Wi-Fi?" >&2; exit 1; }
-    echo "This machine: $lan"
-    echo
-    echo "Two writes, because the bundlers read DEV_HOST from different places:"
-    echo "  1. Infisical PERSONAL override on '$sel'  → core-app (runs under infisical run; its value wins over any file)"
-    echo "  2. {{app}}/.env.local                     → commerce-ma (reads these files directly, never Infisical)"
-    echo
-    # Personal, never shared: DEV_HOST is per-developer, and the shared value is whichever teammate
-    # set it last. A personal override changes nothing for anyone else. The .env.local write is
-    # gitignored, so it is per-machine too.
-    read -r -p "Set DEV_HOST=$lan in both (shared Infisical value untouched)? [y/N] " ok
-    [ "$ok" = y ] || [ "$ok" = Y ] || { echo "aborted (no changes)"; exit 0; }
-    echo "── infisical (personal, $sel) ──"
-    (cd {{app}} && infisical secrets set "DEV_HOST=$lan" --type=personal --env="$sel" --path=/core-app)
-    echo "── {{app}}/.env.local ──"
-    touch {{app}}/.env.local
-    # Rewrite in place rather than append, so re-running on a new network doesn't stack stale entries.
-    tmp=$(mktemp); grep -v '^DEV_HOST=' {{app}}/.env.local > "$tmp" || true
-    echo "DEV_HOST=$lan" >> "$tmp"
-    mv "$tmp" {{app}}/.env.local
-    echo "✓ restart both bundlers to pick it up — DEV_HOST is a DefinePlugin value, no native rebuild needed"
 
 # ============================ codegen / types ==========================
 
@@ -377,7 +313,7 @@ app-build platform="" target="" env="":
     fi
 
     # --no-packager throughout: the bundler comes from `just app-start`. Without it the CLI spawns a
-    # second one on :8081 that races the running one and serves a different DEV_HOST.
+    # second one on :8081 that races the running one.
     # --list-devices is the CLI's own picker — better than parsing xctrace/adb, since it already
     # knows which targets are actually reachable.
     cd {{app}}

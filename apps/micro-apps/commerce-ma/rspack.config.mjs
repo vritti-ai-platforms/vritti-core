@@ -1,10 +1,9 @@
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
 import { ReanimatedPlugin } from '@callstack/repack-plugin-reanimated';
-import dotenv from 'dotenv';
-import { expand as dotenvExpand } from 'dotenv-expand';
 
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
@@ -13,24 +12,27 @@ const workspaceRoot = path.resolve(__dirname, '../../..');
 const quantumUiNative = path.resolve(__dirname, '../../../..', 'quantum-ui-native');
 
 // ---------------------------------------------------------------------------
-// Env loading — shares core-app's .env as single source of truth
+// Env — supplied by Infisical (this bundler is started through `infisical run`)
 // ---------------------------------------------------------------------------
 
-const coreAppDir = path.resolve(workspaceRoot, 'apps/core-app');
 const appEnv = process.env.APP_ENV ?? 'development';
 
-for (const file of [`.env`, `.env.${appEnv}`, `.env.local`, `.env.${appEnv}.local`]) {
-  dotenvExpand(dotenv.config({ path: path.join(coreAppDir, file), override: false }));
-}
-
 const isDev = appEnv === 'development';
-const devHost = process.env.DEV_HOST?.trim();
 
-if (isDev && !devHost) {
-  throw new Error(
-    `DEV_HOST is required in development. Set it in ${path.join(coreAppDir, '.env')} to your LAN IP, for example 192.168.1.57`,
-  );
+// Asset URLs are baked into the dev bundle by publicPath, which is resolved here at bundle time, so
+// unlike the host's Module Federation remotes it cannot be derived from the bundle's own origin at
+// runtime. Detecting the LAN address keeps a device build working without configuration; DEV_HOST
+// overrides it when the bundle is served from a different machine.
+function detectLanHost() {
+  for (const addresses of Object.values(os.networkInterfaces())) {
+    for (const address of addresses ?? []) {
+      if (address.family === 'IPv4' && !address.internal) return address.address;
+    }
+  }
+  return 'localhost';
 }
+
+const devHost = process.env.DEV_HOST?.trim() || detectLanHost();
 
 // ---------------------------------------------------------------------------
 // react-native-css subpath aliases (hoisted monorepo packages)

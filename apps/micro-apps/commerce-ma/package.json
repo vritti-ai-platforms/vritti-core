@@ -16,7 +16,7 @@
     "@react-navigation/elements": "3.0.0-alpha.20",
     "@react-navigation/native": "8.0.0-alpha.17",
     "@vritti/commerce-permissions": "workspace:*",
-    "@vritti/quantum-ui-native": "0.2.0",
+    "@vritti/quantum-ui-native": "0.3.1",
     "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -36,7 +36,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "4.2.2",
     "zeego": "^3.0.6",
-    "zod": "^4.3.6"
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@callstack/repack": "5.3.0",

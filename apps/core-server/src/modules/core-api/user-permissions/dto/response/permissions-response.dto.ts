@@ -5,7 +5,7 @@ export class LockedPermissionDto {
   code: string;
 
   @ApiProperty({ example: 'PLAN', enum: ['PLAN', 'SITE', 'SERVICE'], nullable: true })
-  reason: 'PLAN' | 'SITE' | 'SERVICE' | null;
+  reason: 'PLAN' | 'WORKSPACE' | 'SERVICE' | null;
 
   @ApiProperty({ example: ['pro'], description: 'Plan codes that would unlock this permission' })
   unlockPlans: string[];
@@ -48,7 +48,7 @@ export class PermissionFeatureDto {
   locked: boolean;
 
   @ApiProperty({ example: 'PLAN', enum: ['PLAN', 'SITE', 'SERVICE'], nullable: true })
-  lockReason: 'PLAN' | 'SITE' | 'SERVICE' | null;
+  lockReason: 'PLAN' | 'WORKSPACE' | 'SERVICE' | null;
 
   @ApiProperty({ example: ['pro'], description: 'Plan codes that would unlock this feature' })
   unlockPlans: string[];

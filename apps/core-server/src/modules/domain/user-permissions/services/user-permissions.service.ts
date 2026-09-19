@@ -18,7 +18,7 @@ import {
   type ScopeType,
   SERVICE_CODES,
   type ServiceCode,
-  type SiteFeatureLocks,
+  type WorkspaceFeatureLocks,
   type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -229,7 +229,7 @@ export class UserPermissionsDomainService {
       snapshot,
       businessCode: node.org.businessCode,
       planCode: node.org.planCode ?? undefined,
-      siteLocks: node.locks,
+      workspaceLocks: node.locks,
       roleFeatures: grants,
       // ClientPlatform, not PlatformBucket: 'android' is how the resolver is told to read the mobile
       // bucket (ios/android share one); the API buckets map one-to-one since a credential has no variants
@@ -249,7 +249,7 @@ export class UserPermissionsDomainService {
    */
   private async resolveNodeContext(
     ctx: PermissionContext,
-  ): Promise<{ org: Organization | undefined; locks: SiteFeatureLocks | undefined; siteType?: SiteType }> {
+  ): Promise<{ org: Organization | undefined; locks: WorkspaceFeatureLocks | undefined; siteType?: SiteType }> {
     switch (ctx.scope) {
       case 'SITE': {
         const site = await this.siteRepository.findById(ctx.id);
@@ -460,7 +460,7 @@ export class UserPermissionsDomainService {
       snapshot,
       businessCode: org.businessCode,
       planCode: org.planCode ?? undefined,
-      siteLocks: site.featureLocks ?? undefined,
+      workspaceLocks: site.featureLocks ?? undefined,
       roleFeatures: this.mergeRoleGrants(effectiveGrants),
       platform,
       siteType: site.type,
@@ -559,7 +559,7 @@ export class UserPermissionsDomainService {
     userId: string,
     orgId: string,
     applicable: AssignmentRoleGrants[],
-    locks: SiteFeatureLocks | undefined,
+    locks: WorkspaceFeatureLocks | undefined,
     scope: ScopeType,
     platform: ClientPlatform,
     target: string,
@@ -580,7 +580,7 @@ export class UserPermissionsDomainService {
       snapshot,
       businessCode: org.businessCode,
       planCode: org.planCode ?? undefined,
-      siteLocks: locks,
+      workspaceLocks: locks,
       roleFeatures: this.mergeRoleGrants(effectiveGrants),
       platform,
       scope,

@@ -1,10 +1,9 @@
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
 import { ReanimatedPlugin } from '@callstack/repack-plugin-reanimated';
-import dotenv from 'dotenv';
-import { expand as dotenvExpand } from 'dotenv-expand';
 import { envSchema } from './env.schema.mjs';
 
 const require = createRequire(import.meta.url);
@@ -17,12 +16,9 @@ const quantumUiNative = path.resolve(__dirname, '../../..', 'quantum-ui-native')
 // Env loading
 // ---------------------------------------------------------------------------
 
+// Every value comes from Infisical — the app is always started through `infisical run`, so there is
+// no file cascade to fall back on and no way for a stale local file to shadow the real value.
 const appEnv = process.env.APP_ENV ?? 'development';
-
-// Load cascade: .env → .env.<mode> → .env.local → .env.<mode>.local
-for (const file of [`.env`, `.env.${appEnv}`, `.env.local`, `.env.${appEnv}.local`]) {
-  dotenvExpand(dotenv.config({ path: path.join(__dirname, file), override: false }));
-}
 
 // Validate with zod — throws a descriptive error on missing/malformed keys
 const env = envSchema.parse({
@@ -30,8 +26,22 @@ const env = envSchema.parse({
   DEV_HOST: process.env.DEV_HOST,
   API_BASE_URL: process.env.API_BASE_URL,
   DEPLOYMENTS_API_BASE_URL: process.env.DEPLOYMENTS_API_BASE_URL,
-  GRAPHQL_PATH: process.env.GRAPHQL_PATH,
 });
+
+// Asset URLs are baked into the dev bundle by publicPath, which is resolved here at bundle time —
+// unlike the Module Federation remotes, it cannot be derived from the bundle's own origin at
+// runtime. Detecting the LAN address keeps a device build working without configuration; DEV_HOST
+// overrides it when the bundle is served from a different machine.
+function detectLanHost() {
+  for (const addresses of Object.values(os.networkInterfaces())) {
+    for (const address of addresses ?? []) {
+      if (address.family === 'IPv4' && !address.internal) return address.address;
+    }
+  }
+  return 'localhost';
+}
+
+const devHost = env.DEV_HOST ?? detectLanHost();
 
 // ---------------------------------------------------------------------------
 // react-native-css subpath aliases (hoisted monorepo packages)
@@ -202,7 +212,7 @@ export default (rspackEnv) => {
     output: {
       path: '[context]/build/host-app/[platform]',
       uniqueName: 'vritti-core-app',
-      ...(isDev ? { publicPath: `http://${env.DEV_HOST}:8081/[platform]/` } : {}),
+      ...(isDev ? { publicPath: `http://${devHost}:8081/[platform]/` } : {}),
     },
 
     module: {
@@ -249,10 +259,9 @@ export default (rspackEnv) => {
       new rspack.DefinePlugin({
         __APP_CONFIG__: JSON.stringify({
           appEnv: env.APP_ENV,
-          devHost: isDev ? env.DEV_HOST : undefined,
+          devHost: isDev ? devHost : undefined,
           apiBaseUrl: env.API_BASE_URL,
           deploymentsApiBaseUrl: env.DEPLOYMENTS_API_BASE_URL,
-          graphqlPath: env.GRAPHQL_PATH,
         }),
       }),
       new Repack.RepackPlugin({

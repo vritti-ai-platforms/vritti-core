@@ -9,7 +9,7 @@ import {
   type PermissionGateResult,
 } from '@vritti/quantum-ui/PermissionGate';
 import { setBusinessUnitTimeZone } from '@vritti/quantum-ui/timezone';
-import type { PermissionFeature, ServiceCode } from '@vritti/quantum-ui/types/catalog-resolver';
+import type { PermissionFeature, ScopeType, ServiceCode } from '@vritti/quantum-ui/types/catalog-resolver';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
@@ -53,30 +53,43 @@ const DENY: PermissionGateResult = Object.freeze({
   missingServices: [],
   available: false,
   featureName: null,
+  workspaceLabel: null,
+  workspaceScope: null,
 });
+
+// The active workspace, carried onto every result so a WORKSPACE lock can name where it applies
+interface WorkspaceIdentity {
+  label: string | null;
+  scope: ScopeType | null;
+}
+
+const NO_WORKSPACE: WorkspaceIdentity = { label: null, scope: null };
 
 // Builds a granted result, deriving `available` (granted && !locked) so it's always consistent
 function grant(
+  workspace: WorkspaceIdentity,
   locked: boolean,
   reason: PermissionGateResult['reason'],
   unlockPlans: string[],
   featureName: string,
   missingServices: ServiceCode[] = [],
 ): PermissionGateResult {
-  return { granted: true, locked, reason, unlockPlans, missingServices, available: !locked, featureName };
+  return {
+    granted: true,
+    locked,
+    reason,
+    unlockPlans,
+    missingServices,
+    available: !locked,
+    featureName,
+    workspaceLabel: workspace.label,
+    workspaceScope: workspace.scope,
+  };
 }
 
 // Denied but the feature is known — carries its name so messages can stay feature-specific
 function deny(featureName: string): PermissionGateResult {
-  return {
-    granted: false,
-    locked: false,
-    reason: null,
-    unlockPlans: [],
-    missingServices: [],
-    available: false,
-    featureName,
-  };
+  return { ...DENY, featureName };
 }
 
 // The workspace scope is part of the permission identity (scope.feature.permission). Each workspace
@@ -92,8 +105,19 @@ const KIND_SCOPE_PREFIX: Record<WorkspaceKind, string> = {
 
 const SCOPE_PREFIXES = Object.values(KIND_SCOPE_PREFIX);
 
+const KIND_SCOPE: Record<WorkspaceKind, ScopeType> = {
+  site: 'SITE',
+  group: 'SITE_GROUP',
+  le: 'LE',
+  org: 'ORG',
+};
+
 // Resolves a "[scope.]feature.permission" code against the active workspace's resolved features
-function buildGate(features: PermissionFeature[], workspaceScopePrefix: string | null): PermissionGateFn {
+function buildGate(
+  features: PermissionFeature[],
+  workspaceScopePrefix: string | null,
+  workspace: WorkspaceIdentity,
+): PermissionGateFn {
   return (rawCode) => {
     const carriedScope = SCOPE_PREFIXES.find((p) => rawCode.startsWith(p));
     // A code carrying a scope other than this workspace's belongs to a different scope — deny it.
@@ -105,20 +129,21 @@ function buildGate(features: PermissionFeature[], workspaceScopePrefix: string |
     const feature = features.find((f) => f.code === featureCode);
     if (!feature) return DENY;
     if (!permissionCode)
-      return grant(feature.locked, feature.lockReason, feature.unlockPlans, feature.name, feature.missingServices);
+      return grant(workspace, feature.locked, feature.lockReason, feature.unlockPlans, feature.name, feature.missingServices);
     if (!feature.permissions.includes(permissionCode)) return deny(feature.name);
     if (feature.locked)
-      return grant(true, feature.lockReason, feature.unlockPlans, feature.name, feature.missingServices);
+      return grant(workspace, true, feature.lockReason, feature.unlockPlans, feature.name, feature.missingServices);
     const permissionLock = feature.lockedPermissions.find((p) => p.code === permissionCode);
     if (permissionLock)
       return grant(
+        workspace,
         true,
         permissionLock.reason,
         permissionLock.unlockPlans,
         feature.name,
         permissionLock.missingServices,
       );
-    return grant(false, null, [], feature.name);
+    return grant(workspace, false, null, [], feature.name);
   };
 }
 
@@ -215,9 +240,21 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ],
   );
 
+  // The active workspace's own name, so a WORKSPACE lock reads "Not enabled for Acme Pharma" rather
+  // than naming a scope the user never chose. Same resolve the workspace switcher does in TopBar.
+  const workspaceIdentity = useMemo<WorkspaceIdentity>(() => {
+    if (!workspace) return NO_WORKSPACE;
+    const scope = KIND_SCOPE[workspace.kind];
+    if (workspace.kind === 'org') return { label: org?.name ?? null, scope };
+    if (workspace.kind === 'site') return { label: sites.find((s) => s.id === workspace.id)?.name ?? null, scope };
+    if (workspace.kind === 'group')
+      return { label: siteGroups.find((g) => g.id === workspace.id)?.name ?? null, scope };
+    return { label: legalEntities.find((le) => le.id === workspace.id)?.name ?? null, scope };
+  }, [workspace, org, sites, siteGroups, legalEntities]);
+
   const gate = useMemo(
-    () => buildGate(features, workspace ? KIND_SCOPE_PREFIX[workspace.kind] : null),
-    [features, workspace],
+    () => buildGate(features, workspace ? KIND_SCOPE_PREFIX[workspace.kind] : null, workspaceIdentity),
+    [features, workspace, workspaceIdentity],
   );
 
   // Published to federated remotes so they read the org (and its git namespace) from the auth stream

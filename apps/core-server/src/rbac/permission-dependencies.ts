@@ -6,7 +6,7 @@ import {
   findFeatureByCode,
   PLATFORMS,
   type PlatformDenyCodes,
-  type SiteFeatureLocks,
+  type WorkspaceFeatureLocks,
   type SiteType,
   type SnapshotRoleTemplate,
   type VersionSnapshot,
@@ -62,16 +62,16 @@ export function templateAssignableAtSite(template: SnapshotRoleTemplate | undefi
 
 // Expands a lock deny-list against the snapshot; passes null locks (inherit) or a missing snapshot through unchanged
 export function normalizeLocks(
-  featureLocks: SiteFeatureLocks | null,
+  featureLocks: WorkspaceFeatureLocks | null,
   snapshot: VersionSnapshot | null,
-): SiteFeatureLocks | null {
+): WorkspaceFeatureLocks | null {
   if (!featureLocks || !snapshot) return featureLocks;
   return normalizeLockCascade(featureLocks, snapshot);
 }
 
 // Expands a site lock deny-list so locking a prerequisite also locks its dependents (per feature, per platform)
-export function normalizeLockCascade(featureLocks: SiteFeatureLocks, snapshot: VersionSnapshot): SiteFeatureLocks {
-  const result: SiteFeatureLocks = {};
+export function normalizeLockCascade(featureLocks: WorkspaceFeatureLocks, snapshot: VersionSnapshot): WorkspaceFeatureLocks {
+  const result: WorkspaceFeatureLocks = {};
 
   for (const [featureCode, platforms] of Object.entries(featureLocks)) {
     // Locks key features by bare code (scope-agnostic); the permission graph is shared across a code's scope-variants

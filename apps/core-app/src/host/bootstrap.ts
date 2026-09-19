@@ -1,3 +1,5 @@
+// MUST be first: seeds quantum-ui-native's config before any module that reads it is evaluated.
+import './config/configureQuantum';
 import '../../global.css';
 // Side-effect import puts Select in the host bundle so consuming micro-apps (import: false) can resolve it.
 import '@vritti/quantum-ui-native/Select';

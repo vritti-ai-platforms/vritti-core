@@ -42,8 +42,11 @@ export interface AssignedRole {
   targetId: string | null;
 }
 
-// Mirrors @vritti/api-sdk/catalog-resolver — SERVICE means the org has not provisioned a required service
-export type LockReason = 'PLAN' | 'SITE' | 'SERVICE';
+// Mirrors @vritti/api-sdk/catalog-resolver — SERVICE means the org has not provisioned a required
+// service; WORKSPACE means the node the user is in (org, LE, group or site) has it switched off
+export type LockReason = 'PLAN' | 'WORKSPACE' | 'SERVICE';
+
+export type WorkspaceScope = 'ORG' | 'LE' | 'SITE_GROUP' | 'SITE';
 
 export interface LockedPermission {
   code: string;
@@ -84,6 +87,8 @@ export interface PermissionGateResult {
   unlockPlans: string[];
   available: boolean;
   featureName: string | null;
+  workspaceLabel: string | null;
+  workspaceScope: WorkspaceScope | null;
 }
 
 export type PermissionGateFn = (code: string) => PermissionGateResult;

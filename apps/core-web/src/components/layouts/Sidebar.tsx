@@ -20,11 +20,11 @@ function resolveIcon(name: string | null): React.ComponentType<{ className?: str
 
 // A lock chip for a locked feature — warning lock + unlocking plans for plan locks, red keyhole for site locks
 function LockChip({ feature }: { feature: PermissionFeature }) {
-  const isSiteLock = feature.lockReason === 'SITE';
+  const isWorkspaceLock = feature.lockReason === 'WORKSPACE';
   return (
     <Tooltip content={lockedTip({ reason: feature.lockReason, unlockPlans: feature.unlockPlans })} side="right">
       <span
-        className={`flex size-4 items-center justify-center rounded ${isSiteLock ? 'bg-destructive/15' : 'bg-warning/15'}`}
+        className={`flex size-4 items-center justify-center rounded ${isWorkspaceLock ? 'bg-destructive/15' : 'bg-warning/15'}`}
       >
         <PermissionLockIcon reason={feature.lockReason} className="size-3" />
       </span>

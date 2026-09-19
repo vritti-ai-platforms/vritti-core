@@ -1,7 +1,7 @@
 import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { type SiteFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
+import { type WorkspaceFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -162,7 +162,7 @@ export class SiteDomainService {
   }
 
   // Replaces the site's feature lock deny-list
-  async setFeatureLocks(id: string, featureLocks: SiteFeatureLocks | null): Promise<SuccessResponseDto> {
+  async setFeatureLocks(id: string, featureLocks: WorkspaceFeatureLocks | null): Promise<SuccessResponseDto> {
     const site = await this.siteRepository.findById(id);
     if (!site) throw new NotFoundException('Site not found.');
 
