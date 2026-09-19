@@ -1,12 +1,12 @@
 import { CategoriesDomainModule } from '@domain/categories/categories.module';
 import { CostCategoriesDomainModule } from '@domain/cost-categories/cost-categories.module';
 import { CustomersDomainModule } from '@domain/customers/customers.module';
+import { DimensionTemplatesDomainModule } from '@domain/dimension-templates/dimension-templates.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemSerialsDomainModule } from '@domain/inventory-item-serials/inventory-item-serials.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { LocationsDomainModule } from '@domain/locations/locations.module';
-import { OfferingDimensionTemplatesDomainModule } from '@domain/offering-dimension-templates/offering-dimension-templates.module';
 import { OfferingVariantsDomainModule } from '@domain/offering-variants/offering-variants.module';
 import { OfferingsDomainModule } from '@domain/offerings/offerings.module';
 import { PartiesDomainModule } from '@domain/parties/parties.module';
@@ -30,7 +30,7 @@ import { SelectController } from './select.controller';
   imports: [
     CategoriesDomainModule,
     InventoryItemsDomainModule,
-    OfferingDimensionTemplatesDomainModule,
+    DimensionTemplatesDomainModule,
     OfferingsDomainModule,
     OfferingVariantsDomainModule,
     UomDomainModule,

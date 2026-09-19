@@ -12,7 +12,7 @@ import type React from 'react';
 import type { DimensionTemplateData } from '@/schemas/dimension-templates';
 import { EditDimensionTemplateDialog } from './forms/EditDimensionTemplateDialog';
 import { TemplateValuesDialog } from './forms/TemplateValuesDialog';
-import type { DimensionTemplatePermissions } from './types';
+import type { DimensionTemplatesBinding } from './types';
 
 const OWNER_LABEL: Record<DimensionTemplateData['ownerScope'], string> = {
   ORG: 'Organization',
@@ -21,7 +21,7 @@ const OWNER_LABEL: Record<DimensionTemplateData['ownerScope'], string> = {
 };
 
 interface DimensionTemplateCardProps {
-  permissions: DimensionTemplatePermissions;
+  binding: DimensionTemplatesBinding;
   template: DimensionTemplateData;
   isDeleting: boolean;
   isTogglingActive: boolean;
@@ -30,7 +30,7 @@ interface DimensionTemplateCardProps {
 }
 
 export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
-  permissions,
+  binding,
   template,
   isDeleting,
   isTogglingActive,
@@ -70,7 +70,7 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
-                permission: permissions.edit,
+                permission: binding.permissions.edit,
                 // A template owned by a wider scope is read-only here, so the action is hidden
                 // rather than shown greyed out — there is nothing the user can do to enable it
                 hidden: !template.canEdit,
@@ -78,7 +78,12 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
                   title: 'Edit Dimension Template',
                   description: 'Rename the template or change what it is for.',
                   content: (close) => (
-                    <EditDimensionTemplateDialog template={template} onSuccess={close} onCancel={close} />
+                    <EditDimensionTemplateDialog
+                      template={template}
+                      useUpdateDimensionTemplate={binding.useUpdate}
+                      onSuccess={close}
+                      onCancel={close}
+                    />
                   ),
                 },
               },
@@ -87,7 +92,7 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
                 id: 'delete',
                 icon: Trash2,
                 label: 'Delete',
-                permission: permissions.delete,
+                permission: binding.permissions.delete,
                 variant: 'destructive',
                 hidden: !template.canDelete,
                 disabled: isDeleting,
@@ -109,7 +114,7 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
           variant="outline"
           className="w-full border-dashed"
           startAdornment={<Plus className="size-4" />}
-          permission={permissions.values.upsert}
+          permission={binding.permissions.values.upsert}
           onClick={valuesDialog.open}
         >
           Add values
@@ -135,7 +140,7 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
               size="sm"
               className="h-6 px-2 text-muted-foreground text-xs"
               startAdornment={<Pencil className="size-3" />}
-              permission={permissions.values.upsert}
+              permission={binding.permissions.values.upsert}
               onClick={valuesDialog.open}
             >
               Edit
@@ -150,7 +155,7 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
         </Typography>
         <CompactSwitch
           checked={template.isActive}
-          permission={permissions.toggle}
+          permission={binding.permissions.toggle}
           // A template with no values cannot be switched on — the server refuses it too
           disabled={!template.canEdit || noValues || isTogglingActive}
           disabledTip={noValues ? 'Add a value before activating' : undefined}
@@ -163,7 +168,14 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
         icon={SwatchBook}
         title={noValues ? 'Add Values' : 'Edit Values'}
         description={`The complete set of values "${template.name}" seeds onto a dimension.`}
-        content={(close) => <TemplateValuesDialog template={template} onSuccess={close} onCancel={close} />}
+        content={(close) => (
+          <TemplateValuesDialog
+            template={template}
+            useUpsertDimensionTemplateValues={binding.useUpsertValues}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
       />
     </Card>
   );

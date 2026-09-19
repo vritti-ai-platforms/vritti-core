@@ -39,7 +39,6 @@ export interface DimensionTemplateData {
   code: string;
   name: string;
   description: string | null;
-  sortOrder: number;
   isActive: boolean;
   legalEntityId: string | null;
   siteId: string | null;

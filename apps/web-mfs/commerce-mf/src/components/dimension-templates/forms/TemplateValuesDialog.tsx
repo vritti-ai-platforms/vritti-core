@@ -9,7 +9,6 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { useUpsertDimensionTemplateValues } from '@/hooks/organization/dimension-templates';
 import {
   type DimensionTemplateData,
   type DimensionTemplateValuesFormData,
@@ -17,15 +16,23 @@ import {
 } from '@/schemas/dimension-templates';
 import { toCode } from '@/schemas/offerings';
 
+import type { UseUpsertDimensionTemplateValues } from '../types';
+
 interface TemplateValuesDialogProps {
   template: DimensionTemplateData;
+  useUpsertDimensionTemplateValues: UseUpsertDimensionTemplateValues;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
 // One form for both adding the first values and editing an existing set — the endpoint takes the
 // whole set either way, so there is nothing to branch on.
-export const TemplateValuesDialog: React.FC<TemplateValuesDialogProps> = ({ template, onSuccess, onCancel }) => {
+export const TemplateValuesDialog: React.FC<TemplateValuesDialogProps> = ({
+  template,
+  useUpsertDimensionTemplateValues,
+  onSuccess,
+  onCancel,
+}) => {
   const form = useForm<DimensionTemplateValuesFormData>({
     resolver: zodResolver(dimensionTemplateValuesSchema),
     defaultValues: {

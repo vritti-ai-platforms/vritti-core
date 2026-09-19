@@ -45,9 +45,9 @@
       "types": "./dist/locations.d.ts",
       "default": "./dist/locations.js"
     },
-    "./offering-dimension-templates": {
-      "types": "./dist/offering-dimension-templates.d.ts",
-      "default": "./dist/offering-dimension-templates.js"
+    "./dimension-templates": {
+      "types": "./dist/dimension-templates.d.ts",
+      "default": "./dist/dimension-templates.js"
     },
     "./tax-classes": {
       "types": "./dist/tax-classes.d.ts",

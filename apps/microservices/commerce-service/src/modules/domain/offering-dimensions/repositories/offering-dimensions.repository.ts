@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { asc, eq, getColumns, inArray, notExists, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  dimensionTemplates,
+  dimensionTemplateValues,
   type NewOfferingDimension,
   type NewOfferingDimensionValue,
   type OfferingDimension,
   type OfferingDimensionValue,
   offeringDimensions,
-  offeringDimensionTemplates,
-  offeringDimensionTemplateValues,
   offeringDimensionValues,
   offeringOwnedByWorkspace,
   offerings,
@@ -110,21 +110,21 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
   > {
     const [template] = await this.db
       .select({
-        code: offeringDimensionTemplates.code,
-        name: offeringDimensionTemplates.name,
-        description: offeringDimensionTemplates.description,
-        isActive: offeringDimensionTemplates.isActive,
+        code: dimensionTemplates.code,
+        name: dimensionTemplates.name,
+        description: dimensionTemplates.description,
+        isActive: dimensionTemplates.isActive,
       })
-      .from(offeringDimensionTemplates)
-      .where(eq(offeringDimensionTemplates.id, templateId))
+      .from(dimensionTemplates)
+      .where(eq(dimensionTemplates.id, templateId))
       .limit(1);
     if (!template) return undefined;
 
     const values = await this.db
-      .select({ code: offeringDimensionTemplateValues.code, value: offeringDimensionTemplateValues.value })
-      .from(offeringDimensionTemplateValues)
-      .where(eq(offeringDimensionTemplateValues.templateId, templateId))
-      .orderBy(asc(offeringDimensionTemplateValues.sortOrder), asc(offeringDimensionTemplateValues.value));
+      .select({ code: dimensionTemplateValues.code, value: dimensionTemplateValues.value })
+      .from(dimensionTemplateValues)
+      .where(eq(dimensionTemplateValues.templateId, templateId))
+      .orderBy(asc(dimensionTemplateValues.sortOrder), asc(dimensionTemplateValues.value));
 
     return { code: template.code, name: template.name, description: template.description ?? null, values };
   }

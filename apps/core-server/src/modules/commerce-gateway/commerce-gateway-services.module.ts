@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import { LeAppCatalogChannelGatewayService } from './le-api/catalog-channels/services/app-catalog-channel-gateway.service';
 import { LeCatalogChannelsGatewayService } from './le-api/catalog-channels/services/catalog-channels-gateway.service';
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
-import { LeOfferingDimensionTemplatesGatewayService } from './le-api/offering-dimension-templates/services/offering-dimension-templates-gateway.service';
+import { LeDimensionTemplatesGatewayService } from './le-api/dimension-templates/services/dimension-templates-gateway.service';
 import { LeOfferingsGatewayService } from './le-api/offerings/services/offerings-gateway.service';
 import { SupplierItemsGatewayService } from './le-api/supplier-items/services/supplier-items-gateway.service';
 import { SuppliersGatewayService } from './le-api/suppliers/services/suppliers-gateway.service';
@@ -15,8 +15,8 @@ import { CatalogChannelsGatewayService } from './org-api/catalog-channels/servic
 import { CatalogsGatewayService } from './org-api/catalogs/services/catalogs-gateway.service';
 import { CategoriesGatewayService } from './org-api/categories/services/categories-gateway.service';
 import { CompaniesGatewayService } from './org-api/companies/services/companies-gateway.service';
+import { OrgDimensionTemplatesGatewayService } from './org-api/dimension-templates/services/dimension-templates-gateway.service';
 import { InventoryItemsGatewayService as OrgInventoryItemsGatewayService } from './org-api/inventory-items/services/inventory-items-gateway.service';
-import { OrgOfferingDimensionTemplatesGatewayService } from './org-api/offering-dimension-templates/services/offering-dimension-templates-gateway.service';
 import { OrgOfferingsGatewayService } from './org-api/offerings/services/offerings-gateway.service';
 import { PeopleGatewayService } from './org-api/people/services/people-gateway.service';
 import { TaxClassesGatewayService } from './org-api/tax-classes/services/tax-classes-gateway.service';
@@ -27,12 +27,12 @@ import { SiteAppCatalogChannelGatewayService } from './site-api/catalog-channels
 import { SiteCatalogChannelsGatewayService } from './site-api/catalog-channels/services/catalog-channels-gateway.service';
 import { CreditNotesGatewayService } from './site-api/credit-notes/services/credit-notes-gateway.service';
 import { CustomersGatewayService } from './site-api/customers/services/customers-gateway.service';
+import { SiteDimensionTemplatesGatewayService } from './site-api/dimension-templates/services/dimension-templates-gateway.service';
 import { GoodsReceiptsGatewayService } from './site-api/goods-receipts/services/goods-receipts-gateway.service';
 import { InventoryItemQuantsGatewayService } from './site-api/inventory-item-quants/services/inventory-item-quants-gateway.service';
 import { SiteInventoryItemsGatewayService } from './site-api/inventory-items/services/inventory-items-gateway.service';
 import { InvoicesGatewayService } from './site-api/invoices/services/invoices-gateway.service';
 import { LocationsGatewayService } from './site-api/locations/services/locations-gateway.service';
-import { SiteOfferingDimensionTemplatesGatewayService } from './site-api/offering-dimension-templates/services/offering-dimension-templates-gateway.service';
 import { SiteOfferingsGatewayService } from './site-api/offerings/services/offerings-gateway.service';
 import { OrdersGatewayService } from './site-api/orders/services/orders-gateway.service';
 import { PaymentsGatewayService } from './site-api/payments/services/payments-gateway.service';
@@ -79,9 +79,9 @@ const services = [
   TaxClassesGatewayService,
   TaxComponentsGatewayService,
   TaxJurisdictionsGatewayService,
-  OrgOfferingDimensionTemplatesGatewayService,
-  LeOfferingDimensionTemplatesGatewayService,
-  SiteOfferingDimensionTemplatesGatewayService,
+  OrgDimensionTemplatesGatewayService,
+  LeDimensionTemplatesGatewayService,
+  SiteDimensionTemplatesGatewayService,
   TaxGroupsGatewayService,
   TaxRegistrationsGatewayService,
   UomGatewayService,

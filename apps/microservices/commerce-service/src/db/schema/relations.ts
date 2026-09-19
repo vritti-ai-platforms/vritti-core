@@ -585,13 +585,13 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.uom.id,
     }),
   },
-  offeringDimensionTemplates: {
-    values: r.many.offeringDimensionTemplateValues(),
+  dimensionTemplates: {
+    values: r.many.dimensionTemplateValues(),
   },
-  offeringDimensionTemplateValues: {
-    template: r.one.offeringDimensionTemplates({
-      from: r.offeringDimensionTemplateValues.templateId,
-      to: r.offeringDimensionTemplates.id,
+  dimensionTemplateValues: {
+    template: r.one.dimensionTemplates({
+      from: r.dimensionTemplateValues.templateId,
+      to: r.dimensionTemplates.id,
     }),
   },
 }));

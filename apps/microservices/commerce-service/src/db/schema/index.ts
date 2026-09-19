@@ -33,7 +33,7 @@ export * from './item-field-definitions';
 export * from './item-field-values';
 export * from './locations';
 export * from './modifier-groups';
-export * from './offering-dimension-templates';
+export * from './dimension-templates';
 export * from './offering-dimensions';
 export * from './offering-variants';
 export * from './offerings';

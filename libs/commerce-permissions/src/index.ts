@@ -12,10 +12,10 @@ export {
 } from './inventory-items';
 export { SITE_LOCATIONS } from './locations';
 export {
-  LE_OFFERING_DIMENSION_TEMPLATES,
-  ORG_OFFERING_DIMENSION_TEMPLATES,
-  SITE_OFFERING_DIMENSION_TEMPLATES,
-} from './offering-dimension-templates';
+  LE_DIMENSION_TEMPLATES,
+  ORG_DIMENSION_TEMPLATES,
+  SITE_DIMENSION_TEMPLATES,
+} from './dimension-templates';
 export { LE_OFFERINGS, ORG_OFFERINGS, SITE_OFFERINGS } from './offerings';
 export { ORG_PEOPLE } from './people';
 export { LE_SUPPLIERS, SITE_SUPPLIERS } from './suppliers';

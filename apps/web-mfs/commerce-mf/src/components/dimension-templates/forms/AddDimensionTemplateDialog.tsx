@@ -5,15 +5,21 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateDimensionTemplate } from '@/hooks/organization/dimension-templates';
 import { type CreateDimensionTemplateFormData, createDimensionTemplateSchema } from '@/schemas/dimension-templates';
 
+import type { UseCreateDimensionTemplate } from '../types';
+
 interface AddDimensionTemplateDialogProps {
+  useCreateDimensionTemplate: UseCreateDimensionTemplate;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const AddDimensionTemplateDialog: React.FC<AddDimensionTemplateDialogProps> = ({ onSuccess, onCancel }) => {
+export const AddDimensionTemplateDialog: React.FC<AddDimensionTemplateDialogProps> = ({
+  useCreateDimensionTemplate,
+  onSuccess,
+  onCancel,
+}) => {
   const form = useForm<CreateDimensionTemplateFormData>({
     resolver: zodResolver(createDimensionTemplateSchema),
     defaultValues: { code: '', name: '', description: '' },

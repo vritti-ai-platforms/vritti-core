@@ -1,6 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { aliasedTable, and, eq, ilike, inArray, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  aliasedTable,
+  and,
+  eq,
+  getColumns,
+  ilike,
+  inArray,
+  isNull,
+  or,
+  type SQL,
+  sql,
+} from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, inventoryItemUomConversions, supplierItems, type Uom, uom } from '@/db/schema';
 
 export type UomWithBase = Uom & { baseUnitSymbol: string | null };
@@ -48,19 +59,7 @@ export class UomDomainRepository extends PrimaryBaseRepository<typeof uom> {
   }): Promise<{ result: UomWithBase[]; count: number }> {
     const baseUom = aliasedTable(uom, 'base_uom');
     const { result, count } = await this.findAllAndCount<UomWithBase>({
-      select: {
-        id: uom.id,
-        organizationId: uom.organizationId,
-        dimensionId: uom.dimensionId,
-        name: uom.name,
-        symbol: uom.symbol,
-        baseUnitId: uom.baseUnitId,
-        baseUomQty: uom.baseUomQty,
-        uomQty: uom.uomQty,
-        allowDecimal: uom.allowDecimal,
-        createdAt: uom.createdAt,
-        baseUnitSymbol: baseUom.symbol,
-      },
+      select: { ...getColumns(uom), baseUnitSymbol: baseUom.symbol },
       leftJoins: [{ table: baseUom, on: eq(uom.baseUnitId, baseUom.id) }],
       where: options.where,
       orderBy: options.orderBy,
@@ -80,19 +79,7 @@ export class UomDomainRepository extends PrimaryBaseRepository<typeof uom> {
   }): Promise<{ rows: UomWithBase[]; hasMore: boolean }> {
     const baseUom = aliasedTable(uom, 'base_uom');
     return this.findKeyset<UomWithBase>({
-      select: {
-        id: uom.id,
-        organizationId: uom.organizationId,
-        dimensionId: uom.dimensionId,
-        name: uom.name,
-        symbol: uom.symbol,
-        baseUnitId: uom.baseUnitId,
-        baseUomQty: uom.baseUomQty,
-        uomQty: uom.uomQty,
-        allowDecimal: uom.allowDecimal,
-        createdAt: uom.createdAt,
-        baseUnitSymbol: baseUom.symbol,
-      },
+      select: { ...getColumns(uom), baseUnitSymbol: baseUom.symbol },
       leftJoin: { table: baseUom, on: eq(uom.baseUnitId, baseUom.id) },
       where: options.where,
       orderBy: options.orderBy,

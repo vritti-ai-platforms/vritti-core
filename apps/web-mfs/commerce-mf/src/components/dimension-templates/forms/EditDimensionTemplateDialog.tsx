@@ -5,21 +5,24 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useUpdateDimensionTemplate } from '@/hooks/organization/dimension-templates';
 import {
   type DimensionTemplateData,
   type UpdateDimensionTemplateFormData,
   updateDimensionTemplateSchema,
 } from '@/schemas/dimension-templates';
 
+import type { UseUpdateDimensionTemplate } from '../types';
+
 interface EditDimensionTemplateDialogProps {
   template: DimensionTemplateData;
+  useUpdateDimensionTemplate: UseUpdateDimensionTemplate;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
 export const EditDimensionTemplateDialog: React.FC<EditDimensionTemplateDialogProps> = ({
   template,
+  useUpdateDimensionTemplate,
   onSuccess,
   onCancel,
 }) => {

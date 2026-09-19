@@ -2,12 +2,12 @@ import { CategoriesSelectQueryDto } from '@domain/categories/dto/request/categor
 import { CategoriesDomainService } from '@domain/categories/services/categories.service';
 import { CostCategoriesDomainService } from '@domain/cost-categories/services/cost-categories.service';
 import { CustomersDomainService } from '@domain/customers/services/customers.service';
+import { DimensionTemplatesDomainService } from '@domain/dimension-templates/services/dimension-templates.service';
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemSerialsDomainService } from '@domain/inventory-item-serials/services/inventory-item-serials.service';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { LocationsDomainService } from '@domain/locations/services/locations.service';
-import { OfferingDimensionTemplatesDomainService } from '@domain/offering-dimension-templates/services/offering-dimension-templates.service';
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
@@ -49,7 +49,7 @@ export class SelectController {
   constructor(
     private readonly categoriesService: CategoriesDomainService,
     private readonly inventoryItemsService: InventoryItemsDomainService,
-    private readonly offeringDimensionTemplatesService: OfferingDimensionTemplatesDomainService,
+    private readonly dimensionTemplatesService: DimensionTemplatesDomainService,
     private readonly offeringsService: OfferingsDomainService,
     private readonly offeringVariantsService: OfferingVariantsDomainService,
     private readonly uomService: UomDomainService,
@@ -105,10 +105,10 @@ export class SelectController {
   }
 
   // Returns paginated dimension template options for the select component
-  @MessagePattern({ cmd: 'select.offeringDimensionTemplates' })
-  async offeringDimensionTemplates(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('select.offeringDimensionTemplates');
-    return this.offeringDimensionTemplatesService.findForSelect(query);
+  @MessagePattern({ cmd: 'select.dimensionTemplates' })
+  async dimensionTemplates(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.dimensionTemplates');
+    return this.dimensionTemplatesService.findForSelect(query);
   }
 
   // Returns paginated UOM options for the select component

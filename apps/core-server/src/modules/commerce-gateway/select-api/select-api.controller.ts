@@ -22,12 +22,12 @@ import {
   ApiCategoriesSelect,
   ApiCostCategoriesSelect,
   ApiCustomersSelect,
+  ApiDimensionTemplatesSelect,
   ApiInventoryItemLotsSelect,
   ApiInventoryItemQuantsSelect,
   ApiInventoryItemSerialsSelect,
   ApiInventoryItemsSelect,
   ApiLocationsSelect,
-  ApiOfferingDimensionTemplatesSelect,
   ApiOfferingsSelect,
   ApiOfferingVariantsSelect,
   ApiPosTerminalsSelect,
@@ -109,10 +109,10 @@ export class SelectApiController {
     return this.nats.send<SelectQueryResult>('commerce', 'select.offeringVariants', query);
   }
 
-  @Get('offering-dimension-templates')
-  @ApiOfferingDimensionTemplatesSelect()
-  selectOfferingDimensionTemplates(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'select.offeringDimensionTemplates', query);
+  @Get('dimension-templates')
+  @ApiDimensionTemplatesSelect()
+  selectDimensionTemplates(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.dimensionTemplates', query);
   }
 
   @Get('catalogs')

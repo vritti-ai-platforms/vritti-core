@@ -2,13 +2,12 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { Plus, SearchX, SwatchBook } from 'lucide-react';
 import type React from 'react';
-import { useDimensionTemplates } from '@/hooks/organization/dimension-templates';
 import type { DimensionTemplateData } from '@/schemas/dimension-templates';
 import { DimensionTemplateCard } from './DimensionTemplateCard';
-import type { DimensionTemplatePermissions } from './types';
+import type { DimensionTemplatesBinding } from './types';
 
 interface DimensionTemplatesGridProps {
-  permissions: DimensionTemplatePermissions;
+  binding: DimensionTemplatesBinding;
   // The scope's suspense query — this component is what suspends, so the boundary sits just above it
   search: string;
   isDeleting: boolean;
@@ -19,7 +18,7 @@ interface DimensionTemplatesGridProps {
 }
 
 export const DimensionTemplatesGrid: React.FC<DimensionTemplatesGridProps> = ({
-  permissions,
+  binding,
   search,
   isDeleting,
   isTogglingActive,
@@ -27,7 +26,7 @@ export const DimensionTemplatesGrid: React.FC<DimensionTemplatesGridProps> = ({
   onDelete,
   onToggleActive,
 }) => {
-  const { data: templates } = useDimensionTemplates(search || undefined);
+  const { data: templates } = binding.useTemplates(search || undefined);
 
   if (templates.length === 0) {
     return search ? (
@@ -44,7 +43,7 @@ export const DimensionTemplatesGrid: React.FC<DimensionTemplatesGridProps> = ({
         title="No dimension templates"
         description="Create one so offerings can seed their dimensions from a shared list."
         action={
-          <Button onClick={onAdd} startAdornment={<Plus className="size-4" />} permission={permissions.add}>
+          <Button onClick={onAdd} startAdornment={<Plus className="size-4" />} permission={binding.permissions.add}>
             Add Template
           </Button>
         }
@@ -56,7 +55,7 @@ export const DimensionTemplatesGrid: React.FC<DimensionTemplatesGridProps> = ({
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {templates.map((template) => (
         <DimensionTemplateCard
-          permissions={permissions}
+          binding={binding}
           key={template.id}
           template={template}
           isDeleting={isDeleting}

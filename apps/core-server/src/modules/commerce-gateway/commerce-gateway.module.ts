@@ -4,7 +4,7 @@ import { LeAppCatalogChannelGatewayController } from './le-api/catalog-channels/
 import { LeCatalogChannelsGatewayController } from './le-api/catalog-channels/catalog-channels-gateway.controller';
 import { CostCategoriesGatewayController } from './le-api/cost-categories/cost-categories-gateway.controller';
 import { CostCategoriesResolver } from './le-api/cost-categories/cost-categories-gateway.resolver';
-import { LeOfferingDimensionTemplatesGatewayController } from './le-api/offering-dimension-templates/offering-dimension-templates-gateway.controller';
+import { LeDimensionTemplatesGatewayController } from './le-api/dimension-templates/dimension-templates-gateway.controller';
 import { LeOfferingsGatewayController } from './le-api/offerings/offerings-gateway.controller';
 import { SupplierItemsGatewayController } from './le-api/supplier-items/supplier-items-gateway.controller';
 import { SuppliersGatewayController } from './le-api/suppliers/suppliers-gateway.controller';
@@ -16,8 +16,8 @@ import { CatalogChannelsGatewayController } from './org-api/catalog-channels/cat
 import { CatalogsGatewayController } from './org-api/catalogs/catalogs-gateway.controller';
 import { CategoriesGatewayController } from './org-api/categories/categories-gateway.controller';
 import { CompaniesGatewayController } from './org-api/companies/companies-gateway.controller';
+import { OrgDimensionTemplatesGatewayController } from './org-api/dimension-templates/dimension-templates-gateway.controller';
 import { InventoryItemsGatewayController as OrgInventoryItemsGatewayController } from './org-api/inventory-items/inventory-items-gateway.controller';
-import { OrgOfferingDimensionTemplatesGatewayController } from './org-api/offering-dimension-templates/offering-dimension-templates-gateway.controller';
 import { OrgOfferingsGatewayController } from './org-api/offerings/offerings-gateway.controller';
 import { PeopleAppController } from './org-api/people/people.app.controller';
 import { PeopleGatewayController } from './org-api/people/people-gateway.controller';
@@ -32,6 +32,7 @@ import { SiteAppCatalogChannelGatewayController } from './site-api/catalog-chann
 import { SiteCatalogChannelsGatewayController } from './site-api/catalog-channels/catalog-channels-gateway.controller';
 import { CreditNotesGatewayController } from './site-api/credit-notes/credit-notes-gateway.controller';
 import { CustomersGatewayController } from './site-api/customers/customers-gateway.controller';
+import { SiteDimensionTemplatesGatewayController } from './site-api/dimension-templates/dimension-templates-gateway.controller';
 import { GoodsReceiptsGatewayController } from './site-api/goods-receipts/goods-receipts-gateway.controller';
 import { GoodsReceiptsResolver } from './site-api/goods-receipts/goods-receipts-gateway.resolver';
 import { InventoryItemQuantsGatewayController } from './site-api/inventory-item-quants/inventory-item-quants-gateway.controller';
@@ -45,7 +46,6 @@ import { SiteInventoryItemsGatewayController } from './site-api/inventory-items/
 import { InventoryItemsResolver } from './site-api/inventory-items/inventory-items-gateway.resolver';
 import { InvoicesGatewayController } from './site-api/invoices/invoices-gateway.controller';
 import { LocationsGatewayController } from './site-api/locations/locations-gateway.controller';
-import { SiteOfferingDimensionTemplatesGatewayController } from './site-api/offering-dimension-templates/offering-dimension-templates-gateway.controller';
 import { SiteOfferingsGatewayController } from './site-api/offerings/offerings-gateway.controller';
 import { OrdersGatewayController } from './site-api/orders/orders-gateway.controller';
 import { PaymentsGatewayController } from './site-api/payments/payments-gateway.controller';
@@ -95,9 +95,9 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     TaxClassesGatewayController,
     TaxComponentsGatewayController,
     TaxJurisdictionsGatewayController,
-    OrgOfferingDimensionTemplatesGatewayController,
-    LeOfferingDimensionTemplatesGatewayController,
-    SiteOfferingDimensionTemplatesGatewayController,
+    OrgDimensionTemplatesGatewayController,
+    LeDimensionTemplatesGatewayController,
+    SiteDimensionTemplatesGatewayController,
     TaxGroupsGatewayController,
     TaxRegistrationsGatewayController,
     UomGatewayController,

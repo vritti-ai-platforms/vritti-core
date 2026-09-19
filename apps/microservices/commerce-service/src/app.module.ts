@@ -9,7 +9,7 @@ import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
 import { LeCatalogChannelsModule } from './modules/legal-entity/catalog-channels/catalog-channels.module';
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
-import { LeOfferingDimensionTemplatesModule } from './modules/legal-entity/offering-dimension-templates/offering-dimension-templates.module';
+import { LeDimensionTemplatesModule } from './modules/legal-entity/dimension-templates/dimension-templates.module';
 import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.module';
 import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
@@ -19,7 +19,7 @@ import { OrgCatalogsModule } from './modules/organization/catalogs/catalogs.modu
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
 import { OrgCompaniesModule } from './modules/organization/companies/companies.module';
 import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
-import { OrgOfferingDimensionTemplatesModule } from './modules/organization/offering-dimension-templates/offering-dimension-templates.module';
+import { OrgDimensionTemplatesModule } from './modules/organization/dimension-templates/dimension-templates.module';
 import { OrgOfferingsModule } from './modules/organization/offerings/offerings.module';
 import { OrgPeopleModule } from './modules/organization/people/people.module';
 import { OrgTaxClassesModule } from './modules/organization/tax-classes/tax-classes.module';
@@ -35,7 +35,7 @@ import { SiteInventoryItemsModule } from './modules/site/inventory-items/invento
 import { SiteInvoicesModule } from './modules/site/invoices/invoices.module';
 import { SiteLocationsModule } from './modules/site/locations/locations.module';
 import { SiteLocationQuantsModule } from './modules/site/locations/quants/location-quants.module';
-import { SiteOfferingDimensionTemplatesModule } from './modules/site/offering-dimension-templates/offering-dimension-templates.module';
+import { SiteDimensionTemplatesModule } from './modules/site/dimension-templates/dimension-templates.module';
 import { SiteOfferingsModule } from './modules/site/offerings/offerings.module';
 import { SiteOrdersModule } from './modules/site/orders/orders.module';
 import { SitePaymentsModule } from './modules/site/payments/payments.module';
@@ -105,15 +105,15 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     LeCatalogChannelsModule,
     SiteCatalogChannelsModule,
     OrgInventoryItemsModule,
-    OrgOfferingDimensionTemplatesModule,
+    OrgDimensionTemplatesModule,
     OrgOfferingsModule,
     LeCostCategoriesModule,
     LeTaxGroupsModule,
     LeTaxRegistrationsModule,
     LeSuppliersModule,
-    LeOfferingDimensionTemplatesModule,
+    LeDimensionTemplatesModule,
     LeOfferingsModule,
-    SiteOfferingDimensionTemplatesModule,
+    SiteDimensionTemplatesModule,
     SiteOfferingsModule,
     SiteInventoryItemsModule,
     SiteGroupInventoryItemsModule,

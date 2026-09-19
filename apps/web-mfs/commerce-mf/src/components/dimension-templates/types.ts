@@ -35,3 +35,18 @@ export type UseUpdateDimensionTemplate = MutationHook<
   { id: string; data: UpdateDimensionTemplateData }
 >;
 export type UseUpsertDimensionTemplateValues = MutationHook<SuccessResponse, UpsertDimensionTemplateValuesData>;
+export type UseDeleteDimensionTemplate = MutationHook<SuccessResponse, string>;
+export type UseSetDimensionTemplateActive = MutationHook<SuccessResponse, { id: string; isActive: boolean }>;
+
+// Everything this folder needs from a scope. Each scope's route builds one of these from its own
+// hooks and permission codes; nothing under components/ may import a scoped hook directly, or the
+// org endpoints get called from the le and site workspaces.
+export interface DimensionTemplatesBinding {
+  permissions: DimensionTemplatePermissions;
+  useTemplates: UseDimensionTemplates;
+  useCreate: UseCreateDimensionTemplate;
+  useUpdate: UseUpdateDimensionTemplate;
+  useUpsertValues: UseUpsertDimensionTemplateValues;
+  useDelete: UseDeleteDimensionTemplate;
+  useSetActive: UseSetDimensionTemplateActive;
+}

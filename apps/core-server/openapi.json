@@ -21143,7 +21143,7 @@
     "/commerce-api/org/dimension-templates": {
       "get": {
         "description": "Returns every template this workspace can reach — org-owned ones plus its own — each with its values.",
-        "operationId": "OrgOfferingDimensionTemplatesGatewayController_list",
+        "operationId": "OrgDimensionTemplatesGatewayController_list",
         "parameters": [
           {
             "name": "search",
@@ -21163,7 +21163,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
+                    "$ref": "#/components/schemas/DimensionTemplateResponseDto"
                   }
                 }
               }
@@ -21185,14 +21185,14 @@
       },
       "post": {
         "description": "Creates a template owned by the calling workspace. The owner is derived from the workspace context, never from the request body.",
-        "operationId": "OrgOfferingDimensionTemplatesGatewayController_create",
+        "operationId": "OrgDimensionTemplatesGatewayController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOfferingDimensionTemplateDto"
+                "$ref": "#/components/schemas/CreateDimensionTemplateDto"
               }
             }
           }
@@ -21203,7 +21203,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
+                  "$ref": "#/components/schemas/DimensionTemplateResponseDto"
                 }
               }
             }
@@ -21230,50 +21230,9 @@
       }
     },
     "/commerce-api/org/dimension-templates/{id}": {
-      "get": {
-        "operationId": "OrgOfferingDimensionTemplatesGatewayController_findById",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Dimension template ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Template retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Template not found or out of reach."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get a dimension template by ID, with its values",
-        "tags": [
-          "Commerce - Dimension Templates (Org)"
-        ]
-      },
       "patch": {
         "description": "Only the workspace that owns the template may change it.",
-        "operationId": "OrgOfferingDimensionTemplatesGatewayController_update",
+        "operationId": "OrgDimensionTemplatesGatewayController_update",
         "parameters": [
           {
             "name": "id",
@@ -21290,7 +21249,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOfferingDimensionTemplateDto"
+                "$ref": "#/components/schemas/UpdateDimensionTemplateDto"
               }
             }
           }
@@ -21327,7 +21286,7 @@
         ]
       },
       "delete": {
-        "operationId": "OrgOfferingDimensionTemplatesGatewayController_delete",
+        "operationId": "OrgDimensionTemplatesGatewayController_delete",
         "parameters": [
           {
             "name": "id",
@@ -21374,7 +21333,7 @@
     "/commerce-api/org/dimension-templates/{id}/active": {
       "patch": {
         "description": "Separate from editing, and refused while the template has no values — an empty template would seed a dimension with nothing.",
-        "operationId": "OrgOfferingDimensionTemplatesGatewayController_setActive",
+        "operationId": "OrgDimensionTemplatesGatewayController_setActive",
         "parameters": [
           {
             "name": "id",
@@ -21391,7 +21350,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetOfferingDimensionTemplateActiveDto"
+                "$ref": "#/components/schemas/SetDimensionTemplateActiveDto"
               }
             }
           }
@@ -21431,7 +21390,7 @@
     "/commerce-api/org/dimension-templates/{id}/values": {
       "put": {
         "description": "Takes the complete set the template should end up with. Values that are unchanged keep their ids; removing every value deactivates the template.",
-        "operationId": "OrgOfferingDimensionTemplatesGatewayController_upsertValues",
+        "operationId": "OrgDimensionTemplatesGatewayController_upsertValues",
         "parameters": [
           {
             "name": "id",
@@ -21448,7 +21407,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertOfferingDimensionTemplateValuesDto"
+                "$ref": "#/components/schemas/UpsertDimensionTemplateValuesDto"
               }
             }
           }
@@ -21485,7 +21444,7 @@
     "/commerce-api/le/dimension-templates": {
       "get": {
         "description": "Returns every template this workspace can reach — org-owned ones plus its own — each with its values.",
-        "operationId": "LeOfferingDimensionTemplatesGatewayController_list",
+        "operationId": "LeDimensionTemplatesGatewayController_list",
         "parameters": [
           {
             "name": "search",
@@ -21505,7 +21464,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
+                    "$ref": "#/components/schemas/DimensionTemplateResponseDto"
                   }
                 }
               }
@@ -21527,14 +21486,14 @@
       },
       "post": {
         "description": "Creates a template owned by the calling workspace. The owner is derived from the workspace context, never from the request body.",
-        "operationId": "LeOfferingDimensionTemplatesGatewayController_create",
+        "operationId": "LeDimensionTemplatesGatewayController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOfferingDimensionTemplateDto"
+                "$ref": "#/components/schemas/CreateDimensionTemplateDto"
               }
             }
           }
@@ -21545,7 +21504,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
+                  "$ref": "#/components/schemas/DimensionTemplateResponseDto"
                 }
               }
             }
@@ -21572,50 +21531,9 @@
       }
     },
     "/commerce-api/le/dimension-templates/{id}": {
-      "get": {
-        "operationId": "LeOfferingDimensionTemplatesGatewayController_findById",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Dimension template ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Template retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Template not found or out of reach."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get a dimension template by ID, with its values",
-        "tags": [
-          "Commerce - Dimension Templates (LE)"
-        ]
-      },
       "patch": {
         "description": "Only the workspace that owns the template may change it.",
-        "operationId": "LeOfferingDimensionTemplatesGatewayController_update",
+        "operationId": "LeDimensionTemplatesGatewayController_update",
         "parameters": [
           {
             "name": "id",
@@ -21632,7 +21550,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOfferingDimensionTemplateDto"
+                "$ref": "#/components/schemas/UpdateDimensionTemplateDto"
               }
             }
           }
@@ -21669,7 +21587,7 @@
         ]
       },
       "delete": {
-        "operationId": "LeOfferingDimensionTemplatesGatewayController_delete",
+        "operationId": "LeDimensionTemplatesGatewayController_delete",
         "parameters": [
           {
             "name": "id",
@@ -21716,7 +21634,7 @@
     "/commerce-api/le/dimension-templates/{id}/active": {
       "patch": {
         "description": "Separate from editing, and refused while the template has no values — an empty template would seed a dimension with nothing.",
-        "operationId": "LeOfferingDimensionTemplatesGatewayController_setActive",
+        "operationId": "LeDimensionTemplatesGatewayController_setActive",
         "parameters": [
           {
             "name": "id",
@@ -21733,7 +21651,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetOfferingDimensionTemplateActiveDto"
+                "$ref": "#/components/schemas/SetDimensionTemplateActiveDto"
               }
             }
           }
@@ -21773,7 +21691,7 @@
     "/commerce-api/le/dimension-templates/{id}/values": {
       "put": {
         "description": "Takes the complete set the template should end up with. Values that are unchanged keep their ids; removing every value deactivates the template.",
-        "operationId": "LeOfferingDimensionTemplatesGatewayController_upsertValues",
+        "operationId": "LeDimensionTemplatesGatewayController_upsertValues",
         "parameters": [
           {
             "name": "id",
@@ -21790,7 +21708,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertOfferingDimensionTemplateValuesDto"
+                "$ref": "#/components/schemas/UpsertDimensionTemplateValuesDto"
               }
             }
           }
@@ -21827,7 +21745,7 @@
     "/commerce-api/site/dimension-templates": {
       "get": {
         "description": "Returns every template this workspace can reach — org-owned ones plus its own — each with its values.",
-        "operationId": "SiteOfferingDimensionTemplatesGatewayController_list",
+        "operationId": "SiteDimensionTemplatesGatewayController_list",
         "parameters": [
           {
             "name": "search",
@@ -21847,7 +21765,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
+                    "$ref": "#/components/schemas/DimensionTemplateResponseDto"
                   }
                 }
               }
@@ -21869,14 +21787,14 @@
       },
       "post": {
         "description": "Creates a template owned by the calling workspace. The owner is derived from the workspace context, never from the request body.",
-        "operationId": "SiteOfferingDimensionTemplatesGatewayController_create",
+        "operationId": "SiteDimensionTemplatesGatewayController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOfferingDimensionTemplateDto"
+                "$ref": "#/components/schemas/CreateDimensionTemplateDto"
               }
             }
           }
@@ -21887,7 +21805,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
+                  "$ref": "#/components/schemas/DimensionTemplateResponseDto"
                 }
               }
             }
@@ -21914,50 +21832,9 @@
       }
     },
     "/commerce-api/site/dimension-templates/{id}": {
-      "get": {
-        "operationId": "SiteOfferingDimensionTemplatesGatewayController_findById",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Dimension template ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Template retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OfferingDimensionTemplateResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Template not found or out of reach."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get a dimension template by ID, with its values",
-        "tags": [
-          "Commerce - Dimension Templates (Site)"
-        ]
-      },
       "patch": {
         "description": "Only the workspace that owns the template may change it.",
-        "operationId": "SiteOfferingDimensionTemplatesGatewayController_update",
+        "operationId": "SiteDimensionTemplatesGatewayController_update",
         "parameters": [
           {
             "name": "id",
@@ -21974,7 +21851,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOfferingDimensionTemplateDto"
+                "$ref": "#/components/schemas/UpdateDimensionTemplateDto"
               }
             }
           }
@@ -22011,7 +21888,7 @@
         ]
       },
       "delete": {
-        "operationId": "SiteOfferingDimensionTemplatesGatewayController_delete",
+        "operationId": "SiteDimensionTemplatesGatewayController_delete",
         "parameters": [
           {
             "name": "id",
@@ -22058,7 +21935,7 @@
     "/commerce-api/site/dimension-templates/{id}/active": {
       "patch": {
         "description": "Separate from editing, and refused while the template has no values — an empty template would seed a dimension with nothing.",
-        "operationId": "SiteOfferingDimensionTemplatesGatewayController_setActive",
+        "operationId": "SiteDimensionTemplatesGatewayController_setActive",
         "parameters": [
           {
             "name": "id",
@@ -22075,7 +21952,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetOfferingDimensionTemplateActiveDto"
+                "$ref": "#/components/schemas/SetDimensionTemplateActiveDto"
               }
             }
           }
@@ -22115,7 +21992,7 @@
     "/commerce-api/site/dimension-templates/{id}/values": {
       "put": {
         "description": "Takes the complete set the template should end up with. Values that are unchanged keep their ids; removing every value deactivates the template.",
-        "operationId": "SiteOfferingDimensionTemplatesGatewayController_upsertValues",
+        "operationId": "SiteDimensionTemplatesGatewayController_upsertValues",
         "parameters": [
           {
             "name": "id",
@@ -22132,7 +22009,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertOfferingDimensionTemplateValuesDto"
+                "$ref": "#/components/schemas/UpsertDimensionTemplateValuesDto"
               }
             }
           }
@@ -24508,10 +24385,10 @@
         ]
       }
     },
-    "/commerce-api/select-api/offering-dimension-templates": {
+    "/commerce-api/select-api/dimension-templates": {
       "get": {
         "description": "Returns paginated active dimension template options for the select component. Templates owned by a wider scope are included, so a site sees its own plus those of its legal entity and organization.",
-        "operationId": "SelectApiController_selectOfferingDimensionTemplates",
+        "operationId": "SelectApiController_selectDimensionTemplates",
         "parameters": [
           {
             "name": "search",
@@ -40107,7 +39984,7 @@
           }
         }
       },
-      "OfferingDimensionTemplateValueResponseDto": {
+      "DimensionTemplateValueResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -40141,7 +40018,7 @@
           "sortOrder"
         ]
       },
-      "OfferingDimensionTemplateResponseDto": {
+      "DimensionTemplateResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -40162,10 +40039,6 @@
             "type": "object",
             "description": "What the template is for",
             "nullable": true
-          },
-          "sortOrder": {
-            "type": "number",
-            "description": "Sort order"
           },
           "isActive": {
             "type": "boolean",
@@ -40194,7 +40067,7 @@
             "description": "Values seeded onto a dimension",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/OfferingDimensionTemplateValueResponseDto"
+              "$ref": "#/components/schemas/DimensionTemplateValueResponseDto"
             }
           },
           "valueCount": {
@@ -40222,7 +40095,6 @@
           "id",
           "code",
           "name",
-          "sortOrder",
           "isActive",
           "ownerScope",
           "values",
@@ -40233,7 +40105,7 @@
           "updatedAt"
         ]
       },
-      "CreateOfferingDimensionTemplateDto": {
+      "CreateDimensionTemplateDto": {
         "type": "object",
         "properties": {
           "code": {
@@ -40250,10 +40122,6 @@
             "type": "object",
             "description": "What the template is for",
             "nullable": true
-          },
-          "sortOrder": {
-            "type": "number",
-            "description": "Sort order"
           }
         },
         "required": [
@@ -40261,7 +40129,7 @@
           "name"
         ]
       },
-      "UpdateOfferingDimensionTemplateDto": {
+      "UpdateDimensionTemplateDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -40272,14 +40140,10 @@
             "type": "object",
             "description": "What the template is for",
             "nullable": true
-          },
-          "sortOrder": {
-            "type": "number",
-            "description": "Sort order"
           }
         }
       },
-      "SetOfferingDimensionTemplateActiveDto": {
+      "SetDimensionTemplateActiveDto": {
         "type": "object",
         "properties": {
           "isActive": {
@@ -40310,7 +40174,7 @@
           "value"
         ]
       },
-      "UpsertOfferingDimensionTemplateValuesDto": {
+      "UpsertDimensionTemplateValuesDto": {
         "type": "object",
         "properties": {
           "values": {

@@ -162,7 +162,7 @@ export function ApiOfferingsSelect() {
   );
 }
 
-export function ApiOfferingDimensionTemplatesSelect() {
+export function ApiDimensionTemplatesSelect() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get dimension template select options',
