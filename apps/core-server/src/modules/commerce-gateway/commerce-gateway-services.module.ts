@@ -1,4 +1,5 @@
 import { AppDomainModule } from '@domain/app/app.module';
+import { LegalEntityDomainModule } from '@domain/legal-entity/legal-entity.module';
 import { SiteDomainModule } from '@domain/site/site.module';
 import { Module } from '@nestjs/common';
 import { LeAppCatalogChannelGatewayService } from './le-api/catalog-channels/services/app-catalog-channel-gateway.service';
@@ -100,7 +101,7 @@ const services = [
 @Module({
   // Three gateway services inject SiteDomainService / SiteDomainRepository, so the domain module
   // must be imported HERE, where those services are provided.
-  imports: [SiteDomainModule, AppDomainModule],
+  imports: [SiteDomainModule, LegalEntityDomainModule, AppDomainModule],
   providers: services,
   exports: services,
 })

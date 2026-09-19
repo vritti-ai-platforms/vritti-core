@@ -2,6 +2,8 @@ import type { CreateDimensionTemplateDto } from '@commerce/dimension-templates/d
 import type { UpdateDimensionTemplateDto } from '@commerce/dimension-templates/dto/request/update-dimension-template.dto';
 import type { TemplateValueInputDto } from '@commerce/dimension-templates/dto/request/upsert-dimension-template-values.dto';
 import type { DimensionTemplateResponseDto } from '@commerce/dimension-templates/dto/response/dimension-template-response.dto';
+import { LegalEntityDomainRepository } from '@domain/legal-entity/repositories/legal-entity.repository';
+import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
@@ -10,12 +12,19 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 export class LeDimensionTemplatesGatewayService {
   private readonly logger = new Logger(LeDimensionTemplatesGatewayService.name);
 
-  constructor(private readonly nats: NatsClientService) {}
+  constructor(
+    private readonly nats: NatsClientService,
+    private readonly legalEntityRepository: LegalEntityDomainRepository,
+    private readonly siteRepository: SiteDomainRepository,
+  ) {}
 
   // Returns every dimension template this workspace can reach, for the card grid
-  async list(search?: string): Promise<DimensionTemplateResponseDto[]> {
+  async list(orgId: string, search?: string): Promise<DimensionTemplateResponseDto[]> {
     this.logger.log('le.dimensionTemplates.list');
-    return this.nats.send('commerce', 'le.dimensionTemplates.list', { search });
+    const templates = await this.nats.send<DimensionTemplateResponseDto[]>('commerce', 'le.dimensionTemplates.list', {
+      search,
+    });
+    return this.withOwnerNames(orgId, templates);
   }
 
   // Creates a template owned by the calling workspace
@@ -46,5 +55,34 @@ export class LeDimensionTemplatesGatewayService {
   async upsertValues(templateId: string, values: TemplateValueInputDto[]): Promise<SuccessResponseDto> {
     this.logger.log(`dimensionTemplates.values.upsert — templateId: ${templateId}, count: ${values.length}`);
     return this.nats.send('commerce', 'le.dimensionTemplates.values.upsert', { templateId, values });
+  }
+
+  // Commerce stores only the owning ids; the names live in core, so they are resolved here. Batched
+  // by scope so a grid of templates costs two lookups rather than one per card.
+  private async withOwnerNames(
+    orgId: string,
+    templates: DimensionTemplateResponseDto[],
+  ): Promise<DimensionTemplateResponseDto[]> {
+    if (templates.length === 0) return templates;
+
+    const leIds = [...new Set(templates.filter((t) => t.ownerScope === 'LE').map((t) => t.legalEntityId as string))];
+    const siteIds = [...new Set(templates.filter((t) => t.ownerScope === 'SITE').map((t) => t.siteId as string))];
+
+    const [legalEntities, sites] = await Promise.all([
+      this.legalEntityRepository.findByIds(orgId, leIds),
+      this.siteRepository.findByIds(orgId, siteIds),
+    ]);
+    const leNames = new Map(legalEntities.map((le) => [le.id, le.name]));
+    const siteNames = new Map(sites.map((site) => [site.id, site.name]));
+
+    return templates.map((template) => ({
+      ...template,
+      ownerName:
+        template.ownerScope === 'SITE'
+          ? (siteNames.get(template.siteId as string) ?? 'Unknown outlet')
+          : template.ownerScope === 'LE'
+            ? (leNames.get(template.legalEntityId as string) ?? 'Unknown company')
+            : 'Organization',
+    }));
   }
 }

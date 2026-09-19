@@ -43,6 +43,7 @@ export interface DimensionTemplateData {
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: TemplateOwnerScope;
+  ownerName: string;
   values: DimensionTemplateValueData[];
   valueCount: number;
   canEdit: boolean;

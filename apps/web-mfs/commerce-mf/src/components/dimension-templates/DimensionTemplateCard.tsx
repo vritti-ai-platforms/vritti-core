@@ -14,12 +14,6 @@ import { EditDimensionTemplateDialog } from './forms/EditDimensionTemplateDialog
 import { TemplateValuesDialog } from './forms/TemplateValuesDialog';
 import type { DimensionTemplatesBinding } from './types';
 
-const OWNER_LABEL: Record<DimensionTemplateData['ownerScope'], string> = {
-  ORG: 'Organization',
-  LE: 'Company',
-  SITE: 'Outlet',
-};
-
 interface DimensionTemplateCardProps {
   binding: DimensionTemplatesBinding;
   template: DimensionTemplateData;
@@ -55,7 +49,7 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
           </Typography>
         </div>
         <div className="flex flex-none items-center gap-1">
-          <Badge variant="outline">{OWNER_LABEL[template.ownerScope]}</Badge>
+          <Badge variant="outline">{template.ownerName}</Badge>
           <DropdownMenu
             trigger={{
               children: (

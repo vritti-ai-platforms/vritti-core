@@ -42,6 +42,12 @@ export class DimensionTemplateResponseDto {
   @ApiProperty({ description: 'Which scope owns this template', enum: ['ORG', 'LE', 'SITE'] })
   ownerScope: 'ORG' | 'LE' | 'SITE';
 
+  @ApiProperty({
+    description: 'Name of the owning workspace — the legal entity or site, or "Organization" at org scope',
+    example: 'Acme Pharma Pvt Ltd',
+  })
+  ownerName: string;
+
   @ApiProperty({ description: 'Values seeded onto a dimension', type: [DimensionTemplateValueResponseDto] })
   values: DimensionTemplateValueResponseDto[];
 

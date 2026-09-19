@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { UpsertDimensionTemplateValuesDto } from '../dto/request/upsert-dimension-template-values.dto';
-import { DimensionTemplateValuesDomainRepository } from '../repositories/dimension-template-values.repository';
+import {
+  DimensionTemplateValuesDomainRepository,
+  type TemplateSummary,
+} from '../repositories/dimension-template-values.repository';
 
 @Injectable()
 export class DimensionTemplateValuesDomainService {
@@ -19,7 +23,7 @@ export class DimensionTemplateValuesDomainService {
   // half-removed — or, worse, active with none, which is a state setActive refuses to create.
   async upsert(data: UpsertDimensionTemplateValuesDto): Promise<SuccessResponseDto> {
     return this.repository.transaction(async () => {
-      const template = await this.repository.findTemplate(data.templateId, { requireOwned: true });
+      const template = await this.requireOwnedTemplate(data.templateId);
 
       await this.repository.deleteAllForTemplate(data.templateId);
       await this.repository.createValues(
@@ -47,5 +51,18 @@ export class DimensionTemplateValuesDomainService {
         message: `"${template.name}" now has ${pluralize('value', data.values.length, true)}.`,
       };
     });
+  }
+
+  // Loads the owning template, throwing if not found or owned by a wider scope
+  private async requireOwnedTemplate(templateId: string): Promise<TemplateSummary> {
+    const template = await this.repository.findTemplate(templateId);
+    if (!template) throw new NotFoundException('Dimension template not found.');
+    if (!template.isOwned) {
+      throw new ForbiddenException({
+        label: 'Not Your Template',
+        detail: `"${template.name}" belongs to a wider scope. Switch to the workspace that owns it, or create your own.`,
+      });
+    }
+    return template;
   }
 }

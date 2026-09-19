@@ -40063,6 +40063,11 @@
               "SITE"
             ]
           },
+          "ownerName": {
+            "type": "string",
+            "description": "Name of the owning workspace — the legal entity or site, or \"Organization\" at org scope",
+            "example": "Acme Pharma Pvt Ltd"
+          },
           "values": {
             "description": "Values seeded onto a dimension",
             "type": "array",
@@ -40097,6 +40102,7 @@
           "name",
           "isActive",
           "ownerScope",
+          "ownerName",
           "values",
           "valueCount",
           "canEdit",

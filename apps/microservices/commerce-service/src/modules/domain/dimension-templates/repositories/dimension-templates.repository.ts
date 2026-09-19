@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { MAX_PAGE_SIZE, PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { asc, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import { and, asc, eq, getColumns, inArray, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type DimensionTemplate,
   type DimensionTemplateValue,
@@ -25,27 +24,43 @@ export class DimensionTemplatesDomainRepository extends PrimaryBaseRepository<ty
       .select({ ...getColumns(dimensionTemplates), isOwned: ownedByWorkspace() })
       .from(dimensionTemplates)
       .where(where)
-      .orderBy(asc(dimensionTemplates.name))
-      .limit(MAX_PAGE_SIZE);
+      .orderBy(asc(dimensionTemplates.name));
   }
 
-  // Loads a template by ID, throwing if the workspace cannot reach it — and, when requireOwned is
-  // set, if it can only see the row because a wider scope owns it
-  async findById(id: string, options: { requireOwned?: boolean } = {}): Promise<DimensionTemplateWithOwnership> {
+  // Returns one template with its ownership flag, or undefined when out of reach. Pass requireOwned
+  // to narrow the lookup to rows this workspace owns rather than merely inherits.
+  async findById(
+    id: string,
+    options: { requireOwned?: boolean } = {},
+  ): Promise<DimensionTemplateWithOwnership | undefined> {
     const [row] = await this.db
       .select({ ...getColumns(dimensionTemplates), isOwned: ownedByWorkspace() })
       .from(dimensionTemplates)
-      .where(eq(dimensionTemplates.id, id))
+      .where(
+        options.requireOwned
+          ? and(eq(dimensionTemplates.id, id), sql`${ownedByWorkspace()}`)
+          : eq(dimensionTemplates.id, id),
+      )
       .limit(1);
-
-    if (!row) throw new NotFoundException('Dimension template not found.');
-    if (options.requireOwned && !row.isOwned) {
-      throw new ForbiddenException({
-        label: 'Not Your Template',
-        detail: `"${row.name}" belongs to a wider scope. Switch to the workspace that owns it, or create your own.`,
-      });
-    }
     return row;
+  }
+
+  // Reports which of the two unique keys are already taken, in one pass. They have different scopes:
+  // name is unique per OWNER, code per ORGANIZATION — so an org-owned code blocks an LE too, while an
+  // org-owned name does not. A single row may collide on both, hence bool_or rather than a row lookup.
+  async findConflicts(name: string, code: string): Promise<{ nameTaken: boolean; codeTaken: boolean }> {
+    const nameMatch = sql`lower(${dimensionTemplates.name}) = lower(${name}) and ${ownedByWorkspace()}`;
+    const codeMatch = sql`${dimensionTemplates.code} = ${code}`;
+
+    const [row] = await this.db
+      .select({
+        nameTaken: sql<boolean>`coalesce(bool_or(${nameMatch}), false)`,
+        codeTaken: sql<boolean>`coalesce(bool_or(${codeMatch}), false)`,
+      })
+      .from(dimensionTemplates)
+      .where(or(nameMatch, codeMatch));
+
+    return row ?? { nameTaken: false, codeTaken: false };
   }
 
   // Returns the template matching a name within the caller's own ownership slot, if any

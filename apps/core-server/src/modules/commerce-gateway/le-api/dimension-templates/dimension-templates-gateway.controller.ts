@@ -32,6 +32,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { LE_DIMENSION_TEMPLATES } from '@vritti/commerce-permissions/dimension-templates';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { OrgId } from '@/security/decorators';
 import { LeDimensionTemplatesGatewayService } from './services/dimension-templates-gateway.service';
 
 @ApiTags('Commerce - Dimension Templates (LE)')
@@ -48,9 +49,9 @@ export class LeDimensionTemplatesGatewayController {
   @Get()
   @RequirePermission(LE_DIMENSION_TEMPLATES.view)
   @ApiListDimensionTemplates()
-  list(@Query() query: DimensionTemplatesQueryDto): Promise<DimensionTemplateResponseDto[]> {
+  list(@OrgId() orgId: string, @Query() query: DimensionTemplatesQueryDto): Promise<DimensionTemplateResponseDto[]> {
     this.logger.log('GET /commerce-api/le/dimension-templates');
-    return this.service.list(query.search);
+    return this.service.list(orgId, query.search);
   }
 
   // Creates a dimension template owned by this workspace
