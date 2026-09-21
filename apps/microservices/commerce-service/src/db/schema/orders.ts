@@ -108,30 +108,9 @@ export const orderItems = commerceSchema.table(
   },
   (table) => [
     index('idx_order_items_order').on(table.orderId),
-    // Answers "is this variant on any order" — the FK is NO ACTION, so that decides whether a
-    // variant can be deleted, and it is asked once per row on the variants table
     index('idx_order_items_variant').on(table.offeringVariantId),
   ],
 );
 
 export type OrderItem = typeof orderItems.$inferSelect;
 export type NewOrderItem = typeof orderItems.$inferInsert;
-
-export const orderItemModifiers = commerceSchema.table(
-  'order_item_modifiers',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    orderItemId: uuid('order_item_id')
-      .notNull()
-      .references(() => orderItems.id, { onDelete: 'cascade' }),
-    modifierGroupId: uuid('modifier_group_id').notNull(),
-    modifierOptionId: uuid('modifier_option_id').notNull(),
-    name: varchar('name', { length: 255 }).notNull(),
-    additionalPrice: bigint('additional_price', { mode: 'bigint' }).notNull(),
-  },
-  (table) => [index('idx_order_item_modifiers_item').on(table.orderItemId)],
-);
-
-export type OrderItemModifier = typeof orderItemModifiers.$inferSelect;
-export type NewOrderItemModifier = typeof orderItemModifiers.$inferInsert;

@@ -17,7 +17,6 @@ export const stockAdjustmentLots = commerceSchema.table(
     manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
     expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }).notNull(),
     resolvedLotId: uuid('resolved_lot_id').references(() => inventoryItemLots.id, { onDelete: 'set null' }),
-    // Per-batch printed MRP (BU minor units); wins over the adjustment's mrp at publish.
     mrp: bigint('mrp', { mode: 'bigint' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

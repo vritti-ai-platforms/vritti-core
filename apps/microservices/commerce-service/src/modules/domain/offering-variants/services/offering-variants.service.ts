@@ -63,7 +63,7 @@ export class OfferingVariantsDomainService {
     offeringId: string,
     state: TableViewState,
   ): Promise<{ result: OfferingVariantDto[]; count: number }> {
-    const offering = await this.requireReachableOffering(offeringId);
+    await this.requireReachableOffering(offeringId);
 
     const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingVariantsDomainService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, OfferingVariantsDomainService.SEARCH_FIELD_MAP);
@@ -108,7 +108,7 @@ export class OfferingVariantsDomainService {
   async findById(id: string): Promise<OfferingVariantDto> {
     const variant = await this.repository.findByIdWithNames(id);
     if (!variant) throw new NotFoundException('Variant not found.');
-    const offering = await this.requireReachableOffering(variant.offeringId);
+    await this.requireReachableOffering(variant.offeringId);
     const lines = (await this.repository.findBomLines([variant.id])) as OfferingBomLineDto[];
     return this.toDto(variant, lines);
   }

@@ -14,30 +14,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class CreateOrderItemModifierDto {
-  @ApiProperty({ description: 'Modifier group ID' })
-  @IsString()
-  @IsNotEmpty()
-  modifierGroupId: string;
-
-  @ApiProperty({ description: 'Modifier option ID' })
-  @IsString()
-  @IsNotEmpty()
-  modifierOptionId: string;
-
-  @Trim({ nullify: false })
-  @ApiProperty({ description: 'Modifier display name', example: 'Extra Cheese' })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
-  name: string;
-
-  @ApiProperty({ description: 'Additional price for this modifier', example: 30 })
-  @IsNumber()
-  @Min(0)
-  additionalPrice: number;
-}
-
 export class CreateOrderItemDto {
   @ApiProperty({ description: 'Offering variant ID' })
   @IsString()
@@ -54,13 +30,6 @@ export class CreateOrderItemDto {
   @IsOptional()
   @IsString()
   notes?: string | null;
-
-  @ApiPropertyOptional({ description: 'Modifier selections', type: [CreateOrderItemModifierDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateOrderItemModifierDto)
-  modifiers?: CreateOrderItemModifierDto[];
 }
 
 export class CreateOrderDto {

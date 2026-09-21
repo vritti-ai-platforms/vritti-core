@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { check, index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { check, index, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogs } from './catalogs';
 import { commerceSchema } from './commerce-schema';
 import { catalogChannelTypeEnum } from './enums';
@@ -26,7 +26,6 @@ export const catalogChannels = commerceSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    // One catalog per channel per scope, so resolution never has a tie to break
     unique('uq_catalog_channels_scope')
       .on(table.type, table.organizationId, table.legalEntityId, table.siteId, table.appId, table.terminalId)
       .nullsNotDistinct(),
@@ -38,7 +37,6 @@ export const catalogChannels = commerceSchema.table(
             else ${table.appId} is null and ${table.terminalId} is null
           end`,
     ),
-    // A till belongs to an outlet, so naming one without its site is incoherent
     check('ck_catalog_channels_terminal_needs_site', sql`${table.terminalId} is null or ${table.siteId} is not null`),
     check('ck_catalog_channels_site_needs_le', sql`${table.siteId} is null or ${table.legalEntityId} is not null`),
     index('idx_catalog_channels_catalog').on(table.catalogId),

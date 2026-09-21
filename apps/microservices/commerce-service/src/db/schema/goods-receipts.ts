@@ -27,12 +27,6 @@ export const goodsReceipts = commerceSchema.table(
     grNumber: varchar('gr_number', { length: 50 }).notNull(),
     status: goodsReceiptStatusEnum('status').notNull().default('DRAFT'),
     purchaseOrderId: uuid('purchase_order_id').references(() => purchaseOrders.id),
-    // Supplier→BU exchange rate snapshot. Set at GR creation per the rules:
-    //   * Supplier currency == BU currency → 1
-    //   * PO-linked + FIXED                → po.exchange_rate (locked)
-    //   * PO-linked + VARIABLE  /  no PO   → user-entered
-    // Used at publish time by autoAssociateSupplierPrice to convert supplier-currency unit_price
-    // into the BU-currency cost row + quant valuation.
     exchangeRate: decimal('exchange_rate', { precision: 18, scale: 6, mode: 'number' }).notNull().default(1),
     receivedDate: timestamp('received_date', { withTimezone: true, mode: 'string' }).notNull(),
     notes: text('notes'),

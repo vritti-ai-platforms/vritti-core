@@ -189,7 +189,7 @@ export class OfferingDimensionsDomainService {
   // Renames the axis. The code is left alone — it is a segment of every SKU derived from this
   // dimension, so only the label a person reads is editable.
   async update(id: string, data: Omit<UpdateOfferingDimensionDto, 'id'>): Promise<SuccessResponseDto> {
-    const dimension = await this.requireOwnedDimension(id);
+    await this.requireOwnedDimension(id);
     await this.repository.update(id, { name: data.name, description: data.description });
     return { success: true, message: `"${data.name}" updated.` };
   }

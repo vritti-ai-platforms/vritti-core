@@ -28,7 +28,7 @@ export class OrdersGatewayController {
     return this.ordersGatewayService.create(dto);
   }
 
-  // Returns a single order by ID with items and modifiers
+  // Returns a single order by ID with items
   @Get(':id')
   findById(@Param('id') id: string): Promise<OrderDetailResponseDto> {
     return this.ordersGatewayService.findById(id);

@@ -15,11 +15,6 @@ export const inventoryItemUomConversions = commerceSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
-    // Integer pair expressing the conversion ratio for this (item, uom) override.
-    // Semantic: `uom_qty` units of THIS UOM equal `primary_uom_qty` units of the item's primary UOM.
-    // Example: 1 Strip = 14 Each → primary_uom_qty=14, uom_qty=1.
-    // The two conversion factors (toPrimary = primary_uom_qty / uom_qty; toUom = uom_qty / primary_uom_qty)
-    // are computed in the service layer; they are NOT stored.
     primaryUomQty: integer('primary_uom_qty').notNull(),
     uomQty: integer('uom_qty').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

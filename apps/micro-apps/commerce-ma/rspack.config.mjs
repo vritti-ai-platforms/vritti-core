@@ -253,7 +253,6 @@ export default (rspackEnv) => {
           './Site/StorageLocations': './src/features/site/storage-locations/index.tsx',
           './Site/Invoices': './src/features/site/invoices/index.tsx',
           './Site/Items': './src/features/site/items/index.tsx',
-          './Site/Modifiers': './src/features/site/modifiers/index.tsx',
           './Site/Orders': './src/features/site/orders/index.tsx',
           './Site/POSTerminals': './src/features/site/pos/index.tsx',
           './Site/POSBilling': './src/features/site/pos-billing/index.tsx',

@@ -4,7 +4,7 @@ import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type OrderSource, type OrderStatus, OrderStatusValues, type OrderType, orders } from '@/db/schema';
-import { OrderDetailDto, OrderDto, OrderItemDto, OrderItemModifierDto } from '../dto/entity/order.dto';
+import { OrderDetailDto, OrderDto, OrderItemDto } from '../dto/entity/order.dto';
 import type { CreateOrderDto, CreateOrderItemDto } from '../dto/request/create-order.dto';
 import type { UpdateOrderStatusDto } from '../dto/request/update-order-status.dto';
 import { OrdersDomainRepository } from '../repositories/orders.repository';
@@ -50,12 +50,12 @@ export class OrdersDomainService {
     return { result: rows.map(OrderDto.from), count };
   }
 
-  // Creates a new order with items and modifiers, denormalizing catalog data
+  // Creates a new order with items, denormalizing catalog data
   async create(data: CreateOrderDto): Promise<OrderDto> {
     const orderNumber = await this.repository.generateOrderNumber();
 
     // Build order items using the variant's own price
-    const { itemRows, modifierRows, subtotal, taxAmount } = await this.buildOrderItems(data.items);
+    const { itemRows, subtotal, taxAmount } = await this.buildOrderItems(data.items);
 
     const serviceCharge = new Decimal(data.serviceCharge ?? 0);
     const deliveryCharge = new Decimal(data.deliveryCharge ?? 0);
@@ -80,7 +80,7 @@ export class OrdersDomainService {
     });
 
     // Insert order items
-    const createdItems = await this.repository.createItems(
+    await this.repository.createItems(
       itemRows.map((item) => ({
         orderId: entity.id,
         offeringId: item.offeringId,
@@ -97,48 +97,17 @@ export class OrdersDomainService {
       })),
     );
 
-    // Insert order item modifiers linked to created item IDs
-    const allModifiers = modifierRows.flatMap((mods, idx) =>
-      mods.map((mod) => ({
-        orderItemId: createdItems[idx].id,
-        modifierGroupId: mod.modifierGroupId,
-        modifierOptionId: mod.modifierOptionId,
-        name: mod.name,
-        additionalPrice: mod.additionalPrice,
-      })),
-    );
-
-    if (allModifiers.length > 0) {
-      await this.repository.createModifiers(allModifiers);
-    }
-
     this.logger.log(`Created order: ${entity.orderNumber} (${entity.id})`);
     return OrderDto.from(entity);
   }
 
-  // Returns order detail with items and modifiers
+  // Returns order detail with items
   async findById(id: string): Promise<OrderDetailDto> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Order not found.');
 
     const itemRows = await this.repository.findItemsByOrderId(id);
-    const itemIds = itemRows.map((item) => item.id);
-    const modifierRows = await this.repository.findModifiersByOrderItemIds(itemIds);
-
-    // Group modifiers by order item ID
-    const modifiersByItem = new Map<string, typeof modifierRows>();
-    for (const mod of modifierRows) {
-      const existing = modifiersByItem.get(mod.orderItemId) ?? [];
-      existing.push(mod);
-      modifiersByItem.set(mod.orderItemId, existing);
-    }
-
-    const itemDtos = itemRows.map((item) => {
-      const mods = (modifiersByItem.get(item.id) ?? []).map(OrderItemModifierDto.from);
-      return OrderItemDto.from(item, mods);
-    });
-
-    return OrderDetailDto.fromDetail(entity, itemDtos);
+    return OrderDetailDto.fromDetail(entity, itemRows.map(OrderItemDto.from));
   }
 
   // Transitions order to a new status with validation
@@ -189,12 +158,6 @@ export class OrdersDomainService {
       total: Decimal;
       notes: string | null;
     }[];
-    modifierRows: {
-      modifierGroupId: string;
-      modifierOptionId: string;
-      name: string;
-      additionalPrice: bigint;
-    }[][];
     subtotal: Decimal;
     taxAmount: Decimal;
   }> {
@@ -211,12 +174,6 @@ export class OrdersDomainService {
       total: Decimal;
       notes: string | null;
     }[] = [];
-    const modifierRows: {
-      modifierGroupId: string;
-      modifierOptionId: string;
-      name: string;
-      additionalPrice: bigint;
-    }[][] = [];
     let orderSubtotal = new Decimal(0);
     let orderTaxAmount = new Decimal(0);
 
@@ -232,36 +189,7 @@ export class OrdersDomainService {
       // every line prices at zero. Orders is empty in production, so nothing has been mispriced.
       const unitPrice = new Decimal(0);
 
-      // Resolve each submitted modifier against the offering's valid options, using authoritative DB values
-      const submittedModifiers = item.modifiers ?? [];
-      const resolvedModifiers: {
-        modifierGroupId: string;
-        modifierOptionId: string;
-        name: string;
-        additionalPrice: bigint;
-      }[] = [];
-      if (submittedModifiers.length > 0) {
-        const validOptions = await this.repository.findOfferingModifierOptions(variant.offeringId);
-        const optionById = new Map(validOptions.map((o) => [o.optionId, o]));
-        for (const m of submittedModifiers) {
-          const option = optionById.get(m.modifierOptionId);
-          if (!option) throw new BadRequestException('Invalid modifier for this item.');
-          resolvedModifiers.push({
-            modifierGroupId: option.groupId,
-            modifierOptionId: option.optionId,
-            name: option.name,
-            additionalPrice: option.additionalPrice,
-          });
-        }
-      }
-
-      // Sum authoritative modifier additional prices
-      const modifierTotal = resolvedModifiers.reduce(
-        (sum, m) => sum.plus(new Decimal(m.additionalPrice.toString())),
-        new Decimal(0),
-      );
-
-      const lineSubtotal = unitPrice.plus(modifierTotal).times(item.quantity);
+      const lineSubtotal = unitPrice.times(item.quantity);
       const lineTax = lineSubtotal.times(taxRate).dividedBy(100);
       const lineTotal = lineSubtotal.plus(lineTax);
 
@@ -279,13 +207,11 @@ export class OrdersDomainService {
         notes: item.notes ?? null,
       });
 
-      modifierRows.push(resolvedModifiers);
-
       orderSubtotal = orderSubtotal.plus(lineSubtotal);
       orderTaxAmount = orderTaxAmount.plus(lineTax);
     }
 
-    return { itemRows, modifierRows, subtotal: orderSubtotal, taxAmount: orderTaxAmount };
+    return { itemRows, subtotal: orderSubtotal, taxAmount: orderTaxAmount };
   }
 }
 

@@ -24,12 +24,6 @@ export const uom = commerceSchema.table(
     name: varchar('name', { length: 50 }).notNull(),
     symbol: varchar('symbol', { length: 10 }).notNull(),
     baseUnitId: uuid('base_unit_id'),
-    // Integer pair expressing the global conversion ratio for this UOM.
-    // Semantic: `uom_qty` units of THIS UOM equal `base_uom_qty` units of the dimension's BASE UOM.
-    // Examples: 1 Box = 12 Each → base_uom_qty=12, uom_qty=1.
-    //           1 Gram = 0.001 Kg → base_uom_qty=1, uom_qty=1000.
-    // The two conversion factors (toBase = base_uom_qty / uom_qty; toUom = uom_qty / base_uom_qty)
-    // are computed in the service layer; they are NOT stored.
     baseUomQty: integer('base_uom_qty').notNull().default(1),
     uomQty: integer('uom_qty').notNull().default(1),
     allowDecimal: boolean('allow_decimal').notNull().default(false),

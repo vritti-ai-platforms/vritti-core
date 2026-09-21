@@ -16,7 +16,6 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     dimensions: r.many.offeringDimensions(),
     variants: r.many.offeringVariants(),
-    itemFieldValues: r.many.itemFieldValues(),
     orderItems: r.many.orderItems(),
   },
   offeringDimensions: {
@@ -73,9 +72,6 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.uom.id,
     }),
   },
-  modifierGroups: {},
-  modifierOptions: {},
-  offeringModifierGroups: {},
   taxGroups: {
     taxRates: r.many.taxRates(),
   },
@@ -83,19 +79,6 @@ export const relations = defineRelations(schema, (r) => ({
     taxGroup: r.one.taxGroups({
       from: r.taxRates.taxGroupId,
       to: r.taxGroups.id,
-    }),
-  },
-  itemFieldDefinitions: {
-    itemFieldValues: r.many.itemFieldValues(),
-  },
-  itemFieldValues: {
-    offering: r.one.offerings({
-      from: r.itemFieldValues.listingId,
-      to: r.offerings.id,
-    }),
-    fieldDefinition: r.one.itemFieldDefinitions({
-      from: r.itemFieldValues.fieldDefinitionId,
-      to: r.itemFieldDefinitions.id,
     }),
   },
   uomDimensions: {
@@ -520,13 +503,6 @@ export const relations = defineRelations(schema, (r) => ({
     offeringVariant: r.one.offeringVariants({
       from: r.orderItems.offeringVariantId,
       to: r.offeringVariants.id,
-    }),
-    orderItemModifiers: r.many.orderItemModifiers(),
-  },
-  orderItemModifiers: {
-    orderItem: r.one.orderItems({
-      from: r.orderItemModifiers.orderItemId,
-      to: r.orderItems.id,
     }),
   },
   inventoryItemLocations: {

@@ -15,15 +15,11 @@ export const goodsReceiptLines = commerceSchema.table(
     goodsReceiptItemId: uuid('goods_receipt_item_id')
       .notNull()
       .references(() => goodsReceiptItems.id, { onDelete: 'cascade' }),
-    // null when the parent item.tracking = 'quantity'; required for 'lot' or 'serial'
     goodsReceiptLotId: uuid('goods_receipt_lot_id').references(() => goodsReceiptLots.id, { onDelete: 'cascade' }),
     locationId: uuid('location_id')
       .notNull()
       .references(() => locations.id),
     quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
-    // Snapshot of `quantity` converted to the inventory item's primary UOM. Computed in the service
-    // via UomConversionsDomainService (Decimal math) at line add/edit and re-derived at publish; never in
-    // SQL. Cost-association math reads it so factor changes after publish don't retroactively shift cost.
     primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     isBalanced: boolean('is_balanced').notNull().default(true),
@@ -39,10 +35,6 @@ export const goodsReceiptLines = commerceSchema.table(
     index('idx_goods_receipt_lines_lot').on(table.goodsReceiptLotId),
     index('idx_goods_receipt_lines_location').on(table.locationId),
     index('idx_goods_receipt_lines_resolved').on(table.resolvedQuantId),
-    // Backstop for the service-layer duplicate-line guard. Two lines on the same
-    // (item, lot, location) collapse into one logical receipt; allowing both produces confusing
-    // UI and double-counted accepted quantities. NULLS NOT DISTINCT so lot=NULL collisions are
-    // caught for tracking='quantity' and 'serial' items (PG 15+).
     unique('uq_goods_receipt_lines_item_lot_location')
       .on(table.goodsReceiptItemId, table.goodsReceiptLotId, table.locationId)
       .nullsNotDistinct(),

@@ -3,11 +3,6 @@ import { commerceSchema } from './commerce-schema';
 import { inventoryItemLocations } from './inventory-item-locations';
 import { inventoryItemQuants } from './inventory-item-quants';
 
-// Per-(item, location) stock view. FULL OUTER JOIN between aggregated quants and the locations
-// registry so the result includes:
-//   - stock-only rows (quants exist, no inventory_item_locations row) → reorderLevel NULL
-//   - config-only rows (registry row exists, no stock yet)            → stocked/reserved/available 0
-//   - both                                                            → fully populated
 export const inventoryStockLevels = commerceSchema.view('inventory_stock_levels').as((qb) => {
   const quantAggs = qb
     .select({

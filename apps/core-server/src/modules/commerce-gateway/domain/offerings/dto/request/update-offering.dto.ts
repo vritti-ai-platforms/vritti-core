@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateOfferingDto {
   @Trim({ nullify: false })
@@ -31,10 +31,4 @@ export class UpdateOfferingDto {
   @IsOptional()
   @IsUUID()
   categoryId?: string | null;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  sortOrder?: number;
 }

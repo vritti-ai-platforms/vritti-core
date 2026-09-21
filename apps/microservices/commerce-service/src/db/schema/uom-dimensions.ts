@@ -18,7 +18,6 @@ export const uomDimensions = commerceSchema.table(
   },
   (table) => [
     unique('uq_uom_dimensions_org_code').on(table.organizationId, table.code),
-    // Code must be a single lowercase word (hyphens allowed)
     codeCheck('uom_dimensions_code_chk', table.code),
     index('idx_uom_dimensions_org').on(table.organizationId),
     pgPolicy('org_isolation', {

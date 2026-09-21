@@ -13,13 +13,9 @@ export const supplierSites = commerceSchema.table(
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id, { onDelete: 'cascade' }),
-    // Explicit (no GUC default): the LE workspace enrolls any of its sites; site self-enroll passes its own id.
     siteId: uuid('site_id').notNull(),
-    // Origin registration (GSTIN) supplying this site — drives INTRA/INTER tax resolution. Null = warning badge.
     partyTaxRegistrationId: uuid('party_tax_registration_id'),
-    // Branch payee; null falls back to the party's primary bank account.
     partyBankAccountId: uuid('party_bank_account_id'),
-    // Ordering desk (party_relationships, purpose ORDER) for this site; null falls back to the supplier default.
     orderRelationshipId: uuid('order_relationship_id'),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

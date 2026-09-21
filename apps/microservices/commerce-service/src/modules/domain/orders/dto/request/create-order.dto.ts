@@ -12,25 +12,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class CreateOrderItemModifierDto {
-  @IsString()
-  @IsNotEmpty()
-  modifierGroupId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  modifierOptionId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
-  name: string;
-
-  @IsNumber()
-  @Min(0)
-  additionalPrice: number;
-}
-
 export class CreateOrderItemDto {
   @IsString()
   @IsNotEmpty()
@@ -43,12 +24,6 @@ export class CreateOrderItemDto {
   @IsOptional()
   @IsString()
   notes?: string;
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateOrderItemModifierDto)
-  modifiers?: CreateOrderItemModifierDto[];
 }
 
 export class CreateOrderDto {

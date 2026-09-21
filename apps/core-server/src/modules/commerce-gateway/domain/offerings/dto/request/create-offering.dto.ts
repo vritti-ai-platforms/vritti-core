@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 const FULFILMENT_TYPES = ['STOCK', 'ASSEMBLY', 'COMPOSITE', 'SERVICE'] as const;
 
@@ -39,10 +39,4 @@ export class CreateOfferingDto {
   @ApiProperty({ description: 'What this product IS for tax purposes. The rate resolves at transaction time.' })
   @IsUUID()
   taxClassId: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  sortOrder?: number;
 }

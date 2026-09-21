@@ -34,10 +34,7 @@ export const inventoryItems = commerceSchema.table(
     unique('uq_inventory_items_org_sku').on(table.organizationId, table.sku),
     codeCheck('inventory_items_sku_chk', table.sku),
     index('idx_inventory_items_category').on(table.categoryId),
-    // Keyset feed: default order (created_at DESC, id ASC) scoped by tenant so the mobile infinite feed
-    // scans the index instead of sorting. organization_id leads (RLS filters it by equality).
     index('idx_inventory_items_feed').on(table.organizationId, table.createdAt.desc(), table.id),
-    // Companions for the realistic user-sort columns (name, sku) — (col, id) keyset order, tenant-led.
     index('idx_inventory_items_name').on(table.organizationId, table.name, table.id),
     index('idx_inventory_items_sku_sort').on(table.organizationId, table.sku, table.id),
     pgPolicy('org_isolation', {

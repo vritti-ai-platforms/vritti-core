@@ -1,0 +1,2 @@
+ALTER TABLE "commerce"."offerings" DROP COLUMN "sort_order";--> statement-breakpoint
+ALTER TABLE "commerce"."offerings" ADD CONSTRAINT "offerings_category_id_categories_id_fkey" FOREIGN KEY ("category_id") REFERENCES "commerce"."categories"("id");

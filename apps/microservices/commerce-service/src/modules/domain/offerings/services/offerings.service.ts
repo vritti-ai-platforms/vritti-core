@@ -56,7 +56,7 @@ export class OfferingsDomainService {
 
     const { result: rows, count } = await this.repository.findForTable({
       where: where || undefined,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(offerings.sortOrder), asc(offerings.name)],
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offerings.name)],
       limit,
       offset,
     });

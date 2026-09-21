@@ -36,9 +36,6 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
       fulfilmentType: offerings.fulfilmentType,
       taxClassId: offerings.taxClassId,
       isActive: offerings.isActive,
-      sortOrder: offerings.sortOrder,
-      attributes: offerings.attributes,
-      metadata: offerings.metadata,
       createdAt: offerings.createdAt,
       updatedAt: offerings.updatedAt,
       isOwned: offeringOwnedByWorkspace(),
@@ -50,7 +47,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     const { result } = await this.findAllAndCount<OfferingWithMeta>({
       select: OfferingsDomainRepository.selection(),
       where,
-      orderBy: [asc(offerings.sortOrder), asc(offerings.name)],
+      orderBy: [asc(offerings.name)],
       limit: MAX_PAGE_SIZE,
       offset: 0,
     });

@@ -11,8 +11,6 @@ export const supplierItemSites = commerceSchema.table(
     supplierItemId: uuid('supplier_item_id')
       .notNull()
       .references(() => supplierItems.id, { onDelete: 'cascade' }),
-    // Explicit (no GUC default): the LE workspace manages overrides for any site; resolution is record-level —
-    // a site row replaces the general supplier_items values wholesale for that site.
     siteId: uuid('site_id').notNull(),
     leadTimeDays: integer('lead_time_days'),
     minOrderQuantity: integer('min_order_quantity'),

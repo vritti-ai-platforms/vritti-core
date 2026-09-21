@@ -1,12 +1,6 @@
 import { commerceSchema } from './commerce-schema';
 
-export const modifierSelectionTypeEnum = commerceSchema.enum('modifier_selection_type', ['SINGLE', 'MULTI']);
-
-// How a sale reaches us, decided by which API surface the caller authenticated against — never sent
-// by the client. Arrival mechanics only: a marketplace's tax status belongs on the catalog, not here.
 export const catalogChannelTypeEnum = commerceSchema.enum('catalog_channel_type', ['APP', 'POS', 'B2B']);
-// STOCK = resolves to one stocked item · ASSEMBLY = made to order, components transformed
-// COMPOSITE = bundled at fulfilment, not transformed · SERVICE = nothing physical
 export const fulfilmentTypeEnum = commerceSchema.enum('fulfilment_type', ['STOCK', 'ASSEMBLY', 'COMPOSITE', 'SERVICE']);
 
 export type CatalogChannelType = (typeof catalogChannelTypeEnum.enumValues)[number];
@@ -67,14 +61,6 @@ export const creditNoteStatusEnum = commerceSchema.enum('credit_note_status', [
   'FULLY_APPLIED',
 ]);
 
-export type ModifierSelectionType = (typeof modifierSelectionTypeEnum.enumValues)[number];
-
-export const ModifierSelectionTypeValues = {
-  SINGLE: 'SINGLE' as const,
-  MULTI: 'MULTI' as const,
-};
-
-// TypeScript type exports for use in DTOs and services
 export type OrderSource = (typeof orderSourceEnum.enumValues)[number];
 export type OrderStatus = (typeof orderStatusEnum.enumValues)[number];
 export type OrderItemStatus = (typeof orderItemStatusEnum.enumValues)[number];
@@ -86,7 +72,6 @@ export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
 export type CreditNoteType = (typeof creditNoteTypeEnum.enumValues)[number];
 export type CreditNoteStatus = (typeof creditNoteStatusEnum.enumValues)[number];
 
-// Runtime enum value objects for use in code
 export const OrderSourceValues = {
   ONLINE: 'ONLINE' as const,
   WALK_IN: 'WALK_IN' as const,
@@ -168,7 +153,6 @@ export const LocationRoleValues = {
 };
 export type LocationRole = (typeof locationRoleEnum.enumValues)[number];
 
-// A GROUP holds sub-categories (no items); a CATEGORY is a leaf that holds inventory items.
 export const categoryRoleEnum = commerceSchema.enum('category_role', ['GROUP', 'CATEGORY']);
 export const CategoryRoleValues = {
   GROUP: 'GROUP' as const,
@@ -566,17 +550,6 @@ export const PartyFunctionTypeValues = {
 };
 export type PartyFunctionType = (typeof partyFunctionTypeEnum.enumValues)[number];
 
-/**
- * How a party is reached — plus one channel that is not a contact method at all.
- *
- * `WEB_APP` carries an external reference rather than an address: its `value` is
- * the id of the person's account in a web app the organization runs, so core can
- * resolve that account back to this party. It is never contactable, never
- * primary (a CHECK enforces that), and must be filtered out of anything that
- * reads communications to find somewhere to send a message.
- *
- * Adding a value here is permanent — Postgres has no `ALTER TYPE … DROP VALUE`.
- */
 export const partyCommunicationChannelEnum = commerceSchema.enum('party_communication_channel', [
   'EMAIL',
   'PHONE',
@@ -589,13 +562,6 @@ export const PartyCommunicationChannelValues = {
 };
 export type PartyCommunicationChannel = (typeof partyCommunicationChannelEnum.enumValues)[number];
 
-/**
- * The channels that are an actual way to reach someone.
- *
- * An allowlist rather than "everything except WEB_APP" on purpose: the next
- * external-reference channel added to the enum is then non-contactable by
- * default, instead of being accidentally contactable until somebody notices.
- */
 export const CONTACTABLE_CHANNELS = [
   PartyCommunicationChannelValues.EMAIL,
   PartyCommunicationChannelValues.PHONE,

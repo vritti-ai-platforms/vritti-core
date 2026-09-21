@@ -128,7 +128,6 @@ export interface OfferingData {
   fulfilmentType: FulfilmentType;
   taxClassId: string;
   isActive: boolean;
-  sortOrder: number;
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: OfferingOwnerScope;

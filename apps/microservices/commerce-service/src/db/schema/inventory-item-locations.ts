@@ -38,7 +38,6 @@ export const inventoryItemLocations = commerceSchema.table(
   },
   (table) => [
     unique('uq_inventory_item_locations').on(table.inventoryItemId, table.locationId),
-    // At most one preferred location per (item, site).
     uniqueIndex('uq_iil_one_preferred').on(table.inventoryItemId, table.siteId).where(sql`is_preferred = true`),
     index('idx_inventory_item_locations_item').on(table.inventoryItemId),
     index('idx_inventory_item_locations_location').on(table.locationId),

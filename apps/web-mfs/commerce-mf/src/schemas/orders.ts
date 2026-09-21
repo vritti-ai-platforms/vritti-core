@@ -7,12 +7,6 @@ export type OrderType = 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY';
 export type OrderChannel = 'ONLINE' | 'WALK_IN';
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
 
-export interface OrderItemModifierData {
-  id: string;
-  name: string;
-  additionalPrice: string;
-}
-
 export interface OrderItemData {
   id: string;
   itemName: string;
@@ -24,7 +18,6 @@ export interface OrderItemData {
   subtotal: string;
   total: string;
   notes: string | null;
-  modifiers: OrderItemModifierData[];
 }
 
 export interface OrderData {
@@ -60,17 +53,10 @@ export interface OrderDetail extends OrderData {
 
 export type OrdersTableResponse = TableResponse<OrderData>;
 
-const orderItemModifierSchema = z.object({
-  modifierGroupId: z.string().min(1),
-  modifierOptionId: z.string().min(1),
-  name: z.string().min(1),
-});
-
 const orderItemSchema = z.object({
   offeringVariantId: z.string().min(1, 'Variant is required'),
   quantity: z.number().min(1, 'Quantity must be at least 1'),
   notes: z.string().optional(),
-  modifiers: z.array(orderItemModifierSchema).optional(),
 });
 
 export const createOrderSchema = z.object({

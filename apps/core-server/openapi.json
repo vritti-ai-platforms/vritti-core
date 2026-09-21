@@ -34271,9 +34271,6 @@
             "type": "boolean",
             "description": "Off until the offering has at least one variant"
           },
-          "sortOrder": {
-            "type": "number"
-          },
           "legalEntityId": {
             "type": "object",
             "nullable": true
@@ -34326,7 +34323,6 @@
           "fulfilmentType",
           "taxClassId",
           "isActive",
-          "sortOrder",
           "ownerScope",
           "dimensionCount",
           "variantCount",
@@ -34397,9 +34393,6 @@
           "taxClassId": {
             "type": "string",
             "description": "What this product IS for tax purposes. The rate resolves at transaction time."
-          },
-          "sortOrder": {
-            "type": "number"
           }
         },
         "required": [
@@ -35135,9 +35128,6 @@
           "categoryId": {
             "type": "object",
             "nullable": true
-          },
-          "sortOrder": {
-            "type": "number"
           }
         }
       },
@@ -36952,35 +36942,6 @@
           }
         }
       },
-      "CreateOrderItemModifierDto": {
-        "type": "object",
-        "properties": {
-          "modifierGroupId": {
-            "type": "string",
-            "description": "Modifier group ID"
-          },
-          "modifierOptionId": {
-            "type": "string",
-            "description": "Modifier option ID"
-          },
-          "name": {
-            "type": "string",
-            "description": "Modifier display name",
-            "example": "Extra Cheese"
-          },
-          "additionalPrice": {
-            "type": "number",
-            "description": "Additional price for this modifier",
-            "example": 30
-          }
-        },
-        "required": [
-          "modifierGroupId",
-          "modifierOptionId",
-          "name",
-          "additionalPrice"
-        ]
-      },
       "CreateOrderItemDto": {
         "type": "object",
         "properties": {
@@ -36996,13 +36957,6 @@
           "notes": {
             "type": "object",
             "description": "Special instructions for this item"
-          },
-          "modifiers": {
-            "description": "Modifier selections",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateOrderItemModifierDto"
-            }
           }
         },
         "required": [

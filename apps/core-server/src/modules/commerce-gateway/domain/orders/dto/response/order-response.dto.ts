@@ -1,16 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class OrderItemModifierResponseDto {
-  @ApiProperty({ description: 'Modifier ID' })
-  id: string;
-
-  @ApiProperty({ description: 'Modifier display name' })
-  name: string;
-
-  @ApiProperty({ description: 'Additional price for this modifier in minor units (bigint serialized as string)' })
-  additionalPrice: string;
-}
-
 export class OrderItemResponseDto {
   @ApiProperty({ description: 'Order item ID' })
   id: string;
@@ -41,9 +30,6 @@ export class OrderItemResponseDto {
 
   @ApiPropertyOptional({ description: 'Special instructions', nullable: true })
   notes: string | null;
-
-  @ApiProperty({ description: 'Applied modifiers', type: [OrderItemModifierResponseDto] })
-  modifiers: OrderItemModifierResponseDto[];
 }
 
 export class OrderResponseDto {
@@ -124,6 +110,6 @@ export class OrderDetailResponseDto extends OrderResponseDto {
   @ApiPropertyOptional({ description: 'Cancellation reason', nullable: true })
   cancellationReason: string | null;
 
-  @ApiProperty({ description: 'Order line items with modifiers', type: [OrderItemResponseDto] })
+  @ApiProperty({ description: 'Order line items', type: [OrderItemResponseDto] })
   items: OrderItemResponseDto[];
 }

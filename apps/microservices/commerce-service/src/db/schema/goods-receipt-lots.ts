@@ -27,7 +27,6 @@ export const goodsReceiptLots = commerceSchema.table(
     manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
     expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }).notNull(),
     resolvedLotId: uuid('resolved_lot_id').references(() => inventoryItemLots.id, { onDelete: 'set null' }),
-    // Per-batch printed MRP (BU minor units); wins over the GR item's mrp at publish.
     mrp: bigint('mrp', { mode: 'bigint' }),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

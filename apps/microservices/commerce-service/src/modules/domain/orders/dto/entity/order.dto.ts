@@ -1,18 +1,4 @@
-import type { Order, OrderItem, OrderItemModifier } from '@/db/schema';
-
-export class OrderItemModifierDto {
-  id: string;
-  name: string;
-  additionalPrice: string;
-
-  static from(entity: OrderItemModifier): OrderItemModifierDto {
-    const dto = new OrderItemModifierDto();
-    dto.id = entity.id;
-    dto.name = entity.name;
-    dto.additionalPrice = entity.additionalPrice.toString();
-    return dto;
-  }
-}
+import type { Order, OrderItem } from '@/db/schema';
 
 export class OrderItemDto {
   id: string;
@@ -25,9 +11,8 @@ export class OrderItemDto {
   subtotal: string;
   total: string;
   notes: string | null;
-  modifiers: OrderItemModifierDto[];
 
-  static from(entity: OrderItem, modifiers: OrderItemModifierDto[] = []): OrderItemDto {
+  static from(entity: OrderItem): OrderItemDto {
     const dto = new OrderItemDto();
     dto.id = entity.id;
     dto.itemName = entity.itemName;
@@ -39,7 +24,6 @@ export class OrderItemDto {
     dto.subtotal = entity.subtotal.toString();
     dto.total = entity.total.toString();
     dto.notes = entity.notes ?? null;
-    dto.modifiers = modifiers;
     return dto;
   }
 }

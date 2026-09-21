@@ -13,10 +13,6 @@ import {
 import { commerceSchema } from './commerce-schema';
 import { costCategoryKindEnum } from './enums';
 
-// Org-scoped (no site_id) — categories live at the organization level so all BUs in the
-// org pick from the same list. The `kind` enum is fixed for cross-customer reporting rollups;
-// `code` and `name` are configurable per org. `isSystem=true` rows are seeded on org creation and
-// can be deactivated but not hard-deleted (FK from inventory_item_costs uses ON DELETE RESTRICT).
 export const costCategories = commerceSchema.table(
   'cost_categories',
   {
@@ -36,7 +32,6 @@ export const costCategories = commerceSchema.table(
   (table) => [
     unique('uq_cost_categories_org_code').on(table.organizationId, table.code),
     codeCheck('cost_categories_code_chk', table.code),
-    // Exactly one ITEM-kind category per org — the deterministic target for GR publish auto-associate.
     uniqueIndex('uq_cost_categories_org_kind_item').on(table.organizationId).where(sql`${table.kind} = 'ITEM'`),
     index('idx_cost_categories_org').on(table.organizationId),
     index('idx_cost_categories_kind').on(table.kind),

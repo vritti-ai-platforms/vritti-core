@@ -11,7 +11,6 @@ export class OfferingDto {
   fulfilmentType: FulfilmentType;
   taxClassId: string;
   isActive: boolean;
-  sortOrder: number;
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: OfferingOwnerScope;
@@ -51,7 +50,6 @@ export class OfferingDto {
     dto.fulfilmentType = entity.fulfilmentType;
     dto.taxClassId = entity.taxClassId;
     dto.isActive = entity.isActive;
-    dto.sortOrder = entity.sortOrder;
     dto.variantsMissingBomCount = variantsMissingBomCount;
     dto.legalEntityId = entity.legalEntityId ?? null;
     dto.siteId = entity.siteId ?? null;

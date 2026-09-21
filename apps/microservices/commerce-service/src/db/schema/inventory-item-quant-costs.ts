@@ -4,10 +4,6 @@ import { commerceSchema } from './commerce-schema';
 import { inventoryItemCosts } from './inventory-item-costs';
 import { inventoryItemQuants } from './inventory-item-quants';
 
-// Junction allocating slices of an inventory_item_cost across quants. `allocated_amount` is the
-// portion of the cost pinned to one quant; the rows for a single quant sum to that quant's total
-// cost, and the rows for a single cost sum to (cost.total_amount − cost.unallocated_amount). Residual
-// rounding is absorbed in the allocations so the sums reconcile exactly.
 export const inventoryItemQuantCosts = commerceSchema.table(
   'inventory_item_quant_costs',
   {

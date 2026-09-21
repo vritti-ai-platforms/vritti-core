@@ -9,7 +9,6 @@ export class OfferingResponseDto {
   @ApiProperty({ enum: ['STOCK', 'ASSEMBLY', 'COMPOSITE', 'SERVICE'] }) fulfilmentType: string;
   @ApiProperty() taxClassId: string;
   @ApiProperty({ description: 'Off until the offering has at least one variant' }) isActive: boolean;
-  @ApiProperty() sortOrder: number;
   @ApiPropertyOptional({ nullable: true }) legalEntityId: string | null;
   @ApiPropertyOptional({ nullable: true }) siteId: string | null;
   @ApiProperty({ enum: ['ORG', 'LE', 'SITE'] }) ownerScope: string;

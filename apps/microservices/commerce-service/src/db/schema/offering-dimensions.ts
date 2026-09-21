@@ -1,7 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { codeCheck, index, integer, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { codeCheck, index, integer, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
-import { offeringReachPolicies, offerings } from './offerings';
+import { offeringScopePolicies, offerings } from './offerings';
 
 export const offeringDimensions = commerceSchema.table(
   'offering_dimensions',
@@ -14,8 +14,6 @@ export const offeringDimensions = commerceSchema.table(
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 100 }).notNull(),
     description: varchar('description', { length: 500 }),
-    // Drives the order of segments in a variant's derived SKU at the moment that SKU is built. Freely
-    // reorderable: stored SKUs are never rewritten, so a change only affects variants created after it.
     sortOrder: integer('sort_order').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -28,7 +26,7 @@ export const offeringDimensions = commerceSchema.table(
     unique('uq_offering_dimensions_offering_name').on(table.offeringId, table.name),
     codeCheck('offering_dimensions_code_chk', table.code),
     index('idx_offering_dimensions_offering').on(table.offeringId, table.sortOrder),
-    ...offeringReachPolicies('offering_id'),
+    ...offeringScopePolicies('offering_id'),
   ],
 );
 
@@ -43,8 +41,6 @@ export const offeringDimensionValues = commerceSchema.table(
     dimensionId: uuid('dimension_id')
       .notNull()
       .references(() => offeringDimensions.id, { onDelete: 'cascade' }),
-    // One segment of a variant's SKU. Unique per dimension, which with the unique code per offering
-    // is what makes the derived SKU unique by construction.
     code: varchar('code', { length: 50 }).notNull(),
     value: varchar('value', { length: 100 }).notNull(),
     sortOrder: integer('sort_order').notNull().default(0),
@@ -55,17 +51,7 @@ export const offeringDimensionValues = commerceSchema.table(
     unique('uq_offering_dimension_values_dimension_value').on(table.dimensionId, table.value),
     codeCheck('offering_dimension_values_code_chk', table.code),
     index('idx_offering_dimension_values_dimension').on(table.dimensionId, table.sortOrder),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    // Chains one level further than a direct child: values → dimensions → offerings. RLS applies
-    // inside each subquery, so reach still cascades from the offering.
-    pgPolicy('offering_reach', {
-      as: 'restrictive',
-      for: 'all',
-      using: sql.raw('exists (select 1 from commerce.offering_dimensions d where d.id = dimension_id)'),
-    }),
+    ...offeringScopePolicies('dimension_id', 'offering_dimensions'),
   ],
 );
 

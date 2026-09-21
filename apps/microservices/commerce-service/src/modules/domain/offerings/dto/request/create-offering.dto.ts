@@ -1,5 +1,5 @@
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { FulfilmentTypeValues } from '@/db/schema';
 
 export class CreateOfferingDto {
@@ -31,9 +31,4 @@ export class CreateOfferingDto {
 
   @IsUUID()
   taxClassId: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  sortOrder?: number;
 }

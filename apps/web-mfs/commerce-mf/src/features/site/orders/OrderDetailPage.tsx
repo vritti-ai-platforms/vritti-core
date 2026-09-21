@@ -228,43 +228,22 @@ export const OrderDetailPage = () => {
                         </thead>
                         <tbody>
                           {order.items.map((item, index) => (
-                            <>
-                              <tr key={item.id} className="border-b last:border-0">
-                                <td className="py-3 text-muted-foreground">{index + 1}</td>
-                                <td className="py-3">
-                                  <div>
-                                    <span className="font-medium">{item.itemName}</span>
-                                    {item.variantName && (
-                                      <span className="ml-1 text-muted-foreground">({item.variantName})</span>
-                                    )}
-                                  </div>
-                                  {item.notes && <p className="mt-0.5 text-xs text-muted-foreground">{item.notes}</p>}
-                                </td>
-                                <td className="py-3 text-right font-mono">{item.quantity}</td>
-                                <td className="py-3 text-right font-mono">{Number(item.unitPrice).toFixed(2)}</td>
-                                <td className="py-3 text-right font-mono">{Number(item.taxAmount).toFixed(2)}</td>
-                                <td className="py-3 text-right font-mono">{Number(item.total).toFixed(2)}</td>
-                              </tr>
-                              {item.modifiers.length > 0 && (
-                                <tr key={`${item.id}-mods`}>
-                                  <td />
-                                  <td colSpan={5} className="pb-3">
-                                    <div className="flex flex-wrap gap-1">
-                                      {item.modifiers.map((mod) => (
-                                        <Badge key={mod.id} variant="outline" className="text-xs">
-                                          {mod.name}
-                                          {BigInt(mod.additionalPrice) > 0n && (
-                                            <span className="ml-1 text-muted-foreground">
-                                              +{Number(mod.additionalPrice).toFixed(2)}
-                                            </span>
-                                          )}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
-                            </>
+                            <tr key={item.id} className="border-b last:border-0">
+                              <td className="py-3 text-muted-foreground">{index + 1}</td>
+                              <td className="py-3">
+                                <div>
+                                  <span className="font-medium">{item.itemName}</span>
+                                  {item.variantName && (
+                                    <span className="ml-1 text-muted-foreground">({item.variantName})</span>
+                                  )}
+                                </div>
+                                {item.notes && <p className="mt-0.5 text-xs text-muted-foreground">{item.notes}</p>}
+                              </td>
+                              <td className="py-3 text-right font-mono">{item.quantity}</td>
+                              <td className="py-3 text-right font-mono">{Number(item.unitPrice).toFixed(2)}</td>
+                              <td className="py-3 text-right font-mono">{Number(item.taxAmount).toFixed(2)}</td>
+                              <td className="py-3 text-right font-mono">{Number(item.total).toFixed(2)}</td>
+                            </tr>
                           ))}
                         </tbody>
                       </table>

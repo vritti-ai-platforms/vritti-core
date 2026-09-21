@@ -12,10 +12,7 @@ export const supplierItemPrices = commerceSchema.table(
     supplierItemId: uuid('supplier_item_id')
       .notNull()
       .references(() => supplierItems.id, { onDelete: 'cascade' }),
-    // Nullable + missing_ok GUC default: LE context inserts NULL (general row), site context inserts its own
-    // site (site-specific row). Resolution: site row wins over general for the same date. DTOs never carry siteId.
     siteId: uuid('site_id').default(sql.raw("cast(current_setting('app.site_id', true) as uuid)")),
-    // Currency = parent supplier_items.currency_code (anchored by its composite FK to the supplier).
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
     schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),

@@ -30,7 +30,6 @@ export const locations = commerceSchema.table(
     code: varchar('code', { length: 50 }).notNull(),
     parentId: uuid('parent_id'),
     path: ltreeType('path').notNull(),
-    // Human-readable breadcrumb of the ltree path: "main.sales.rack_a" → "Main › Sales › Rack A"
     pathBreadcrumb: text('path_breadcrumb').generatedAlwaysAs(sql`commerce.format_ltree_path(path)`),
     sortOrder: integer('sort_order').notNull().default(1),
     area: varchar('area', { length: 100 }),
