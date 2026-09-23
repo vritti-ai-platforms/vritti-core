@@ -34287,6 +34287,11 @@
               "SITE"
             ]
           },
+          "ownerName": {
+            "type": "string",
+            "description": "Name of the organization, company or outlet that owns it",
+            "example": "Mumbai Warehouse"
+          },
           "dimensionCount": {
             "type": "number"
           },
@@ -34324,6 +34329,7 @@
           "taxClassId",
           "isActive",
           "ownerScope",
+          "ownerName",
           "dimensionCount",
           "variantCount",
           "variantsMissingBomCount",

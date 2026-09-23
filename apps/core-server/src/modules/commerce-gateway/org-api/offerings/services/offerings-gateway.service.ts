@@ -21,6 +21,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import { OwnerNameService } from '@/owner-names/owner-name.service';
 import type { PreviewCombinationsDto } from '../../../domain/offerings/dto/request/preview-combinations.dto';
 import type { VariantCombinationsResponseDto } from '../../../domain/offerings/dto/response/variant-combinations-response.dto';
 
@@ -31,10 +32,11 @@ export class OrgOfferingsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
+    private readonly ownerNames: OwnerNameService,
   ) {}
 
   // Returns paginated offerings for the data table, merged with the caller's saved view state
-  async findForTable(userId: string): Promise<OfferingTableResponseDto> {
+  async findForTable(orgId: string, userId: string): Promise<OfferingTableResponseDto> {
     this.logger.log('org.offerings.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-org-offerings');
 
@@ -44,13 +46,13 @@ export class OrgOfferingsGatewayService {
       state,
     );
 
-    return { result, count, state, activeViewId };
+    return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
   }
 
   // Variants of one offering, merged with the caller's saved view for THAT offering's table
   async findVariantById(variantId: string): Promise<OfferingVariantResponseDto> {
-    this.logger.log(`org.offerings.variants.get — id: ${variantId}`);
-    return this.nats.send('commerce', 'org.offerings.variants.get', { id: variantId });
+    this.logger.log(`org.offerings.variants.findById — id: ${variantId}`);
+    return this.nats.send('commerce', 'org.offerings.variants.findById', { id: variantId });
   }
 
   async findVariantsForTable(userId: string, offeringId: string): Promise<OfferingVariantTableResponseDto> {
@@ -69,9 +71,11 @@ export class OrgOfferingsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  async findById(id: string): Promise<OfferingResponseDto> {
-    this.logger.log(`offerings.get — id: ${id}`);
-    return this.nats.send('commerce', 'org.offerings.get', { id });
+  async findById(orgId: string, id: string): Promise<OfferingResponseDto> {
+    this.logger.log(`org.offerings.findById — id: ${id}`);
+    const offering = await this.nats.send<OfferingResponseDto>('commerce', 'org.offerings.findById', { id });
+    const [withOwner] = await this.ownerNames.resolve(orgId, [offering]);
+    return withOwner;
   }
 
   async create(dto: CreateOfferingDto): Promise<CreateResponseDto<OfferingResponseDto>> {

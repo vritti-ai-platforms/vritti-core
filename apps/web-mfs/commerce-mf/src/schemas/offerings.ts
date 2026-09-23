@@ -131,6 +131,7 @@ export interface OfferingData {
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: OfferingOwnerScope;
+  ownerName: string;
   dimensionCount: number;
   variantCount: number;
   variantsMissingBomCount: number;

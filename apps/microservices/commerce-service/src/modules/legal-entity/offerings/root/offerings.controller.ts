@@ -23,9 +23,9 @@ export class LeOfferingsController {
   }
 
   // Returns one offering with its dimension and variant counts
-  @MessagePattern({ cmd: 'le.offerings.get' })
-  get(@Payload() data: { id: string }): Promise<OfferingDto> {
-    this.logger.log(`offerings.get — id: ${data.id}`);
+  @MessagePattern({ cmd: 'le.offerings.findById' })
+  findById(@Payload() data: { id: string }): Promise<OfferingDto> {
+    this.logger.log(`offerings.findById — id: ${data.id}`);
     return this.service.findById(data.id);
   }
 

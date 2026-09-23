@@ -22,7 +22,7 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatusSwitch } from '@/components/StatusSwitch';
 import type { OfferingData } from '@/schemas/offerings';
-import { FULFILMENT_TYPE_META, OWNER_SCOPE_LABEL } from '@/schemas/offerings';
+import { FULFILMENT_TYPE_META } from '@/schemas/offerings';
 import type { OfferingsBinding } from './bindings';
 import { AddOfferingDialog } from './forms/AddOfferingDialog';
 
@@ -56,9 +56,9 @@ export const OfferingsTable: React.FC<OfferingsTableProps> = ({ binding }) => {
         enableSorting: false,
       },
       {
-        accessorKey: 'ownerScope',
+        accessorKey: 'ownerName',
         header: 'Owner',
-        cell: ({ row }) => <Badge variant="secondary">{OWNER_SCOPE_LABEL[row.original.ownerScope]}</Badge>,
+        cell: ({ row }) => <Badge variant="secondary">{row.original.ownerName}</Badge>,
         enableSorting: false,
       },
       {

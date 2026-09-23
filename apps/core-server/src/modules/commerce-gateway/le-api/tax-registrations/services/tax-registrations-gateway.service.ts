@@ -54,7 +54,7 @@ export class TaxRegistrationsGatewayService {
 
   async findById(id: string): Promise<TaxRegistrationResponseDto> {
     this.logger.log(`le.taxRegistrations.get — id: ${id}`);
-    return this.nats.send('commerce', 'le.taxRegistrations.get', { id });
+    return this.nats.send('commerce', 'le.taxRegistrations.findById', { id });
   }
 
   async create(dto: CreateTaxRegistrationDto): Promise<CreateResponseDto<TaxRegistrationResponseDto>> {

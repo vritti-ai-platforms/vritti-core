@@ -17,13 +17,10 @@ import { fulfilmentTypeEnum } from './enums';
 import { taxClasses } from './tax-classes';
 import {
   organizationIdColumn,
-  ownedByWorkspace,
   ownerMatchesWorkspaceSql,
   workspaceHierarchyPolicies,
   workspaceScopeColumns,
 } from './workspace-scope';
-
-export const offeringOwnedByWorkspace = () => ownedByWorkspace();
 
 export const offeringScopePolicies = (fkColumn: string, through?: string) => {
   const from = through ? `commerce.${through} p` : 'commerce.offerings o';

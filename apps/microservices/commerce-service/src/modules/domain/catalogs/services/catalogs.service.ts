@@ -10,6 +10,7 @@ import type {
 import { FilterProcessor } from '@vritti/api-sdk/database';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import { catalogs } from '@/db/schema';
 import { CatalogDto } from '../dto/entity/catalog.dto';
 import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
@@ -47,8 +48,7 @@ export class CatalogsDomainService {
       limit,
       offset,
     });
-    const counts = await this.repository.countChildren(rows.map((row) => row.id));
-    return { result: rows.map((row) => CatalogDto.from(row, counts.get(row.id))), count };
+    return { result: rows.map((row) => CatalogDto.from(row, row)), count };
   }
 
   // Catalog options for select dropdowns
@@ -70,8 +70,7 @@ export class CatalogsDomainService {
 
   async findById(id: string): Promise<CatalogDto> {
     const row = await this.requireCatalog(id);
-    const counts = await this.repository.countChildren([id]);
-    return CatalogDto.from(row, counts.get(id));
+    return CatalogDto.from(row, row);
   }
 
   async create(data: CreateCatalogDto): Promise<CreateResponseDto<CatalogDto>> {
@@ -95,12 +94,10 @@ export class CatalogsDomainService {
   // Deleting cascades into listings and prices, so it is refused while the catalog still has any
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.requireCatalog(id);
-    const counts = await this.repository.countChildren([id]);
-    const items = counts.get(id)?.items ?? 0;
-    if (items > 0) {
+    if (existing.items > 0) {
       throw new ConflictException({
         label: 'Catalog In Use',
-        detail: `"${existing.name}" still lists ${items} ${items === 1 ? 'item' : 'listings'}. Remove them first.`,
+        detail: `"${existing.name}" still lists ${pluralize('listing', existing.items, true)}. Remove them first.`,
       });
     }
     await this.repository.deleteById(id);

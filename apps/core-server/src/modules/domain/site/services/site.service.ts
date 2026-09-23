@@ -7,6 +7,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@vrit
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import { type LegalEntity, type SiteMetadata, type SiteType } from '@/db/schema';
+import { OwnerNameCacheService } from '@/owner-names/owner-name-cache.service';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
@@ -26,6 +27,7 @@ export class SiteDomainService {
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
     private readonly catalogService: CatalogDomainService,
+    private readonly ownerNameCache: OwnerNameCacheService,
   ) {}
 
   // Creates a site after validating its links
@@ -135,6 +137,7 @@ export class SiteDomainService {
     if (legalEntityChanged) await this.compactSiblings(site.organizationId, site.legalEntityId);
 
     await this.siteContextCache.invalidate(id);
+    if (dto.name) await this.ownerNameCache.invalidate('site', id);
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(id));
 
     this.logger.log(`Updated site ${id}`);

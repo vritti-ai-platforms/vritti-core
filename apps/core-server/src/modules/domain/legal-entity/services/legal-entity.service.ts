@@ -7,6 +7,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@vrit
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { AUTH_STATUS_EVENTS, LegalEntityUpdatedEvent } from '@/common/events/auth-status.events';
 import type { TaxRegime } from '@/db/schema';
+import { OwnerNameCacheService } from '@/owner-names/owner-name-cache.service';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { sequentialSortOrders } from '@/utils/sort-order';
 import { LegalEntityDto } from '../dto/entity/legal-entity.dto';
@@ -23,6 +24,7 @@ export class LegalEntityDomainService {
     private readonly legalEntityRepository: LegalEntityDomainRepository,
     private readonly catalogService: CatalogDomainService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly ownerNameCache: OwnerNameCacheService,
   ) {}
 
   // Returns legal entities as select options, excluding a node and its descendant subtree
@@ -140,6 +142,8 @@ export class LegalEntityDomainService {
     });
 
     if (reparented) await this.compactSiblings(legalEntity.organizationId, oldParentId);
+
+    if (dto.name) await this.ownerNameCache.invalidate('le', id);
 
     this.logger.log(`Updated legal entity ${id}`);
     this.eventEmitter.emit(

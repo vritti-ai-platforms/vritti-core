@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type StockAdjustmentLineItem, stockAdjustmentLineItems, stockAdjustmentLines } from '@/db/schema';
 
 @Injectable()
@@ -43,19 +43,6 @@ export class StockAdjustmentLineItemsDomainRepository extends PrimaryBaseReposit
       limit: options.limit,
       offset: options.offset,
     });
-  }
-
-  async findStatsByLineIds(lineIds: string[]): Promise<Map<string, { count: number }>> {
-    if (lineIds.length === 0) return new Map();
-    const rows = await this.db
-      .select({
-        lineId: stockAdjustmentLineItems.stockAdjustmentLineId,
-        count: sql<number>`count(*)`,
-      })
-      .from(stockAdjustmentLineItems)
-      .where(inArray(stockAdjustmentLineItems.stockAdjustmentLineId, lineIds))
-      .groupBy(stockAdjustmentLineItems.stockAdjustmentLineId);
-    return new Map(rows.map((r) => [r.lineId, { count: Number(r.count) }]));
   }
 
   async findBySerialOnAdjustment(

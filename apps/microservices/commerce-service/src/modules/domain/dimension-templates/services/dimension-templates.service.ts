@@ -89,7 +89,7 @@ export class DimensionTemplatesDomainService {
     const existing = await this.requireOwned(id);
 
     if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) {
-      const duplicate = await this.repository.findOwnedByName(data.name);
+      const duplicate = await this.repository.findByName(data.name);
       if (duplicate) {
         throw new ConflictException({
           label: 'Duplicate Name',

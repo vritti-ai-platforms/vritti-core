@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import {
-  MAX_PAGE_SIZE,
-  PrimaryBaseRepository,
-  PrimaryDatabaseService,
-  type TypedDrizzleClient,
-} from '@vritti/api-sdk/database';
-import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk/database';
+import { and, asc, eq, getColumns, inArray, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type Offering,
   offeringBom,
   offeringDimensions,
-  offeringOwnedByWorkspace,
   offerings,
   offeringVariants,
+  ownedByWorkspace,
 } from '@/db/schema';
 
-export type OfferingWithMeta = Offering & { isOwned: boolean };
+export type OfferingWithOwnership = Offering & {
+  isOwned: boolean;
+  dimensionCount: number;
+  variantCount: number;
+  variantsWithoutBom: number;
+};
 
 @Injectable()
 export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offerings> {
@@ -23,35 +23,30 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     super(database, offerings);
   }
 
-  private static selection() {
+  // Ownership and the child counts every caller needs, resolved as scalar subqueries in the one
+  // select rather than as follow-up round trips
+  private selection() {
     return {
-      id: offerings.id,
-      organizationId: offerings.organizationId,
-      legalEntityId: offerings.legalEntityId,
-      siteId: offerings.siteId,
-      code: offerings.code,
-      name: offerings.name,
-      description: offerings.description,
-      categoryId: offerings.categoryId,
-      fulfilmentType: offerings.fulfilmentType,
-      taxClassId: offerings.taxClassId,
-      isActive: offerings.isActive,
-      createdAt: offerings.createdAt,
-      updatedAt: offerings.updatedAt,
-      isOwned: offeringOwnedByWorkspace(),
+      ...getColumns(offerings),
+      isOwned: ownedByWorkspace(),
+      dimensionCount: this.db.$count(offeringDimensions, eq(offeringDimensions.offeringId, offerings.id)),
+      variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
+      variantsWithoutBom: this.db.$count(
+        offeringVariants,
+        and(
+          eq(offeringVariants.offeringId, offerings.id),
+          notExists(
+            this.db.select({ one: sql`1` }).from(offeringBom).where(eq(offeringBom.variantId, offeringVariants.id)),
+          ),
+        ),
+      ),
     };
   }
 
-  // Returns every reachable offering with ownership (RLS scopes the rows)
-  async findAllWithMeta(where?: SQL): Promise<OfferingWithMeta[]> {
-    const { result } = await this.findAllAndCount<OfferingWithMeta>({
-      select: OfferingsDomainRepository.selection(),
-      where,
-      orderBy: [asc(offerings.name)],
-      limit: MAX_PAGE_SIZE,
-      offset: 0,
-    });
-    return result;
+  // Returns the offerings this workspace can reach, each flagged with whether it owns the row or
+  // merely inherits it from a wider scope (RLS decides reach; ownedByWorkspace decides ownership)
+  async findAll(where?: SQL): Promise<OfferingWithOwnership[]> {
+    return this.db.select(this.selection()).from(offerings).where(where).orderBy(asc(offerings.name));
   }
 
   // Returns one page of reachable offerings with ownership, plus the unpaginated total
@@ -60,9 +55,9 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     orderBy: SQL[];
     limit: number;
     offset: number;
-  }): Promise<{ result: OfferingWithMeta[]; count: number }> {
-    return this.findAllAndCount<OfferingWithMeta>({
-      select: OfferingsDomainRepository.selection(),
+  }): Promise<{ result: OfferingWithOwnership[]; count: number }> {
+    return this.findAllAndCount<OfferingWithOwnership>({
+      select: this.selection(),
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
@@ -70,79 +65,48 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     });
   }
 
-  // Returns a single offering with ownership, or undefined when out of reach
-  async findByIdWithMeta(id: string): Promise<OfferingWithMeta | undefined> {
-    const { result } = await this.findAllAndCount<OfferingWithMeta>({
-      select: OfferingsDomainRepository.selection(),
-      where: eq(offerings.id, id),
-      orderBy: [asc(offerings.name)],
-      limit: 1,
-      offset: 0,
-    });
-    return result[0];
-  }
-
-  // Returns the name-collision row within the caller's own ownership slot, if any
-  async findOwnedByName(name: string): Promise<Offering | undefined> {
-    const [row] = await this.db
-      .select()
-      .from(offerings)
-      .where(sql`lower(${offerings.name}) = lower(${name}) and ${offeringOwnedByWorkspace()}`)
-      .limit(1);
+  // Returns one offering with its ownership flag, or undefined when out of reach. Callers that may
+  // only write branch on isOwned rather than narrowing here, so a row owned elsewhere still yields
+  // the name their 403 needs — RLS is what actually refuses the write.
+  async findById(id: string): Promise<OfferingWithOwnership | undefined> {
+    const [row] = await this.db.select(this.selection()).from(offerings).where(eq(offerings.id, id)).limit(1);
     return row;
   }
 
-  // Dimension and variant counts for many offerings in one round trip
-  async countChildren(
-    offeringIds: string[],
-  ): Promise<Map<string, { dimensions: number; variants: number; variantsWithoutBom: number }>> {
-    const counts = new Map<string, { dimensions: number; variants: number; variantsWithoutBom: number }>();
-    if (offeringIds.length === 0) return counts;
-
-    const dims = await this.db
-      .select({ offeringId: offeringDimensions.offeringId, n: sql<number>`count(*)::int` })
-      .from(offeringDimensions)
-      .where(inArray(offeringDimensions.offeringId, offeringIds))
-      .groupBy(offeringDimensions.offeringId);
-
-    const vars = await this.db
-      .select({ offeringId: offeringVariants.offeringId, n: sql<number>`count(*)::int` })
-      .from(offeringVariants)
-      .where(inArray(offeringVariants.offeringId, offeringIds))
-      .groupBy(offeringVariants.offeringId);
-
-    // A variant with no BOM line cannot be activated, and the overview reports how many are waiting —
-    // counted here so that screen never has to pull the whole variant list for one number
-    const noBom = await this.db
-      .select({ offeringId: offeringVariants.offeringId, n: sql<number>`count(*)::int` })
-      .from(offeringVariants)
-      .where(
-        sql`${inArray(offeringVariants.offeringId, offeringIds)} and not exists (
-          select 1 from ${offeringBom} where ${offeringBom.variantId} = ${offeringVariants.id}
-        )`,
-      )
-      .groupBy(offeringVariants.offeringId);
-
-    for (const id of offeringIds) counts.set(id, { dimensions: 0, variants: 0, variantsWithoutBom: 0 });
-    for (const row of dims) {
-      const entry = counts.get(row.offeringId);
-      if (entry) entry.dimensions = row.n;
-    }
-    for (const row of vars) {
-      const entry = counts.get(row.offeringId);
-      if (entry) entry.variants = row.n;
-    }
-    for (const row of noBom) {
-      const entry = counts.get(row.offeringId);
-      if (entry) entry.variantsWithoutBom = row.n;
-    }
-    return counts;
+  // Returns the reachable rows among the given ids, each with ownership
+  async findByIds(ids: string[]): Promise<OfferingWithOwnership[]> {
+    if (ids.length === 0) return [];
+    return this.findAll(inArray(offerings.id, ids));
   }
 
-  // Returns the reachable rows among the given ids, each with ownership — the batch form of findByIdWithMeta
-  async findManyWithMeta(ids: string[]): Promise<OfferingWithMeta[]> {
-    if (ids.length === 0) return [];
-    return this.findAllWithMeta(inArray(offerings.id, ids));
+  // Reports which of the two unique keys are already taken, in one pass. They have different scopes:
+  // name is unique per OWNER, code per ORGANIZATION — and a sibling's code is invisible to reach, so
+  // the database stays the final arbiter on code.
+  async findConflicts(name: string, code: string): Promise<{ nameTaken: boolean; codeTaken: boolean }> {
+    const nameMatch = sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspace()}`;
+    const codeMatch = sql`${offerings.code} = ${code}`;
+
+    const [row] = await this.db
+      .select({
+        nameTaken: sql<boolean>`coalesce(bool_or(${nameMatch}), false)`,
+        codeTaken: sql<boolean>`coalesce(bool_or(${codeMatch}), false)`,
+      })
+      .from(offerings)
+      .where(or(nameMatch, codeMatch));
+
+    return row ?? { nameTaken: false, codeTaken: false };
+  }
+
+  // Returns the offering matching a name within this workspace's own ownership slot. Scoped to owned
+  // rows because name is unique per OWNER, not per organization — an inherited row sharing the name
+  // is not a collision.
+  async findByName(name: string): Promise<Offering | undefined> {
+    const [row] = await this.db
+      .select()
+      .from(offerings)
+      .where(sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspace()}`)
+      .limit(1);
+    return row;
   }
 
   // Flips is_active on many offerings at once; the caller has already checked each one may make the move
@@ -159,31 +123,5 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
       .where(and(eq(offeringVariants.offeringId, offeringId), eq(offeringVariants.isTaxClassOverridden, false)))
       .returning({ id: offeringVariants.id });
     return rows.length;
-  }
-
-  // Counts the variants of an offering that hold their own tax class
-  async countTaxClassOverrides(offeringId: string): Promise<number> {
-    const [row] = await this.db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(offeringVariants)
-      .where(and(eq(offeringVariants.offeringId, offeringId), eq(offeringVariants.isTaxClassOverridden, true)));
-    return row?.n ?? 0;
-  }
-
-  // An offering with variants cannot be deleted — the variants may carry stock or order history
-  async countVariants(offeringId: string): Promise<number> {
-    const [row] = await this.db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(offeringVariants)
-      .where(eq(offeringVariants.offeringId, offeringId));
-    return row?.n ?? 0;
-  }
-
-  async countDimensions(offeringId: string): Promise<number> {
-    const [row] = await this.db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(offeringDimensions)
-      .where(eq(offeringDimensions.offeringId, offeringId));
-    return row?.n ?? 0;
   }
 }

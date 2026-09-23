@@ -18,13 +18,7 @@ import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
 import type { SetOfferingStatusDto } from '../dto/request/set-offering-status.dto';
 import type { SetOfferingTaxClassDto } from '../dto/request/set-offering-tax-class.dto';
 import type { UpdateOfferingDto } from '../dto/request/update-offering.dto';
-import { OfferingsDomainRepository, type OfferingWithMeta } from '../repositories/offerings.repository';
-
-// Postgres reports a unique violation as 23505 with the constraint name attached
-function isUniqueViolation(error: unknown, constraint: string): boolean {
-  const candidate = error as { code?: string; constraint?: string; constraint_name?: string };
-  return candidate?.code === '23505' && (candidate.constraint ?? candidate.constraint_name) === constraint;
-}
+import { OfferingsDomainRepository, type OfferingWithOwnership } from '../repositories/offerings.repository';
 
 @Injectable()
 export class OfferingsDomainService {
@@ -61,13 +55,7 @@ export class OfferingsDomainService {
       offset,
     });
 
-    const counts = await this.repository.countChildren(rows.map((row) => row.id));
-    const result = rows.map((row) => {
-      const count = counts.get(row.id);
-      return this.toDto(row, count?.dimensions ?? 0, count?.variants ?? 0, count?.variantsWithoutBom ?? 0);
-    });
-
-    return { result, count };
+    return { result: rows.map((row) => this.toDto(row)), count };
   }
 
   // Offering options for select dropdowns, restricted to active offerings
@@ -89,29 +77,54 @@ export class OfferingsDomainService {
   }
 
   async findById(id: string): Promise<OfferingDto> {
-    const row = await this.requireReachable(id);
-    const counts = await this.repository.countChildren([id]);
-    const count = counts.get(id);
-    return this.toDto(row, count?.dimensions ?? 0, count?.variants ?? 0, count?.variantsWithoutBom ?? 0);
+    const row = await this.repository.findById(id);
+    if (!row) throw new NotFoundException('Offering not found.');
+    return this.toDto(row);
   }
 
   // Creates an offering owned by the calling workspace; the database stamps the owner from its GUCs
   async create(data: CreateOfferingDto): Promise<CreateResponseDto<OfferingDto>> {
-    await this.assertNameFree(data.name);
-    const created = await this.createOrConflict(data);
-    this.logger.log(`Created offering ${created.code} (${created.id})`);
+    const { nameTaken, codeTaken } = await this.repository.findConflicts(data.name, data.code);
+    if (nameTaken) {
+      throw new ConflictException({
+        label: 'Duplicate Name',
+        detail: `You already have an offering called "${data.name}".`,
+        errors: [{ field: 'name', message: 'Name already in use' }],
+      });
+    }
+    if (codeTaken) {
+      throw new ConflictException({
+        label: 'Duplicate Code',
+        detail: `The code "${data.code}" is already in use in this organization. Codes must be unique because every variant SKU is built from them.`,
+        errors: [{ field: 'code', message: 'Code already in use' }],
+      });
+    }
+
+    const entity = await this.repository.create(data);
+    this.logger.log(`Created offering ${entity.code} (${entity.id})`);
     return {
       success: true,
-      message: `"${created.name}" created. Add its dimensions, then generate variants.`,
-      data: OfferingDto.from(created, { isOwned: true, canDelete: true }),
+      message: `"${entity.name}" created. Add its dimensions, then generate variants.`,
+      data: OfferingDto.from(entity, { isOwned: true, canDelete: true }),
     };
   }
 
   async update(id: string, data: Omit<UpdateOfferingDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.requireOwned(id);
-    if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) await this.assertNameFree(data.name);
-    if (data.code && data.code !== existing.code) await this.assertCodeChangeable(id, existing);
-    await this.updateOrConflict(id, data);
+
+    if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) {
+      const duplicate = await this.repository.findByName(data.name);
+      if (duplicate) {
+        throw new ConflictException({
+          label: 'Duplicate Name',
+          detail: `You already have an offering called "${data.name}".`,
+          errors: [{ field: 'name', message: 'Name already in use' }],
+        });
+      }
+    }
+    if (data.code && data.code !== existing.code) this.assertCodeChangeable(existing);
+
+    await this.repository.update(id, data);
     return { success: true, message: `"${data.name ?? existing.name}" updated.` };
   }
 
@@ -127,7 +140,8 @@ export class OfferingsDomainService {
       return this.repository.applyTaxClassToVariants(id, data.taxClassId, tx);
     });
 
-    const overridden = await this.repository.countTaxClassOverrides(id);
+    // Every variant that did not take the cascade is one holding its own class
+    const overridden = existing.variantCount - cascaded;
     this.logger.log(`Set tax class on offering ${existing.code} (${id}), cascaded to ${cascaded} variants`);
     return {
       success: true,
@@ -141,8 +155,7 @@ export class OfferingsDomainService {
   async setStatus(id: string, data: SetOfferingStatusDto): Promise<SuccessResponseDto> {
     const existing = await this.requireOwned(id);
     if (data.isActive) {
-      const variantCount = await this.repository.countVariants(id);
-      if (variantCount === 0) {
+      if (existing.variantCount === 0) {
         throw new ConflictException({
           label: 'No Variants',
           detail: `"${existing.name}" has no variants yet. Generate at least one before activating it.`,
@@ -156,7 +169,7 @@ export class OfferingsDomainService {
   // The batch form of setStatus. Every id is checked before anything is written, so the whole
   // selection either moves together or nothing does — a half-applied bulk action is worse than a refusal.
   async bulkSetStatus(data: BulkSetOfferingStatusDto): Promise<SuccessResponseDto> {
-    const rows = await this.repository.findManyWithMeta(data.ids);
+    const rows = await this.repository.findByIds(data.ids);
     if (rows.length !== data.ids.length) {
       throw new NotFoundException({
         label: 'Offerings Not Found',
@@ -173,8 +186,7 @@ export class OfferingsDomainService {
     }
 
     if (data.isActive) {
-      const counts = await this.repository.countChildren(data.ids);
-      const empty = rows.filter((row) => (counts.get(row.id)?.variants ?? 0) === 0);
+      const empty = rows.filter((row) => row.variantCount === 0);
       if (empty.length > 0) {
         throw new ConflictException({
           label: 'No Variants',
@@ -195,11 +207,10 @@ export class OfferingsDomainService {
   // a variant may already carry stock or sit on an order line.
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.requireOwned(id);
-    const variantCount = await this.repository.countVariants(id);
-    if (variantCount > 0) {
+    if (existing.variantCount > 0) {
       throw new ConflictException({
         label: 'Offering In Use',
-        detail: `"${existing.name}" still has ${pluralize('variant', variantCount, true)}. Remove them first.`,
+        detail: `"${existing.name}" still has ${pluralize('variant', existing.variantCount, true)}. Remove them first.`,
       });
     }
     await this.repository.delete(id);
@@ -210,91 +221,37 @@ export class OfferingsDomainService {
   // The code is the first segment of every SKU derived from it. Stored SKUs are never recomputed, so
   // changing it once variants exist would leave them carrying a prefix the offering no longer has —
   // recognisable to nobody. Free to change until the first variant.
-  private async assertCodeChangeable(id: string, existing: { name: string; code: string }): Promise<void> {
-    const variantCount = await this.repository.countVariants(id);
-    if (variantCount > 0) {
+  private assertCodeChangeable(existing: OfferingWithOwnership): void {
+    if (existing.variantCount > 0) {
       throw new ConflictException({
         label: 'Code Locked',
-        detail: `"${existing.name}" already has ${pluralize('variant', variantCount, true)}, whose SKUs were built from "${existing.code}". Delete them before recoding.`,
+        detail: `"${existing.name}" already has ${pluralize('variant', existing.variantCount, true)}, whose SKUs were built from "${existing.code}". Delete them before recoding.`,
         errors: [{ field: 'code', message: 'Locked once variants exist' }],
       });
     }
   }
 
-  private async updateOrConflict(id: string, data: Omit<UpdateOfferingDto, 'id'>) {
-    try {
-      return await this.repository.update(id, data);
-    } catch (error) {
-      if (isUniqueViolation(error, 'uq_offerings_org_code')) {
-        throw new ConflictException({
-          label: 'Code Already Used',
-          detail: `The code "${data.code}" is already in use in this organization.`,
-          errors: [{ field: 'code', message: 'Code already used' }],
-        });
-      }
-      throw error;
-    }
-  }
-
-  // `code` is unique per ORGANIZATION, but reach only shows this workspace its own subtree, so a
-  // sibling's clashing code is invisible to a pre-check. The database is the arbiter.
-  private async createOrConflict(data: CreateOfferingDto) {
-    try {
-      return await this.repository.create(data);
-    } catch (error) {
-      if (isUniqueViolation(error, 'uq_offerings_org_code')) {
-        throw new ConflictException({
-          label: 'Code Already Used',
-          detail: `The code "${data.code}" is already in use in this organization. Codes must be unique because every variant SKU is built from them.`,
-          errors: [{ field: 'code', message: 'Code already used' }],
-        });
-      }
-      throw error;
-    }
-  }
-
-  private async assertNameFree(name: string): Promise<void> {
-    const clash = await this.repository.findOwnedByName(name);
-    if (clash) {
-      throw new ConflictException({
-        label: 'Name Already Used',
-        detail: `You already have an offering called "${name}".`,
-        errors: [{ field: 'name', message: 'Name already used' }],
-      });
-    }
-  }
-
-  private async requireReachable(id: string): Promise<OfferingWithMeta> {
-    const row = await this.repository.findByIdWithMeta(id);
-    if (!row) throw new NotFoundException('Offering not found.');
-    return row;
-  }
-
-  // RLS already rejects the write; this fails earlier with a message that explains why
-  private async requireOwned(id: string): Promise<OfferingWithMeta> {
-    const row = await this.requireReachable(id);
-    if (!row.isOwned) {
+  // Loads an offering by ID, throwing if not found or owned by a wider scope
+  private async requireOwned(id: string): Promise<OfferingWithOwnership> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Offering not found.');
+    if (!existing.isOwned) {
       throw new ForbiddenException({
         label: 'Not Your Offering',
-        detail: `"${row.name}" belongs to a wider scope. Switch to the workspace that owns it, or create your own.`,
+        detail: `"${existing.name}" belongs to a wider scope. Switch to the workspace that owns it, or create your own.`,
       });
     }
-    return row;
+    return existing;
   }
 
   // A SERVICE offering needs no BOM line, so nothing is ever "missing" for one
-  private toDto(
-    row: OfferingWithMeta,
-    dimensionCount: number,
-    variantCount: number,
-    variantsWithoutBom = 0,
-  ): OfferingDto {
+  private toDto(row: OfferingWithOwnership): OfferingDto {
     return OfferingDto.from(row, {
-      dimensionCount,
-      variantCount,
-      variantsMissingBomCount: row.fulfilmentType === FulfilmentTypeValues.SERVICE ? 0 : variantsWithoutBom,
+      dimensionCount: row.dimensionCount,
+      variantCount: row.variantCount,
+      variantsMissingBomCount: row.fulfilmentType === FulfilmentTypeValues.SERVICE ? 0 : row.variantsWithoutBom,
       isOwned: row.isOwned,
-      canDelete: row.isOwned && variantCount === 0,
+      canDelete: row.isOwned && row.variantCount === 0,
     });
   }
 }

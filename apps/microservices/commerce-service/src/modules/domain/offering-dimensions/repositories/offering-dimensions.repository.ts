@@ -4,15 +4,14 @@ import { asc, eq, getColumns, inArray, notExists, sql } from '@vritti/api-sdk/dr
 import {
   dimensionTemplates,
   dimensionTemplateValues,
-  type NewOfferingDimension,
   type NewOfferingDimensionValue,
   type OfferingDimension,
   type OfferingDimensionValue,
   offeringDimensions,
   offeringDimensionValues,
-  offeringOwnedByWorkspace,
   offerings,
   offeringVariantValues,
+  ownedByWorkspace,
 } from '@/db/schema';
 
 export type OfferingDimensionWithUsage = OfferingDimension & { canDelete: boolean };
@@ -24,25 +23,23 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
     super(database, offeringDimensions);
   }
 
-  // The parent offering, when it is both reachable (RLS) and owned by the calling workspace.
-  // Read here rather than through the offerings module — a domain module owns its own cross-table reads.
-  async findOwnedOffering(offeringId: string): Promise<{ id: string; code: string; name: string } | undefined> {
+  // The parent offering, read here rather than through the offerings module — a domain module owns
+  // its own cross-table reads. Pass requireOwned to narrow to offerings this workspace owns rather
+  // than merely inherits; without it the lookup is reachability alone, which is what reads need.
+  async findOffering(
+    offeringId: string,
+    options: { requireOwned?: boolean } = {},
+  ): Promise<{ id: string; code: string; name: string } | undefined> {
     const [row] = await this.db
       .select({ id: offerings.id, code: offerings.code, name: offerings.name })
       .from(offerings)
-      .where(sql`${offerings.id} = ${offeringId} and ${offeringOwnedByWorkspace()}`)
+      .where(
+        options.requireOwned
+          ? sql`${offerings.id} = ${offeringId} and ${ownedByWorkspace()}`
+          : eq(offerings.id, offeringId),
+      )
       .limit(1);
     return row;
-  }
-
-  // Reachability alone, for reads
-  async offeringExists(offeringId: string): Promise<boolean> {
-    const [row] = await this.db
-      .select({ id: offerings.id })
-      .from(offerings)
-      .where(eq(offerings.id, offeringId))
-      .limit(1);
-    return !!row;
   }
 
   async findByOffering(offeringId: string): Promise<OfferingDimensionWithUsage[]> {
@@ -78,11 +75,6 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
       .orderBy(asc(offeringDimensionValues.sortOrder), asc(offeringDimensionValues.value));
   }
 
-  async insertDimension(data: NewOfferingDimension): Promise<OfferingDimension> {
-    const [row] = await this.db.insert(offeringDimensions).values(data).returning();
-    return row;
-  }
-
   async createValues(rows: NewOfferingDimensionValue[]): Promise<OfferingDimensionValue[]> {
     if (rows.length === 0) return [];
     return this.db.insert(offeringDimensionValues).values(rows).returning();
@@ -95,10 +87,6 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
       .from(offeringDimensions)
       .where(eq(offeringDimensions.offeringId, offeringId));
     return (row?.max ?? -1) + 1;
-  }
-
-  async updateSortOrder(id: string, sortOrder: number): Promise<void> {
-    await this.db.update(offeringDimensions).set({ sortOrder }).where(eq(offeringDimensions.id, id));
   }
 
   // A reachable, active template with its values, for the seed-from-template path. Read here rather

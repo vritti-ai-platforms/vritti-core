@@ -4,8 +4,6 @@ import { DetailField } from '@vritti/quantum-ui/DetailField';
 import type React from 'react';
 import { FULFILMENT_TYPE_META, type OfferingData } from '@/schemas/offerings';
 
-const OWNER_LABEL: Record<OfferingData['ownerScope'], string> = { ORG: 'Organization', LE: 'Company', SITE: 'Outlet' };
-
 interface OverviewTabProps {
   offering: OfferingData;
 }
@@ -24,7 +22,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ offering }) => {
           <CardContent className="flex flex-col gap-3">
             <DetailField label="Code" type="string" value={offering.code} mono />
             <DetailField label="Fulfilment type" type="string" value={<Badge variant="outline">{meta.label}</Badge>} />
-            <DetailField label="Owner" type="string" value={OWNER_LABEL[offering.ownerScope]} />
+            <DetailField label="Owner" type="string" value={offering.ownerName} />
             <DetailField
               label="Status"
               type="string"

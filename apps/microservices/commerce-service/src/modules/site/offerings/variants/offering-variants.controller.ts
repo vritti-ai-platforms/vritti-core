@@ -36,9 +36,9 @@ export class SiteOfferingVariantsController {
   }
 
   // Returns one variant
-  @MessagePattern({ cmd: 'site.offerings.variants.get' })
-  get(@Payload() data: { id: string }): Promise<OfferingVariantDto> {
-    this.logger.log(`offerings.variants.get — id: ${data.id}`);
+  @MessagePattern({ cmd: 'site.offerings.variants.findById' })
+  findById(@Payload() data: { id: string }): Promise<OfferingVariantDto> {
+    this.logger.log(`offerings.variants.findById — id: ${data.id}`);
     return this.service.findById(data.id);
   }
 

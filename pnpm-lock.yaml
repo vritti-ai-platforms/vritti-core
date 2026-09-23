@@ -292,8 +292,8 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1(@fastify/static@10.1.3)(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.5.0
-        version: 0.5.0(e05652837b8b3d9fbd0968b744042b0b)
+        specifier: 0.5.1
+        version: 0.5.1(e05652837b8b3d9fbd0968b744042b0b)
       '@vritti/commerce-permissions':
         specifier: workspace:*
         version: link:../../libs/commerce-permissions
@@ -643,8 +643,8 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1(@fastify/static@10.1.3)(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.5.0
-        version: 0.5.0(e05652837b8b3d9fbd0968b744042b0b)
+        specifier: 0.5.1
+        version: 0.5.1(e05652837b8b3d9fbd0968b744042b0b)
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -734,8 +734,8 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1(@fastify/static@10.1.3)(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.5.0
-        version: 0.5.0(e05652837b8b3d9fbd0968b744042b0b)
+        specifier: 0.5.1
+        version: 0.5.1(e05652837b8b3d9fbd0968b744042b0b)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -7167,8 +7167,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vritti/api-sdk@0.5.0':
-    resolution: {integrity: sha512-m97+m6W0FqqI85ZOI3YNKahq4PF/XYJ+pAG0PTFII25Eet/6how+CCrnrT5lvkPQBSVq/8/p/3tjqlXjqfoOQg==}
+  '@vritti/api-sdk@0.5.1':
+    resolution: {integrity: sha512-B4Az/W90JBQ+c0sZZlNxZmWiNbKNsSBP96j68IBMLaU+HcFcMat79tCpoG607rh7l+NOCQN/7kB4j9O1Dman1g==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.997.0
       '@aws-sdk/s3-request-presigner': ^3.997.0
@@ -21199,7 +21199,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vritti/api-sdk@0.5.0(e05652837b8b3d9fbd0968b744042b0b)':
+  '@vritti/api-sdk@0.5.1(e05652837b8b3d9fbd0968b744042b0b)':
     dependencies:
       '@getbrevo/brevo': 4.0.1
       '@modelcontextprotocol/sdk': 1.30.0(zod@4.5.4)

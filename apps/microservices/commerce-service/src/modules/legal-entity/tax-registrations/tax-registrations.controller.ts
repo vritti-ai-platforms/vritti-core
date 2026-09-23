@@ -32,9 +32,9 @@ export class TaxRegistrationsController {
     return this.service.listAll();
   }
 
-  @MessagePattern({ cmd: 'le.taxRegistrations.get' })
+  @MessagePattern({ cmd: 'le.taxRegistrations.findById' })
   findById(@Payload() data: { id: string }): Promise<TaxRegistrationDto> {
-    this.logger.log(`taxRegistrations.get — id: ${data.id}`);
+    this.logger.log(`taxRegistrations.findById — id: ${data.id}`);
     return this.service.findById(data.id);
   }
 

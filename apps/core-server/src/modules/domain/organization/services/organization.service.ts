@@ -11,6 +11,7 @@ import { pluralize } from '@vritti/api-sdk/pluralize';
 import { verifyDocument } from '@vritti/api-sdk/signing';
 import { AUTH_STATUS_EVENTS, OrgUpdatedEvent, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import type { OrgService as OrgServiceEntity, OrgSize, OrgStorage } from '@/db/schema';
+import { OwnerNameCacheService } from '@/owner-names/owner-name-cache.service';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
@@ -37,6 +38,7 @@ export class OrganizationDomainService {
     private readonly eventEmitter: EventEmitter2,
     private readonly catalogService: CatalogDomainService,
     private readonly mediaGcService: MediaGcService,
+    private readonly ownerNameCache: OwnerNameCacheService,
     configService: ConfigService,
   ) {
     this.licensePublicKey = configService.getOrThrow<string>('LICENSE_PUBLIC_KEY');
@@ -152,6 +154,8 @@ export class OrganizationDomainService {
       ...(dto.storageCredential && { storage: { ...org.storage, ...dto.storageCredential } }),
       updatedAt: new Date(),
     });
+
+    if (dto.name) await this.ownerNameCache.invalidate('org', id);
 
     this.logger.log(`Updated organization from cloud: ${org.subdomain} (${id})`);
     return { success: true, message: 'Organization updated successfully.' };

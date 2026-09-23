@@ -291,17 +291,17 @@ export class CategoriesDomainRepository extends PrimaryBaseRepository<typeof cat
     `);
   }
 
-  // Counts items + inventory items linked directly to a category (used to block child creation)
+  // Counts offerings + inventory items linked directly to a category (used to block child creation)
   async countItemsForCategory(categoryId: string): Promise<number> {
-    const [itemRefs] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(offerings)
-      .where(eq(offerings.categoryId, categoryId));
-    const [inventoryItemRefs] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryItems)
-      .where(eq(inventoryItems.categoryId, categoryId));
-    return Number(itemRefs?.count ?? 0) + Number(inventoryItemRefs?.count ?? 0);
+    const [row] = await this.db
+      .select({
+        n: sql<number>`(${this.db.$count(offerings, eq(offerings.categoryId, categoryId))}
+          + ${this.db.$count(inventoryItems, eq(inventoryItems.categoryId, categoryId))})::int`,
+      })
+      .from(categories)
+      .where(eq(categories.id, categoryId))
+      .limit(1);
+    return row?.n ?? 0;
   }
 
   // Loads a category by id joined with its default tax class name (single round trip)

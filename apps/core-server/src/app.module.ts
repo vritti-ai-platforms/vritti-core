@@ -19,6 +19,7 @@ import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
 import { DB_SCHEMA } from '@/db/schema/core-schema';
 import { MediaApiModule } from '@/modules/core-api/media/media-api.module';
+import { OwnerNamesModule } from '@/owner-names/owner-names.module';
 import { RbacModule } from '@/rbac/rbac.module';
 import { SecurityModule } from '@/security/security.module';
 import { SiteContextModule } from '@/site-context/site-context.module';
@@ -273,6 +274,7 @@ const graphqlBaseOptions = {
     SecurityModule,
     // Per-site context cache (timezone, currency, group chain)
     SiteContextModule,
+    OwnerNamesModule,
 
     // --- Domain modules (services + repositories only) ---
     SessionDomainModule,

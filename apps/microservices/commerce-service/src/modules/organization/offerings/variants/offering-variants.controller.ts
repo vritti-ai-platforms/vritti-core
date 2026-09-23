@@ -48,9 +48,9 @@ export class OrgOfferingVariantsController {
   }
 
   // Returns one variant
-  @MessagePattern({ cmd: 'org.offerings.variants.get' })
-  get(@Payload() data: { id: string }): Promise<OfferingVariantDto> {
-    this.logger.log(`offerings.variants.get — id: ${data.id}`);
+  @MessagePattern({ cmd: 'org.offerings.variants.findById' })
+  findById(@Payload() data: { id: string }): Promise<OfferingVariantDto> {
+    this.logger.log(`offerings.variants.findById — id: ${data.id}`);
     return this.service.findById(data.id);
   }
 

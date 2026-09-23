@@ -21,7 +21,7 @@ export class OfferingDimensionsDomainService {
   constructor(private readonly repository: OfferingDimensionsDomainRepository) {}
 
   async list(offeringId: string): Promise<OfferingDimensionDto[]> {
-    if (!(await this.repository.offeringExists(offeringId))) throw new NotFoundException('Offering not found.');
+    if (!(await this.repository.findOffering(offeringId))) throw new NotFoundException('Offering not found.');
     const dimensions = await this.repository.findByOffering(offeringId);
     const values = await this.repository.findValues(dimensions.map((d) => d.id));
     return dimensions.map((d) =>
@@ -38,7 +38,7 @@ export class OfferingDimensionsDomainService {
     const offering = await this.requireOwnedOffering(data.offeringId);
 
     const sortOrder = await this.repository.nextSortOrder(data.offeringId);
-    const dimension = await this.repository.insertDimension({
+    const dimension = await this.repository.create({
       offeringId: data.offeringId,
       code: data.code,
       name: data.name,
@@ -74,7 +74,7 @@ export class OfferingDimensionsDomainService {
 
     const result = await this.repository.transaction(async () => {
       const sortOrder = await this.repository.nextSortOrder(data.offeringId);
-      const dimension = await this.repository.insertDimension({
+      const dimension = await this.repository.create({
         offeringId: data.offeringId,
         code: template.code,
         name: template.name,
@@ -178,7 +178,7 @@ export class OfferingDimensionsDomainService {
 
     await this.repository.transaction(async () => {
       for (const [index, id] of dimensionIds.entries()) {
-        await this.repository.updateSortOrder(id, index);
+        await this.repository.update(id, { sortOrder: index });
       }
     });
 
@@ -232,7 +232,7 @@ export class OfferingDimensionsDomainService {
 
   // RLS already rejects a write to someone else's offering; this fails earlier with a clearer message
   private async requireOwnedOffering(offeringId: string) {
-    const offering = await this.repository.findOwnedOffering(offeringId);
+    const offering = await this.repository.findOffering(offeringId, { requireOwned: true });
     if (!offering) {
       throw new ForbiddenException({
         label: 'Not Your Offering',

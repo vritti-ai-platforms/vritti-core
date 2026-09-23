@@ -23,9 +23,9 @@ export class OrgOfferingsController {
   }
 
   // Returns one offering with its dimension and variant counts
-  @MessagePattern({ cmd: 'org.offerings.get' })
-  get(@Payload() data: { id: string }): Promise<OfferingDto> {
-    this.logger.log(`offerings.get — id: ${data.id}`);
+  @MessagePattern({ cmd: 'org.offerings.findById' })
+  findById(@Payload() data: { id: string }): Promise<OfferingDto> {
+    this.logger.log(`offerings.findById — id: ${data.id}`);
     return this.service.findById(data.id);
   }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq } from '@vritti/api-sdk/drizzle-orm';
 import {
   type DimensionTemplateValue,
   dimensionTemplates,
@@ -16,13 +16,9 @@ export class DimensionTemplateValuesDomainRepository extends PrimaryBaseReposito
     super(database, dimensionTemplateValues);
   }
 
-  // Returns the owning template, or undefined when out of reach. Pass requireOwned to narrow the
-  // lookup to templates this workspace owns. Read here rather than by injecting the templates
-  // domain, because a domain module never depends on a sibling.
-  async findTemplate(
-    templateId: string,
-    options: { requireOwned?: boolean } = {},
-  ): Promise<TemplateSummary | undefined> {
+  // Returns the owning template with its ownership flag, or undefined when out of reach. Read here
+  // rather than by injecting the templates domain, because a domain module never depends on a sibling.
+  async findTemplate(templateId: string): Promise<TemplateSummary | undefined> {
     const [row] = await this.db
       .select({
         id: dimensionTemplates.id,
@@ -31,11 +27,7 @@ export class DimensionTemplateValuesDomainRepository extends PrimaryBaseReposito
         isOwned: ownedByWorkspace(),
       })
       .from(dimensionTemplates)
-      .where(
-        options.requireOwned
-          ? and(eq(dimensionTemplates.id, templateId), sql`${ownedByWorkspace()}`)
-          : eq(dimensionTemplates.id, templateId),
-      )
+      .where(eq(dimensionTemplates.id, templateId))
       .limit(1);
     return row;
   }

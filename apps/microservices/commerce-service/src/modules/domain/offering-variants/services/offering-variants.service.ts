@@ -29,9 +29,9 @@ import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
 import type { UpsertBomDto } from '../dto/request/upsert-bom.dto';
 import {
   type DimensionValueRow,
+  type OfferingRef,
   OfferingVariantsDomainRepository,
   type OfferingVariantWithNames,
-  type ParentOffering,
 } from '../repositories/offering-variants.repository';
 
 const BOM_RULES = {
@@ -248,7 +248,7 @@ export class OfferingVariantsDomainService {
   // The batch form of the isActive flip. Ownership is settled once on the parent offering, and every
   // variant is checked before anything is written — a half-applied bulk action is worse than a refusal.
   async bulkSetStatus(data: BulkSetVariantsStatusDto): Promise<SuccessResponseDto> {
-    const offering = await this.repository.findParentOffering(data.offeringId);
+    const offering = await this.repository.findOffering(data.offeringId);
     if (!offering) throw new NotFoundException('Offering not found.');
     if (!offering.isOwned) {
       throw new ForbiddenException({
@@ -267,8 +267,7 @@ export class OfferingVariantsDomainService {
 
     if (data.isActive) {
       const rule = BOM_RULES[offering.fulfilmentType];
-      const counts = await this.repository.countBomLinesFor(data.ids);
-      const missing = variants.filter((variant) => (counts.get(variant.id) ?? 0) < rule.min);
+      const missing = variants.filter((variant) => variant.bomLineCount < rule.min);
       if (missing.length > 0) {
         throw new ConflictException({
           label: 'No Bill Of Materials',
@@ -554,7 +553,7 @@ export class OfferingVariantsDomainService {
   }
 
   // A variant may only go active once its fulfilment type's bill of materials rule is met
-  private async assertBomSatisfied(variant: OfferingVariant, offering: ParentOffering): Promise<void> {
+  private async assertBomSatisfied(variant: OfferingVariant, offering: OfferingRef): Promise<void> {
     const rule = BOM_RULES[offering.fulfilmentType];
     const lines = await this.repository.findBomLines([variant.id]);
     if (lines.length < rule.min) {
@@ -587,13 +586,13 @@ export class OfferingVariantsDomainService {
     });
   }
 
-  private async requireReachableOffering(offeringId: string): Promise<ParentOffering> {
-    const offering = await this.repository.findParentOffering(offeringId);
+  private async requireReachableOffering(offeringId: string): Promise<OfferingRef> {
+    const offering = await this.repository.findOffering(offeringId);
     if (!offering) throw new NotFoundException('Offering not found.');
     return offering;
   }
 
-  private async requireOwnedOffering(offeringId: string): Promise<ParentOffering> {
+  private async requireOwnedOffering(offeringId: string): Promise<OfferingRef> {
     const offering = await this.requireReachableOffering(offeringId);
     if (!offering.isOwned) {
       throw new ForbiddenException({
@@ -606,7 +605,7 @@ export class OfferingVariantsDomainService {
 
   // Returns the parent alongside the variant: resolving it is how ownership is checked, so a caller
   // that needs the offering has it already rather than fetching the same row again.
-  private async requireOwnedVariant(id: string): Promise<{ variant: OfferingVariant; offering: ParentOffering }> {
+  private async requireOwnedVariant(id: string): Promise<{ variant: OfferingVariant; offering: OfferingRef }> {
     const variant = await this.repository.findById(id);
     if (!variant) throw new NotFoundException('Variant not found.');
     const offering = await this.requireOwnedOffering(variant.offeringId);

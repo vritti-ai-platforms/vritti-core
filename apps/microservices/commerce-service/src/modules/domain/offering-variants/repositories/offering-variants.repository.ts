@@ -17,16 +17,16 @@ import {
   offeringBom,
   offeringDimensions,
   offeringDimensionValues,
-  offeringOwnedByWorkspace,
   offerings,
   offeringVariants,
   offeringVariantValues,
   orderItems,
+  ownedByWorkspace,
   taxClasses,
   uom,
 } from '@/db/schema';
 
-export interface ParentOffering {
+export interface OfferingRef {
   id: string;
   code: string;
   name: string;
@@ -42,6 +42,8 @@ export interface VariantValueRef {
   value: string;
   valueCode: string;
 }
+
+export type VariantWithBomCount = OfferingVariant & { bomLineCount: number };
 
 export type OfferingVariantWithNames = OfferingVariant & {
   salesUomName: string | null;
@@ -70,8 +72,8 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     super(database, offeringVariants);
   }
 
-  // The parent offering with ownership, read here rather than through the offerings module
-  async findParentOffering(offeringId: string): Promise<ParentOffering | undefined> {
+  // The parent offering with its ownership flag, read here rather than through the offerings module
+  async findOffering(offeringId: string): Promise<OfferingRef | undefined> {
     const [row] = await this.db
       .select({
         id: offerings.id,
@@ -79,7 +81,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
         name: offerings.name,
         fulfilmentType: offerings.fulfilmentType,
         taxClassId: offerings.taxClassId,
-        isOwned: offeringOwnedByWorkspace(),
+        isOwned: ownedByWorkspace(),
       })
       .from(offerings)
       .where(eq(offerings.id, offeringId))
@@ -240,26 +242,15 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
 
   // The given variants, restricted to one offering — ids from another offering simply do not come back,
   // so the caller can compare counts rather than trusting the payload
-  async findManyInOffering(offeringId: string, ids: string[]): Promise<OfferingVariant[]> {
+  async findManyInOffering(offeringId: string, ids: string[]): Promise<VariantWithBomCount[]> {
     if (ids.length === 0) return [];
     return this.db
-      .select()
+      .select({
+        ...getColumns(offeringVariants),
+        bomLineCount: this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id)),
+      })
       .from(offeringVariants)
       .where(and(eq(offeringVariants.offeringId, offeringId), inArray(offeringVariants.id, ids)));
-  }
-
-  // Counts the BOM lines of many variants in one round trip
-  async countBomLinesFor(variantIds: string[]): Promise<Map<string, number>> {
-    const counts = new Map<string, number>();
-    if (variantIds.length === 0) return counts;
-    const rows = await this.db
-      .select({ variantId: offeringBom.variantId, n: sql<number>`count(*)::int` })
-      .from(offeringBom)
-      .where(inArray(offeringBom.variantId, variantIds))
-      .groupBy(offeringBom.variantId);
-    for (const id of variantIds) counts.set(id, 0);
-    for (const row of rows) counts.set(row.variantId, row.n);
-    return counts;
   }
 
   // Flips is_active on many variants at once; the caller has already checked each one may make the move

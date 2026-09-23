@@ -12,6 +12,9 @@ export class OfferingResponseDto {
   @ApiPropertyOptional({ nullable: true }) legalEntityId: string | null;
   @ApiPropertyOptional({ nullable: true }) siteId: string | null;
   @ApiProperty({ enum: ['ORG', 'LE', 'SITE'] }) ownerScope: string;
+
+  @ApiProperty({ description: 'Name of the organization, company or outlet that owns it', example: 'Mumbai Warehouse' })
+  ownerName: string;
   @ApiProperty() dimensionCount: number;
   @ApiProperty() variantCount: number;
 

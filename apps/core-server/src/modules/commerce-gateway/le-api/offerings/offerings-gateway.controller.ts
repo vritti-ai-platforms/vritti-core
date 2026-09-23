@@ -56,6 +56,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { LE_OFFERINGS } from '@vritti/commerce-permissions/offerings';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { OrgId } from '@/security/decorators';
 import { PreviewCombinationsDto } from '../../domain/offerings/dto/request/preview-combinations.dto';
 import { VariantCombinationsResponseDto } from '../../domain/offerings/dto/response/variant-combinations-response.dto';
 import { LeOfferingsGatewayService } from './services/offerings-gateway.service';
@@ -74,9 +75,9 @@ export class LeOfferingsGatewayController {
   @Get('table')
   @RequirePermission(LE_OFFERINGS.view)
   @ApiOfferingsTable()
-  getTable(@UserId() userId: string): Promise<OfferingTableResponseDto> {
+  getTable(@OrgId() orgId: string, @UserId() userId: string): Promise<OfferingTableResponseDto> {
     this.logger.log('GET /commerce-api/le/offerings/table');
-    return this.service.findForTable(userId);
+    return this.service.findForTable(orgId, userId);
   }
 
   // Creates an offering owned by this workspace
@@ -320,9 +321,9 @@ export class LeOfferingsGatewayController {
   @Get(':id')
   @RequirePermission(LE_OFFERINGS.view)
   @ApiGetOffering()
-  findById(@Param('id') id: string): Promise<OfferingResponseDto> {
+  findById(@OrgId() orgId: string, @Param('id') id: string): Promise<OfferingResponseDto> {
     this.logger.log(`GET /commerce-api/le/offerings/${id}`);
-    return this.service.findById(id);
+    return this.service.findById(orgId, id);
   }
 
   // Updates an offering this workspace owns

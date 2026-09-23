@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceiptLineItem,
   goodsReceiptItems,
@@ -60,19 +60,6 @@ export class GoodsReceiptLineItemsDomainRepository extends PrimaryBaseRepository
       limit: options.limit,
       offset: options.offset,
     });
-  }
-
-  async findStatsByLineIds(lineIds: string[]): Promise<Map<string, { count: number }>> {
-    if (lineIds.length === 0) return new Map();
-    const rows = await this.db
-      .select({
-        lineId: goodsReceiptLineItems.goodsReceiptLineId,
-        count: sql<number>`count(*)`,
-      })
-      .from(goodsReceiptLineItems)
-      .where(inArray(goodsReceiptLineItems.goodsReceiptLineId, lineIds))
-      .groupBy(goodsReceiptLineItems.goodsReceiptLineId);
-    return new Map(rows.map((r) => [r.lineId, { count: Number(r.count) }]));
   }
 
   async countByLineId(lineId: string): Promise<number> {

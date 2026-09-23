@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, getColumns, inArray, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { asc, eq, getColumns, inArray, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type DimensionTemplate,
   type DimensionTemplateValue,
@@ -27,20 +27,14 @@ export class DimensionTemplatesDomainRepository extends PrimaryBaseRepository<ty
       .orderBy(asc(dimensionTemplates.name));
   }
 
-  // Returns one template with its ownership flag, or undefined when out of reach. Pass requireOwned
-  // to narrow the lookup to rows this workspace owns rather than merely inherits.
-  async findById(
-    id: string,
-    options: { requireOwned?: boolean } = {},
-  ): Promise<DimensionTemplateWithOwnership | undefined> {
+  // Returns one template with its ownership flag, or undefined when out of reach. Callers that may
+  // only write branch on isOwned rather than narrowing here, so a row owned elsewhere still yields
+  // the name their 403 needs — RLS is what actually refuses the write.
+  async findById(id: string): Promise<DimensionTemplateWithOwnership | undefined> {
     const [row] = await this.db
       .select({ ...getColumns(dimensionTemplates), isOwned: ownedByWorkspace() })
       .from(dimensionTemplates)
-      .where(
-        options.requireOwned
-          ? and(eq(dimensionTemplates.id, id), sql`${ownedByWorkspace()}`)
-          : eq(dimensionTemplates.id, id),
-      )
+      .where(eq(dimensionTemplates.id, id))
       .limit(1);
     return row;
   }
@@ -63,8 +57,10 @@ export class DimensionTemplatesDomainRepository extends PrimaryBaseRepository<ty
     return row ?? { nameTaken: false, codeTaken: false };
   }
 
-  // Returns the template matching a name within the caller's own ownership slot, if any
-  async findOwnedByName(name: string): Promise<DimensionTemplate | undefined> {
+  // Returns the template matching a name within this workspace's own ownership slot. Scoped to owned
+  // rows because name is unique per OWNER, not per organization — an inherited row sharing the name
+  // is not a collision.
+  async findByName(name: string): Promise<DimensionTemplate | undefined> {
     const [row] = await this.db
       .select()
       .from(dimensionTemplates)
