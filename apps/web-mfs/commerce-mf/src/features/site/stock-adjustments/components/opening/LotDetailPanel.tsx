@@ -15,7 +15,6 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
-import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Boxes, ClipboardList, ClipboardMinus, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
@@ -32,6 +31,7 @@ import {
   type StockAdjustmentLineData,
   type StockAdjustmentLotDetailData,
 } from '@/schemas/stock-adjustments';
+import { UomFilter } from '@/selectors/uom';
 import { AddOpeningLineForm } from '../../forms/opening/AddOpeningLineForm';
 import { EditLotDialog } from '../../forms/opening/EditLotDialog';
 import { EditOpeningLineForm } from '../../forms/opening/EditOpeningLineForm';

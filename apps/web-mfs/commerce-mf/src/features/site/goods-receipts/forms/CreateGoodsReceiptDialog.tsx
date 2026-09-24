@@ -5,8 +5,6 @@ import { format } from '@vritti/quantum-ui/date-fns';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
-import { PurchaseOrderSelector } from '@vritti/quantum-ui/selects/purchase-order';
-import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -19,6 +17,8 @@ import {
   createGoodsReceiptSchema,
   type GoodsReceiptData,
 } from '@/schemas/goods-receipts';
+import { PurchaseOrderSelector } from '@/selectors/purchase-order';
+import { SupplierSelector } from '@/selectors/supplier';
 
 interface CreateGoodsReceiptDialogProps {
   onSuccess: (receipt: GoodsReceiptData) => void;

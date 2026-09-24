@@ -4,7 +4,6 @@ import { Checkbox } from '@vritti/quantum-ui-native/Checkbox';
 import { Form } from '@vritti/quantum-ui-native/Form';
 import { RadioGroup } from '@vritti/quantum-ui-native/RadioGroup';
 import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
-import { UomSelector } from '@vritti/quantum-ui-native/selects/uom';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { zodResolver } from '@vritti/quantum-ui-native/zod';
@@ -13,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 import { useCreateUom, useUpdateUom } from '../../../../hooks/organization/uom';
 import { type UomFormValues, uomSchema } from '../../../../schemas/uom/uom';
+import { UomSelector } from '../../../../selectors/uom';
 import type { Uom } from '../../../../types/uom';
 
 interface UomUnitFormSheetProps {

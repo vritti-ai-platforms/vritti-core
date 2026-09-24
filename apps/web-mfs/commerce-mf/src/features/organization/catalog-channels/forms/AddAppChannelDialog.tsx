@@ -1,12 +1,12 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { AppSelector } from '@vritti/quantum-ui/selects/app';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { type AddAppChannelFormData, addAppChannelSchema } from '@/schemas/catalog-channels';
-import { CatalogSelector } from '@/selectors';
+import { AppSelector } from '@/selectors/app';
+import { CatalogSelector } from '@/selectors/catalog';
 import type { UseCreateAppChannel } from '../types';
 
 interface AddAppChannelDialogProps {

@@ -26,6 +26,9 @@ src/
 ├── services/<domain>/                # non-React data/helpers (option lists, label/filter utils, axios)
 │   └── index.ts                      #   barrel
 ├── schemas/<domain>/                 # zod schemas + inferred types (form values)
+├── selectors/<entity>/               # app-owned entity pickers (pre-configured <Select>), one folder per entity
+│   ├── <Entity>Selector.tsx          #   the component — imports `@vritti/quantum-ui-native/Select`
+│   └── index.ts                      #   per-folder barrel; import from `…/selectors/<entity>`, NOT a root barrel
 ├── types/                            # shared hand TS types (enum unions for the codegen `string` caveat)
 └── features/<domain>/                # UI ONLY — no operations/hooks/schemas here
     ├── index.tsx                     #   NAVIGATOR ONLY: the `screens` PushScreenConfig[] + the PushNavigator
@@ -66,9 +69,12 @@ screen). Overview is built; the rest are `ComingSoonTab` placeholders, filled in
    Never put multiple hooks in one file. Re-export via the domain barrel; import hooks from the barrel
    (`../../hooks/<domain>`), not individual files.
 2. **A feature folder is UI only.** GraphQL ops → `src/graphql/`, hooks → `src/hooks/`, zod → `src/schemas/`,
-   helpers/option-lists → `src/services/`, shared types → `src/types/`. Don't recolocate these under the feature.
+   helpers/option-lists → `src/services/`, entity pickers → `src/selectors/`, shared types → `src/types/`.
+   Don't recolocate these under the feature.
 3. **Import a layer through its barrel** where one exists: `../../graphql/<domain>`, `../../hooks/<domain>`,
-   `../../services/<domain>`. Schemas are imported by file (`../../schemas/<domain>/<schema>`).
+   `../../services/<domain>`, `../../selectors/<entity>`. Schemas are imported by file
+   (`../../schemas/<domain>/<schema>`).
+   Selectors are imported per entity folder — there is deliberately **no** `src/selectors/index.ts` root barrel.
 4. **`graphql()` documents import from `src/gql`** (codegen), never `gql` from `@apollo/client`. `src/gql/`
    is git-ignored — `pnpm codegen` before `tsc`/dev.
 5. **CRUD keeps the cache live with surgery, no list refetch** — see `native-graphql.md` and the hooks here.

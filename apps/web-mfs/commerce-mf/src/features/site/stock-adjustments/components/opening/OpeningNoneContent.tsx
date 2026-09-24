@@ -10,7 +10,6 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { ClipboardList, ClipboardMinus, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -19,6 +18,7 @@ import {
   useStockAdjustmentLinesTable,
 } from '@/hooks/site/stock-adjustments';
 import type { StockAdjustmentData, StockAdjustmentLineData } from '@/schemas/stock-adjustments';
+import { UomFilter } from '@/selectors/uom';
 import { AddOpeningLineForm } from '../../forms/opening/AddOpeningLineForm';
 import { EditOpeningLineForm } from '../../forms/opening/EditOpeningLineForm';
 

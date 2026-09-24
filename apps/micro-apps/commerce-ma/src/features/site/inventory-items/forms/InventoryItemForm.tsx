@@ -2,9 +2,6 @@ import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
 import { RadioGroup, type RadioOption } from '@vritti/quantum-ui-native/RadioGroup';
 import type { SelectOption } from '@vritti/quantum-ui-native/Select';
-import { CategorySelector } from '@vritti/quantum-ui-native/selects/category';
-import { TaxGroupSelector } from '@vritti/quantum-ui-native/selects/tax-group';
-import { UomSelector } from '@vritti/quantum-ui-native/selects/uom';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import type { UseFormReturn } from 'react-hook-form';
@@ -12,6 +9,9 @@ import type {
   CreateInventoryItemFormValues,
   UpdateInventoryItemFormValues,
 } from '../../../../schemas/inventory-items/inventory-item';
+import { CategorySelector } from '../../../../selectors/category';
+import { TaxGroupSelector } from '../../../../selectors/tax-group';
+import { UomSelector } from '../../../../selectors/uom';
 import { PICK_STRATEGY_OPTIONS, TRACKING_OPTIONS, TYPE_OPTIONS } from '../../../../services/site/inventory-items';
 
 // The shared option arrays are SelectOption[] (value: string | number | boolean); RadioGroup wants

@@ -1,4 +1,3 @@
-import { JurisdictionSelector } from '@selectors/JurisdictionSelector';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
@@ -13,6 +12,7 @@ import {
   partyRegistrationSchema,
   REGISTRATION_TYPE_OPTIONS,
 } from '@/schemas/party-registrations';
+import { JurisdictionSelector } from '@/selectors/jurisdiction';
 import type { RegistrationsBinding } from '../bindings';
 
 interface AddRegistrationDialogProps {

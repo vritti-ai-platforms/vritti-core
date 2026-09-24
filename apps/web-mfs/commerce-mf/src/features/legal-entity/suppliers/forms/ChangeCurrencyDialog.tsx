@@ -1,13 +1,13 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useChangeSupplierCurrency } from '@/hooks/legal-entity/suppliers';
 import { type ChangeSupplierCurrencyFormData, changeSupplierCurrencySchema } from '@/schemas/suppliers';
+import { CurrencySelector } from '@/selectors/currency';
 
 interface ChangeCurrencyDialogProps {
   supplierId: string;

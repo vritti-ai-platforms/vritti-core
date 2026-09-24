@@ -3,12 +3,12 @@ import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddInventoryItemMrp } from '@/hooks/organization/inventory-items';
 import { type AddInventoryItemMrpFormData, addInventoryItemMrpSchema } from '@/schemas/inventory-item-mrp';
+import { UomSelector } from '@/selectors/uom';
 
 interface AddMrpFormProps {
   inventoryItemId: string;

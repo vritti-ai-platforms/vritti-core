@@ -4,7 +4,6 @@ import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { ISOCountrySelect } from '@vritti/quantum-ui/selects/iso-country';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -12,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { useCreatePerson } from '@/hooks/organization/people';
 import { PERSON_IDENTIFIER_TYPE_OPTIONS } from '@/schemas/party-identifiers';
 import { type CreatePersonFormData, createPersonSchema } from '@/schemas/people';
+import { ISOCountrySelect } from '@/selectors/iso-country';
 
 interface AddPersonDialogProps {
   onSuccess: () => void;

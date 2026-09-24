@@ -1,5 +1,4 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { CompanySelector } from '@vritti/quantum-ui/CompanySelector';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -10,6 +9,7 @@ import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateSupplier } from '@/hooks/legal-entity/suppliers';
 import { type SupplierDetail, type UpdateSupplierFormData, updateSupplierSchema } from '@/schemas/suppliers';
+import { CompanySelector } from '@/selectors/company';
 
 interface EditSupplierFormProps {
   supplier: SupplierDetail;

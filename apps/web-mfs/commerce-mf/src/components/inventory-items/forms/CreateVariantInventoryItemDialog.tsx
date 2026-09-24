@@ -3,8 +3,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
-import { CategorySelector } from '@vritti/quantum-ui/selects/category';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -18,6 +16,8 @@ import {
   trackingOptions,
 } from '@/schemas/inventory-items';
 import type { OfferingVariantData } from '@/schemas/offerings';
+import { CategorySelector } from '@/selectors/category';
+import { UomSelector } from '@/selectors/uom';
 import type { UseCreateVariantInventoryItem } from '../types';
 
 interface CreateVariantInventoryItemDialogProps {

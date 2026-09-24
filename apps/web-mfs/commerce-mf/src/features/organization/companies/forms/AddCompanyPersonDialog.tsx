@@ -1,13 +1,13 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { PersonSelector } from '@vritti/quantum-ui/PersonSelector';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddCompanyPerson } from '@/hooks/organization/companies';
 import { type AddCompanyPersonFormData, addCompanyPersonSchema, CONTACT_FUNCTION_OPTIONS } from '@/schemas/companies';
+import { PersonSelector } from '@/selectors/person';
 import { FunctionsEditor } from '../../party/forms/FunctionsEditor';
 
 interface AddCompanyPersonDialogProps {

@@ -1,12 +1,12 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { ISOCountrySelect } from '@vritti/quantum-ui/selects/iso-country';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { ADDRESS_FUNCTION_OPTIONS, type AddAddressFormData, addAddressSchema } from '@/schemas/party-addresses';
+import { ISOCountrySelect } from '@/selectors/iso-country';
 import type { AddressesBinding } from '../bindings';
 import { FunctionsEditor } from './FunctionsEditor';
 

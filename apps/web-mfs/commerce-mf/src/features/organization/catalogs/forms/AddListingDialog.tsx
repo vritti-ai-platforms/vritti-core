@@ -4,13 +4,13 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Select } from '@vritti/quantum-ui/Select';
-import { OfferingSelector } from '@vritti/quantum-ui/selects/offering';
-import { OfferingVariantSelector } from '@vritti/quantum-ui/selects/offering-variant';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useAddCatalogListing, useCatalogListingMrpOptions } from '@/hooks/organization/catalogs';
 import { type AddCatalogListingFormShape, addCatalogListingFormSchema } from '@/schemas/catalogs';
+import { OfferingSelector } from '@/selectors/offering';
+import { OfferingVariantSelector } from '@/selectors/offering-variant';
 
 interface AddListingDialogProps {
   catalogId: string;

@@ -1,13 +1,13 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { SiteSelector } from '@vritti/quantum-ui/selects/site';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddSupplierItemSite } from '@/hooks/legal-entity/suppliers';
 import { type AddSupplierItemSiteFormData, addSupplierItemSiteSchema } from '@/schemas/suppliers';
+import { SiteSelector } from '@/selectors/site';
 
 interface AddSupplierItemSiteDialogProps {
   supplierId: string;

@@ -4,7 +4,6 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import { Select } from '@vritti/quantum-ui/Select';
-import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -12,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { useCreateStockAdjustment } from '@/hooks/site/stock-adjustments';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { type CreateStockAdjustmentFormData, createStockAdjustmentSchema } from '@/schemas/stock-adjustments';
+import { InventoryItemSelector } from '@/selectors/inventory-item';
 
 interface CreateStockAdjustmentDialogProps {
   onSuccess: (adjustment: StockAdjustmentData) => void;

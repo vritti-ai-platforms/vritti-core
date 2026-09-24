@@ -3,8 +3,6 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { LocationSelector } from '@vritti/quantum-ui/selects/location';
-import { UserSelector } from '@vritti/quantum-ui/selects/user';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -15,6 +13,8 @@ import {
   LocationRoleValues,
   locationFormResolver,
 } from '@/schemas/locations';
+import { LocationSelector } from '@/selectors/location';
+import { UserSelector } from '@/selectors/user';
 
 interface AddLocationDialogProps {
   defaultParentId?: string | null;

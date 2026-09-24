@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { PurchaseOrderSelector } from '@vritti/quantum-ui/selects/purchase-order';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -11,6 +10,7 @@ import {
   type LinkGoodsReceiptPurchaseOrderFormData,
   linkGoodsReceiptPurchaseOrderSchema,
 } from '@/schemas/goods-receipts';
+import { PurchaseOrderSelector } from '@/selectors/purchase-order';
 
 interface LinkPurchaseOrderDialogProps {
   goodsReceipt: GoodsReceiptData;

@@ -14,8 +14,9 @@ renders it; there are no hardcoded commerce routes in the host.
   this remote consumes them via the MF-shared `@apollo/client` / `@apollo/client/react` singletons.
 - **GraphQL typing**: graphql-codegen **client-preset** → typed `graphql()` documents in `src/gql/`
 - **Forms**: react-hook-form + zod, driven by quantum `<Form>` name-wiring (no RHF `<Controller>`)
-- **TanStack Query** is still present only for the legacy `Select` pickers (FK fields are placeholders
-  pending the Select→Apollo migration) — do NOT add a `QueryClientProvider`.
+- **No TanStack Query.** The Select→Apollo migration is complete — every picker (including the
+  `src/selectors/` entity pickers) queries through Apollo. Do NOT add `@tanstack/react-query` or a
+  `QueryClientProvider`.
 
 ## Commands
 

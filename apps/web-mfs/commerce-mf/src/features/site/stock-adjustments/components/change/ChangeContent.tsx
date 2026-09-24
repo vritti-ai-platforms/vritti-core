@@ -2,7 +2,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -11,6 +10,7 @@ import {
   useStockAdjustmentLinesTable,
 } from '@/hooks/site/stock-adjustments';
 import type { InventoryTracking, StockAdjustmentData, StockAdjustmentLineData } from '@/schemas/stock-adjustments';
+import { UomFilter } from '@/selectors/uom';
 import { AddChangeLineDialog } from '../../forms/change/AddChangeLineDialog';
 import { EditChangeLineForm } from '../../forms/change/EditChangeLineDialog';
 

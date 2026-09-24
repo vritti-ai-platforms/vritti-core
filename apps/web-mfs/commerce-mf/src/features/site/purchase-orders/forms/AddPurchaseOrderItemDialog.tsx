@@ -6,7 +6,6 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { minorToMajor } from '@vritti/quantum-ui/money';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -19,6 +18,7 @@ import {
   addPurchaseOrderItemSchema,
   type PurchaseOrderDetail,
 } from '@/schemas/purchase-orders';
+import { SupplierItemSelector } from '@/selectors/supplier-item';
 import { computeFreeQty } from '@/utils/freeQty';
 
 const toOptionalNumber = (raw: unknown): number | undefined => {

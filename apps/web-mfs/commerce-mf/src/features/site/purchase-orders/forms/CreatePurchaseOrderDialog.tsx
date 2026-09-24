@@ -6,7 +6,6 @@ import { parse } from '@vritti/quantum-ui/date-fns';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import { Select, type SelectOption } from '@vritti/quantum-ui/Select';
-import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -15,6 +14,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreatePurchaseOrder } from '@/hooks/site/purchase-orders';
 import { type CreatePurchaseOrderFormData, createPurchaseOrderSchema } from '@/schemas/purchase-orders';
+import { SupplierSelector } from '@/selectors/supplier';
 
 interface CreatePurchaseOrderDialogProps {
   onSuccess: () => void;

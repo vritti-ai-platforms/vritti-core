@@ -1,9 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { CompanySelector } from '@vritti/quantum-ui/CompanySelector';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -11,6 +9,8 @@ import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateSupplier } from '@/hooks/legal-entity/suppliers';
 import { type CreateSupplierFormData, createSupplierSchema } from '@/schemas/suppliers';
+import { CompanySelector } from '@/selectors/company';
+import { CurrencySelector } from '@/selectors/currency';
 
 interface AddSupplierDialogProps {
   onSuccess: () => void;

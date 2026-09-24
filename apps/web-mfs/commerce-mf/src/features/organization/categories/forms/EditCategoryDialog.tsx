@@ -3,8 +3,6 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { CategorySelector } from '@vritti/quantum-ui/selects/category';
-import { TaxClassSelector } from '@vritti/quantum-ui/selects/tax-class';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -16,6 +14,8 @@ import {
   CategoryRoleValues,
   categoryFormResolver,
 } from '@/schemas/categories';
+import { CategorySelector } from '@/selectors/category';
+import { TaxClassSelector } from '@/selectors/tax-class';
 
 const roleOptions = Object.values(CategoryRoleValues).map((value) => ({ value, label: CategoryRoleLabels[value] }));
 

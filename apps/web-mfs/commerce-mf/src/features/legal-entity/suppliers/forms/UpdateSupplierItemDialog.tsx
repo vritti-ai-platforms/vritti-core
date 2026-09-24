@@ -3,8 +3,6 @@ import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -12,6 +10,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateSupplierItem } from '@/hooks/legal-entity/suppliers';
 import { type SupplierItemData, type UpdateSupplierItemFormData, updateSupplierItemSchema } from '@/schemas/suppliers';
+import { InventoryItemSelector } from '@/selectors/inventory-item';
+import { UomSelector } from '@/selectors/uom';
 
 interface UpdateSupplierItemDialogProps {
   supplierId: string;

@@ -9,14 +9,14 @@ import {
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
-import { LocationFilter } from '@vritti/quantum-ui/selects/location';
-import { LotFilter } from '@vritti/quantum-ui/selects/lot';
 import { Boxes, Eye } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { INVENTORY_ITEM_QUANTS_KEY, useInventoryItemQuantsTable } from '@/hooks/site/inventory-items';
 import type { InventoryItemQuantData, InventoryItemQuantStatus } from '@/schemas/inventory-item-quants';
+import { LocationFilter } from '@/selectors/location';
+import { LotFilter } from '@/selectors/lot';
 
 interface QuantsTabProps {
   inventoryItemId: string;

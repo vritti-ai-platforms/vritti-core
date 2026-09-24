@@ -13,11 +13,11 @@ import {
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
-import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { Pencil, Plus, Ruler, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { UOM_TABLE_KEY, useDeleteUom, useUomTable } from '@/hooks/organization/uom';
 import type { UomData } from '@/schemas/uom';
+import { UomFilter } from '@/selectors/uom';
 import { AddUomDialog } from '../forms/AddUomDialog';
 import { EditUomDialog } from '../forms/EditUomDialog';
 

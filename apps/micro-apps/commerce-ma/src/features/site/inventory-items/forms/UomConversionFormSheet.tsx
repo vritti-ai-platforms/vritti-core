@@ -2,7 +2,6 @@ import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/Bott
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
 import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
-import { UomSelector } from '@vritti/quantum-ui-native/selects/uom';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { zodResolver } from '@vritti/quantum-ui-native/zod';
@@ -14,6 +13,7 @@ import {
   type CreateUomConversionFormValues,
   createUomConversionSchema,
 } from '../../../../schemas/uom-conversions/uom-conversion';
+import { UomSelector } from '../../../../selectors/uom';
 import type { UomConversion } from '../../../../types/uom-conversions';
 
 interface UomConversionFormSheetProps {

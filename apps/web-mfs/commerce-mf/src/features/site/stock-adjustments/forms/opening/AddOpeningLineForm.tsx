@@ -1,8 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { LocationSelector } from '@vritti/quantum-ui/selects/location';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useState } from 'react';
@@ -14,6 +12,8 @@ import {
   addOpeningStockLineSchema,
   type InventoryTracking,
 } from '@/schemas/stock-adjustments';
+import { LocationSelector } from '@/selectors/location';
+import { UomSelector } from '@/selectors/uom';
 
 interface AddOpeningLineFormProps {
   adjustmentId: string;

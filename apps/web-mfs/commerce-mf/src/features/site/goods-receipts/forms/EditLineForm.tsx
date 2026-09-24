@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useMemo } from 'react';
@@ -15,6 +14,7 @@ import {
   InventoryTrackingValues,
 } from '@/schemas/goods-receipts';
 import { LocationRoleValues } from '@/schemas/locations';
+import { LocationSelector } from '@/selectors/location';
 
 interface EditLineFormProps {
   goodsReceiptId: string;

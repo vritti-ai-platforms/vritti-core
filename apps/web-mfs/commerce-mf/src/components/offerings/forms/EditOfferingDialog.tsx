@@ -2,12 +2,12 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
-import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { type OfferingData, type UpdateOfferingFormData, updateOfferingSchema } from '@/schemas/offerings';
+import { CategorySelector } from '@/selectors/category';
 import type { UseUpdateOffering } from '../types';
 
 interface EditOfferingDialogProps {

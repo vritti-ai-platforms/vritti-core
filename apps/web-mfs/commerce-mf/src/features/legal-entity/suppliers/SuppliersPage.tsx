@@ -6,13 +6,13 @@ import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from 
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { InventoryItemFilter } from '@vritti/quantum-ui/selects/inventory-item';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Plus, Truck } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SUPPLIERS_TABLE_KEY, useSuppliersTable } from '@/hooks/legal-entity/suppliers';
 import type { SupplierData } from '@/schemas/suppliers';
+import { InventoryItemFilter } from '@/selectors/inventory-item';
 import { AddSupplierDialog } from './forms/AddSupplierDialog';
 
 export const SuppliersPage = () => {

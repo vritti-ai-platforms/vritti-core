@@ -1,9 +1,9 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Separator } from '@vritti/quantum-ui/Separator';
-import { OfferingSelector } from '@vritti/quantum-ui/selects/offering';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ChevronsUpDown, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { OfferingSelector } from '@/selectors/offering';
 
 interface OfferingSwitcherProps {
   // The raw `name~uuid` breadcrumb segment; the id addresses the API, the slug is the fallback label

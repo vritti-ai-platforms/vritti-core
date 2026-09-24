@@ -1,16 +1,16 @@
-import { JurisdictionSelector } from '@selectors/JurisdictionSelector';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { ISOCountrySelect } from '@vritti/quantum-ui/selects/iso-country';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateCompany } from '@/hooks/organization/companies';
 import { type CreateCompanyFormData, createCompanySchema } from '@/schemas/companies';
+import { ISOCountrySelect } from '@/selectors/iso-country';
+import { JurisdictionSelector } from '@/selectors/jurisdiction';
 
 interface AddCompanyDialogProps {
   onSuccess: () => void;

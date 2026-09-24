@@ -6,8 +6,6 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { minorToMajor } from '@vritti/quantum-ui/money';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { PurchaseOrderItemSelector } from '@vritti/quantum-ui/selects/purchase-order-item';
-import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { PackageCheck } from 'lucide-react';
@@ -24,6 +22,8 @@ import {
   buildAddGoodsReceiptItemFromPurchaseOrderItemSchema,
   buildAddGoodsReceiptItemFromSupplierItemSchema,
 } from '@/schemas/goods-receipts';
+import { PurchaseOrderItemSelector } from '@/selectors/purchase-order-item';
+import { SupplierItemSelector } from '@/selectors/supplier-item';
 import { computeFreeQty } from '@/utils/freeQty';
 
 const toOptionalNumber = (raw: unknown): number | undefined => {

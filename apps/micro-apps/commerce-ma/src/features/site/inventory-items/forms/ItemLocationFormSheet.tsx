@@ -2,7 +2,6 @@ import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/Bott
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
 import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
-import { LocationSelector } from '@vritti/quantum-ui-native/selects/location';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { zodResolver } from '@vritti/quantum-ui-native/zod';
@@ -14,6 +13,7 @@ import {
   type CreateItemLocationFormValues,
   createItemLocationSchema,
 } from '../../../../schemas/item-locations/item-location';
+import { LocationSelector } from '../../../../selectors/location';
 import type { ItemLocation } from '../../../../types/item-locations';
 
 interface ItemLocationFormSheetProps {

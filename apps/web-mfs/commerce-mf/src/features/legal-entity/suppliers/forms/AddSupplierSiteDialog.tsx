@@ -2,12 +2,12 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
-import { SiteSelector } from '@vritti/quantum-ui/selects/site';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddSupplierSite } from '@/hooks/legal-entity/suppliers';
 import { type AddSupplierSiteFormData, addSupplierSiteSchema } from '@/schemas/suppliers';
+import { SiteSelector } from '@/selectors/site';
 
 interface AddSupplierSiteDialogProps {
   supplierId: string;

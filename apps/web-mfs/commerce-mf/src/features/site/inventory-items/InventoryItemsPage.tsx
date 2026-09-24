@@ -6,8 +6,6 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
-import { CategoryFilter } from '@vritti/quantum-ui/selects/category';
-import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Package, Plus } from 'lucide-react';
 import { useMemo } from 'react';
@@ -15,6 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/site/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
 import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
+import { CategoryFilter } from '@/selectors/category';
+import { UomFilter } from '@/selectors/uom';
 import { EnableInventoryItemDialog } from './forms/EnableInventoryItemDialog';
 
 export const InventoryItemsPage = () => {

@@ -14,7 +14,6 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
-import { SupplierFilter } from '@vritti/quantum-ui/selects/supplier';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ClipboardList, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
@@ -22,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { PURCHASE_ORDERS_TABLE_KEY, usePurchaseOrdersTable } from '@/hooks/site/purchase-orders';
 import type { PurchaseOrderData } from '@/schemas/purchase-orders';
 import { purchaseOrderStatusConfig } from '@/schemas/purchase-orders';
+import { SupplierFilter } from '@/selectors/supplier';
 import { CreatePurchaseOrderDialog } from './forms/CreatePurchaseOrderDialog';
 
 export const PurchaseOrdersPage = () => {

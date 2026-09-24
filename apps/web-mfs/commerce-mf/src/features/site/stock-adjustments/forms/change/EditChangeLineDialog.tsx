@@ -2,7 +2,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { ClipboardMinus } from 'lucide-react';
@@ -17,6 +16,7 @@ import {
   StockAdjustmentTypeValues,
   type UpdateChangeLineFormData,
 } from '@/schemas/stock-adjustments';
+import { UomSelector } from '@/selectors/uom';
 
 // Edit allows changing quantity + UOM; quant binding cannot change after creation.
 export const EditChangeLineForm = ({

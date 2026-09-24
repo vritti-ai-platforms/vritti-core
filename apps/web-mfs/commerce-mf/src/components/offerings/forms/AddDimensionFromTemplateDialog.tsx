@@ -1,4 +1,3 @@
-import { DimensionTemplateSelector } from '@selectors/DimensionTemplateSelector';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
@@ -6,6 +5,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { type CreateDimensionFromTemplateFormData, createDimensionFromTemplateSchema } from '@/schemas/offerings';
+import { DimensionTemplateSelector } from '@/selectors/dimension-template';
 import type { UseCreateDimensionFromTemplate } from '../types';
 
 interface AddDimensionFromTemplateDialogProps {

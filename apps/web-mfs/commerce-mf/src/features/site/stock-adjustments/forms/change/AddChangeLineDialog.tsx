@@ -2,8 +2,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { QuantSelector } from '@vritti/quantum-ui/selects/quant';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { ClipboardMinus } from 'lucide-react';
@@ -17,6 +15,8 @@ import {
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
 } from '@/schemas/stock-adjustments';
+import { QuantSelector } from '@/selectors/quant';
+import { UomSelector } from '@/selectors/uom';
 
 const AddChangeLineForm = ({
   adjustmentId,

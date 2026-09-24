@@ -1,13 +1,13 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useEnableInventoryItem } from '@/hooks/site/inventory-items';
 import { type EnableInventoryItemFormData, enableInventoryItemSchema } from '@/schemas/inventory-items';
+import { InventoryItemSelector } from '@/selectors/inventory-item';
 
 interface EnableInventoryItemDialogProps {
   onSuccess: () => void;

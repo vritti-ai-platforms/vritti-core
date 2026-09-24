@@ -1,9 +1,9 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Separator } from '@vritti/quantum-ui/Separator';
-import { OfferingVariantSelector } from '@vritti/quantum-ui/selects/offering-variant';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Boxes, ChevronsUpDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { OfferingVariantSelector } from '@/selectors/offering-variant';
 
 interface VariantSwitcherProps {
   // The raw `sku~uuid` breadcrumb segment

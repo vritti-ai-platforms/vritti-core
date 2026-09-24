@@ -1,8 +1,8 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Separator } from '@vritti/quantum-ui/Separator';
-import { RepositorySelector } from '@vritti/quantum-ui/selects/repository';
 import { ChevronsUpDown, FolderGit2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { RepositorySelector } from '@/selectors/repository';
 
 interface RepositorySwitcherProps {
   // Repositories are keyed by name, so the raw breadcrumb segment is both the value and the fallback label

@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -11,6 +10,7 @@ import {
   changePurchaseOrderSupplierSchema,
   type PurchaseOrderDetail,
 } from '@/schemas/purchase-orders';
+import { SupplierSelector } from '@/selectors/supplier';
 
 interface ChangePurchaseOrderSupplierDialogProps {
   purchaseOrder: PurchaseOrderDetail;

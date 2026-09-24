@@ -9,7 +9,6 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
-import { formatCategoryPath } from '@vritti/quantum-ui/selects/category';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Boxes, Eye, Folder, FolderTree, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
@@ -24,6 +23,7 @@ import {
 } from '@/hooks/organization/categories';
 import { type CategoryData, type CategoryItemRow, CategoryRoleLabels, CategoryRoleValues } from '@/schemas/categories';
 import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
+import { formatCategoryPath } from '@/selectors/category';
 import { AddCategoryDialog } from '../forms/AddCategoryDialog';
 import { EditCategoryDialog } from '../forms/EditCategoryDialog';
 import { CategoryDetailPanelSkeleton } from './CategoryDetailPanelSkeleton';

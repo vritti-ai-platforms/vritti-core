@@ -3,7 +3,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
-import { TaxClassSelector } from '@vritti/quantum-ui/selects/tax-class';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,6 +12,7 @@ import {
   type SetTaxClassFormData,
   setTaxClassSchema,
 } from '@/schemas/offerings';
+import { TaxClassSelector } from '@/selectors/tax-class';
 import type { UseSetOfferingTaxClass, UseSetVariantTaxClass } from '../types';
 
 interface SetTaxClassDialogProps {

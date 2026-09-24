@@ -5,7 +5,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { type CatalogChannelData, type EditAppChannelFormData, editAppChannelSchema } from '@/schemas/catalog-channels';
-import { CatalogSelector } from '@/selectors';
+import { CatalogSelector } from '@/selectors/catalog';
 import type { UseUpdateAppChannel } from '../types';
 
 interface EditAppChannelDialogProps {

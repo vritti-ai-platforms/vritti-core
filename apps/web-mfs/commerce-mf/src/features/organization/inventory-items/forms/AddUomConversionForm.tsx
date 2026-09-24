@@ -2,7 +2,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -13,6 +12,7 @@ import {
   type CreateInventoryItemUomConversionFormData,
   createInventoryItemUomConversionSchema,
 } from '@/schemas/inventory-item-uom-conversions';
+import { UomSelector } from '@/selectors/uom';
 
 interface AddUomConversionFormProps {
   inventoryItemId: string;

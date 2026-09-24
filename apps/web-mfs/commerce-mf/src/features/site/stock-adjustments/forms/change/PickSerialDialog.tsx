@@ -2,12 +2,12 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { SerialSelector } from '@vritti/quantum-ui/selects/serial';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { ClipboardMinus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useAddStockAdjustmentLineItem } from '@/hooks/site/stock-adjustments';
 import { type AddStockAdjustmentLineItemFormData, addStockAdjustmentLineItemSchema } from '@/schemas/stock-adjustments';
+import { SerialSelector } from '@/selectors/serial';
 
 const PickSerialForm = ({
   adjustmentId,

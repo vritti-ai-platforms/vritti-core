@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -12,6 +11,7 @@ import {
   createInventoryItemLocationSchema,
 } from '@/schemas/inventory-item-locations';
 import { LocationRoleValues } from '@/schemas/locations';
+import { LocationSelector } from '@/selectors/location';
 
 interface AddInventoryItemLocationFormProps {
   inventoryItemId: string;

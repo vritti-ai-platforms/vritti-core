@@ -2,8 +2,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
-import { CategorySelector } from '@vritti/quantum-ui/selects/category';
-import { TaxClassSelector } from '@vritti/quantum-ui/selects/tax-class';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -17,6 +15,8 @@ import {
   FULFILMENT_TYPES,
   toCode,
 } from '@/schemas/offerings';
+import { CategorySelector } from '@/selectors/category';
+import { TaxClassSelector } from '@/selectors/tax-class';
 import type { UseCreateOffering } from '../types';
 
 const TYPE_OPTIONS = FULFILMENT_TYPES.map((value) => ({

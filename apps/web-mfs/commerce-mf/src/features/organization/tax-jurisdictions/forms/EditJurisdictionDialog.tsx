@@ -3,7 +3,6 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { ISOCountrySelect } from '@vritti/quantum-ui/selects/iso-country';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -14,6 +13,7 @@ import {
   type TaxJurisdictionFormData,
   taxJurisdictionFormResolver,
 } from '@/schemas/tax-jurisdictions';
+import { ISOCountrySelect } from '@/selectors/iso-country';
 
 interface EditJurisdictionDialogProps {
   jurisdiction: TaxJurisdictionData;
