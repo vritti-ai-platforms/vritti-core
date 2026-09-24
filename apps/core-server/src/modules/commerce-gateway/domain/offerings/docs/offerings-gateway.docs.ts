@@ -372,6 +372,47 @@ export function ApiClearVariantTaxClass() {
   );
 }
 
+export function ApiSetOfferingFulfilment() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Change an offering's fulfilment type",
+      description:
+        'Cascades to every variant that has not pinned its own. Refused when any of those variants holds a bill of materials the new type forbids, so the offering never half-changes.',
+    }),
+    ApiParam({ name: 'id', description: 'Offering identifier' }),
+    ApiResponse({ status: 200, description: 'Fulfilment type updated.' }),
+    ApiResponse({ status: 409, description: 'Variants hold components the new type forbids.' }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiSetVariantFulfilment() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Pin a variant's own fulfilment type",
+      description:
+        "Overrides the offering's type for this variant — a variety pack inside a stock offering is composite. Exempts it from future cascades.",
+    }),
+    ApiParam({ name: 'variantId', description: 'Variant identifier' }),
+    ApiResponse({ status: 200, description: 'Fulfilment type overridden.' }),
+    ApiResponse({ status: 409, description: 'Its components do not fit the new type.' }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiClearVariantFulfilment() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Drop a variant's fulfilment override",
+      description: "Resynchronises the variant with its offering's type and re-enrols it in future cascades.",
+    }),
+    ApiParam({ name: 'variantId', description: 'Variant identifier' }),
+    ApiResponse({ status: 200, description: 'Override cleared.' }),
+    ApiResponse({ status: 409, description: "Its components do not fit the offering's type." }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
 export function ApiUpdateOfferingDimension() {
   return applyDecorators(
     ApiOperation({

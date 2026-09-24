@@ -5,7 +5,7 @@ import {
   type DimensionTemplateValue,
   dimensionTemplates,
   dimensionTemplateValues,
-  ownedByWorkspace,
+  ownedByWorkspaceExpression,
 } from '@/db/schema';
 
 export type TemplateSummary = { id: string; name: string; isActive: boolean; isOwned: boolean };
@@ -24,7 +24,7 @@ export class DimensionTemplateValuesDomainRepository extends PrimaryBaseReposito
         id: dimensionTemplates.id,
         name: dimensionTemplates.name,
         isActive: dimensionTemplates.isActive,
-        isOwned: ownedByWorkspace(),
+        isOwned: ownedByWorkspaceExpression(),
       })
       .from(dimensionTemplates)
       .where(eq(dimensionTemplates.id, templateId))

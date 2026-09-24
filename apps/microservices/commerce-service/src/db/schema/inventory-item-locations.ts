@@ -12,12 +12,13 @@ import {
 import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
 import { locations } from './locations';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const inventoryItemLocations = commerceSchema.table(
   'inventory_item_locations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
@@ -41,10 +42,7 @@ export const inventoryItemLocations = commerceSchema.table(
     uniqueIndex('uq_iil_one_preferred').on(table.inventoryItemId, table.siteId).where(sql`is_preferred = true`),
     index('idx_inventory_item_locations_item').on(table.inventoryItemId),
     index('idx_inventory_item_locations_location').on(table.locationId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

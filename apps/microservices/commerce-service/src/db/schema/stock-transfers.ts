@@ -1,14 +1,14 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { decimal, index, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { stockTransferStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const stockTransfers = commerceSchema.table(
   'stock_transfers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
@@ -29,10 +29,7 @@ export const stockTransfers = commerceSchema.table(
     index('idx_stock_transfers_item').on(table.inventoryItemId),
     index('idx_stock_transfers_from_site').on(table.fromSiteId),
     index('idx_stock_transfers_to_site').on(table.toSiteId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

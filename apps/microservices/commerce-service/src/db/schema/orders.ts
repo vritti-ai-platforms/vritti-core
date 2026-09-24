@@ -16,12 +16,13 @@ import { customers } from './customers';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
 import { offeringVariants } from './offering-variants';
 import { offerings } from './offerings';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const orders = commerceSchema.table(
   'orders',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     orderNumber: varchar('order_number', { length: 50 }).notNull(),
     type: orderTypeEnum('type').notNull(),
@@ -55,10 +56,7 @@ export const orders = commerceSchema.table(
     unique('uq_orders_org_number').on(table.organizationId, table.orderNumber),
     index('idx_orders_site').on(table.organizationId, table.siteId),
     index('idx_orders_status').on(table.status),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
@@ -85,7 +83,7 @@ export const orderItems = commerceSchema.table(
   'order_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     orderId: uuid('order_id')
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),

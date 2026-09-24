@@ -1,15 +1,15 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { codeCheck, index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { codeCheck, index, jsonb, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { categories } from './categories';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';
 import { uom } from './uom';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const inventoryItems = commerceSchema.table(
   'inventory_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     name: varchar('name', { length: 255 }).notNull(),
     sku: varchar('sku', { length: 100 }).notNull(),
     type: inventoryItemTypeEnum('type').notNull(),
@@ -37,10 +37,7 @@ export const inventoryItems = commerceSchema.table(
     index('idx_inventory_items_feed').on(table.organizationId, table.createdAt.desc(), table.id),
     index('idx_inventory_items_name').on(table.organizationId, table.name, table.id),
     index('idx_inventory_items_sku_sort').on(table.organizationId, table.sku, table.id),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

@@ -14,7 +14,9 @@ import type {
   OfferingVariantData,
   PreviewCombinationsData,
   ReorderDimensionsData,
+  SetOfferingFulfilmentData,
   SetOfferingTaxClassData,
+  SetVariantFulfilmentData,
   SetVariantTaxClassData,
   UpdateBomLineData,
   UpdateDimensionData,
@@ -27,6 +29,7 @@ import {
   addSuggestedComponent,
   bulkSetOfferingsStatus,
   bulkSetVariantsStatus,
+  clearVariantFulfilment,
   clearVariantTaxClass,
   createDimension,
   createDimensionFromTemplate,
@@ -39,8 +42,10 @@ import {
   generateVariants,
   previewVariantCombinations,
   reorderDimensions,
+  setOfferingFulfilment,
   setOfferingStatus,
   setOfferingTaxClass,
+  setVariantFulfilment,
   setVariantTaxClass,
   updateBomLine,
   updateDimension,
@@ -332,6 +337,48 @@ export function useDeleteBomLine(
   return useMutation<SuccessResponse, AxiosError, DeleteBomLineData>({
     ...options,
     mutationFn: deleteBomLine,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useSetOfferingFulfilment(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetOfferingFulfilmentData>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, SetOfferingFulfilmentData>({
+    ...options,
+    mutationFn: setOfferingFulfilment,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useSetVariantFulfilment(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetVariantFulfilmentData>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, SetVariantFulfilmentData>({
+    ...options,
+    mutationFn: setVariantFulfilment,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useClearVariantFulfilment(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, string>({
+    ...options,
+    mutationFn: clearVariantFulfilment,
     onSuccess: (...args) => {
       invalidate();
       options?.onSuccess?.(...args);

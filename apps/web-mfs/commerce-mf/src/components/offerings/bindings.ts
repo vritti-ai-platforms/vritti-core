@@ -5,6 +5,7 @@ import type {
   UseAddSuggestedComponent,
   UseBulkSetOfferingsStatus,
   UseBulkSetVariantsStatus,
+  UseClearVariantFulfilment,
   UseClearVariantTaxClass,
   UseCreateDimension,
   UseCreateDimensionFromTemplate,
@@ -20,8 +21,10 @@ import type {
   UseOfferingVariantsTable,
   UsePreviewVariantCombinations,
   UseReorderDimensions,
+  UseSetOfferingFulfilment,
   UseSetOfferingStatus,
   UseSetOfferingTaxClass,
+  UseSetVariantFulfilment,
   UseSetVariantTaxClass,
   UseSuspenseOffering,
   UseSuspenseVariant,
@@ -68,6 +71,9 @@ export interface OfferingsBinding {
   useDeleteVariant: UseDeleteVariant;
   useSetOfferingTaxClass: UseSetOfferingTaxClass;
   useSetVariantTaxClass: UseSetVariantTaxClass;
+  useSetOfferingFulfilment: UseSetOfferingFulfilment;
+  useSetVariantFulfilment: UseSetVariantFulfilment;
+  useClearVariantFulfilment: UseClearVariantFulfilment;
   useClearVariantTaxClass: UseClearVariantTaxClass;
   useAddBomLine: UseAddBomLine;
   useUpdateBomLine: UseUpdateBomLine;

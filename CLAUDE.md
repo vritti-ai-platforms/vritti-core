@@ -81,6 +81,7 @@ See `.claude/rules/` for detailed pattern documentation:
 - `backend-service.md` — Service business logic rules
 - `backend-repository.md` — Repository data access rules
 - `backend-dto.md` — DTO organization (request/response/entity)
+- `db-schema.md` — Drizzle schema + RLS policy conventions (workspace-scope helpers, no hardcoded table/column names, migration rules)
 - `backend-module-structure.md` — module folder split + dependency direction (domain owns its boundary DTOs; API layer imports them downward; domain NEVER imports up from an API layer)
 - `frontend-conventions.md` — Frontend patterns and component usage
 - `frontend-hook.md` — TanStack Query hook conventions

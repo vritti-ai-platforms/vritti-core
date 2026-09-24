@@ -16,7 +16,7 @@ import {
   NotFoundException,
 } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
-import { FulfilmentTypeValues, type OfferingVariant, offeringVariants } from '@/db/schema';
+import { type FulfilmentType, FulfilmentTypeValues, type OfferingVariant, offeringVariants } from '@/db/schema';
 import { type OfferingBomLineDto, OfferingVariantDto } from '../dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '../dto/entity/variant-combination.dto';
 import type { AddBomLineDto, UpdateBomLineDto } from '../dto/request/bom-line.dto';
@@ -24,6 +24,7 @@ import type { BulkSetVariantsStatusDto } from '../dto/request/bulk-set-variants-
 import type { CreateVariantDto } from '../dto/request/create-variant.dto';
 import type { GenerateVariantsDto } from '../dto/request/generate-variants.dto';
 import type { PreviewCombinationsDto } from '../dto/request/preview-combinations.dto';
+import type { SetVariantFulfilmentDto } from '../dto/request/set-variant-fulfilment.dto';
 import type { SetVariantTaxClassDto } from '../dto/request/set-variant-tax-class.dto';
 import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
 import type { UpsertBomDto } from '../dto/request/upsert-bom.dto';
@@ -54,6 +55,8 @@ export class OfferingVariantsDomainService {
     salesUomId: { column: offeringVariants.salesUomId, type: 'string' },
     taxClassId: { column: offeringVariants.taxClassId, type: 'string' },
     isTaxClassOverridden: { column: offeringVariants.isTaxClassOverridden, type: 'boolean' },
+    fulfilmentType: { column: offeringVariants.fulfilmentType, type: 'string' },
+    isFulfilmentOverridden: { column: offeringVariants.isFulfilmentOverridden, type: 'boolean' },
   };
 
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
@@ -195,6 +198,7 @@ export class OfferingVariantsDomainService {
           salesUomId: data.salesUomId,
           sortOrder: index,
           taxClassId: offering.taxClassId,
+          fulfilmentType: offering.fulfilmentType,
           isActive: offering.fulfilmentType === FulfilmentTypeValues.SERVICE,
         })),
       );
@@ -239,8 +243,8 @@ export class OfferingVariantsDomainService {
   }
 
   async update(id: string, data: Omit<UpdateVariantDto, 'id'>): Promise<SuccessResponseDto> {
-    const { variant, offering } = await this.requireOwnedVariant(id);
-    if (data.isActive) await this.assertBomSatisfied(variant, offering);
+    const { variant } = await this.requireOwnedVariant(id);
+    if (data.isActive) await this.assertBomSatisfied(variant);
     await this.repository.update(id, data);
     return { success: true, message: `"${variant.sku}" updated.` };
   }
@@ -266,12 +270,11 @@ export class OfferingVariantsDomainService {
     }
 
     if (data.isActive) {
-      const rule = BOM_RULES[offering.fulfilmentType];
-      const missing = variants.filter((variant) => variant.bomLineCount < rule.min);
+      const missing = variants.filter((variant) => variant.bomLineCount < BOM_RULES[variant.fulfilmentType].min);
       if (missing.length > 0) {
         throw new ConflictException({
           label: 'No Bill Of Materials',
-          detail: `${pluralize('variant', missing.length, true)} in this selection need at least ${pluralize('component', rule.min, true)} before they can be sold.`,
+          detail: `${pluralize('variant', missing.length, true)} in this selection still need components before they can be sold: ${missing.map((variant) => `"${variant.sku}"`).join(', ')}.`,
         });
       }
     }
@@ -300,6 +303,35 @@ export class OfferingVariantsDomainService {
     }
     await this.repository.update(id, { taxClassId: offering.taxClassId, isTaxClassOverridden: false });
     this.logger.log(`Cleared tax class override on variant ${variant.sku} (${id})`);
+    return { success: true, message: `"${variant.sku}" now follows "${offering.name}".` };
+  }
+
+  // Pins this variant's own fulfilment type, exempting it from the offering's cascade from here on.
+  // Refused while the bill of materials it already holds would break the new type's rule — changing
+  // the label must not leave a variant in a state its own rule forbids.
+  async setFulfilment(id: string, data: Omit<SetVariantFulfilmentDto, 'id'>): Promise<SuccessResponseDto> {
+    const { variant } = await this.requireOwnedVariant(id);
+    const next = data.fulfilmentType as FulfilmentType;
+    if (variant.fulfilmentType === next && variant.isFulfilmentOverridden) {
+      return { success: true, message: `"${variant.sku}" already uses that fulfilment type.` };
+    }
+
+    await this.assertBomFits(variant, next);
+    await this.repository.update(id, { fulfilmentType: next, isFulfilmentOverridden: true });
+    this.logger.log(`Overrode fulfilment on variant ${variant.sku} (${id}) to ${next}`);
+    return { success: true, message: `"${variant.sku}" is now ${next.toLowerCase()}.` };
+  }
+
+  // Drops the override and resynchronises with the parent offering
+  async clearFulfilmentOverride(id: string): Promise<SuccessResponseDto> {
+    const { variant, offering } = await this.requireOwnedVariant(id);
+    if (!variant.isFulfilmentOverridden) {
+      return { success: true, message: `"${variant.sku}" already follows its offering.` };
+    }
+
+    await this.assertBomFits(variant, offering.fulfilmentType);
+    await this.repository.update(id, { fulfilmentType: offering.fulfilmentType, isFulfilmentOverridden: false });
+    this.logger.log(`Cleared fulfilment override on variant ${variant.sku} (${id})`);
     return { success: true, message: `"${variant.sku}" now follows "${offering.name}".` };
   }
 
@@ -361,8 +393,8 @@ export class OfferingVariantsDomainService {
   // Adds one component. The type's maximum is checked against what is already there rather than
   // against a submitted list, so two people adding at once cannot both slip past it.
   async addBomLine(data: AddBomLineDto): Promise<SuccessResponseDto> {
-    const { variant, offering } = await this.requireOwnedVariant(data.variantId);
-    const rule = BOM_RULES[offering.fulfilmentType];
+    const { variant } = await this.requireOwnedVariant(data.variantId);
+    const rule = BOM_RULES[variant.fulfilmentType];
 
     if ((await this.repository.countBomLines(data.variantId)) >= rule.max) {
       throw new ConflictException({
@@ -384,8 +416,8 @@ export class OfferingVariantsDomainService {
 
   // Removes one component, deactivating the variant if that drops it below its type's minimum
   async deleteBomLine(lineId: string): Promise<SuccessResponseDto> {
-    const { line, variant, offering } = await this.requireOwnedBomLine(lineId);
-    const rule = BOM_RULES[offering.fulfilmentType];
+    const { line, variant } = await this.requireOwnedBomLine(lineId);
+    const rule = BOM_RULES[variant.fulfilmentType];
     const remaining = (await this.repository.countBomLines(variant.id)) - 1;
     const deactivate = variant.isActive && remaining < rule.min;
 
@@ -432,13 +464,13 @@ export class OfferingVariantsDomainService {
 
   // Replaces a variant's bill of materials, then reconciles whether it can still be sold
   async upsertBom(data: UpsertBomDto): Promise<SuccessResponseDto> {
-    const { variant, offering } = await this.requireOwnedVariant(data.variantId);
-    const rule = BOM_RULES[offering.fulfilmentType];
+    const { variant } = await this.requireOwnedVariant(data.variantId);
+    const rule = BOM_RULES[variant.fulfilmentType];
 
     if (data.lines.length > rule.max) {
       throw new BadRequestException({
         label: 'Too Many Components',
-        detail: `A ${offering.fulfilmentType.toLowerCase()} variant takes ${rule.max === 1 ? 'exactly one component' : 'any number of components'}. Remove the extras, or change the offering's fulfilment type.`,
+        detail: `A ${variant.fulfilmentType.toLowerCase()} variant takes ${rule.max === 1 ? 'exactly one component' : 'any number of components'}. Remove the extras, or change its fulfilment type.`,
       });
     }
 
@@ -552,9 +584,27 @@ export class OfferingVariantsDomainService {
     return rows.sort((a, b) => a.dimensionSortOrder - b.dimensionSortOrder);
   }
 
+  // Whether the components a variant already holds are legal under a fulfilment type it is moving to
+  private async assertBomFits(variant: OfferingVariant, next: FulfilmentType): Promise<void> {
+    const rule = BOM_RULES[next];
+    const lines = await this.repository.countBomLines(variant.id);
+    if (lines > rule.max) {
+      throw new ConflictException({
+        label: 'Too Many Components',
+        detail: `"${variant.sku}" holds ${pluralize('component', lines, true)}, but ${next.toLowerCase()} allows ${rule.max === 1 ? 'exactly one' : 'any number'}. Remove the extras first.`,
+      });
+    }
+    if (variant.isActive && lines < rule.min) {
+      throw new ConflictException({
+        label: 'No Bill Of Materials',
+        detail: `"${variant.sku}" is on sale with ${pluralize('component', lines, true)}, which ${next.toLowerCase()} does not allow. Deactivate it first, or add components.`,
+      });
+    }
+  }
+
   // A variant may only go active once its fulfilment type's bill of materials rule is met
-  private async assertBomSatisfied(variant: OfferingVariant, offering: OfferingRef): Promise<void> {
-    const rule = BOM_RULES[offering.fulfilmentType];
+  private async assertBomSatisfied(variant: OfferingVariant): Promise<void> {
+    const rule = BOM_RULES[variant.fulfilmentType];
     const lines = await this.repository.findBomLines([variant.id]);
     if (lines.length < rule.min) {
       throw new ConflictException({

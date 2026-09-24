@@ -21,7 +21,7 @@ import {
   offeringVariants,
   offeringVariantValues,
   orderItems,
-  ownedByWorkspace,
+  ownedByWorkspaceExpression,
   taxClasses,
   uom,
 } from '@/db/schema';
@@ -81,7 +81,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
         name: offerings.name,
         fulfilmentType: offerings.fulfilmentType,
         taxClassId: offerings.taxClassId,
-        isOwned: ownedByWorkspace(),
+        isOwned: ownedByWorkspaceExpression(),
       })
       .from(offerings)
       .where(eq(offerings.id, offeringId))

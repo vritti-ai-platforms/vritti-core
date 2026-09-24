@@ -5,7 +5,6 @@ import {
   codeCheck,
   index,
   integer,
-  pgPolicy,
   timestamp,
   unique,
   uuid,
@@ -14,7 +13,7 @@ import {
 import { commerceSchema } from './commerce-schema';
 import {
   organizationIdColumn,
-  ownedByWorkspace,
+  scopeFromOwnerPolicies,
   workspaceHierarchyPolicies,
   workspaceScopeColumns,
 } from './workspace-scope';
@@ -52,12 +51,6 @@ export const dimensionTemplates = commerceSchema.table(
 export type DimensionTemplate = typeof dimensionTemplates.$inferSelect;
 export type NewDimensionTemplate = typeof dimensionTemplates.$inferInsert;
 
-const TEMPLATE_VISIBLE = sql`exists (select 1 from ${dimensionTemplates} t where t.id = template_id)`;
-
-const TEMPLATE_OWNED = sql`exists (
-  select 1 from ${dimensionTemplates} t where t.id = template_id and ${ownedByWorkspace('t')}
-)`;
-
 export const dimensionTemplateValues = commerceSchema.table(
   'dimension_template_values',
   {
@@ -76,14 +69,7 @@ export const dimensionTemplateValues = commerceSchema.table(
     unique('uq_dimension_template_values_template_code').on(table.templateId, table.code),
     codeCheck('dimension_template_values_code_chk', table.code),
     index('idx_dimension_template_values_template').on(table.templateId, table.sortOrder),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    pgPolicy('template_reach', { as: 'restrictive', for: 'select', using: TEMPLATE_VISIBLE }),
-    pgPolicy('template_owner_insert', { as: 'restrictive', for: 'insert', withCheck: TEMPLATE_OWNED }),
-    pgPolicy('template_owner_update', { as: 'restrictive', for: 'update', using: TEMPLATE_OWNED }),
-    pgPolicy('template_owner_delete', { as: 'restrictive', for: 'delete', using: TEMPLATE_OWNED }),
+    ...scopeFromOwnerPolicies({ owner: dimensionTemplates, fk: table.templateId }),
   ],
 );
 

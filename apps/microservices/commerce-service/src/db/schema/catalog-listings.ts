@@ -4,13 +4,13 @@ import { catalogs } from './catalogs';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemMrps } from './inventory-item-mrps';
 import { offeringVariants } from './offering-variants';
-import { workspaceScopeColumns, workspaceScopePolicies } from './workspace-scope';
+import { organizationIdColumn, workspaceScopeColumns, workspaceScopePolicies } from './workspace-scope';
 
 export const catalogListings = commerceSchema.table(
   'catalog_listings',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     catalogId: uuid('catalog_id')
       .notNull()
       .references(() => catalogs.id, { onDelete: 'cascade' }),

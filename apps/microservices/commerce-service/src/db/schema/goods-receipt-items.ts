@@ -15,12 +15,13 @@ import { commerceSchema } from './commerce-schema';
 import { goodsReceipts } from './goods-receipts';
 import { inventoryItems } from './inventory-items';
 import { uom } from './uom';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const goodsReceiptItems = commerceSchema.table(
   'goods_receipt_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     goodsReceiptId: uuid('goods_receipt_id')
       .notNull()
@@ -54,10 +55,7 @@ export const goodsReceiptItems = commerceSchema.table(
     index('idx_goods_receipt_items_receipt').on(table.goodsReceiptId),
     index('idx_goods_receipt_items_inventory').on(table.inventoryItemId),
     index('idx_goods_receipt_items_uom').on(table.uomId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

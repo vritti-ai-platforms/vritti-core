@@ -3,12 +3,13 @@ import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from 
 import { commerceSchema } from './commerce-schema';
 import { creditNoteStatusEnum, creditNoteTypeEnum, invoicePartyTypeEnum } from './enums';
 import { invoices } from './invoices';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const creditNotes = commerceSchema.table(
   'credit_notes',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     type: creditNoteTypeEnum('type').notNull(),
     partyType: invoicePartyTypeEnum('party_type').notNull(),
@@ -26,10 +27,7 @@ export const creditNotes = commerceSchema.table(
   (table) => [
     unique('uq_credit_notes_bu_number').on(table.siteId, table.creditNoteNumber),
     index('idx_credit_notes_site').on(table.organizationId, table.siteId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
@@ -56,7 +54,7 @@ export const creditNoteApplications = commerceSchema.table(
   'credit_note_applications',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     creditNoteId: uuid('credit_note_id')
       .notNull()
       .references(() => creditNotes.id, { onDelete: 'cascade' }),

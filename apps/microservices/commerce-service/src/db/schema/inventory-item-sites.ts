@@ -2,12 +2,13 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, decimal, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const inventoryItemSites = commerceSchema.table(
   'inventory_item_sites',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
@@ -24,10 +25,7 @@ export const inventoryItemSites = commerceSchema.table(
   },
   (table) => [
     unique('uq_inventory_item_sites').on(table.inventoryItemId, table.siteId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

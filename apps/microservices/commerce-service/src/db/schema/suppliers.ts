@@ -17,12 +17,13 @@ import { inventoryItems } from './inventory-items';
 import { parties } from './parties';
 import { taxClasses } from './tax-classes';
 import { uom } from './uom';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const suppliers = commerceSchema.table(
   'suppliers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
     partyId: uuid('party_id')
       .notNull()
@@ -49,10 +50,7 @@ export const suppliers = commerceSchema.table(
     unique('uq_suppliers_id_currency').on(table.id, table.currencyCode),
     index('idx_suppliers_le').on(table.organizationId, table.legalEntityId),
     index('idx_suppliers_party').on(table.partyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('le_read', {
       for: 'select',
       using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,
@@ -79,7 +77,7 @@ export const supplierItems = commerceSchema.table(
   'supplier_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     supplierId: uuid('supplier_id').notNull(),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()

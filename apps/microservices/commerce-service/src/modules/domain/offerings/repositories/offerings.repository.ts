@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk/database';
 import { and, asc, eq, getColumns, inArray, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type FulfilmentType,
   type Offering,
   offeringBom,
   offeringDimensions,
   offerings,
   offeringVariants,
-  ownedByWorkspace,
+  ownedByWorkspaceExpression,
 } from '@/db/schema';
 
 export type OfferingWithOwnership = Offering & {
@@ -28,7 +29,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
   private selection() {
     return {
       ...getColumns(offerings),
-      isOwned: ownedByWorkspace(),
+      isOwned: ownedByWorkspaceExpression(),
       dimensionCount: this.db.$count(offeringDimensions, eq(offeringDimensions.offeringId, offerings.id)),
       variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
       variantsWithoutBom: this.db.$count(
@@ -44,7 +45,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
   }
 
   // Returns the offerings this workspace can reach, each flagged with whether it owns the row or
-  // merely inherits it from a wider scope (RLS decides reach; ownedByWorkspace decides ownership)
+  // merely inherits it from a wider scope (RLS decides reach; ownedByWorkspaceExpression decides ownership)
   async findAll(where?: SQL): Promise<OfferingWithOwnership[]> {
     return this.db.select(this.selection()).from(offerings).where(where).orderBy(asc(offerings.name));
   }
@@ -83,7 +84,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
   // name is unique per OWNER, code per ORGANIZATION — and a sibling's code is invisible to reach, so
   // the database stays the final arbiter on code.
   async findConflicts(name: string, code: string): Promise<{ nameTaken: boolean; codeTaken: boolean }> {
-    const nameMatch = sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspace()}`;
+    const nameMatch = sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`;
     const codeMatch = sql`${offerings.code} = ${code}`;
 
     const [row] = await this.db
@@ -104,7 +105,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     const [row] = await this.db
       .select()
       .from(offerings)
-      .where(sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspace()}`)
+      .where(sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`)
       .limit(1);
     return row;
   }
@@ -113,6 +114,37 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
   async bulkSetStatus(ids: string[], isActive: boolean): Promise<void> {
     if (ids.length === 0) return;
     await this.db.update(offerings).set({ isActive }).where(inArray(offerings.id, ids));
+  }
+
+  // The variants that would break a fulfilment type's bill-of-materials rule if it were applied to
+  // them — checked before a cascade writes anything, so the offering never half-moves.
+  async findVariantsBreachingBomRule(offeringId: string, max: number, min: number): Promise<string[]> {
+    const lineCount = this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id));
+    const rows = await this.db
+      .select({ sku: offeringVariants.sku })
+      .from(offeringVariants)
+      .where(
+        and(
+          eq(offeringVariants.offeringId, offeringId),
+          eq(offeringVariants.isFulfilmentOverridden, false),
+          sql`(${lineCount} > ${max} or (${offeringVariants.isActive} and ${lineCount} < ${min}))`,
+        ),
+      );
+    return rows.map((row) => row.sku);
+  }
+
+  // Applies a fulfilment type to every variant of an offering except those carrying their own override
+  async applyFulfilmentToVariants(
+    offeringId: string,
+    fulfilmentType: FulfilmentType,
+    tx?: TypedDrizzleClient,
+  ): Promise<number> {
+    const rows = await (tx ?? this.db)
+      .update(offeringVariants)
+      .set({ fulfilmentType })
+      .where(and(eq(offeringVariants.offeringId, offeringId), eq(offeringVariants.isFulfilmentOverridden, false)))
+      .returning({ id: offeringVariants.id });
+    return rows.length;
   }
 
   // Applies a tax class to every variant of an offering except those carrying their own override

@@ -1,6 +1,7 @@
 import type { OfferingDto } from '@domain/offerings/dto/entity/offering.dto';
 import { BulkSetOfferingStatusDto } from '@domain/offerings/dto/request/bulk-set-offering-status.dto';
 import { CreateOfferingDto } from '@domain/offerings/dto/request/create-offering.dto';
+import { SetOfferingFulfilmentDto } from '@domain/offerings/dto/request/set-offering-fulfilment.dto';
 import { SetOfferingStatusDto } from '@domain/offerings/dto/request/set-offering-status.dto';
 import { SetOfferingTaxClassDto } from '@domain/offerings/dto/request/set-offering-tax-class.dto';
 import { UpdateOfferingDto } from '@domain/offerings/dto/request/update-offering.dto';
@@ -45,6 +46,13 @@ export class OrgOfferingsController {
   }
 
   // Sets the tax class and cascades it to every variant that has not been overridden
+  // Changes what the offering is, cascading to variants that have not pinned their own
+  @MessagePattern({ cmd: 'org.offerings.setFulfilment' })
+  setFulfilment(@Payload() dto: SetOfferingFulfilmentDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.setFulfilment — id: ${dto.id}, type: ${dto.fulfilmentType}`);
+    return this.service.setFulfilment(dto.id, dto);
+  }
+
   @MessagePattern({ cmd: 'org.offerings.setTaxClass' })
   setTaxClass(@Payload() dto: SetOfferingTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.setTaxClass — id: ${dto.id}`);

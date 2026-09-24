@@ -4,7 +4,6 @@ import {
   bigint,
   boolean,
   index,
-  pgPolicy,
   timestamp,
   unique,
   uniqueIndex,
@@ -15,12 +14,13 @@ import { commerceSchema } from './commerce-schema';
 import { inventoryItemLots } from './inventory-item-lots';
 import { inventoryItems } from './inventory-items';
 import { uom } from './uom';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const inventoryItemMrps = commerceSchema.table(
   'inventory_item_mrps',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
@@ -49,10 +49,7 @@ export const inventoryItemMrps = commerceSchema.table(
       .on(table.inventoryItemId, table.uomId, table.currencyCode)
       .where(sql`${table.isCurrent}`),
     index('idx_inventory_item_mrps_uom').on(table.uomId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

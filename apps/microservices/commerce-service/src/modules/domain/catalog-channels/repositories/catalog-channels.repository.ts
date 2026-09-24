@@ -12,7 +12,7 @@ import {
   catalogs,
   inventoryItemMrps,
   offeringVariants,
-  ownedByWorkspace,
+  ownedByWorkspaceExpression,
   posTerminals,
   uom,
 } from '@/db/schema';
@@ -37,7 +37,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       appId: catalogChannels.appId,
       terminalId: catalogChannels.terminalId,
       terminalName: posTerminals.name,
-      isOwn: ownedByWorkspace('catalog_channels'),
+      isOwn: ownedByWorkspaceExpression('catalog_channels'),
       itemsTotal: sql<number>`(
         select count(*)::int from ${catalogListings} cl
         where cl.catalog_id = ${catalogChannels.catalogId} and cl.is_active
@@ -119,7 +119,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
           eq(catalogChannels.type, type),
           isNull(catalogChannels.appId),
           isNull(catalogChannels.terminalId),
-          sql`${ownedByWorkspace('catalog_channels')}`,
+          sql`${ownedByWorkspaceExpression('catalog_channels')}`,
         ),
       )
       .limit(1);

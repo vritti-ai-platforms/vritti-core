@@ -6,7 +6,7 @@ import {
   type DimensionTemplateValue,
   dimensionTemplates,
   dimensionTemplateValues,
-  ownedByWorkspace,
+  ownedByWorkspaceExpression,
 } from '@/db/schema';
 
 export type DimensionTemplateWithOwnership = DimensionTemplate & { isOwned: boolean };
@@ -18,10 +18,10 @@ export class DimensionTemplatesDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // Returns the templates this workspace can reach, each flagged with whether it owns the row or
-  // merely inherits it from a wider scope (RLS decides reach; ownedByWorkspace decides ownership)
+  // merely inherits it from a wider scope (RLS decides reach; the expression decides ownership)
   async findAll(where?: SQL): Promise<DimensionTemplateWithOwnership[]> {
     return this.db
-      .select({ ...getColumns(dimensionTemplates), isOwned: ownedByWorkspace() })
+      .select({ ...getColumns(dimensionTemplates), isOwned: ownedByWorkspaceExpression() })
       .from(dimensionTemplates)
       .where(where)
       .orderBy(asc(dimensionTemplates.name));
@@ -32,7 +32,7 @@ export class DimensionTemplatesDomainRepository extends PrimaryBaseRepository<ty
   // the name their 403 needs — RLS is what actually refuses the write.
   async findById(id: string): Promise<DimensionTemplateWithOwnership | undefined> {
     const [row] = await this.db
-      .select({ ...getColumns(dimensionTemplates), isOwned: ownedByWorkspace() })
+      .select({ ...getColumns(dimensionTemplates), isOwned: ownedByWorkspaceExpression() })
       .from(dimensionTemplates)
       .where(eq(dimensionTemplates.id, id))
       .limit(1);
@@ -43,7 +43,7 @@ export class DimensionTemplatesDomainRepository extends PrimaryBaseRepository<ty
   // name is unique per OWNER, code per ORGANIZATION — so an org-owned code blocks an LE too, while an
   // org-owned name does not. A single row may collide on both, hence bool_or rather than a row lookup.
   async findConflicts(name: string, code: string): Promise<{ nameTaken: boolean; codeTaken: boolean }> {
-    const nameMatch = sql`lower(${dimensionTemplates.name}) = lower(${name}) and ${ownedByWorkspace()}`;
+    const nameMatch = sql`lower(${dimensionTemplates.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`;
     const codeMatch = sql`${dimensionTemplates.code} = ${code}`;
 
     const [row] = await this.db
@@ -64,7 +64,7 @@ export class DimensionTemplatesDomainRepository extends PrimaryBaseRepository<ty
     const [row] = await this.db
       .select()
       .from(dimensionTemplates)
-      .where(sql`lower(${dimensionTemplates.name}) = lower(${name}) and ${ownedByWorkspace()}`)
+      .where(sql`lower(${dimensionTemplates.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`)
       .limit(1);
     return row;
   }

@@ -3,12 +3,13 @@ import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from 
 import { commerceSchema } from './commerce-schema';
 import { stockAdjustmentStatusEnum, stockAdjustmentTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const stockAdjustments = commerceSchema.table(
   'stock_adjustments',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
@@ -26,10 +27,7 @@ export const stockAdjustments = commerceSchema.table(
     index('idx_stock_adjustments_site').on(table.organizationId, table.siteId),
     index('idx_stock_adjustments_item').on(table.inventoryItemId),
     index('idx_stock_adjustments_status').on(table.status),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

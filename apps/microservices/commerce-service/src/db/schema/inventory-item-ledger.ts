@@ -3,12 +3,13 @@ import { decimal, index, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-p
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemLedgerReferenceTypeEnum, inventoryItemLedgerTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
+import { organizationIdColumn } from './workspace-scope';
 
 export const inventoryItemLedger = commerceSchema.table(
   'inventory_item_ledger',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()

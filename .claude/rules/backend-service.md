@@ -67,6 +67,45 @@ import type { CreateXDto } from '@/modules/site/x/dto/request/create-x.dto';
 import type { CreateXDto } from '../dto/request/create-x.dto';
 ```
 
+## Guard a write with ONE read that does double duty
+
+Before an update or delete, load the row once through a private `requireOwned(id)`. It is not a
+security control — RLS is, and it refuses the write regardless. What it buys, at zero extra query
+cost, is a precise 404-vs-403 with the row's own name in the message, instead of the base
+`update`/`delete` throwing a bare `Error` that surfaces as a 500.
+
+```typescript
+private async requireOwned(id: string): Promise<OfferingWithOwnership> {
+  const existing = await this.repository.findById(id);
+  if (!existing) throw new NotFoundException('Offering not found.');
+  if (!existing.isOwned) {
+    throw new ForbiddenException({
+      label: 'Not Your Offering',
+      detail: `"${existing.name}" belongs to a wider scope. Switch to the workspace that owns it, or create your own.`,
+    });
+  }
+  return existing;
+}
+```
+
+The row it returns is the *only* read the action gets. Child counts, ownership and delete-eligibility
+all arrive on it from the repository's `selection()` — never fire a second query to fetch a count
+the guard read already carried.
+
+Do not add a `requireOwned?: boolean` option to a repository finder. Reads want reach, writes want
+ownership, and the branch belongs in the service where the 403 is thrown.
+
+## Validate before opening a transaction
+
+Everything that can reject the request — conflict checks, business-rule checks, the guard read —
+runs first. The transaction then contains only writes, so it is short and cannot roll back on a
+validation throw.
+
+## Never catch a unique violation to detect a conflict
+
+Ask the repository for a conflict report (`findConflicts`) and throw a field-attributed
+`ConflictException` per key. See `backend-repository.md` → "Report conflicts in one query".
+
 ## Return DTOs for API-facing methods
 
 ```typescript

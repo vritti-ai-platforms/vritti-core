@@ -7,12 +7,7 @@ import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Boxes, Plus, Sparkles, Wrench } from 'lucide-react';
 import type React from 'react';
 import { useCallback } from 'react';
-import {
-  type BomLineData,
-  FULFILMENT_TYPE_META,
-  type OfferingData,
-  type OfferingVariantData,
-} from '@/schemas/offerings';
+import { type BomLineData, FULFILMENT_TYPE_META, type OfferingVariantData } from '@/schemas/offerings';
 import { CreateVariantInventoryItemDialog } from '../../inventory-items/forms/CreateVariantInventoryItemDialog';
 import type { UseCreateVariantInventoryItem } from '../../inventory-items/types';
 import { BomLineCard } from '../components/BomLineCard';
@@ -27,7 +22,6 @@ import type {
 
 interface BomTabProps {
   permissions: OfferingPermissions;
-  offering: OfferingData;
   variant: OfferingVariantData;
   useAdd: UseAddBomLine;
   useUpdate: UseUpdateBomLine;
@@ -40,7 +34,6 @@ interface BomTabProps {
 
 export const BomTab: React.FC<BomTabProps> = ({
   permissions,
-  offering,
   variant,
   useAdd,
   useUpdate,
@@ -52,7 +45,7 @@ export const BomTab: React.FC<BomTabProps> = ({
   const inventoryItemDialog = useDialog();
   const confirm = useConfirm();
 
-  const meta = FULFILMENT_TYPE_META[offering.fulfilmentType];
+  const meta = FULFILMENT_TYPE_META[variant.fulfilmentType];
   const empty = variant.bom.length === 0;
   const atMax = variant.bom.length >= meta.maxBomLines;
 

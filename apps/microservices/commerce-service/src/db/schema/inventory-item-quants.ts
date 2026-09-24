@@ -6,12 +6,13 @@ import { inventoryItemLots } from './inventory-item-lots';
 import { inventoryItems } from './inventory-items';
 import { locations } from './locations';
 import { suppliers } from './suppliers';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const inventoryItemQuants = commerceSchema.table(
   'inventory_item_quants',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
@@ -47,10 +48,7 @@ export const inventoryItemQuants = commerceSchema.table(
       .on(table.inventoryItemId, table.locationId)
       .where(sql`${table.quantity} > 0`),
     check('ck_inventory_item_quants_unit_cost_positive', sql`${table.unitCost} > 0`),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

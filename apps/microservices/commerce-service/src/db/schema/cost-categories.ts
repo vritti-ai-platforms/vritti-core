@@ -3,7 +3,6 @@ import {
   boolean,
   codeCheck,
   index,
-  pgPolicy,
   timestamp,
   unique,
   uniqueIndex,
@@ -12,12 +11,13 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { costCategoryKindEnum } from './enums';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const costCategories = commerceSchema.table(
   'cost_categories',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     kind: costCategoryKindEnum('kind').notNull(),
@@ -35,10 +35,7 @@ export const costCategories = commerceSchema.table(
     uniqueIndex('uq_cost_categories_org_kind_item').on(table.organizationId).where(sql`${table.kind} = 'ITEM'`),
     index('idx_cost_categories_org').on(table.organizationId),
     index('idx_cost_categories_kind').on(table.kind),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

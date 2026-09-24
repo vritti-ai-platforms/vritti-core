@@ -3,12 +3,13 @@ import { boolean, foreignKey, index, pgPolicy, timestamp, unique, uuid } from '@
 import { commerceSchema } from './commerce-schema';
 import { partyBankAccounts, partyRelationships, partyTaxRegistrations } from './parties';
 import { suppliers } from './suppliers';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const supplierSites = commerceSchema.table(
   'supplier_sites',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
     supplierId: uuid('supplier_id')
       .notNull()
@@ -43,10 +44,7 @@ export const supplierSites = commerceSchema.table(
       foreignColumns: [partyRelationships.id],
       name: 'fk_supplier_sites_order_relationship',
     }).onDelete('set null'),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('le_read', {
       for: 'select',
       using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,

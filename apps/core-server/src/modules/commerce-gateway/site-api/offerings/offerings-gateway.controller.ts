@@ -3,6 +3,7 @@ import {
   ApiAddSuggestedComponent,
   ApiBulkSetOfferingStatus,
   ApiBulkSetVariantsStatus,
+  ApiClearVariantFulfilment,
   ApiClearVariantTaxClass,
   ApiCreateOffering,
   ApiCreateOfferingDimension,
@@ -20,8 +21,10 @@ import {
   ApiOfferingVariantsTable,
   ApiPreviewOfferingVariantCombinations,
   ApiReorderOfferingDimensions,
+  ApiSetOfferingFulfilment,
   ApiSetOfferingStatus,
   ApiSetOfferingTaxClass,
+  ApiSetVariantFulfilment,
   ApiSetVariantTaxClass,
   ApiUpdateBomLine,
   ApiUpdateOffering,
@@ -38,6 +41,7 @@ import { CreateOfferingDimensionFromTemplateDto } from '@commerce/offerings/dto/
 import { CreateVariantDto } from '@commerce/offerings/dto/request/create-variant.dto';
 import { GenerateVariantsDto } from '@commerce/offerings/dto/request/generate-variants.dto';
 import { ReorderOfferingDimensionsDto } from '@commerce/offerings/dto/request/reorder-offering-dimensions.dto';
+import { SetFulfilmentDto } from '@commerce/offerings/dto/request/set-fulfilment.dto';
 import { SetOfferingStatusDto } from '@commerce/offerings/dto/request/set-offering-status.dto';
 import { SetTaxClassDto } from '@commerce/offerings/dto/request/set-tax-class.dto';
 import { UpdateOfferingDto } from '@commerce/offerings/dto/request/update-offering.dto';
@@ -231,6 +235,33 @@ export class SiteOfferingsGatewayController {
   // Replaces a variant's bill of materials as a set
   // Its own route rather than a field on update: setting it cascades to every variant that has not
   // pinned its own, and the response reports how many kept an override
+  @Patch(':id/fulfilment')
+  @RequirePermission(SITE_OFFERINGS.edit)
+  @ApiSetOfferingFulfilment()
+  setFulfilment(@Param('id') id: string, @Body() dto: SetFulfilmentDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/offerings/${id}/fulfilment`);
+    return this.service.setFulfilment(id, dto);
+  }
+
+  @Patch('variants/:variantId/fulfilment')
+  @RequirePermission(SITE_OFFERINGS.variants.edit)
+  @ApiSetVariantFulfilment()
+  setVariantFulfilment(
+    @Param('variantId') variantId: string,
+    @Body() dto: SetFulfilmentDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/offerings/variants/${variantId}/fulfilment`);
+    return this.service.setVariantFulfilment(variantId, dto);
+  }
+
+  @Delete('variants/:variantId/fulfilment')
+  @RequirePermission(SITE_OFFERINGS.variants.edit)
+  @ApiClearVariantFulfilment()
+  clearVariantFulfilment(@Param('variantId') variantId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/offerings/variants/${variantId}/fulfilment`);
+    return this.service.clearVariantFulfilment(variantId);
+  }
+
   @Patch(':id/tax-class')
   @RequirePermission(SITE_OFFERINGS.edit)
   @ApiSetOfferingTaxClass()

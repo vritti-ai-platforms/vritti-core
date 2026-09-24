@@ -1,4 +1,3 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   boolean,
   decimal,
@@ -12,17 +11,19 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 
 import { commerceSchema } from './commerce-schema';
+import { fulfilmentTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 import { offeringDimensions, offeringDimensionValues } from './offering-dimensions';
-import { offeringScopePolicies, offerings } from './offerings';
+import { offerings } from './offerings';
 import { taxClasses } from './tax-classes';
 import { uom } from './uom';
+import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope';
 
 export const offeringVariants = commerceSchema.table(
   'offering_variants',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     offeringId: uuid('offering_id')
       .notNull()
       .references(() => offerings.id, { onDelete: 'cascade' }),
@@ -36,6 +37,8 @@ export const offeringVariants = commerceSchema.table(
       .notNull()
       .references(() => taxClasses.id),
     isTaxClassOverridden: boolean('is_tax_class_overridden').notNull().default(false),
+    fulfilmentType: fulfilmentTypeEnum('fulfilment_type').notNull(),
+    isFulfilmentOverridden: boolean('is_fulfilment_overridden').notNull().default(false),
     isActive: boolean('is_active').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
     attributes: jsonb('attributes').notNull().default({}),
@@ -49,7 +52,7 @@ export const offeringVariants = commerceSchema.table(
     unique('uq_offering_variants_org_sku').on(table.organizationId, table.sku),
     unique('uq_offering_variants_org_external_sku').on(table.organizationId, table.externalSku),
     index('idx_offering_variants_offering').on(table.offeringId, table.sortOrder),
-    ...offeringScopePolicies('offering_id'),
+    ...scopeFromOwnerPolicies({ owner: offerings, fk: table.offeringId }),
   ],
 );
 
@@ -60,7 +63,7 @@ export const offeringVariantValues = commerceSchema.table(
   'offering_variant_values',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     variantId: uuid('variant_id')
       .notNull()
       .references(() => offeringVariants.id, { onDelete: 'cascade' }),
@@ -75,7 +78,11 @@ export const offeringVariantValues = commerceSchema.table(
     unique('uq_offering_variant_values_variant_dimension').on(table.variantId, table.dimensionId),
     index('idx_offering_variant_values_value').on(table.valueId),
     index('idx_offering_variant_values_dimension').on(table.dimensionId),
-    ...offeringScopePolicies('variant_id', 'offering_variants'),
+    ...scopeFromOwnerPolicies({
+      owner: offerings,
+      fk: table.variantId,
+      through: [{ table: offeringVariants, fk: (parent) => parent.offeringId }],
+    }),
   ],
 );
 
@@ -86,7 +93,7 @@ export const offeringBom = commerceSchema.table(
   'offering_bom',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     variantId: uuid('variant_id')
       .notNull()
       .references(() => offeringVariants.id, { onDelete: 'cascade' }),
@@ -108,7 +115,11 @@ export const offeringBom = commerceSchema.table(
     unique('uq_offering_bom_variant_item_uom').on(table.variantId, table.inventoryItemId, table.uomId),
     index('idx_offering_bom_variant').on(table.variantId, table.sortOrder),
     index('idx_offering_bom_item').on(table.inventoryItemId),
-    ...offeringScopePolicies('variant_id', 'offering_variants'),
+    ...scopeFromOwnerPolicies({
+      owner: offerings,
+      fk: table.variantId,
+      through: [{ table: offeringVariants, fk: (parent) => parent.offeringId }],
+    }),
   ],
 );
 

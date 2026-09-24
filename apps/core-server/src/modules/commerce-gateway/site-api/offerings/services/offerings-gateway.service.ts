@@ -6,6 +6,7 @@ import type { CreateOfferingDimensionDto } from '@commerce/offerings/dto/request
 import type { CreateOfferingDimensionFromTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-from-template.dto';
 import type { CreateVariantDto } from '@commerce/offerings/dto/request/create-variant.dto';
 import type { GenerateVariantsDto } from '@commerce/offerings/dto/request/generate-variants.dto';
+import type { SetFulfilmentDto } from '@commerce/offerings/dto/request/set-fulfilment.dto';
 import type { SetTaxClassDto } from '@commerce/offerings/dto/request/set-tax-class.dto';
 import type { UpdateOfferingDto } from '@commerce/offerings/dto/request/update-offering.dto';
 import type { UpdateOfferingDimensionDto } from '@commerce/offerings/dto/request/update-offering-dimension.dto';
@@ -183,6 +184,24 @@ export class SiteOfferingsGatewayService {
 
   // Replaces a variant's bill of materials as a set
   // Cascades to every variant that has not pinned its own tax class
+  // Changes what the offering is; the microservice cascades to variants that have not pinned their own
+  async setFulfilment(id: string, dto: SetFulfilmentDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.offerings.setFulfilment — id: ${id}, type: ${dto.fulfilmentType}`);
+    return this.nats.send('commerce', 'site.offerings.setFulfilment', { id, ...dto });
+  }
+
+  // Pins one variant's own fulfilment type, exempting it from the offering's cascade
+  async setVariantFulfilment(variantId: string, dto: SetFulfilmentDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.offerings.variants.setFulfilment — id: ${variantId}, type: ${dto.fulfilmentType}`);
+    return this.nats.send('commerce', 'site.offerings.variants.setFulfilment', { id: variantId, ...dto });
+  }
+
+  // Drops the override so the variant follows its offering again
+  async clearVariantFulfilment(variantId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.offerings.variants.clearFulfilment — id: ${variantId}`);
+    return this.nats.send('commerce', 'site.offerings.variants.clearFulfilment', { id: variantId });
+  }
+
   async setTaxClass(id: string, dto: SetTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.setTaxClass — id: ${id}`);
     return this.nats.send('commerce', 'site.offerings.setTaxClass', { id, ...dto });

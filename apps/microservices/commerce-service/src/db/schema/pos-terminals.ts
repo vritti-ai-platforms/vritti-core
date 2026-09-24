@@ -2,12 +2,13 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { locations } from './locations';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const posTerminals = commerceSchema.table(
   'pos_terminals',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     name: varchar('name', { length: 100 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
@@ -26,10 +27,7 @@ export const posTerminals = commerceSchema.table(
     unique('uq_pos_terminals_bu_code').on(table.siteId, table.code),
     index('idx_pos_terminals_site').on(table.organizationId, table.siteId),
     index('idx_pos_terminals_location').on(table.locationId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

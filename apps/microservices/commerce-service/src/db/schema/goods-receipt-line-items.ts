@@ -2,12 +2,13 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { goodsReceiptLines } from './goods-receipt-lines';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const goodsReceiptLineItems = commerceSchema.table(
   'goods_receipt_line_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     goodsReceiptLineId: uuid('goods_receipt_line_id')
       .notNull()
@@ -23,10 +24,7 @@ export const goodsReceiptLineItems = commerceSchema.table(
   (table) => [
     unique('uq_goods_receipt_line_items_line_serial').on(table.goodsReceiptLineId, table.serialNumber),
     index('idx_goods_receipt_line_items_line').on(table.goodsReceiptLineId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

@@ -3,12 +3,13 @@ import { bigint, check, index, pgPolicy, timestamp, unique, uuid, varchar } from
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemLots } from './inventory-item-lots';
 import { stockAdjustments } from './stock-adjustments';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const stockAdjustmentLots = commerceSchema.table(
   'stock_adjustment_lots',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     stockAdjustmentId: uuid('stock_adjustment_id')
       .notNull()
@@ -32,10 +33,7 @@ export const stockAdjustmentLots = commerceSchema.table(
       'ck_stock_adjustment_lots_expiry_after_mfg',
       sql`${table.manufacturingDate} IS NULL OR ${table.expiryDate} > ${table.manufacturingDate}`,
     ),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

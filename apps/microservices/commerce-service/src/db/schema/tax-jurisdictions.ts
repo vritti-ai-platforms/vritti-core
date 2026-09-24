@@ -1,10 +1,8 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type AnyPgColumn,
   boolean,
   codeCheck,
   index,
-  pgPolicy,
   timestamp,
   unique,
   uuid,
@@ -12,12 +10,13 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { taxJurisdictionLevelEnum } from './enums';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const taxJurisdictions = commerceSchema.table(
   'tax_jurisdictions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     level: taxJurisdictionLevelEnum('level').notNull(),
@@ -37,10 +36,7 @@ export const taxJurisdictions = commerceSchema.table(
     index('idx_tax_jurisdictions_org').on(table.organizationId),
     index('idx_tax_jurisdictions_parent').on(table.parentId),
     codeCheck('tax_jurisdictions_code_chk', table.code),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

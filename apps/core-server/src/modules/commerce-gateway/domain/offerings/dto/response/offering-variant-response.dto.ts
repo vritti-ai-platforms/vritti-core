@@ -38,8 +38,15 @@ export class OfferingVariantResponseDto {
   @ApiProperty({ type: [OfferingVariantValueRefResponseDto] }) values: OfferingVariantValueRefResponseDto[];
   @ApiProperty({ type: [OfferingBomLineResponseDto] }) bom: OfferingBomLineResponseDto[];
   @ApiProperty() bomLineCount: number;
-  @ApiProperty({ description: 'Whether the bill of materials satisfies the offering fulfilment type' })
+  @ApiProperty({ description: "Whether the bill of materials satisfies this variant's fulfilment type" })
   canMarkActive: boolean;
+  @ApiProperty({
+    enum: ['STOCK', 'ASSEMBLY', 'COMPOSITE', 'SERVICE'],
+    description: "Follows the offering's unless pinned — a variety pack inside a stock offering is composite",
+  })
+  fulfilmentType: string;
+  @ApiProperty({ description: 'Pinned to this variant, so an offering-level change no longer cascades to it' })
+  isFulfilmentOverridden: boolean;
   @ApiProperty({ description: 'False once the variant appears on an order line' })
   canDelete: boolean;
   @ApiProperty({ description: "Follows the offering's tax class unless overridden" })

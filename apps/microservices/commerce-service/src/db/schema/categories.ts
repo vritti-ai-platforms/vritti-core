@@ -4,7 +4,6 @@ import {
   customType,
   index,
   integer,
-  pgPolicy,
   text,
   timestamp,
   unique,
@@ -14,6 +13,7 @@ import {
 import { commerceSchema } from './commerce-schema';
 import { CategoryRoleValues, categoryRoleEnum } from './enums';
 import { taxClasses } from './tax-classes';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
@@ -25,7 +25,7 @@ export const categories = commerceSchema.table(
   'categories',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     name: varchar('name', { length: 255 }).notNull(),
     image: varchar('image', { length: 255 }),
     parentId: uuid('parent_id'),
@@ -47,10 +47,7 @@ export const categories = commerceSchema.table(
     index('idx_categories_org').on(table.organizationId),
     index('idx_categories_parent').on(table.parentId),
     index('idx_categories_path').using('gist', table.path.asc()),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

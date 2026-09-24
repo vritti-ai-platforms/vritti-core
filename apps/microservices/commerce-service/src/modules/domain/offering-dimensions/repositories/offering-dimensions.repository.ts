@@ -11,7 +11,7 @@ import {
   offeringDimensionValues,
   offerings,
   offeringVariantValues,
-  ownedByWorkspace,
+  ownedByWorkspaceExpression,
 } from '@/db/schema';
 
 export type OfferingDimensionWithUsage = OfferingDimension & { canDelete: boolean };
@@ -35,7 +35,7 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
       .from(offerings)
       .where(
         options.requireOwned
-          ? sql`${offerings.id} = ${offeringId} and ${ownedByWorkspace()}`
+          ? sql`${offerings.id} = ${offeringId} and ${ownedByWorkspaceExpression()}`
           : eq(offerings.id, offeringId),
       )
       .limit(1);

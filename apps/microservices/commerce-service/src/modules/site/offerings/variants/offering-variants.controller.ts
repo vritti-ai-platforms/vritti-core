@@ -5,6 +5,7 @@ import { BulkSetVariantsStatusDto } from '@domain/offering-variants/dto/request/
 import { CreateVariantDto } from '@domain/offering-variants/dto/request/create-variant.dto';
 import { GenerateVariantsDto } from '@domain/offering-variants/dto/request/generate-variants.dto';
 import type { PreviewCombinationsDto } from '@domain/offering-variants/dto/request/preview-combinations.dto';
+import { SetVariantFulfilmentDto } from '@domain/offering-variants/dto/request/set-variant-fulfilment.dto';
 import { SetVariantTaxClassDto } from '@domain/offering-variants/dto/request/set-variant-tax-class.dto';
 import { UpdateVariantDto } from '@domain/offering-variants/dto/request/update-variant.dto';
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
@@ -103,6 +104,20 @@ export class SiteOfferingVariantsController {
   setTaxClass(@Payload() dto: SetVariantTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.setTaxClass — id: ${dto.id}`);
     return this.service.setTaxClass(dto.id, dto);
+  }
+
+  // Pins this variant's own fulfilment type, exempting it from the offering's cascade
+  @MessagePattern({ cmd: 'site.offerings.variants.setFulfilment' })
+  setFulfilment(@Payload() dto: SetVariantFulfilmentDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.setFulfilment — id: ${dto.id}, type: ${dto.fulfilmentType}`);
+    return this.service.setFulfilment(dto.id, dto);
+  }
+
+  // Drops the fulfilment override and resynchronises with the parent offering
+  @MessagePattern({ cmd: 'site.offerings.variants.clearFulfilment' })
+  clearFulfilment(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.clearFulfilment — id: ${data.id}`);
+    return this.service.clearFulfilmentOverride(data.id);
   }
 
   // Drops the override and resynchronises with the parent offering

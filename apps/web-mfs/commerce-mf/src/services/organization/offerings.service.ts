@@ -16,7 +16,9 @@ import type {
   OfferingVariantsTableResponse,
   PreviewCombinationsData,
   ReorderDimensionsData,
+  SetOfferingFulfilmentData,
   SetOfferingTaxClassData,
+  SetVariantFulfilmentData,
   SetVariantTaxClassData,
   UpdateBomLineData,
   UpdateDimensionData,
@@ -192,6 +194,24 @@ export function updateBomLine({ variantId, lineId, ...data }: UpdateBomLineData)
 
 export function deleteBomLine({ variantId, lineId }: DeleteBomLineData): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/variants/${variantId}/bom/lines/${lineId}`).then((r) => r.data);
+}
+
+// Its own endpoint: setting it cascades to every variant that has not pinned its own fulfilment type
+export function setOfferingFulfilment({ id, fulfilmentType }: SetOfferingFulfilmentData): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${id}/fulfilment`, { fulfilmentType }).then((r) => r.data);
+}
+
+export function setVariantFulfilment({
+  variantId,
+  fulfilmentType,
+}: SetVariantFulfilmentData): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`${BASE}/variants/${variantId}/fulfilment`, { fulfilmentType })
+    .then((r) => r.data);
+}
+
+export function clearVariantFulfilment(variantId: string): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/variants/${variantId}/fulfilment`).then((r) => r.data);
 }
 
 // Its own endpoint: setting it cascades to every variant that has not pinned its own tax class

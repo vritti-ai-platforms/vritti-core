@@ -2,12 +2,13 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { stockAdjustmentLines } from './stock-adjustment-lines';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const stockAdjustmentLineItems = commerceSchema.table(
   'stock_adjustment_line_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     stockAdjustmentLineId: uuid('stock_adjustment_line_id')
       .notNull()
@@ -22,10 +23,7 @@ export const stockAdjustmentLineItems = commerceSchema.table(
   (table) => [
     unique('uq_stock_adjustment_line_items_line_serial').on(table.stockAdjustmentLineId, table.serialNumber),
     index('idx_sa_line_items_line').on(table.stockAdjustmentLineId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

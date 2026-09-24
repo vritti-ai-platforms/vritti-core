@@ -19,7 +19,7 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
   const { data: offering } = binding.useOffering(slug.id);
   const { data: variant } = binding.useVariant(variantSlug.id);
   const setStatusMutation = binding.useUpdateVariant();
-  const meta = FULFILMENT_TYPE_META[offering.fulfilmentType];
+  const meta = FULFILMENT_TYPE_META[variant.fulfilmentType];
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-6">
@@ -62,7 +62,6 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
             content: (
               <BomTab
                 permissions={PERMISSIONS}
-                offering={offering}
                 variant={variant}
                 useAdd={binding.useAddBomLine}
                 useUpdate={binding.useUpdateBomLine}

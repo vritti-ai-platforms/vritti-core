@@ -1,12 +1,12 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, codeCheck, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, codeCheck, index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const taxClasses = commerceSchema.table(
   'tax_classes',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     isActive: boolean('is_active').notNull().default(true),
@@ -21,10 +21,7 @@ export const taxClasses = commerceSchema.table(
     unique('uq_tax_classes_org_code').on(table.organizationId, table.code),
     index('idx_tax_classes_org').on(table.organizationId),
     codeCheck('tax_classes_code_chk', table.code),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

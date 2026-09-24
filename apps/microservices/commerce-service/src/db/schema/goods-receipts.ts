@@ -14,12 +14,13 @@ import { commerceSchema } from './commerce-schema';
 import { goodsReceiptStatusEnum } from './enums';
 import { purchaseOrders } from './purchase-orders';
 import { suppliers } from './suppliers';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const goodsReceipts = commerceSchema.table(
   'goods_receipts',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     supplierId: uuid('supplier_id')
       .notNull()
@@ -39,10 +40,7 @@ export const goodsReceipts = commerceSchema.table(
     index('idx_goods_receipts_supplier').on(table.supplierId),
     index('idx_goods_receipts_po').on(table.purchaseOrderId),
     index('idx_goods_receipts_site').on(table.organizationId, table.siteId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

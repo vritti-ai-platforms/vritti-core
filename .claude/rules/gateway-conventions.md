@@ -37,6 +37,13 @@ org-api/uom/
   resolver and service registers into the **surface module** for its audience (below).
 - NATS `cmd` namespaces nest to match the microservice: `org.uom.*` (root) + `org.uom.dimensions.*`
   (sub-resource). The gateway `send(...)` cmd MUST match the microservice `@MessagePattern` exactly.
+- The final segment is the **service method name**, verbatim. Single-row read by primary key is
+  `.findById`, never `.get`. Paginated table read is `.table`. Others follow the method: `.create`,
+  `.update`, `.delete`, `.bulkSetStatus`, `.setTaxClass`, `.clearFulfilment`.
+- Renaming a `cmd` is a **breaking contract change across two processes**. Change both sides in the
+  same commit and restart `core-server` and `commerce-service` together, or every call 404s in the
+  gap. Before renaming, grep both repos for the old string — orphaned patterns on one side are
+  silent until called.
 
 ## Surface modules — one module per API audience
 

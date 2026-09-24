@@ -1,14 +1,14 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, index, pgPolicy, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, index, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { costCategories } from './cost-categories';
 import { costDistributionMethodEnum, costSourceTypeEnum } from './enums';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const inventoryItemCosts = commerceSchema.table(
   'inventory_item_costs',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     categoryId: uuid('category_id')
       .notNull()
       .references(() => costCategories.id, { onDelete: 'restrict' }),
@@ -30,10 +30,7 @@ export const inventoryItemCosts = commerceSchema.table(
     index('idx_inventory_item_costs_source').on(table.sourceType, table.sourceId),
     index('idx_inventory_item_costs_category').on(table.categoryId, table.sourceType, table.sourceId),
     index('idx_inventory_item_costs_created_at').on(table.createdAt),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

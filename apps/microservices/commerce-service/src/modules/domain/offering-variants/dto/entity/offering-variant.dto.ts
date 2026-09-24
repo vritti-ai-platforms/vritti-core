@@ -1,4 +1,4 @@
-import type { OfferingVariant } from '@/db/schema';
+import type { FulfilmentType, OfferingVariant } from '@/db/schema';
 
 export class OfferingVariantValueRefDto {
   dimensionId: string;
@@ -31,6 +31,8 @@ export class OfferingVariantDto {
   taxClassId: string;
   taxClassName: string | null;
   isTaxClassOverridden: boolean;
+  fulfilmentType: FulfilmentType;
+  isFulfilmentOverridden: boolean;
   isActive: boolean;
   sortOrder: number;
   values: OfferingVariantValueRefDto[];
@@ -80,6 +82,8 @@ export class OfferingVariantDto {
     dto.taxClassId = entity.taxClassId;
     dto.taxClassName = taxClassName;
     dto.isTaxClassOverridden = entity.isTaxClassOverridden;
+    dto.fulfilmentType = entity.fulfilmentType;
+    dto.isFulfilmentOverridden = entity.isFulfilmentOverridden;
     dto.isActive = entity.isActive;
     dto.sortOrder = entity.sortOrder;
     dto.values = values;

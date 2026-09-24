@@ -1,13 +1,13 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { codeCheck, index, integer, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
-import { offeringScopePolicies, offerings } from './offerings';
+import { offerings } from './offerings';
+import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope';
 
 export const offeringDimensions = commerceSchema.table(
   'offering_dimensions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     offeringId: uuid('offering_id')
       .notNull()
       .references(() => offerings.id, { onDelete: 'cascade' }),
@@ -26,7 +26,7 @@ export const offeringDimensions = commerceSchema.table(
     unique('uq_offering_dimensions_offering_name').on(table.offeringId, table.name),
     codeCheck('offering_dimensions_code_chk', table.code),
     index('idx_offering_dimensions_offering').on(table.offeringId, table.sortOrder),
-    ...offeringScopePolicies('offering_id'),
+    ...scopeFromOwnerPolicies({ owner: offerings, fk: table.offeringId }),
   ],
 );
 
@@ -37,7 +37,7 @@ export const offeringDimensionValues = commerceSchema.table(
   'offering_dimension_values',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     dimensionId: uuid('dimension_id')
       .notNull()
       .references(() => offeringDimensions.id, { onDelete: 'cascade' }),
@@ -51,7 +51,11 @@ export const offeringDimensionValues = commerceSchema.table(
     unique('uq_offering_dimension_values_dimension_value').on(table.dimensionId, table.value),
     codeCheck('offering_dimension_values_code_chk', table.code),
     index('idx_offering_dimension_values_dimension').on(table.dimensionId, table.sortOrder),
-    ...offeringScopePolicies('dimension_id', 'offering_dimensions'),
+    ...scopeFromOwnerPolicies({
+      owner: offerings,
+      fk: table.dimensionId,
+      through: [{ table: offeringDimensions, fk: (parent) => parent.offeringId }],
+    }),
   ],
 );
 

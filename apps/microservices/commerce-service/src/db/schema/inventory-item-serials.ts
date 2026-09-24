@@ -4,12 +4,13 @@ import { commerceSchema } from './commerce-schema';
 import { serialStatusEnum } from './enums';
 import { inventoryItemQuants } from './inventory-item-quants';
 import { inventoryItems } from './inventory-items';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const inventoryItemSerials = commerceSchema.table(
   'inventory_item_serials',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemQuantId: uuid('inventory_item_quant_id').references(() => inventoryItemQuants.id, {
       onDelete: 'set null',
@@ -30,10 +31,7 @@ export const inventoryItemSerials = commerceSchema.table(
     index('idx_inventory_item_serials_quant').on(table.inventoryItemQuantId),
     index('idx_inventory_item_serials_item').on(table.inventoryItemId),
     index('idx_inventory_item_serials_quant_status').on(table.inventoryItemQuantId, table.status),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

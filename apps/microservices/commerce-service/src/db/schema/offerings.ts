@@ -4,7 +4,6 @@ import {
   check,
   codeCheck,
   index,
-  pgPolicy,
   text,
   timestamp,
   unique,
@@ -15,34 +14,7 @@ import { categories } from './categories';
 import { commerceSchema } from './commerce-schema';
 import { fulfilmentTypeEnum } from './enums';
 import { taxClasses } from './tax-classes';
-import {
-  organizationIdColumn,
-  ownerMatchesWorkspaceSql,
-  workspaceHierarchyPolicies,
-  workspaceScopeColumns,
-} from './workspace-scope';
-
-export const offeringScopePolicies = (fkColumn: string, through?: string) => {
-  const from = through ? `commerce.${through} p` : 'commerce.offerings o';
-  const match = through ? `p.id = ${fkColumn}` : `o.id = ${fkColumn}`;
-  const joinOffering = through ? ' join commerce.offerings o on o.id = p.offering_id' : '';
-
-  const reachable = sql.raw(`exists (select 1 from ${from} where ${match})`);
-  const owned = sql.raw(
-    `exists (select 1 from ${from}${joinOffering} where ${match} and ${ownerMatchesWorkspaceSql('o')})`,
-  );
-
-  return [
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    pgPolicy('offering_reach', { as: 'restrictive', for: 'select', using: reachable }),
-    pgPolicy('offering_owner_insert', { as: 'restrictive', for: 'insert', withCheck: owned }),
-    pgPolicy('offering_owner_update', { as: 'restrictive', for: 'update', using: owned }),
-    pgPolicy('offering_owner_delete', { as: 'restrictive', for: 'delete', using: owned }),
-  ];
-};
+import { organizationIdColumn, workspaceHierarchyPolicies, workspaceScopeColumns } from './workspace-scope';
 
 export const offerings = commerceSchema.table(
   'offerings',

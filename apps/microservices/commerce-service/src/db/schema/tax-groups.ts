@@ -1,12 +1,13 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const taxGroups = commerceSchema.table(
   'tax_groups',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
     name: varchar('name', { length: 100 }).notNull(),
     isActive: boolean('is_active').notNull().default(true),
@@ -14,10 +15,7 @@ export const taxGroups = commerceSchema.table(
   },
   (table) => [
     uniqueIndex('tax_groups_le_name_unique').on(table.legalEntityId, table.name),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('le_read', {
       for: 'select',
       using: sql`legal_entity_id = (select current_setting('app.le_id', true)::uuid)`,

@@ -12,7 +12,7 @@ interface OverviewTabProps {
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({ offering, variant }) => {
-  const meta = FULFILMENT_TYPE_META[offering.fulfilmentType];
+  const meta = FULFILMENT_TYPE_META[variant.fulfilmentType];
   const needsBom = variant.bomLineCount < meta.minBomLines;
 
   return (
@@ -34,6 +34,17 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ offering, variant }) =
           <DetailField label="External SKU" type="string" value={variant.externalSku} mono />
           <DetailField label="Offering" type="string" value={offering.name} />
           <DetailField label="Fulfilment" type="string" value={<Badge variant="outline">{meta.label}</Badge>} />
+          <DetailField
+            label="Fulfilment source"
+            type="string"
+            value={
+              variant.isFulfilmentOverridden ? (
+                <Badge variant="outline">Pinned to this variant</Badge>
+              ) : (
+                <Badge variant="secondary">Follows {offering.name}</Badge>
+              )
+            }
+          />
         </CardContent>
       </Card>
 

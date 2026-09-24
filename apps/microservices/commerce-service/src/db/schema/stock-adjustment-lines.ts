@@ -18,12 +18,13 @@ import { locations } from './locations';
 import { stockAdjustmentLots } from './stock-adjustment-lots';
 import { stockAdjustments } from './stock-adjustments';
 import { uom } from './uom';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const stockAdjustmentLines = commerceSchema.table(
   'stock_adjustment_lines',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     stockAdjustmentId: uuid('stock_adjustment_id')
       .notNull()
@@ -62,10 +63,7 @@ export const stockAdjustmentLines = commerceSchema.table(
       sql`(${table.locationId} IS NOT NULL AND ${table.quantId} IS NULL)
        OR (${table.locationId} IS NULL AND ${table.quantId} IS NOT NULL)`,
     ),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

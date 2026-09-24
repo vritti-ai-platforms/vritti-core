@@ -3,12 +3,13 @@ import { bigint, date, decimal, index, pgPolicy, timestamp, uniqueIndex, uuid } 
 import { commerceSchema } from './commerce-schema';
 import { supplierPriceSourceEnum } from './enums';
 import { supplierItems } from './suppliers';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const supplierItemPrices = commerceSchema.table(
   'supplier_item_prices',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     supplierItemId: uuid('supplier_item_id')
       .notNull()
       .references(() => supplierItems.id, { onDelete: 'cascade' }),
@@ -34,10 +35,7 @@ export const supplierItemPrices = commerceSchema.table(
       .where(sql`site_id IS NULL`),
     index('idx_supplier_item_prices_item').on(table.supplierItemId, table.validFrom),
     index('idx_supplier_item_prices_site').on(table.siteId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id IS NULL OR site_id = (select current_setting('app.site_id', true)::uuid)`,

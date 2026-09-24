@@ -207,6 +207,9 @@ export interface OfferingVariantData {
   taxClassName: string | null;
   // Pinned to this variant, so an offering-level change no longer cascades to it
   isTaxClassOverridden: boolean;
+  // Follows the offering's unless pinned — a variety pack inside a stock offering is composite
+  fulfilmentType: FulfilmentType;
+  isFulfilmentOverridden: boolean;
   // The inventory item already carrying this variant's SKU, when there is one
   inventoryItem: { id: string; name: string; uomId: string } | null;
   createdAt: string;
@@ -295,6 +298,16 @@ export interface SetOfferingTaxClassData {
 export interface SetVariantTaxClassData {
   variantId: string;
   taxClassId: string;
+}
+
+export interface SetOfferingFulfilmentData {
+  id: string;
+  fulfilmentType: FulfilmentType;
+}
+
+export interface SetVariantFulfilmentData {
+  variantId: string;
+  fulfilmentType: FulfilmentType;
 }
 
 export interface UpsertDimensionValuesData {

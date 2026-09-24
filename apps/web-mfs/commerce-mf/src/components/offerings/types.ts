@@ -16,7 +16,9 @@ import type {
   OfferingVariantsTableResponse,
   PreviewCombinationsData,
   ReorderDimensionsData,
+  SetOfferingFulfilmentData,
   SetOfferingTaxClassData,
+  SetVariantFulfilmentData,
   SetVariantTaxClassData,
   UpdateBomLineData,
   UpdateDimensionData,
@@ -98,6 +100,9 @@ export type UseBulkSetVariantsStatus = MutationHook<
   SuccessResponse,
   { offeringId: string; ids: string[]; isActive: boolean }
 >;
+export type UseSetOfferingFulfilment = MutationHook<SuccessResponse, SetOfferingFulfilmentData>;
+export type UseSetVariantFulfilment = MutationHook<SuccessResponse, SetVariantFulfilmentData>;
+export type UseClearVariantFulfilment = MutationHook<SuccessResponse, string>;
 export type UseSetVariantTaxClass = MutationHook<SuccessResponse, SetVariantTaxClassData>;
 export type UseClearVariantTaxClass = MutationHook<SuccessResponse, string>;
 export type UseAddBomLine = MutationHook<SuccessResponse, AddBomLineData>;

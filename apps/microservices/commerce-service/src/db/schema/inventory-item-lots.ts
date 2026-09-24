@@ -3,12 +3,13 @@ import { bigint, check, index, pgPolicy, timestamp, unique, uuid, varchar } from
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemMrps } from './inventory-item-mrps';
 import { inventoryItems } from './inventory-items';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const inventoryItemLots = commerceSchema.table(
   'inventory_item_lots',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
@@ -35,10 +36,7 @@ export const inventoryItemLots = commerceSchema.table(
     ),
     check('ck_inventory_item_lots_mrp_currency', sql`(${table.mrp} IS NULL) = (${table.mrpCurrencyCode} IS NULL)`),
     index('idx_inventory_item_lots_mrp').on(table.mrpId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

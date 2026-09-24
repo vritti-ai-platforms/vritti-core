@@ -13,6 +13,7 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { LocationRoleValues, locationRoleEnum } from './enums';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
@@ -24,7 +25,7 @@ export const locations = commerceSchema.table(
   'locations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     name: varchar('name', { length: 100 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
@@ -47,10 +48,7 @@ export const locations = commerceSchema.table(
     index('idx_locations_site').on(table.organizationId, table.siteId),
     index('idx_locations_parent').on(table.parentId),
     index('idx_locations_path').using('gist', table.path.asc()),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

@@ -5,7 +5,6 @@ import {
   date,
   foreignKey,
   index,
-  pgPolicy,
   timestamp,
   unique,
   uniqueIndex,
@@ -24,12 +23,13 @@ import {
   taxRegistrationTypeEnum,
 } from './enums';
 import { taxJurisdictions } from './tax-jurisdictions';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const parties = commerceSchema.table(
   'parties',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyType: partyTypeEnum('party_type').notNull(),
     displayName: varchar('display_name', { length: 255 }).notNull(),
     isActive: boolean('is_active').notNull().default(true),
@@ -46,10 +46,7 @@ export const parties = commerceSchema.table(
   (table) => [
     index('idx_parties_org').on(table.organizationId),
     index('idx_parties_type').on(table.partyType),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -60,7 +57,7 @@ export const partyAddresses = commerceSchema.table(
   'party_addresses',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -80,10 +77,7 @@ export const partyAddresses = commerceSchema.table(
   (table) => [
     unique('uq_party_addresses_party_id').on(table.partyId, table.id),
     index('idx_party_addresses_party').on(table.partyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -94,7 +88,7 @@ export const partyIdentifiers = commerceSchema.table(
   'party_identifiers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -112,10 +106,7 @@ export const partyIdentifiers = commerceSchema.table(
   (table) => [
     unique('uq_party_identifiers_org_type_value').on(table.organizationId, table.idType, table.idValue),
     index('idx_party_identifiers_party').on(table.partyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -126,7 +117,7 @@ export const partyRelationships = commerceSchema.table(
   'party_relationships',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     parentPartyId: uuid('parent_party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -145,10 +136,7 @@ export const partyRelationships = commerceSchema.table(
     unique('uq_party_rel_parent_child').on(table.parentPartyId, table.childPartyId),
     unique('uq_party_rel_parent_id').on(table.parentPartyId, table.id),
     index('idx_party_rel_parent').on(table.parentPartyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -159,7 +147,7 @@ export const partyTaxRegistrations = commerceSchema.table(
   'party_tax_registrations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -180,10 +168,7 @@ export const partyTaxRegistrations = commerceSchema.table(
     unique('uq_party_tax_reg_party_juris').on(table.partyId, table.jurisdictionId),
     unique('uq_party_tax_reg_org_number').on(table.organizationId, table.registrationNumber),
     index('idx_party_tax_reg_party').on(table.partyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -194,7 +179,7 @@ export const partyLicenses = commerceSchema.table(
   'party_licenses',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -213,10 +198,7 @@ export const partyLicenses = commerceSchema.table(
   (table) => [
     unique('uq_party_licenses_org_type_number').on(table.organizationId, table.licenseType, table.licenseNumber),
     index('idx_party_licenses_party').on(table.partyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -227,7 +209,7 @@ export const partyBankAccounts = commerceSchema.table(
   'party_bank_accounts',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -248,10 +230,7 @@ export const partyBankAccounts = commerceSchema.table(
     unique('uq_party_bank_accounts_party_number').on(table.partyId, table.accountNumber),
     uniqueIndex('uq_party_bank_accounts_primary').on(table.partyId).where(sql`is_primary = true`),
     index('idx_party_bank_accounts_party').on(table.partyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -262,7 +241,7 @@ export const partyCommunications = commerceSchema.table(
   'party_communications',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -282,10 +261,7 @@ export const partyCommunications = commerceSchema.table(
     index('idx_party_communications_party').on(table.partyId),
     check('party_communications_primary_channel_chk', sql`is_primary = false OR channel IN ('EMAIL', 'PHONE')`),
     index('idx_party_communications_lookup').on(table.organizationId, table.channel, sql`lower(${table.value})`),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -296,7 +272,7 @@ export const partyCommunicationApps = commerceSchema.table(
   'party_communication_apps',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     communicationId: uuid('communication_id')
       .notNull()
       .references(() => partyCommunications.id, { onDelete: 'cascade' }),
@@ -311,10 +287,7 @@ export const partyCommunicationApps = commerceSchema.table(
   (table) => [
     unique('uq_party_communication_apps_comm_app').on(table.communicationId, table.app),
     index('idx_party_communication_apps_comm').on(table.communicationId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 
@@ -325,7 +298,7 @@ export const partySocialProfiles = commerceSchema.table(
   'party_social_profiles',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -337,13 +310,7 @@ export const partySocialProfiles = commerceSchema.table(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [
-    index('idx_party_social_profiles_party').on(table.partyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-  ],
+  (table) => [index('idx_party_social_profiles_party').on(table.partyId), orgIsolationPolicy()],
 );
 
 export type PartySocialProfile = typeof partySocialProfiles.$inferSelect;
@@ -353,7 +320,7 @@ export const partyFunctions = commerceSchema.table(
   'party_functions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -387,10 +354,7 @@ export const partyFunctions = commerceSchema.table(
     unique('uq_party_functions_relationship_function').on(table.partyRelationshipId, table.function),
     unique('uq_party_functions_address_function').on(table.partyAddressId, table.function),
     index('idx_party_functions_party_function').on(table.partyId, table.function),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

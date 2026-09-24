@@ -17,12 +17,13 @@ import { exchangeRateTypeEnum, purchaseOrderStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 import { suppliers } from './suppliers';
 import { uom } from './uom';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const purchaseOrders = commerceSchema.table(
   'purchase_orders',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     supplierId: uuid('supplier_id')
       .notNull()
@@ -49,10 +50,7 @@ export const purchaseOrders = commerceSchema.table(
     unique('uq_purchase_orders_org_po_number').on(table.organizationId, table.poNumber),
     index('idx_purchase_orders_site').on(table.organizationId, table.siteId),
     index('idx_purchase_orders_supplier').on(table.supplierId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
@@ -79,7 +77,7 @@ export const purchaseOrderItems = commerceSchema.table(
   'purchase_order_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     purchaseOrderId: uuid('purchase_order_id')
       .notNull()
       .references(() => purchaseOrders.id, { onDelete: 'cascade' }),

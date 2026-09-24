@@ -1,23 +1,14 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  boolean,
-  check,
-  index,
-  integer,
-  pgPolicy,
-  timestamp,
-  uniqueIndex,
-  uuid,
-  varchar,
-} from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, check, index, integer, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { uomDimensions } from './uom-dimensions';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const uom = commerceSchema.table(
   'uom',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     dimensionId: uuid('dimension_id')
       .notNull()
       .references(() => uomDimensions.id, { onDelete: 'restrict' }),
@@ -35,10 +26,7 @@ export const uom = commerceSchema.table(
     index('idx_uom_dimension').on(table.dimensionId),
     check('chk_uom_base_uom_qty_positive', sql`${table.baseUomQty} > 0`),
     check('chk_uom_uom_qty_positive', sql`${table.uomQty} > 0`),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
   ],
 );
 

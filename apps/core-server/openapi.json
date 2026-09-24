@@ -6355,6 +6355,135 @@
         ]
       }
     },
+    "/commerce-api/org/offerings/{id}/fulfilment": {
+      "patch": {
+        "description": "Cascades to every variant that has not pinned its own. Refused when any of those variants holds a bill of materials the new type forbids, so the offering never half-changes.",
+        "operationId": "OrgOfferingsGatewayController_setFulfilment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFulfilmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fulfilment type updated."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Variants hold components the new type forbids."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change an offering's fulfilment type",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/variants/{variantId}/fulfilment": {
+      "patch": {
+        "description": "Overrides the offering's type for this variant — a variety pack inside a stock offering is composite. Exempts it from future cascades.",
+        "operationId": "OrgOfferingsGatewayController_setVariantFulfilment",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFulfilmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fulfilment type overridden."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Its components do not fit the new type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Pin a variant's own fulfilment type",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      },
+      "delete": {
+        "description": "Resynchronises the variant with its offering's type and re-enrols it in future cascades.",
+        "operationId": "OrgOfferingsGatewayController_clearVariantFulfilment",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Override cleared."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Its components do not fit the offering's type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Drop a variant's fulfilment override",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
     "/commerce-api/org/offerings/{id}/tax-class": {
       "patch": {
         "description": "Applies the tax class to the offering and cascades it to every variant that has not pinned its own. The response reports how many were updated and how many kept an override.",
@@ -7595,6 +7724,135 @@
         ]
       }
     },
+    "/commerce-api/le/offerings/{id}/fulfilment": {
+      "patch": {
+        "description": "Cascades to every variant that has not pinned its own. Refused when any of those variants holds a bill of materials the new type forbids, so the offering never half-changes.",
+        "operationId": "LeOfferingsGatewayController_setFulfilment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFulfilmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fulfilment type updated."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Variants hold components the new type forbids."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change an offering's fulfilment type",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/variants/{variantId}/fulfilment": {
+      "patch": {
+        "description": "Overrides the offering's type for this variant — a variety pack inside a stock offering is composite. Exempts it from future cascades.",
+        "operationId": "LeOfferingsGatewayController_setVariantFulfilment",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFulfilmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fulfilment type overridden."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Its components do not fit the new type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Pin a variant's own fulfilment type",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      },
+      "delete": {
+        "description": "Resynchronises the variant with its offering's type and re-enrols it in future cascades.",
+        "operationId": "LeOfferingsGatewayController_clearVariantFulfilment",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Override cleared."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Its components do not fit the offering's type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Drop a variant's fulfilment override",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
     "/commerce-api/le/offerings/{id}/tax-class": {
       "patch": {
         "description": "Applies the tax class to the offering and cascades it to every variant that has not pinned its own. The response reports how many were updated and how many kept an override.",
@@ -8830,6 +9088,135 @@
           }
         ],
         "summary": "Delete a variant",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/fulfilment": {
+      "patch": {
+        "description": "Cascades to every variant that has not pinned its own. Refused when any of those variants holds a bill of materials the new type forbids, so the offering never half-changes.",
+        "operationId": "SiteOfferingsGatewayController_setFulfilment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFulfilmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fulfilment type updated."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Variants hold components the new type forbids."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change an offering's fulfilment type",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/variants/{variantId}/fulfilment": {
+      "patch": {
+        "description": "Overrides the offering's type for this variant — a variety pack inside a stock offering is composite. Exempts it from future cascades.",
+        "operationId": "SiteOfferingsGatewayController_setVariantFulfilment",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFulfilmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fulfilment type overridden."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Its components do not fit the new type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Pin a variant's own fulfilment type",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      },
+      "delete": {
+        "description": "Resynchronises the variant with its offering's type and re-enrols it in future cascades.",
+        "operationId": "SiteOfferingsGatewayController_clearVariantFulfilment",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Override cleared."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          },
+          "409": {
+            "description": "Its components do not fit the offering's type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Drop a variant's fulfilment override",
         "tags": [
           "Commerce - Offerings (Site)"
         ]
@@ -34718,7 +35105,21 @@
           },
           "canMarkActive": {
             "type": "boolean",
-            "description": "Whether the bill of materials satisfies the offering fulfilment type"
+            "description": "Whether the bill of materials satisfies this variant's fulfilment type"
+          },
+          "fulfilmentType": {
+            "type": "string",
+            "enum": [
+              "STOCK",
+              "ASSEMBLY",
+              "COMPOSITE",
+              "SERVICE"
+            ],
+            "description": "Follows the offering's unless pinned — a variety pack inside a stock offering is composite"
+          },
+          "isFulfilmentOverridden": {
+            "type": "boolean",
+            "description": "Pinned to this variant, so an offering-level change no longer cascades to it"
           },
           "canDelete": {
             "type": "boolean",
@@ -34760,6 +35161,8 @@
           "bom",
           "bomLineCount",
           "canMarkActive",
+          "fulfilmentType",
+          "isFulfilmentOverridden",
           "canDelete",
           "taxClassId",
           "isTaxClassOverridden",
@@ -35030,6 +35433,24 @@
             "type": "number"
           }
         }
+      },
+      "SetFulfilmentDto": {
+        "type": "object",
+        "properties": {
+          "fulfilmentType": {
+            "type": "string",
+            "enum": [
+              "STOCK",
+              "ASSEMBLY",
+              "COMPOSITE",
+              "SERVICE"
+            ],
+            "description": "What happens at picking — decides the bill of materials rules"
+          }
+        },
+        "required": [
+          "fulfilmentType"
+        ]
       },
       "SetTaxClassDto": {
         "type": "object",

@@ -1,14 +1,14 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, index, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { paymentMethodEnum, paymentStatusEnum } from './enums';
 import { invoices } from './invoices';
+import { organizationIdColumn } from './workspace-scope';
 
 export const payments = commerceSchema.table(
   'payments',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     invoiceId: uuid('invoice_id')
       .notNull()
       .references(() => invoices.id, { onDelete: 'cascade' }),

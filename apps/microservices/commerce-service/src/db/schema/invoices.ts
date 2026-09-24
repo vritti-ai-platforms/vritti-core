@@ -2,12 +2,13 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { invoicePartyTypeEnum, invoiceStatusEnum, invoiceTypeEnum } from './enums';
+import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const invoices = commerceSchema.table(
   'invoices',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     type: invoiceTypeEnum('type').notNull(),
     invoiceNumber: varchar('invoice_number', { length: 50 }).notNull(),
@@ -37,10 +38,7 @@ export const invoices = commerceSchema.table(
     unique('uq_invoices_bu_number').on(table.siteId, table.invoiceNumber),
     index('idx_invoices_site').on(table.organizationId, table.siteId),
     index('idx_invoices_party').on(table.partyType, table.partyId),
-    pgPolicy('org_isolation', {
-      for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
+    orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',
       using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,

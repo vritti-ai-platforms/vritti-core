@@ -11,14 +11,23 @@ import {
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
-import { FulfilmentTypeValues, offerings } from '@/db/schema';
+import { type FulfilmentType, FulfilmentTypeValues, offerings } from '@/db/schema';
 import { OfferingDto } from '../dto/entity/offering.dto';
 import type { BulkSetOfferingStatusDto } from '../dto/request/bulk-set-offering-status.dto';
 import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
+import type { SetOfferingFulfilmentDto } from '../dto/request/set-offering-fulfilment.dto';
 import type { SetOfferingStatusDto } from '../dto/request/set-offering-status.dto';
 import type { SetOfferingTaxClassDto } from '../dto/request/set-offering-tax-class.dto';
 import type { UpdateOfferingDto } from '../dto/request/update-offering.dto';
 import { OfferingsDomainRepository, type OfferingWithOwnership } from '../repositories/offerings.repository';
+
+// Mirrors the variant service's rules — an offering may only take a type its variants can satisfy
+const BOM_RULES = {
+  [FulfilmentTypeValues.STOCK]: { min: 1, max: 1 },
+  [FulfilmentTypeValues.ASSEMBLY]: { min: 1, max: Number.POSITIVE_INFINITY },
+  [FulfilmentTypeValues.COMPOSITE]: { min: 1, max: Number.POSITIVE_INFINITY },
+  [FulfilmentTypeValues.SERVICE]: { min: 0, max: Number.POSITIVE_INFINITY },
+} as const;
 
 @Injectable()
 export class OfferingsDomainService {
@@ -147,6 +156,40 @@ export class OfferingsDomainService {
       success: true,
       message: `Tax class updated on "${existing.name}" and ${pluralize('variant', cascaded, true)}${
         overridden > 0 ? `. ${pluralize('variant', overridden, true)} kept their own` : ''
+      }.`,
+    };
+  }
+
+  // Changes what the offering is, and cascades to every variant that has not pinned its own. Refused
+  // outright when any of those variants already holds a bill of materials the new type forbids —
+  // nothing is written until the whole set can move, so an offering never half-changes.
+  async setFulfilment(id: string, data: Omit<SetOfferingFulfilmentDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.requireOwned(id);
+    const next = data.fulfilmentType as FulfilmentType;
+    if (existing.fulfilmentType === next) {
+      return { success: true, message: `"${existing.name}" is already ${next.toLowerCase()}.` };
+    }
+
+    const rule = BOM_RULES[next];
+    const breaching = await this.repository.findVariantsBreachingBomRule(id, rule.max, rule.min);
+    if (breaching.length > 0) {
+      throw new ConflictException({
+        label: 'Variants Do Not Fit',
+        detail: `${pluralize('variant', breaching.length, true)} cannot be ${next.toLowerCase()} as they stand: ${breaching.map((sku) => `"${sku}"`).join(', ')}. Adjust their components, or pin their own fulfilment type first.`,
+      });
+    }
+
+    const cascaded = await this.repository.transaction(async (tx) => {
+      await this.repository.update(id, { fulfilmentType: next }, tx);
+      return this.repository.applyFulfilmentToVariants(id, next, tx);
+    });
+
+    const pinned = existing.variantCount - cascaded;
+    this.logger.log(`Set fulfilment on offering ${existing.code} (${id}) to ${next}, cascaded to ${cascaded} variants`);
+    return {
+      success: true,
+      message: `"${existing.name}" is now ${next.toLowerCase()}, along with ${pluralize('variant', cascaded, true)}${
+        pinned > 0 ? `. ${pluralize('variant', pinned, true)} kept their own` : ''
       }.`,
     };
   }
