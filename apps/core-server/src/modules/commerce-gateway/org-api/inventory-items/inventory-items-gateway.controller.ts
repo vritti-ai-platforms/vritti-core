@@ -1,7 +1,6 @@
 import { AddInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/add-inventory-item-mrp.dto';
 import { CreateInventoryItemDto } from '@commerce/inventory-items/dto/request/create-inventory-item.dto';
 import { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
-import { InventoryItemsSelectQueryDto } from '@commerce/inventory-items/dto/request/inventory-items-select-query.dto';
 import { UpdateInventoryItemDto } from '@commerce/inventory-items/dto/request/update-inventory-item.dto';
 import { UpdateInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/update-inventory-item-mrp.dto';
 import { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
@@ -10,10 +9,10 @@ import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/res
 import type { InventoryItemSupplierTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-uom-conversion-response.dto';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
@@ -35,14 +34,6 @@ export class InventoryItemsGatewayController {
   getTable(@UserId() userId: string): Promise<InventoryItemTableResponseDto> {
     this.logger.log('GET /commerce-api/org/inventory-items/table');
     return this.service.findForTable(userId);
-  }
-
-  // Returns paginated inventory item options for select dropdowns
-  @Get('select')
-  @RequirePermission(ORG_INVENTORY_ITEMS.view)
-  select(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/org/inventory-items/select');
-    return this.service.select(query);
   }
 
   // Creates a new org inventory item

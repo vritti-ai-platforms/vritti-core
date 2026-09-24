@@ -4,12 +4,7 @@ import type { CostCategoryResponseDto } from '@commerce/cost-categories/dto/resp
 import type { CostCategoryTableResponseDto } from '@commerce/cost-categories/dto/response/cost-category-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
@@ -35,11 +30,6 @@ export class CostCategoriesGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  async select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('costCategories.select');
-    return this.nats.send('commerce', 'le.costCategories.select', params);
   }
 
   // Returns all cost categories (with canDelete) for the mobile plain list

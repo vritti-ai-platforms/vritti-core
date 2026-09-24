@@ -6,7 +6,6 @@ import { CostCategoriesGatewayController } from './le-api/cost-categories/cost-c
 import { CostCategoriesResolver } from './le-api/cost-categories/cost-categories-gateway.resolver';
 import { LeDimensionTemplatesGatewayController } from './le-api/dimension-templates/dimension-templates-gateway.controller';
 import { LeOfferingsGatewayController } from './le-api/offerings/offerings-gateway.controller';
-import { SupplierItemsGatewayController } from './le-api/supplier-items/supplier-items-gateway.controller';
 import { SuppliersGatewayController } from './le-api/suppliers/suppliers-gateway.controller';
 import { TaxGroupsGatewayController } from './le-api/tax-groups/tax-groups-gateway.controller';
 import { TaxGroupsResolver } from './le-api/tax-groups/tax-groups-gateway.resolver';
@@ -86,7 +85,6 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     StockTransfersGatewayController,
     SiteSuppliersGatewayController,
     SuppliersGatewayController,
-    SupplierItemsGatewayController,
     OrgInventoryItemsGatewayController,
     SiteGroupInventoryItemsGatewayController,
     PeopleGatewayController,

@@ -35,12 +35,7 @@ import type { PartySocialProfileResponseDto } from '@commerce/party-social-profi
 import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
@@ -64,12 +59,6 @@ export class CompaniesGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Returns paginated company options for select dropdowns
-  select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('select.companies');
-    return this.nats.send('commerce', 'select.companies', params);
   }
 
   // Creates a new company

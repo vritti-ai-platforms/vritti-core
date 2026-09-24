@@ -45,12 +45,10 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
@@ -72,14 +70,6 @@ export class CompaniesGatewayController {
   getTable(@UserId() userId: string): Promise<CompanyTableResponseDto> {
     this.logger.log('GET /commerce-api/companies/table');
     return this.service.findForTable(userId);
-  }
-
-  // Returns paginated company options for select dropdowns
-  @Get('select')
-  @RequirePermission(ORG_COMPANIES.view)
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/companies/select');
-    return this.service.select(query);
   }
 
   // Creates a new company

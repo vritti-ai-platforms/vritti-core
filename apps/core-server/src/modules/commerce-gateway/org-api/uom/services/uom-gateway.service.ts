@@ -8,12 +8,7 @@ import type { UomResponseDto } from '@commerce/uom/dto/response/uom-response.dto
 import type { UomTableResponseDto } from '@commerce/uom/dto/response/uom-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
@@ -50,14 +45,6 @@ export class UomGatewayService {
   async findDerivedUnits(baseUnitId: string): Promise<UomResponseDto[]> {
     this.logger.log(`uom.derived — baseUnitId: ${baseUnitId}`);
     return this.nats.send('commerce', 'org.uom.derived', { baseUnitId });
-  }
-
-  // Returns paginated UOM options for select dropdowns
-  async select(
-    params: SelectOptionsQueryDto & { derivedOnly?: boolean; baseOnly?: boolean; dimensionId?: string },
-  ): Promise<SelectQueryResult> {
-    this.logger.log('uom.select');
-    return this.nats.send('commerce', 'org.uom.select', params);
   }
 
   // Returns paginated UOMs for the data table, scoped to a dimension

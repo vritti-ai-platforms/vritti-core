@@ -7,7 +7,6 @@ import { LeCatalogChannelsGatewayService } from './le-api/catalog-channels/servi
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
 import { LeDimensionTemplatesGatewayService } from './le-api/dimension-templates/services/dimension-templates-gateway.service';
 import { LeOfferingsGatewayService } from './le-api/offerings/services/offerings-gateway.service';
-import { SupplierItemsGatewayService } from './le-api/supplier-items/services/supplier-items-gateway.service';
 import { SuppliersGatewayService } from './le-api/suppliers/services/suppliers-gateway.service';
 import { TaxGroupsGatewayService } from './le-api/tax-groups/services/tax-groups-gateway.service';
 import { TaxRegistrationsGatewayService } from './le-api/tax-registrations/services/tax-registrations-gateway.service';
@@ -72,7 +71,6 @@ const services = [
   StockTransfersGatewayService,
   SiteSuppliersGatewayService,
   SuppliersGatewayService,
-  SupplierItemsGatewayService,
   OrgInventoryItemsGatewayService,
   SiteGroupInventoryItemsGatewayService,
   PeopleGatewayService,
