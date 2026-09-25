@@ -41,12 +41,12 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       itemsTotal: sql<number>`(
         select count(*)::int from ${catalogListings} cl
         join ${offeringVariants} ov on ov.id = cl.offering_variant_id
-        where cl.catalog_id = ${catalogChannels.catalogId} and ov.is_active
+        where cl.catalog_id = ${catalogChannels.catalogId} and ov.is_active and ov.is_offering_active
       )`,
       itemsSelling: sql<number>`(
         select count(*)::int from ${catalogListings} cl
         join ${offeringVariants} ov on ov.id = cl.offering_variant_id
-        where cl.catalog_id = ${catalogChannels.catalogId} and ov.is_active
+        where cl.catalog_id = ${catalogChannels.catalogId} and ov.is_active and ov.is_offering_active
           and not exists (
             select 1 from ${catalogListingChannelExclusions} e
             where e.catalog_listing_id = cl.id and e.catalog_channel_id = ${catalogChannels.id}
@@ -167,6 +167,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     const where = and(
       eq(catalogListings.catalogId, catalogId),
       eq(offeringVariants.isActive, true),
+      eq(offeringVariants.isOfferingActive, true),
       options.where,
     ) as SQL;
 

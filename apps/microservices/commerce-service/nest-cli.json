@@ -5,6 +5,9 @@
   "compilerOptions": {
     "builder": "swc",
     "typeCheck": true,
-    "assets": [{ "include": "db/migrations/**/*", "outDir": "dist", "watchAssets": false }]
+    "assets": [
+      { "include": "db/migrations/**/*", "outDir": "dist", "watchAssets": false },
+      { "include": "db/objects/**/*", "outDir": "dist", "watchAssets": false }
+    ]
   }
 }

@@ -9,6 +9,7 @@ runMigrationsAndGrants({
   migrationsTable: '__drizzle_migrations_commerce',
   schema: DB_SCHEMA,
   migrationSchema: DB_MIGRATION_SCHEMA,
+  objectsFolder: path.join(__dirname, 'objects'),
 }).catch((error) => {
   console.error('[migrate] failed:', error);
   process.exit(1);

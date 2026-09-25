@@ -3,7 +3,6 @@ import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient 
 import { and, asc, eq, getColumns, inArray, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type FulfilmentType,
-  FulfilmentTypeValues,
   type Offering,
   offeringBom,
   offeringDimensions,
@@ -132,35 +131,6 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
         ),
       );
     return rows.map((row) => row.sku);
-  }
-
-  // Variants whose bill of materials is short of what their OWN fulfilment type needs, so activating
-  // the offering would put something unfulfillable on sale
-  async findVariantsMissingBom(offeringIds: string[]): Promise<string[]> {
-    if (offeringIds.length === 0) return [];
-    const lineCount = this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id));
-    const rows = await this.db
-      .select({ sku: offeringVariants.sku })
-      .from(offeringVariants)
-      .where(
-        and(
-          inArray(offeringVariants.offeringId, offeringIds),
-          sql`${lineCount} < case ${offeringVariants.fulfilmentType} when ${FulfilmentTypeValues.SERVICE} then 0 else 1 end`,
-        ),
-      );
-    return rows.map((row) => row.sku);
-  }
-
-  // Mirrors an offering's status onto every variant it owns — a variant is only sellable while its
-  // offering is, so the two never disagree
-  async applyStatusToVariants(offeringIds: string[], isActive: boolean, tx?: TypedDrizzleClient): Promise<number> {
-    if (offeringIds.length === 0) return 0;
-    const rows = await (tx ?? this.db)
-      .update(offeringVariants)
-      .set({ isActive })
-      .where(inArray(offeringVariants.offeringId, offeringIds))
-      .returning({ id: offeringVariants.id });
-    return rows.length;
   }
 
   // Applies a fulfilment type to every variant of an offering except those carrying their own override

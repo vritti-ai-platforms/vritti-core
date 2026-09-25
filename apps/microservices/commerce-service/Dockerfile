@@ -40,6 +40,7 @@ COPY --from=builder /prod/node_modules ./node_modules
 COPY --from=builder /repo/apps/microservices/commerce-service/dist ./dist
 # SQL migration files aren't compiled by SWC — copy them next to dist/db/migrate.js for `db:deploy`.
 COPY --from=builder /repo/apps/microservices/commerce-service/src/db/migrations ./dist/db/migrations
+COPY --from=builder /repo/apps/microservices/commerce-service/src/db/objects ./dist/db/objects
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 -G nodejs \
  && chown -R nestjs:nodejs /app

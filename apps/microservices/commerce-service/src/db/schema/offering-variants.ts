@@ -41,6 +41,7 @@ export const offeringVariants = commerceSchema.table(
     fulfilmentType: fulfilmentTypeEnum('fulfilment_type').notNull(),
     isFulfilmentOverridden: boolean('is_fulfilment_overridden').notNull().default(false),
     isActive: boolean('is_active').notNull().default(false),
+    isOfferingActive: boolean('is_offering_active').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
     combinationKey: text('combination_key').notNull(),
     attributes: jsonb('attributes').notNull().default({}),

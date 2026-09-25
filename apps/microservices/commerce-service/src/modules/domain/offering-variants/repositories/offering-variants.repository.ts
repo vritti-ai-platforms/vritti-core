@@ -222,7 +222,11 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   async findForSelectInOffering(config: FindForSelectConfig, offeringId: string): Promise<SelectQueryResult> {
     return super.findForSelect({
       ...config,
-      conditions: [eq(offeringVariants.offeringId, offeringId), eq(offeringVariants.isActive, true)],
+      conditions: [
+        eq(offeringVariants.offeringId, offeringId),
+        eq(offeringVariants.isActive, true),
+        eq(offeringVariants.isOfferingActive, true),
+      ],
     });
   }
 

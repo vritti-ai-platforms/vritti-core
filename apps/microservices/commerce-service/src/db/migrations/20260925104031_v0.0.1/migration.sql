@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."offering_variants" ADD COLUMN "is_offering_active" boolean DEFAULT false NOT NULL;
