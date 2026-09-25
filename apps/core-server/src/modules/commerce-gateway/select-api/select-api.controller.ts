@@ -36,6 +36,7 @@ import {
   ApiSupplierItemsSelect,
   ApiSuppliersSelect,
   ApiTaxClassesSelect,
+  ApiTaxComponentsSelect,
   ApiTaxGroupsSelect,
   ApiUomDimensionsSelect,
   ApiUomSelect,
@@ -191,6 +192,12 @@ export class SelectApiController {
   @Get('tax-jurisdictions')
   selectTaxJurisdictions(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.taxJurisdictions', query);
+  }
+
+  @Get('tax-components')
+  @ApiTaxComponentsSelect()
+  selectTaxComponents(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.taxComponents', query);
   }
 
   @Get('tax-groups')

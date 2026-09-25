@@ -277,6 +277,18 @@ export function ApiTaxClassesSelect() {
   );
 }
 
+export function ApiTaxComponentsSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get tax component select options',
+      description: 'Returns paginated tax component options for the select component (id → name, code as description).',
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Tax component select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
 export function ApiTaxGroupsSelect() {
   return applyDecorators(
     ApiOperation({

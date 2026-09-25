@@ -68,8 +68,8 @@ export class SiteInventoryItemsGatewayService {
     edges: { cursor: string; node: SiteInventoryItemResponseDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
-    this.logger.log('inventoryItems.feed');
-    return this.nats.send('commerce', 'site.inventoryItems.feed', query);
+    this.logger.log('org.inventoryItems.feed');
+    return this.nats.send('commerce', 'org.inventoryItems.feed', query);
   }
 
   // Creates a new inventory item
