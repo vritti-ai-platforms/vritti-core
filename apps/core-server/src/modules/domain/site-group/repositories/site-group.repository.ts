@@ -119,4 +119,24 @@ export class SiteGroupDomainRepository extends PrimaryBaseRepository<typeof site
       .where(eq(sites.groupId, groupId));
     return (result[0] as { count: number }).count;
   }
+
+  // Returns the ids of every site under a group, including sites in its descendant groups
+  async findMemberSiteIds(groupId: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ id: sites.id })
+      .from(sites)
+      .where(
+        sql`${sites.groupId} in (
+        with recursive subtree as (
+          select id, parent_id from ${siteGroups} where id = ${groupId}
+          union all
+          select child.id, child.parent_id
+          from ${siteGroups} child
+          inner join subtree parent on child.parent_id = parent.id
+        )
+        select id from subtree
+      )`,
+      );
+    return rows.map((row) => row.id);
+  }
 }

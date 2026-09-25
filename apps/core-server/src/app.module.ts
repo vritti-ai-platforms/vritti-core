@@ -24,6 +24,8 @@ import { RbacModule } from '@/rbac/rbac.module';
 import { SecurityModule } from '@/security/security.module';
 import { SiteContextModule } from '@/site-context/site-context.module';
 import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
+import { SiteGroupContextModule } from '@/site-group-context/site-group-context.module';
+import { SiteGroupContextResolverService } from '@/site-group-context/site-group-context-resolver.service';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceAppGatewayModule } from './modules/commerce-gateway/commerce-app-gateway.module';
@@ -291,9 +293,13 @@ const graphqlBaseOptions = {
 
     // NATS client (gateway mode) — resolves the workspace context from request.auth (site context derives its LE)
     NatsClientModule.forRoot({
-      imports: [SiteContextModule],
-      inject: [ConfigService, SiteContextResolverService],
-      useFactory: (config: ConfigService, siteContextResolver: SiteContextResolverService) => ({
+      imports: [SiteContextModule, SiteGroupContextModule],
+      inject: [ConfigService, SiteContextResolverService, SiteGroupContextResolverService],
+      useFactory: (
+        config: ConfigService,
+        siteContextResolver: SiteContextResolverService,
+        siteGroupContextResolver: SiteGroupContextResolverService,
+      ) => ({
         natsUrl: config.get<string>('NATS_URL'),
         services: [{ name: 'commerce' }, { name: 'communications' }],
         contextResolver: async (request) => {
@@ -309,6 +315,7 @@ const graphqlBaseOptions = {
               siteId: '',
               legalEntityId: '',
               siteGroupId: '',
+              siteIds: '',
               siteTimezone: '',
               siteCurrencyCode: '',
             };
@@ -332,10 +339,15 @@ const graphqlBaseOptions = {
               siteId: auth.siteId,
               legalEntityId: siteContext.legalEntityId,
               siteGroupId: '',
+              siteIds: '',
               siteTimezone: siteContext.siteTimezone,
               siteCurrencyCode: siteContext.siteCurrencyCode,
             };
           }
+
+          // A group workspace resolves its member sites here, never from the request — scope policies
+          // widen a group's reach to exactly these sites, so a client-supplied list would be an IDOR
+          const siteIds = auth.siteGroupId ? await siteGroupContextResolver.resolveSiteIds(auth.siteGroupId) : [];
 
           // Group / LE / org workspaces pass their own context through; empty values are omitted from the headers
           return {
@@ -344,6 +356,7 @@ const graphqlBaseOptions = {
             siteId: '',
             legalEntityId: auth.legalEntityId ?? '',
             siteGroupId: auth.siteGroupId ?? '',
+            siteIds: siteIds.join(','),
             siteTimezone: '',
             siteCurrencyCode: '',
           };

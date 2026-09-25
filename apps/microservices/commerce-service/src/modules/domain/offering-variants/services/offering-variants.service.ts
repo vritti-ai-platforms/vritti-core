@@ -172,7 +172,7 @@ export class OfferingVariantsDomainService {
     const byValueId = new Map(valueRows.map((row) => [row.valueId, row]));
     const existing = await this.existingCombinationKeys(data.offeringId);
 
-    const planned: { valueIds: string[]; ordered: DimensionValueRow[]; sku: string }[] = [];
+    const planned: { valueIds: string[]; ordered: DimensionValueRow[]; sku: string; key: string }[] = [];
     const seen = new Set<string>();
 
     for (const combination of data.combinations) {
@@ -180,7 +180,7 @@ export class OfferingVariantsDomainService {
       const key = this.combinationKey(ordered.map((row) => row.valueId));
       if (existing.has(key) || seen.has(key)) continue;
       seen.add(key);
-      planned.push({ valueIds: combination.valueIds, ordered, sku: this.deriveSku(offering.code, ordered) });
+      planned.push({ valueIds: combination.valueIds, ordered, sku: this.deriveSku(offering.code, ordered), key });
     }
 
     if (planned.length === 0) {
@@ -199,6 +199,7 @@ export class OfferingVariantsDomainService {
           sortOrder: index,
           taxClassId: offering.taxClassId,
           fulfilmentType: offering.fulfilmentType,
+          combinationKey: plan.key,
           isActive: offering.fulfilmentType === FulfilmentTypeValues.SERVICE,
         })),
       );
@@ -514,10 +515,7 @@ export class OfferingVariantsDomainService {
   }
 
   private async existingCombinationKeys(offeringId: string): Promise<Set<string>> {
-    const rows = await this.repository.findVariantValueIds(offeringId);
-    const byVariant = new Map<string, string[]>();
-    for (const row of rows) byVariant.set(row.variantId, [...(byVariant.get(row.variantId) ?? []), row.valueId]);
-    return new Set([...byVariant.values()].map((ids) => this.combinationKey(ids)));
+    return new Set(await this.repository.findCombinationKeys(offeringId));
   }
 
   // Two different combinations can derive the same SKU once a variant may skip a dimension — a value

@@ -4,6 +4,7 @@ import {
   index,
   integer,
   jsonb,
+  text,
   timestamp,
   unique,
   uuid,
@@ -41,6 +42,7 @@ export const offeringVariants = commerceSchema.table(
     isFulfilmentOverridden: boolean('is_fulfilment_overridden').notNull().default(false),
     isActive: boolean('is_active').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
+    combinationKey: text('combination_key').notNull(),
     attributes: jsonb('attributes').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -50,6 +52,7 @@ export const offeringVariants = commerceSchema.table(
   },
   (table) => [
     unique('uq_offering_variants_org_sku').on(table.organizationId, table.sku),
+    unique('uq_offering_variants_offering_combination').on(table.offeringId, table.combinationKey),
     unique('uq_offering_variants_org_external_sku').on(table.organizationId, table.externalSku),
     index('idx_offering_variants_offering').on(table.offeringId, table.sortOrder),
     ...scopeFromOwnerPolicies({ owner: offerings, fk: table.offeringId }),

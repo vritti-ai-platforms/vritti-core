@@ -231,13 +231,13 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return rows.map((row) => row.sku);
   }
 
-  // Which value ids each existing variant holds, so already-created combinations can be skipped
-  async findVariantValueIds(offeringId: string): Promise<{ variantId: string; valueId: string }[]> {
-    return this.db
-      .select({ variantId: offeringVariantValues.variantId, valueId: offeringVariantValues.valueId })
-      .from(offeringVariantValues)
-      .innerJoin(offeringVariants, eq(offeringVariants.id, offeringVariantValues.variantId))
+  // The combination keys already taken on this offering, so those combinations can be skipped
+  async findCombinationKeys(offeringId: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ combinationKey: offeringVariants.combinationKey })
+      .from(offeringVariants)
       .where(eq(offeringVariants.offeringId, offeringId));
+    return rows.map((row) => row.combinationKey);
   }
 
   // The given variants, restricted to one offering — ids from another offering simply do not come back,

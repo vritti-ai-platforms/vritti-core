@@ -1,0 +1,2 @@
+ALTER TABLE "commerce"."offering_variants" ADD COLUMN "combination_key" text;--> statement-breakpoint
+ALTER TABLE "commerce"."offering_variants" ADD CONSTRAINT "uq_offering_variants_offering_combination" UNIQUE("offering_id","combination_key");

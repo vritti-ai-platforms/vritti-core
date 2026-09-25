@@ -87,6 +87,11 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
               parts.push(`set_config('app.site_group_id', $${values.length + 1}, true)`);
               values.push(r.siteGroupId);
             }
+            // The group's member sites — absent means the group reads org-owned rows only
+            if (r.siteIds) {
+              parts.push(`set_config('app.site_ids', $${values.length + 1}, true)`);
+              values.push(r.siteIds);
+            }
             await client.query(`SELECT ${parts.join(', ')}`, values);
           },
         };
