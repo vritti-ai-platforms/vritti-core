@@ -65,7 +65,7 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
               startAdornment={<Receipt className="size-4" />}
               onClick={taxClassDialog.open}
               disabled={!offering.canEdit}
-              disabledTip={offering.canEdit ? undefined : 'This offering belongs to a wider scope.'}
+              disabledTip="This offering belongs to a wider scope."
               permission={PERMISSIONS.edit}
             >
               Change Tax Class
@@ -76,7 +76,7 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
               startAdornment={<Pencil className="size-4" />}
               onClick={editDialog.open}
               disabled={!offering.canEdit}
-              disabledTip={offering.canEdit ? undefined : 'This offering belongs to a wider scope.'}
+              disabledTip="This offering belongs to a wider scope."
               permission={PERMISSIONS.edit}
             >
               Edit

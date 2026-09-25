@@ -53,7 +53,7 @@ export const StatusSwitch: React.FC<StatusSwitchProps> = ({
       checked={checked}
       permission={permission}
       disabled={disabled}
-      disabledTip={disabled ? disabledTip : undefined}
+      disabledTip={disabledTip}
       onCheckedChange={onCheckedChange}
       aria-label={ariaLabel}
     />

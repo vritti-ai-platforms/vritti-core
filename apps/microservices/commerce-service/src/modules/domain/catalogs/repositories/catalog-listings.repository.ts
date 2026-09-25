@@ -28,7 +28,6 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       offeringVariantId: catalogListings.offeringVariantId,
       legalEntityId: catalogListings.legalEntityId,
       inventoryItemMrpId: catalogListings.inventoryItemMrpId,
-      isActive: catalogListings.isActive,
       sku: offeringVariants.sku,
       variantName: offeringVariants.name,
       mrpAmount: inventoryItemMrps.amount,

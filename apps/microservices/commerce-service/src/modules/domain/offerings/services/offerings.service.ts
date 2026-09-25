@@ -205,7 +205,7 @@ export class OfferingsDomainService {
         });
       }
     }
-    await this.repository.update(id, { isActive: data.isActive });
+    await this.applyStatus([id], data.isActive);
     return { success: true, message: `"${existing.name}" ${data.isActive ? 'activated' : 'deactivated'}.` };
   }
 
@@ -238,7 +238,7 @@ export class OfferingsDomainService {
       }
     }
 
-    await this.repository.bulkSetStatus(data.ids, data.isActive);
+    await this.applyStatus(data.ids, data.isActive);
     this.logger.log(`Bulk ${data.isActive ? 'activated' : 'deactivated'} ${data.ids.length} offerings`);
     return {
       success: true,
@@ -272,6 +272,26 @@ export class OfferingsDomainService {
         errors: [{ field: 'code', message: 'Locked once variants exist' }],
       });
     }
+  }
+
+  // Writes the status to the offerings and mirrors it onto their variants, so a variant is never
+  // sellable while its offering is retired. Activation is refused while any variant still lacks the
+  // bill of materials its own fulfilment type needs — validated before anything is written.
+  private async applyStatus(ids: string[], isActive: boolean): Promise<void> {
+    if (isActive) {
+      const missing = await this.repository.findVariantsMissingBom(ids);
+      if (missing.length > 0) {
+        throw new ConflictException({
+          label: 'No Bill Of Materials',
+          detail: `${pluralize('variant', missing.length, true)} still need a bill of materials: ${missing.slice(0, 5).join(', ')}${missing.length > 5 ? '…' : ''}.`,
+        });
+      }
+    }
+
+    await this.repository.transaction(async () => {
+      await this.repository.bulkSetStatus(ids, isActive);
+      await this.repository.applyStatusToVariants(ids, isActive);
+    });
   }
 
   // Loads an offering by ID, throwing if not found or owned by a wider scope

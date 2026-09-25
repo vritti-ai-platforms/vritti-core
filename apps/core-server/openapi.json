@@ -13631,55 +13631,6 @@
         ]
       }
     },
-    "/commerce-api/org/catalogs/{id}/listings/{listingId}/status": {
-      "patch": {
-        "operationId": "CatalogsGatewayController_setListingStatus",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Catalog identifier",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "listingId",
-            "required": true,
-            "in": "path",
-            "description": "Listing identifier",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetCatalogListingStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Listing status changed."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mark a listing active or draft",
-        "tags": [
-          "Commerce - Catalogs"
-        ]
-      }
-    },
     "/commerce-api/org/catalogs/{id}/listings/{listingId}": {
       "delete": {
         "operationId": "CatalogsGatewayController_deleteListing",
@@ -36714,9 +36665,6 @@
             "type": "object",
             "nullable": true
           },
-          "isActive": {
-            "type": "boolean"
-          },
           "prices": {
             "type": "array",
             "items": {
@@ -36734,7 +36682,6 @@
           "id",
           "catalogId",
           "offeringVariantId",
-          "isActive",
           "prices",
           "createdAt",
           "updatedAt"
@@ -36861,17 +36808,6 @@
         },
         "required": [
           "visible"
-        ]
-      },
-      "SetCatalogListingStatusDto": {
-        "type": "object",
-        "properties": {
-          "isActive": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "isActive"
         ]
       },
       "UpdateCatalogDto": {

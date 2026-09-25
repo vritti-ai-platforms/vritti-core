@@ -39,6 +39,46 @@ import { Button } from '@vritti/quantum-ui/Button';
 <Button type="submit">Submit</Button>
 ```
 
+## `disabledTip` — never repeat the `disabled` condition
+
+`Button`, `Switch` and `CompactSwitch` only render the tooltip when the control is **actually
+disabled**. `Button` checks `if (!tip || !isActuallyDisabled || asChild) return button;`, and the
+switches go through the shared `withDisabledTip(control, tip, disabled)` — `if (!tip || !disabled)
+return control;`. So guarding the tip with the same condition can never change what the user sees.
+
+```tsx
+// WRONG — the ternary is dead weight; the component already gates on `disabled`
+disabled={blocked > 0}
+disabledTip={blocked > 0 ? `${pluralize('offering', blocked, true)} cannot be made active yet.` : undefined}
+
+// WRONG — the inverse spelling of the same thing
+disabled={!offering.canEdit}
+disabledTip={offering.canEdit ? undefined : 'This offering belongs to a wider scope.'}
+
+// CORRECT
+disabled={blocked > 0}
+disabledTip={`${pluralize('offering', blocked, true)} cannot be made active yet.`}
+```
+
+Keep the ternary when the condition **differs** from `disabled` — then it is load-bearing, because the
+tip must not explain the wrong reason:
+
+```tsx
+// CORRECT — disabled for two reasons, the tip only explains one of them
+disabled={inUse || valueFields.fields.length <= 1}
+disabledTip={inUse ? 'Used by a variant' : undefined}
+
+// CORRECT — picks between two messages rather than suppressing one
+disabledTip={offering.canEdit ? 'Generate a variant first' : 'This offering belongs to a wider scope.'}
+
+// CORRECT — suppressed while the data that decides the message is still loading
+disabled={!signupConfig?.enabled}
+disabledTip={signupConfig && !signupConfig.enabled ? 'Sign-up is not configured yet.' : undefined}
+```
+
+Rule of thumb: if the guard is character-for-character the `disabled` expression (or its negation),
+delete it.
+
 ## Spinner — never use Loader2
 - ALWAYS use `<Spinner>` from `@vritti/quantum-ui/Spinner`, never `Loader2` from lucide-react
 - Spinner already includes `animate-spin` — just set size and color via className

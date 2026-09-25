@@ -18,7 +18,6 @@ export class CatalogListingResponseDto {
   inventoryItemMrpId: string | null;
   @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true }) mrp: CurrencyAmountDto | null;
   @ApiPropertyOptional({ nullable: true }) mrpUomSymbol: string | null;
-  @ApiProperty() isActive: boolean;
   @ApiProperty({ type: [CatalogListingPriceResponseDto] }) prices: CatalogListingPriceResponseDto[];
   @ApiProperty() createdAt: string;
   @ApiProperty() updatedAt: string;

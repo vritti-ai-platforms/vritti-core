@@ -116,11 +116,7 @@ export const BomTab: React.FC<BomTabProps> = ({
       <Button
         onClick={addDialog.open}
         disabled={atMax}
-        disabledTip={
-          atMax
-            ? `A ${meta.label.toLowerCase()} variant takes ${pluralize('component', meta.maxBomLines, true)}.`
-            : undefined
-        }
+        disabledTip={`A ${meta.label.toLowerCase()} variant takes ${pluralize('component', meta.maxBomLines, true)}.`}
         startAdornment={<Plus className="size-4" />}
         permission={permissions.variants.bom.add}
       >

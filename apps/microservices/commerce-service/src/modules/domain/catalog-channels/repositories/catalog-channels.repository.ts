@@ -40,11 +40,13 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       isOwn: ownedByWorkspaceExpression('catalog_channels'),
       itemsTotal: sql<number>`(
         select count(*)::int from ${catalogListings} cl
-        where cl.catalog_id = ${catalogChannels.catalogId} and cl.is_active
+        join ${offeringVariants} ov on ov.id = cl.offering_variant_id
+        where cl.catalog_id = ${catalogChannels.catalogId} and ov.is_active
       )`,
       itemsSelling: sql<number>`(
         select count(*)::int from ${catalogListings} cl
-        where cl.catalog_id = ${catalogChannels.catalogId} and cl.is_active
+        join ${offeringVariants} ov on ov.id = cl.offering_variant_id
+        where cl.catalog_id = ${catalogChannels.catalogId} and ov.is_active
           and not exists (
             select 1 from ${catalogListingChannelExclusions} e
             where e.catalog_listing_id = cl.id and e.catalog_channel_id = ${catalogChannels.id}
@@ -164,7 +166,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
   ): Promise<{ result: ChannelItemRow[]; count: number }> {
     const where = and(
       eq(catalogListings.catalogId, catalogId),
-      eq(catalogListings.isActive, true),
+      eq(offeringVariants.isActive, true),
       options.where,
     ) as SQL;
 

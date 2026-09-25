@@ -116,7 +116,9 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       canMarkActive: sql<boolean>`${offeringVariants.isActive} or ${this.db.$count(
         offeringBom,
         eq(offeringBom.variantId, offeringVariants.id),
-      )} >= case ${offerings.fulfilmentType} when ${FulfilmentTypeValues.SERVICE} then 0 else 1 end`.mapWith(Boolean),
+      )} >= case ${offeringVariants.fulfilmentType} when ${FulfilmentTypeValues.SERVICE} then 0 else 1 end`.mapWith(
+        Boolean,
+      ),
       inventoryItemId: inventoryItems.id,
       inventoryItemName: inventoryItems.name,
       inventoryItemUomId: inventoryItems.uomId,
@@ -218,7 +220,10 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   }
 
   async findForSelectInOffering(config: FindForSelectConfig, offeringId: string): Promise<SelectQueryResult> {
-    return super.findForSelect({ ...config, conditions: [eq(offeringVariants.offeringId, offeringId)] });
+    return super.findForSelect({
+      ...config,
+      conditions: [eq(offeringVariants.offeringId, offeringId), eq(offeringVariants.isActive, true)],
+    });
   }
 
   // Which of these SKUs are already taken. Org-wide, matching the constraint — RLS scopes it.

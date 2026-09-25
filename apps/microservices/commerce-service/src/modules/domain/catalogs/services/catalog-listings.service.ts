@@ -103,13 +103,6 @@ export class CatalogListingsDomainService {
     return { success: true, message: visible ? 'Listing shown on this channel.' : 'Listing hidden on this channel.' };
   }
 
-  async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
-    const item = await this.repository.findById(id);
-    if (!item) throw new NotFoundException('Listing not found.');
-    await this.repository.updateListing(id, { isActive });
-    return { success: true, message: `Listing marked ${isActive ? 'active' : 'draft'}.` };
-  }
-
   async delete(id: string): Promise<SuccessResponseDto> {
     const item = await this.repository.findById(id);
     if (!item) throw new NotFoundException('Listing not found.');

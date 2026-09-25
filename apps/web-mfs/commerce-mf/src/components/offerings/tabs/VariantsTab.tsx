@@ -239,11 +239,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 startAdornment={<CircleCheck className="size-4" />}
                 isLoading={bulkSetStatusMutation.isPending}
                 disabled={blocked > 0}
-                disabledTip={
-                  blocked > 0
-                    ? `${pluralize('variant', blocked, true)} in this selection still need a bill of materials.`
-                    : undefined
-                }
+                disabledTip={`${pluralize('variant', blocked, true)} in this selection still need a bill of materials.`}
                 onClick={() =>
                   handleBulkSetStatus(
                     rows.map((row) => row.original.id),

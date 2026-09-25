@@ -112,11 +112,6 @@ export class CatalogsGatewayService {
     });
   }
 
-  async setListingStatus(listingId: string, isActive: boolean): Promise<SuccessResponseDto> {
-    this.logger.log(`org.catalogs.listings.setStatus — listingId: ${listingId}, isActive: ${isActive}`);
-    return this.nats.send('commerce', 'org.catalogs.listings.setStatus', { id: listingId, isActive });
-  }
-
   async deleteListing(listingId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.catalogs.listings.delete — listingId: ${listingId}`);
     return this.nats.send('commerce', 'org.catalogs.listings.delete', { id: listingId });

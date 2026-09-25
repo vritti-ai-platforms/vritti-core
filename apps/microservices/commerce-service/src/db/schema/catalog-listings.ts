@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, check, index, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { check, index, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogs } from './catalogs';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemMrps } from './inventory-item-mrps';
@@ -20,7 +20,6 @@ export const catalogListings = commerceSchema.table(
     legalEntityId: workspaceScopeColumns.legalEntityId,
     siteId: workspaceScopeColumns.siteId,
     inventoryItemMrpId: uuid('inventory_item_mrp_id').references(() => inventoryItemMrps.id, { onDelete: 'restrict' }),
-    isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

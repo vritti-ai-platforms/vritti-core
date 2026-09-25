@@ -10,5 +10,4 @@ export { useDeleteCatalog } from './useDeleteCatalog';
 export { useDeleteCatalogListing } from './useDeleteCatalogListing';
 export { useSetCatalogListingChannelVisibility } from './useSetCatalogListingChannelVisibility';
 export { useSetCatalogListingPrice } from './useSetCatalogListingPrice';
-export { useSetCatalogListingStatus } from './useSetCatalogListingStatus';
 export { useUpdateCatalog } from './useUpdateCatalog';

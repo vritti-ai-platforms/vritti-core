@@ -11,14 +11,12 @@ import {
   ApiGetCatalog,
   ApiSetCatalogListingChannelVisibility,
   ApiSetCatalogListingPrice,
-  ApiSetCatalogListingStatus,
   ApiUpdateCatalog,
 } from '@commerce/catalogs/docs/catalogs-gateway.docs';
 import { AddCatalogListingDto } from '@commerce/catalogs/dto/request/add-catalog-listing.dto';
 import { CatalogListingMrpOptionsQueryDto } from '@commerce/catalogs/dto/request/catalog-listing-mrp-options-query.dto';
 import { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
 import { SetCatalogListingPriceDto } from '@commerce/catalogs/dto/request/set-catalog-listing-price.dto';
-import { SetCatalogListingStatusDto } from '@commerce/catalogs/dto/request/set-catalog-listing-status.dto';
 import { SetCatalogListingVisibilityDto } from '@commerce/catalogs/dto/request/set-catalog-listing-visibility.dto';
 import { UpdateCatalogDto } from '@commerce/catalogs/dto/request/update-catalog.dto';
 import type {
@@ -129,19 +127,6 @@ export class CatalogsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/catalogs/${id}/listings/${listingId}/channels/${channelId}`);
     return this.service.setListingChannelVisibility(listingId, channelId, dto.visible);
-  }
-
-  // Marks a listing active or draft
-  @Patch(':id/listings/:listingId/status')
-  @RequirePermission(ORG_CATALOGS.listings.edit)
-  @ApiSetCatalogListingStatus()
-  setListingStatus(
-    @Param('id') id: string,
-    @Param('listingId') listingId: string,
-    @Body() dto: SetCatalogListingStatusDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/catalogs/${id}/listings/${listingId}/status`);
-    return this.service.setListingStatus(listingId, dto.isActive);
   }
 
   @Delete(':id/listings/:listingId')

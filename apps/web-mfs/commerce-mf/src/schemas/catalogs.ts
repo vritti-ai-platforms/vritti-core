@@ -65,7 +65,6 @@ export interface CatalogListingData {
   inventoryItemMrpId: string | null;
   mrp: CurrencyValue | null;
   mrpUomSymbol: string | null;
-  isActive: boolean;
   hiddenChannelIds: string[];
   prices: CatalogListingPriceData[];
   createdAt: string;

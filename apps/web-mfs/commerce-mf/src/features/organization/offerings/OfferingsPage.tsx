@@ -1,4 +1,4 @@
-import { OfferingsTable } from '@/components/offerings/OfferingsTable';
+import { Offerings } from '@/components/offerings/Offerings';
 import { binding } from './binding';
 
-export const OfferingsPage = () => <OfferingsTable binding={binding} />;
+export const OfferingsPage = () => <Offerings binding={binding} />;

@@ -6,7 +6,6 @@ export interface CatalogListingRow {
   offeringVariantId: string;
   legalEntityId: string | null;
   inventoryItemMrpId: string | null;
-  isActive: boolean;
   sku: string | null;
   variantName: string | null;
   mrpAmount: bigint | null;
@@ -48,7 +47,6 @@ export class CatalogListingDto {
   inventoryItemMrpId: string | null;
   mrp: CurrencyAmountDto | null;
   mrpUomSymbol: string | null;
-  isActive: boolean;
   hiddenChannelIds: string[];
   prices: CatalogListingPriceDto[];
   createdAt: string;
@@ -70,7 +68,6 @@ export class CatalogListingDto {
     dto.mrp =
       row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;
     dto.mrpUomSymbol = row.mrpUomSymbol ?? null;
-    dto.isActive = row.isActive;
     dto.hiddenChannelIds = hiddenChannelIds;
     dto.prices = prices.map((price) => CatalogListingPriceDto.from(price));
     dto.createdAt = row.createdAt.toISOString();

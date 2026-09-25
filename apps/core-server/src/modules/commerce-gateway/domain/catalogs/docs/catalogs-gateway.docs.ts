@@ -123,15 +123,6 @@ export function ApiSetCatalogListingPrice() {
   );
 }
 
-export function ApiSetCatalogListingStatus() {
-  return applyDecorators(
-    ApiOperation({ summary: 'Mark a listing active or draft' }),
-    ApiParam(ID),
-    ApiParam(LISTING_ID),
-    ApiResponse({ status: 200, description: 'Listing status changed.' }),
-  );
-}
-
 export function ApiDeleteCatalogListing() {
   return applyDecorators(
     ApiOperation({ summary: 'Remove a listing from a catalog' }),

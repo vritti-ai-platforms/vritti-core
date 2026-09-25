@@ -68,20 +68,6 @@ export function setCatalogListingPrice({
     .then((r) => r.data);
 }
 
-export function setCatalogListingStatus({
-  catalogId,
-  listingId,
-  isActive,
-}: {
-  catalogId: string;
-  listingId: string;
-  isActive: boolean;
-}): Promise<SuccessResponse> {
-  return axios
-    .patch<SuccessResponse>(`${BASE}/${catalogId}/listings/${listingId}/status`, { isActive })
-    .then((r) => r.data);
-}
-
 export function deleteCatalogListing({
   catalogId,
   listingId,

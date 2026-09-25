@@ -26,11 +26,11 @@ import { FULFILMENT_TYPE_META } from '@/schemas/offerings';
 import type { OfferingsBinding } from './bindings';
 import { AddOfferingDialog } from './forms/AddOfferingDialog';
 
-interface OfferingsTableProps {
+interface OfferingsProps {
   binding: OfferingsBinding;
 }
 
-export const OfferingsTable: React.FC<OfferingsTableProps> = ({ binding }) => {
+export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
   const { permissions: PERMISSIONS } = binding;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -147,11 +147,7 @@ export const OfferingsTable: React.FC<OfferingsTableProps> = ({ binding }) => {
                 startAdornment={<CircleCheck className="size-4" />}
                 isLoading={bulkSetStatusMutation.isPending}
                 disabled={blocked > 0}
-                disabledTip={
-                  blocked > 0
-                    ? `${pluralize('offering', blocked, true)} in this selection cannot be made active yet.`
-                    : undefined
-                }
+                disabledTip={`${pluralize('offering', blocked, true)} in this selection cannot be made active yet.`}
                 onClick={() =>
                   handleBulkSetStatus(
                     rows.map((row) => row.original.id),

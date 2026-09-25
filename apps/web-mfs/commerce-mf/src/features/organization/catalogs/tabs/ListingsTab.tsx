@@ -15,13 +15,11 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Boxes, IndianRupee, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { StatusSwitch } from '@/components/StatusSwitch';
 import { useCatalogChannelsForCatalog } from '@/hooks/organization/catalog-channels';
 import {
   CATALOG_LISTINGS_TABLE_KEY,
   useCatalogListingsTable,
   useDeleteCatalogListing,
-  useSetCatalogListingStatus,
 } from '@/hooks/organization/catalogs';
 import type { CatalogListingData } from '@/schemas/catalogs';
 import { ChannelVisibilityChips } from '../components/ChannelVisibilityChips';
@@ -39,7 +37,6 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ catalogId }) => {
   const addDialog = useDialog();
   const confirm = useConfirm();
   const deleteMutation = useDeleteCatalogListing();
-  const statusMutation = useSetCatalogListingStatus();
 
   const handleDelete = useCallback(
     async (row: CatalogListingData) => {
@@ -100,22 +97,6 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ catalogId }) => {
         enableSorting: false,
       },
       {
-        accessorKey: 'isActive',
-        header: () => <div className="text-center">Status</div>,
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <StatusSwitch
-              checked={row.original.isActive}
-              permission={ORG_CATALOGS.listings.edit}
-              disabled={statusMutation.isPending}
-              onCheckedChange={(isActive) => statusMutation.mutate({ catalogId, listingId: row.original.id, isActive })}
-              ariaLabel={`Mark ${row.original.sku ?? 'listing'} active`}
-            />
-          </div>
-        ),
-        enableSorting: false,
-      },
-      {
         id: 'actions',
         header: '',
         cell: ({ row }) => {
@@ -151,7 +132,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ catalogId }) => {
         enableHiding: false,
       },
     ],
-    [catalogId, channels, handleDelete, statusMutation],
+    [catalogId, channels, handleDelete],
   );
 
   const { table } = useDataTable({

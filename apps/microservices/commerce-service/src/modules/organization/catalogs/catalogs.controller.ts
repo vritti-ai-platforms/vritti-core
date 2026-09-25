@@ -105,13 +105,6 @@ export class OrgCatalogsController {
     return this.listingsService.setChannelVisibility(data.id, data.catalogChannelId, data.visible);
   }
 
-  // Switches a listing on or off
-  @MessagePattern({ cmd: 'org.catalogs.listings.setStatus' })
-  setListingStatus(@Payload() data: { id: string; isActive: boolean }): Promise<SuccessResponseDto> {
-    this.logger.log(`catalogs.listings.setStatus — id: ${data.id}, isActive: ${data.isActive}`);
-    return this.listingsService.setActive(data.id, data.isActive);
-  }
-
   @MessagePattern({ cmd: 'org.catalogs.listings.delete' })
   deleteListing(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`catalogs.listings.delete — id: ${data.id}`);

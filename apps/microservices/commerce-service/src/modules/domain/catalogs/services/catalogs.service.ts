@@ -8,7 +8,7 @@ import type {
   TableViewState,
 } from '@vritti/api-sdk/database';
 import { FilterProcessor } from '@vritti/api-sdk/database';
-import { and, asc } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { catalogs } from '@/db/schema';
@@ -65,6 +65,7 @@ export class CatalogsDomainService {
       excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
+      conditions: [eq(catalogs.isActive, true)],
     });
   }
 
@@ -87,6 +88,14 @@ export class CatalogsDomainService {
   async update(id: string, data: Omit<UpdateCatalogDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.requireCatalog(id);
     if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) await this.assertNameFree(data.name);
+    // isActive only hides a catalog from selectors, so retiring one that still lists items would leave
+    // those listings selling with no way to reach the catalog again
+    if (data.isActive === false && existing.items > 0) {
+      throw new ConflictException({
+        label: 'Catalog In Use',
+        detail: `"${existing.name}" still lists ${pluralize('listing', existing.items, true)}. Remove them before deactivating it.`,
+      });
+    }
     await this.repository.update(id, data);
     return { success: true, message: `"${data.name ?? existing.name}" updated.` };
   }
