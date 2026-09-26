@@ -41,6 +41,7 @@ import {
   ApiUomDimensionsSelect,
   ApiUomSelect,
 } from './docs/select-api.docs';
+import { ChannelItemsSelectQueryDto } from './dto/channel-items-select-query.dto';
 import { OfferingVariantsSelectQueryDto } from './dto/offering-variants-select-query.dto';
 
 @ApiTags('Commerce - Select')
@@ -108,6 +109,12 @@ export class SelectApiController {
   @ApiOfferingVariantsSelect()
   selectOfferingVariants(@Query() query: OfferingVariantsSelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.offeringVariants', query);
+  }
+
+  // What one storefront channel sells — the picker behind "add to their basket" on a person
+  @Get('channel-items')
+  selectChannelItems(@Query() query: ChannelItemsSelectQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.channelItems', query);
   }
 
   @Get('dimension-templates')

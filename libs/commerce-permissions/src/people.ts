@@ -49,6 +49,15 @@ export const ORG_PEOPLE = {
     edit: 'org.people.social-profiles.edit',
     delete: 'org.people.social-profiles.delete',
   },
+  // Saving is the shopper's own act, never staff's — putting words in somebody's mouth is not an
+  // administrative action. That is enforced in the catalog rather than by convention: `add` and
+  // `delete` are GraphQL-only, so no web role can be granted them, while `view` is on both surfaces
+  // because staff do need to see what a person saved.
+  wishlist: {
+    view: 'org.people.wishlist.view',
+    add: 'org.people.wishlist.add',
+    delete: 'org.people.wishlist.delete',
+  },
   contacts: {
     view: 'org.people.contacts.view',
     add: 'org.people.contacts.add',

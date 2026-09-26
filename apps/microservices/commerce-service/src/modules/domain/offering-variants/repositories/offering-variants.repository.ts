@@ -230,6 +230,33 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     });
   }
 
+  /**
+   * Variants one storefront channel actually sells.
+   *
+   * A subquery rather than a join, so this stays a plain select over variants and the base helper's
+   * search, paging and ordering keep working untouched.
+   *
+   * The channel is resolved inside it — passing a catalog id instead would let a caller name a
+   * catalogue the channel does not point at. Delisted rows and anything excluded from this channel
+   * are both dropped, so the picker offers exactly what the shop can sell and nothing the server
+   * would then refuse.
+   */
+  async findForSelectInChannel(config: FindForSelectConfig, channelId: string): Promise<SelectQueryResult> {
+    const soldByChannel = sql`exists (
+      select 1
+        from commerce.catalog_listings l
+        join commerce.catalog_channels ch on ch.catalog_id = l.catalog_id
+       where l.offering_variant_id = ${offeringVariants.id}
+         and ch.id = ${channelId}
+         and l.is_active
+         and not exists (
+           select 1 from commerce.catalog_listing_channel_exclusions e
+            where e.catalog_listing_id = l.id and e.catalog_channel_id = ch.id
+         )
+    )`;
+    return super.findForSelect({ ...config, conditions: [soldByChannel] });
+  }
+
   // Which of these SKUs are already taken. Org-wide, matching the constraint — RLS scopes it.
   async findTakenSkus(skus: string[]): Promise<string[]> {
     if (skus.length === 0) return [];

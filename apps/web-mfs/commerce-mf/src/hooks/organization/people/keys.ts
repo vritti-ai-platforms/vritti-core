@@ -9,3 +9,5 @@ export const PERSON_LICENSES_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'li
 export const PERSON_BANK_ACCOUNTS_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'bank-accounts'] as const;
 export const PERSON_COMMUNICATIONS_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'communications'] as const;
 export const PERSON_SOCIAL_PROFILES_TABLE_KEY = (id: string) => [...PERSON_KEY(id), 'social-profiles'] as const;
+export const PERSON_CART_KEY = (id: string) => [...PERSON_KEY(id), 'cart'] as const;
+export const PERSON_WISHLIST_KEY = (id: string) => [...PERSON_KEY(id), 'wishlist'] as const;

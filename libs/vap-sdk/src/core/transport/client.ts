@@ -2,7 +2,7 @@ import { ApolloClient, ApolloLink, InMemoryCache } from '@apollo/client';
 import { SetContextLink } from '@apollo/client/link/context';
 import { HttpLink } from '@apollo/client/link/http';
 import type { RequestContext } from '../types';
-import { PARTY_ID_HEADER } from './headers';
+import { LEGAL_ENTITY_ID_HEADER, PARTY_ID_HEADER, SITE_ID_HEADER } from './headers';
 
 export interface VapClientOptions {
   endpoint: string;
@@ -38,6 +38,10 @@ export function createVapClient(options: VapClientOptions): ApolloClient {
       headers: {
         ...prevContext.headers,
         ...(context.partyId ? { [PARTY_ID_HEADER]: context.partyId } : {}),
+        // Read back off the outgoing headers by `createSignedFetch` and folded into the canonical,
+        // so the scope a request claims is the scope it was signed for.
+        ...(context.siteId ? { [SITE_ID_HEADER]: context.siteId } : {}),
+        ...(context.legalEntityId ? { [LEGAL_ENTITY_ID_HEADER]: context.legalEntityId } : {}),
       },
     };
   });

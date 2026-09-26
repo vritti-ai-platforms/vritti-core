@@ -48,6 +48,47 @@ export class CatalogListingsDomainService {
   }
 
   // The MRP slices a variant can be listed at, for the add-listing picker
+  /**
+   * Everything one storefront channel sells, priced.
+   *
+   * The list a provisioned website picks from when somebody files a product in its CMS — so it is
+   * the sellable set, not the catalogue: delisted rows and anything excluded from this channel are
+   * dropped, because offering one would let an editor key a page to something the shop cannot sell.
+   */
+  async findSellableForChannel(
+    channelId: string,
+    catalogId: string,
+    siteId?: string | null,
+  ): Promise<CatalogListingDto[]> {
+    // A listing in the catalogue is sellable. Delisting removes the row rather than flagging it,
+    // so there is nothing left to filter on here.
+    const active = await this.repository.findByCatalog(catalogId);
+    if (active.length === 0) return [];
+
+    const ids = active.map((row) => row.id);
+    const [prices, exclusions] = await Promise.all([
+      this.repository.findPrices(ids),
+      this.repository.findExclusions(ids),
+    ]);
+
+    const hiddenHere = new Set(
+      exclusions.filter((row) => row.catalogChannelId === channelId).map((row) => row.catalogListingId),
+    );
+
+    return active
+      .filter((row) => !hiddenHere.has(row.id))
+      .map((row) => {
+        const forListing = prices.filter((price) => price.catalogListingId === row.id);
+        // A site's own price wins; the null-site row is the organization-wide fallback. Both are
+        // returned when neither matches, so a caller can still see what exists.
+        const scoped = siteId
+          ? forListing.filter((price) => price.siteId === siteId || price.siteId === null)
+          : forListing.filter((price) => price.siteId === null);
+        const best = scoped.filter((price) => price.siteId === siteId);
+        return CatalogListingDto.from(row, best.length > 0 ? best : scoped);
+      });
+  }
+
   async findMrpOptions(offeringVariantId: string): Promise<CatalogListingMrpOptionDto[]> {
     const rows = await this.repository.findMrpOptionsForVariant(offeringVariantId);
     return rows.map((row) => CatalogListingMrpOptionDto.from(row));

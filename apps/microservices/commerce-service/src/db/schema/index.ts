@@ -1,3 +1,5 @@
+export * from './cart-items';
+export * from './carts';
 export * from './catalog-channels';
 export * from './catalog-listing-channel-exclusions';
 export * from './catalog-listing-prices';
@@ -11,6 +13,7 @@ export * from './customers';
 export * from './dimension-templates';
 export * from './document-counters';
 export * from './enums';
+export * from './wishlist';
 export * from './goods-receipt-items';
 export * from './goods-receipt-line-items';
 export * from './goods-receipt-lines';

@@ -1,2 +1,5 @@
 src/gql/
 dist/
+
+# Local dev tarball for consumers (pnpm pack) — never published, never committed.
+*.tgz

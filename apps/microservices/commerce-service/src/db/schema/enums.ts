@@ -5,6 +5,7 @@ export const fulfilmentTypeEnum = commerceSchema.enum('fulfilment_type', ['STOCK
 
 export type CatalogChannelType = (typeof catalogChannelTypeEnum.enumValues)[number];
 export type FulfilmentType = (typeof fulfilmentTypeEnum.enumValues)[number];
+
 export const CatalogChannelTypeValues = {
   APP: 'APP' as const,
   POS: 'POS' as const,

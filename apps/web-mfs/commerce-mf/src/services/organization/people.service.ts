@@ -30,6 +30,7 @@ import type {
   PartySocialProfilesTableResponse,
 } from '@/schemas/party-social-profiles';
 import type { PeopleTableResponse, PersonCompaniesTableResponse, PersonData } from '@/schemas/people';
+import type { PersonWishlistRow } from '@/schemas/person-shopper';
 
 export interface CreatePersonPayload {
   firstName: string;
@@ -75,6 +76,9 @@ export function updatePerson({ id, data }: { id: string; data: UpdatePersonPaylo
 
 export function deletePerson(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/people/${id}`).then((r) => r.data);
+}
+export function getPersonWishlist(id: string): Promise<PersonWishlistRow[]> {
+  return axios.get<PersonWishlistRow[]>(`commerce-api/people/${id}/wishlist`).then((r) => r.data);
 }
 
 export function getPersonCompanies(id: string): Promise<PersonCompaniesTableResponse> {

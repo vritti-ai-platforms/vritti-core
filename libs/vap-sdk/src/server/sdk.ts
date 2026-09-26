@@ -1,6 +1,8 @@
 import { resolveConfig, type VapSdkOptions } from '../core/config';
+import { createCatalogOperations } from '../core/domains/catalog';
 import { createOtpOperations } from '../core/domains/otp';
 import { createPeopleOperations } from '../core/domains/people';
+import { createShopperOperations } from '../core/domains/shopper';
 import { createAuthFlows } from '../core/flows/auth';
 import { createVapClient } from '../core/transport/client';
 import type { RequestContext } from '../core/types';
@@ -40,12 +42,35 @@ export function createVapSdk(options: VapSdkOptions = {}) {
     links: config.responseCache ? [createResponseCacheLink(config.responseCache, config.clientId)] : [],
   });
 
-  const build = (context: RequestContext = {}) => {
+  /**
+   * Configuration supplies the scope a storefront always sells in; a caller overrides it.
+   *
+   * A single-outlet shop sets `siteId` once and never thinks about it again. A shop with a store
+   * selector passes the chosen one to `forContext`, and it wins.
+   */
+  const scoped = (context: RequestContext): RequestContext => ({
+    siteId: config.siteId,
+    legalEntityId: config.legalEntityId,
+    ...context,
+  });
+
+  const build = (rawContext: RequestContext = {}) => {
+    const context = scoped(rawContext);
     const people = createPeopleOperations(client, context);
     const otp = createOtpOperations(client, context);
     return {
       otp,
       people,
+      /**
+       * The signed-in shopper's basket and wishlist.
+       *
+       * Present on the unbound SDK only so the shape is uniform; every call refuses without a
+       * party, because core reads the shopper from the signature. Reach it through
+       * `sdk.forContext({ partyId })`.
+       */
+      shopper: createShopperOperations(client, context, config.currency),
+      /** The range this storefront sells. Needs no party — it is the shop's catalogue, not a person's. */
+      catalog: createCatalogOperations(client, context),
       /** The shared identity sequences — registration, party repair. Composed over the domains above. */
       auth: createAuthFlows(people, otp),
     };

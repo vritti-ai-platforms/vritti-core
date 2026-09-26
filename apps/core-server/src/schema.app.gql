@@ -20,6 +20,54 @@ type PersonCommunication {
   isActive: Boolean!
 }
 
+type Money {
+  currency: String!
+  value: String!
+}
+
+type CartItem {
+  id: ID!
+  catalogListingId: ID!
+  offeringVariantId: ID!
+  quantity: Int!
+  name: String!
+  sku: String
+  unitPrice: Money
+  lineTotal: Money
+  isAvailable: Boolean!
+}
+
+type Cart {
+  currencyCode: String!
+  items: [CartItem!]!
+  subtotal: Money!
+  itemCount: Int!
+}
+
+type WishlistItem {
+  id: ID!
+  catalogListingId: ID!
+  offeringVariantId: ID!
+  name: String!
+  sku: String
+  price: Money
+  isAvailable: Boolean!
+  createdAt: String!
+}
+
+type WishlistAddResult {
+  alreadyExists: Boolean!
+  wishlist: [WishlistItem!]!
+}
+
+type CatalogListing {
+  id: ID!
+  offeringVariantId: ID!
+  sku: String
+  name: String
+  price: Money
+}
+
 type TaxRate {
   id: ID!
   name: String!
@@ -277,11 +325,22 @@ type VerifyWhatsappOtpResult {
 
 type Query {
   peopleByCommunication(input: FindPeopleByCommunicationInput!): [Person!]!
+  cart(input: CartScopeInput!): Cart!
+  wishlist(input: WishlistQueryInput!): [WishlistItem!]!
+  catalogListings: [CatalogListing!]!
 }
 
 input FindPeopleByCommunicationInput {
   channel: String!
   value: String!
+}
+
+input CartScopeInput {
+  currencyCode: String!
+}
+
+input WishlistQueryInput {
+  currencyCode: String!
 }
 
 type Mutation {
@@ -291,6 +350,12 @@ type Mutation {
   verifyWhatsappOtp(input: VerifyWhatsappOtpInput!): VerifyWhatsappOtpResult!
   createPerson(input: CreatePersonInput!): Person!
   addPersonCommunication(input: AddPersonCommunicationInput!): PersonCommunication!
+  addToCart(input: AddCartItemInput!): Cart!
+  updateCartItem(input: UpdateCartItemInput!): Cart!
+  removeFromCart(input: CartItemRefInput!): Cart!
+  clearCart(input: CartScopeInput!): Cart!
+  addToWishlist(input: WishlistRefInput!): WishlistAddResult!
+  removeFromWishlist(input: WishlistRefInput!): [WishlistItem!]!
 }
 
 input SendSmsOtpInput {
@@ -322,4 +387,26 @@ input AddPersonCommunicationInput {
   personId: ID!
   channel: String!
   value: String!
+}
+
+input AddCartItemInput {
+  currencyCode: String!
+  offeringVariantId: ID!
+  quantity: Int! = 1
+}
+
+input UpdateCartItemInput {
+  currencyCode: String!
+  offeringVariantId: ID!
+  quantity: Int!
+}
+
+input CartItemRefInput {
+  currencyCode: String!
+  offeringVariantId: ID!
+}
+
+input WishlistRefInput {
+  currencyCode: String!
+  offeringVariantId: ID!
 }

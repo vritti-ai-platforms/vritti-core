@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { CommerceGatewayServicesModule } from './commerce-gateway-services.module';
 import { PeopleAppResolver } from './org-api/people/people.app.resolver';
+import { CartsAppResolver } from './org-api/shopper/carts.app.resolver';
+import { CatalogAppResolver } from './org-api/shopper/catalog.app.resolver';
+import { WishlistAppResolver } from './org-api/shopper/wishlist.app.resolver';
 
 /**
  * The external-app GraphQL surface for commerce.
@@ -16,6 +19,6 @@ import { PeopleAppResolver } from './org-api/people/people.app.resolver';
  */
 @Module({
   imports: [CommerceGatewayServicesModule],
-  providers: [PeopleAppResolver],
+  providers: [PeopleAppResolver, CartsAppResolver, WishlistAppResolver, CatalogAppResolver],
 })
 export class CommerceAppGatewayModule {}

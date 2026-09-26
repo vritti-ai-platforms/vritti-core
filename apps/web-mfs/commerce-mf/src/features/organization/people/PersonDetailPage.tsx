@@ -21,6 +21,7 @@ import { EditPersonDialog } from './forms/EditPersonDialog';
 import { personBindings } from './party-bindings';
 import { CompaniesTab } from './tabs/CompaniesTab';
 import { OverviewTab } from './tabs/OverviewTab';
+import { WishlistTab } from './tabs/WishlistTab';
 
 export const PersonDetailPage = () => {
   const { id } = useSlugParams('personSlug');
@@ -115,6 +116,12 @@ export const PersonDetailPage = () => {
             label: 'Bank Accounts',
             permission: ORG_PEOPLE.bankAccounts.view,
             content: <BankAccountsTab partyId={person.id} binding={personBindings.bankAccounts} />,
+          },
+          {
+            value: 'wishlist',
+            label: 'Wishlist',
+            permission: ORG_PEOPLE.wishlist.view,
+            content: <WishlistTab partyId={person.id} />,
           },
           {
             value: 'identifiers',

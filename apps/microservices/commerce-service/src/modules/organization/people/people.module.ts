@@ -1,3 +1,4 @@
+import { WishlistDomainModule } from '@domain/wishlist/wishlist.module';
 import { PartiesDomainModule } from '@domain/parties/parties.module';
 import { PartyAddressesDomainModule } from '@domain/party-addresses/party-addresses.module';
 import { PartyBankAccountsDomainModule } from '@domain/party-bank-accounts/party-bank-accounts.module';
@@ -16,6 +17,7 @@ import { PeopleLicensesController } from './licenses/people-licenses.controller'
 import { PeopleRegistrationsController } from './registrations/people-registrations.controller';
 import { PeopleController } from './root/people.controller';
 import { PeopleService } from './root/services/people-root.service';
+import { PeopleShopperController } from './shopper/people-shopper.controller';
 import { PeopleSocialProfilesController } from './social-profiles/people-social-profiles.controller';
 
 @Module({
@@ -28,6 +30,7 @@ import { PeopleSocialProfilesController } from './social-profiles/people-social-
     PartyLicensesDomainModule,
     PartyCommunicationsDomainModule,
     PartySocialProfilesDomainModule,
+    WishlistDomainModule,
   ],
   controllers: [
     PeopleController,
@@ -39,6 +42,7 @@ import { PeopleSocialProfilesController } from './social-profiles/people-social-
     PeopleBankAccountsController,
     PeopleCommunicationsController,
     PeopleSocialProfilesController,
+    PeopleShopperController,
   ],
   providers: [PeopleService],
 })

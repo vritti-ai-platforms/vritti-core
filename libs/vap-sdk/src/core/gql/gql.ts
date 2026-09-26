@@ -14,6 +14,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": typeof types.CatalogListingsDocument,
     "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": typeof types.SendWhatsappOtpDocument,
     "\n  mutation VerifyWhatsappOtp($input: VerifyWhatsappOtpInput!) {\n    verifyWhatsappOtp(input: $input) {\n      verified\n    }\n  }\n": typeof types.VerifyWhatsappOtpDocument,
     "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": typeof types.SendSmsOtpDocument,
@@ -23,8 +24,20 @@ type Documents = {
     "\n  query PeopleByCommunication($input: FindPeopleByCommunicationInput!) {\n    peopleByCommunication(input: $input) {\n      ...PersonFields\n    }\n  }\n": typeof types.PeopleByCommunicationDocument,
     "\n  mutation CreatePerson($input: CreatePersonInput!) {\n    createPerson(input: $input) {\n      ...PersonFields\n    }\n  }\n": typeof types.CreatePersonDocument,
     "\n  mutation AddPersonCommunication($input: AddPersonCommunicationInput!) {\n    addPersonCommunication(input: $input) {\n      ...PersonCommunicationFields\n    }\n  }\n": typeof types.AddPersonCommunicationDocument,
+    "\n  fragment MoneyFields on Money {\n    currency\n    value\n  }\n": typeof types.MoneyFieldsFragmentDoc,
+    "\n  fragment CartFields on Cart {\n    currencyCode\n    itemCount\n    subtotal {\n      ...MoneyFields\n    }\n    items {\n      id\n      catalogListingId\n      offeringVariantId\n      quantity\n      name\n      sku\n      isAvailable\n      unitPrice {\n        ...MoneyFields\n      }\n      lineTotal {\n        ...MoneyFields\n      }\n    }\n  }\n": typeof types.CartFieldsFragmentDoc,
+    "\n  fragment WishlistItemFields on WishlistItem {\n    id\n    catalogListingId\n    offeringVariantId\n    name\n    sku\n    isAvailable\n    createdAt\n    price {\n      ...MoneyFields\n    }\n  }\n": typeof types.WishlistItemFieldsFragmentDoc,
+    "\n  query Cart($input: CartScopeInput!) {\n    cart(input: $input) {\n      ...CartFields\n    }\n  }\n": typeof types.CartDocument,
+    "\n  mutation AddToCart($input: AddCartItemInput!) {\n    addToCart(input: $input) {\n      ...CartFields\n    }\n  }\n": typeof types.AddToCartDocument,
+    "\n  mutation UpdateCartItem($input: UpdateCartItemInput!) {\n    updateCartItem(input: $input) {\n      ...CartFields\n    }\n  }\n": typeof types.UpdateCartItemDocument,
+    "\n  mutation RemoveFromCart($input: CartItemRefInput!) {\n    removeFromCart(input: $input) {\n      ...CartFields\n    }\n  }\n": typeof types.RemoveFromCartDocument,
+    "\n  mutation ClearCart($input: CartScopeInput!) {\n    clearCart(input: $input) {\n      ...CartFields\n    }\n  }\n": typeof types.ClearCartDocument,
+    "\n  query Wishlist($input: WishlistQueryInput!) {\n    wishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n": typeof types.WishlistDocument,
+    "\n  mutation AddToWishlist($input: WishlistRefInput!) {\n    addToWishlist(input: $input) {\n      alreadyExists\n      wishlist {\n        ...WishlistItemFields\n      }\n    }\n  }\n": typeof types.AddToWishlistDocument,
+    "\n  mutation RemoveFromWishlist($input: WishlistRefInput!) {\n    removeFromWishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n": typeof types.RemoveFromWishlistDocument,
 };
 const documents: Documents = {
+    "\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": types.CatalogListingsDocument,
     "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": types.SendWhatsappOtpDocument,
     "\n  mutation VerifyWhatsappOtp($input: VerifyWhatsappOtpInput!) {\n    verifyWhatsappOtp(input: $input) {\n      verified\n    }\n  }\n": types.VerifyWhatsappOtpDocument,
     "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": types.SendSmsOtpDocument,
@@ -34,6 +47,17 @@ const documents: Documents = {
     "\n  query PeopleByCommunication($input: FindPeopleByCommunicationInput!) {\n    peopleByCommunication(input: $input) {\n      ...PersonFields\n    }\n  }\n": types.PeopleByCommunicationDocument,
     "\n  mutation CreatePerson($input: CreatePersonInput!) {\n    createPerson(input: $input) {\n      ...PersonFields\n    }\n  }\n": types.CreatePersonDocument,
     "\n  mutation AddPersonCommunication($input: AddPersonCommunicationInput!) {\n    addPersonCommunication(input: $input) {\n      ...PersonCommunicationFields\n    }\n  }\n": types.AddPersonCommunicationDocument,
+    "\n  fragment MoneyFields on Money {\n    currency\n    value\n  }\n": types.MoneyFieldsFragmentDoc,
+    "\n  fragment CartFields on Cart {\n    currencyCode\n    itemCount\n    subtotal {\n      ...MoneyFields\n    }\n    items {\n      id\n      catalogListingId\n      offeringVariantId\n      quantity\n      name\n      sku\n      isAvailable\n      unitPrice {\n        ...MoneyFields\n      }\n      lineTotal {\n        ...MoneyFields\n      }\n    }\n  }\n": types.CartFieldsFragmentDoc,
+    "\n  fragment WishlistItemFields on WishlistItem {\n    id\n    catalogListingId\n    offeringVariantId\n    name\n    sku\n    isAvailable\n    createdAt\n    price {\n      ...MoneyFields\n    }\n  }\n": types.WishlistItemFieldsFragmentDoc,
+    "\n  query Cart($input: CartScopeInput!) {\n    cart(input: $input) {\n      ...CartFields\n    }\n  }\n": types.CartDocument,
+    "\n  mutation AddToCart($input: AddCartItemInput!) {\n    addToCart(input: $input) {\n      ...CartFields\n    }\n  }\n": types.AddToCartDocument,
+    "\n  mutation UpdateCartItem($input: UpdateCartItemInput!) {\n    updateCartItem(input: $input) {\n      ...CartFields\n    }\n  }\n": types.UpdateCartItemDocument,
+    "\n  mutation RemoveFromCart($input: CartItemRefInput!) {\n    removeFromCart(input: $input) {\n      ...CartFields\n    }\n  }\n": types.RemoveFromCartDocument,
+    "\n  mutation ClearCart($input: CartScopeInput!) {\n    clearCart(input: $input) {\n      ...CartFields\n    }\n  }\n": types.ClearCartDocument,
+    "\n  query Wishlist($input: WishlistQueryInput!) {\n    wishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n": types.WishlistDocument,
+    "\n  mutation AddToWishlist($input: WishlistRefInput!) {\n    addToWishlist(input: $input) {\n      alreadyExists\n      wishlist {\n        ...WishlistItemFields\n      }\n    }\n  }\n": types.AddToWishlistDocument,
+    "\n  mutation RemoveFromWishlist($input: WishlistRefInput!) {\n    removeFromWishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n": types.RemoveFromWishlistDocument,
 };
 
 /**
@@ -50,6 +74,10 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n"): (typeof documents)["\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -86,6 +114,50 @@ export function graphql(source: "\n  mutation CreatePerson($input: CreatePersonI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation AddPersonCommunication($input: AddPersonCommunicationInput!) {\n    addPersonCommunication(input: $input) {\n      ...PersonCommunicationFields\n    }\n  }\n"): (typeof documents)["\n  mutation AddPersonCommunication($input: AddPersonCommunicationInput!) {\n    addPersonCommunication(input: $input) {\n      ...PersonCommunicationFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment MoneyFields on Money {\n    currency\n    value\n  }\n"): (typeof documents)["\n  fragment MoneyFields on Money {\n    currency\n    value\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment CartFields on Cart {\n    currencyCode\n    itemCount\n    subtotal {\n      ...MoneyFields\n    }\n    items {\n      id\n      catalogListingId\n      offeringVariantId\n      quantity\n      name\n      sku\n      isAvailable\n      unitPrice {\n        ...MoneyFields\n      }\n      lineTotal {\n        ...MoneyFields\n      }\n    }\n  }\n"): (typeof documents)["\n  fragment CartFields on Cart {\n    currencyCode\n    itemCount\n    subtotal {\n      ...MoneyFields\n    }\n    items {\n      id\n      catalogListingId\n      offeringVariantId\n      quantity\n      name\n      sku\n      isAvailable\n      unitPrice {\n        ...MoneyFields\n      }\n      lineTotal {\n        ...MoneyFields\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment WishlistItemFields on WishlistItem {\n    id\n    catalogListingId\n    offeringVariantId\n    name\n    sku\n    isAvailable\n    createdAt\n    price {\n      ...MoneyFields\n    }\n  }\n"): (typeof documents)["\n  fragment WishlistItemFields on WishlistItem {\n    id\n    catalogListingId\n    offeringVariantId\n    name\n    sku\n    isAvailable\n    createdAt\n    price {\n      ...MoneyFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Cart($input: CartScopeInput!) {\n    cart(input: $input) {\n      ...CartFields\n    }\n  }\n"): (typeof documents)["\n  query Cart($input: CartScopeInput!) {\n    cart(input: $input) {\n      ...CartFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AddToCart($input: AddCartItemInput!) {\n    addToCart(input: $input) {\n      ...CartFields\n    }\n  }\n"): (typeof documents)["\n  mutation AddToCart($input: AddCartItemInput!) {\n    addToCart(input: $input) {\n      ...CartFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateCartItem($input: UpdateCartItemInput!) {\n    updateCartItem(input: $input) {\n      ...CartFields\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateCartItem($input: UpdateCartItemInput!) {\n    updateCartItem(input: $input) {\n      ...CartFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RemoveFromCart($input: CartItemRefInput!) {\n    removeFromCart(input: $input) {\n      ...CartFields\n    }\n  }\n"): (typeof documents)["\n  mutation RemoveFromCart($input: CartItemRefInput!) {\n    removeFromCart(input: $input) {\n      ...CartFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ClearCart($input: CartScopeInput!) {\n    clearCart(input: $input) {\n      ...CartFields\n    }\n  }\n"): (typeof documents)["\n  mutation ClearCart($input: CartScopeInput!) {\n    clearCart(input: $input) {\n      ...CartFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Wishlist($input: WishlistQueryInput!) {\n    wishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n"): (typeof documents)["\n  query Wishlist($input: WishlistQueryInput!) {\n    wishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AddToWishlist($input: WishlistRefInput!) {\n    addToWishlist(input: $input) {\n      alreadyExists\n      wishlist {\n        ...WishlistItemFields\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation AddToWishlist($input: WishlistRefInput!) {\n    addToWishlist(input: $input) {\n      alreadyExists\n      wishlist {\n        ...WishlistItemFields\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RemoveFromWishlist($input: WishlistRefInput!) {\n    removeFromWishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n"): (typeof documents)["\n  mutation RemoveFromWishlist($input: WishlistRefInput!) {\n    removeFromWishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

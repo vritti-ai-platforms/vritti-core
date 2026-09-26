@@ -35,7 +35,32 @@ import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+
+/** A basket or wishlist row as staff see it — the shopper's row plus the storefront it sits in. */
+export interface StaffShopperRow {
+  id: string;
+  appId: string;
+  catalogListingId: string;
+  name: string;
+  sku: string | null;
+  isAvailable: boolean;
+}
+
+export interface StaffCartRow extends StaffShopperRow {
+  cartId: string;
+  siteId: string | null;
+  legalEntityId: string | null;
+  quantity: number;
+  unitPrice: { currency: string; value: string } | null;
+  lineTotal: { currency: string; value: string } | null;
+}
+
+export interface StaffWishlistItemRow extends StaffShopperRow {
+  price: { currency: string; value: string } | null;
+  createdAt: string;
+}
 
 @Injectable()
 export class PeopleGatewayService {
@@ -111,6 +136,28 @@ export class PeopleGatewayService {
   delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.people.delete — id: ${id}`);
     return this.nats.send('commerce', 'org.people.delete', { id });
+  }
+
+  /** A person's saved items. Read only — see the microservice controller for why. */
+  listWishlist(partyId: string, currencyCode: string): Promise<StaffWishlistItemRow[]> {
+    this.logger.log(`org.people.wishlist.list — partyId: ${partyId}`);
+    return this.nats.send('commerce', 'org.people.wishlist.list', { partyId, currencyCode });
+  }
+
+  /** The catalogue a storefront sells, refused rather than defaulted when nothing is configured. */
+  private async resolveAppCatalog(appId: string): Promise<{ catalogId: string }> {
+    const resolution = await this.nats.send<{ resolved: boolean; catalog: { catalogId: string } | null }>(
+      'commerce',
+      'org.catalogChannels.resolve',
+      { type: 'APP', appId },
+    );
+    if (!resolution?.catalog) {
+      throw new NotFoundException({
+        label: 'Store Not Configured',
+        detail: 'That storefront has no catalogue assigned yet.',
+      });
+    }
+    return resolution.catalog;
   }
 
   // Returns the identifiers of a person for the data table

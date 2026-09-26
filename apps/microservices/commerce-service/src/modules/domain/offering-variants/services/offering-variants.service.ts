@@ -108,6 +108,26 @@ export class OfferingVariantsDomainService {
     );
   }
 
+  // Variants one storefront channel sells — the picker behind "add to their basket"
+  findForSelectInChannel(channelId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelectInChannel(
+      {
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey || 'sku',
+        additionalKeys: query.additionalKeys,
+        search: query.search,
+        limit: query.limit,
+        offset: query.offset,
+        values: query.values,
+        excludeIds: query.excludeIds,
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      channelId,
+    );
+  }
+
   async findById(id: string): Promise<OfferingVariantDto> {
     const variant = await this.repository.findByIdWithNames(id);
     if (!variant) throw new NotFoundException('Variant not found.');

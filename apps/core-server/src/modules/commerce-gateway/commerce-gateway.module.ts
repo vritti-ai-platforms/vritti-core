@@ -30,6 +30,8 @@ import { SelectApiResolver } from './select-api/select-api.resolver';
 import { SiteAppCatalogChannelGatewayController } from './site-api/catalog-channels/app-catalog-channel-gateway.controller';
 import { SiteCatalogChannelsGatewayController } from './site-api/catalog-channels/catalog-channels-gateway.controller';
 import { CreditNotesGatewayController } from './site-api/credit-notes/credit-notes-gateway.controller';
+import { LeCartsGatewayController } from './le-api/carts/carts-gateway.controller';
+import { CartsGatewayController } from './site-api/carts/carts-gateway.controller';
 import { CustomersGatewayController } from './site-api/customers/customers-gateway.controller';
 import { SiteDimensionTemplatesGatewayController } from './site-api/dimension-templates/dimension-templates-gateway.controller';
 import { GoodsReceiptsGatewayController } from './site-api/goods-receipts/goods-receipts-gateway.controller';
@@ -65,6 +67,8 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     InventoryItemQuantsGatewayController,
     CostCategoriesGatewayController,
     CreditNotesGatewayController,
+    CartsGatewayController,
+    LeCartsGatewayController,
     CustomersGatewayController,
     GoodsReceiptsGatewayController,
     SiteInventoryItemsGatewayController,

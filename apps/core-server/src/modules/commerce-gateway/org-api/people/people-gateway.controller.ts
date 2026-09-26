@@ -42,6 +42,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
@@ -49,7 +50,16 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/data
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { PeopleGatewayService } from './services/people-gateway.service';
+import { PeopleShopperQueryDto } from './dto/request/people-shopper.dto';
+import { PeopleGatewayService, type StaffWishlistItemRow } from './services/people-gateway.service';
+
+/**
+ * What a basket is priced in when the caller names nothing.
+ *
+ * These storefronts sell in India. A staff screen asking for a person's basket should render, not
+ * refuse because nobody passed a currency — and the shopper-facing surface always passes one.
+ */
+const DEFAULT_CURRENCY = 'INR';
 
 @ApiTags('Commerce - People')
 @ApiBearerAuth()
@@ -421,5 +431,21 @@ export class PeopleGatewayController {
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/people/${id}`);
     return this.service.delete(id);
+  }
+
+  /**
+   * What this person saved for later.
+   *
+   * Read only, deliberately: a saved list is the shopper's own, and staff adding to it would be
+   * putting words in their mouth.
+   */
+  @Get(':id/wishlist')
+  @RequirePermission(ORG_PEOPLE.wishlist.view)
+  listWishlist(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: PeopleShopperQueryDto,
+  ): Promise<StaffWishlistItemRow[]> {
+    this.logger.log(`GET /commerce-api/people/${id}/wishlist`);
+    return this.service.listWishlist(id, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 }

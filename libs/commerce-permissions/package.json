@@ -13,6 +13,10 @@
       "types": "./dist/uom.d.ts",
       "default": "./dist/uom.js"
     },
+    "./carts": {
+      "types": "./dist/carts.d.ts",
+      "default": "./dist/carts.js"
+    },
     "./catalog-channels": {
       "types": "./dist/catalog-channels.d.ts",
       "default": "./dist/catalog-channels.js"
@@ -72,6 +76,10 @@
     "./offerings": {
       "types": "./dist/offerings.d.ts",
       "default": "./dist/offerings.js"
+    },
+    "./storefront-catalog": {
+      "types": "./dist/storefront-catalog.d.ts",
+      "default": "./dist/storefront-catalog.js"
     }
   },
   "files": [

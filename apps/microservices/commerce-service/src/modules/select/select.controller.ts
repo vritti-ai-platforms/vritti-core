@@ -28,6 +28,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { PartyTypeValues } from '@/db/schema';
+import { ChannelItemsSelectQueryDto } from './dto/request/channel-items-select-query.dto';
 import { InventoryItemLotsSelectQueryDto } from './dto/request/inventory-item-lots-select-query.dto';
 import { InventoryItemQuantsSelectQueryDto } from './dto/request/inventory-item-quants-select-query.dto';
 import { InventoryItemSerialsSelectQueryDto } from './dto/request/inventory-item-serials-select-query.dto';
@@ -102,6 +103,14 @@ export class SelectController {
     const { offeringId, ...query } = data;
     this.logger.log(`select.offeringVariants — offeringId: ${offeringId}`);
     return this.offeringVariantsService.findForSelect(offeringId, query as SelectOptionsQueryDto);
+  }
+
+  // What one storefront channel sells — the picker behind "add to their basket"
+  @MessagePattern({ cmd: 'select.channelItems' })
+  async channelItems(@Payload() data: ChannelItemsSelectQueryDto): Promise<SelectQueryResult> {
+    const { channelId, ...query } = data;
+    this.logger.log(`select.channelItems — channelId: ${channelId}`);
+    return this.offeringVariantsService.findForSelectInChannel(channelId, query as SelectOptionsQueryDto);
   }
 
   // Returns paginated dimension template options for the select component

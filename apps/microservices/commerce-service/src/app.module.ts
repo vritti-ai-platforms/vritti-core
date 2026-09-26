@@ -14,6 +14,8 @@ import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.mo
 import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
 import { LeTaxRegistrationsModule } from './modules/legal-entity/tax-registrations/tax-registrations.module';
+import { LeCartsModule } from './modules/legal-entity/carts/carts.module';
+import { SiteCartsModule } from './modules/site/carts/carts.module';
 import { OrgCatalogChannelsModule } from './modules/organization/catalog-channels/catalog-channels.module';
 import { OrgCatalogsModule } from './modules/organization/catalogs/catalogs.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
@@ -26,6 +28,7 @@ import { OrgTaxClassesModule } from './modules/organization/tax-classes/tax-clas
 import { OrgTaxComponentsModule } from './modules/organization/tax-components/tax-components.module';
 import { OrgTaxJurisdictionsModule } from './modules/organization/tax-jurisdictions/tax-jurisdictions.module';
 import { OrgUomModule } from './modules/organization/uom/uom.module';
+import { OrgWishlistModule } from './modules/organization/wishlist/wishlist.module';
 import { SelectModule } from './modules/select/select.module';
 import { SiteCatalogChannelsModule } from './modules/site/catalog-channels/catalog-channels.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
@@ -99,6 +102,9 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
       },
     }),
     OrgCategoriesModule,
+    LeCartsModule,
+    SiteCartsModule,
+    OrgWishlistModule,
     OrgPeopleModule,
     OrgCompaniesModule,
     OrgTaxClassesModule,

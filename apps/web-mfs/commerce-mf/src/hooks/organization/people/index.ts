@@ -47,6 +47,7 @@ export {
   usePersonRegistrationsTable,
   useUpdatePersonRegistration,
 } from './usePersonRegistrations';
+export * from './usePersonShopper';
 export {
   useCreatePersonSocialProfile,
   useDeletePersonSocialProfile,
