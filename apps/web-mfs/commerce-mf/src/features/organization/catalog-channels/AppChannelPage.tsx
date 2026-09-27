@@ -46,7 +46,7 @@ export const AppChannelPage: React.FC<AppChannelPageProps> = ({ binding }) => {
         cell: ({ row }) => (
           <div className="flex items-center justify-center gap-2">
             <span>{row.original.catalogName ?? '—'}</span>
-            {row.original.catalogIsActive ? null : <Badge variant="warning">Draft</Badge>}
+            {row.original.catalogIsActive ? null : <Badge variant="warning">Inactive</Badge>}
           </div>
         ),
         enableSorting: false,

@@ -34,6 +34,7 @@ export class OfferingVariantDto {
   fulfilmentType: FulfilmentType;
   isFulfilmentOverridden: boolean;
   isActive: boolean;
+  isOfferingActive: boolean;
   sortOrder: number;
   values: OfferingVariantValueRefDto[];
   bom: OfferingBomLineDto[];
@@ -84,7 +85,10 @@ export class OfferingVariantDto {
     dto.isTaxClassOverridden = entity.isTaxClassOverridden;
     dto.fulfilmentType = entity.fulfilmentType;
     dto.isFulfilmentOverridden = entity.isFulfilmentOverridden;
-    dto.isActive = entity.isActive;
+    // Effective sellability, not the raw column: a variant only sells while its own flag AND its
+    // offering's are on. isOfferingActive rides along so a caller can say WHY it is off.
+    dto.isActive = entity.isActive && entity.isOfferingActive;
+    dto.isOfferingActive = entity.isOfferingActive;
     dto.sortOrder = entity.sortOrder;
     dto.values = values;
     dto.bom = bom;

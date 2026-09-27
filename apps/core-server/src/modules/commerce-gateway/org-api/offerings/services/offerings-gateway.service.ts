@@ -1,6 +1,8 @@
 import type { AddBomLineDto, UpdateBomLineDto } from '@commerce/offerings/dto/request/bom-line.dto';
+import type { BulkClearVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-clear-variants-tax-class.dto';
 import type { BulkSetOfferingStatusDto } from '@commerce/offerings/dto/request/bulk-set-offering-status.dto';
 import type { BulkSetVariantsStatusDto } from '@commerce/offerings/dto/request/bulk-set-variants-status.dto';
+import type { BulkSetVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-set-variants-tax-class.dto';
 import type { CreateOfferingDto } from '@commerce/offerings/dto/request/create-offering.dto';
 import type { CreateOfferingDimensionDto } from '@commerce/offerings/dto/request/create-offering-dimension.dto';
 import type { CreateOfferingDimensionFromTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-from-template.dto';
@@ -21,10 +23,14 @@ import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/re
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 import type { PreviewCombinationsDto } from '../../../domain/offerings/dto/request/preview-combinations.dto';
 import type { VariantCombinationsResponseDto } from '../../../domain/offerings/dto/response/variant-combinations-response.dto';
+
+const EXPORT_PAGE_SIZE = 500;
+const MAX_EXPORT_ROWS = 50_000;
 
 @Injectable()
 export class OrgOfferingsGatewayService {
@@ -98,6 +104,47 @@ export class OrgOfferingsGatewayService {
   async bulkSetStatus(dto: BulkSetOfferingStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.bulkSetStatus — count: ${dto.ids.length}, isActive: ${dto.isActive}`);
     return this.nats.send('commerce', 'org.offerings.bulkSetStatus', dto);
+  }
+
+  // Rows only — the workbook is built here, so nothing binary crosses NATS
+  async exportOfferingRows(): Promise<Record<string, unknown>[]> {
+    this.logger.log('offerings.exportRows');
+    return this.collectExportPages((page) => this.nats.send('commerce', 'org.offerings.exportRows', page));
+  }
+
+  async exportVariantRows(offeringId: string): Promise<Record<string, unknown>[]> {
+    this.logger.log(`offerings.variants.exportRows — offeringId: ${offeringId}`);
+    return this.collectExportPages((page) =>
+      this.nats.send('commerce', 'org.offerings.variants.exportRows', { offeringId, ...page }),
+    );
+  }
+
+  // Walks pages until a short one arrives, since one NATS reply is capped at 1 MB
+  private async collectExportPages(
+    fetchPage: (page: { limit: number; offset: number }) => Promise<Record<string, unknown>[]>,
+  ): Promise<Record<string, unknown>[]> {
+    const all: Record<string, unknown>[] = [];
+    for (let offset = 0; ; offset += EXPORT_PAGE_SIZE) {
+      const rows = await fetchPage({ limit: EXPORT_PAGE_SIZE, offset });
+      all.push(...rows);
+      if (rows.length < EXPORT_PAGE_SIZE) return all;
+      if (all.length >= MAX_EXPORT_ROWS) {
+        throw new ConflictException({
+          label: 'Export Too Large',
+          detail: `This export exceeds ${MAX_EXPORT_ROWS.toLocaleString()} rows. Narrow the filters and try again.`,
+        });
+      }
+    }
+  }
+
+  async bulkClearVariantsTaxClass(offeringId: string, dto: BulkClearVariantsTaxClassDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.bulkClearTaxClass — count: ${dto.ids.length}`);
+    return this.nats.send('commerce', 'org.offerings.variants.bulkClearTaxClass', { offeringId, ...dto });
+  }
+
+  async bulkSetVariantsTaxClass(offeringId: string, dto: BulkSetVariantsTaxClassDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.bulkSetTaxClass — count: ${dto.ids.length}, taxClassId: ${dto.taxClassId}`);
+    return this.nats.send('commerce', 'org.offerings.variants.bulkSetTaxClass', { offeringId, ...dto });
   }
 
   async bulkSetVariantsStatus(offeringId: string, dto: BulkSetVariantsStatusDto): Promise<SuccessResponseDto> {

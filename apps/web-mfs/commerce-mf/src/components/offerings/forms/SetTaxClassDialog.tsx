@@ -13,7 +13,7 @@ import {
   setTaxClassSchema,
 } from '@/schemas/offerings';
 import { TaxClassSelector } from '@/selectors/tax-class';
-import type { UseSetOfferingTaxClass, UseSetVariantTaxClass } from '../types';
+import type { UseBulkSetVariantsTaxClass, UseSetOfferingTaxClass, UseSetVariantTaxClass } from '../types';
 
 interface SetTaxClassDialogProps {
   useSet: UseSetOfferingTaxClass;
@@ -40,11 +40,15 @@ export const SetTaxClassDialog: React.FC<SetTaxClassDialogProps> = ({ useSet, of
       transformSubmit={(data) => ({ id: offering.id, taxClassId: data.taxClassId })}
     >
       <div className="flex flex-col gap-4">
-        {offering.variantCount > 0 && (
+        {offering.variantsFollowingTaxClassCount > 0 && (
           <Alert
             variant="warning"
             title="This cascades"
-            description={`${pluralize('variant', offering.variantCount, true)} follow this offering. Any that pin their own tax class keep it — the rest are updated.`}
+            description={`${pluralize('variant', offering.variantsFollowingTaxClassCount, true)} follow this offering and will be updated.${
+              offering.variantCount > offering.variantsFollowingTaxClassCount
+                ? ` ${pluralize('variant', offering.variantCount - offering.variantsFollowingTaxClassCount, true)} pinned their own and keep it.`
+                : ''
+            }`}
           />
         )}
 
@@ -95,7 +99,7 @@ export const SetVariantTaxClassDialog: React.FC<SetVariantTaxClassDialogProps> =
         <Alert
           variant="default"
           title="This variant stops following the offering"
-          description="Changing the offering's tax class will no longer update it. Use “Follow offering” to undo."
+          description="Changing the offering's tax class will no longer update it. Use “Remove Override” to undo."
         />
         <TaxClassSelector name="taxClassId" />
       </div>
@@ -106,6 +110,54 @@ export const SetVariantTaxClassDialog: React.FC<SetVariantTaxClassDialogProps> =
         </Button>
         <Button type="submit" loadingText="Pinning...">
           Override
+        </Button>
+      </DialogActions>
+    </Form>
+  );
+};
+
+interface BulkSetVariantsTaxClassDialogProps {
+  useSet: UseBulkSetVariantsTaxClass;
+  offeringId: string;
+  variantIds: string[];
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+// The batch form of SetVariantTaxClassDialog — every selected variant is pinned and stops following
+export const BulkSetVariantsTaxClassDialog: React.FC<BulkSetVariantsTaxClassDialogProps> = ({
+  useSet,
+  offeringId,
+  variantIds,
+  onSuccess,
+  onCancel,
+}) => {
+  const form = useForm<SetTaxClassFormData>({ resolver: zodResolver(setTaxClassSchema) });
+
+  const setMutation = useSet({ onSuccess });
+
+  return (
+    <Form
+      form={form}
+      mutation={setMutation}
+      onCancel={onCancel}
+      transformSubmit={(data) => ({ offeringId, ids: variantIds, taxClassId: data.taxClassId })}
+    >
+      <div className="flex flex-col gap-4">
+        <Alert
+          variant="default"
+          title={`${pluralize('variant', variantIds.length, true)} stop following the offering`}
+          description="Changing the offering's tax class will no longer update them. Use “Remove Override” on a variant to undo."
+        />
+        <TaxClassSelector name="taxClassId" />
+      </div>
+
+      <DialogActions>
+        <Button type="button" variant="outline" data-cancel>
+          Cancel
+        </Button>
+        <Button type="submit" loadingText="Applying...">
+          Override Tax Class
         </Button>
       </DialogActions>
     </Form>

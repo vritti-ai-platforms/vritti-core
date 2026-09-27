@@ -1,8 +1,8 @@
 import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import type React from 'react';
-import { StatusSwitch } from '@/components/StatusSwitch';
 import { FULFILMENT_TYPE_META } from '@/schemas/offerings';
 import type { OfferingsBinding } from './bindings';
 import { VariantHeaderActions } from './components/VariantHeaderActions';
@@ -31,8 +31,13 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
             size="md"
             checked={variant.isActive}
             permission={PERMISSIONS.variants.edit}
-            disabled={!variant.canMarkActive || setStatusMutation.isPending}
-            disabledTip={`A ${meta.label.toLowerCase()} variant needs its bill of materials first.`}
+            disabled={!variant.isOfferingActive || !variant.canMarkActive}
+            isLoading={setStatusMutation.isPending}
+            disabledTip={
+              variant.isOfferingActive
+                ? `A ${meta.label.toLowerCase()} variant needs its bill of materials first.`
+                : 'This offering is deactivated, so none of its variants sell. Activate the offering first.'
+            }
             onCheckedChange={(isActive) => setStatusMutation.mutate({ id: variant.id, data: { isActive } })}
             ariaLabel={`Mark ${variant.sku} active`}
           />

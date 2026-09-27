@@ -85,6 +85,22 @@ export class OfferingsDomainService {
     });
   }
 
+  // Flat rows for the file export. The gateway turns these into the workbook, so nothing binary
+  // crosses NATS and the column set stays one readable list.
+  async findForExport(page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
+    const rows = await this.repository.findForExport(page);
+    return rows.map((row) => ({
+      Code: row.code,
+      Name: row.name,
+      Description: row.description ?? '',
+      Fulfilment: row.fulfilmentType,
+      Owner: row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG',
+      Dimensions: row.dimensionCount,
+      Variants: row.variantCount,
+      Status: row.isActive ? 'Active' : 'Inactive',
+    }));
+  }
+
   async findById(id: string): Promise<OfferingDto> {
     const row = await this.repository.findById(id);
     if (!row) throw new NotFoundException('Offering not found.');
@@ -242,7 +258,7 @@ export class OfferingsDomainService {
     this.logger.log(`Bulk ${data.isActive ? 'activated' : 'deactivated'} ${data.ids.length} offerings`);
     return {
       success: true,
-      message: `${pluralize('offering', rows.length, true)} marked ${data.isActive ? 'active' : 'draft'}.`,
+      message: `${pluralize('offering', rows.length, true)} marked ${data.isActive ? 'active' : 'inactive'}.`,
     };
   }
 
@@ -292,6 +308,7 @@ export class OfferingsDomainService {
     return OfferingDto.from(row, {
       dimensionCount: row.dimensionCount,
       variantCount: row.variantCount,
+      variantsFollowingTaxClassCount: row.variantsFollowingTaxClass,
       variantsMissingBomCount: row.fulfilmentType === FulfilmentTypeValues.SERVICE ? 0 : row.variantsWithoutBom,
       isOwned: row.isOwned,
       canDelete: row.isOwned && row.variantCount === 0,

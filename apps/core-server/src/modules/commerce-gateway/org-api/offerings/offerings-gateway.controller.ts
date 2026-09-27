@@ -1,8 +1,12 @@
 import {
   ApiAddBomLine,
   ApiAddSuggestedComponent,
+  ApiBulkClearVariantsTaxClass,
+  ApiExportOfferings,
+  ApiExportOfferingVariants,
   ApiBulkSetOfferingStatus,
   ApiBulkSetVariantsStatus,
+  ApiBulkSetVariantsTaxClass,
   ApiClearVariantFulfilment,
   ApiClearVariantTaxClass,
   ApiCreateOffering,
@@ -34,8 +38,10 @@ import {
   ApiUpsertOfferingDimensionValues,
 } from '@commerce/offerings/docs/offerings-gateway.docs';
 import { AddBomLineDto, UpdateBomLineDto } from '@commerce/offerings/dto/request/bom-line.dto';
+import { BulkClearVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-clear-variants-tax-class.dto';
 import { BulkSetOfferingStatusDto } from '@commerce/offerings/dto/request/bulk-set-offering-status.dto';
 import { BulkSetVariantsStatusDto } from '@commerce/offerings/dto/request/bulk-set-variants-status.dto';
+import { BulkSetVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-set-variants-tax-class.dto';
 import { CreateOfferingDto } from '@commerce/offerings/dto/request/create-offering.dto';
 import { CreateOfferingDimensionDto } from '@commerce/offerings/dto/request/create-offering-dimension.dto';
 import { CreateOfferingDimensionFromTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-from-template.dto';
@@ -55,7 +61,9 @@ import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offer
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
 import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/response/offering-variant-response.dto';
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
+import { Res, Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
+import type { FastifyReply } from 'fastify';
+import { buildExportBuffer, type ExportFormat, getExportExt, getExportMimeType } from '@vritti/api-sdk/xlsx';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
@@ -354,6 +362,54 @@ export class OrgOfferingsGatewayController {
     return this.service.bulkSetStatus(dto);
   }
 
+  // Streams every reachable offering as a file
+  @Get('export/:format')
+  @RequirePermission(ORG_OFFERINGS.export)
+  @ApiExportOfferings()
+  async exportOfferings(@Param('format') format: ExportFormat, @Res() reply: FastifyReply): Promise<void> {
+    this.logger.log(`GET /commerce-api/org/offerings/export/${format}`);
+    const rows = await this.service.exportOfferingRows();
+    this.sendExport(reply, rows, format, 'offerings');
+  }
+
+  // Streams one offering's variants as a file
+  @Get(':id/variants/export/:format')
+  @RequirePermission(ORG_OFFERINGS.variants.export)
+  @ApiExportOfferingVariants()
+  async exportOfferingVariants(
+    @Param('id') id: string,
+    @Param('format') format: ExportFormat,
+    @Res() reply: FastifyReply,
+  ): Promise<void> {
+    this.logger.log(`GET /commerce-api/org/offerings/${id}/variants/export/${format}`);
+    const rows = await this.service.exportVariantRows(id);
+    this.sendExport(reply, rows, format, 'offering-variants');
+  }
+
+  // Drops the tax class override on many variants of one offering
+  @Delete(':id/variants/tax-class')
+  @RequirePermission(ORG_OFFERINGS.variants.edit)
+  @ApiBulkClearVariantsTaxClass()
+  bulkClearVariantsTaxClass(
+    @Param('id') id: string,
+    @Body() dto: BulkClearVariantsTaxClassDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/offerings/${id}/variants/tax-class — ${dto.ids.length} selected`);
+    return this.service.bulkClearVariantsTaxClass(id, dto);
+  }
+
+  // Overrides the tax class on many variants of one offering
+  @Patch(':id/variants/tax-class')
+  @RequirePermission(ORG_OFFERINGS.variants.edit)
+  @ApiBulkSetVariantsTaxClass()
+  bulkSetVariantsTaxClass(
+    @Param('id') id: string,
+    @Body() dto: BulkSetVariantsTaxClassDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/offerings/${id}/variants/tax-class — ${dto.ids.length} selected`);
+    return this.service.bulkSetVariantsTaxClass(id, dto);
+  }
+
   // Bulk-activates or deactivates variants of one offering
   @Patch(':id/variants/status')
   @RequirePermission(ORG_OFFERINGS.variants.edit)
@@ -397,5 +453,19 @@ export class OrgOfferingsGatewayController {
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/org/offerings/${id}`);
     return this.service.delete(id);
+  }
+
+  // Builds the workbook and streams it — shared by both export routes
+  private sendExport(
+    reply: FastifyReply,
+    rows: Record<string, unknown>[],
+    format: ExportFormat,
+    filename: string,
+  ): void {
+    const buffer = buildExportBuffer(rows, format);
+    reply.header('Content-Type', getExportMimeType(format));
+    reply.header('Content-Disposition', `attachment; filename="${filename}.${getExportExt(format)}"`);
+    reply.header('Content-Length', buffer.length);
+    reply.send(buffer);
   }
 }

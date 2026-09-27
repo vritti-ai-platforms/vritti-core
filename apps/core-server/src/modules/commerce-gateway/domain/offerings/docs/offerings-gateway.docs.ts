@@ -73,7 +73,7 @@ export function ApiSetOfferingStatus() {
 export function ApiBulkSetOfferingStatus() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Mark many offerings active or draft',
+      summary: 'Mark many offerings active or inactive',
       description: 'All or nothing — refused unless every selected offering may make the move.',
     }),
     ApiResponse({ status: 200, description: 'Offering activation changed.' }),
@@ -249,10 +249,52 @@ export function ApiUpdateOfferingVariant() {
   );
 }
 
+export function ApiExportOfferings() {
+  return applyDecorators(
+    ApiOperation({ summary: 'Download every reachable offering as a file' }),
+    ApiParam({ name: 'format', enum: ['xlsx', 'xls', 'csv', 'tsv', 'ods'] }),
+    ApiResponse({ status: 200, description: 'File stream.' }),
+  );
+}
+
+export function ApiExportOfferingVariants() {
+  return applyDecorators(
+    ApiOperation({ summary: "Download one offering's variants as a file" }),
+    ApiParam(ID),
+    ApiParam({ name: 'format', enum: ['xlsx', 'xls', 'csv', 'tsv', 'ods'] }),
+    ApiResponse({ status: 200, description: 'File stream.' }),
+  );
+}
+
+export function ApiBulkClearVariantsTaxClass() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Clear the tax class override on many variants',
+      description: 'Each selected variant drops its override and follows the offering again.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, description: 'Overrides cleared.' }),
+    ApiResponse(NOT_OWNED),
+  );
+}
+
+export function ApiBulkSetVariantsTaxClass() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Override or clear the tax class on many variants',
+      description:
+        'With a class, each selected variant is pinned to it. Without one, each drops its override and follows the offering again.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, description: 'Tax class overridden.' }),
+    ApiResponse(NOT_OWNED),
+  );
+}
+
 export function ApiBulkSetVariantsStatus() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Mark many variants active or draft',
+      summary: 'Mark many variants active or inactive',
       description: 'All or nothing — refused unless every selected variant satisfies the offering’s BOM rule.',
     }),
     ApiParam(ID),

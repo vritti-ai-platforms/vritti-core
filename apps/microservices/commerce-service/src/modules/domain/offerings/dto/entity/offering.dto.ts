@@ -16,6 +16,7 @@ export class OfferingDto {
   ownerScope: OfferingOwnerScope;
   dimensionCount: number;
   variantCount: number;
+  variantsFollowingTaxClassCount: number;
   // Variants with no bill of materials — they cannot be activated until one is added
   variantsMissingBomCount: number;
   canEdit: boolean;
@@ -29,6 +30,7 @@ export class OfferingDto {
     options: {
       dimensionCount?: number;
       variantCount?: number;
+      variantsFollowingTaxClassCount?: number;
       variantsMissingBomCount?: number;
       isOwned?: boolean;
       canDelete?: boolean;
@@ -37,6 +39,7 @@ export class OfferingDto {
     const {
       dimensionCount = 0,
       variantCount = 0,
+      variantsFollowingTaxClassCount = 0,
       variantsMissingBomCount = 0,
       isOwned = false,
       canDelete = false,
@@ -56,6 +59,7 @@ export class OfferingDto {
     dto.ownerScope = entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG';
     dto.dimensionCount = dimensionCount;
     dto.variantCount = variantCount;
+    dto.variantsFollowingTaxClassCount = variantsFollowingTaxClassCount;
     dto.canEdit = isOwned;
     dto.canMarkActive = isOwned && (entity.isActive || variantCount > 0);
     dto.canDelete = isOwned && canDelete;

@@ -6795,7 +6795,174 @@
             "bearer": []
           }
         ],
-        "summary": "Mark many offerings active or draft",
+        "summary": "Mark many offerings active or inactive",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/export/{format}": {
+      "get": {
+        "operationId": "OrgOfferingsGatewayController_exportOfferings",
+        "parameters": [
+          {
+            "name": "format",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "xlsx",
+                "xls",
+                "csv",
+                "tsv",
+                "ods"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File stream."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download every reachable offering as a file",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/{id}/variants/export/{format}": {
+      "get": {
+        "operationId": "OrgOfferingsGatewayController_exportOfferingVariants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "xlsx",
+                "xls",
+                "csv",
+                "tsv",
+                "ods"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File stream."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download one offering's variants as a file",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/{id}/variants/tax-class": {
+      "delete": {
+        "description": "Each selected variant drops its override and follows the offering again.",
+        "operationId": "OrgOfferingsGatewayController_bulkClearVariantsTaxClass",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkClearVariantsTaxClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Overrides cleared."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear the tax class override on many variants",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      },
+      "patch": {
+        "description": "With a class, each selected variant is pinned to it. Without one, each drops its override and follows the offering again.",
+        "operationId": "OrgOfferingsGatewayController_bulkSetVariantsTaxClass",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetVariantsTaxClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tax class overridden."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Override or clear the tax class on many variants",
         "tags": [
           "Commerce - Offerings (Org)"
         ]
@@ -6842,7 +7009,7 @@
             "bearer": []
           }
         ],
-        "summary": "Mark many variants active or draft",
+        "summary": "Mark many variants active or inactive",
         "tags": [
           "Commerce - Offerings (Org)"
         ]
@@ -8164,7 +8331,174 @@
             "bearer": []
           }
         ],
-        "summary": "Mark many offerings active or draft",
+        "summary": "Mark many offerings active or inactive",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/export/{format}": {
+      "get": {
+        "operationId": "LeOfferingsGatewayController_exportOfferings",
+        "parameters": [
+          {
+            "name": "format",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "xlsx",
+                "xls",
+                "csv",
+                "tsv",
+                "ods"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File stream."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download every reachable offering as a file",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/variants/export/{format}": {
+      "get": {
+        "operationId": "LeOfferingsGatewayController_exportOfferingVariants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "xlsx",
+                "xls",
+                "csv",
+                "tsv",
+                "ods"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File stream."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download one offering's variants as a file",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/variants/tax-class": {
+      "delete": {
+        "description": "Each selected variant drops its override and follows the offering again.",
+        "operationId": "LeOfferingsGatewayController_bulkClearVariantsTaxClass",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkClearVariantsTaxClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Overrides cleared."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear the tax class override on many variants",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      },
+      "patch": {
+        "description": "With a class, each selected variant is pinned to it. Without one, each drops its override and follows the offering again.",
+        "operationId": "LeOfferingsGatewayController_bulkSetVariantsTaxClass",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetVariantsTaxClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tax class overridden."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Override or clear the tax class on many variants",
         "tags": [
           "Commerce - Offerings (LE)"
         ]
@@ -8211,7 +8545,7 @@
             "bearer": []
           }
         ],
-        "summary": "Mark many variants active or draft",
+        "summary": "Mark many variants active or inactive",
         "tags": [
           "Commerce - Offerings (LE)"
         ]
@@ -9533,7 +9867,174 @@
             "bearer": []
           }
         ],
-        "summary": "Mark many offerings active or draft",
+        "summary": "Mark many offerings active or inactive",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/export/{format}": {
+      "get": {
+        "operationId": "SiteOfferingsGatewayController_exportOfferings",
+        "parameters": [
+          {
+            "name": "format",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "xlsx",
+                "xls",
+                "csv",
+                "tsv",
+                "ods"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File stream."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download every reachable offering as a file",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/variants/export/{format}": {
+      "get": {
+        "operationId": "SiteOfferingsGatewayController_exportOfferingVariants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "xlsx",
+                "xls",
+                "csv",
+                "tsv",
+                "ods"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File stream."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download one offering's variants as a file",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/variants/tax-class": {
+      "delete": {
+        "description": "Each selected variant drops its override and follows the offering again.",
+        "operationId": "SiteOfferingsGatewayController_bulkClearVariantsTaxClass",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkClearVariantsTaxClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Overrides cleared."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear the tax class override on many variants",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      },
+      "patch": {
+        "description": "With a class, each selected variant is pinned to it. Without one, each drops its override and follows the offering again.",
+        "operationId": "SiteOfferingsGatewayController_bulkSetVariantsTaxClass",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetVariantsTaxClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tax class overridden."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Override or clear the tax class on many variants",
         "tags": [
           "Commerce - Offerings (Site)"
         ]
@@ -9580,7 +10081,7 @@
             "bearer": []
           }
         ],
-        "summary": "Mark many variants active or draft",
+        "summary": "Mark many variants active or inactive",
         "tags": [
           "Commerce - Offerings (Site)"
         ]
@@ -34940,6 +35441,9 @@
           "variantCount": {
             "type": "number"
           },
+          "variantsFollowingTaxClassCount": {
+            "type": "number"
+          },
           "variantsMissingBomCount": {
             "type": "number",
             "description": "Variants with no bill of materials — they cannot be activated yet"
@@ -34974,6 +35478,7 @@
           "ownerName",
           "dimensionCount",
           "variantCount",
+          "variantsFollowingTaxClassCount",
           "variantsMissingBomCount",
           "canEdit",
           "canMarkActive",
@@ -35340,6 +35845,9 @@
           "isActive": {
             "type": "boolean"
           },
+          "isOfferingActive": {
+            "type": "boolean"
+          },
           "sortOrder": {
             "type": "number"
           },
@@ -35411,6 +35919,7 @@
           "name",
           "salesUomId",
           "isActive",
+          "isOfferingActive",
           "sortOrder",
           "values",
           "bom",
@@ -35771,6 +36280,40 @@
         "required": [
           "ids",
           "isActive"
+        ]
+      },
+      "BulkClearVariantsTaxClassDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "description": "Each variant drops its override and follows the offering again",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ids"
+        ]
+      },
+      "BulkSetVariantsTaxClassDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "description": "Each variant is pinned to this class and stops following the offering",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "taxClassId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ids",
+          "taxClassId"
         ]
       },
       "BulkSetVariantsStatusDto": {

@@ -15,6 +15,7 @@ export const ORG_OFFERINGS = {
   delete: 'org.offerings.delete',
   setTaxClass: 'org.offerings.set-tax-class',
   toggle: 'org.offerings.toggle',
+  export: 'org.offerings.export',
   dimensions: {
     view: 'org.offerings.dimensions.view',
     add: 'org.offerings.dimensions.add',
@@ -28,6 +29,7 @@ export const ORG_OFFERINGS = {
     edit: 'org.offerings.variants.edit',
     delete: 'org.offerings.variants.delete',
     setTaxClass: 'org.offerings.variants.set-tax-class',
+    export: 'org.offerings.variants.export',
     // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
     // `variants` in the catalog — the authoring script takes only the first segment.
     bom: {
@@ -52,6 +54,7 @@ export const LE_OFFERINGS = {
   delete: 'le.offerings.delete',
   setTaxClass: 'le.offerings.set-tax-class',
   toggle: 'le.offerings.toggle',
+  export: 'le.offerings.export',
   dimensions: {
     view: 'le.offerings.dimensions.view',
     add: 'le.offerings.dimensions.add',
@@ -65,6 +68,7 @@ export const LE_OFFERINGS = {
     edit: 'le.offerings.variants.edit',
     delete: 'le.offerings.variants.delete',
     setTaxClass: 'le.offerings.variants.set-tax-class',
+    export: 'le.offerings.variants.export',
     // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
     // `variants` in the catalog — the authoring script takes only the first segment.
     bom: {
@@ -86,6 +90,7 @@ export const SITE_OFFERINGS = {
   delete: 'site.offerings.delete',
   setTaxClass: 'site.offerings.set-tax-class',
   toggle: 'site.offerings.toggle',
+  export: 'site.offerings.export',
   dimensions: {
     view: 'site.offerings.dimensions.view',
     add: 'site.offerings.dimensions.add',
@@ -99,6 +104,7 @@ export const SITE_OFFERINGS = {
     edit: 'site.offerings.variants.edit',
     delete: 'site.offerings.variants.delete',
     setTaxClass: 'site.offerings.variants.set-tax-class',
+    export: 'site.offerings.variants.export',
     // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
     // `variants` in the catalog — the authoring script takes only the first segment.
     bom: {

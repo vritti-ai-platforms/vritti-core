@@ -20,7 +20,9 @@ import { type FulfilmentType, FulfilmentTypeValues, type OfferingVariant, offeri
 import { type OfferingBomLineDto, OfferingVariantDto } from '../dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '../dto/entity/variant-combination.dto';
 import type { AddBomLineDto, UpdateBomLineDto } from '../dto/request/bom-line.dto';
+import type { BulkClearVariantsTaxClassDto } from '../dto/request/bulk-clear-variants-tax-class.dto';
 import type { BulkSetVariantsStatusDto } from '../dto/request/bulk-set-variants-status.dto';
+import type { BulkSetVariantsTaxClassDto } from '../dto/request/bulk-set-variants-tax-class.dto';
 import type { CreateVariantDto } from '../dto/request/create-variant.dto';
 import type { GenerateVariantsDto } from '../dto/request/generate-variants.dto';
 import type { PreviewCombinationsDto } from '../dto/request/preview-combinations.dto';
@@ -33,6 +35,7 @@ import {
   type OfferingRef,
   OfferingVariantsDomainRepository,
   type OfferingVariantWithNames,
+  type VariantWithBomCount,
 } from '../repositories/offering-variants.repository';
 
 const BOM_RULES = {
@@ -126,6 +129,26 @@ export class OfferingVariantsDomainService {
       },
       channelId,
     );
+  }
+
+  // Flat rows for the file export, scoped to one offering. Reach is settled first so a variant of an
+  // offering this workspace cannot see never reaches the file.
+  async findForExport(offeringId: string, page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
+    await this.requireReachableOffering(offeringId);
+    const rows = await this.repository.findForExport(offeringId, page);
+    return rows.map((row) => ({
+      SKU: row.sku,
+      'External SKU': row.externalSku ?? '',
+      Name: row.name,
+      Combination: row.values.map((value) => value.value).join(' \u00b7 '),
+      'Sold in': row.salesUomName ?? '',
+      'Tax Class': row.taxClassName ?? '',
+      'Tax Class Overridden': row.isTaxClassOverridden ? 'Yes' : 'No',
+      Fulfilment: row.fulfilmentType,
+      'Fulfilment Overridden': row.isFulfilmentOverridden ? 'Yes' : 'No',
+      Components: row.bomLineCount,
+      Status: row.isActive && row.isOfferingActive ? 'Active' : 'Inactive',
+    }));
   }
 
   async findById(id: string): Promise<OfferingVariantDto> {
@@ -304,7 +327,35 @@ export class OfferingVariantsDomainService {
     this.logger.log(`Bulk ${data.isActive ? 'activated' : 'deactivated'} ${data.ids.length} variants`);
     return {
       success: true,
-      message: `${pluralize('variant', variants.length, true)} marked ${data.isActive ? 'active' : 'draft'}.`,
+      message: `${pluralize('variant', variants.length, true)} marked ${data.isActive ? 'active' : 'inactive'}.`,
+    };
+  }
+
+  // The batch form of setTaxClass. Ownership is settled once on the parent offering and every id is
+  // checked before anything is written, so the whole selection moves together or nothing does.
+  async bulkSetTaxClass(data: BulkSetVariantsTaxClassDto): Promise<SuccessResponseDto> {
+    const offering = await this.requireOwnedOffering(data.offeringId);
+
+    const variants = await this.requireVariantsInOffering(offering, data.ids);
+
+    await this.repository.bulkSetTaxClass(data.ids, data.taxClassId, true);
+    this.logger.log(`Bulk overrode tax class on ${data.ids.length} variants of ${offering.code}`);
+    return {
+      success: true,
+      message: `Tax class overridden on ${pluralize('variant', variants.length, true)}.`,
+    };
+  }
+
+  // The batch form of clearTaxClassOverride — each selected variant resynchronises with the offering
+  async bulkClearTaxClass(data: BulkClearVariantsTaxClassDto): Promise<SuccessResponseDto> {
+    const offering = await this.requireOwnedOffering(data.offeringId);
+    const variants = await this.requireVariantsInOffering(offering, data.ids);
+
+    await this.repository.bulkSetTaxClass(data.ids, offering.taxClassId, false);
+    this.logger.log(`Bulk cleared tax class override on ${data.ids.length} variants of ${offering.code}`);
+    return {
+      success: true,
+      message: `${pluralize('variant', variants.length, true)} now follow "${offering.name}".`,
     };
   }
 
@@ -658,6 +709,18 @@ export class OfferingVariantsDomainService {
     const offering = await this.repository.findOffering(offeringId);
     if (!offering) throw new NotFoundException('Offering not found.');
     return offering;
+  }
+
+  // Every id must still belong to this offering, so a stale selection cannot reach another's variants
+  private async requireVariantsInOffering(offering: OfferingRef, ids: string[]): Promise<VariantWithBomCount[]> {
+    const variants = await this.repository.findManyInOffering(offering.id, ids);
+    if (variants.length !== ids.length) {
+      throw new NotFoundException({
+        label: 'Variants Not Found',
+        detail: `Some of the selected variants no longer belong to "${offering.name}". Refresh and try again.`,
+      });
+    }
+    return variants;
   }
 
   private async requireOwnedOffering(offeringId: string): Promise<OfferingRef> {

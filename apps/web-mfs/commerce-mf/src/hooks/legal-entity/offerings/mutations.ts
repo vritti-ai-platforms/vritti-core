@@ -27,8 +27,10 @@ import type {
 import {
   addBomLine,
   addSuggestedComponent,
+  bulkClearVariantsTaxClass,
   bulkSetOfferingsStatus,
   bulkSetVariantsStatus,
+  bulkSetVariantsTaxClass,
   clearVariantFulfilment,
   clearVariantTaxClass,
   createDimension,
@@ -113,6 +115,37 @@ export function useBulkSetOfferingsStatus(
   return useMutation<SuccessResponse, AxiosError, { ids: string[]; isActive: boolean }>({
     ...options,
     mutationFn: bulkSetOfferingsStatus,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useBulkClearVariantsTaxClass(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, { offeringId: string; ids: string[] }>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, { offeringId: string; ids: string[] }>({
+    ...options,
+    mutationFn: bulkClearVariantsTaxClass,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useBulkSetVariantsTaxClass(
+  options?: Omit<
+    UseMutationOptions<SuccessResponse, AxiosError, { offeringId: string; ids: string[]; taxClassId: string }>,
+    'mutationFn'
+  >,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, { offeringId: string; ids: string[]; taxClassId: string }>({
+    ...options,
+    mutationFn: bulkSetVariantsTaxClass,
     onSuccess: (...args) => {
       invalidate();
       options?.onSuccess?.(...args);

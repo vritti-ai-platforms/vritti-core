@@ -90,7 +90,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ offering, variant }) =
             type="string"
             value={
               <Badge variant={variant.isActive ? 'success' : 'secondary'}>
-                {variant.isActive ? 'Active' : 'Draft'}
+                {variant.isActive ? 'Active' : 'Inactive'}
               </Badge>
             }
           />

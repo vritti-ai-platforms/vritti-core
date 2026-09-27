@@ -41,7 +41,7 @@ export const EditCatalogDialog: React.FC<EditCatalogDialogProps> = ({ catalog, o
           label="Prices include tax"
           description="Changing this reinterprets every price already in the catalog — it does not convert them."
         />
-        <Switch name="isActive" label="Active" description="A draft catalog is never resolved for any channel" />
+        <Switch name="isActive" label="Active" description="An inactive catalog is never resolved for any channel" />
       </div>
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

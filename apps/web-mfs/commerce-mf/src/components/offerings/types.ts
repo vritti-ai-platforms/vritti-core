@@ -35,6 +35,7 @@ export interface OfferingPermissions {
   delete: string;
   toggle: string;
   setTaxClass: string;
+  export: string;
   dimensions: { view: string; add: string; addFromTemplate: string; edit: string; delete: string };
   // createInventoryItem is organization-only, so the shared shape leaves it optional
   variants: {
@@ -43,6 +44,7 @@ export interface OfferingPermissions {
     edit: string;
     delete: string;
     setTaxClass: string;
+    export: string;
     // createInventoryItem is organization-only, so the shared shape leaves it optional
     bom: {
       view: string;
@@ -99,6 +101,11 @@ export type UseBulkSetOfferingsStatus = MutationHook<SuccessResponse, { ids: str
 export type UseBulkSetVariantsStatus = MutationHook<
   SuccessResponse,
   { offeringId: string; ids: string[]; isActive: boolean }
+>;
+export type UseBulkClearVariantsTaxClass = MutationHook<SuccessResponse, { offeringId: string; ids: string[] }>;
+export type UseBulkSetVariantsTaxClass = MutationHook<
+  SuccessResponse,
+  { offeringId: string; ids: string[]; taxClassId: string }
 >;
 export type UseSetOfferingFulfilment = MutationHook<SuccessResponse, SetOfferingFulfilmentData>;
 export type UseSetVariantFulfilment = MutationHook<SuccessResponse, SetVariantFulfilmentData>;

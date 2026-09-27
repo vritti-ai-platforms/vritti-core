@@ -3,8 +3,10 @@ import type {
   OfferingPermissions,
   UseAddBomLine,
   UseAddSuggestedComponent,
+  UseBulkClearVariantsTaxClass,
   UseBulkSetOfferingsStatus,
   UseBulkSetVariantsStatus,
+  UseBulkSetVariantsTaxClass,
   UseClearVariantFulfilment,
   UseClearVariantTaxClass,
   UseCreateDimension,
@@ -44,6 +46,8 @@ export interface OfferingsBinding {
   tableSlug: string;
   variantsTableKey: (offeringId: string) => readonly unknown[];
   variantsTableSlug: (offeringId: string) => string;
+  exportEndpoint: string;
+  variantsExportEndpoint: (offeringId: string) => string;
 
   useOfferingsTable: UseOfferingsTable;
   useOffering: UseSuspenseOffering;
@@ -68,6 +72,8 @@ export interface OfferingsBinding {
   usePreviewVariantCombinations: UsePreviewVariantCombinations;
   useUpdateVariant: UseUpdateVariant;
   useBulkSetVariantsStatus: UseBulkSetVariantsStatus;
+  useBulkClearVariantsTaxClass: UseBulkClearVariantsTaxClass;
+  useBulkSetVariantsTaxClass: UseBulkSetVariantsTaxClass;
   useDeleteVariant: UseDeleteVariant;
   useSetOfferingTaxClass: UseSetOfferingTaxClass;
   useSetVariantTaxClass: UseSetVariantTaxClass;

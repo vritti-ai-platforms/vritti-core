@@ -23,6 +23,13 @@ export class LeOfferingsController {
     return this.service.findForTable(state);
   }
 
+  // Flat rows for the file export; the gateway builds the workbook
+  @MessagePattern({ cmd: 'le.offerings.exportRows' })
+  exportRows(@Payload() data: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
+    this.logger.log(`offerings.exportRows — limit: ${data.limit}, offset: ${data.offset}`);
+    return this.service.findForExport(data);
+  }
+
   // Returns one offering with its dimension and variant counts
   @MessagePattern({ cmd: 'le.offerings.findById' })
   findById(@Payload() data: { id: string }): Promise<OfferingDto> {

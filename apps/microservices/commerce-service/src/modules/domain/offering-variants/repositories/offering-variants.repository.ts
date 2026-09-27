@@ -45,6 +45,21 @@ export interface VariantValueRef {
 
 export type VariantWithBomCount = OfferingVariant & { bomLineCount: number };
 
+export interface ExportVariantRow {
+  sku: string;
+  externalSku: string | null;
+  name: string;
+  values: VariantValueRef[];
+  salesUomName: string | null;
+  taxClassName: string | null;
+  isTaxClassOverridden: boolean;
+  fulfilmentType: FulfilmentType;
+  isFulfilmentOverridden: boolean;
+  bomLineCount: number;
+  isActive: boolean;
+  isOfferingActive: boolean;
+}
+
 export type OfferingVariantWithNames = OfferingVariant & {
   salesUomName: string | null;
   taxClassName: string | null;
@@ -289,10 +304,46 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .where(and(eq(offeringVariants.offeringId, offeringId), inArray(offeringVariants.id, ids)));
   }
 
+  // Reads only the columns the export file carries, skipping everything selection() derives
+  async findForExport(offeringId: string, page: { limit: number; offset: number }): Promise<ExportVariantRow[]> {
+    return this.db
+      .select({
+        sku: offeringVariants.sku,
+        externalSku: offeringVariants.externalSku,
+        name: offeringVariants.name,
+        values: sql<VariantValueRef[]>`(${this.valuesJson()})`,
+        salesUomName: uom.name,
+        taxClassName: taxClasses.name,
+        isTaxClassOverridden: offeringVariants.isTaxClassOverridden,
+        fulfilmentType: offeringVariants.fulfilmentType,
+        isFulfilmentOverridden: offeringVariants.isFulfilmentOverridden,
+        bomLineCount: this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id)),
+        isActive: offeringVariants.isActive,
+        isOfferingActive: offeringVariants.isOfferingActive,
+      })
+      .from(offeringVariants)
+      .leftJoin(uom, eq(uom.id, offeringVariants.salesUomId))
+      .leftJoin(taxClasses, eq(taxClasses.id, offeringVariants.taxClassId))
+      .where(eq(offeringVariants.offeringId, offeringId))
+      .orderBy(asc(offeringVariants.sortOrder), asc(offeringVariants.sku))
+      .limit(page.limit)
+      .offset(page.offset);
+  }
+
   // Flips is_active on many variants at once; the caller has already checked each one may make the move
   async bulkSetStatus(ids: string[], isActive: boolean): Promise<void> {
     if (ids.length === 0) return;
     await this.db.update(offeringVariants).set({ isActive }).where(inArray(offeringVariants.id, ids));
+  }
+
+  // Sets a tax class on many variants at once. Overridden pins them, exempting each from the
+  // offering's cascade; clearing it hands them back to the offering.
+  async bulkSetTaxClass(ids: string[], taxClassId: string, isTaxClassOverridden: boolean): Promise<void> {
+    if (ids.length === 0) return;
+    await this.db
+      .update(offeringVariants)
+      .set({ taxClassId, isTaxClassOverridden })
+      .where(inArray(offeringVariants.id, ids));
   }
 
   async insertVariants(rows: NewOfferingVariant[]): Promise<OfferingVariant[]> {

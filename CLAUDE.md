@@ -68,7 +68,14 @@ vritti-core/
 Commerce permission codes live in **3 layers that MUST stay identical** (a mismatch fails closed):
 
 1. **Lib** `libs/commerce-permissions/src/<feature>.ts` — `export const ORG_X = { featureCode, view, add, edit, delete, <sub>: { view, add, edit, delete } } as const`. Full dotted codes `org.<feature>.<action>`; sub-resources are **nested groups** (e.g. `ORG_PEOPLE.addresses.view`, `ORG_INVENTORY_ITEMS.mrp.edit`). Rebuild the lib after edits (`pnpm --filter @vritti/commerce-permissions build`); consumers import the built `dist/`.
-2. **Catalog scripts** `scripts/catalog/<feature>.mjs` (+ `author-feature.mjs`) — author features/permissions into the cloud admin-api, wire `dependsOn` (`add/edit/delete→[view]`; `<sub>.view→[view]`; `<sub>.{add,edit,delete}→[<sub>.view]`), entitle the plan, and **publish** (pushes the signed snapshot to LIVE deployments — consent-gated). `code` in the def is the BARE action; `resolveFeature` matches **(code, scope)**. Run: `ADMIN_BASE_URL=… NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/catalog/<f>.mjs [--no-publish]`.
+2. **Cloud catalog** — authored through the **Vritti Admin MCP server** (the `scripts/catalog/*.mjs` scripts are gone).
+   One call does the whole chain: `author_permissions` with `feature: { code, scopes: [ORG, LE, SITE] }`, the permission
+   rows (`platforms: ['WEB']`, `dependsOn` per the graph below), `unlockInPlans`, `grantToRoleTemplates` and
+   `snapshot: true`. Every write takes `dryRun: true`. A permission is inert until it exists on the feature, names a
+   surface, is unlocked by a plan, is granted by a role template, and the version is snapshotted. `dependsOn`:
+   `add/edit/delete/toggle/export→[view]`; `<sub>.view→[view]`; `<sub>.{add,edit,delete}→[<sub>.view]`. `code` in a def
+   is the BARE action and the group supplies the prefix; feature codes repeat per scope, so always name the scope.
+   Read the server's `add_permission_code` prompt and `vritti://catalog/conventions` resource before authoring by hand.
 3. **Enforcement** — gateway controllers: class `@RequireFeature(ORG_X.featureCode)` + per-endpoint `@RequirePermission(ORG_X.action)` (`GET`→view, `POST`→add, `PATCH`→edit, `DELETE`→delete; sub-resource paths → nested code). Frontend gating surfaces (`DataTable`/`Button`/`Switch`/`CompactSwitch`/`RowActions`/`Tabs` item/`DangerZone` `permission` prop + `usePermission` self-gated query hooks) → see `.claude/rules/permission-gating.md`.
 
 ## Conventions

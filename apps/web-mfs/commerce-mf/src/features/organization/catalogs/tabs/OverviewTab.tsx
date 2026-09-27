@@ -21,7 +21,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ catalog }) => (
           label="Status"
           type="string"
           value={
-            <Badge variant={catalog.isActive ? 'success' : 'secondary'}>{catalog.isActive ? 'Active' : 'Draft'}</Badge>
+            <Badge variant={catalog.isActive ? 'success' : 'secondary'}>
+              {catalog.isActive ? 'Active' : 'Inactive'}
+            </Badge>
           }
         />
         <DetailField label="Owner" type="string" value={catalog.ownerLegalEntityId ? 'Company' : 'Organization'} />

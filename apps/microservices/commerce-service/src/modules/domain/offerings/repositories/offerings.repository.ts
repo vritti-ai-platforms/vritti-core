@@ -11,10 +11,23 @@ import {
   ownedByWorkspaceExpression,
 } from '@/db/schema';
 
+export interface ExportOfferingRow {
+  code: string;
+  name: string;
+  description: string | null;
+  fulfilmentType: FulfilmentType;
+  isActive: boolean;
+  legalEntityId: string | null;
+  siteId: string | null;
+  dimensionCount: number;
+  variantCount: number;
+}
+
 export type OfferingWithOwnership = Offering & {
   isOwned: boolean;
   dimensionCount: number;
   variantCount: number;
+  variantsFollowingTaxClass: number;
   variantsWithoutBom: number;
 };
 
@@ -32,6 +45,11 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
       isOwned: ownedByWorkspaceExpression(),
       dimensionCount: this.db.$count(offeringDimensions, eq(offeringDimensions.offeringId, offerings.id)),
       variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
+      // Variants still taking the offering's tax class — the ones a cascade would actually rewrite
+      variantsFollowingTaxClass: this.db.$count(
+        offeringVariants,
+        and(eq(offeringVariants.offeringId, offerings.id), eq(offeringVariants.isTaxClassOverridden, false)),
+      ),
       variantsWithoutBom: this.db.$count(
         offeringVariants,
         and(
@@ -108,6 +126,26 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
       .where(sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`)
       .limit(1);
     return row;
+  }
+
+  // Reads only the columns the export file carries, skipping everything selection() derives
+  async findForExport(page: { limit: number; offset: number }): Promise<ExportOfferingRow[]> {
+    return this.db
+      .select({
+        code: offerings.code,
+        name: offerings.name,
+        description: offerings.description,
+        fulfilmentType: offerings.fulfilmentType,
+        isActive: offerings.isActive,
+        legalEntityId: offerings.legalEntityId,
+        siteId: offerings.siteId,
+        dimensionCount: this.db.$count(offeringDimensions, eq(offeringDimensions.offeringId, offerings.id)),
+        variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
+      })
+      .from(offerings)
+      .orderBy(asc(offerings.name))
+      .limit(page.limit)
+      .offset(page.offset);
   }
 
   // Flips is_active on many offerings at once; the caller has already checked each one may make the move

@@ -4,11 +4,11 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Receipt } from 'lucide-react';
 import type React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StatusSwitch } from '@/components/StatusSwitch';
 import type { OfferingsBinding } from './bindings';
 import { EditOfferingDialog } from './forms/EditOfferingDialog';
 import { SetTaxClassDialog } from './forms/SetTaxClassDialog';
@@ -51,7 +51,8 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
             size="md"
             checked={offering.isActive}
             permission={PERMISSIONS.toggle}
-            disabled={!offering.canMarkActive || setStatusMutation.isPending}
+            disabled={!offering.canMarkActive}
+            isLoading={setStatusMutation.isPending}
             disabledTip={offering.canEdit ? 'Generate a variant first' : 'This offering belongs to a wider scope.'}
             onCheckedChange={(isActive) => setStatusMutation.mutate({ id: offering.id, isActive })}
             ariaLabel={`Mark ${offering.name} active`}
@@ -125,8 +126,11 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
                 useDelete={binding.useDeleteVariant}
                 useUpdate={binding.useUpdateVariant}
                 useBulkSetStatus={binding.useBulkSetVariantsStatus}
+                useBulkSetTaxClass={binding.useBulkSetVariantsTaxClass}
+                useBulkClearTaxClass={binding.useBulkClearVariantsTaxClass}
                 tableKey={binding.variantsTableKey(offering.id)}
                 tableSlug={binding.variantsTableSlug(offering.id)}
+                exportEndpoint={binding.variantsExportEndpoint(offering.id)}
               />
             ),
           },

@@ -1,7 +1,9 @@
 import type { OfferingVariantDto } from '@domain/offering-variants/dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '@domain/offering-variants/dto/entity/variant-combination.dto';
 import { AddBomLineDto, UpdateBomLineDto } from '@domain/offering-variants/dto/request/bom-line.dto';
+import type { BulkClearVariantsTaxClassDto } from '@domain/offering-variants/dto/request/bulk-clear-variants-tax-class.dto';
 import { BulkSetVariantsStatusDto } from '@domain/offering-variants/dto/request/bulk-set-variants-status.dto';
+import type { BulkSetVariantsTaxClassDto } from '@domain/offering-variants/dto/request/bulk-set-variants-tax-class.dto';
 import { CreateVariantDto } from '@domain/offering-variants/dto/request/create-variant.dto';
 import { GenerateVariantsDto } from '@domain/offering-variants/dto/request/generate-variants.dto';
 import type { PreviewCombinationsDto } from '@domain/offering-variants/dto/request/preview-combinations.dto';
@@ -36,6 +38,15 @@ export class SiteOfferingVariantsController {
     return this.service.previewCombinations(dto);
   }
 
+  // Flat rows for the file export, scoped to one offering
+  @MessagePattern({ cmd: 'site.offerings.variants.exportRows' })
+  exportRows(
+    @Payload() data: { offeringId: string; limit: number; offset: number },
+  ): Promise<Record<string, unknown>[]> {
+    this.logger.log(`offerings.variants.exportRows — offeringId: ${data.offeringId}, offset: ${data.offset}`);
+    return this.service.findForExport(data.offeringId, data);
+  }
+
   // Returns one variant
   @MessagePattern({ cmd: 'site.offerings.variants.findById' })
   findById(@Payload() data: { id: string }): Promise<OfferingVariantDto> {
@@ -64,6 +75,20 @@ export class SiteOfferingVariantsController {
     const { id, ...data } = dto;
     this.logger.log(`offerings.variants.update — id: ${id}`);
     return this.service.update(id, data);
+  }
+
+  // Pins one tax class across many variants at once, each marked as overridden from here on
+  @MessagePattern({ cmd: 'site.offerings.variants.bulkSetTaxClass' })
+  bulkSetTaxClass(@Payload() dto: BulkSetVariantsTaxClassDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.bulkSetTaxClass — count: ${dto.ids.length}, taxClassId: ${dto.taxClassId}`);
+    return this.service.bulkSetTaxClass(dto);
+  }
+
+  // The batch form of clearTaxClass — every selected variant follows the offering again
+  @MessagePattern({ cmd: 'site.offerings.variants.bulkClearTaxClass' })
+  bulkClearTaxClass(@Payload() dto: BulkClearVariantsTaxClassDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.bulkClearTaxClass — count: ${dto.ids.length}`);
+    return this.service.bulkClearTaxClass(dto);
   }
 
   // Switches many variants at once; refused outright unless every one of them satisfies the BOM rule

@@ -148,6 +148,32 @@ export function updateVariant({
   return axios.patch<SuccessResponse>(`${BASE}/variants/${id}`, data).then((r) => r.data);
 }
 
+export function bulkClearVariantsTaxClass({
+  offeringId,
+  ids,
+}: {
+  offeringId: string;
+  ids: string[];
+}): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`${BASE}/${offeringId}/variants/tax-class`, { data: { ids } })
+    .then((r) => r.data);
+}
+
+export function bulkSetVariantsTaxClass({
+  offeringId,
+  ids,
+  taxClassId,
+}: {
+  offeringId: string;
+  ids: string[];
+  taxClassId: string;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`${BASE}/${offeringId}/variants/tax-class`, { ids, taxClassId })
+    .then((r) => r.data);
+}
+
 export function bulkSetVariantsStatus({
   offeringId,
   ids,

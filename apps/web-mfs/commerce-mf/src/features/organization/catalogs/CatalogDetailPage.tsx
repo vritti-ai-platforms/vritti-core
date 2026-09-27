@@ -40,7 +40,7 @@ export const CatalogDetailPage: React.FC = () => {
         title={catalog.name}
         description={catalog.taxInclusive ? 'Prices include tax' : 'Prices exclude tax'}
         titleSlot={
-          <Badge variant={catalog.isActive ? 'success' : 'outline'}>{catalog.isActive ? 'Active' : 'Draft'}</Badge>
+          <Badge variant={catalog.isActive ? 'success' : 'outline'}>{catalog.isActive ? 'Active' : 'Inactive'}</Badge>
         }
         actions={
           <Button

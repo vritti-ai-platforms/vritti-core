@@ -15,12 +15,12 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { CircleCheck, CircleSlash, Eye, Plus, ShoppingBag } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StatusSwitch } from '@/components/StatusSwitch';
 import type { OfferingData } from '@/schemas/offerings';
 import { FULFILMENT_TYPE_META } from '@/schemas/offerings';
 import type { OfferingsBinding } from './bindings';
@@ -81,7 +81,8 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
             <StatusSwitch
               checked={row.original.isActive}
               permission={PERMISSIONS.toggle}
-              disabled={!row.original.canMarkActive || setStatusMutation.isPending}
+              disabled={!row.original.canMarkActive}
+              isLoading={setStatusMutation.isPending}
               disabledTip={
                 row.original.canEdit ? 'Generate a variant first' : 'This offering belongs to a wider scope.'
               }
@@ -170,7 +171,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
                   )
                 }
               >
-                Mark Draft
+                Mark Inactive
               </Button>
             </>
           );
@@ -196,7 +197,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
             label="Status"
             options={[
               { label: 'Active', value: 'true' },
-              { label: 'Draft', value: 'false' },
+              { label: 'Inactive', value: 'false' },
             ]}
           />,
         ]}
@@ -207,6 +208,20 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
               Add Offering
             </Button>
           ),
+        }}
+        importExport={{
+          columns: [
+            { key: 'code', label: 'Code' },
+            { key: 'name', label: 'Name' },
+            { key: 'fulfilmentType', label: 'Fulfilment' },
+            { key: 'ownerName', label: 'Owner' },
+            { key: 'dimensionCount', label: 'Dimensions' },
+            { key: 'variantCount', label: 'Variants' },
+            { key: 'isActive', label: 'Status' },
+          ],
+          exportEndpoint: binding.exportEndpoint,
+          exportPermission: PERMISSIONS.export,
+          filename: 'offerings',
         }}
         emptyStateConfig={{
           icon: ShoppingBag,

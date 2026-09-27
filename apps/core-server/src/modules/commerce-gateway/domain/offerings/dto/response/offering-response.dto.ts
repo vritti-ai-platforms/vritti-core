@@ -17,6 +17,7 @@ export class OfferingResponseDto {
   ownerName: string;
   @ApiProperty() dimensionCount: number;
   @ApiProperty() variantCount: number;
+  @ApiProperty() variantsFollowingTaxClassCount: number;
 
   @ApiProperty({ description: 'Variants with no bill of materials — they cannot be activated yet' })
   variantsMissingBomCount: number;

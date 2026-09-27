@@ -13,17 +13,33 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { Boxes, CircleCheck, CircleSlash, Eye, Lock, Plus, Sparkles, SwatchBook, Trash2 } from 'lucide-react';
+import { Tooltip } from '@vritti/quantum-ui/Tooltip';
+import {
+  Boxes,
+  CircleCheck,
+  CircleSlash,
+  Eye,
+  Lock,
+  Plus,
+  Receipt,
+  Sparkles,
+  SwatchBook,
+  Trash2,
+  Undo2,
+} from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { StatusSwitch } from '@/components/StatusSwitch';
 import { FULFILMENT_TYPE_META, type OfferingData, type OfferingVariantData } from '@/schemas/offerings';
 import { AddVariantDialog } from '../forms/AddVariantDialog';
+import { BulkSetVariantsTaxClassDialog } from '../forms/SetTaxClassDialog';
 import type {
   OfferingPermissions,
+  UseBulkClearVariantsTaxClass,
   UseBulkSetVariantsStatus,
+  UseBulkSetVariantsTaxClass,
   UseCreateVariant,
   UseDeleteVariant,
   UseOfferingDimensions,
@@ -39,8 +55,11 @@ interface VariantsTabProps {
   useDelete: UseDeleteVariant;
   useUpdate: UseUpdateVariant;
   useBulkSetStatus: UseBulkSetVariantsStatus;
+  useBulkSetTaxClass: UseBulkSetVariantsTaxClass;
+  useBulkClearTaxClass: UseBulkClearVariantsTaxClass;
   tableKey: readonly unknown[];
   tableSlug: string;
+  exportEndpoint: string;
   permissions: OfferingPermissions;
   offering: OfferingData;
 }
@@ -54,8 +73,11 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   useDelete,
   useUpdate,
   useBulkSetStatus,
+  useBulkSetTaxClass,
+  useBulkClearTaxClass,
   tableKey,
   tableSlug,
+  exportEndpoint,
 }) => {
   const queryClient = useQueryClient();
   const { tab } = useParams();
@@ -78,6 +100,10 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   const deleteMutation = useDelete();
   const setStatusMutation = useUpdate();
   const bulkSetStatusMutation = useBulkSetStatus();
+  const taxClassDialog = useDialog();
+  const clearTaxClassMutation = useBulkClearTaxClass();
+  // The row selection is captured when the dialog opens, so closing the selection bar cannot strand it
+  const [taxClassTargets, setTaxClassTargets] = useState<string[]>([]);
 
   const meta = FULFILMENT_TYPE_META[offering.fulfilmentType];
 
@@ -133,17 +159,22 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
       {
         accessorKey: 'taxClassName',
         header: 'Tax Class',
+        size: 200,
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <StringCell value={row.original.taxClassName} />
-            {/* Only worth flagging the exception — following the offering is the norm */}
-            {row.original.isTaxClassOverridden && (
-              <Badge variant="outline" className="gap-1">
-                <Lock className="size-3" />
-                Override
-              </Badge>
-            )}
-          </div>
+          <StringCell
+            value={
+              <span className="inline-flex max-w-full items-center gap-1.5 align-middle">
+                <span className="truncate">{row.original.taxClassName ?? '—'}</span>
+                {/* A lock rather than an "Override" badge — the name already fills a fixed column,
+                    and following the offering is the norm worth no space at all */}
+                {row.original.isTaxClassOverridden && (
+                  <Tooltip content="Pinned to this variant — the offering's tax class no longer applies">
+                    <Lock className="size-3 shrink-0 text-muted-foreground" />
+                  </Tooltip>
+                )}
+              </span>
+            }
+          />
         ),
         enableSorting: false,
       },
@@ -155,8 +186,13 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
             <StatusSwitch
               checked={row.original.isActive}
               permission={permissions.variants.edit}
-              disabled={!row.original.canMarkActive || setStatusMutation.isPending}
-              disabledTip={`A ${meta.label.toLowerCase()} variant needs its bill of materials first.`}
+              disabled={!row.original.isOfferingActive || !row.original.canMarkActive}
+              isLoading={setStatusMutation.isPending}
+              disabledTip={
+                row.original.isOfferingActive
+                  ? `A ${meta.label.toLowerCase()} variant needs its bill of materials first.`
+                  : 'This offering is deactivated, so none of its variants sell. Activate the offering first.'
+              }
               onCheckedChange={(isActive) => setStatusMutation.mutate({ id: row.original.id, data: { isActive } })}
               ariaLabel={`Mark ${row.original.sku} active`}
             />
@@ -229,7 +265,10 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
         isLoading={isLoading}
         permission={permissions.variants.view}
         selectActions={(rows) => {
-          const blocked = rows.filter((row) => !row.original.canMarkActive).length;
+          // Activating is pointless while the offering is off, so it blocks the bulk action too. Every
+          // row here belongs to the same offering, so one row settles which reason to report.
+          const offeringOff = rows.length > 0 && !rows[0].original.isOfferingActive;
+          const blocked = offeringOff ? rows.length : rows.filter((row) => !row.original.canMarkActive).length;
           return (
             <>
               <Button
@@ -239,7 +278,11 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 startAdornment={<CircleCheck className="size-4" />}
                 isLoading={bulkSetStatusMutation.isPending}
                 disabled={blocked > 0}
-                disabledTip={`${pluralize('variant', blocked, true)} in this selection still need a bill of materials.`}
+                disabledTip={
+                  offeringOff
+                    ? 'This offering is deactivated, so none of its variants sell. Activate the offering first.'
+                    : `${pluralize('variant', blocked, true)} in this selection still need a bill of materials.`
+                }
                 onClick={() =>
                   handleBulkSetStatus(
                     rows.map((row) => row.original.id),
@@ -262,7 +305,42 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                   )
                 }
               >
-                Mark Draft
+                Mark Inactive
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                permission={permissions.variants.edit}
+                startAdornment={<Receipt className="size-4" />}
+                disabled={!offering.canEdit}
+                disabledTip="This offering belongs to a wider scope."
+                onClick={() => {
+                  setTaxClassTargets(rows.map((row) => row.original.id));
+                  taxClassDialog.open();
+                }}
+              >
+                Override Tax Class
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                permission={permissions.variants.edit}
+                startAdornment={<Undo2 className="size-4" />}
+                isLoading={clearTaxClassMutation.isPending}
+                disabled={!offering.canEdit || !rows.some((row) => row.original.isTaxClassOverridden)}
+                disabledTip={
+                  offering.canEdit
+                    ? 'None of the selected variants override the tax class.'
+                    : 'This offering belongs to a wider scope.'
+                }
+                onClick={() =>
+                  clearTaxClassMutation.mutate(
+                    { offeringId: offering.id, ids: rows.map((row) => row.original.id) },
+                    { onSuccess: () => table.resetRowSelection() },
+                  )
+                }
+              >
+                Remove Override
               </Button>
             </>
           );
@@ -290,7 +368,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
             label="Status"
             options={[
               { label: 'Active', value: 'true' },
-              { label: 'Draft', value: 'false' },
+              { label: 'Inactive', value: 'false' },
             ]}
           />,
         ]}
@@ -317,6 +395,21 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
               </Button>
             </div>
           ),
+        }}
+        importExport={{
+          columns: [
+            { key: 'sku', label: 'SKU' },
+            { key: 'externalSku', label: 'External SKU' },
+            { key: 'name', label: 'Name' },
+            { key: 'salesUomName', label: 'Sales UOM' },
+            { key: 'taxClassName', label: 'Tax Class' },
+            { key: 'fulfilmentType', label: 'Fulfilment' },
+            { key: 'bomLineCount', label: 'BOM Lines' },
+            { key: 'isActive', label: 'Status' },
+          ],
+          exportEndpoint,
+          exportPermission: permissions.variants.export,
+          filename: `${offering.code}-variants`,
         }}
         emptyStateConfig={{
           icon: Boxes,
@@ -350,6 +443,25 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
             dimensions={dimensions}
             useCreate={useCreateVariant}
             onSuccess={close}
+            onCancel={close}
+          />
+        )}
+      />
+
+      <Dialog
+        handle={taxClassDialog}
+        icon={Receipt}
+        title="Override Tax Class"
+        description="Pins one tax class on every selected variant."
+        content={(close) => (
+          <BulkSetVariantsTaxClassDialog
+            useSet={useBulkSetTaxClass}
+            offeringId={offering.id}
+            variantIds={taxClassTargets}
+            onSuccess={() => {
+              table.resetRowSelection();
+              close();
+            }}
             onCancel={close}
           />
         )}

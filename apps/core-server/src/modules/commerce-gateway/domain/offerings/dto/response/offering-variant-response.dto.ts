@@ -34,6 +34,7 @@ export class OfferingVariantResponseDto {
   @ApiProperty() salesUomId: string;
   @ApiPropertyOptional({ nullable: true }) salesUomName: string | null;
   @ApiProperty() isActive: boolean;
+  @ApiProperty() isOfferingActive: boolean;
   @ApiProperty() sortOrder: number;
   @ApiProperty({ type: [OfferingVariantValueRefResponseDto] }) values: OfferingVariantValueRefResponseDto[];
   @ApiProperty({ type: [OfferingBomLineResponseDto] }) bom: OfferingBomLineResponseDto[];

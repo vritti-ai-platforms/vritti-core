@@ -134,6 +134,7 @@ export interface OfferingData {
   ownerName: string;
   dimensionCount: number;
   variantCount: number;
+  variantsFollowingTaxClassCount: number;
   variantsMissingBomCount: number;
   canEdit: boolean;
   canMarkActive: boolean;
@@ -197,6 +198,7 @@ export interface OfferingVariantData {
   salesUomId: string;
   salesUomName: string | null;
   isActive: boolean;
+  isOfferingActive: boolean;
   sortOrder: number;
   values: VariantValueRefData[];
   bom: BomLineData[];

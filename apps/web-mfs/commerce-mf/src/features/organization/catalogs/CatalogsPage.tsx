@@ -60,7 +60,7 @@ export const CatalogsPage = () => {
         cell: ({ row }) => (
           <div className="flex justify-center">
             <Badge variant={row.original.isActive ? 'success' : 'outline'}>
-              {row.original.isActive ? 'Active' : 'Draft'}
+              {row.original.isActive ? 'Active' : 'Inactive'}
             </Badge>
           </div>
         ),
@@ -118,7 +118,7 @@ export const CatalogsPage = () => {
             label="Status"
             options={[
               { label: 'Active', value: 'true' },
-              { label: 'Draft', value: 'false' },
+              { label: 'Inactive', value: 'false' },
             ]}
           />,
           <SelectFilter
