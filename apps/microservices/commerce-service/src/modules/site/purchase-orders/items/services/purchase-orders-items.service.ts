@@ -10,13 +10,10 @@ import { PurchaseOrdersDomainRepository } from '@domain/purchase-orders/reposito
 import { SupplierItemsDomainRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  PrimaryDatabaseService,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class PurchaseOrdersItemsService {

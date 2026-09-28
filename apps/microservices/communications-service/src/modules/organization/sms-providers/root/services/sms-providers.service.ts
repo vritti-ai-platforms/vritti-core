@@ -5,13 +5,9 @@ import type { UpdateSmsProviderDto } from '@domain/sms-providers/dto/request/upd
 import type { SmsProviderCapabilities } from '@domain/sms-providers/services/sms-provider-transports';
 import { SmsProvidersDomainService } from '@domain/sms-providers/services/sms-providers.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 
 /**
  * The organization surface for provider rows.

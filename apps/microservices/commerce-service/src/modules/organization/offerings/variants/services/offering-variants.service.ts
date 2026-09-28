@@ -3,8 +3,8 @@ import type { OfferingVariantDto } from '@domain/offering-variants/dto/entity/of
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { FulfilmentTypeValues } from '@/db/schema';
 import type { CreateVariantInventoryItemDto } from '../dto/request/create-variant-inventory-item.dto';
 

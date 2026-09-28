@@ -2,7 +2,7 @@ import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-re
 import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class PurchaseOrdersGoodsReceiptsController {

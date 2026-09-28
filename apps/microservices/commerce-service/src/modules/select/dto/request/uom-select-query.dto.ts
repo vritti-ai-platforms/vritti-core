@@ -1,4 +1,4 @@
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 

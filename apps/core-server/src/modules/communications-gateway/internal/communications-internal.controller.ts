@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { AppSmsOtpConfig, AppWhatsappOtpConfig } from '@/db/schema';
 import { OrgId } from '@/security/decorators';
 import type { SendSmsOtpResult } from '../org-api/sms-otps/services/sms-otps-gateway.service';

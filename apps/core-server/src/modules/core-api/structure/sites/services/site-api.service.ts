@@ -4,7 +4,7 @@ import type { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site
 import { SiteDomainService } from '@domain/site/services/site.service';
 import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import { Injectable } from '@nestjs/common';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { UserRoleAssignment } from '@/db/schema';
 import type { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
 

@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GiteaCredentialsBodyDto } from '../dto/request/gitea-credentials-body.dto';
 import { PackageSelectBodyDto } from '../dto/request/package-select-body.dto';
 import { PackageTagsSelectBodyDto } from '../dto/request/package-tags-select-body.dto';

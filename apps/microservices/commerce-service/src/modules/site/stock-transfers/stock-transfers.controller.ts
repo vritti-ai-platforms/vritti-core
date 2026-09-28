@@ -4,7 +4,7 @@ import { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/reques
 import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { StockTransfersService } from './services/stock-transfers-root.service';
 
 @Controller()

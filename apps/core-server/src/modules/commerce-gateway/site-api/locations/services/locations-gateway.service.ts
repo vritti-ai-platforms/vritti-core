@@ -10,8 +10,8 @@ import type { LocationResponseDto } from '@commerce/locations/dto/response/locat
 import type { LocationTreeResponseDto } from '@commerce/locations/dto/response/location-tree-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class LocationsGatewayService {

@@ -7,7 +7,7 @@ import {
   WhatsappEmbeddedSignupDomainService,
 } from '@domain/whatsapp-embedded-signup/services/whatsapp-embedded-signup.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 // Coordinates the two domains a connect touches — the Graph resolve and the account row. Domain
 // modules never import each other, so the sequencing lives here, mirroring WhatsappPhoneNumbersService.

@@ -4,8 +4,9 @@ import type { TaxJurisdictionResponseDto } from '@commerce/tax-jurisdictions/dto
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { TaxJurisdictionsGatewayService } from '@/modules/commerce-gateway/org-api/tax-jurisdictions/services/tax-jurisdictions-gateway.service';
 
 // The cloud-facing surface. A legal entity's registration needs a jurisdiction, and the operator may

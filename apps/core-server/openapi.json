@@ -5764,10 +5764,10 @@
         ]
       }
     },
-    "/commerce-api/org/offerings/{id}/dimensions/from-template": {
+    "/commerce-api/org/offerings/{id}/dimensions/with-values-and-template": {
       "post": {
         "description": "Appends a dimension seeded from a template — its code, name and values are copied server-side, so the request carries only the template reference. The copy keeps no link back, so editing the template later never reshapes the offering.",
-        "operationId": "OrgOfferingsGatewayController_createDimensionFromTemplate",
+        "operationId": "OrgOfferingsGatewayController_createDimensionWithValuesAndTemplate",
         "parameters": [
           {
             "name": "id",
@@ -5784,7 +5784,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOfferingDimensionFromTemplateDto"
+                "$ref": "#/components/schemas/CreateOfferingDimensionWithValuesAndTemplateDto"
               }
             }
           }
@@ -7354,10 +7354,10 @@
         ]
       }
     },
-    "/commerce-api/le/offerings/{id}/dimensions/from-template": {
+    "/commerce-api/le/offerings/{id}/dimensions/with-values-and-template": {
       "post": {
         "description": "Appends a dimension seeded from a template — its code, name and values are copied server-side, so the request carries only the template reference. The copy keeps no link back, so editing the template later never reshapes the offering.",
-        "operationId": "LeOfferingsGatewayController_createDimensionFromTemplate",
+        "operationId": "LeOfferingsGatewayController_createDimensionWithValuesAndTemplate",
         "parameters": [
           {
             "name": "id",
@@ -7374,7 +7374,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOfferingDimensionFromTemplateDto"
+                "$ref": "#/components/schemas/CreateOfferingDimensionWithValuesAndTemplateDto"
               }
             }
           }
@@ -8890,10 +8890,10 @@
         ]
       }
     },
-    "/commerce-api/site/offerings/{id}/dimensions/from-template": {
+    "/commerce-api/site/offerings/{id}/dimensions/with-values-and-template": {
       "post": {
         "description": "Appends a dimension seeded from a template — its code, name and values are copied server-side, so the request carries only the template reference. The copy keeps no link back, so editing the template later never reshapes the offering.",
-        "operationId": "SiteOfferingsGatewayController_createDimensionFromTemplate",
+        "operationId": "SiteOfferingsGatewayController_createDimensionWithValuesAndTemplate",
         "parameters": [
           {
             "name": "id",
@@ -8910,7 +8910,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOfferingDimensionFromTemplateDto"
+                "$ref": "#/components/schemas/CreateOfferingDimensionWithValuesAndTemplateDto"
               }
             }
           }
@@ -35769,34 +35769,49 @@
           "name"
         ]
       },
-      "CreateOfferingDimensionFromTemplateDto": {
-        "type": "object",
-        "properties": {
-          "templateId": {
-            "type": "string",
-            "description": "Template whose code, name and values are copied onto the offering"
-          }
-        },
-        "required": [
-          "templateId"
-        ]
-      },
       "OfferingDimensionValueInputDto": {
         "type": "object",
         "properties": {
           "code": {
             "type": "string",
-            "description": "Segment this value contributes to a derived SKU",
-            "example": "m"
+            "example": "red"
           },
           "value": {
             "type": "string",
-            "example": "Medium"
+            "example": "Red"
           }
         },
         "required": [
           "code",
           "value"
+        ]
+      },
+      "CreateOfferingDimensionWithValuesAndTemplateDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "colour"
+          },
+          "name": {
+            "type": "string",
+            "example": "Colour"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingDimensionValueInputDto"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "values"
         ]
       },
       "UpsertOfferingDimensionValuesDto": {

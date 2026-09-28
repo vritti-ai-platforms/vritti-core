@@ -10,7 +10,12 @@ export const DimensionTemplateSelector = forwardRef<HTMLButtonElement, Dimension
     placeholder="Select dimension template"
     searchable
     optionsEndpoint="commerce-api/select-api/dimension-templates"
-    fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'code' }}
+    fieldKeys={{
+      valueKey: 'id',
+      labelKey: 'name',
+      descriptionKey: 'code',
+      additionalKeys: 'code,description,values',
+    }}
     {...props}
   />
 ));

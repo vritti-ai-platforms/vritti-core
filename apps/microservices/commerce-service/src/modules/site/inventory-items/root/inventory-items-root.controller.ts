@@ -4,8 +4,9 @@ import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/invent
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { RpcSiteId } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { InventoryItemSite } from '@/db/schema';
 import { SiteInventoryItemsService } from './services/inventory-items-root.service';
 

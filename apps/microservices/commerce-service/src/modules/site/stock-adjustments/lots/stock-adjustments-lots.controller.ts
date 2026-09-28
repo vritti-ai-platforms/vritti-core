@@ -6,7 +6,7 @@ import { UpdateLotDto } from '@domain/stock-adjustment-lots/dto/request/update-l
 import { StockAdjustmentLotsDomainService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { StockAdjustmentsLotsService } from './services/stock-adjustments-lots.service';
 
 @Controller()

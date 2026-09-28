@@ -85,7 +85,7 @@ export function createDimensionFromTemplate({
   ...data
 }: CreateDimensionFromTemplateData): Promise<CreateResponse<OfferingDimensionData>> {
   return axios
-    .post<CreateResponse<OfferingDimensionData>>(`${BASE}/${offeringId}/dimensions/from-template`, data)
+    .post<CreateResponse<OfferingDimensionData>>(`${BASE}/${offeringId}/dimensions/with-values-and-template`, data)
     .then((r) => r.data);
 }
 

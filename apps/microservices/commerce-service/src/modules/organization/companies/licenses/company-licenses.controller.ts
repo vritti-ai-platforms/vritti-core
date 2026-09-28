@@ -4,7 +4,8 @@ import { UpdateCompanyLicenseDto } from '@domain/party-licenses/dto/request/upda
 import { PartyLicensesDomainService } from '@domain/party-licenses/services/party-licenses.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class CompanyLicensesController {

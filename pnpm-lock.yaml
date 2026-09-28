@@ -51,8 +51,8 @@ importers:
         specifier: 5.2.13
         version: 5.2.13(patch_hash=2b7e8a2ab7e90e91e30d2705f037c7ba641e96fee04d116327bcdcc8a704489c)(@types/react@19.2.14)(react-native-gesture-handler@2.31.2(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native-reanimated@4.3.0(react-native-worklets@0.8.1(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@hookform/resolvers':
-        specifier: ^5.2.2
-        version: 5.2.2(react-hook-form@7.71.2(react@19.2.3))
+        specifier: 5.2.2
+        version: 5.2.2(react-hook-form@7.87.0(react@19.2.3))
       '@module-federation/enhanced':
         specifier: 0.22.1
         version: 0.22.1(@rspack/core@1.7.11(@swc/helpers@0.5.19))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.21)))
@@ -76,7 +76,7 @@ importers:
         version: 8.0.0-alpha.25(4a689a8caba51f380dfdf0b738be58f2)
       '@vritti/quantum-ui-native':
         specifier: 0.3.2
-        version: 0.3.2(0fb111aaef516126c2cb086ad6f124ff)
+        version: 0.3.2(558c46805b1049a4872a328002521bc3)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -90,7 +90,7 @@ importers:
         specifier: ^0.5.0
         version: 0.5.2
       graphql:
-        specifier: ^16.14.2
+        specifier: 16.14.2
         version: 16.14.2
       nativewind:
         specifier: 5.0.0-preview.3
@@ -102,8 +102,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3
       react-hook-form:
-        specifier: ^7.71.2
-        version: 7.71.2(react@19.2.3)
+        specifier: 7.87.0
+        version: 7.87.0(react@19.2.3)
       react-native:
         specifier: 0.83.2
         version: 0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3)
@@ -271,7 +271,7 @@ importers:
         specifier: ^12.0.0
         version: 12.0.0(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)
       '@nestjs/graphql':
-        specifier: ^14.0.0
+        specifier: 14.0.0
         version: 14.0.0(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)(class-transformer@0.5.1)(class-validator@0.14.4)(graphql@16.14.2)(reflect-metadata@0.2.2)(ts-morph@28.0.0)
       '@nestjs/jwt':
         specifier: ^12.0.1
@@ -292,8 +292,8 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1(@fastify/static@10.1.3)(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.5.5
-        version: 0.5.5(e05652837b8b3d9fbd0968b744042b0b)
+        specifier: 0.6.0
+        version: 0.6.0(ab9b1952a0105a095948cc0d08ad9adb)
       '@vritti/commerce-permissions':
         specifier: workspace:*
         version: link:../../libs/commerce-permissions
@@ -322,7 +322,7 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
       graphql:
-        specifier: ^16.14.2
+        specifier: 16.14.2
         version: 16.14.2
       pdf-lib:
         specifier: ^1.17.1
@@ -425,14 +425,14 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0
       '@tanstack/query-broadcast-client-experimental':
-        specifier: ^5.100.10
-        version: 5.100.10
+        specifier: 5.104.0
+        version: 5.104.0
       '@tanstack/react-query':
-        specifier: ^5.100.10
-        version: 5.100.10(react@19.2.3)
+        specifier: 5.104.0
+        version: 5.104.0(react@19.2.3)
       '@vritti/quantum-ui':
-        specifier: 0.5.3
-        version: 0.5.3(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
+        specifier: 0.5.4
+        version: 0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -446,8 +446,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
       react-hook-form:
-        specifier: ^7.71.1
-        version: 7.71.2(react@19.2.3)
+        specifier: 7.87.0
+        version: 7.87.0(react@19.2.3)
       react-router-dom:
         specifier: ^7.18.3
         version: 7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -495,8 +495,8 @@ importers:
         specifier: ^4.2.12
         version: 4.2.12(graphql-ws@6.2.1(graphql@16.14.2)(ws@8.21.3))(graphql@16.14.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(rxjs@7.8.2)(subscriptions-transport-ws@0.11.0(graphql@16.14.2))
       '@hookform/resolvers':
-        specifier: ^5.2.2
-        version: 5.2.2(react-hook-form@7.71.2(react@19.2.3))
+        specifier: 5.2.2
+        version: 5.2.2(react-hook-form@7.87.0(react@19.2.3))
       '@react-navigation/elements':
         specifier: 3.0.0-alpha.20
         version: 3.0.0-alpha.20(4a689a8caba51f380dfdf0b738be58f2)
@@ -508,7 +508,7 @@ importers:
         version: link:../../../libs/commerce-permissions
       '@vritti/quantum-ui-native':
         specifier: 0.3.2
-        version: 0.3.2(32bd60edb6003782a2937cd059eec172)
+        version: 0.3.2(7fe3ecab555fbd82aa1e02d7d292d542)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -522,7 +522,7 @@ importers:
         specifier: ^0.5.0
         version: 0.5.2
       graphql:
-        specifier: ^16.14.2
+        specifier: 16.14.2
         version: 16.14.2
       nativewind:
         specifier: 5.0.0-preview.3
@@ -534,8 +534,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3
       react-hook-form:
-        specifier: ^7.71.2
-        version: 7.71.2(react@19.2.3)
+        specifier: 7.87.0
+        version: 7.87.0(react@19.2.3)
       react-native:
         specifier: 0.83.2
         version: 0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3)
@@ -643,8 +643,8 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1(@fastify/static@10.1.3)(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.5.5
-        version: 0.5.5(e05652837b8b3d9fbd0968b744042b0b)
+        specifier: 0.6.0
+        version: 0.6.0(ab9b1952a0105a095948cc0d08ad9adb)
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -734,8 +734,8 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1(@fastify/static@10.1.3)(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@vritti/api-sdk':
-        specifier: 0.5.5
-        version: 0.5.5(e05652837b8b3d9fbd0968b744042b0b)
+        specifier: 0.6.0
+        version: 0.6.0(ab9b1952a0105a095948cc0d08ad9adb)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -816,14 +816,14 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0
       '@tanstack/react-query':
-        specifier: ^5.100.10
-        version: 5.100.10(react@19.2.3)
+        specifier: 5.104.0
+        version: 5.104.0(react@19.2.3)
       '@vritti/commerce-permissions':
         specifier: workspace:*
         version: link:../../../libs/commerce-permissions
       '@vritti/quantum-ui':
-        specifier: 0.5.3
-        version: 0.5.3(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
+        specifier: 0.5.4
+        version: 0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -837,8 +837,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
       react-hook-form:
-        specifier: ^7.71.1
-        version: 7.71.2(react@19.2.3)
+        specifier: 7.87.0
+        version: 7.87.0(react@19.2.3)
       react-router-dom:
         specifier: ^7.18.3
         version: 7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -892,14 +892,14 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0
       '@tanstack/react-query':
-        specifier: ^5.100.10
-        version: 5.100.10(react@19.2.3)
+        specifier: 5.104.0
+        version: 5.104.0(react@19.2.3)
       '@vritti/communications-permissions':
         specifier: workspace:*
         version: link:../../../libs/communications-permissions
       '@vritti/quantum-ui':
-        specifier: 0.5.3
-        version: 0.5.3(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
+        specifier: 0.5.4
+        version: 0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -913,8 +913,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
       react-hook-form:
-        specifier: ^7.71.1
-        version: 7.71.2(react@19.2.3)
+        specifier: 7.87.0
+        version: 7.87.0(react@19.2.3)
       react-router-dom:
         specifier: ^7.18.3
         version: 7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -965,14 +965,14 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0
       '@tanstack/react-query':
-        specifier: ^5.100.10
-        version: 5.100.10(react@19.2.3)
+        specifier: 5.104.0
+        version: 5.104.0(react@19.2.3)
       '@vritti/gitea-permissions':
         specifier: workspace:*
         version: link:../../../libs/gitea-permissions
       '@vritti/quantum-ui':
-        specifier: 0.5.3
-        version: 0.5.3(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
+        specifier: 0.5.4
+        version: 0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -986,8 +986,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
       react-hook-form:
-        specifier: ^7.71.1
-        version: 7.71.2(react@19.2.3)
+        specifier: 7.87.0
+        version: 7.87.0(react@19.2.3)
       react-router-dom:
         specifier: ^7.18.3
         version: 7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -6787,14 +6787,14 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
-  '@tanstack/query-broadcast-client-experimental@5.100.10':
-    resolution: {integrity: sha512-CXya2vuSDWaZOHiP4iwGrhjRU8xtnFqh1pqr0PpTSTs9LvsY757r53Z65vqyOtjCyIWhvTtz7+QfKdka6NKMvQ==}
+  '@tanstack/query-broadcast-client-experimental@5.104.0':
+    resolution: {integrity: sha512-eF3A4oGR567eCB1hnBNilrxBJ35z3uSsxGD1Kk0dNoBA0cZjtx0llY6khLk8lHffNbJSkeFKzX834zIs1m8yHQ==}
 
-  '@tanstack/query-core@5.100.10':
-    resolution: {integrity: sha512-8UR0yJR+GiQ40m3lPhUr0xbfAupe6GSQiksSBSa9SM2NjezFyxXCIA69/lz8cSoNKZLrw1/PktIyQBJcVeMi3w==}
+  '@tanstack/query-core@5.104.0':
+    resolution: {integrity: sha512-JrC2r/JQlXt7khBSdUpsgxNvybzOg+aITa+ARRMlP2AFo93Y8vIqz077rp+e61mJetSZ0T6AJbwW1JHer1vrPQ==}
 
-  '@tanstack/react-query@5.100.10':
-    resolution: {integrity: sha512-FLaZf2RCrA/Zgp4aiu5tG3TyasTRO7aZ99skxQpr3Hg/zXOhu6yq5FZCYQ/tRaJtM9ylnoK8tFK7PolXQadv6Q==}
+  '@tanstack/react-query@5.104.0':
+    resolution: {integrity: sha512-e1TZmDCQnWIfiDVryIHeA6Idj+Lfx1hORLOhXS/l5wcgvtVD4yYqbTDl378sGQKIi2cSgb0TEMC9cKK8GGoJEw==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -7167,8 +7167,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vritti/api-sdk@0.5.5':
-    resolution: {integrity: sha512-sdSzAakWhylQDN/rYFmHVsKNkgktFYzqx2qYSfWQG59LGiPxFJtZbmGzWQq5SwgZLOdYbefqqDft4n2Tk0MpRg==}
+  '@vritti/api-sdk@0.6.0':
+    resolution: {integrity: sha512-OJg3hg3Ri29WYJhCVWyThTyHSgdjHdi4VXsHtpmvtw+bzTK2yOfZUI5sQDtlnGuw8aSUBvb7D5amFZ66LK6GuQ==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.997.0
       '@aws-sdk/s3-request-presigner': ^3.997.0
@@ -7182,6 +7182,7 @@ packages:
       class-transformer: ^0.5.0
       class-validator: ^0.14.0
       fastify: ^5.12.1
+      graphql: ^16.14.2
       reflect-metadata: ^0.2.0
       rxjs: ^7.8.0
     peerDependenciesMeta:
@@ -7198,6 +7199,8 @@ packages:
       class-transformer:
         optional: true
       class-validator:
+        optional: true
+      graphql:
         optional: true
 
   '@vritti/quantum-ui-native@0.3.2':
@@ -7238,8 +7241,8 @@ packages:
       react-native-mmkv:
         optional: true
 
-  '@vritti/quantum-ui@0.5.3':
-    resolution: {integrity: sha512-qg7Z5R74P8gVIal3bhCe6kXHpJjePj7jGkGYLt6JbpUOyEj2fG+nR0EE4jpFnXl6L59aJstmzJxqcKmftkdLRw==}
+  '@vritti/quantum-ui@0.5.4':
+    resolution: {integrity: sha512-rKDEB/vZVMxG6+0+deRtizhI3qRl3zUUuWL1vkj9ohEzhTp+0nI7FGjjaLPsBiX/MD1XZi1QzxQzerWJgJ2VKg==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       react: ^18.0.0 || ^19.0.0
@@ -7867,8 +7870,8 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
-  broadcast-channel@7.3.0:
-    resolution: {integrity: sha512-UHPhLBQKfQ8OmMFMpmPfO5dRakyA1vsfiDGWTYNvChYol65tbuhivPEGgZZiuetorvExdvxaWiBy/ym1Ty08yA==}
+  broadcast-channel@7.4.0:
+    resolution: {integrity: sha512-Oe0EdXTN+BjH0QatATL1tnK0Qs9aKMSML59nYKOJ8Jk6IMT9Y2O+bJGU6MEA9tD7onvj5HnrwQf8fCzXEBcbDQ==}
 
   browserslist@4.28.1:
     resolution: {integrity: sha512-ZC5Bd0LgJXgwGqUknZY/vkUQ04r8NXnJZ3yYi4vDmSiZmC/pdSN0NbNRPxZpbtO4uAfDUAFffO8IZoM3Gj8IkA==}
@@ -9597,22 +9600,6 @@ packages:
     peerDependencies:
       graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
-  graphql-ws@6.0.8:
-    resolution: {integrity: sha512-m3EOaNsUBXwAnkBWbzPfe0Nq8pXUfxsWnolC54sru3FzHvhTZL0Ouf/BoQsaGAXqM+YPerXOJ47BUnmgmoupCw==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      '@fastify/websocket': ^10 || ^11
-      crossws: ~0.3
-      graphql: ^15.10.1 || ^16
-      ws: ^8
-    peerDependenciesMeta:
-      '@fastify/websocket':
-        optional: true
-      crossws:
-        optional: true
-      ws:
-        optional: true
-
   graphql-ws@6.2.1:
     resolution: {integrity: sha512-NMbPNeTwXpUOxmczdMtzEnynLNbbR267E9hRcJ81SSbQeIvZup3cMjbD1ZT3jpS2xkpxooisitvO7LZNOyz17Q==}
     engines: {node: '>=20'}
@@ -10424,8 +10411,8 @@ packages:
   lexical@0.41.0:
     resolution: {integrity: sha512-pNIm5+n+hVnJHB9gYPDYsIO5Y59dNaDU9rJmPPsfqQhP2ojKFnUoPbcRnrI9FJLXB14sSumcY8LUw7Sq70TZqA==}
 
-  lib0@0.2.118:
-    resolution: {integrity: sha512-Ip97lrGhycLAkNrC9/tkORm4yPei9pKuP/Ah1eqCdDx8jnKSs7wY2xvOSlvg/r5UqtgfaC4O3NsFdzwWDDs1Wg==}
+  lib0@0.2.119:
+    resolution: {integrity: sha512-vh+TiejVy8Xm+hCdnRfn9BthGNvNUZdEXltNjVZL3TzRIKP3s1lnQh8pWd/Q0wCgY0FPAGVVjFF4ZiHUV3LFgA==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -11501,10 +11488,6 @@ packages:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
 
-  picomatch@4.0.3:
-    resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
-    engines: {node: '>=12'}
-
   picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
@@ -11781,8 +11764,8 @@ packages:
     peerDependencies:
       react: '>=17.0.0'
 
-  react-hook-form@7.71.2:
-    resolution: {integrity: sha512-1CHvcDYzuRUNOflt4MOq3ZM46AronNJtQ1S7tnX6YN4y72qhgiUItpacZUAQ0TyWYci3yz1X+rXaSxiuEm86PA==}
+  react-hook-form@7.87.0:
+    resolution: {integrity: sha512-zhFzWvLxNHH+8839OnZcUxgMZw88ah2jZWDWvKWgF3Tpbnd0vKL+dlcuU3nZVWESZQjd81EW8K+wU+cYfYAc0w==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -16131,7 +16114,7 @@ snapshots:
     dependencies:
       '@graphql-codegen/plugin-helpers': 7.0.1(graphql@16.14.2)
       '@graphql-codegen/visitor-plugin-common': 7.1.0(graphql@16.14.2)
-      '@graphql-tools/utils': 11.1.0(graphql@16.14.2)
+      '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       auto-bind: 5.0.1
       graphql: 16.14.2
       tslib: 2.8.1
@@ -16156,7 +16139,7 @@ snapshots:
 
   '@graphql-codegen/plugin-helpers@7.0.1(graphql@16.14.2)':
     dependencies:
-      '@graphql-tools/utils': 11.1.0(graphql@16.14.2)
+      '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       change-case-all: 2.1.0
       common-tags: 1.8.2
       graphql: 16.14.2
@@ -16243,12 +16226,12 @@ snapshots:
       '@graphql-codegen/plugin-helpers': 7.0.1(graphql@16.14.2)
       '@graphql-tools/optimize': 2.0.0(graphql@16.14.2)
       '@graphql-tools/relay-operation-optimizer': 7.1.4(graphql@16.14.2)
-      '@graphql-tools/utils': 11.1.0(graphql@16.14.2)
+      '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       auto-bind: 5.0.1
       change-case-all: 2.1.0
       dependency-graph: 1.0.0
       graphql: 16.14.2
-      graphql-tag: 2.12.6(graphql@16.14.2)
+      graphql-tag: 2.12.7(graphql@16.14.2)
       parse-filepath: 1.0.2
       tslib: 2.8.1
 
@@ -16299,7 +16282,7 @@ snapshots:
     dependencies:
       '@graphql-tools/batch-execute': 10.0.8(graphql@16.14.2)
       '@graphql-tools/executor': 1.5.3(graphql@16.14.2)
-      '@graphql-tools/schema': 10.0.33(graphql@16.14.2)
+      '@graphql-tools/schema': 10.1.0(graphql@16.14.2)
       '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       '@repeaterjs/repeater': 3.1.0
       '@whatwg-node/promise-helpers': 1.3.2
@@ -16325,10 +16308,10 @@ snapshots:
       '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       '@whatwg-node/disposablestack': 0.0.6
       graphql: 16.14.2
-      graphql-ws: 6.0.8(graphql@16.14.2)(ws@8.20.1)
-      isows: 1.0.7(ws@8.20.1)
+      graphql-ws: 6.2.1(graphql@16.14.2)(ws@8.21.3)
+      isows: 1.0.7(ws@8.21.3)
       tslib: 2.8.1
-      ws: 8.20.1
+      ws: 8.21.3
     transitivePeerDependencies:
       - '@fastify/websocket'
       - bufferutil
@@ -16355,9 +16338,9 @@ snapshots:
       '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       '@types/ws': 8.18.1
       graphql: 16.14.2
-      isomorphic-ws: 5.0.0(ws@8.20.1)
+      isomorphic-ws: 5.0.0(ws@8.21.3)
       tslib: 2.8.1
-      ws: 8.20.1
+      ws: 8.21.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -16463,14 +16446,14 @@ snapshots:
   '@graphql-tools/relay-operation-optimizer@7.1.4(graphql@16.14.2)':
     dependencies:
       '@ardatan/relay-compiler': 13.0.1(graphql@16.14.2)
-      '@graphql-tools/utils': 11.1.0(graphql@16.14.2)
+      '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       graphql: 16.14.2
       tslib: 2.8.1
 
   '@graphql-tools/schema@10.0.33(graphql@16.14.2)':
     dependencies:
-      '@graphql-tools/merge': 9.1.9(graphql@16.14.2)
-      '@graphql-tools/utils': 11.1.0(graphql@16.14.2)
+      '@graphql-tools/merge': 9.2.3(graphql@16.14.2)
+      '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       graphql: 16.14.2
       tslib: 2.8.1
 
@@ -16530,7 +16513,7 @@ snapshots:
   '@graphql-tools/wrap@11.1.16(graphql@16.14.2)':
     dependencies:
       '@graphql-tools/delegate': 12.0.17(graphql@16.14.2)
-      '@graphql-tools/schema': 10.0.33(graphql@16.14.2)
+      '@graphql-tools/schema': 10.1.0(graphql@16.14.2)
       '@graphql-tools/utils': 11.2.2(graphql@16.14.2)
       '@whatwg-node/promise-helpers': 1.3.2
       graphql: 16.14.2
@@ -16550,10 +16533,10 @@ snapshots:
     dependencies:
       hono: 4.13.10
 
-  '@hookform/resolvers@5.2.2(react-hook-form@7.71.2(react@19.2.3))':
+  '@hookform/resolvers@5.2.2(react-hook-form@7.87.0(react@19.2.3))':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.71.2(react@19.2.3)
+      react-hook-form: 7.87.0(react@19.2.3)
 
   '@inquirer/ansi@2.0.7': {}
 
@@ -20813,16 +20796,16 @@ snapshots:
       tailwindcss: 4.3.3
       vite: 8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)
 
-  '@tanstack/query-broadcast-client-experimental@5.100.10':
+  '@tanstack/query-broadcast-client-experimental@5.104.0':
     dependencies:
-      '@tanstack/query-core': 5.100.10
-      broadcast-channel: 7.3.0
+      '@tanstack/query-core': 5.104.0
+      broadcast-channel: 7.4.0
 
-  '@tanstack/query-core@5.100.10': {}
+  '@tanstack/query-core@5.104.0': {}
 
-  '@tanstack/react-query@5.100.10(react@19.2.3)':
+  '@tanstack/react-query@5.104.0(react@19.2.3)':
     dependencies:
-      '@tanstack/query-core': 5.100.10
+      '@tanstack/query-core': 5.104.0
       react: 19.2.3
 
   '@tanstack/react-table@8.21.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
@@ -21199,7 +21182,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vritti/api-sdk@0.5.5(e05652837b8b3d9fbd0968b744042b0b)':
+  '@vritti/api-sdk@0.6.0(ab9b1952a0105a095948cc0d08ad9adb)':
     dependencies:
       '@getbrevo/brevo': 4.0.1
       '@modelcontextprotocol/sdk': 1.30.0(zod@4.5.4)
@@ -21231,6 +21214,7 @@ snapshots:
       '@nestjs/swagger': 12.0.1(@fastify/static@10.1.3)(@nestjs/common@12.0.1(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.1)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       class-transformer: 0.5.1
       class-validator: 0.14.4
+      graphql: 16.14.2
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cfworker/json-schema'
@@ -21271,12 +21255,12 @@ snapshots:
       - typebox
       - valibot
 
-  '@vritti/quantum-ui-native@0.3.2(0fb111aaef516126c2cb086ad6f124ff)':
+  '@vritti/quantum-ui-native@0.3.2(558c46805b1049a4872a328002521bc3)':
     dependencies:
       '@bottom-tabs/react-navigation': 1.4.0(@react-navigation/native@8.0.0-alpha.17(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native-bottom-tabs@1.4.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@callstack/liquid-glass': 0.7.1(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@gorhom/bottom-sheet': 5.2.13(patch_hash=2b7e8a2ab7e90e91e30d2705f037c7ba641e96fee04d116327bcdcc8a704489c)(@types/react@19.2.14)(react-native-gesture-handler@2.31.2(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native-reanimated@4.3.0(react-native-worklets@0.8.1(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
-      '@hookform/resolvers': 5.2.2(react-hook-form@7.71.2(react@19.2.3))
+      '@hookform/resolvers': 5.2.2(react-hook-form@7.87.0(react@19.2.3))
       '@react-native-community/datetimepicker': 8.6.0(expo@55.0.6)(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@react-native-menu/menu': 2.0.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@react-navigation/native': 8.0.0-alpha.17(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
@@ -21335,12 +21319,12 @@ snapshots:
       - react-native-web
       - use-sync-external-store
 
-  '@vritti/quantum-ui-native@0.3.2(32bd60edb6003782a2937cd059eec172)':
+  '@vritti/quantum-ui-native@0.3.2(7fe3ecab555fbd82aa1e02d7d292d542)':
     dependencies:
       '@bottom-tabs/react-navigation': 1.4.0(@react-navigation/native@8.0.0-alpha.17(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native-bottom-tabs@1.4.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@callstack/liquid-glass': 0.7.1(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@gorhom/bottom-sheet': 5.2.13(patch_hash=2b7e8a2ab7e90e91e30d2705f037c7ba641e96fee04d116327bcdcc8a704489c)(@types/react@19.2.14)(react-native-gesture-handler@2.31.2(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native-reanimated@4.3.0(react-native-worklets@0.8.1(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
-      '@hookform/resolvers': 5.2.2(react-hook-form@7.71.2(react@19.2.3))
+      '@hookform/resolvers': 5.2.2(react-hook-form@7.87.0(react@19.2.3))
       '@react-native-community/datetimepicker': 8.6.0(expo@55.0.6)(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@react-native-menu/menu': 2.0.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@react-navigation/native': 8.0.0-alpha.17(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.2.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
@@ -21399,14 +21383,14 @@ snapshots:
       - react-native-web
       - use-sync-external-store
 
-  '@vritti/quantum-ui@0.5.3(@tanstack/react-query@5.100.10(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.71.2(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)':
+  '@vritti/quantum-ui@0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)':
     dependencies:
       '@dagrejs/dagre': 3.1.1
       '@date-fns/tz': 1.5.0
       '@dnd-kit/core': 6.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@dnd-kit/sortable': 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@dnd-kit/utilities': 3.2.2(react@19.2.3)
-      '@hookform/resolvers': 5.2.2(react-hook-form@7.71.2(react@19.2.3))
+      '@hookform/resolvers': 5.2.2(react-hook-form@7.87.0(react@19.2.3))
       '@lexical/clipboard': 0.41.0
       '@lexical/code': 0.41.0
       '@lexical/dragon': 0.41.0
@@ -21468,7 +21452,7 @@ snapshots:
       react-day-picker: 9.14.0(react@19.2.3)
       react-dom: 19.2.3(react@19.2.3)
       react-error-boundary: 6.1.6(@types/react@19.2.14)(react@19.2.3)
-      react-hook-form: 7.71.2(react@19.2.3)
+      react-hook-form: 7.87.0(react@19.2.3)
       react-hotkeys-hook: 5.3.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react-intersection-observer: 10.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react-phone-number-input: 3.4.18(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -21480,7 +21464,7 @@ snapshots:
       zod: 4.5.4
       zustand: 5.0.15(@types/react@19.2.14)(immer@11.1.18)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     optionalDependencies:
-      '@tanstack/react-query': 5.100.10(react@19.2.3)
+      '@tanstack/react-query': 5.104.0(react@19.2.3)
     transitivePeerDependencies:
       - '@emotion/is-prop-valid'
       - '@types/react'
@@ -22292,9 +22276,9 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  broadcast-channel@7.3.0:
+  broadcast-channel@7.4.0:
     dependencies:
-      '@babel/runtime': 7.28.6
+      '@babel/runtime': 7.29.7
       oblivious-set: 2.0.0
       p-queue: 6.6.2
       unload: 2.4.1
@@ -23657,9 +23641,9 @@ snapshots:
     dependencies:
       bser: 2.1.1
 
-  fdir@6.5.0(picomatch@4.0.5):
+  fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:
-      picomatch: 4.0.5
+      picomatch: 4.0.7
 
   fecha@4.2.3: {}
 
@@ -24075,12 +24059,6 @@ snapshots:
       graphql: 16.14.2
       tslib: 2.8.1
 
-  graphql-ws@6.0.8(graphql@16.14.2)(ws@8.20.1):
-    dependencies:
-      graphql: 16.14.2
-    optionalDependencies:
-      ws: 8.20.1
-
   graphql-ws@6.2.1(graphql@16.14.2)(ws@8.18.0):
     dependencies:
       graphql: 16.14.2
@@ -24474,11 +24452,15 @@ snapshots:
     dependencies:
       ws: 8.21.0
 
+  isomorphic-ws@5.0.0(ws@8.21.3):
+    dependencies:
+      ws: 8.21.3
+
   isomorphic.js@0.2.5: {}
 
-  isows@1.0.7(ws@8.20.1):
+  isows@1.0.7(ws@8.21.3):
     dependencies:
-      ws: 8.20.1
+      ws: 8.21.3
 
   istanbul-lib-coverage@3.2.2: {}
 
@@ -24763,7 +24745,7 @@ snapshots:
       jest-regex-util: 30.0.1
       jest-util: 30.3.0
       jest-worker: 30.3.0
-      picomatch: 4.0.3
+      picomatch: 4.0.7
       walker: 1.0.8
     optionalDependencies:
       fsevents: 2.3.3
@@ -24799,7 +24781,7 @@ snapshots:
       '@types/stack-utils': 2.0.3
       chalk: 4.1.2
       graceful-fs: 4.2.11
-      picomatch: 4.0.3
+      picomatch: 4.0.7
       pretty-format: 30.3.0
       slash: 3.0.0
       stack-utils: 2.0.6
@@ -24938,7 +24920,7 @@ snapshots:
       chalk: 4.1.2
       ci-info: 4.4.0
       graceful-fs: 4.2.11
-      picomatch: 4.0.3
+      picomatch: 4.0.7
 
   jest-validate@29.7.0:
     dependencies:
@@ -25197,7 +25179,7 @@ snapshots:
 
   lexical@0.41.0: {}
 
-  lib0@0.2.118:
+  lib0@0.2.119:
     dependencies:
       isomorphic.js: 0.2.5
 
@@ -26578,8 +26560,6 @@ snapshots:
 
   picomatch@2.3.1: {}
 
-  picomatch@4.0.3: {}
-
   picomatch@4.0.4: {}
 
   picomatch@4.0.5: {}
@@ -26873,7 +26853,7 @@ snapshots:
     dependencies:
       react: 19.2.3
 
-  react-hook-form@7.71.2(react@19.2.3):
+  react-hook-form@7.87.0(react@19.2.3):
     dependencies:
       react: 19.2.3
 
@@ -27996,8 +27976,8 @@ snapshots:
 
   tinyglobby@0.2.17:
     dependencies:
-      fdir: 6.5.0(picomatch@4.0.5)
-      picomatch: 4.0.5
+      fdir: 6.5.0(picomatch@4.0.7)
+      picomatch: 4.0.7
 
   tinygradient@1.1.5:
     dependencies:
@@ -28706,7 +28686,7 @@ snapshots:
 
   yjs@13.6.33:
     dependencies:
-      lib0: 0.2.118
+      lib0: 0.2.119
 
   yn@3.1.1: {}
 

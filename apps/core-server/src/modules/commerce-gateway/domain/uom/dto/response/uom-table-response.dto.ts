@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/database';
+import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { UomResponseDto } from './uom-response.dto';
 
 export class UomTableResponseDto extends TableResponseDto<UomResponseDto> {

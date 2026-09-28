@@ -3,7 +3,7 @@ import type { PartyCommunicationResponseDto } from '@commerce/party-communicatio
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { AppTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';

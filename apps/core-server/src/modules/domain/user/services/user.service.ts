@@ -8,14 +8,13 @@ import {
   type FilterCondition,
   FilterProcessor,
   type SearchState,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
   type SortCondition,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
+} from '@vritti/api-sdk/data-table';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { EmailService } from '@vritti/api-sdk/email';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { AUTH_STATUS_EVENTS, SessionRevokedEvent, UserUpdatedEvent } from '@/common/events/auth-status.events';
 import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
 import { UserDto } from '../dto/entity/user.dto';

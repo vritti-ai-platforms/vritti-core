@@ -2,7 +2,7 @@ import { SmsProviderTemplateDto } from '@domain/sms-provider-templates/dto/entit
 import { AddSmsProviderTemplateDto } from '@domain/sms-provider-templates/dto/request/add-sms-provider-template.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SmsProviderTemplatesService } from './services/sms-provider-templates.service';
 
 @Controller()

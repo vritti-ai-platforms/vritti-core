@@ -1,12 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import {
-  PrimaryBaseRepository,
-  PrimaryDatabaseService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-} from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, ilike, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   type NewPartyRelationship,
   PartyCommunicationChannelValues,

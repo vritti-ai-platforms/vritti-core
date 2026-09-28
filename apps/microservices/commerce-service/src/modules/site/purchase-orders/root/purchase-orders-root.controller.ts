@@ -7,8 +7,9 @@ import { UpdatePurchaseOrderStatusDto } from '@domain/purchase-orders/dto/reques
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { RpcSiteCurrencyCode, RpcSiteId } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PurchaseOrdersService } from './services/purchase-orders-root.service';
 
 @Controller()

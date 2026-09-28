@@ -3,8 +3,8 @@ import type { SmsProviderTemplateResponseDto } from '@communications/sms-provide
 import type { SmsProviderTemplateTableResponseDto } from '@communications/sms-provider-templates/dto/response/sms-provider-template-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class SmsProviderTemplatesGatewayService {

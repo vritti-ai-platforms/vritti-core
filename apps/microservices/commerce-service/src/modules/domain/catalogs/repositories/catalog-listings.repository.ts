@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MAX_PAGE_SIZE, PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, isNull, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   type CatalogListing,
@@ -64,15 +64,12 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
   }
 
   async findByCatalog(catalogId: string): Promise<CatalogListingRow[]> {
-    const { result } = await this.findAllAndCount<CatalogListingRow>({
+    return this.findAllWithSelect<CatalogListingRow>({
       select: this.selection(),
       leftJoins: this.joins(),
       where: eq(catalogListings.catalogId, catalogId),
       orderBy: [asc(offeringVariants.sku)],
-      limit: MAX_PAGE_SIZE,
-      offset: 0,
     });
-    return result;
   }
 
   async findByIdWithRefs(id: string): Promise<CatalogListingRow | undefined> {

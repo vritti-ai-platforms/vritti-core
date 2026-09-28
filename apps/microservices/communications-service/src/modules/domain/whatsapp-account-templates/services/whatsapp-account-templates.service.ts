@@ -1,6 +1,6 @@
 import { MetaGraphHttpService } from '@domain/meta-graph/services/meta-graph-http.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type MetaGraphLibraryTemplate, TemplateLibraryItemDto } from '../dto/entity/template-library-item.dto';
 import type { TemplateLibraryPageDto } from '../dto/entity/template-library-page.dto';
 import { type MetaGraphTemplate, WhatsappTemplateDto } from '../dto/entity/whatsapp-template.dto';

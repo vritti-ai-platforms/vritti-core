@@ -4,7 +4,7 @@ import { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos
 import { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 export function ApiTable() {
   return applyDecorators(

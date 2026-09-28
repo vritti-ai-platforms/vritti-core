@@ -8,10 +8,10 @@ import type { WhatsappAccountTableResponseDto } from '@communications/whatsapp-a
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
 import {
   EMBEDDED_SIGNUP_BROKER_PATH,

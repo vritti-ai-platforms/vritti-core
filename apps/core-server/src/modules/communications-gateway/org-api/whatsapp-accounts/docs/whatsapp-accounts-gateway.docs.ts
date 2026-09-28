@@ -6,7 +6,7 @@ import { WhatsappAccountResponseDto } from '@communications/whatsapp-accounts/dt
 import { WhatsappAccountTableResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 export function ApiGetWhatsappAccountsTable() {
   return applyDecorators(

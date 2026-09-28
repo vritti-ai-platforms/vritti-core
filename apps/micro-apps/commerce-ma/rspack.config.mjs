@@ -301,7 +301,13 @@ export default (rspackEnv) => {
           // BottomTabBarHeightContext the host's tab bar provides — the signal that a micro-app screen is
           // inside the tab bar (so it reserves the floating-pill height). Replaces the old
           // @react-navigation/bottom-tabs share, which carried this context before the native-tabs migration.
-          'react-native-bottom-tabs': { singleton: true, eager: false, import: false, version: '1.4.0', requiredVersion: '>=0.0.0-0' },
+          'react-native-bottom-tabs': {
+            singleton: true,
+            eager: false,
+            import: false,
+            version: '1.4.0',
+            requiredVersion: '>=0.0.0-0',
+          },
           'react-native-safe-area-context': { singleton: true, eager: false, import: false, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: false, import: false, requiredVersion: '^4.24.0' },
           // Apollo client + cache come from the HOST (shared singleton). commerce-ma consumes the

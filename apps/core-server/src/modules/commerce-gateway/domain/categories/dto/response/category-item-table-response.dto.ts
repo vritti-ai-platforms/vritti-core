@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TableResponseDto } from '@vritti/api-sdk/database';
+import { TableResponseDto } from '@vritti/api-sdk/data-table';
 import { CategoryItemResponseDto } from './category-item-response.dto';
 
 export class CategoryItemTableResponseDto extends TableResponseDto<CategoryItemResponseDto> {

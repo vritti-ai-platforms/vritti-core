@@ -3,7 +3,7 @@ import { UserRoleDomainService } from '@domain/user-role/services/user-role.serv
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { UserRoleAssignment } from '@/db/schema';
 import { ApiAssignRole, ApiListUserRoles, ApiRemoveRoleAssignment } from '../docs/user-role.docs';
 

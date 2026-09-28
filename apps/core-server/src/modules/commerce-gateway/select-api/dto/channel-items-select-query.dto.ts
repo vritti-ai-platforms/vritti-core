@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsUUID } from 'class-validator';
 
 // What a storefront sells only means anything next to the channel selling it, so the channel is required

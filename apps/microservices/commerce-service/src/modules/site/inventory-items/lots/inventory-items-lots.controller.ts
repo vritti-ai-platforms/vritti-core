@@ -1,7 +1,7 @@
 import type { InventoryItemLotDto } from '@domain/inventory-item-lots/dto/entity/inventory-item-lot.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import { InventoryItemsLotsService } from './services/inventory-items-lots.service';
 

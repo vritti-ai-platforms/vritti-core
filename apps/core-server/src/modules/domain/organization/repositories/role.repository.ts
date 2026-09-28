@@ -1,12 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { ScopeType, SiteType } from '@vritti/api-sdk/catalog-resolver';
-import {
-  PrimaryBaseRepository,
-  PrimaryDatabaseService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-} from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { countDistinct, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type Role, roles, userRoleAssignments } from '@/db/schema';
 
 export type RoleWithCount = Role & { assignedUserCount: number };

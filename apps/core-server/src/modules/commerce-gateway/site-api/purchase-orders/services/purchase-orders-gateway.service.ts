@@ -15,10 +15,10 @@ import { BrevoClient, BrevoError, BrevoTimeoutError } from '@getbrevo/brevo';
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { SiteDomainService } from '@/modules/domain/site/services/site.service';
 import {

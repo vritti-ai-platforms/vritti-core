@@ -5,7 +5,7 @@ import { UpdateDimensionTemplateDto } from '@domain/dimension-templates/dto/requ
 import { DimensionTemplatesDomainService } from '@domain/dimension-templates/services/dimension-templates.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class LeDimensionTemplatesController {

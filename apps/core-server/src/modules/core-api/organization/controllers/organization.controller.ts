@@ -6,7 +6,7 @@ import { OrganizationDomainService } from '@domain/organization/services/organiz
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OrgId } from '@/security/decorators/org-id.decorator';
 import { SetFeatureLocksInternalDto } from '../../structure/dto/request/set-feature-locks-internal.dto';
 import type { FeatureLocksResponseDto } from '../../structure/dto/response/feature-locks-response.dto';

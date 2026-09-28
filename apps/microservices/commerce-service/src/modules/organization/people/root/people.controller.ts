@@ -3,7 +3,8 @@ import { CreatePersonDto } from '@domain/parties/dto/request/create-person.dto';
 import { UpdatePersonDto } from '@domain/parties/dto/request/update-person.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PeopleService } from './services/people-root.service';
 
 @Controller()

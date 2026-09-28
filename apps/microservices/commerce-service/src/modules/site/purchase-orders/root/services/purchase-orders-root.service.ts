@@ -9,8 +9,8 @@ import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/pu
 import { SupplierSitesDomainService } from '@domain/supplier-sites/services/supplier-sites.service';
 import { SuppliersDomainRepository } from '@domain/suppliers/repositories/suppliers.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class PurchaseOrdersService {

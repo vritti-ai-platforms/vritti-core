@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  type FieldMap,
-  FilterProcessor,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, ilike } from '@vritti/api-sdk/drizzle-orm';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type InventoryItemLot, inventoryItemLots } from '@/db/schema';
 import { InventoryItemLotDto } from '../dto/entity/inventory-item-lot.dto';
 import { InventoryItemLotsDomainRepository } from '../repositories/inventory-item-lots.repository';

@@ -4,7 +4,8 @@ import { UpdateSocialProfileDto } from '@domain/party-social-profiles/dto/reques
 import { PartySocialProfilesDomainService } from '@domain/party-social-profiles/services/party-social-profiles.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class CompanySocialProfilesController {

@@ -2,16 +2,11 @@ import { PurchaseOrderItemsDomainRepository } from '@domain/purchase-order-items
 import { SupplierItemsDomainRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  type FieldMap,
-  FilterProcessor,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { computeFreeQty } from '@/common/free-qty';
 import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
 

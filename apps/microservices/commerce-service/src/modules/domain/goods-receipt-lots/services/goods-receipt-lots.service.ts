@@ -2,8 +2,9 @@ import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/
 import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, PrimaryDatabaseService, type SuccessResponseDto } from '@vritti/api-sdk/database';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptStatusValues, type InventoryItemLot, InventoryTrackingValues } from '@/db/schema';
 import { GoodsReceiptLotDto } from '../dto/entity/goods-receipt-lot.dto';
 import { GoodsReceiptLotsDomainRepository } from '../repositories/goods-receipt-lots.repository';

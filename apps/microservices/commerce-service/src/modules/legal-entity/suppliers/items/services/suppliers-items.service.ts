@@ -4,8 +4,8 @@ import type { UpdateSupplierItemDto } from '@domain/supplier-items/dto/request/u
 import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 // Top-level service used by the items sub-controller for the two write paths that
 // need cross-domain validation: a supplier_item's UOM must be in the inventory

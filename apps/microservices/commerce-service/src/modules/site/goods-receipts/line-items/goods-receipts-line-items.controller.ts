@@ -3,7 +3,8 @@ import { GoodsReceiptLineItemsDomainService } from '@domain/goods-receipt-line-i
 import { AddGoodsReceiptLineItemDto } from '@domain/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class GoodsReceiptsLineItemsController {

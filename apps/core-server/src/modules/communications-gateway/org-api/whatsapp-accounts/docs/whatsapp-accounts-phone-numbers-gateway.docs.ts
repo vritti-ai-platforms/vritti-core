@@ -8,7 +8,7 @@ import { WhatsappPhoneNumberProfileResponseDto } from '@communications/whatsapp-
 import { WhatsappPhoneNumberTableResponseDto } from '@communications/whatsapp-account-phone-numbers/dto/response/whatsapp-phone-number-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 export function ApiListWhatsappPhoneNumbers() {
   return applyDecorators(

@@ -4,8 +4,8 @@ import { AddGoodsReceiptLotDto } from '@domain/goods-receipts/dto/request/add-go
 import { UpdateGoodsReceiptLotDto } from '@domain/goods-receipts/dto/request/update-goods-receipt-lot.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class GoodsReceiptsLotsController {

@@ -1,16 +1,11 @@
 import type { PartyFunctionAssignmentInput } from '@domain/party-functions/dto/request/party-function-assignment-input.dto';
 import { PartyFunctionsDomainService } from '@domain/party-functions/services/party-functions.service';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  type FieldMap,
-  FilterProcessor,
-  PrimaryDatabaseService,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PartyFunctionTypeValues, partyAddresses } from '@/db/schema';
 import { PartyAddressDto } from '../dto/entity/party-address.dto';
 import { AddPartyAddressDto } from '../dto/request/add-party-address.dto';

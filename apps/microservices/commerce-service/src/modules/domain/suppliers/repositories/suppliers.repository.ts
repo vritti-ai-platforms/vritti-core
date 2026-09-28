@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  type FindForSelectConfig,
-  PrimaryBaseRepository,
-  PrimaryDatabaseService,
-  type SelectQueryResult,
-} from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { asc, desc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   type PartyLicense,
   type PartyTaxRegistration,
@@ -89,7 +85,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
         partyType: parties.partyType,
         enrolledSiteCount: sql<number>`(
           SELECT count(*)::int FROM ${supplierSites} ss
-          WHERE ss.supplier_id = ${suppliers.id} AND ss.is_active = true
+          WHERE ss.supplier_id = ${suppliers}.id AND ss.is_active = true
         )`.mapWith(Number),
       })
       .from(suppliers)

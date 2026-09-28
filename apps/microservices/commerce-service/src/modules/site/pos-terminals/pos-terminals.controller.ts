@@ -3,13 +3,9 @@ import { CreatePosTerminalDto } from '@domain/pos-terminals/dto/request/create-p
 import { UpdatePosTerminalPayloadDto } from '@domain/pos-terminals/dto/request/update-pos-terminal-payload.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { PosTerminalsService } from './services/pos-terminals.service';
 
 @Controller()

@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
-import type { TableViewState } from '@vritti/api-sdk/database';
-import { TableResponseDto } from '@vritti/api-sdk/database';
+import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { OfferingResponseDto } from './offering-response.dto';
 
 // The list read measures neither count — both are correlated subqueries the detail read runs — so a table row does

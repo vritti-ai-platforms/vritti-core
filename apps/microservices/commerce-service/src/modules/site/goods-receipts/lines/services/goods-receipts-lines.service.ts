@@ -2,7 +2,7 @@ import type { GoodsReceiptLineDto } from '@domain/goods-receipt-lines/dto/entity
 import { GoodsReceiptLinesDomainService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 // App-layer orchestrator for GR line writes: snapshots the primary-UOM quantity (cross-domain UOM
 // conversion lives here, not in the domain service) before delegating to the domain service.

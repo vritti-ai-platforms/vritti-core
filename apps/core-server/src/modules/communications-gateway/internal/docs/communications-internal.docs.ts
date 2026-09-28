@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SetSmsOtpConfigDto } from '../dto/request/set-sms-otp-config.dto';
 import { SetWhatsappOtpConfigDto } from '../dto/request/set-whatsapp-otp-config.dto';
 import { TestSmsOtpConfigDto } from '../dto/request/test-sms-otp-config.dto';

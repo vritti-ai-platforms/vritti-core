@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MAX_PAGE_SIZE, PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import {
@@ -41,15 +41,15 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       itemsTotal: sql<number>`(
         select count(*)::int from ${catalogListings} cl
         join ${offeringVariants} ov on ov.id = cl.offering_variant_id
-        where cl.catalog_id = ${catalogChannels.catalogId} and ov.is_active and ov.is_offering_active
+        where cl.catalog_id = ${catalogChannels}.catalog_id and ov.is_active and ov.is_offering_active
       )`,
       itemsSelling: sql<number>`(
         select count(*)::int from ${catalogListings} cl
         join ${offeringVariants} ov on ov.id = cl.offering_variant_id
-        where cl.catalog_id = ${catalogChannels.catalogId} and ov.is_active and ov.is_offering_active
+        where cl.catalog_id = ${catalogChannels}.catalog_id and ov.is_active and ov.is_offering_active
           and not exists (
             select 1 from ${catalogListingChannelExclusions} e
-            where e.catalog_listing_id = cl.id and e.catalog_channel_id = ${catalogChannels.id}
+            where e.catalog_listing_id = cl.id and e.catalog_channel_id = ${catalogChannels}.id
           )
       )`,
       createdAt: catalogChannels.createdAt,
@@ -91,24 +91,22 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
 
   // Returns the wildcard channel of every type this workspace can reach, for the landing cards
   async findWildcards(): Promise<CatalogChannelRow[]> {
-    const { result } = await this.findForTable({
+    return this.findAllWithSelect<CatalogChannelRow>({
+      select: CatalogChannelsDomainRepository.selection(),
+      leftJoins: CatalogChannelsDomainRepository.joins(),
       where: and(isNull(catalogChannels.appId), isNull(catalogChannels.terminalId)),
       orderBy: [asc(catalogChannels.type)],
-      limit: MAX_PAGE_SIZE,
-      offset: 0,
     });
-    return result;
   }
 
   // Returns every channel pointing at one catalog — the read-only tab on the catalog detail
   async findByCatalog(catalogId: string): Promise<CatalogChannelRow[]> {
-    const { result } = await this.findForTable({
+    return this.findAllWithSelect<CatalogChannelRow>({
+      select: CatalogChannelsDomainRepository.selection(),
+      leftJoins: CatalogChannelsDomainRepository.joins(),
       where: eq(catalogChannels.catalogId, catalogId),
       orderBy: [asc(catalogChannels.type)],
-      limit: MAX_PAGE_SIZE,
-      offset: 0,
     });
-    return result;
   }
 
   // Returns the wildcard channel of a type that this workspace owns, ignoring what it inherits
@@ -140,7 +138,9 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     const matches = (column: AnyPgColumn, value: string | null | undefined) =>
       value ? or(isNull(column), eq(column, value)) : isNull(column);
 
-    const { result } = await this.findForTable({
+    return this.findAllWithSelect<CatalogChannelRow>({
+      select: CatalogChannelsDomainRepository.selection(),
+      leftJoins: CatalogChannelsDomainRepository.joins(),
       where: and(
         eq(catalogChannels.type, context.type),
         eq(catalogs.isActive, true),
@@ -150,10 +150,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         matches(catalogChannels.terminalId, context.terminalId),
       ),
       orderBy: [asc(catalogChannels.createdAt)],
-      limit: MAX_PAGE_SIZE,
-      offset: 0,
     });
-    return result;
   }
 
   // Returns the catalog's active listings, each flagged with whether this channel excludes it.

@@ -5,14 +5,13 @@ import {
   FilterProcessor,
   type KeysetOrderBy,
   KeysetProcessor,
-  PrimaryDatabaseService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
   type TableViewState,
-} from '@vritti/api-sdk/database';
+} from '@vritti/api-sdk/data-table';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, asc, desc, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   CostDistributionMethodValues,
   type CostSourceType,

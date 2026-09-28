@@ -4,7 +4,8 @@ import { RoleDomainService, type RolesByScope } from '@domain/organization/servi
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import type { Role } from '@/db/schema';
 import { OrgId } from '@/security/decorators/org-id.decorator';
 import {

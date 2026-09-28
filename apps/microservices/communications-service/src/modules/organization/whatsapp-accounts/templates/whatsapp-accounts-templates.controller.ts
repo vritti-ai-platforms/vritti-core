@@ -4,7 +4,7 @@ import { CreateWhatsappTemplateDto } from '@domain/whatsapp-account-templates/dt
 import { SendWhatsappTemplateTestDto } from '@domain/whatsapp-account-templates/dto/request/send-whatsapp-template-test.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { WhatsappTemplatesService } from './services/whatsapp-templates.service';
 
 @Controller()

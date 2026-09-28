@@ -6,8 +6,9 @@ import {
 } from '@domain/supplier-sites/services/supplier-sites.service';
 import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 // Site-workspace orchestration: every mutation is verified to belong to the caller's site
 // (RpcSiteId) since the permissive RLS policies cannot restrict per-site on their own.

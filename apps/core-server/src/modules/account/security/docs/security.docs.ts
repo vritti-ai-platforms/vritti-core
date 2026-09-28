@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { ChangePasswordDto } from '../dto/request/change-password.dto';
 import { SessionResponseDto } from '../dto/response/session-response.dto';
 

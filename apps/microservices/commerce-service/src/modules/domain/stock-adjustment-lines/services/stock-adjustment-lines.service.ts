@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,

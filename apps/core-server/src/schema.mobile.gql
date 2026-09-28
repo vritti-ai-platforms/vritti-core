@@ -502,6 +502,7 @@ type Query {
   profile: Profile!
   sessions: [UserSession!]!
   organizationsByEmail(email: String!): [LookupOrganization!]!
+  usersOptions(input: SelectOptionsInput): SelectOptions!
 }
 
 input FeedFilterInput {

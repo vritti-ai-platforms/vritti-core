@@ -120,7 +120,7 @@ export function ApiCreateOfferingDimension() {
   );
 }
 
-export function ApiCreateOfferingDimensionFromTemplate() {
+export function ApiCreateOfferingDimensionWithValuesAndTemplate() {
   return applyDecorators(
     ApiOperation({
       summary: 'Add a dimension from a template',

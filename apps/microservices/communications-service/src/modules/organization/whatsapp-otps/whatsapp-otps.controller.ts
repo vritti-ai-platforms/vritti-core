@@ -9,7 +9,7 @@ import { VerifyWhatsappOtpDto } from '@domain/whatsapp-otps/dto/request/verify-w
 import { WhatsappOtpStatusDto } from '@domain/whatsapp-otps/dto/request/whatsapp-otp-status.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { WhatsappOtpsService } from './services/whatsapp-otps.service';
 
 @Controller()

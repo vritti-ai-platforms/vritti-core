@@ -22,10 +22,10 @@ import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/respo
 import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
 import type { GoodsReceiptTreeNodeResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-tree-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SearchState, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { DataTableStateService, type SearchState } from '@vritti/api-sdk/data-table';
 import { majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class GoodsReceiptsGatewayService {

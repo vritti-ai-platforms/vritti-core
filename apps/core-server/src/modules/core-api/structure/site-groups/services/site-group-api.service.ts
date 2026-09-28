@@ -5,7 +5,8 @@ import { SiteGroupDomainService } from '@domain/site-group/services/site-group.s
 import type { AssignmentWithNames } from '@domain/user-role/repositories/user-role-assignment.repository';
 import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import { Injectable } from '@nestjs/common';
-import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import type { OrgStructureSelectQueryDto } from '../../dto/request/org-structure-select-query.dto';
 import type { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
 import type { FeatureLocksResponseDto } from '../../dto/response/feature-locks-response.dto';

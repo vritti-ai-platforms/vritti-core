@@ -5,7 +5,7 @@ import { SmsProviderResponseDto } from '@communications/sms-providers/dto/respon
 import { SmsProviderTableResponseDto } from '@communications/sms-providers/dto/response/sms-provider-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 export function ApiGetAvailableSmsProviders() {
   return applyDecorators(

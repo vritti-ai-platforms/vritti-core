@@ -5,8 +5,8 @@ import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lo
 import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InventoryTrackingValues } from '@/db/schema';
 
 // App-layer orchestrator for stock-adjustment line writes that need inventory-aggregate awareness.

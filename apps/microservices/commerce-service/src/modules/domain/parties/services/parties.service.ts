@@ -1,18 +1,12 @@
 import { PartyCommunicationsDomainService } from '@domain/party-communications/services/party-communications.service';
 import { PartySocialProfilesDomainService } from '@domain/party-social-profiles/services/party-social-profiles.service';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  type FieldMap,
-  FilterProcessor,
-  PrimaryDatabaseService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   type Party,
   PartyCommunicationChannelValues,

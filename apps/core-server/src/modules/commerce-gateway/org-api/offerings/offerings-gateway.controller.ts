@@ -2,8 +2,6 @@ import {
   ApiAddBomLine,
   ApiAddSuggestedComponent,
   ApiBulkClearVariantsTaxClass,
-  ApiExportOfferings,
-  ApiExportOfferingVariants,
   ApiBulkSetOfferingStatus,
   ApiBulkSetVariantsStatus,
   ApiBulkSetVariantsTaxClass,
@@ -11,13 +9,15 @@ import {
   ApiClearVariantTaxClass,
   ApiCreateOffering,
   ApiCreateOfferingDimension,
-  ApiCreateOfferingDimensionFromTemplate,
+  ApiCreateOfferingDimensionWithValuesAndTemplate,
   ApiCreateOfferingVariant,
   ApiCreateVariantInventoryItem,
   ApiDeleteBomLine,
   ApiDeleteOffering,
   ApiDeleteOfferingDimension,
   ApiDeleteOfferingVariant,
+  ApiExportOfferings,
+  ApiExportOfferingVariants,
   ApiGenerateOfferingVariants,
   ApiGetOffering,
   ApiGetOfferingVariant,
@@ -44,7 +44,7 @@ import { BulkSetVariantsStatusDto } from '@commerce/offerings/dto/request/bulk-s
 import { BulkSetVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-set-variants-tax-class.dto';
 import { CreateOfferingDto } from '@commerce/offerings/dto/request/create-offering.dto';
 import { CreateOfferingDimensionDto } from '@commerce/offerings/dto/request/create-offering-dimension.dto';
-import { CreateOfferingDimensionFromTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-from-template.dto';
+import { CreateOfferingDimensionWithValuesAndTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-with-values-and-template.dto';
 import { CreateVariantDto } from '@commerce/offerings/dto/request/create-variant.dto';
 import { CreateVariantInventoryItemDto } from '@commerce/offerings/dto/request/create-variant-inventory-item.dto';
 import { GenerateVariantsDto } from '@commerce/offerings/dto/request/generate-variants.dto';
@@ -61,13 +61,26 @@ import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offer
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
 import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/response/offering-variant-response.dto';
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
-import { Res, Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
-import type { FastifyReply } from 'fastify';
-import { buildExportBuffer, type ExportFormat, getExportExt, getExportMimeType } from '@vritti/api-sdk/xlsx';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Res,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { buildExportBuffer, type ExportFormat, getExportExt, getExportMimeType } from '@vritti/api-sdk/xlsx';
 import { ORG_OFFERINGS } from '@vritti/commerce-permissions/offerings';
+import type { FastifyReply } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgId } from '@/security/decorators';
@@ -126,17 +139,17 @@ export class OrgOfferingsGatewayController {
     return this.service.createDimension(id, dto);
   }
 
-  // Appends a dimension seeded from a template; code, name and values are copied server-side
-  @Post(':id/dimensions/from-template')
+  // Appends a dimension together with the values the caller chose
+  @Post(':id/dimensions/with-values-and-template')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_OFFERINGS.dimensions.addFromTemplate)
-  @ApiCreateOfferingDimensionFromTemplate()
-  createDimensionFromTemplate(
+  @ApiCreateOfferingDimensionWithValuesAndTemplate()
+  createDimensionWithValuesAndTemplate(
     @Param('id') id: string,
-    @Body() dto: CreateOfferingDimensionFromTemplateDto,
+    @Body() dto: CreateOfferingDimensionWithValuesAndTemplateDto,
   ): Promise<CreateResponseDto<OfferingDimensionResponseDto>> {
-    this.logger.log(`POST /commerce-api/org/offerings/${id}/dimensions/from-template`);
-    return this.service.createDimensionFromTemplate(id, dto);
+    this.logger.log(`POST /commerce-api/org/offerings/${id}/dimensions/with-values-and-template`);
+    return this.service.createDimensionWithValuesAndTemplate(id, dto);
   }
 
   // Replaces a dimension's value set

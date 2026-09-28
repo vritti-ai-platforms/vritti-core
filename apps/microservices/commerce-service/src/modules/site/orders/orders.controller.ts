@@ -4,7 +4,7 @@ import { UpdateOrderStatusDto } from '@domain/orders/dto/request/update-order-st
 import { OrdersDomainService } from '@domain/orders/services/orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class OrdersController {

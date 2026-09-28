@@ -4,8 +4,9 @@ import { UpdateSiteEnrollmentDto } from '@domain/supplier-sites/dto/request/upda
 import { SupplierSitesDomainService } from '@domain/supplier-sites/services/supplier-sites.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { RpcSiteId } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SiteSuppliersService } from './services/site-suppliers.service';
 
 @Controller()

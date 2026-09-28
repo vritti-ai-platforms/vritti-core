@@ -3,9 +3,9 @@ import type { AddInventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/req
 import type { UpdateInventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/request/update-inventory-item-mrp.dto';
 import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 // Org-scope service for the manual suggested-MRP table: reads the per-currency MRPs and
 // adds/edits/removes them, delegating money conversion to the domain service.

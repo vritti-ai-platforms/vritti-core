@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
 import { eq, ilike } from '@vritti/api-sdk/drizzle-orm';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { inventoryItemSerials, SerialStatusValues } from '@/db/schema';
 import { InventoryItemSerialsDomainRepository } from '../repositories/inventory-item-serials.repository';
 

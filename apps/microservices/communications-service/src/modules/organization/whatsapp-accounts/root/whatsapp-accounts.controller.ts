@@ -3,12 +3,9 @@ import { UpdateWhatsappAccountDto } from '@domain/whatsapp-accounts/dto/request/
 import { WhatsappAccountsDomainService } from '@domain/whatsapp-accounts/services/whatsapp-accounts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 
 @Controller()
 export class WhatsappAccountsController {

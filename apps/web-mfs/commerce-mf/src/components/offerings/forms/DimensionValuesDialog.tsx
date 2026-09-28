@@ -1,20 +1,25 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
+import { CheckboxGroup } from '@vritti/quantum-ui/CheckboxGroup';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { SortableDragHandle, SortableItem, SortableList } from '@vritti/quantum-ui/Sortable';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { zodResolver } from '@vritti/quantum-ui/zod';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, SwatchBook, Trash2 } from 'lucide-react';
 import type React from 'react';
+import { useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import {
+  type DimensionTemplateValueOption,
   type DimensionValuesFormData,
   dimensionValuesSchema,
   type OfferingDimensionData,
   toCode,
 } from '@/schemas/offerings';
+import { DimensionTemplateSelector } from '@/selectors/dimension-template';
 import type { UseUpsertDimensionValues } from '../types';
 
 interface DimensionValuesDialogProps {
@@ -36,6 +41,7 @@ export const DimensionValuesDialog: React.FC<DimensionValuesDialogProps> = ({
       values: dimension.values.length
         ? dimension.values.map((value) => ({ code: value.code, value: value.value }))
         : [{ code: '', value: '' }],
+      templateId: null,
     },
   });
 
@@ -43,6 +49,25 @@ export const DimensionValuesDialog: React.FC<DimensionValuesDialogProps> = ({
   const valueFields = useFieldArray({ control: form.control, name: 'values' });
   const rows = useWatch({ control: form.control, name: 'values' });
   const lockedCodes = new Set(dimension.values.filter((value) => !value.canDelete).map((value) => value.code));
+
+  const [copyOpen, setCopyOpen] = useState(false);
+  const [offered, setOffered] = useState<DimensionTemplateValueOption[]>([]);
+  const [picked, setPicked] = useState<string[]>([]);
+  const presentCodes = new Set((rows ?? []).map((row) => row?.code).filter(Boolean));
+  const missing = offered.filter((option) => !presentCodes.has(option.code));
+
+  // Appends the ticked template values, replacing the blank starter row rather than leaving it behind
+  const addFromTemplate = () => {
+    const additions = missing.filter((option) => picked.includes(option.code));
+    if (additions.length === 0) return;
+    const current = form.getValues('values');
+    const blank = current.every((row) => !row.code && !row.value);
+    valueFields[blank ? 'replace' : 'append'](additions.map((option) => ({ code: option.code, value: option.value })));
+    form.setValue('templateId', null);
+    setOffered([]);
+    setPicked([]);
+    setCopyOpen(false);
+  };
 
   // The code is a SKU segment and the name is what a person reads, so they are kept apart. Typing the
   // name fills the code until the code is edited by hand.
@@ -65,75 +90,98 @@ export const DimensionValuesDialog: React.FC<DimensionValuesDialogProps> = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({ dimensionId: dimension.id, values: data.values })}
     >
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Typography variant="body2" className="font-medium">
-                Values
-              </Typography>
-              <Badge variant="secondary">{valueFields.fields.length}</Badge>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => valueFields.append({ code: '', value: '' })}
-            >
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Typography variant="body2" className="font-medium">
+              Values
+            </Typography>
+            <Badge variant="secondary">{valueFields.fields.length}</Badge>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setCopyOpen((open) => !open)}>
+              <SwatchBook className="mr-1 size-3" />
+              From template
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => valueFields.append({ code: '', value: '' })}>
               <Plus className="mr-1 size-3" />
-              Add Value
+              Add value
             </Button>
           </div>
-
-          <div className="flex items-center gap-1.5 px-2 pb-1">
-            <div className="w-4" />
-            <Typography variant="caption" intent="muted" className="flex-1">
-              Name
-            </Typography>
-            <Typography variant="caption" intent="muted" className="w-44">
-              Code — becomes a SKU segment
-            </Typography>
-            <div className="w-8" />
-          </div>
-
-          <SortableList items={valueFields.fields} onReorder={handleReorder} className="space-y-2">
-            {valueFields.fields.map((field, index) => {
-              const inUse = lockedCodes.has(rows?.[index]?.code ?? '');
-              return (
-                <SortableItem key={field.id} id={field.id} className="rounded-lg border p-2">
-                  <div className="flex items-start gap-1.5">
-                    <div className="flex h-9 w-4 items-center justify-center">
-                      <SortableDragHandle />
-                    </div>
-                    <div className="min-h-14 flex-1">
-                      <TextField
-                        name={`values.${index}.value`}
-                        placeholder="e.g. Onion & Garlic"
-                        onChange={(event) => deriveCode(index, event.target.value)}
-                      />
-                    </div>
-                    <div className="min-h-14 w-44">
-                      <TextField name={`values.${index}.code`} placeholder="e.g. onion-garlic" />
-                    </div>
-                    <div className="flex h-9 items-center">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => valueFields.remove(index)}
-                        disabled={inUse || valueFields.fields.length <= 1}
-                        disabledTip={inUse ? 'Used by a variant' : undefined}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </SortableItem>
-              );
-            })}
-          </SortableList>
         </div>
+
+        {copyOpen && (
+          <div className="space-y-3 rounded-lg bg-muted/40 p-3">
+            <DimensionTemplateSelector
+              name="templateId"
+              placeholder="Pick a template"
+              onOptionSelect={(option) => {
+                const values = (option?.additionals?.values as DimensionTemplateValueOption[] | undefined) ?? [];
+                setOffered(values);
+                setPicked(values.filter((value) => !presentCodes.has(value.code)).map((value) => value.code));
+              }}
+            />
+
+            {offered.length > 0 &&
+              (missing.length === 0 ? (
+                <Typography variant="caption" intent="muted">
+                  Every value from that template is already here.
+                </Typography>
+              ) : (
+                <>
+                  <CheckboxGroup
+                    columns={2}
+                    options={missing.map((option) => ({ value: option.code, label: option.value }))}
+                    value={picked}
+                    onValueChange={setPicked}
+                  />
+                  <div className="flex justify-end">
+                    <Button type="button" size="sm" onClick={addFromTemplate} disabled={!picked.length}>
+                      Add {picked.length ? pluralize('value', picked.length, true) : 'values'}
+                    </Button>
+                  </div>
+                </>
+              ))}
+          </div>
+        )}
+
+        <SortableList items={valueFields.fields} onReorder={handleReorder} className="space-y-2">
+          {valueFields.fields.map((field, index) => {
+            const inUse = lockedCodes.has(rows?.[index]?.code ?? '');
+            return (
+              <SortableItem key={field.id} id={field.id}>
+                <div className="flex items-start gap-1.5">
+                  <div className="flex h-9 w-4 items-center justify-center">
+                    <SortableDragHandle />
+                  </div>
+                  <div className="flex-1">
+                    <TextField
+                      name={`values.${index}.value`}
+                      placeholder="e.g. Onion & Garlic"
+                      onChange={(event) => deriveCode(index, event.target.value)}
+                    />
+                  </div>
+                  <div className="w-44">
+                    <TextField name={`values.${index}.code`} placeholder="e.g. onion-garlic" />
+                  </div>
+                  <div className="flex h-9 items-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => valueFields.remove(index)}
+                      disabled={inUse || valueFields.fields.length <= 1}
+                      disabledTip={inUse ? 'Used by a variant' : undefined}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              </SortableItem>
+            );
+          })}
+        </SortableList>
       </div>
 
       <DialogActions>

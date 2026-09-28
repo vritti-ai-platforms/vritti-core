@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/database';
+import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { PosTerminalResponseDto } from './pos-terminal-response.dto';
 
 export class PosTerminalTableResponseDto extends TableResponseDto<PosTerminalResponseDto> {

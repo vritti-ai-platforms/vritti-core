@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Headers, HttpCode, HttpStatus, Logger, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SessionTypeValues } from '@/db/schema';
 import { ApiChangePassword, ApiGetSessions, ApiRevokeAllSessions, ApiRevokeSession } from '../docs/security.docs';
 import { ChangePasswordDto } from '../dto/request/change-password.dto';

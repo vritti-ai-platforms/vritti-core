@@ -1,18 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk/database';
-import { eq, ilike, or } from '@vritti/api-sdk/drizzle-orm';
+import { eq, ilike, or, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
   NotFoundException,
 } from '@vritti/api-sdk/exceptions';
-import { dimensionTemplates } from '@/db/schema';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { dimensionTemplates, dimensionTemplateValues } from '@/db/schema';
 import { DimensionTemplateDto } from '../dto/entity/dimension-template.dto';
 import type { CreateDimensionTemplateDto } from '../dto/request/create-dimension-template.dto';
 import type { UpdateDimensionTemplateDto } from '../dto/request/update-dimension-template.dto';
@@ -53,6 +49,17 @@ export class DimensionTemplatesDomainService {
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
       conditions: [eq(dimensionTemplates.isActive, true)],
+      additionalExpressions: {
+        code: sql`${dimensionTemplates.code}`,
+        description: sql`${dimensionTemplates.description}`,
+        // The outer id must be the qualified TABLE, not ${dimensionTemplates.id} — Drizzle renders a
+        // select-list column of its own FROM table bare, so "id" would bind to the subquery's v
+        values: sql`(
+          SELECT COALESCE(json_agg(json_build_object('code', v.code, 'value', v.value) ORDER BY v.sort_order), '[]'::json)
+          FROM ${dimensionTemplateValues} v
+          WHERE v.template_id = ${dimensionTemplates}.id
+        )`,
+      },
     });
   }
 

@@ -1,7 +1,8 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
-import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import { AgentSignatureGuard } from '@/security/guards/agent-signature.guard';
 import { SelectApiGatewayService } from '../select-api/services/select-api-gateway.service';
 import { GiteaCredentialsService } from '../services/gitea-credentials.service';

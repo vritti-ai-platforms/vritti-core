@@ -4,8 +4,8 @@ import type { CustomerResponseDto } from '@commerce/customers/dto/response/custo
 import type { CustomerTableResponseDto } from '@commerce/customers/dto/response/customer-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class CustomersGatewayService {

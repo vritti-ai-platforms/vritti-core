@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import type { FeatureUnlocks, PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
 import { PLATFORMS } from '@vritti/api-sdk/catalog-resolver';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { generateSigningKeyPair } from '@vritti/api-sdk/signing';
 import type { App, AppSmsOtpConfig, AppType, AppWhatsappOtpConfig } from '@/db/schema';
 import { AppDomainRepository } from '../repositories/app.repository';

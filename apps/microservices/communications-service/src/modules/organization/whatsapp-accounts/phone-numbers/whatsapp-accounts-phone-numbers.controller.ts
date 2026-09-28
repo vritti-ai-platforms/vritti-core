@@ -4,7 +4,7 @@ import { CreateWhatsappPhoneNumberDto } from '@domain/whatsapp-account-phone-num
 import { RequestPhoneVerificationCodeDto } from '@domain/whatsapp-account-phone-numbers/dto/request/request-phone-verification-code.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { WhatsappPhoneNumbersService } from './services/whatsapp-phone-numbers.service';
 
 @Controller()

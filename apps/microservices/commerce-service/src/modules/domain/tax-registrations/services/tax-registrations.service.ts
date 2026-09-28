@@ -1,13 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  type FieldMap,
-  FilterProcessor,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, asc, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { taxRegistrations } from '@/db/schema';
 import { TaxRegistrationDto } from '../dto/entity/tax-registration.dto';
 import type { CreateTaxRegistrationDto } from '../dto/request/create-tax-registration.dto';

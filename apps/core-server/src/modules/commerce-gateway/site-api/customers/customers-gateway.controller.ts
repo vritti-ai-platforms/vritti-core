@@ -5,7 +5,7 @@ import type { CustomerTableResponseDto } from '@commerce/customers/dto/response/
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SessionTypeValues } from '@/db/schema';
 import { CustomersGatewayService } from './services/customers-gateway.service';
 

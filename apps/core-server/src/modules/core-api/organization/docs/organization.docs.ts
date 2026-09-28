@@ -3,7 +3,7 @@ import { CreateOrganizationInternalDto } from '@domain/organization/dto/request/
 import { ReceiveEntitlementInternalDto } from '@domain/organization/dto/request/receive-entitlement-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SetFeatureLocksInternalDto } from '../../structure/dto/request/set-feature-locks-internal.dto';
 import { FeatureLocksResponseDto } from '../../structure/dto/response/feature-locks-response.dto';
 

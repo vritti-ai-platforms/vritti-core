@@ -4,7 +4,7 @@ import { SmsProviderTemplatesDomainService } from '@domain/sms-provider-template
 import { SmsProviderRegistry } from '@domain/sms-providers/services/sms-provider-transports';
 import { SmsProvidersDomainService } from '@domain/sms-providers/services/sms-providers.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 /**
  * Orchestrates the two domains a template touches — the provider row that holds the credentials,

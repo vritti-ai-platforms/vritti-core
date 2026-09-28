@@ -5,7 +5,7 @@ import { UpsertDimensionTemplateValuesDto } from '@commerce/dimension-templates/
 import { DimensionTemplateResponseDto } from '@commerce/dimension-templates/dto/response/dimension-template-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 // Shared by the org, le and site controllers — the three surfaces are identical, and the workspace
 // header decides which templates are reachable, so one set of docs describes all of them.

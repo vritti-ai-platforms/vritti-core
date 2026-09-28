@@ -1,15 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type FieldMap,
-  FilterProcessor,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { customers } from '@/db/schema';
 import { CustomerDto } from '../dto/entity/customer.dto';
 import type { CreateCustomerDto } from '../dto/request/create-customer.dto';

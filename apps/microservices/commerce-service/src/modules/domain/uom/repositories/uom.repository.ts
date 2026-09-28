@@ -70,8 +70,8 @@ export class UomDomainRepository extends PrimaryBaseRepository<typeof uom> {
   }
 
   // Returns up to limit+1 UOMs joined with their base unit symbol (self-join) for keyset pagination.
-  // The keyset `where` predicate + `orderBy` are built by the service; base findKeyset clamps to
-  // MAX_PAGE_SIZE, fetches limit+1, and reports hasMore.
+  // The keyset `where` predicate + `orderBy` are built by the service; base findKeyset fetches
+  // limit+1 and reports hasMore.
   async findKeysetWithBase(options: {
     where?: SQL;
     orderBy: SQL[];

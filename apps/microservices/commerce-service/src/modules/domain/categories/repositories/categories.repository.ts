@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  type FindForSelectConfig,
-  PrimaryBaseRepository,
-  PrimaryDatabaseService,
-  type SelectQueryResult,
-} from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { asc, eq, inArray, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type Category, categories, inventoryItems, offerings, taxClasses } from '@/db/schema';
 
 @Injectable()

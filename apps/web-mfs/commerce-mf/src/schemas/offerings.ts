@@ -93,7 +93,16 @@ export const createDimensionSchema = z.object({
 // link back, so editing the template later never reshapes the offering
 export const createDimensionFromTemplateSchema = z.object({
   templateId: z.string().min(1, 'Select a template'),
+  code: zodCodeField({ max: 50 }),
+  name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
+  description: z.string().max(500, 'Description cannot exceed 500 characters').nullable(),
+  valueCodes: z.array(z.string()).min(1, 'Pick at least one value'),
 });
+
+export interface DimensionTemplateValueOption {
+  code: string;
+  value: string;
+}
 
 export const dimensionValueSchema = z.object({
   code: zodCodeField({ max: 50 }),
@@ -102,6 +111,7 @@ export const dimensionValueSchema = z.object({
 
 export const dimensionValuesSchema = z.object({
   values: z.array(dimensionValueSchema).min(1, 'Add at least one value'),
+  templateId: z.string().nullable().optional(),
 });
 
 export const updateDimensionSchema = z.object({
@@ -263,6 +273,10 @@ export interface CreateDimensionData {
 export interface CreateDimensionFromTemplateData {
   offeringId: string;
   templateId: string;
+  code: string;
+  name: string;
+  description: string | null;
+  values: DimensionTemplateValueOption[];
 }
 
 // One field per dimension, each optional — a variant carries whichever axes apply to it, so leaving

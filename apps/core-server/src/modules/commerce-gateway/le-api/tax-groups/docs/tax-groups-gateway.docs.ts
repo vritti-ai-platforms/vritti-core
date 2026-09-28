@@ -4,7 +4,7 @@ import { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group
 import { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 export function ApiFindForTableTaxGroups() {
   return applyDecorators(

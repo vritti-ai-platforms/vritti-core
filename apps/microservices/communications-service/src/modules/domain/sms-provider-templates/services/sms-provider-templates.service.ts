@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SmsProviderTemplate } from '@/db/schema';
 import { SmsProviderTemplateDto } from '../dto/entity/sms-provider-template.dto';
 import type { AddSmsProviderTemplateDto } from '../dto/request/add-sms-provider-template.dto';

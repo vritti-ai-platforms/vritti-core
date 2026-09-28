@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsString, Matches, MaxLength } from 'class-validator';
 
 // The git namespace IS the org subdomain (lowercase, digits, hyphens, max 40 — Gitea's own name limit).

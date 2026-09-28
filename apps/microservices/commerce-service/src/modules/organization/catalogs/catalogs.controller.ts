@@ -8,13 +8,9 @@ import { CatalogListingsDomainService } from '@domain/catalogs/services/catalog-
 import { CatalogsDomainService } from '@domain/catalogs/services/catalogs.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 
 @Controller()
 export class OrgCatalogsController {

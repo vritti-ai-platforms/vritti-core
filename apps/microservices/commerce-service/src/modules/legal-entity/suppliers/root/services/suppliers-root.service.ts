@@ -5,8 +5,9 @@ import type { CreateSupplierDto } from '@domain/suppliers/dto/request/create-sup
 import { SuppliersDomainRepository } from '@domain/suppliers/repositories/suppliers.repository';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, PrimaryDatabaseService, type SuccessResponseDto } from '@vritti/api-sdk/database';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class SuppliersService {

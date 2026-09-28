@@ -177,7 +177,7 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
         isBalanced: sql<boolean>`${goodsReceiptLines.quantity} = COALESCE((
           SELECT COUNT(*)
           FROM ${goodsReceiptLineItems}
-          WHERE ${goodsReceiptLineItems.goodsReceiptLineId} = ${goodsReceiptLines.id}
+          WHERE ${goodsReceiptLineItems.goodsReceiptLineId} = ${goodsReceiptLines}.id
         ), 0)`,
       })
       .where(eq(goodsReceiptLines.id, lineId));

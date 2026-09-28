@@ -21,15 +21,14 @@ import type {
   InventoryItemSupplierTableResponseDto,
 } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type {
-  CreateResponseDto,
-  FilterCondition,
-  SearchState,
-  SortCondition,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
+import {
+  DataTableStateService,
+  type FilterCondition,
+  type SearchState,
+  type SortCondition,
+} from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class SiteInventoryItemsGatewayService {

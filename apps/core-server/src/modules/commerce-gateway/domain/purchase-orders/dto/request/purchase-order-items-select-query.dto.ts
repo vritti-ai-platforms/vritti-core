@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsOptional, IsUUID } from 'class-validator';
 
 export class PurchaseOrderItemsSelectQueryDto extends SelectOptionsQueryDto {

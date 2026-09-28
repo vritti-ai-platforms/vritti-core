@@ -1,13 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  type FieldMap,
-  FilterProcessor,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,
@@ -16,6 +8,8 @@ import {
   NotFoundException,
 } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type FulfilmentType, FulfilmentTypeValues, type OfferingVariant, offeringVariants } from '@/db/schema';
 import { type OfferingBomLineDto, OfferingVariantDto } from '../dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '../dto/entity/variant-combination.dto';

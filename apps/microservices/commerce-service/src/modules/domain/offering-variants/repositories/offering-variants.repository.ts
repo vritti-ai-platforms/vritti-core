@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  type FindForSelectConfig,
-  MAX_PAGE_SIZE,
-  PrimaryBaseRepository,
-  PrimaryDatabaseService,
-  type SelectQueryResult,
-} from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, getColumns, inArray, notExists, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   type FulfilmentType,
   FulfilmentTypeValues,
@@ -154,15 +149,12 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   }
 
   async findByOffering(offeringId: string): Promise<OfferingVariantWithNames[]> {
-    const { result } = await this.findAllAndCount<OfferingVariantWithNames>({
+    return this.findAllWithSelect<OfferingVariantWithNames>({
       select: this.selection(),
       leftJoins: this.joins(),
       where: eq(offeringVariants.offeringId, offeringId),
       orderBy: [asc(offeringVariants.sortOrder), asc(offeringVariants.sku)],
-      limit: MAX_PAGE_SIZE,
-      offset: 0,
     });
-    return result;
   }
 
   async findByIdWithNames(id: string): Promise<OfferingVariantWithNames | undefined> {

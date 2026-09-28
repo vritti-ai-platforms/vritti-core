@@ -4,7 +4,8 @@ import { UpdateTaxGroupDto } from '@domain/tax-groups/dto/request/update-tax-gro
 import { TaxGroupsDomainService } from '@domain/tax-groups/services/tax-groups.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class TaxGroupsController {

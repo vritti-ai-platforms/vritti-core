@@ -129,7 +129,14 @@ function buildGate(
     const feature = features.find((f) => f.code === featureCode);
     if (!feature) return DENY;
     if (!permissionCode)
-      return grant(workspace, feature.locked, feature.lockReason, feature.unlockPlans, feature.name, feature.missingServices);
+      return grant(
+        workspace,
+        feature.locked,
+        feature.lockReason,
+        feature.unlockPlans,
+        feature.name,
+        feature.missingServices,
+      );
     if (!feature.permissions.includes(permissionCode)) return deny(feature.name);
     if (feature.locked)
       return grant(workspace, true, feature.lockReason, feature.unlockPlans, feature.name, feature.missingServices);

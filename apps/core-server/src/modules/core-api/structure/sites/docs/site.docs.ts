@@ -4,7 +4,7 @@ import { ReorderSitesInternalDto } from '@domain/site/dto/request/reorder-sites-
 import { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
 
 export function ApiCreateSite() {

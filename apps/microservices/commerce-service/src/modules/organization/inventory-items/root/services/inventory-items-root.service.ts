@@ -4,7 +4,7 @@ import type { CreateInventoryItemDto } from '@domain/inventory-items/dto/request
 import type { UpdateInventoryItemDto } from '@domain/inventory-items/dto/request/update-inventory-item.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 // Top-level service for inventory item create/update paths that require
 // cross-domain validation: the assigned category must be a leaf.

@@ -11,7 +11,7 @@ import type { VerifyWhatsappOtpDto } from '@domain/whatsapp-otps/dto/request/ver
 import type { WhatsappOtpStatusDto } from '@domain/whatsapp-otps/dto/request/whatsapp-otp-status.dto';
 import { WhatsappOtpsDomainService } from '@domain/whatsapp-otps/services/whatsapp-otps.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 
 const OTP_TEMPLATE_CATEGORY = 'AUTHENTICATION';
 

@@ -1,13 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import {
-  type FindForSelectConfig,
-  PrimaryBaseRepository,
-  PrimaryDatabaseService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-} from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, ilike, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
+import { type FindForSelectConfig, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   type NewPartyTaxRegistration,
   type Party,
@@ -150,8 +145,8 @@ export class PartiesDomainRepository extends PrimaryBaseRepository<typeof partie
         email: emailComm.value,
         phone: phoneComm.value,
         website: websiteProfile.url,
-        referencedBySupplier: sql<boolean>`exists (select 1 from ${suppliers} where ${suppliers.partyId} = ${parties.id})`,
-        linkedToCompanies: sql<boolean>`exists (select 1 from ${partyRelationships} where ${partyRelationships.childPartyId} = ${parties.id})`,
+        referencedBySupplier: sql<boolean>`exists (select 1 from ${suppliers} where ${suppliers.partyId} = ${parties}.id)`,
+        linkedToCompanies: sql<boolean>`exists (select 1 from ${partyRelationships} where ${partyRelationships.childPartyId} = ${parties}.id)`,
       })
       .from(parties)
       .leftJoinLateral(primaryAddressSelectQuery, sql`true`)

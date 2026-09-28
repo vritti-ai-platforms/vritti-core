@@ -5,7 +5,7 @@ import { SendSmsOtpDto } from '@domain/sms-otps/dto/request/send-sms-otp.dto';
 import { VerifySmsOtpDto } from '@domain/sms-otps/dto/request/verify-sms-otp.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { SmsOtpsService } from './services/sms-otps.service';
 
 @Controller()

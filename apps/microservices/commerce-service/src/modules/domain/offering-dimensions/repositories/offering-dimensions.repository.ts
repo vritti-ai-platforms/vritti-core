@@ -91,10 +91,15 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
 
   // A reachable, active template with its values, for the seed-from-template path. Read here rather
   // than through the templates module — a domain module owns its own cross-table reads.
-  async findTemplateWithValues(
-    templateId: string,
-  ): Promise<
-    { code: string; name: string; description: string | null; values: { code: string; value: string }[] } | undefined
+  async findTemplateWithValues(templateId: string): Promise<
+    | {
+        code: string;
+        name: string;
+        description: string | null;
+        isActive: boolean;
+        values: { code: string; value: string }[];
+      }
+    | undefined
   > {
     const [template] = await this.db
       .select({
@@ -114,7 +119,13 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
       .where(eq(dimensionTemplateValues.templateId, templateId))
       .orderBy(asc(dimensionTemplateValues.sortOrder), asc(dimensionTemplateValues.value));
 
-    return { code: template.code, name: template.name, description: template.description ?? null, values };
+    return {
+      code: template.code,
+      name: template.name,
+      description: template.description ?? null,
+      isActive: template.isActive,
+      values,
+    };
   }
 
   async findValuesByDimension(dimensionId: string): Promise<OfferingDimensionValue[]> {

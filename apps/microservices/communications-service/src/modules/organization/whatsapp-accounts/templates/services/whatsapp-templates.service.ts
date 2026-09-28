@@ -8,7 +8,7 @@ import {
 } from '@domain/whatsapp-account-templates/services/whatsapp-account-templates.service';
 import { WhatsappAccountsDomainService } from '@domain/whatsapp-accounts/services/whatsapp-accounts.service';
 import { Injectable } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 // Resolves the account's Graph credentials and hands them to the templates domain, which owns no
 // account lookup of its own — domain modules never import each other.

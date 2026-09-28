@@ -4,14 +4,10 @@ import type { CreatePosTerminalDto } from '@domain/pos-terminals/dto/request/cre
 import type { UpdatePosTerminalPayloadDto } from '@domain/pos-terminals/dto/request/update-pos-terminal-payload.dto';
 import { PosTerminalsDomainService } from '@domain/pos-terminals/services/pos-terminals.service';
 import { Injectable } from '@nestjs/common';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { LocationRoleValues } from '@/db/schema';
 
 @Injectable()

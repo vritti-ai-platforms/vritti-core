@@ -3,7 +3,7 @@ import { UpdateUserInternalDto } from '@domain/user/dto/request/update-user-inte
 import { UsersTableResponseDto } from '@domain/user/dto/response/users-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { MobileLookupResponseDto } from '../../auth/root/dto/response/mobile-lookup-response.dto';
 
 export function ApiGetOrganizationsByEmail() {

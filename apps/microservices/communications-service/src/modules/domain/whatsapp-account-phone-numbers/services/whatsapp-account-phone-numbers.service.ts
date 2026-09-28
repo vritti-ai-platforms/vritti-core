@@ -1,6 +1,6 @@
 import { MetaGraphHttpService } from '@domain/meta-graph/services/meta-graph-http.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type MetaGraphPhoneNumber, WhatsappPhoneNumberDto } from '../dto/entity/whatsapp-phone-number.dto';
 import {
   type MetaGraphPhoneNumberProfile,

@@ -1,13 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  PrimaryDatabaseService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk/database';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { UomDimensionDto } from '../dto/entity/uom-dimension.dto';
 import type { CreateUomDimensionDto } from '../dto/request/create-uom-dimension.dto';
 import type { UpdateUomDimensionDto } from '../dto/request/update-uom-dimension.dto';

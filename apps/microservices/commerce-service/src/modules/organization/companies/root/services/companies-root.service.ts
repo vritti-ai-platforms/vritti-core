@@ -4,7 +4,8 @@ import type { UpdateCompanyDto } from '@domain/parties/dto/request/update-compan
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { PartyAddressesDomainService } from '@domain/party-addresses/services/party-addresses.service';
 import { Injectable } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PartyTypeValues } from '@/db/schema';
 
 @Injectable()

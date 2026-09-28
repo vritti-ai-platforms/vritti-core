@@ -4,7 +4,7 @@ import { CategoryItemTableResponseDto } from '@commerce/categories/dto/response/
 import { CategoryResponseDto } from '@commerce/categories/dto/response/category-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 export function ApiCreateCategory() {
   return applyDecorators(

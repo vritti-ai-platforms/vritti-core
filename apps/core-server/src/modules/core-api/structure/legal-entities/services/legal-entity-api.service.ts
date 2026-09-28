@@ -5,8 +5,9 @@ import { LegalEntityDomainService } from '@domain/legal-entity/services/legal-en
 import type { AssignmentWithNames } from '@domain/user-role/repositories/user-role-assignment.repository';
 import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import { Injectable } from '@nestjs/common';
-import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import { TaxRegistrationsGatewayService } from '@/modules/commerce-gateway/le-api/tax-registrations/services/tax-registrations-gateway.service';
 import type { OrgStructureSelectQueryDto } from '../../dto/request/org-structure-select-query.dto';
 import type { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';

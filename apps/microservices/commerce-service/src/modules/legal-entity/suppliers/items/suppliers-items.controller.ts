@@ -7,8 +7,9 @@ import { SupplierItemsDomainService } from '@domain/supplier-items/services/supp
 import type { SupplierItemDetailDto, SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SuppliersItemsService } from './services/suppliers-items.service';
 
 @Controller()

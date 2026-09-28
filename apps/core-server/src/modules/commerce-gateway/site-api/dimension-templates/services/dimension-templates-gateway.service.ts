@@ -3,8 +3,8 @@ import type { UpdateDimensionTemplateDto } from '@commerce/dimension-templates/d
 import type { TemplateValueInputDto } from '@commerce/dimension-templates/dto/request/upsert-dimension-template-values.dto';
 import type { DimensionTemplateResponseDto } from '@commerce/dimension-templates/dto/response/dimension-template-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 
 @Injectable()

@@ -26,7 +26,7 @@ import { UomDomainService } from '@domain/uom/services/uom.service';
 import { UomDimensionsDomainService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { PartyTypeValues } from '@/db/schema';
 import { ChannelItemsSelectQueryDto } from './dto/request/channel-items-select-query.dto';
 import { InventoryItemLotsSelectQueryDto } from './dto/request/inventory-item-lots-select-query.dto';

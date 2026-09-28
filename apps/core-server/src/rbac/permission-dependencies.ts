@@ -6,10 +6,10 @@ import {
   findFeatureByCode,
   PLATFORMS,
   type PlatformDenyCodes,
-  type WorkspaceFeatureLocks,
   type SiteType,
   type SnapshotRoleTemplate,
   type VersionSnapshot,
+  type WorkspaceFeatureLocks,
 } from '@vritti/api-sdk/catalog-resolver';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 
@@ -70,7 +70,10 @@ export function normalizeLocks(
 }
 
 // Expands a site lock deny-list so locking a prerequisite also locks its dependents (per feature, per platform)
-export function normalizeLockCascade(featureLocks: WorkspaceFeatureLocks, snapshot: VersionSnapshot): WorkspaceFeatureLocks {
+export function normalizeLockCascade(
+  featureLocks: WorkspaceFeatureLocks,
+  snapshot: VersionSnapshot,
+): WorkspaceFeatureLocks {
   const result: WorkspaceFeatureLocks = {};
 
   for (const [featureCode, platforms] of Object.entries(featureLocks)) {

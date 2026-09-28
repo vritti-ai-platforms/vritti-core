@@ -5,22 +5,20 @@ import {
 } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Injectable } from '@nestjs/common';
 import {
-  type CreateResponseDto,
   CursorCodec,
   type FieldMap,
   FilterProcessor,
   type KeysetOrderBy,
   KeysetProcessor,
-  PrimaryDatabaseService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk/database';
+} from '@vritti/api-sdk/data-table';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import { CurrencyAmountDto, type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   inventoryItems,
   type NewSupplierItemPrice,

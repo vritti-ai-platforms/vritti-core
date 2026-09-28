@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { ScopeType } from '@vritti/api-sdk/catalog-resolver';
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsIn, IsOptional, IsUUID } from 'class-validator';
 
 export class SelectRolesInternalDto extends SelectOptionsQueryDto {

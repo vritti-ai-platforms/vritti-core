@@ -8,8 +8,8 @@ import type { UomResponseDto } from '@commerce/uom/dto/response/uom-response.dto
 import type { UomTableResponseDto } from '@commerce/uom/dto/response/uom-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class UomGatewayService {

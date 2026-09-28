@@ -5,14 +5,10 @@ import type { SmsProviderResponseDto } from '@communications/sms-providers/dto/r
 import type { WhatsappPhoneNumberResponseDto } from '@communications/whatsapp-account-phone-numbers/dto/response/whatsapp-phone-number-response.dto';
 import type { WhatsappTemplateResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import type {
-  CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import type { AppSmsOtpConfig, AppWhatsappOtpConfig } from '@/db/schema';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
 import type { SendSmsOtpResult } from '../../org-api/sms-otps/services/sms-otps-gateway.service';

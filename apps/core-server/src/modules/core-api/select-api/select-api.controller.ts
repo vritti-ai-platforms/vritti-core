@@ -1,7 +1,7 @@
 import { Controller, Get, Logger, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { SessionTypeValues } from '@/db/schema';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
 import { OrgId } from '@/security/decorators';

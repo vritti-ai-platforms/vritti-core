@@ -4,7 +4,7 @@ import { TemplateLibraryPageResponseDto } from '@communications/whatsapp-account
 import { WhatsappTemplateTableResponseDto } from '@communications/whatsapp-account-templates/dto/response/whatsapp-template-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 export function ApiGetWhatsappTemplatesTable() {
   return applyDecorators(

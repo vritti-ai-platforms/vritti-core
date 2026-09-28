@@ -3,7 +3,8 @@ import { AddInventoryItemLocationDto } from '@domain/inventory-item-locations/dt
 import { UpdateInventoryItemLocationDto } from '@domain/inventory-item-locations/dto/request/update-inventory-item-location.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InventoryItemsLocationsService } from './services/inventory-items-locations.service';
 
 @Controller()

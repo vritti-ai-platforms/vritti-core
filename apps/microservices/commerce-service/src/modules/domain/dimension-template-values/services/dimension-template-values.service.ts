@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { UpsertDimensionTemplateValuesDto } from '../dto/request/upsert-dimension-template-values.dto';
 import {
   DimensionTemplateValuesDomainRepository,

@@ -4,8 +4,9 @@ import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lo
 import { StockAdjustmentLotsDomainService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { StockAdjustmentsDomainService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, PrimaryDatabaseService, type SuccessResponseDto } from '@vritti/api-sdk/database';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { InventoryItemLot } from '@/db/schema';
 
 // App-layer orchestrator for stock-adjustment lot writes that need inventory-aggregate awareness.

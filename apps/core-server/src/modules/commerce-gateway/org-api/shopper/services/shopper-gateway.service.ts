@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 /** What the commerce side answers with. Structural — the DTO classes live in the microservice. */
 export interface ResolvedCatalog {

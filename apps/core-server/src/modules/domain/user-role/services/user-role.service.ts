@@ -4,8 +4,8 @@ import { RoleDomainRepository } from '@domain/organization/repositories/role.rep
 import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/common/events/auth-status.events';
 import type { AssignmentType, Role, Site, UserRoleAssignment } from '@/db/schema';
 import { templateAssignableAtSite } from '@/rbac/permission-dependencies';

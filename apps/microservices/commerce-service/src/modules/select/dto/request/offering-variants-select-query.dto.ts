@@ -1,4 +1,4 @@
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsUUID } from 'class-validator';
 
 // Variants are only meaningful within their offering, so the parent is required rather than optional

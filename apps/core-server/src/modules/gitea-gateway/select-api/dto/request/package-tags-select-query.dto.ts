@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsString, Matches, MaxLength } from 'class-validator';
 
 // Container package names are lowercase image paths — letters, digits and the separators `._-/`.

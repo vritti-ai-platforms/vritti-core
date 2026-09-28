@@ -121,13 +121,11 @@ function buildGate(
     const permissionCode = dotIndex === -1 ? null : code.slice(dotIndex + 1);
     const feature = features.find((f) => f.code === featureCode);
     if (!feature) return DENY;
-    if (!permissionCode)
-      return grant(workspace, feature.locked, feature.lockReason, feature.unlockPlans, feature.name);
+    if (!permissionCode) return grant(workspace, feature.locked, feature.lockReason, feature.unlockPlans, feature.name);
     if (!feature.permissions.includes(permissionCode)) return deny(feature.name);
     if (feature.locked) return grant(workspace, true, feature.lockReason, feature.unlockPlans, feature.name);
     const permissionLock = feature.lockedPermissions.find((p) => p.code === permissionCode);
-    if (permissionLock)
-      return grant(workspace, true, permissionLock.reason, permissionLock.unlockPlans, feature.name);
+    if (permissionLock) return grant(workspace, true, permissionLock.reason, permissionLock.unlockPlans, feature.name);
     return grant(workspace, false, null, [], feature.name);
   };
 }

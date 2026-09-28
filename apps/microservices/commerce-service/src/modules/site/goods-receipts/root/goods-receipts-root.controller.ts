@@ -3,8 +3,9 @@ import { CreateGoodsReceiptDto } from '@domain/goods-receipts/dto/request/create
 import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SearchState, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { SearchState, TableViewState } from '@vritti/api-sdk/data-table';
 import { RpcSiteCurrencyCode, RpcSiteId } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsPublishService } from './services/goods-receipts-publish.service';
 import { GoodsReceiptsService } from './services/goods-receipts-root.service';
 

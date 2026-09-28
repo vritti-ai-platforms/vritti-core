@@ -4,9 +4,10 @@ import { StockAdjustmentLineItemsDomainService } from '@domain/stock-adjustment-
 import { StockAdjustmentLinesDomainRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SerialStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 
 @Injectable()

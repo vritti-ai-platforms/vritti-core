@@ -2,7 +2,7 @@ import { CreateRoleInternalDto } from '@domain/organization/dto/request/create-r
 import { UpdateRoleInternalDto } from '@domain/organization/dto/request/update-role-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { RoleSelectResponseDto } from '../dto/response/role-select-response.dto';
 
 export function ApiListRoles() {

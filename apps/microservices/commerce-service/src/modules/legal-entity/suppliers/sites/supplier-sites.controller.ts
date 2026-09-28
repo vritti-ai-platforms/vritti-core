@@ -4,7 +4,8 @@ import { UpdateSupplierSiteDto } from '@domain/supplier-sites/dto/request/update
 import { SupplierSitesDomainService } from '@domain/supplier-sites/services/supplier-sites.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class SupplierSitesController {

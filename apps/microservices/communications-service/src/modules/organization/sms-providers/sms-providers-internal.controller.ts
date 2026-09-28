@@ -4,7 +4,7 @@ import { UpdateSmsProviderDto } from '@domain/sms-providers/dto/request/update-s
 import { SmsProvidersDomainService } from '@domain/sms-providers/services/sms-providers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 /**
  * Platform provider management — reached only through core's cloud-signed internal controller.

@@ -4,7 +4,7 @@ import { UpdateUomDimensionDto } from '@domain/uom-dimensions/dto/request/update
 import { UomDimensionsDomainService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CreateResponseDto, type SuccessResponseDto } from '@vritti/api-sdk/database';
+import { CreateResponseDto, type SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class UomDimensionsController {

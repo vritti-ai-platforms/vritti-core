@@ -14,8 +14,8 @@ import { UomSelectQueryDto } from '@commerce/uom/dto/request/uom-select-query.dt
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { SessionTypeValues } from '@/db/schema';
 import {
   ApiCatalogsSelect,

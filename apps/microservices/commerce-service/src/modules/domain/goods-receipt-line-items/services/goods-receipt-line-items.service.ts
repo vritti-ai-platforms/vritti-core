@@ -1,7 +1,7 @@
 import { GoodsReceiptLinesDomainRepository } from '@domain/goods-receipt-lines/repositories/goods-receipt-lines.repository';
 import { GoodsReceiptLinesDomainService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,
@@ -9,6 +9,7 @@ import {
   NotFoundException,
   ValidationException,
 } from '@vritti/api-sdk/exceptions';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptStatusValues, goodsReceiptLineItems, InventoryTrackingValues } from '@/db/schema';
 import { GoodsReceiptLineItemDto } from '../dto/entity/goods-receipt-line-item.dto';
 import { GoodsReceiptLineItemsDomainRepository } from '../repositories/goods-receipt-line-items.repository';

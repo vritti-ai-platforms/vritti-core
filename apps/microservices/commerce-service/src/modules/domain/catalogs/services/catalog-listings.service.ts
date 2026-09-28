@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { catalogListings, offeringVariants } from '@/db/schema';
 import { CatalogListingDto, CatalogListingMrpOptionDto } from '../dto/entity/catalog-listing.dto';
 import type { AddCatalogListingDto } from '../dto/request/add-catalog-listing.dto';

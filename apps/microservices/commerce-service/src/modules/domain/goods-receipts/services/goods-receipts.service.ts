@@ -1,20 +1,18 @@
 import { PurchaseOrdersDomainRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  type CreateResponseDto,
   CursorCodec,
   type FieldMap,
   FilterProcessor,
   type KeysetOrderBy,
   KeysetProcessor,
   keysetSignature,
-  MAX_PAGE_SIZE,
   type SearchState,
-  type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk/database';
+} from '@vritti/api-sdk/data-table';
 import { and, asc, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { PurchaseOrder } from '@/db/schema';
 import { ExchangeRateTypeValues, GoodsReceiptStatusValues, goodsReceipts, parties, purchaseOrders } from '@/db/schema';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
@@ -133,7 +131,7 @@ export class GoodsReceiptsDomainService {
       : undefined;
     const where = and(searchWhere, cursorWhere);
 
-    const limit = Math.min(query.limit ?? 20, MAX_PAGE_SIZE);
+    const limit = query.limit ?? 20;
     const { rows, hasMore } = await this.repository.findKeysetForFeed({ where: where || undefined, orderBy, limit });
 
     const edges = rows.map((row) => ({

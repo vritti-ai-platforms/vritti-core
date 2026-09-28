@@ -259,7 +259,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         partyName: parties.displayName,
         channelId: carts.channelId,
         checkoutStartedAt: carts.checkoutStartedAt,
-        itemCount: sql<number>`(select count(*) from ${cartItems} where ${cartItems.cartId} = ${carts.id})`,
+        itemCount: sql<number>`(select count(*) from ${cartItems} where ${cartItems.cartId} = ${carts}.id)`,
         createdAt: carts.createdAt,
         updatedAt: carts.updatedAt,
       },
@@ -283,7 +283,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         partyName: parties.displayName,
         channelId: carts.channelId,
         checkoutStartedAt: carts.checkoutStartedAt,
-        itemCount: sql<number>`(select count(*) from ${cartItems} where ${cartItems.cartId} = ${carts.id})`,
+        itemCount: sql<number>`(select count(*) from ${cartItems} where ${cartItems.cartId} = ${carts}.id)`,
         createdAt: carts.createdAt,
         updatedAt: carts.updatedAt,
       })

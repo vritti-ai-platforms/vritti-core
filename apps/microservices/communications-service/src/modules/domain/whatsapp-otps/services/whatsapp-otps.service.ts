@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { hashToken } from '@vritti/api-sdk/auth';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { whatsappOtps } from '@/db/schema';
 import { WhatsappOtpDto } from '../dto/entity/whatsapp-otp.dto';

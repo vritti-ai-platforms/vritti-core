@@ -4,7 +4,8 @@ import { AddGoodsReceiptLineDto } from '@domain/goods-receipts/dto/request/add-g
 import { UpdateGoodsReceiptLineDto } from '@domain/goods-receipts/dto/request/update-goods-receipt-line.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsLinesService } from './services/goods-receipts-lines.service';
 
 @Controller()

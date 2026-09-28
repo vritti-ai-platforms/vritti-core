@@ -1,7 +1,7 @@
 import { Controller, Get, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { ORG_ORGANIZATION } from '@vritti/gitea-permissions/organization';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';

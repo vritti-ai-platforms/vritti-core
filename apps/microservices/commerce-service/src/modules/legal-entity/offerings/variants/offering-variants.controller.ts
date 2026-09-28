@@ -13,7 +13,8 @@ import { UpdateVariantDto } from '@domain/offering-variants/dto/request/update-v
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class LeOfferingVariantsController {

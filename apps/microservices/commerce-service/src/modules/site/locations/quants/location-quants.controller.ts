@@ -3,7 +3,7 @@ import type { LocationItemQuantDto } from '@domain/inventory-item-quants/dto/ent
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class LocationQuantsController {

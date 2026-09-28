@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { CreateResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { ServiceTypeValues } from '@/db/schema';
 import { OrganizationDomainService } from '../../../domain/organization/services/organization.service';
 import { GiteaHttpService } from '../../services/gitea-http.service';

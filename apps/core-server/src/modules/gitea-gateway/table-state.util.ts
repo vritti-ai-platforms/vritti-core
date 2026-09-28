@@ -1,4 +1,4 @@
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 
 // Gitea caps any page at 50; the DataTable's largest page size is also 50, so this only guards a
 // hand-crafted state

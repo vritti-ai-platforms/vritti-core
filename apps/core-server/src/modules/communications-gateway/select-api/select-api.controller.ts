@@ -1,8 +1,8 @@
 import { Controller, Get, Logger, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { ORG_SMS_PROVIDERS } from '@vritti/communications-permissions/sms-providers';
 import { ORG_WHATSAPP_ACCOUNTS } from '@vritti/communications-permissions/whatsapp-accounts';
 import { SessionTypeValues } from '@/db/schema';

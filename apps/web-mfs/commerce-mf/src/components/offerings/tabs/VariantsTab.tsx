@@ -245,7 +245,9 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     serverState: response,
     slug: tableSlug,
     label: 'variant',
-    enableRowSelection: true,
+    // Variants are owned through their offering, not individually, so an inherited offering makes the whole
+    // selection meaningless rather than some rows of it
+    enableRowSelection: offering.canEdit,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: tableKey }),

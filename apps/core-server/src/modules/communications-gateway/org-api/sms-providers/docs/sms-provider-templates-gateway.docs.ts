@@ -3,7 +3,7 @@ import { SmsProviderTemplateResponseDto } from '@communications/sms-provider-tem
 import { SmsProviderTemplateTableResponseDto } from '@communications/sms-provider-templates/dto/response/sms-provider-template-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 export function ApiGetSmsProviderTemplates() {
   return applyDecorators(

@@ -140,7 +140,7 @@ const graphqlBaseOptions = {
       driver: ApolloDriver,
       useFactory: () => ({
         ...graphqlBaseOptions,
-        include: [CommerceGatewayModule, StructureApiModule, AuthApiModule, AccountModule],
+        include: [CommerceGatewayModule, CoreSelectApiModule, StructureApiModule, AuthApiModule, AccountModule],
         autoSchemaFile: join(process.cwd(), 'src/schema.mobile.gql'),
         path: '/mobile-graphql',
         introspection: process.env.NODE_ENV !== 'production',

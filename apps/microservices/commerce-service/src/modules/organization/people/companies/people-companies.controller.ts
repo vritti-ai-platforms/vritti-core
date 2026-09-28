@@ -2,7 +2,7 @@ import type { PersonCompanyDto } from '@domain/party-relationships/dto/entity/pe
 import { PartyRelationshipsDomainService } from '@domain/party-relationships/services/party-relationships.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class PeopleCompaniesController {

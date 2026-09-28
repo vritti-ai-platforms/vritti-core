@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { SelectOptionsQueryDto, SelectQueryOption, SelectQueryResult } from '@vritti/api-sdk/database';
+import type { SelectOptionsQueryDto, SelectQueryOption, SelectQueryResult } from '@vritti/api-sdk/select';
 import { ServiceTypeValues } from '@/db/schema';
 import { OrganizationDomainService } from '../../../domain/organization/services/organization.service';
 import { OrganizationGatewayService } from '../../organization/services/organization-gateway.service';

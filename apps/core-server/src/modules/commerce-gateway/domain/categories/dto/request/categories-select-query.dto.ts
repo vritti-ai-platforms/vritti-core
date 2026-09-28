@@ -1,4 +1,4 @@
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsIn, IsOptional } from 'class-validator';
 
 export class CategoriesSelectQueryDto extends SelectOptionsQueryDto {

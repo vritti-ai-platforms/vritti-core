@@ -3,7 +3,7 @@ import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
 import { Body, Controller, HttpCode, HttpStatus, Logger, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { ApiReceiveCatalog } from '../docs/catalog.docs';
 
 @ApiTags('Catalog')

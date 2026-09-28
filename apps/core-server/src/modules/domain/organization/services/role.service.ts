@@ -2,14 +2,10 @@ import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
 import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import type { FeatureUnlocks, ScopeType, SiteType, VersionSnapshot } from '@vritti/api-sdk/catalog-resolver';
-import {
-  type CreateResponseDto,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  SuccessResponseDto,
-} from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import { type CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import type { Role } from '@/db/schema';
 import { templateAssignableAtSite, validateGrantDependencies } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';

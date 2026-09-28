@@ -18,8 +18,8 @@ import {
   type ScopeType,
   SERVICE_CODES,
   type ServiceCode,
-  type WorkspaceFeatureLocks,
   type VersionSnapshot,
+  type WorkspaceFeatureLocks,
 } from '@vritti/api-sdk/catalog-resolver';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 

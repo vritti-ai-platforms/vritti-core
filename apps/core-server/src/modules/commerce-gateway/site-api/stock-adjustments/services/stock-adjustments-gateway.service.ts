@@ -19,9 +19,9 @@ import type { StockAdjustmentTableResponseDto } from '@commerce/stock-adjustment
 import type { StockAdjustmentTreeNodeResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-tree-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class StockAdjustmentsGatewayService {

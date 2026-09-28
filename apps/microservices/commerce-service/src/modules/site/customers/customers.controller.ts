@@ -4,7 +4,8 @@ import { UpdateCustomerDto } from '@domain/customers/dto/request/update-customer
 import { CustomersDomainService } from '@domain/customers/services/customers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class CustomersController {

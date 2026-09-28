@@ -4,8 +4,9 @@ import type { UpdateInventoryItemUomConversionDto } from '@domain/inventory-item
 import { InventoryItemUomConversionsDomainService } from '@domain/inventory-item-uom-conversions/services/inventory-item-uom-conversions.service';
 import { UomDomainRepository } from '@domain/uom/repositories/uom.repository';
 import { Injectable } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
 export class InventoryItemsUomConversionsService {

@@ -1,4 +1,4 @@
-import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class LocationsSelectQueryDto extends SelectOptionsQueryDto {

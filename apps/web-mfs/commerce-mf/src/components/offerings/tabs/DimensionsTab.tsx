@@ -101,7 +101,7 @@ export const DimensionsTab: React.FC<DimensionsTabProps> = ({
         handle={fromTemplateDialog}
         icon={SwatchBook}
         title="Add Dimension from Template"
-        description="The template's code, name and values are copied onto this offering."
+        description="Values are copied onto this offering, so editing the template later will not reshape it."
         content={(close) => (
           <AddDimensionFromTemplateDialog
             offeringId={offering.id}

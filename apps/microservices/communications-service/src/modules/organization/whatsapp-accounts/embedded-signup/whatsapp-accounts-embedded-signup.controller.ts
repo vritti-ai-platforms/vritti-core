@@ -2,7 +2,7 @@ import { WhatsappAccountDto } from '@domain/whatsapp-accounts/dto/entity/whatsap
 import { ConnectEmbeddedSignupDto } from '@domain/whatsapp-embedded-signup/dto/request/connect-embedded-signup.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { WhatsappEmbeddedSignupService } from './services/whatsapp-embedded-signup.service';
 
 @Controller()

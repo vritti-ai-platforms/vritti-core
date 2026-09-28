@@ -5,7 +5,7 @@ import type { BulkSetVariantsStatusDto } from '@commerce/offerings/dto/request/b
 import type { BulkSetVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-set-variants-tax-class.dto';
 import type { CreateOfferingDto } from '@commerce/offerings/dto/request/create-offering.dto';
 import type { CreateOfferingDimensionDto } from '@commerce/offerings/dto/request/create-offering-dimension.dto';
-import type { CreateOfferingDimensionFromTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-from-template.dto';
+import type { CreateOfferingDimensionWithValuesAndTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-with-values-and-template.dto';
 import type { CreateVariantDto } from '@commerce/offerings/dto/request/create-variant.dto';
 import type { GenerateVariantsDto } from '@commerce/offerings/dto/request/generate-variants.dto';
 import type { SetFulfilmentDto } from '@commerce/offerings/dto/request/set-fulfilment.dto';
@@ -21,9 +21,9 @@ import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/respons
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 import type { PreviewCombinationsDto } from '../../../domain/offerings/dto/request/preview-combinations.dto';
 import type { VariantCombinationsResponseDto } from '../../../domain/offerings/dto/response/variant-combinations-response.dto';
@@ -172,12 +172,12 @@ export class LeOfferingsGatewayService {
   }
 
   // The template supplies code, name and values — the microservice copies them
-  async createDimensionFromTemplate(
+  async createDimensionWithValuesAndTemplate(
     offeringId: string,
-    dto: CreateOfferingDimensionFromTemplateDto,
+    dto: CreateOfferingDimensionWithValuesAndTemplateDto,
   ): Promise<CreateResponseDto<OfferingDimensionResponseDto>> {
-    this.logger.log(`le.offerings.dimensions.createFromTemplate — templateId: ${dto.templateId}`);
-    return this.nats.send('commerce', 'le.offerings.dimensions.createFromTemplate', { offeringId, ...dto });
+    this.logger.log(`le.offerings.dimensions.createWithValuesAndTemplate — ${dto.code}, ${dto.values.length} values`);
+    return this.nats.send('commerce', 'le.offerings.dimensions.createWithValuesAndTemplate', { offeringId, ...dto });
   }
 
   async reorderDimensions(offeringId: string, dimensionIds: string[]): Promise<SuccessResponseDto> {

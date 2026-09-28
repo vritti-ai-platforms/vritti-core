@@ -135,7 +135,7 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
           AND (${stockAdjustments.type} <> 'OPENING_STOCK' OR ${stockAdjustments.unitCost} IS NOT NULL)
           AND NOT EXISTS(
             SELECT 1 FROM ${stockAdjustmentLots}
-            WHERE ${stockAdjustmentLots.stockAdjustmentId} = ${stockAdjustments.id}
+            WHERE ${stockAdjustmentLots.stockAdjustmentId} = ${stockAdjustments}.id
             AND NOT EXISTS(
               SELECT 1 FROM ${stockAdjustmentLines}
               WHERE ${stockAdjustmentLines.stockAdjustmentLotId} = ${stockAdjustmentLots.id}

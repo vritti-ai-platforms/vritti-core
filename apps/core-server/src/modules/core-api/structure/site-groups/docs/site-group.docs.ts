@@ -5,7 +5,7 @@ import { ReparentSiteGroupInternalDto } from '@domain/site-group/dto/request/rep
 import { UpdateSiteGroupInternalDto } from '@domain/site-group/dto/request/update-site-group-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
 import { FeatureLocksResponseDto } from '../../dto/response/feature-locks-response.dto';
 import { OrgStructureSelectResponseDto } from '../../dto/response/org-structure-select-response.dto';

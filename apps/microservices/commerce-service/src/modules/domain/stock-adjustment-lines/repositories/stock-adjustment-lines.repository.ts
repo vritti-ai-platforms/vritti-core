@@ -183,7 +183,7 @@ export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<
       .set({
         isBalanced: sql`(
           SELECT COUNT(*) FROM ${stockAdjustmentLineItems}
-          WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines.id}
+          WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines}.id
         ) = ${stockAdjustmentLines.uomQty}`,
       })
       .where(eq(stockAdjustmentLines.id, lineId));

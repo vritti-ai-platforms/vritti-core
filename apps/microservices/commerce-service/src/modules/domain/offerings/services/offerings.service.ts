@@ -1,16 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  type FieldMap,
-  FilterProcessor,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk/database';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type FulfilmentType, FulfilmentTypeValues, offerings } from '@/db/schema';
 import { OfferingDto, type OfferingTableRowDto } from '../dto/entity/offering.dto';
 import type { BulkSetOfferingStatusDto } from '../dto/request/bulk-set-offering-status.dto';
@@ -134,7 +128,6 @@ export class OfferingsDomainService {
     return {
       success: true,
       message: `"${entity.name}" created. Add its dimensions, then generate variants.`,
-      // A just-created offering has no dimensions, variants or overrides yet — stated rather than defaulted
       data: OfferingDto.from(entity, {
         dimensionCount: 0,
         variantCount: 0,

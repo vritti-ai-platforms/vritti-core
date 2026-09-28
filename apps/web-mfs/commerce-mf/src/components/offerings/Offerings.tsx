@@ -13,7 +13,6 @@ import {
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { buildSlug } from '@vritti/quantum-ui/slug';
@@ -120,7 +119,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
     slug: binding.tableSlug,
     label: 'offering',
     serverState: response,
-    enableRowSelection: true,
+    enableRowSelection: (row) => row.original.canMarkActive,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: binding.tableKey }),
@@ -137,45 +136,40 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
         table={table}
         isLoading={isLoading}
         permission={PERMISSIONS.view}
-        selectActions={(rows) => {
-          const blocked = rows.filter((row) => !row.original.canMarkActive).length;
-          return (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                permission={PERMISSIONS.toggle}
-                startAdornment={<CircleCheck className="size-4" />}
-                isLoading={bulkSetStatusMutation.isPending}
-                disabled={blocked > 0}
-                disabledTip={`${pluralize('offering', blocked, true)} in this selection cannot be made active yet.`}
-                onClick={() =>
-                  handleBulkSetStatus(
-                    rows.map((row) => row.original.id),
-                    true,
-                  )
-                }
-              >
-                Mark Active
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                permission={PERMISSIONS.toggle}
-                startAdornment={<CircleSlash className="size-4" />}
-                isLoading={bulkSetStatusMutation.isPending}
-                onClick={() =>
-                  handleBulkSetStatus(
-                    rows.map((row) => row.original.id),
-                    false,
-                  )
-                }
-              >
-                Mark Inactive
-              </Button>
-            </>
-          );
-        }}
+        selectActions={(rows) => (
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              permission={PERMISSIONS.toggle}
+              startAdornment={<CircleCheck className="size-4" />}
+              isLoading={bulkSetStatusMutation.isPending}
+              onClick={() =>
+                handleBulkSetStatus(
+                  rows.map((row) => row.original.id),
+                  true,
+                )
+              }
+            >
+              Mark Active
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              permission={PERMISSIONS.toggle}
+              startAdornment={<CircleSlash className="size-4" />}
+              isLoading={bulkSetStatusMutation.isPending}
+              onClick={() =>
+                handleBulkSetStatus(
+                  rows.map((row) => row.original.id),
+                  false,
+                )
+              }
+            >
+              Mark Inactive
+            </Button>
+          </>
+        )}
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },

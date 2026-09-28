@@ -5,8 +5,8 @@ import { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site-inte
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OrgId } from '@/security/decorators/org-id.decorator';
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';
 import {

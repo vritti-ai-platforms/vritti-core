@@ -2,7 +2,7 @@ import { UpsertDimensionTemplateValuesDto } from '@domain/dimension-template-val
 import { DimensionTemplateValuesDomainService } from '@domain/dimension-template-values/services/dimension-template-values.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
 export class LeDimensionTemplateValuesController {

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OrganizationGatewayService } from '../../organization/services/organization-gateway.service';
 import { GiteaHttpService } from '../../services/gitea-http.service';
 import { toGiteaFilters, toGiteaPaging } from '../../table-state.util';

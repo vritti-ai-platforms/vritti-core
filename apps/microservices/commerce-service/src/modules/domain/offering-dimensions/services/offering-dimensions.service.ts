@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import {
   BadRequestException,
   ConflictException,
@@ -7,9 +6,10 @@ import {
   NotFoundException,
 } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OfferingDimensionDto } from '../dto/entity/offering-dimension.dto';
 import type { CreateOfferingDimensionDto } from '../dto/request/create-offering-dimension.dto';
-import type { CreateOfferingDimensionFromTemplateDto } from '../dto/request/create-offering-dimension-from-template.dto';
+import type { CreateOfferingDimensionWithValuesAndTemplateDto } from '../dto/request/create-offering-dimension-with-values-and-template.dto';
 import type { UpdateOfferingDimensionDto } from '../dto/request/update-offering-dimension.dto';
 import type { UpsertOfferingDimensionValuesDto } from '../dto/request/upsert-offering-dimension-values.dto';
 import { OfferingDimensionsDomainRepository } from '../repositories/offering-dimensions.repository';
@@ -54,36 +54,26 @@ export class OfferingDimensionsDomainService {
     };
   }
 
-  // Seeds an axis from a template in one step: the template's code, name and values are COPIED onto
-  // the offering and the link is not kept. The template is a starting point, not an owner — editing
-  // it later never reshapes an offering, and the copy is free to diverge.
-  async createFromTemplate(
-    data: CreateOfferingDimensionFromTemplateDto,
+  // Creates an axis and the values the caller chose, in one transaction
+  async createWithValuesAndTemplate(
+    data: CreateOfferingDimensionWithValuesAndTemplateDto,
   ): Promise<CreateResponseDto<OfferingDimensionDto>> {
     const offering = await this.requireOwnedOffering(data.offeringId);
-    const template = await this.repository.findTemplateWithValues(data.templateId);
-    if (!template) throw new NotFoundException('Dimension template not found or out of reach.');
-    if (template.values.length === 0) {
-      throw new BadRequestException({
-        label: 'Template Has No Values',
-        detail: `"${template.name}" has no values yet, so there is nothing to copy. Add values to the template first.`,
-        errors: [{ field: 'templateId', message: 'Template has no values' }],
-      });
-    }
-    this.assertDistinctValueCodes(template.values);
+    this.assertDistinctValueCodes(data.values);
+    await this.assertValuesFromTemplate(data.templateId, data.values);
 
     const result = await this.repository.transaction(async () => {
       const sortOrder = await this.repository.nextSortOrder(data.offeringId);
       const dimension = await this.repository.create({
         offeringId: data.offeringId,
-        code: template.code,
-        name: template.name,
-        description: template.description,
+        code: data.code,
+        name: data.name,
+        description: data.description ?? null,
         sortOrder,
       });
 
       const values = await this.repository.createValues(
-        template.values.map((value, index) => ({
+        data.values.map((value, index) => ({
           dimensionId: dimension.id,
           code: value.code,
           value: value.value,
@@ -94,15 +84,38 @@ export class OfferingDimensionsDomainService {
       return { dimension, values };
     });
 
-    this.logger.log(`Seeded dimension ${template.code} on offering ${offering.code} from template`);
+    this.logger.log(`Added dimension ${data.code} with ${result.values.length} values to offering ${offering.code}`);
     return {
       success: true,
-      message: `"${template.name}" added with ${pluralize('value', result.values.length, true)}.`,
+      message: `"${data.name}" added with ${pluralize('value', result.values.length, true)}.`,
       data: OfferingDimensionDto.from(
         { ...result.dimension, canDelete: true },
         result.values.map((value) => ({ ...value, canDelete: true })),
       ),
     };
+  }
+
+  // Every submitted value must be one the template offers, so a picked subset cannot become invented values
+  private async assertValuesFromTemplate(templateId: string, values: { code: string }[]): Promise<void> {
+    const template = await this.repository.findTemplateWithValues(templateId);
+    if (!template) throw new NotFoundException('Dimension template not found or out of reach.');
+    if (!template.isActive) {
+      throw new BadRequestException({
+        label: 'Template Inactive',
+        detail: `"${template.name}" is inactive, so its values cannot be copied. Activate it first.`,
+        errors: [{ field: 'templateId', message: 'Template is inactive' }],
+      });
+    }
+
+    const offered = new Set(template.values.map((value) => value.code));
+    const unknown = values.filter((value) => !offered.has(value.code));
+    if (unknown.length > 0) {
+      throw new BadRequestException({
+        label: 'Values Not In Template',
+        detail: `${pluralize('value', unknown.length, true)} ${unknown.length === 1 ? 'is' : 'are'} not offered by "${template.name}". Pick from its own values.`,
+        errors: [{ field: 'values', message: 'Values not in template' }],
+      });
+    }
   }
 
   // Replaces the dimension's value set. Values a variant already carries cannot be dropped — the

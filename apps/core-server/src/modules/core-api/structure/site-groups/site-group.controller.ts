@@ -19,9 +19,9 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
-import type { SelectQueryResult } from '@vritti/api-sdk/database';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import { OrgId } from '@/security/decorators/org-id.decorator';
 import { OrgStructureSelectQueryDto } from '../dto/request/org-structure-select-query.dto';
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';

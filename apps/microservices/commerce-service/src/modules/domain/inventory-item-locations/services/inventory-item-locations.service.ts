@@ -1,16 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  type CreateResponseDto,
   CursorCodec,
   type FieldMap,
   FilterProcessor,
   type KeysetOrderBy,
   KeysetProcessor,
-  type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk/database';
+} from '@vritti/api-sdk/data-table';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { inventoryItemLocations, locations } from '@/db/schema';
 import { InventoryItemLocationDto } from '../dto/entity/inventory-item-location.dto';
 import { InventoryItemLocationsDomainRepository } from '../repositories/inventory-item-locations.repository';

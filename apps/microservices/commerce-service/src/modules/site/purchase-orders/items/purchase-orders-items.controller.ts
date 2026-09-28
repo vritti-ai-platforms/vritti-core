@@ -4,7 +4,8 @@ import { UpdatePurchaseOrderItemDto } from '@domain/purchase-order-items/dto/req
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PurchaseOrdersItemsService } from './services/purchase-orders-items.service';
 
 @Controller()

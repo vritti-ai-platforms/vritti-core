@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { TableViewState } from '@vritti/api-sdk/database';
-import { TableResponseDto } from '@vritti/api-sdk/database';
+import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { StockTransferResponseDto } from './stock-transfer-response.dto';
 
 export class StockTransferTableResponseDto extends TableResponseDto<StockTransferResponseDto> {

@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  type CreateResponseDto,
   CursorCodec,
   type FieldMap,
   type FilterCondition,
@@ -8,17 +7,15 @@ import {
   type KeysetOrderBy,
   KeysetProcessor,
   keysetSignature,
-  MAX_PAGE_SIZE,
   type SearchState,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
   type SortCondition,
-  type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk/database';
+} from '@vritti/api-sdk/data-table';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { inventoryItems } from '@/db/schema';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
@@ -145,8 +142,7 @@ export class InventoryItemsDomainService {
       : undefined;
     const where = and(baseWhere, cursorWhere);
 
-    // Clamp defensively in addition to the repository clamp (findKeyset) — one source of truth in MAX_PAGE_SIZE.
-    const limit = Math.min(query.limit ?? 20, MAX_PAGE_SIZE);
+    const limit = query.limit ?? 20;
     const { rows, hasMore } = await this.repository.findKeysetWithUom({
       where: where || undefined,
       orderBy,

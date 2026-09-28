@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  type FindForSelectConfig,
-  PrimaryBaseRepository,
-  PrimaryDatabaseService,
-  type SelectQueryResult,
-} from '@vritti/api-sdk/database';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { locations, type PosTerminal, posTerminals } from '@/db/schema';
 
 @Injectable()

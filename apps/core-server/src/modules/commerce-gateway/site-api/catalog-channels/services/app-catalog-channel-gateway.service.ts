@@ -10,8 +10,8 @@ import type {
 import { AppDomainRepository } from '@domain/app/repositories/app.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 const TABLE_SLUG = 'commerce-site-app-channels';
 
