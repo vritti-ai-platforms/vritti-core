@@ -130,11 +130,6 @@ export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<t
     } as StockAdjustmentLotDetailRow;
   }
 
-  async findById(lotId: string): Promise<StockAdjustmentLot | undefined> {
-    const rows = await this.db.select().from(stockAdjustmentLots).where(eq(stockAdjustmentLots.id, lotId)).limit(1);
-    return rows[0] as StockAdjustmentLot | undefined;
-  }
-
   async findByAdjustmentIdAndNumber(adjustmentId: string, lotNumber: string): Promise<StockAdjustmentLot | undefined> {
     const rows = await this.db
       .select()

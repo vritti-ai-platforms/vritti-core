@@ -121,7 +121,7 @@ export class CatalogsDomainService {
   }
 
   private async requireCatalog(id: string) {
-    const row = await this.repository.findById(id);
+    const row = await this.repository.findByIdWithCounts(id);
     if (!row) throw new NotFoundException('Catalog not found.');
     return row;
   }

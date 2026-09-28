@@ -15,6 +15,7 @@ import {
 } from '@vritti/api-sdk/database';
 import { and, asc, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
+import type { PurchaseOrder } from '@/db/schema';
 import { ExchangeRateTypeValues, GoodsReceiptStatusValues, goodsReceipts, parties, purchaseOrders } from '@/db/schema';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
 import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
@@ -295,7 +296,7 @@ export class GoodsReceiptsDomainService {
   // Resolves the supplier→site exchange rate to snapshot on the new GR
   private resolveExchangeRate(
     supplierCurrencyCode: string,
-    po: Awaited<ReturnType<PurchaseOrdersDomainRepository['findById']>> | null,
+    po: PurchaseOrder | null | undefined,
     userExchangeRate: number | undefined,
     siteCurrencyCode: string,
   ): number {

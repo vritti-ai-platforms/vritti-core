@@ -21,7 +21,7 @@ import { CircleCheck, CircleSlash, Eye, Plus, ShoppingBag } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { OfferingData } from '@/schemas/offerings';
+import type { OfferingTableRow } from '@/schemas/offerings';
 import { FULFILMENT_TYPE_META } from '@/schemas/offerings';
 import type { OfferingsBinding } from './bindings';
 import { AddOfferingDialog } from './forms/AddOfferingDialog';
@@ -39,9 +39,9 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
   const setStatusMutation = binding.useSetOfferingStatus();
   const bulkSetStatusMutation = binding.useBulkSetOfferingsStatus();
 
-  const columns = useMemo<ColumnDef<OfferingData>[]>(
+  const columns = useMemo<ColumnDef<OfferingTableRow>[]>(
     () => [
-      getSelectionColumn<OfferingData>(),
+      getSelectionColumn<OfferingTableRow>(),
       {
         accessorKey: 'code',
         header: 'Code',

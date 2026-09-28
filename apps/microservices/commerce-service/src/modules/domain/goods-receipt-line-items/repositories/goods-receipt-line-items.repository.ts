@@ -43,11 +43,6 @@ export class GoodsReceiptLineItemsDomainRepository extends PrimaryBaseRepository
     return rows as GoodsReceiptLineItem[];
   }
 
-  async findById(id: string): Promise<GoodsReceiptLineItem | undefined> {
-    const rows = await this.db.select().from(goodsReceiptLineItems).where(eq(goodsReceiptLineItems.id, id));
-    return rows[0] as GoodsReceiptLineItem | undefined;
-  }
-
   async findForTable(
     lineId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },

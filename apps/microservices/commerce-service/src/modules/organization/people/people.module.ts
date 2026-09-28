@@ -1,4 +1,3 @@
-import { WishlistDomainModule } from '@domain/wishlist/wishlist.module';
 import { PartiesDomainModule } from '@domain/parties/parties.module';
 import { PartyAddressesDomainModule } from '@domain/party-addresses/party-addresses.module';
 import { PartyBankAccountsDomainModule } from '@domain/party-bank-accounts/party-bank-accounts.module';
@@ -7,6 +6,7 @@ import { PartyIdentifiersDomainModule } from '@domain/party-identifiers/party-id
 import { PartyLicensesDomainModule } from '@domain/party-licenses/party-licenses.module';
 import { PartyRelationshipsDomainModule } from '@domain/party-relationships/party-relationships.module';
 import { PartySocialProfilesDomainModule } from '@domain/party-social-profiles/party-social-profiles.module';
+import { WishlistDomainModule } from '@domain/wishlist/wishlist.module';
 import { Module } from '@nestjs/common';
 import { PeopleAddressesController } from './addresses/people-addresses.controller';
 import { PeopleBankAccountsController } from './bank-accounts/people-bank-accounts.controller';

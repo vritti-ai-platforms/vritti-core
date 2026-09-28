@@ -25,46 +25,55 @@ export class OfferingDto {
   createdAt: string;
   updatedAt: string;
 
+  // A table row carries no tax-class or bill-of-materials counts: both are correlated subqueries the list read
+  // does not run, so the row does not claim a number it never measured
+  static fromTableRow(
+    entity: Offering,
+    options: { dimensionCount: number; variantCount: number; isOwned: boolean; canDelete: boolean },
+  ): OfferingTableRowDto {
+    const { dimensionCount, variantCount, isOwned, canDelete } = options;
+    return {
+      id: entity.id,
+      code: entity.code,
+      name: entity.name,
+      description: entity.description ?? null,
+      categoryId: entity.categoryId ?? null,
+      fulfilmentType: entity.fulfilmentType,
+      taxClassId: entity.taxClassId,
+      isActive: entity.isActive,
+      legalEntityId: entity.legalEntityId ?? null,
+      siteId: entity.siteId ?? null,
+      ownerScope: entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG',
+      dimensionCount,
+      variantCount,
+      canEdit: isOwned,
+      canMarkActive: isOwned && (entity.isActive || variantCount > 0),
+      canDelete: isOwned && canDelete,
+      createdAt: entity.createdAt.toISOString(),
+      updatedAt: entity.updatedAt.toISOString(),
+    };
+  }
+
+  // Every count is the caller's to supply. A default would let a read that never measured one report a zero,
+  // which reads as "none" rather than "not counted".
   static from(
     entity: Offering,
     options: {
-      dimensionCount?: number;
-      variantCount?: number;
-      variantsFollowingTaxClassCount?: number;
-      variantsMissingBomCount?: number;
-      isOwned?: boolean;
-      canDelete?: boolean;
-    } = {},
+      dimensionCount: number;
+      variantCount: number;
+      variantsFollowingTaxClassCount: number;
+      variantsMissingBomCount: number;
+      isOwned: boolean;
+      canDelete: boolean;
+    },
   ): OfferingDto {
-    const {
-      dimensionCount = 0,
-      variantCount = 0,
-      variantsFollowingTaxClassCount = 0,
-      variantsMissingBomCount = 0,
-      isOwned = false,
-      canDelete = false,
-    } = options;
-    const dto = new OfferingDto();
-    dto.id = entity.id;
-    dto.code = entity.code;
-    dto.name = entity.name;
-    dto.description = entity.description ?? null;
-    dto.categoryId = entity.categoryId ?? null;
-    dto.fulfilmentType = entity.fulfilmentType;
-    dto.taxClassId = entity.taxClassId;
-    dto.isActive = entity.isActive;
-    dto.variantsMissingBomCount = variantsMissingBomCount;
-    dto.legalEntityId = entity.legalEntityId ?? null;
-    dto.siteId = entity.siteId ?? null;
-    dto.ownerScope = entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG';
-    dto.dimensionCount = dimensionCount;
-    dto.variantCount = variantCount;
-    dto.variantsFollowingTaxClassCount = variantsFollowingTaxClassCount;
-    dto.canEdit = isOwned;
-    dto.canMarkActive = isOwned && (entity.isActive || variantCount > 0);
-    dto.canDelete = isOwned && canDelete;
-    dto.createdAt = entity.createdAt.toISOString();
-    dto.updatedAt = entity.updatedAt.toISOString();
-    return dto;
+    return {
+      ...OfferingDto.fromTableRow(entity, options),
+      variantsFollowingTaxClassCount: options.variantsFollowingTaxClassCount,
+      variantsMissingBomCount: options.variantsMissingBomCount,
+    };
   }
 }
+
+// The same row without the two counts only the detail read measures
+export type OfferingTableRowDto = Omit<OfferingDto, 'variantsFollowingTaxClassCount' | 'variantsMissingBomCount'>;

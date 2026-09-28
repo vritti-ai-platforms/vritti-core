@@ -30,13 +30,10 @@ export class DimensionTemplatesDomainRepository extends PrimaryBaseRepository<ty
   // Returns one template with its ownership flag, or undefined when out of reach. Callers that may
   // only write branch on isOwned rather than narrowing here, so a row owned elsewhere still yields
   // the name their 403 needs — RLS is what actually refuses the write.
-  async findById(id: string): Promise<DimensionTemplateWithOwnership | undefined> {
-    const [row] = await this.db
-      .select({ ...getColumns(dimensionTemplates), isOwned: ownedByWorkspaceExpression() })
-      .from(dimensionTemplates)
-      .where(eq(dimensionTemplates.id, id))
-      .limit(1);
-    return row;
+  async findByIdWithOwnership(id: string): Promise<DimensionTemplateWithOwnership | undefined> {
+    return this.findById<DimensionTemplateWithOwnership>(id, {
+      select: { ...getColumns(dimensionTemplates), isOwned: ownedByWorkspaceExpression() },
+    });
   }
 
   // Reports which of the two unique keys are already taken, in one pass. They have different scopes:

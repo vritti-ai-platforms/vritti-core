@@ -23,12 +23,25 @@ export interface ExportOfferingRow {
   variantCount: number;
 }
 
-export type OfferingWithOwnership = Offering & {
+// What the table renders: the row, whether this workspace owns it, and the two counts shown as columns
+export type OfferingTableRow = Offering & {
   isOwned: boolean;
   dimensionCount: number;
   variantCount: number;
+};
+
+// The detail page additionally shows how many variants follow the offering's tax class and how many still
+// need a bill of materials. Both are correlated subqueries, so they are computed for one row, not for a page.
+export type OfferingWithOwnership = OfferingTableRow & {
   variantsFollowingTaxClass: number;
   variantsWithoutBom: number;
+};
+
+// A bulk write only has to decide whether it may proceed: ownership, whether any variant exists, and a name
+// for the refusal it may have to report
+export type OfferingGuardRow = Pick<Offering, 'id' | 'code' | 'name'> & {
+  isOwned: boolean;
+  variantCount: number;
 };
 
 @Injectable()
@@ -37,15 +50,21 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     super(database, offerings);
   }
 
-  // Ownership and the child counts every caller needs, resolved as scalar subqueries in the one
-  // select rather than as follow-up round trips
-  private selection() {
+  // Each read selects what it shows. A correlated subquery runs once per returned row, so a count only the
+  // detail page renders would be computed for every row of a page and thrown away.
+  private tableSelection() {
     return {
       ...getColumns(offerings),
       isOwned: ownedByWorkspaceExpression(),
       dimensionCount: this.db.$count(offeringDimensions, eq(offeringDimensions.offeringId, offerings.id)),
       variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
-      // Variants still taking the offering's tax class — the ones a cascade would actually rewrite
+    };
+  }
+
+  // One row, so the two extra subqueries cost one evaluation each
+  private detailSelection() {
+    return {
+      ...this.tableSelection(),
       variantsFollowingTaxClass: this.db.$count(
         offeringVariants,
         and(eq(offeringVariants.offeringId, offerings.id), eq(offeringVariants.isTaxClassOverridden, false)),
@@ -64,19 +83,15 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
 
   // Returns the offerings this workspace can reach, each flagged with whether it owns the row or
   // merely inherits it from a wider scope (RLS decides reach; ownedByWorkspaceExpression decides ownership)
-  async findAll(where?: SQL): Promise<OfferingWithOwnership[]> {
-    return this.db.select(this.selection()).from(offerings).where(where).orderBy(asc(offerings.name));
-  }
-
   // Returns one page of reachable offerings with ownership, plus the unpaginated total
   async findForTable(options: {
     where?: SQL;
     orderBy: SQL[];
     limit: number;
     offset: number;
-  }): Promise<{ result: OfferingWithOwnership[]; count: number }> {
-    return this.findAllAndCount<OfferingWithOwnership>({
-      select: this.selection(),
+  }): Promise<{ result: OfferingTableRow[]; count: number }> {
+    return this.findAllAndCount<OfferingTableRow>({
+      select: this.tableSelection(),
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
@@ -87,15 +102,24 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
   // Returns one offering with its ownership flag, or undefined when out of reach. Callers that may
   // only write branch on isOwned rather than narrowing here, so a row owned elsewhere still yields
   // the name their 403 needs — RLS is what actually refuses the write.
-  async findById(id: string): Promise<OfferingWithOwnership | undefined> {
-    const [row] = await this.db.select(this.selection()).from(offerings).where(eq(offerings.id, id)).limit(1);
-    return row;
+  async findDetailById(id: string): Promise<OfferingWithOwnership | undefined> {
+    return this.findById<OfferingWithOwnership>(id, { select: this.detailSelection() });
   }
 
-  // Returns the reachable rows among the given ids, each with ownership
-  async findByIds(ids: string[]): Promise<OfferingWithOwnership[]> {
+  // Returns the reachable rows among the given ids with only what a bulk guard decides on
+  async findByIds(ids: string[]): Promise<OfferingGuardRow[]> {
     if (ids.length === 0) return [];
-    return this.findAll(inArray(offerings.id, ids));
+    return this.findAllWithSelect<OfferingGuardRow>({
+      select: {
+        id: offerings.id,
+        code: offerings.code,
+        name: offerings.name,
+        isOwned: ownedByWorkspaceExpression(),
+        variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
+      },
+      where: inArray(offerings.id, ids),
+      orderBy: [asc(offerings.name)],
+    });
   }
 
   // Reports which of the two unique keys are already taken, in one pass. They have different scopes:

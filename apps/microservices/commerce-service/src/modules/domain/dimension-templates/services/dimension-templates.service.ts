@@ -137,7 +137,7 @@ export class DimensionTemplatesDomainService {
 
   // Loads a template by ID, throwing if not found or owned by a wider scope
   private async requireOwned(id: string): Promise<DimensionTemplateWithOwnership> {
-    const existing = await this.repository.findById(id);
+    const existing = await this.repository.findByIdWithOwnership(id);
     if (!existing) throw new NotFoundException('Dimension template not found.');
     if (!existing.isOwned) {
       throw new ForbiddenException({

@@ -143,9 +143,9 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
     });
   }
 
-  async findById(id: string): Promise<InventoryItemQuantWithRefs | undefined> {
-    const rows = await this.db
-      .select({
+  async findByIdWithRefs(id: string): Promise<InventoryItemQuantWithRefs | undefined> {
+    return this.findById<InventoryItemQuantWithRefs>(id, {
+      select: {
         id: inventoryItemQuants.id,
         organizationId: inventoryItemQuants.organizationId,
         siteId: inventoryItemQuants.siteId,
@@ -165,13 +165,12 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
-      })
-      .from(inventoryItemQuants)
-      .leftJoin(locations, eq(inventoryItemQuants.locationId, locations.id))
-      .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
-      .where(eq(inventoryItemQuants.id, id));
-
-    return rows[0] as InventoryItemQuantWithRefs | undefined;
+      },
+      leftJoins: [
+        { table: locations, on: eq(inventoryItemQuants.locationId, locations.id) },
+        { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
+      ],
+    });
   }
 
   async updateQuantity(id: string, delta: number): Promise<InventoryItemQuant> {

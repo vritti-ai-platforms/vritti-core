@@ -35,9 +35,8 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
     return this.db.select(this.selection()).from(catalogs).where(where).orderBy(asc(catalogs.name));
   }
 
-  async findById(id: string): Promise<CatalogWithCounts | undefined> {
-    const [row] = await this.db.select(this.selection()).from(catalogs).where(eq(catalogs.id, id)).limit(1);
-    return row;
+  async findByIdWithCounts(id: string): Promise<CatalogWithCounts | undefined> {
+    return this.findById<CatalogWithCounts>(id, { select: this.selection() });
   }
 
   async findByName(name: string): Promise<Catalog | undefined> {

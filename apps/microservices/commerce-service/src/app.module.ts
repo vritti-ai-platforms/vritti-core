@@ -7,6 +7,7 @@ import { DB_SCHEMA } from '@/db/schema/commerce-schema';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
+import { LeCartsModule } from './modules/legal-entity/carts/carts.module';
 import { LeCatalogChannelsModule } from './modules/legal-entity/catalog-channels/catalog-channels.module';
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
 import { LeDimensionTemplatesModule } from './modules/legal-entity/dimension-templates/dimension-templates.module';
@@ -14,8 +15,6 @@ import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.mo
 import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
 import { LeTaxRegistrationsModule } from './modules/legal-entity/tax-registrations/tax-registrations.module';
-import { LeCartsModule } from './modules/legal-entity/carts/carts.module';
-import { SiteCartsModule } from './modules/site/carts/carts.module';
 import { OrgCatalogChannelsModule } from './modules/organization/catalog-channels/catalog-channels.module';
 import { OrgCatalogsModule } from './modules/organization/catalogs/catalogs.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
@@ -30,6 +29,7 @@ import { OrgTaxJurisdictionsModule } from './modules/organization/tax-jurisdicti
 import { OrgUomModule } from './modules/organization/uom/uom.module';
 import { OrgWishlistModule } from './modules/organization/wishlist/wishlist.module';
 import { SelectModule } from './modules/select/select.module';
+import { SiteCartsModule } from './modules/site/carts/carts.module';
 import { SiteCatalogChannelsModule } from './modules/site/catalog-channels/catalog-channels.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
 import { SiteCustomersModule } from './modules/site/customers/customers.module';

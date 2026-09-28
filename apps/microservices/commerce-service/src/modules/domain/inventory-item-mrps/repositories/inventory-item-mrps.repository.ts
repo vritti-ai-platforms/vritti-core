@@ -107,11 +107,6 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
     return row;
   }
 
-  // Returns a single MRP row by id
-  async findById(id: string): Promise<InventoryItemMrp | undefined> {
-    return this.model.findFirst({ where: { id } });
-  }
-
   // Deletes an MRP row by id; returns the deleted row or undefined when none matched
   async deleteOne(id: string): Promise<InventoryItemMrp | undefined> {
     const [row] = (await this.db

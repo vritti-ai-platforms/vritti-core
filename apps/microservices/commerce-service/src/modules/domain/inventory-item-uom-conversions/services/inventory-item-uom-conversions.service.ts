@@ -114,7 +114,7 @@ export class InventoryItemUomConversionsDomainService {
 
   // Updates an existing UOM conversion's ratio
   async update(id: string, dto: ConversionPair): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
+    const existing = await this.repository.findByIdWithUom(id);
     if (!existing) throw new NotFoundException('UOM conversion not found.');
 
     validateConversionPair(dto);
@@ -130,7 +130,7 @@ export class InventoryItemUomConversionsDomainService {
 
   // Deletes a UOM conversion by ID
   async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
+    const existing = await this.repository.findByIdWithUom(id);
     if (!existing) throw new NotFoundException('UOM conversion not found.');
 
     if (await this.repository.isUsedBySupplierItem(existing.inventoryItemId, existing.uomId)) {

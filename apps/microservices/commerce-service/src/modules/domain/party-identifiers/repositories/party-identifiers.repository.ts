@@ -55,12 +55,6 @@ export class PartyIdentifiersDomainRepository extends PrimaryBaseRepository<type
     return row as PartyIdentifier;
   }
 
-  // Loads a single identifier by id
-  async findById(id: string): Promise<PartyIdentifier | undefined> {
-    const [row] = await this.db.select().from(partyIdentifiers).where(eq(partyIdentifiers.id, id)).limit(1);
-    return row as PartyIdentifier | undefined;
-  }
-
   // Deletes an identifier row
   async remove(id: string): Promise<void> {
     await this.db.delete(partyIdentifiers).where(eq(partyIdentifiers.id, id));

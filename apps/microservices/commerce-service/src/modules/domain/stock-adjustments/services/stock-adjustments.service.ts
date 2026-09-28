@@ -52,7 +52,7 @@ export class StockAdjustmentsDomainService {
   }
 
   async findById(id: string, siteCurrencyCode?: string): Promise<StockAdjustmentDto> {
-    const adjustment = await this.repository.findById(id);
+    const adjustment = await this.repository.findByIdWithRefs(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     return StockAdjustmentDto.from(adjustment, siteCurrencyCode);
   }
@@ -110,7 +110,7 @@ export class StockAdjustmentsDomainService {
     }
 
     await this.repository.update(id, data);
-    const updated = await this.repository.findById(id);
+    const updated = await this.repository.findByIdWithRefs(id);
     if (!updated) throw new NotFoundException('Stock adjustment not found.');
     return StockAdjustmentDto.from(updated, siteCurrencyCode);
   }

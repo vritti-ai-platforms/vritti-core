@@ -17,9 +17,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 export class PeopleShopperController {
   private readonly logger = new Logger(PeopleShopperController.name);
 
-  constructor(
-    private readonly wishlist: WishlistDomainService,
-  ) {}
+  constructor(private readonly wishlist: WishlistDomainService) {}
 
   @MessagePattern({ cmd: 'org.people.wishlist.list' })
   listWishlist(@Payload() data: { partyId: string; currencyCode: string }): Promise<StaffWishlistItemDto[]> {

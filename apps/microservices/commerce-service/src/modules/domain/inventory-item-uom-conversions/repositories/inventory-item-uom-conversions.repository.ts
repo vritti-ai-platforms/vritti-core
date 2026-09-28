@@ -58,13 +58,11 @@ export class InventoryItemUomConversionsDomainRepository extends PrimaryBaseRepo
   }
 
   // Returns a single UOM conversion by ID with joined UOM details
-  async findById(id: string): Promise<ConversionWithUom | undefined> {
-    const rows = await this.db
-      .select(buildJoinedSelect())
-      .from(inventoryItemUomConversions)
-      .leftJoin(uom, eq(inventoryItemUomConversions.uomId, uom.id))
-      .where(eq(inventoryItemUomConversions.id, id));
-    return rows[0] as ConversionWithUom | undefined;
+  async findByIdWithUom(id: string): Promise<ConversionWithUom | undefined> {
+    return this.findById<ConversionWithUom>(id, {
+      select: buildJoinedSelect(),
+      leftJoin: { table: uom, on: eq(inventoryItemUomConversions.uomId, uom.id) },
+    });
   }
 
   // Returns an override by composite key (inventory item + UOM) for duplicate detection

@@ -371,7 +371,7 @@ export class InventoryItemQuantsDomainService {
     referenceId?: string;
     notes?: string;
   }): Promise<{ quant: InventoryItemQuant }> {
-    const quant = await this.repository.findById(params.quantId);
+    const quant = await this.repository.findByIdWithRefs(params.quantId);
     if (!quant) throw new NotFoundException('Quant not found.');
 
     const tracking = await this.repository.findItemTracking(quant.inventoryItemId);
@@ -432,7 +432,7 @@ export class InventoryItemQuantsDomainService {
 
   // Loads the lot for a quant. Useful for stock transfers preserving source lot at destination.
   async loadLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
-    const quant = await this.repository.findById(quantId);
+    const quant = await this.repository.findByIdWithRefs(quantId);
     if (!quant?.lotNumber) return null;
     return {
       id: quant.lotId as string,
@@ -498,7 +498,7 @@ export class InventoryItemQuantsDomainService {
   }
 
   async findQuantById(id: string): Promise<InventoryItemQuantDto> {
-    const row = await this.repository.findById(id);
+    const row = await this.repository.findByIdWithRefs(id);
     if (!row) throw new NotFoundException('Quant not found.');
     return InventoryItemQuantDto.from(row, true);
   }

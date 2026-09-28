@@ -22,7 +22,7 @@ onlyBuiltDependencies:
 overrides:
   '@react-native-menu/menu': 2.0.0
   # LOCAL ONLY — do not commit. Uncomment to build against unpublished source.
-  # '@vritti/api-sdk': link:../api-sdk
+  '@vritti/api-sdk': link:../api-sdk
   # '@vritti/quantum-ui-native': link:../quantum-ui-native
   # '@vritti/quantum-ui': link:../quantum-ui
   # api-sdk pins zod exactly; core-app/commerce-ma allow ^4.3.6. Two copies put two zod type graphs

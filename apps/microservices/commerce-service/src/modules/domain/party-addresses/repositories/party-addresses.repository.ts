@@ -44,12 +44,6 @@ export class PartyAddressesDomainRepository extends PrimaryBaseRepository<typeof
     return row as PartyAddress;
   }
 
-  // Loads a single address by id
-  async findById(id: string): Promise<PartyAddress | undefined> {
-    const [row] = await this.db.select().from(partyAddresses).where(eq(partyAddresses.id, id)).limit(1);
-    return row as PartyAddress | undefined;
-  }
-
   // Returns the number of addresses a party has
   async countByParty(partyId: string): Promise<number> {
     const [row] = await this.db

@@ -1,4 +1,4 @@
-import type { OfferingDto } from '@domain/offerings/dto/entity/offering.dto';
+import type { OfferingDto, OfferingTableRowDto } from '@domain/offerings/dto/entity/offering.dto';
 import { BulkSetOfferingStatusDto } from '@domain/offerings/dto/request/bulk-set-offering-status.dto';
 import { CreateOfferingDto } from '@domain/offerings/dto/request/create-offering.dto';
 import { SetOfferingFulfilmentDto } from '@domain/offerings/dto/request/set-offering-fulfilment.dto';
@@ -18,7 +18,7 @@ export class LeOfferingsController {
 
   // Returns paginated offerings for the data table
   @MessagePattern({ cmd: 'le.offerings.table' })
-  findForTable(@Payload() state: TableViewState): Promise<{ result: OfferingDto[]; count: number }> {
+  findForTable(@Payload() state: TableViewState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
     this.logger.log('offerings.table');
     return this.service.findForTable(state);
   }

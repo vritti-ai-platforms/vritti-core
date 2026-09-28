@@ -26,11 +26,6 @@ export class StockAdjustmentLineItemsDomainRepository extends PrimaryBaseReposit
     return rows as StockAdjustmentLineItem[];
   }
 
-  async findById(id: string): Promise<StockAdjustmentLineItem | undefined> {
-    const rows = await this.db.select().from(stockAdjustmentLineItems).where(eq(stockAdjustmentLineItems.id, id));
-    return rows[0] as StockAdjustmentLineItem | undefined;
-  }
-
   async findForTable(
     lineId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },

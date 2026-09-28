@@ -35376,6 +35376,176 @@
           "isCurrent"
         ]
       },
+      "OfferingTableRowResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "description": "Feeds every variant SKU",
+            "example": "tshirt-classic"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "categoryId": {
+            "type": "object",
+            "nullable": true
+          },
+          "fulfilmentType": {
+            "type": "string",
+            "enum": [
+              "STOCK",
+              "ASSEMBLY",
+              "COMPOSITE",
+              "SERVICE"
+            ]
+          },
+          "taxClassId": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Off until the offering has at least one variant"
+          },
+          "legalEntityId": {
+            "type": "object",
+            "nullable": true
+          },
+          "siteId": {
+            "type": "object",
+            "nullable": true
+          },
+          "ownerScope": {
+            "type": "string",
+            "enum": [
+              "ORG",
+              "LE",
+              "SITE"
+            ]
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "Name of the organization, company or outlet that owns it",
+            "example": "Mumbai Warehouse"
+          },
+          "dimensionCount": {
+            "type": "number"
+          },
+          "variantCount": {
+            "type": "number"
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "False when owned by a wider scope"
+          },
+          "canMarkActive": {
+            "type": "boolean",
+            "description": "False until the offering has a variant, or when owned by a wider scope"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "False while the offering still has variants"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "fulfilmentType",
+          "taxClassId",
+          "isActive",
+          "ownerScope",
+          "ownerName",
+          "dimensionCount",
+          "variantCount",
+          "canEdit",
+          "canMarkActive",
+          "canDelete",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "OfferingTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingTableRowResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "CreateOfferingDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Stable identifier; every variant SKU is built from it",
+            "example": "tshirt-classic"
+          },
+          "name": {
+            "type": "string",
+            "example": "Classic Cotton T-Shirt"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "categoryId": {
+            "type": "object",
+            "nullable": true
+          },
+          "fulfilmentType": {
+            "type": "string",
+            "enum": [
+              "STOCK",
+              "ASSEMBLY",
+              "COMPOSITE",
+              "SERVICE"
+            ],
+            "description": "What happens at picking — decides the bill of materials rules"
+          },
+          "taxClassId": {
+            "type": "string",
+            "description": "What this product IS for tax purposes. The rate resolves at transaction time."
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "fulfilmentType",
+          "taxClassId"
+        ]
+      },
       "OfferingResponseDto": {
         "type": "object",
         "properties": {
@@ -35485,74 +35655,6 @@
           "canDelete",
           "createdAt",
           "updatedAt"
-        ]
-      },
-      "OfferingTableResponseDto": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OfferingResponseDto"
-            }
-          },
-          "count": {
-            "type": "number"
-          },
-          "state": {
-            "type": "object"
-          },
-          "activeViewId": {
-            "type": "object",
-            "nullable": true
-          }
-        },
-        "required": [
-          "result",
-          "count",
-          "state"
-        ]
-      },
-      "CreateOfferingDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "Stable identifier; every variant SKU is built from it",
-            "example": "tshirt-classic"
-          },
-          "name": {
-            "type": "string",
-            "example": "Classic Cotton T-Shirt"
-          },
-          "description": {
-            "type": "object",
-            "nullable": true
-          },
-          "categoryId": {
-            "type": "object",
-            "nullable": true
-          },
-          "fulfilmentType": {
-            "type": "string",
-            "enum": [
-              "STOCK",
-              "ASSEMBLY",
-              "COMPOSITE",
-              "SERVICE"
-            ],
-            "description": "What happens at picking — decides the bill of materials rules"
-          },
-          "taxClassId": {
-            "type": "string",
-            "description": "What this product IS for tax purposes. The rate resolves at transaction time."
-          }
-        },
-        "required": [
-          "code",
-          "name",
-          "fulfilmentType",
-          "taxClassId"
         ]
       },
       "OfferingDimensionValueResponseDto": {

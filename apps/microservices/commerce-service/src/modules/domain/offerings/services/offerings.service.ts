@@ -12,14 +12,18 @@ import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { type FulfilmentType, FulfilmentTypeValues, offerings } from '@/db/schema';
-import { OfferingDto } from '../dto/entity/offering.dto';
+import { OfferingDto, type OfferingTableRowDto } from '../dto/entity/offering.dto';
 import type { BulkSetOfferingStatusDto } from '../dto/request/bulk-set-offering-status.dto';
 import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
 import type { SetOfferingFulfilmentDto } from '../dto/request/set-offering-fulfilment.dto';
 import type { SetOfferingStatusDto } from '../dto/request/set-offering-status.dto';
 import type { SetOfferingTaxClassDto } from '../dto/request/set-offering-tax-class.dto';
 import type { UpdateOfferingDto } from '../dto/request/update-offering.dto';
-import { OfferingsDomainRepository, type OfferingWithOwnership } from '../repositories/offerings.repository';
+import {
+  OfferingsDomainRepository,
+  type OfferingTableRow,
+  type OfferingWithOwnership,
+} from '../repositories/offerings.repository';
 
 // Mirrors the variant service's rules — an offering may only take a type its variants can satisfy
 const BOM_RULES = {
@@ -47,7 +51,7 @@ export class OfferingsDomainService {
   constructor(private readonly repository: OfferingsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted offerings for the data table
-  async findForTable(state: TableViewState): Promise<{ result: OfferingDto[]; count: number }> {
+  async findForTable(state: TableViewState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsDomainService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -58,13 +62,13 @@ export class OfferingsDomainService {
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findForTable({
-      where: where || undefined,
+      where: where,
       orderBy: orderBy.length > 0 ? orderBy : [asc(offerings.name)],
       limit,
       offset,
     });
 
-    return { result: rows.map((row) => this.toDto(row)), count };
+    return { result: rows.map((row) => this.toTableDto(row)), count };
   }
 
   // Offering options for select dropdowns, restricted to active offerings
@@ -102,7 +106,7 @@ export class OfferingsDomainService {
   }
 
   async findById(id: string): Promise<OfferingDto> {
-    const row = await this.repository.findById(id);
+    const row = await this.repository.findDetailById(id);
     if (!row) throw new NotFoundException('Offering not found.');
     return this.toDto(row);
   }
@@ -130,7 +134,15 @@ export class OfferingsDomainService {
     return {
       success: true,
       message: `"${entity.name}" created. Add its dimensions, then generate variants.`,
-      data: OfferingDto.from(entity, { isOwned: true, canDelete: true }),
+      // A just-created offering has no dimensions, variants or overrides yet — stated rather than defaulted
+      data: OfferingDto.from(entity, {
+        dimensionCount: 0,
+        variantCount: 0,
+        variantsFollowingTaxClassCount: 0,
+        variantsMissingBomCount: 0,
+        isOwned: true,
+        canDelete: true,
+      }),
     };
   }
 
@@ -292,7 +304,7 @@ export class OfferingsDomainService {
 
   // Loads an offering by ID, throwing if not found or owned by a wider scope
   private async requireOwned(id: string): Promise<OfferingWithOwnership> {
-    const existing = await this.repository.findById(id);
+    const existing = await this.repository.findDetailById(id);
     if (!existing) throw new NotFoundException('Offering not found.');
     if (!existing.isOwned) {
       throw new ForbiddenException({
@@ -301,6 +313,16 @@ export class OfferingsDomainService {
       });
     }
     return existing;
+  }
+
+  // The list read measures no tax-class or BOM counts, so the row it returns does not carry them
+  private toTableDto(row: OfferingTableRow): OfferingTableRowDto {
+    return OfferingDto.fromTableRow(row, {
+      dimensionCount: row.dimensionCount,
+      variantCount: row.variantCount,
+      isOwned: row.isOwned,
+      canDelete: row.isOwned && row.variantCount === 0,
+    });
   }
 
   // A SERVICE offering needs no BOM line, so nothing is ever "missing" for one

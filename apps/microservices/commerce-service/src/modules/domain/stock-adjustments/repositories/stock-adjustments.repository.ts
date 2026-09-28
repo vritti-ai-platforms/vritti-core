@@ -106,9 +106,11 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
     return !!row;
   }
 
-  async findById(id: string): Promise<StockAdjustmentWithRefs | undefined> {
-    const rows = await this.db
-      .select({
+  // The totalQuantity aggregate arrives as a numeric string, so the row is mapped after the read rather than
+  // in the query
+  async findByIdWithRefs(id: string): Promise<StockAdjustmentWithRefs | undefined> {
+    const row = await this.findById<Omit<StockAdjustmentWithRefs, 'totalQuantity'> & { totalQuantity: string }>(id, {
+      select: {
         id: stockAdjustments.id,
         organizationId: stockAdjustments.organizationId,
         siteId: stockAdjustments.siteId,
@@ -140,13 +142,13 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
             )
           )
         )`,
-      })
-      .from(stockAdjustments)
-      .innerJoin(inventoryItems, eq(stockAdjustments.inventoryItemId, inventoryItems.id))
-      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
-      .leftJoin(stockAdjustmentLines, eq(stockAdjustments.id, stockAdjustmentLines.stockAdjustmentId))
-      .where(eq(stockAdjustments.id, id))
-      .groupBy(
+      },
+      innerJoin: { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
+      leftJoins: [
+        { table: uom, on: eq(inventoryItems.uomId, uom.id) },
+        { table: stockAdjustmentLines, on: eq(stockAdjustments.id, stockAdjustmentLines.stockAdjustmentId) },
+      ],
+      groupBy: [
         stockAdjustments.id,
         stockAdjustments.organizationId,
         stockAdjustments.siteId,
@@ -162,15 +164,10 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
         inventoryItems.uomId,
         uom.symbol,
         inventoryItems.tracking,
-      )
-      .limit(1);
-
-    const [row] = rows;
+      ],
+    });
     if (!row) return undefined;
-    return {
-      ...row,
-      totalQuantity: Number(row.totalQuantity ?? 0),
-    } as StockAdjustmentWithRefs;
+    return { ...row, totalQuantity: Number(row.totalQuantity ?? 0) };
   }
 
   async updateStatus(id: string, status: StockAdjustmentStatus, publishedAt?: Date): Promise<void> {

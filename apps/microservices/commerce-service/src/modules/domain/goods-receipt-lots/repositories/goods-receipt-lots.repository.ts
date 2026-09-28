@@ -45,11 +45,6 @@ export class GoodsReceiptLotsDomainRepository extends PrimaryBaseRepository<type
     })) as GoodsReceiptLotWithStats[];
   }
 
-  async findById(lotId: string): Promise<GoodsReceiptLot | undefined> {
-    const rows = await this.db.select().from(goodsReceiptLots).where(eq(goodsReceiptLots.id, lotId)).limit(1);
-    return rows[0] as GoodsReceiptLot | undefined;
-  }
-
   async findByItemIdAndNumber(itemId: string, lotNumber: string): Promise<GoodsReceiptLot | undefined> {
     const rows = await this.db
       .select()

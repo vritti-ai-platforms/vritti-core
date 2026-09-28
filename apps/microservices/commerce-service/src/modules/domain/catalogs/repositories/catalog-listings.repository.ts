@@ -86,10 +86,6 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
     return result[0];
   }
 
-  async findById(id: string): Promise<CatalogListing | undefined> {
-    return this.model.findFirst({ where: { id } });
-  }
-
   async insertListing(row: NewCatalogListing): Promise<CatalogListing> {
     const [created] = (await this.db.insert(catalogListings).values(row).returning()) as CatalogListing[];
     return created;

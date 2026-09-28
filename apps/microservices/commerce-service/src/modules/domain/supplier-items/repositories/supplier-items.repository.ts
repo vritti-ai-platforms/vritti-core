@@ -349,11 +349,6 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       | undefined;
   }
 
-  async findById(id: string): Promise<SupplierItem | undefined> {
-    const [row] = await this.db.select().from(supplierItems).where(eq(supplierItems.id, id)).limit(1);
-    return row as SupplierItem | undefined;
-  }
-
   async findItemBySupplierInventoryItemAndUom(
     supplierId: string,
     inventoryItemId: string,

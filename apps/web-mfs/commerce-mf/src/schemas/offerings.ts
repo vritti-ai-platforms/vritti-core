@@ -143,7 +143,9 @@ export interface OfferingData {
   updatedAt: string;
 }
 
-export type OfferingsTableResponse = TableResponse<OfferingData>;
+// The list endpoint does not measure the tax-class or bill-of-materials counts; only the detail read does
+export type OfferingTableRow = Omit<OfferingData, 'variantsFollowingTaxClassCount' | 'variantsMissingBomCount'>;
+export type OfferingsTableResponse = TableResponse<OfferingTableRow>;
 export type OfferingVariantsTableResponse = TableResponse<OfferingVariantData>;
 
 export interface DimensionValueData {
