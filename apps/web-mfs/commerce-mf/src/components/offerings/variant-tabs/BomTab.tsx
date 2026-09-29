@@ -11,6 +11,7 @@ import { type BomLineData, FULFILMENT_TYPE_META, type OfferingVariantData } from
 import { CreateVariantInventoryItemDialog } from '../../inventory-items/forms/CreateVariantInventoryItemDialog';
 import type { UseCreateVariantInventoryItem } from '../../inventory-items/types';
 import { BomLineCard } from '../components/BomLineCard';
+import { DimensionsSkeleton } from '../components/DimensionsSkeleton';
 import { AddBomLineDialog } from '../forms/BomLineDialog';
 import type {
   OfferingPermissions,
@@ -29,8 +30,6 @@ interface BomTabProps {
   useUpdate: UseUpdateBomLine;
   useDelete: UseDeleteBomLine;
   useAddSuggested: UseAddSuggestedComponent;
-  // Passed only by the organization workspace — a site enables org-owned items rather than creating
-  // them, and a company has no inventory-items feature at all
   useCreateVariantInventoryItem?: UseCreateVariantInventoryItem;
 }
 
@@ -48,10 +47,12 @@ export const BomTab: React.FC<BomTabProps> = ({
   const inventoryItemDialog = useDialog();
   const confirm = useConfirm();
 
-  const { data: bom } = useBom(variant.id);
+  const { data: bom, isLoading } = useBom(variant.id);
+  const lines = bom?.lines ?? [];
+  const suggestion = bom?.suggestion ?? null;
   const meta = FULFILMENT_TYPE_META[variant.fulfilmentType];
-  const empty = bom.lines.length === 0;
-  const atMax = bom.lines.length >= meta.maxBomLines;
+  const empty = lines.length === 0;
+  const atMax = lines.length >= meta.maxBomLines;
 
   const deleteMutation = useDelete();
   const suggestionMutation = useAddSuggested();
@@ -60,7 +61,7 @@ export const BomTab: React.FC<BomTabProps> = ({
       const confirmed = await confirm({
         title: `Remove "${line.inventoryItemName}"?`,
         description:
-          bom.lines.length <= meta.minBomLines
+          lines.length <= meta.minBomLines
             ? `A ${meta.label.toLowerCase()} variant needs ${pluralize('component', meta.minBomLines, true)}, so this variant will stop being sellable.`
             : 'The component will be removed from this bill of materials.',
         confirmLabel: 'Remove',
@@ -69,25 +70,25 @@ export const BomTab: React.FC<BomTabProps> = ({
       if (!confirmed) return;
       deleteMutation.mutate({ variantId: variant.id, lineId: line.id });
     },
-    [confirm, meta, deleteMutation, variant, bom.lines.length],
+    [confirm, meta, deleteMutation, variant, lines.length],
   );
 
   // All three stay on screen rather than appearing and disappearing with the variant's state — each
   // says why it cannot be used, which is also how the three routes to a component get taught.
-  const linked = !!bom.suggestion && bom.lines.some((line) => line.inventoryItemId === bom.suggestion?.id);
+  const linked = !!suggestion && lines.some((line) => line.inventoryItemId === suggestion?.id);
 
-  const suggestionTip = !bom.suggestion
+  const suggestionTip = !suggestion
     ? `No inventory item carries the SKU ${variant.sku} yet.`
     : linked
-      ? `"${bom.suggestion.name}" is already a component.`
+      ? `"${suggestion.name}" is already a component.`
       : atMax
         ? `A ${meta.label.toLowerCase()} variant takes ${pluralize('component', meta.maxBomLines, true)}.`
         : undefined;
 
   const createTip = !meta.hasInventoryCounterpart
     ? `A ${meta.label.toLowerCase()} variant resolves to components that are stocked in their own right, not to one item of its own.`
-    : bom.suggestion
-      ? `"${bom.suggestion.name}" already carries this SKU.`
+    : suggestion
+      ? `"${suggestion.name}" already carries this SKU.`
       : undefined;
 
   const actions = (
@@ -113,7 +114,7 @@ export const BomTab: React.FC<BomTabProps> = ({
         startAdornment={<Sparkles className="size-4" />}
         permission={permissions.variants.bom.addFromSuggestion}
       >
-        {bom.suggestion ? `Add ${bom.suggestion.name}` : 'Add from Suggestion'}
+        {suggestion ? `Add ${suggestion.name}` : 'Add from Suggestion'}
       </Button>
 
       <Button
@@ -157,6 +158,10 @@ export const BomTab: React.FC<BomTabProps> = ({
     </>
   );
 
+  if (isLoading) {
+    return <DimensionsSkeleton />;
+  }
+
   if (empty) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -186,7 +191,7 @@ export const BomTab: React.FC<BomTabProps> = ({
       </div>
 
       <div className="flex flex-col gap-3">
-        {bom.lines.map((line) => (
+        {lines.map((line) => (
           <BomLineCard
             key={line.id}
             permissions={permissions}
@@ -198,7 +203,7 @@ export const BomTab: React.FC<BomTabProps> = ({
         ))}
       </div>
 
-      {bom.lines.length < meta.minBomLines && (
+      {lines.length < meta.minBomLines && (
         <Alert
           variant="warning"
           title="Not sellable yet"

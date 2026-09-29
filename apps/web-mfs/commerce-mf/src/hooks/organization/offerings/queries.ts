@@ -71,12 +71,15 @@ export function useOfferingVariantsTable(offeringId: string, options?: Options<O
   });
 }
 
-// The bill of materials, fetched by the tab that shows it rather than riding on the variant
-export function useVariantBom(variantId: string, options?: SuspenseOptions<VariantBomData>) {
-  return useSuspenseQuery<VariantBomData, AxiosError>({
+// The bill of materials, fetched by the tab that shows it rather than riding on the variant. A plain
+// query, not suspense — the tab renders inside the variant page and must not suspend it.
+export function useVariantBom(variantId: string, options?: Options<VariantBomData>) {
+  const { available } = usePermission(ORG_OFFERINGS.variants.bom.view);
+  return useQuery<VariantBomData, AxiosError>({
     queryKey: [...VARIANT_BOM_KEY(variantId)],
     queryFn: () => getVariantBom(variantId),
     ...options,
+    enabled: available && !!variantId && (options?.enabled ?? true),
   });
 }
 
