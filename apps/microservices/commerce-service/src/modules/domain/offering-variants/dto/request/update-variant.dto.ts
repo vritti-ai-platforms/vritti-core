@@ -1,5 +1,5 @@
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateVariantDto {
   @IsUUID()
@@ -25,9 +25,4 @@ export class UpdateVariantDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  sortOrder?: number;
 }

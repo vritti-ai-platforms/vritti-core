@@ -20,6 +20,7 @@ import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offer
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
 import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/response/offering-variant-response.dto';
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
+import type { VariantBomResponseDto } from '@commerce/offerings/dto/response/variant-bom-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
@@ -275,6 +276,12 @@ export class OrgOfferingsGatewayService {
   }
 
   // One component at a time — the whole-list replace it supersedes could silently drop a concurrent edit
+  // The components plus the SKU-matched suggestion, read on its own rather than with the variant
+  findVariantBom(variantId: string): Promise<VariantBomResponseDto> {
+    this.logger.log(`offerings.variants.bom.lines.list — variantId: ${variantId}`);
+    return this.nats.send('commerce', 'org.offerings.variants.bom.lines.list', { variantId });
+  }
+
   async addBomLine(variantId: string, dto: AddBomLineDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bom.lines.add — variantId: ${variantId}`);
     return this.nats.send('commerce', 'org.offerings.variants.bom.lines.add', { variantId, ...dto });

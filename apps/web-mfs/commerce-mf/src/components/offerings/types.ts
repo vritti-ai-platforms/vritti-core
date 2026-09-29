@@ -24,6 +24,7 @@ import type {
   UpdateDimensionData,
   UpdateOfferingFormData,
   UpsertDimensionValuesData,
+  VariantBomData,
   VariantCombinationsData,
 } from '@/schemas/offerings';
 
@@ -76,6 +77,7 @@ export type UseOfferingsTable = () => { data: OfferingsTableResponse | undefined
 // Suspense-backed: the route renders a skeleton at its boundary, so `data` is always defined
 export type UseSuspenseOffering = (id: string) => { data: OfferingData };
 export type UseSuspenseVariant = (variantId: string) => { data: OfferingVariantData };
+export type UseVariantBom = (variantId: string) => { data: VariantBomData };
 
 export type UseCreateOffering = MutationHook<CreateResponse<OfferingData>, CreateOfferingData>;
 export type UseUpdateOffering = MutationHook<SuccessResponse, { id: string; data: UpdateOfferingFormData }>;

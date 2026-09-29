@@ -8,18 +8,6 @@ export class OfferingVariantValueRefDto {
   valueCode: string;
 }
 
-export class OfferingBomLineDto {
-  id: string;
-  variantId: string;
-  inventoryItemId: string;
-  inventoryItemName: string;
-  inventoryItemSku: string;
-  quantity: number;
-  uomId: string;
-  uomName: string;
-  sortOrder: number;
-}
-
 export class OfferingVariantDto {
   id: string;
   offeringId: string;
@@ -35,69 +23,76 @@ export class OfferingVariantDto {
   isFulfilmentOverridden: boolean;
   isActive: boolean;
   isOfferingActive: boolean;
-  sortOrder: number;
   values: OfferingVariantValueRefDto[];
-  bom: OfferingBomLineDto[];
   bomLineCount: number;
   canMarkActive: boolean;
   canDelete: boolean;
   // The inventory item already carrying this variant's SKU, when there is one. Null means the
   // variant has no inventory counterpart yet and may offer to create it.
-  // uomId is the item's own stocking unit, so a suggested bill-of-materials line needs no
-  // conversion and cannot be rejected for lacking one
-  inventoryItem: { id: string; name: string; uomId: string } | null;
   createdAt: string;
   updatedAt: string;
 
-  static from(
+  // A table row carries no inventory counterpart: it is a SKU-matched join the list read does not run,
+  // so the row does not claim "no item exists" when it simply never looked
+  static fromTableRow(
     entity: OfferingVariant,
     options: {
       values?: OfferingVariantValueRefDto[];
-      bom?: OfferingBomLineDto[];
       bomLineCount?: number;
       salesUomName?: string | null;
       canMarkActive?: boolean;
       canDelete?: boolean;
       taxClassName?: string | null;
-      inventoryItem?: { id: string; name: string; uomId: string } | null;
     } = {},
-  ): OfferingVariantDto {
+  ): OfferingVariantTableRowDto {
     const {
       values = [],
-      bom = [],
-      bomLineCount = bom.length,
+      bomLineCount = 0,
       salesUomName = null,
       canMarkActive = false,
       canDelete = true,
-      inventoryItem = null,
       taxClassName = null,
     } = options;
-    const dto = new OfferingVariantDto();
-    dto.id = entity.id;
-    dto.offeringId = entity.offeringId;
-    dto.sku = entity.sku;
-    dto.externalSku = entity.externalSku ?? null;
-    dto.name = entity.name;
-    dto.salesUomId = entity.salesUomId;
-    dto.salesUomName = salesUomName;
-    dto.taxClassId = entity.taxClassId;
-    dto.taxClassName = taxClassName;
-    dto.isTaxClassOverridden = entity.isTaxClassOverridden;
-    dto.fulfilmentType = entity.fulfilmentType;
-    dto.isFulfilmentOverridden = entity.isFulfilmentOverridden;
-    // Effective sellability, not the raw column: a variant only sells while its own flag AND its
-    // offering's are on. isOfferingActive rides along so a caller can say WHY it is off.
-    dto.isActive = entity.isActive && entity.isOfferingActive;
-    dto.isOfferingActive = entity.isOfferingActive;
-    dto.sortOrder = entity.sortOrder;
-    dto.values = values;
-    dto.bom = bom;
-    dto.bomLineCount = bomLineCount;
-    dto.canMarkActive = canMarkActive;
-    dto.canDelete = canDelete;
-    dto.inventoryItem = inventoryItem;
-    dto.createdAt = entity.createdAt.toISOString();
-    dto.updatedAt = entity.updatedAt.toISOString();
-    return dto;
+    return {
+      id: entity.id,
+      offeringId: entity.offeringId,
+      sku: entity.sku,
+      externalSku: entity.externalSku ?? null,
+      name: entity.name,
+      salesUomId: entity.salesUomId,
+      salesUomName,
+      taxClassId: entity.taxClassId,
+      taxClassName,
+      isTaxClassOverridden: entity.isTaxClassOverridden,
+      fulfilmentType: entity.fulfilmentType,
+      isFulfilmentOverridden: entity.isFulfilmentOverridden,
+      // Effective sellability, not the raw column: a variant only sells while its own flag AND its
+      // offering's are on. isOfferingActive rides along so a caller can say WHY it is off.
+      isActive: entity.isActive && entity.isOfferingActive,
+      isOfferingActive: entity.isOfferingActive,
+      values,
+      bomLineCount,
+      canMarkActive,
+      canDelete,
+      createdAt: entity.createdAt.toISOString(),
+      updatedAt: entity.updatedAt.toISOString(),
+    };
+  }
+
+  static from(
+    entity: OfferingVariant,
+    options: {
+      values?: OfferingVariantValueRefDto[];
+      bomLineCount?: number;
+      salesUomName?: string | null;
+      canMarkActive?: boolean;
+      canDelete?: boolean;
+      taxClassName?: string | null;
+    } = {},
+  ): OfferingVariantDto {
+    return OfferingVariantDto.fromTableRow(entity, options);
   }
 }
+
+// The same row without the SKU-matched item only the detail read joins
+export type OfferingVariantTableRowDto = Omit<OfferingVariantDto, 'inventoryItem'>;

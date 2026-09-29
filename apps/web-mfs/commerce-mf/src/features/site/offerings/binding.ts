@@ -37,6 +37,7 @@ import {
   useUpdateVariant,
   useUpsertDimensionValues,
   useVariant,
+  useVariantBom,
 } from '@/hooks/site/offerings';
 
 export const binding: OfferingsBinding = {
@@ -67,6 +68,7 @@ export const binding: OfferingsBinding = {
 
   useVariantsTable: useOfferingVariantsTable,
   useVariant,
+  useVariantBom,
   useCreateVariant,
   useGenerateVariants,
   usePreviewVariantCombinations,

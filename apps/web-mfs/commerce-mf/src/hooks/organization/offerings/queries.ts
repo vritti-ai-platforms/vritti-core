@@ -8,15 +8,23 @@ import type {
   OfferingsTableResponse,
   OfferingVariantData,
   OfferingVariantsTableResponse,
+  VariantBomData,
 } from '@/schemas/offerings';
 import {
   getDimensions,
   getOffering,
   getOfferingsTable,
   getVariant,
+  getVariantBom,
   getVariantsTable,
 } from '@/services/organization/offerings.service';
-import { OFFERINGS_KEY, ORG_OFFERING_VARIANTS_TABLE_KEY, ORG_OFFERINGS_TABLE_KEY, VARIANT_KEY } from './keys';
+import {
+  OFFERINGS_KEY,
+  ORG_OFFERING_VARIANTS_TABLE_KEY,
+  ORG_OFFERINGS_TABLE_KEY,
+  VARIANT_BOM_KEY,
+  VARIANT_KEY,
+} from './keys';
 
 type Options<T> = Omit<UseQueryOptions<T, AxiosError>, 'queryKey' | 'queryFn'>;
 type SuspenseOptions<T> = Omit<UseSuspenseQueryOptions<T, AxiosError>, 'queryKey' | 'queryFn'>;
@@ -60,6 +68,15 @@ export function useOfferingVariantsTable(offeringId: string, options?: Options<O
     queryFn: () => getVariantsTable(offeringId),
     ...options,
     enabled: available && !!offeringId && (options?.enabled ?? true),
+  });
+}
+
+// The bill of materials, fetched by the tab that shows it rather than riding on the variant
+export function useVariantBom(variantId: string, options?: SuspenseOptions<VariantBomData>) {
+  return useSuspenseQuery<VariantBomData, AxiosError>({
+    queryKey: [...VARIANT_BOM_KEY(variantId)],
+    queryFn: () => getVariantBom(variantId),
+    ...options,
   });
 }
 

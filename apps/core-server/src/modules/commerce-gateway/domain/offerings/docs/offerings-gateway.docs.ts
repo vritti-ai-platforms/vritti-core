@@ -5,6 +5,7 @@ import { OfferingResponseDto } from '../dto/response/offering-response.dto';
 import { OfferingTableResponseDto } from '../dto/response/offering-table-response.dto';
 import { OfferingVariantResponseDto } from '../dto/response/offering-variant-response.dto';
 import { OfferingVariantTableResponseDto } from '../dto/response/offering-variant-table-response.dto';
+import { VariantBomResponseDto } from '../dto/response/variant-bom-response.dto';
 import { VariantCombinationsResponseDto } from '../dto/response/variant-combinations-response.dto';
 
 const NOT_OWNED = { status: 403, description: 'Owned by a wider scope — switch workspace to change it.' };
@@ -338,6 +339,18 @@ export function ApiAddSuggestedComponent() {
     ApiResponse({ status: 200, description: 'Component linked.' }),
     ApiResponse({ status: 409, description: 'No item carries this SKU, or it is already a component.' }),
     ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiVariantBom() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "A variant's bill of materials",
+      description:
+        'The components, plus the inventory item already carrying this variant SKU when one exists. Read on its own because only the bill-of-materials view needs either.',
+    }),
+    ApiParam({ name: 'variantId', description: 'Variant ID' }),
+    ApiResponse({ status: 200, description: 'Components and suggestion', type: VariantBomResponseDto }),
   );
 }
 

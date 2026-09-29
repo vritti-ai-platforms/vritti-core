@@ -3,3 +3,4 @@ export const SITE_OFFERINGS_TABLE_KEY = ['commerce', 'site', 'offerings', 'table
 export const SITE_OFFERING_VARIANTS_TABLE_KEY = (offeringId: string) =>
   ['commerce', 'site', 'offerings', offeringId, 'variants', 'table'] as const;
 export const VARIANT_KEY = (variantId: string) => ['commerce', 'site', 'offerings', 'variants', variantId] as const;
+export const VARIANT_BOM_KEY = (variantId: string) => [...VARIANT_KEY(variantId), 'bom'] as const;

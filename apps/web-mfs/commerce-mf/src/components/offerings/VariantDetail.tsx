@@ -68,6 +68,7 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
               <BomTab
                 permissions={PERMISSIONS}
                 variant={variant}
+                useBom={binding.useVariantBom}
                 useAdd={binding.useAddBomLine}
                 useUpdate={binding.useUpdateBomLine}
                 useDelete={binding.useDeleteBomLine}

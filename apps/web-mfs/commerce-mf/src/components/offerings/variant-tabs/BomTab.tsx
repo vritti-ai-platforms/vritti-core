@@ -18,11 +18,13 @@ import type {
   UseAddSuggestedComponent,
   UseDeleteBomLine,
   UseUpdateBomLine,
+  UseVariantBom,
 } from '../types';
 
 interface BomTabProps {
   permissions: OfferingPermissions;
   variant: OfferingVariantData;
+  useBom: UseVariantBom;
   useAdd: UseAddBomLine;
   useUpdate: UseUpdateBomLine;
   useDelete: UseDeleteBomLine;
@@ -35,6 +37,7 @@ interface BomTabProps {
 export const BomTab: React.FC<BomTabProps> = ({
   permissions,
   variant,
+  useBom,
   useAdd,
   useUpdate,
   useDelete,
@@ -45,9 +48,10 @@ export const BomTab: React.FC<BomTabProps> = ({
   const inventoryItemDialog = useDialog();
   const confirm = useConfirm();
 
+  const { data: bom } = useBom(variant.id);
   const meta = FULFILMENT_TYPE_META[variant.fulfilmentType];
-  const empty = variant.bom.length === 0;
-  const atMax = variant.bom.length >= meta.maxBomLines;
+  const empty = bom.lines.length === 0;
+  const atMax = bom.lines.length >= meta.maxBomLines;
 
   const deleteMutation = useDelete();
   const suggestionMutation = useAddSuggested();
@@ -56,7 +60,7 @@ export const BomTab: React.FC<BomTabProps> = ({
       const confirmed = await confirm({
         title: `Remove "${line.inventoryItemName}"?`,
         description:
-          variant.bom.length <= meta.minBomLines
+          bom.lines.length <= meta.minBomLines
             ? `A ${meta.label.toLowerCase()} variant needs ${pluralize('component', meta.minBomLines, true)}, so this variant will stop being sellable.`
             : 'The component will be removed from this bill of materials.',
         confirmLabel: 'Remove',
@@ -70,21 +74,20 @@ export const BomTab: React.FC<BomTabProps> = ({
 
   // All three stay on screen rather than appearing and disappearing with the variant's state — each
   // says why it cannot be used, which is also how the three routes to a component get taught.
-  const linked =
-    !!variant.inventoryItem && variant.bom.some((line) => line.inventoryItemId === variant.inventoryItem?.id);
+  const linked = !!bom.suggestion && bom.lines.some((line) => line.inventoryItemId === bom.suggestion?.id);
 
-  const suggestionTip = !variant.inventoryItem
+  const suggestionTip = !bom.suggestion
     ? `No inventory item carries the SKU ${variant.sku} yet.`
     : linked
-      ? `"${variant.inventoryItem.name}" is already a component.`
+      ? `"${bom.suggestion.name}" is already a component.`
       : atMax
         ? `A ${meta.label.toLowerCase()} variant takes ${pluralize('component', meta.maxBomLines, true)}.`
         : undefined;
 
   const createTip = !meta.hasInventoryCounterpart
     ? `A ${meta.label.toLowerCase()} variant resolves to components that are stocked in their own right, not to one item of its own.`
-    : variant.inventoryItem
-      ? `"${variant.inventoryItem.name}" already carries this SKU.`
+    : bom.suggestion
+      ? `"${bom.suggestion.name}" already carries this SKU.`
       : undefined;
 
   const actions = (
@@ -110,7 +113,7 @@ export const BomTab: React.FC<BomTabProps> = ({
         startAdornment={<Sparkles className="size-4" />}
         permission={permissions.variants.bom.addFromSuggestion}
       >
-        {variant.inventoryItem ? `Add ${variant.inventoryItem.name}` : 'Add from Suggestion'}
+        {bom.suggestion ? `Add ${bom.suggestion.name}` : 'Add from Suggestion'}
       </Button>
 
       <Button
@@ -183,7 +186,7 @@ export const BomTab: React.FC<BomTabProps> = ({
       </div>
 
       <div className="flex flex-col gap-3">
-        {variant.bom.map((line) => (
+        {bom.lines.map((line) => (
           <BomLineCard
             key={line.id}
             permissions={permissions}
@@ -195,7 +198,7 @@ export const BomTab: React.FC<BomTabProps> = ({
         ))}
       </div>
 
-      {variant.bom.length < meta.minBomLines && (
+      {bom.lines.length < meta.minBomLines && (
         <Alert
           variant="warning"
           title="Not sellable yet"

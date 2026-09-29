@@ -35,9 +35,7 @@ export class OfferingVariantResponseDto {
   @ApiPropertyOptional({ nullable: true }) salesUomName: string | null;
   @ApiProperty() isActive: boolean;
   @ApiProperty() isOfferingActive: boolean;
-  @ApiProperty() sortOrder: number;
   @ApiProperty({ type: [OfferingVariantValueRefResponseDto] }) values: OfferingVariantValueRefResponseDto[];
-  @ApiProperty({ type: [OfferingBomLineResponseDto] }) bom: OfferingBomLineResponseDto[];
   @ApiProperty() bomLineCount: number;
   @ApiProperty({ description: "Whether the bill of materials satisfies this variant's fulfilment type" })
   canMarkActive: boolean;
@@ -55,11 +53,6 @@ export class OfferingVariantResponseDto {
   @ApiPropertyOptional({ nullable: true }) taxClassName: string | null;
   @ApiProperty({ description: 'Pinned to this variant, so an offering-level change no longer cascades to it' })
   isTaxClassOverridden: boolean;
-  @ApiPropertyOptional({
-    nullable: true,
-    description: "The inventory item already carrying this variant's SKU, when one exists",
-  })
-  inventoryItem: { id: string; name: string; uomId: string } | null;
   @ApiProperty() createdAt: string;
   @ApiProperty() updatedAt: string;
 }

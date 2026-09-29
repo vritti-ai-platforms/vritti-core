@@ -18,6 +18,15 @@ export const FulfilmentTypeValues = {
   SERVICE: 'SERVICE' as const,
 };
 
+// How many bill-of-materials components each fulfilment type takes. A property of the enum, so it
+// lives with it rather than being copied into every service that enforces it.
+export const BOM_RULES = {
+  [FulfilmentTypeValues.STOCK]: { min: 1, max: 1 },
+  [FulfilmentTypeValues.ASSEMBLY]: { min: 1, max: Number.POSITIVE_INFINITY },
+  [FulfilmentTypeValues.COMPOSITE]: { min: 1, max: Number.POSITIVE_INFINITY },
+  [FulfilmentTypeValues.SERVICE]: { min: 0, max: Number.POSITIVE_INFINITY },
+} as const;
+
 export const orderSourceEnum = commerceSchema.enum('order_source', ['ONLINE', 'WALK_IN']);
 export const orderStatusEnum = commerceSchema.enum('order_status', [
   'PENDING',

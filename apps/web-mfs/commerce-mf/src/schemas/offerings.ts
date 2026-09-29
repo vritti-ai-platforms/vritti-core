@@ -190,6 +190,11 @@ export interface VariantValueRefData {
   valueCode: string;
 }
 
+export interface VariantBomData {
+  lines: BomLineData[];
+  suggestion: { id: string; name: string } | null;
+}
+
 export interface BomLineData {
   id: string;
   variantId: string;
@@ -214,7 +219,6 @@ export interface OfferingVariantData {
   isOfferingActive: boolean;
   sortOrder: number;
   values: VariantValueRefData[];
-  bom: BomLineData[];
   bomLineCount: number;
   canMarkActive: boolean;
   canDelete: boolean;
@@ -225,8 +229,7 @@ export interface OfferingVariantData {
   // Follows the offering's unless pinned — a variety pack inside a stock offering is composite
   fulfilmentType: FulfilmentType;
   isFulfilmentOverridden: boolean;
-  // The inventory item already carrying this variant's SKU, when there is one
-  inventoryItem: { id: string; name: string; uomId: string } | null;
+
   createdAt: string;
   updatedAt: string;
 }

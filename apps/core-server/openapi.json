@@ -6605,6 +6605,42 @@
       }
     },
     "/commerce-api/org/offerings/variants/{variantId}/bom/lines": {
+      "get": {
+        "description": "The components, plus the inventory item already carrying this variant SKU when one exists. Read on its own because only the bill-of-materials view needs either.",
+        "operationId": "OrgOfferingsGatewayController_findVariantBom",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Components and suggestion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantBomResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A variant's bill of materials",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      },
       "post": {
         "description": "Adds a single line to a variant's bill of materials. The fulfilment type's maximum is checked against what is already stored, so concurrent adds cannot both slip past it.",
         "operationId": "OrgOfferingsGatewayController_addBomLine",
@@ -8141,6 +8177,42 @@
       }
     },
     "/commerce-api/le/offerings/variants/{variantId}/bom/lines": {
+      "get": {
+        "description": "The components, plus the inventory item already carrying this variant SKU when one exists. Read on its own because only the bill-of-materials view needs either.",
+        "operationId": "LeOfferingsGatewayController_findVariantBom",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Components and suggestion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantBomResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A variant's bill of materials",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      },
       "post": {
         "description": "Adds a single line to a variant's bill of materials. The fulfilment type's maximum is checked against what is already stored, so concurrent adds cannot both slip past it.",
         "operationId": "LeOfferingsGatewayController_addBomLine",
@@ -9677,6 +9749,42 @@
       }
     },
     "/commerce-api/site/offerings/variants/{variantId}/bom/lines": {
+      "get": {
+        "description": "The components, plus the inventory item already carrying this variant SKU when one exists. Read on its own because only the bill-of-materials view needs either.",
+        "operationId": "SiteOfferingsGatewayController_findVariantBom",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Components and suggestion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantBomResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A variant's bill of materials",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      },
       "post": {
         "description": "Adds a single line to a variant's bill of materials. The fulfilment type's maximum is checked against what is already stored, so concurrent adds cannot both slip past it.",
         "operationId": "SiteOfferingsGatewayController_addBomLine",
@@ -33213,10 +33321,6 @@
             "type": "object",
             "example": "shopping-cart",
             "nullable": true
-          },
-          "appSortOrder": {
-            "type": "number",
-            "example": 10
           }
         },
         "required": [
@@ -33234,8 +33338,7 @@
           "route",
           "appCode",
           "appName",
-          "appIcon",
-          "appSortOrder"
+          "appIcon"
         ]
       },
       "AuthResponseDto": {
@@ -35963,50 +36066,7 @@
           "valueCode"
         ]
       },
-      "OfferingBomLineResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "variantId": {
-            "type": "string"
-          },
-          "inventoryItemId": {
-            "type": "string"
-          },
-          "inventoryItemName": {
-            "type": "string"
-          },
-          "inventoryItemSku": {
-            "type": "string"
-          },
-          "quantity": {
-            "type": "number"
-          },
-          "uomId": {
-            "type": "string"
-          },
-          "uomName": {
-            "type": "string"
-          },
-          "sortOrder": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "id",
-          "variantId",
-          "inventoryItemId",
-          "inventoryItemName",
-          "inventoryItemSku",
-          "quantity",
-          "uomId",
-          "uomName",
-          "sortOrder"
-        ]
-      },
-      "OfferingVariantResponseDto": {
+      "OfferingVariantTableRowResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -36041,19 +36101,10 @@
           "isOfferingActive": {
             "type": "boolean"
           },
-          "sortOrder": {
-            "type": "number"
-          },
           "values": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OfferingVariantValueRefResponseDto"
-            }
-          },
-          "bom": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OfferingBomLineResponseDto"
             }
           },
           "bomLineCount": {
@@ -36093,11 +36144,6 @@
             "type": "boolean",
             "description": "Pinned to this variant, so an offering-level change no longer cascades to it"
           },
-          "inventoryItem": {
-            "type": "object",
-            "nullable": true,
-            "description": "The inventory item already carrying this variant's SKU, when one exists"
-          },
           "createdAt": {
             "type": "string"
           },
@@ -36113,9 +36159,7 @@
           "salesUomId",
           "isActive",
           "isOfferingActive",
-          "sortOrder",
           "values",
-          "bom",
           "bomLineCount",
           "canMarkActive",
           "fulfilmentType",
@@ -36133,7 +36177,7 @@
           "result": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/OfferingVariantResponseDto"
+              "$ref": "#/components/schemas/OfferingVariantTableRowResponseDto"
             }
           },
           "count": {
@@ -36304,6 +36348,111 @@
           "valueIds"
         ]
       },
+      "OfferingVariantResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "offeringId": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string",
+            "description": "Derived from the offering code and value codes; never edited",
+            "example": "tshirt-classic-m-red"
+          },
+          "externalSku": {
+            "type": "object",
+            "nullable": true,
+            "description": "Manufacturer part number or GTIN — the stable identifier"
+          },
+          "name": {
+            "type": "string"
+          },
+          "salesUomId": {
+            "type": "string"
+          },
+          "salesUomName": {
+            "type": "object",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isOfferingActive": {
+            "type": "boolean"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingVariantValueRefResponseDto"
+            }
+          },
+          "bomLineCount": {
+            "type": "number"
+          },
+          "canMarkActive": {
+            "type": "boolean",
+            "description": "Whether the bill of materials satisfies this variant's fulfilment type"
+          },
+          "fulfilmentType": {
+            "type": "string",
+            "enum": [
+              "STOCK",
+              "ASSEMBLY",
+              "COMPOSITE",
+              "SERVICE"
+            ],
+            "description": "Follows the offering's unless pinned — a variety pack inside a stock offering is composite"
+          },
+          "isFulfilmentOverridden": {
+            "type": "boolean",
+            "description": "Pinned to this variant, so an offering-level change no longer cascades to it"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "False once the variant appears on an order line"
+          },
+          "taxClassId": {
+            "type": "string",
+            "description": "Follows the offering's tax class unless overridden"
+          },
+          "taxClassName": {
+            "type": "object",
+            "nullable": true
+          },
+          "isTaxClassOverridden": {
+            "type": "boolean",
+            "description": "Pinned to this variant, so an offering-level change no longer cascades to it"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "offeringId",
+          "sku",
+          "name",
+          "salesUomId",
+          "isActive",
+          "isOfferingActive",
+          "values",
+          "bomLineCount",
+          "canMarkActive",
+          "fulfilmentType",
+          "isFulfilmentOverridden",
+          "canDelete",
+          "taxClassId",
+          "isTaxClassOverridden",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "CreateVariantInventoryItemDto": {
         "type": "object",
         "properties": {
@@ -36385,9 +36534,6 @@
           "isActive": {
             "type": "boolean",
             "description": "Refused until the bill of materials satisfies the fulfilment type"
-          },
-          "sortOrder": {
-            "type": "number"
           }
         }
       },
@@ -36419,6 +36565,88 @@
         },
         "required": [
           "taxClassId"
+        ]
+      },
+      "OfferingBomLineResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "variantId": {
+            "type": "string"
+          },
+          "inventoryItemId": {
+            "type": "string"
+          },
+          "inventoryItemName": {
+            "type": "string"
+          },
+          "inventoryItemSku": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "uomId": {
+            "type": "string"
+          },
+          "uomName": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "variantId",
+          "inventoryItemId",
+          "inventoryItemName",
+          "inventoryItemSku",
+          "quantity",
+          "uomId",
+          "uomName",
+          "sortOrder"
+        ]
+      },
+      "VariantBomSuggestionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "VariantBomResponseDto": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingBomLineResponseDto"
+            }
+          },
+          "suggestion": {
+            "nullable": true,
+            "description": "The inventory item already carrying this variant SKU, if one exists",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VariantBomSuggestionResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lines"
         ]
       },
       "AddBomLineDto": {

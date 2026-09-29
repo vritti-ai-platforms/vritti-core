@@ -4,10 +4,16 @@ import { OfferingsDomainModule } from '@domain/offerings/offerings.module';
 import { Module } from '@nestjs/common';
 import { LeOfferingDimensionsController } from './dimensions/offering-dimensions.controller';
 import { LeOfferingsController } from './root/offerings.controller';
-import { LeOfferingVariantsController } from './variants/offering-variants.controller';
+import { LeOfferingBomController } from './variants/bom/offering-bom.controller';
+import { LeOfferingVariantsController } from './variants/root/offering-variants.controller';
 
 @Module({
   imports: [OfferingsDomainModule, OfferingDimensionsDomainModule, OfferingVariantsDomainModule],
-  controllers: [LeOfferingsController, LeOfferingDimensionsController, LeOfferingVariantsController],
+  controllers: [
+    LeOfferingsController,
+    LeOfferingDimensionsController,
+    LeOfferingVariantsController,
+    LeOfferingBomController,
+  ],
 })
 export class LeOfferingsModule {}

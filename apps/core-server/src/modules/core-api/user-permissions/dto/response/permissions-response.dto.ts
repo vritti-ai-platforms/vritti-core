@@ -70,7 +70,4 @@ export class PermissionFeatureDto {
 
   @ApiProperty({ example: 'shopping-cart', nullable: true })
   appIcon: string | null;
-
-  @ApiProperty({ example: 10 })
-  appSortOrder: number;
 }

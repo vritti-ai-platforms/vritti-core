@@ -73,7 +73,6 @@ export interface PermissionFeature {
   appCode: string;
   appName: string;
   appIcon: string | null;
-  appSortOrder: number;
 }
 
 export interface PermissionsResponse {

@@ -5,7 +5,7 @@ import { ConflictException, ForbiddenException, NotFoundException } from '@vritt
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { type FulfilmentType, FulfilmentTypeValues, offerings } from '@/db/schema';
+import { BOM_RULES, type FulfilmentType, FulfilmentTypeValues, offerings } from '@/db/schema';
 import { OfferingDto, type OfferingTableRowDto } from '../dto/entity/offering.dto';
 import type { BulkSetOfferingStatusDto } from '../dto/request/bulk-set-offering-status.dto';
 import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
@@ -18,14 +18,6 @@ import {
   type OfferingTableRow,
   type OfferingWithOwnership,
 } from '../repositories/offerings.repository';
-
-// Mirrors the variant service's rules — an offering may only take a type its variants can satisfy
-const BOM_RULES = {
-  [FulfilmentTypeValues.STOCK]: { min: 1, max: 1 },
-  [FulfilmentTypeValues.ASSEMBLY]: { min: 1, max: Number.POSITIVE_INFINITY },
-  [FulfilmentTypeValues.COMPOSITE]: { min: 1, max: Number.POSITIVE_INFINITY },
-  [FulfilmentTypeValues.SERVICE]: { min: 0, max: Number.POSITIVE_INFINITY },
-} as const;
 
 @Injectable()
 export class OfferingsDomainService {

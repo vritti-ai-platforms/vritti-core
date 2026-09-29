@@ -10,10 +10,15 @@ import {
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { type FulfilmentType, FulfilmentTypeValues, type OfferingVariant, offeringVariants } from '@/db/schema';
-import { type OfferingBomLineDto, OfferingVariantDto } from '../dto/entity/offering-variant.dto';
+import {
+  BOM_RULES,
+  type FulfilmentType,
+  FulfilmentTypeValues,
+  type OfferingVariant,
+  offeringVariants,
+} from '@/db/schema';
+import { OfferingVariantDto, type OfferingVariantTableRowDto } from '../dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '../dto/entity/variant-combination.dto';
-import type { AddBomLineDto, UpdateBomLineDto } from '../dto/request/bom-line.dto';
 import type { BulkClearVariantsTaxClassDto } from '../dto/request/bulk-clear-variants-tax-class.dto';
 import type { BulkSetVariantsStatusDto } from '../dto/request/bulk-set-variants-status.dto';
 import type { BulkSetVariantsTaxClassDto } from '../dto/request/bulk-set-variants-tax-class.dto';
@@ -23,21 +28,13 @@ import type { PreviewCombinationsDto } from '../dto/request/preview-combinations
 import type { SetVariantFulfilmentDto } from '../dto/request/set-variant-fulfilment.dto';
 import type { SetVariantTaxClassDto } from '../dto/request/set-variant-tax-class.dto';
 import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
-import type { UpsertBomDto } from '../dto/request/upsert-bom.dto';
 import {
   type DimensionValueRow,
   type OfferingRef,
   OfferingVariantsDomainRepository,
-  type OfferingVariantWithNames,
+  type OfferingVariantTableRow,
   type VariantWithBomCount,
 } from '../repositories/offering-variants.repository';
-
-const BOM_RULES = {
-  [FulfilmentTypeValues.STOCK]: { min: 1, max: 1 },
-  [FulfilmentTypeValues.ASSEMBLY]: { min: 1, max: Number.POSITIVE_INFINITY },
-  [FulfilmentTypeValues.COMPOSITE]: { min: 1, max: Number.POSITIVE_INFINITY },
-  [FulfilmentTypeValues.SERVICE]: { min: 0, max: Number.POSITIVE_INFINITY },
-} as const;
 
 @Injectable()
 export class OfferingVariantsDomainService {
@@ -62,7 +59,7 @@ export class OfferingVariantsDomainService {
   async findForTable(
     offeringId: string,
     state: TableViewState,
-  ): Promise<{ result: OfferingVariantDto[]; count: number }> {
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
     await this.requireReachableOffering(offeringId);
 
     const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingVariantsDomainService.FILTER_FIELD_MAP);
@@ -76,12 +73,12 @@ export class OfferingVariantsDomainService {
 
     const { result: rows, count } = await this.repository.findForTable({
       where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.sortOrder), asc(offeringVariants.sku)],
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.sku)],
       limit,
       offset,
     });
 
-    return { result: rows.map((row) => this.toDto(row)), count };
+    return { result: rows.map((row) => this.toTableRow(row)), count };
   }
 
   // Options for the breadcrumb switcher: this offering's variants, keyed by SKU
@@ -149,8 +146,7 @@ export class OfferingVariantsDomainService {
     const variant = await this.repository.findByIdWithNames(id);
     if (!variant) throw new NotFoundException('Variant not found.');
     await this.requireReachableOffering(variant.offeringId);
-    const lines = (await this.repository.findBomLines([variant.id])) as OfferingBomLineDto[];
-    return this.toDto(variant, lines);
+    return this.toDto(variant);
   }
 
   async previewCombinations(data: PreviewCombinationsDto): Promise<VariantCombinationsDto> {
@@ -233,7 +229,6 @@ export class OfferingVariantsDomainService {
           sku: plan.sku,
           name: this.deriveName(data.namePrefix ?? offering.name, plan.ordered),
           salesUomId: data.salesUomId,
-          sortOrder: index,
           taxClassId: offering.taxClassId,
           fulfilmentType: offering.fulfilmentType,
           combinationKey: plan.key,
@@ -414,156 +409,12 @@ export class OfferingVariantsDomainService {
     }
 
     await this.repository.transaction(async () => {
+      // offering_bom and offering_variant_values both cascade on the variant, so only the values
+      // need clearing here — they carry no cascade of their own
       await this.repository.deleteVariantValues(id);
-      await this.repository.replaceBom(id, []);
       await this.repository.delete(id);
     });
     return { success: true, message: `"${variant.sku}" deleted.` };
-  }
-
-  // Links the inventory item already carrying this variant's SKU, at quantity 1 in that item's own
-  // stocking unit. The suggestion is resolved server-side, so the caller names no item and cannot
-  // pass this off as a way to link something arbitrary under a narrower grant.
-  async addSuggestedComponent(variantId: string): Promise<SuccessResponseDto> {
-    const { variant } = await this.requireOwnedVariant(variantId);
-
-    const suggestion = await this.repository.findInventoryItemBySku(variant.sku);
-    if (!suggestion) {
-      throw new ConflictException({
-        label: 'No Suggestion',
-        detail: `No inventory item carries the SKU "${variant.sku}", so there is nothing to link.`,
-      });
-    }
-
-    const lines = await this.repository.findBomLines([variantId]);
-    if (lines.some((line) => line.inventoryItemId === suggestion.id)) {
-      throw new ConflictException({
-        label: 'Already Linked',
-        detail: `"${suggestion.name}" is already a component of "${variant.sku}".`,
-      });
-    }
-
-    return this.upsertBom({
-      variantId,
-      lines: [
-        ...lines.map((line) => ({
-          inventoryItemId: line.inventoryItemId,
-          quantity: line.quantity,
-          uomId: line.uomId,
-        })),
-        { inventoryItemId: suggestion.id, quantity: 1, uomId: suggestion.uomId },
-      ],
-    });
-  }
-
-  // Adds one component. The type's maximum is checked against what is already there rather than
-  // against a submitted list, so two people adding at once cannot both slip past it.
-  async addBomLine(data: AddBomLineDto): Promise<SuccessResponseDto> {
-    const { variant } = await this.requireOwnedVariant(data.variantId);
-    const rule = BOM_RULES[variant.fulfilmentType];
-
-    if ((await this.repository.countBomLines(data.variantId)) >= rule.max) {
-      throw new ConflictException({
-        label: 'Too Many Components',
-        detail: `"${variant.sku}" already holds ${pluralize('component', rule.max, true)}, which is all its fulfilment type allows. Edit or remove one instead.`,
-      });
-    }
-
-    await this.insertLineOrConflict(data, variant.sku);
-    return { success: true, message: `Component added to "${variant.sku}".` };
-  }
-
-  // Re-quantifies a line, or moves it to a different unit of the same item
-  async updateBomLine(data: UpdateBomLineDto): Promise<SuccessResponseDto> {
-    const { line, variant } = await this.requireOwnedBomLine(data.id);
-    await this.repository.updateBomLine(line.id, { quantity: data.quantity, uomId: data.uomId });
-    return { success: true, message: `Component updated on "${variant.sku}".` };
-  }
-
-  // Removes one component, deactivating the variant if that drops it below its type's minimum
-  async deleteBomLine(lineId: string): Promise<SuccessResponseDto> {
-    const { line, variant } = await this.requireOwnedBomLine(lineId);
-    const rule = BOM_RULES[variant.fulfilmentType];
-    const remaining = (await this.repository.countBomLines(variant.id)) - 1;
-    const deactivate = variant.isActive && remaining < rule.min;
-
-    await this.repository.transaction(async () => {
-      await this.repository.deleteBomLine(line.id);
-      if (deactivate) await this.repository.update(variant.id, { isActive: false });
-    });
-
-    return {
-      success: true,
-      message: `Component removed from "${variant.sku}".${deactivate ? ' It was deactivated because it no longer has enough to sell.' : ''}`,
-    };
-  }
-
-  // A line is addressed by its own id, so the variant it belongs to is what ownership is checked on
-  private async requireOwnedBomLine(lineId: string) {
-    const line = await this.repository.findBomLine(lineId);
-    if (!line) throw new NotFoundException('Component not found.');
-    const { variant, offering } = await this.requireOwnedVariant(line.variantId);
-    return { line, variant, offering };
-  }
-
-  // (item, uom) is unique per variant, so the same item may appear twice only in different units
-  private async insertLineOrConflict(data: AddBomLineDto, sku: string): Promise<void> {
-    try {
-      await this.repository.insertBomLine({
-        variantId: data.variantId,
-        inventoryItemId: data.inventoryItemId,
-        quantity: data.quantity,
-        uomId: data.uomId,
-        sortOrder: await this.repository.nextBomSortOrder(data.variantId),
-      });
-    } catch (error) {
-      const candidate = error as { code?: string };
-      if (candidate?.code === '23505') {
-        throw new ConflictException({
-          label: 'Already A Component',
-          detail: `"${sku}" already draws on that item in that unit. Edit the existing line instead.`,
-        });
-      }
-      throw error;
-    }
-  }
-
-  // Replaces a variant's bill of materials, then reconciles whether it can still be sold
-  async upsertBom(data: UpsertBomDto): Promise<SuccessResponseDto> {
-    const { variant } = await this.requireOwnedVariant(data.variantId);
-    const rule = BOM_RULES[variant.fulfilmentType];
-
-    if (data.lines.length > rule.max) {
-      throw new BadRequestException({
-        label: 'Too Many Components',
-        detail: `A ${variant.fulfilmentType.toLowerCase()} variant takes ${rule.max === 1 ? 'exactly one component' : 'any number of components'}. Remove the extras, or change its fulfilment type.`,
-      });
-    }
-
-    const deduped = new Map(data.lines.map((line) => [`${line.inventoryItemId}:${line.uomId}`, line]));
-
-    await this.repository.transaction(async () => {
-      await this.repository.replaceBom(
-        data.variantId,
-        [...deduped.values()].map((line, index) => ({
-          variantId: data.variantId,
-          inventoryItemId: line.inventoryItemId,
-          quantity: line.quantity,
-          uomId: line.uomId,
-          sortOrder: index,
-        })),
-      );
-      // A variant that no longer meets its type's rule cannot stay sellable
-      if (variant.isActive && deduped.size < rule.min) {
-        await this.repository.update(data.variantId, { isActive: false });
-      }
-    });
-
-    const deactivated = variant.isActive && deduped.size < rule.min;
-    return {
-      success: true,
-      message: `"${variant.sku}" now has ${pluralize('component', deduped.size, true)}.${deactivated ? ' It was deactivated because it no longer has enough to sell.' : ''}`,
-    };
   }
 
   // SKU = offering code + one value code per dimension, in dimension order
@@ -588,7 +439,11 @@ export class OfferingVariantsDomainService {
   // this reports the clash by name rather than letting the insert fail on the constraint.
   private async assertSkusFree(skus: string[]): Promise<void> {
     const seen = new Set<string>();
-    const duplicated = skus.filter((sku) => !seen.add(sku));
+    const duplicated = skus.filter((sku) => {
+      if (seen.has(sku)) return true;
+      seen.add(sku);
+      return false;
+    });
     if (duplicated.length > 0) {
       throw new ConflictException({
         label: 'Duplicate SKU',
@@ -677,24 +532,28 @@ export class OfferingVariantsDomainService {
     }
   }
 
-  // The rows arrive with their many-to-one names already joined; only the one-to-many collections and
-  // the SKU-matched item need their own round trip, because joining those would multiply rows.
-  // Every field the DTO needs now rides along in the page query, so this is a pure mapping
-  private toDto(variant: OfferingVariantWithNames, bom: OfferingBomLineDto[] = []): OfferingVariantDto {
+  // A table row stops at what the list read selected — no inventory counterpart, because that join
+  // only runs for the detail view
+  private toTableRow(variant: OfferingVariantTableRow): OfferingVariantTableRowDto {
+    return OfferingVariantDto.fromTableRow(variant, {
+      values: variant.values,
+      bomLineCount: variant.bomLineCount,
+      salesUomName: variant.salesUomName,
+      taxClassName: variant.taxClassName,
+      canMarkActive: variant.canMarkActive,
+      canDelete: variant.canDelete,
+    });
+  }
+
+  // The rows arrive with their many-to-one names already joined; the one-to-many collections ride
+  // along as aggregates, so this is a pure mapping
+  private toDto(variant: OfferingVariantTableRow): OfferingVariantDto {
     return OfferingVariantDto.from(variant, {
       values: variant.values,
-      bom,
       bomLineCount: variant.bomLineCount,
       salesUomName: variant.salesUomName,
       canMarkActive: variant.canMarkActive,
       canDelete: variant.canDelete,
-      inventoryItem: variant.inventoryItemId
-        ? {
-            id: variant.inventoryItemId,
-            name: variant.inventoryItemName ?? '',
-            uomId: variant.inventoryItemUomId ?? '',
-          }
-        : null,
       taxClassName: variant.taxClassName,
     });
   }

@@ -35,6 +35,7 @@ import type {
   UseUpdateOffering,
   UseUpdateVariant,
   UseUpsertDimensionValues,
+  UseVariantBom,
 } from './types';
 
 export interface OfferingsBinding {
@@ -67,6 +68,7 @@ export interface OfferingsBinding {
 
   useVariantsTable: UseOfferingVariantsTable;
   useVariant: UseSuspenseVariant;
+  useVariantBom: UseVariantBom;
   useCreateVariant: UseCreateVariant;
   useGenerateVariants: UseGenerateVariants;
   usePreviewVariantCombinations: UsePreviewVariantCombinations;

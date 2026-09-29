@@ -24,6 +24,7 @@ import type {
   UpdateDimensionData,
   UpdateOfferingFormData,
   UpsertDimensionValuesData,
+  VariantBomData,
   VariantCombinationsData,
 } from '@/schemas/offerings';
 
@@ -210,6 +211,11 @@ export function addSuggestedComponent(variantId: string): Promise<SuccessRespons
 }
 
 // One component at a time — the whole-list replace could silently drop a concurrent edit
+// The components plus the SKU-matched suggestion — its own read, so the variant page does not carry it
+export function getVariantBom(variantId: string): Promise<VariantBomData> {
+  return axios.get<VariantBomData>(`${BASE}/variants/${variantId}/bom/lines`).then((r) => r.data);
+}
+
 export function addBomLine({ variantId, ...data }: AddBomLineData): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/variants/${variantId}/bom/lines`, data).then((r) => r.data);
 }

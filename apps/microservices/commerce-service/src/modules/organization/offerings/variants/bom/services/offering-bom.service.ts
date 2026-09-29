@@ -1,4 +1,5 @@
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
+import { OfferingBomDomainService } from '@domain/offering-bom/services/offering-bom.service';
 import type { OfferingVariantDto } from '@domain/offering-variants/dto/entity/offering-variant.dto';
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
@@ -12,11 +13,12 @@ import type { CreateVariantInventoryItemDto } from '../dto/request/create-varian
 // imports another. Offerings reaches DOWN into inventory-items here, and inventory-items knows
 // nothing of offerings.
 @Injectable()
-export class OrgOfferingVariantsService {
-  private readonly logger = new Logger(OrgOfferingVariantsService.name);
+export class OrgOfferingBomService {
+  private readonly logger = new Logger(OrgOfferingBomService.name);
 
   constructor(
     private readonly variants: OfferingVariantsDomainService,
+    private readonly bom: OfferingBomDomainService,
     private readonly offerings: OfferingsDomainService,
     private readonly inventoryItems: InventoryItemsDomainService,
   ) {}
@@ -26,7 +28,7 @@ export class OrgOfferingVariantsService {
   async createInventoryItem(data: CreateVariantInventoryItemDto): Promise<CreateResponseDto<OfferingVariantDto>> {
     const variant = await this.variants.findById(data.variantId);
 
-    if (variant.inventoryItem) {
+    if (await this.bom.findItemBySku(variant.sku)) {
       throw new ConflictException({
         label: 'Item Already Exists',
         detail: `An inventory item already carries the SKU "${variant.sku}". Add it to the bill of materials instead.`,
@@ -53,7 +55,7 @@ export class OrgOfferingVariantsService {
       hsnCode: data.hsnCode ?? null,
     });
 
-    await this.variants.upsertBom({
+    await this.bom.replace({
       variantId: variant.id,
       lines: [{ inventoryItemId: created.data.id, quantity: 1, uomId: data.uomId }],
     });

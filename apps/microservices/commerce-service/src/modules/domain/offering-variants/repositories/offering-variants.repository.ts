@@ -55,16 +55,13 @@ export interface ExportVariantRow {
   isOfferingActive: boolean;
 }
 
-export type OfferingVariantWithNames = OfferingVariant & {
+export type OfferingVariantTableRow = OfferingVariant & {
   salesUomName: string | null;
   taxClassName: string | null;
   values: VariantValueRef[];
   bomLineCount: number;
   canMarkActive: boolean;
   canDelete: boolean;
-  inventoryItemId: string | null;
-  inventoryItemName: string | null;
-  inventoryItemUomId: string | null;
 };
 
 export interface DimensionValueRow {
@@ -116,7 +113,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .where(eq(offeringVariantValues.variantId, offeringVariants.id));
   }
 
-  private selection() {
+  private tableSelection() {
     return {
       ...getColumns(offeringVariants),
       salesUomName: uom.name,
@@ -129,38 +126,24 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       )} >= case ${offeringVariants.fulfilmentType} when ${FulfilmentTypeValues.SERVICE} then 0 else 1 end`.mapWith(
         Boolean,
       ),
-      inventoryItemId: inventoryItems.id,
-      inventoryItemName: inventoryItems.name,
-      inventoryItemUomId: inventoryItems.uomId,
       canDelete: notExists(
         this.db.select({ one: sql`1` }).from(orderItems).where(eq(orderItems.offeringVariantId, offeringVariants.id)),
       ).mapWith(Boolean),
     };
   }
 
-  private joins() {
+  private tableJoins() {
     return [
       { table: uom, on: eq(uom.id, offeringVariants.salesUomId) },
       { table: taxClasses, on: eq(taxClasses.id, offeringVariants.taxClassId) },
       { table: offerings, on: eq(offerings.id, offeringVariants.offeringId) },
-      // SKU is unique per organization, so the item carrying a variant's SKU is a to-one match
-      { table: inventoryItems, on: eq(inventoryItems.sku, offeringVariants.sku) },
     ];
   }
 
-  async findByOffering(offeringId: string): Promise<OfferingVariantWithNames[]> {
-    return this.findAllWithSelect<OfferingVariantWithNames>({
-      select: this.selection(),
-      leftJoins: this.joins(),
-      where: eq(offeringVariants.offeringId, offeringId),
-      orderBy: [asc(offeringVariants.sortOrder), asc(offeringVariants.sku)],
-    });
-  }
-
-  async findByIdWithNames(id: string): Promise<OfferingVariantWithNames | undefined> {
-    const { result } = await this.findAllAndCount<OfferingVariantWithNames>({
-      select: this.selection(),
-      leftJoins: this.joins(),
+  async findByIdWithNames(id: string): Promise<OfferingVariantTableRow | undefined> {
+    const { result } = await this.findAllAndCount<OfferingVariantTableRow>({
+      select: this.tableSelection(),
+      leftJoins: this.tableJoins(),
       where: eq(offeringVariants.id, id),
       limit: 1,
       offset: 0,
@@ -174,10 +157,10 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     orderBy: SQL[];
     limit: number;
     offset: number;
-  }): Promise<{ result: OfferingVariantWithNames[]; count: number }> {
-    return this.findAllAndCount<OfferingVariantWithNames>({
-      select: this.selection(),
-      leftJoins: this.joins(),
+  }): Promise<{ result: OfferingVariantTableRow[]; count: number }> {
+    return this.findAllAndCount<OfferingVariantTableRow>({
+      select: this.tableSelection(),
+      leftJoins: this.tableJoins(),
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
@@ -208,22 +191,6 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .from(offeringDimensions)
       .where(eq(offeringDimensions.offeringId, offeringId));
     return row?.n ?? 0;
-  }
-
-  // The inventory item carrying each of these SKUs, keyed by SKU. Read here rather than through the
-  // inventory-items module — a domain module owns its own cross-table reads. Returns the item rather
-  // than a boolean so a variant can offer it as the bill-of-materials suggestion it almost always is.
-  // Variants of one offering, for the breadcrumb switcher. Scoped by offeringId rather than left
-  // org-wide: a SKU only means anything next to its siblings.
-  // The item carrying a SKU, for the bill-of-materials suggestion. One variant at a time — the list
-  // paths get the same item through the join in selection().
-  async findInventoryItemBySku(sku: string): Promise<{ id: string; name: string; uomId: string } | undefined> {
-    const [row] = await this.db
-      .select({ id: inventoryItems.id, name: inventoryItems.name, uomId: inventoryItems.uomId })
-      .from(inventoryItems)
-      .where(eq(inventoryItems.sku, sku))
-      .limit(1);
-    return row;
   }
 
   async findForSelectInOffering(config: FindForSelectConfig, offeringId: string): Promise<SelectQueryResult> {
@@ -322,7 +289,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .leftJoin(uom, eq(uom.id, offeringVariants.salesUomId))
       .leftJoin(taxClasses, eq(taxClasses.id, offeringVariants.taxClassId))
       .where(eq(offeringVariants.offeringId, offeringId))
-      .orderBy(asc(offeringVariants.sortOrder), asc(offeringVariants.sku))
+      .orderBy(asc(offeringVariants.sku))
       .limit(page.limit)
       .offset(page.offset);
   }
@@ -385,43 +352,12 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return row?.n ?? 0;
   }
 
-  async findBomLine(lineId: string): Promise<(typeof offeringBom.$inferSelect & { variantId: string }) | undefined> {
-    const [row] = await this.db.select().from(offeringBom).where(eq(offeringBom.id, lineId)).limit(1);
-    return row;
-  }
-
   async countBomLines(variantId: string): Promise<number> {
     const [row] = await this.db
       .select({ n: sql<number>`count(*)::int` })
       .from(offeringBom)
       .where(eq(offeringBom.variantId, variantId));
     return row?.n ?? 0;
-  }
-
-  async insertBomLine(row: NewOfferingBomLine): Promise<void> {
-    await this.db.insert(offeringBom).values(row);
-  }
-
-  async updateBomLine(lineId: string, data: { quantity?: number; uomId?: string }): Promise<void> {
-    await this.db.update(offeringBom).set(data).where(eq(offeringBom.id, lineId));
-  }
-
-  async deleteBomLine(lineId: string): Promise<void> {
-    await this.db.delete(offeringBom).where(eq(offeringBom.id, lineId));
-  }
-
-  async nextBomSortOrder(variantId: string): Promise<number> {
-    const [row] = await this.db
-      .select({ max: sql<number | null>`max(${offeringBom.sortOrder})` })
-      .from(offeringBom)
-      .where(eq(offeringBom.variantId, variantId));
-    return (row?.max ?? -1) + 1;
-  }
-
-  async replaceBom(variantId: string, lines: NewOfferingBomLine[]): Promise<void> {
-    const client = this.db;
-    await client.delete(offeringBom).where(eq(offeringBom.variantId, variantId));
-    if (lines.length > 0) await client.insert(offeringBom).values(lines);
   }
 
   async deleteVariantValues(variantId: string): Promise<void> {

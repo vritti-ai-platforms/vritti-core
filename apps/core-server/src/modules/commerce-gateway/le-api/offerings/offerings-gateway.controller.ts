@@ -35,6 +35,7 @@ import {
   ApiUpdateOfferingDimension,
   ApiUpdateOfferingVariant,
   ApiUpsertOfferingDimensionValues,
+  ApiVariantBom,
 } from '@commerce/offerings/docs/offerings-gateway.docs';
 import { AddBomLineDto, UpdateBomLineDto } from '@commerce/offerings/dto/request/bom-line.dto';
 import { BulkClearVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-clear-variants-tax-class.dto';
@@ -59,6 +60,7 @@ import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offer
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
 import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/response/offering-variant-response.dto';
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
+import type { VariantBomResponseDto } from '@commerce/offerings/dto/response/variant-bom-response.dto';
 import {
   Body,
   Controller,
@@ -305,6 +307,14 @@ export class LeOfferingsGatewayController {
   clearVariantTaxClass(@Param('variantId') variantId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/offerings/variants/${variantId}/tax-class`);
     return this.service.clearVariantTaxClass(variantId);
+  }
+
+  @Get('variants/:variantId/bom/lines')
+  @RequirePermission(LE_OFFERINGS.variants.bom.view)
+  @ApiVariantBom()
+  findVariantBom(@Param('variantId') variantId: string): Promise<VariantBomResponseDto> {
+    this.logger.log(`GET /commerce-api/le/offerings/variants/${variantId}/bom/lines`);
+    return this.service.findVariantBom(variantId);
   }
 
   @Post('variants/:variantId/bom/lines')
