@@ -1,3 +1,4 @@
+import { OfferingBomDomainModule } from '@domain/offering-bom/offering-bom.module';
 import { OfferingDimensionsDomainModule } from '@domain/offering-dimensions/offering-dimensions.module';
 import { OfferingVariantsDomainModule } from '@domain/offering-variants/offering-variants.module';
 import { OfferingsDomainModule } from '@domain/offerings/offerings.module';
@@ -8,7 +9,12 @@ import { SiteOfferingBomController } from './variants/bom/offering-bom.controlle
 import { SiteOfferingVariantsController } from './variants/root/offering-variants.controller';
 
 @Module({
-  imports: [OfferingsDomainModule, OfferingDimensionsDomainModule, OfferingVariantsDomainModule],
+  imports: [
+    OfferingsDomainModule,
+    OfferingDimensionsDomainModule,
+    OfferingVariantsDomainModule,
+    OfferingBomDomainModule,
+  ],
   controllers: [
     SiteOfferingsController,
     SiteOfferingDimensionsController,

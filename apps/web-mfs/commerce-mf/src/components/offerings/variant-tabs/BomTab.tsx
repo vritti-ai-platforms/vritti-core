@@ -69,7 +69,7 @@ export const BomTab: React.FC<BomTabProps> = ({
       if (!confirmed) return;
       deleteMutation.mutate({ variantId: variant.id, lineId: line.id });
     },
-    [confirm, meta, deleteMutation, variant],
+    [confirm, meta, deleteMutation, variant, bom.lines.length],
   );
 
   // All three stay on screen rather than appearing and disappearing with the variant's state — each
