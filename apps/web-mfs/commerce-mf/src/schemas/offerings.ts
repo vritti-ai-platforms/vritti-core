@@ -105,6 +105,7 @@ export interface DimensionTemplateValueOption {
 }
 
 export const dimensionValueSchema = z.object({
+  id: z.string().optional(),
   code: zodCodeField({ max: 50 }),
   value: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
 });
@@ -330,7 +331,7 @@ export interface SetVariantFulfilmentData {
 
 export interface UpsertDimensionValuesData {
   dimensionId: string;
-  values: { code: string; value: string }[];
+  values: { id?: string; code: string; value: string }[];
 }
 
 export interface GenerateVariantsData {

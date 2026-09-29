@@ -1,9 +1,23 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsNotEmpty, IsString, MaxLength, ValidateNested } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 
 export class OfferingDimensionValueInputDto {
+  @ApiPropertyOptional({ description: 'Present for a value that already exists; absent for a new one' })
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
   @Trim({ nullify: false })
   @ApiProperty({ description: 'Segment this value contributes to a derived SKU', example: 'm' })
   @IsString()

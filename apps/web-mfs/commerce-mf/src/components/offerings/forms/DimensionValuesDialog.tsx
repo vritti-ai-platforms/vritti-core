@@ -39,14 +39,16 @@ export const DimensionValuesDialog: React.FC<DimensionValuesDialogProps> = ({
     resolver: zodResolver(dimensionValuesSchema),
     defaultValues: {
       values: dimension.values.length
-        ? dimension.values.map((value) => ({ code: value.code, value: value.value }))
+        ? dimension.values.map((value) => ({ id: value.id, code: value.code, value: value.value }))
         : [{ code: '', value: '' }],
       templateId: null,
     },
   });
 
   const upsertMutation = useUpsert({ onSuccess });
-  const valueFields = useFieldArray({ control: form.control, name: 'values' });
+  // keyName defaults to 'id', and react-hook-form strips the key property from submitted values —
+  // which would eat the value id the server needs to tell a rename from a delete
+  const valueFields = useFieldArray({ control: form.control, name: 'values', keyName: '_key' });
   const rows = useWatch({ control: form.control, name: 'values' });
   const lockedCodes = new Set(dimension.values.filter((value) => !value.canDelete).map((value) => value.code));
 
@@ -76,10 +78,13 @@ export const DimensionValuesDialog: React.FC<DimensionValuesDialogProps> = ({
     form.setValue(`values.${index}.code`, toCode(name));
   };
 
+  // SortableList identifies a row by `id`; the row's own id is optional, so it gets the stable form key
+  const sortableItems = valueFields.fields.map((field) => ({ ...field, id: field._key }));
+
   // Reorder the value rows by drag, persisting live values in the new order.
-  const handleReorder = (reordered: typeof valueFields.fields) => {
+  const handleReorder = (reordered: typeof sortableItems) => {
     const values = form.getValues('values');
-    const order = valueFields.fields.map((field) => field.id);
+    const order = sortableItems.map((item) => item.id);
     valueFields.replace(reordered.map((item) => values[order.indexOf(item.id)]));
   };
 
@@ -145,11 +150,11 @@ export const DimensionValuesDialog: React.FC<DimensionValuesDialogProps> = ({
           </div>
         )}
 
-        <SortableList items={valueFields.fields} onReorder={handleReorder} className="space-y-2">
+        <SortableList items={sortableItems} onReorder={handleReorder} className="space-y-2">
           {valueFields.fields.map((field, index) => {
             const inUse = lockedCodes.has(rows?.[index]?.code ?? '');
             return (
-              <SortableItem key={field.id} id={field.id}>
+              <SortableItem key={field._key} id={field._key}>
                 <div className="flex items-start gap-1.5">
                   <div className="flex h-9 w-4 items-center justify-center">
                     <SortableDragHandle />

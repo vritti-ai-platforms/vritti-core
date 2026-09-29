@@ -1,8 +1,21 @@
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsNotEmpty, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 
 export class OfferingDimensionValueInput {
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
   @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()

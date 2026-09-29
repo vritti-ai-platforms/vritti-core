@@ -20,16 +20,12 @@ export class OfferingDimensionsDomainService {
 
   constructor(private readonly repository: OfferingDimensionsDomainRepository) {}
 
+  // Lists an offering's axes with their values. The offering probe tells a missing offering apart from
+  // one that simply has no dimensions yet, which an empty list alone cannot.
   async list(offeringId: string): Promise<OfferingDimensionDto[]> {
     if (!(await this.repository.findOffering(offeringId))) throw new NotFoundException('Offering not found.');
-    const dimensions = await this.repository.findByOffering(offeringId);
-    const values = await this.repository.findValues(dimensions.map((d) => d.id));
-    return dimensions.map((d) =>
-      OfferingDimensionDto.from(
-        d,
-        values.filter((v) => v.dimensionId === d.id),
-      ),
-    );
+    const dimensions = await this.repository.findByOfferingWithValues(offeringId);
+    return dimensions.map((d) => OfferingDimensionDto.from(d, d.values));
   }
 
   // Adds an empty axis to an offering. Existing variants are untouched — a variant names whichever
@@ -95,29 +91,6 @@ export class OfferingDimensionsDomainService {
     };
   }
 
-  // Every submitted value must be one the template offers, so a picked subset cannot become invented values
-  private async assertValuesFromTemplate(templateId: string, values: { code: string }[]): Promise<void> {
-    const template = await this.repository.findTemplateWithValues(templateId);
-    if (!template) throw new NotFoundException('Dimension template not found or out of reach.');
-    if (!template.isActive) {
-      throw new BadRequestException({
-        label: 'Template Inactive',
-        detail: `"${template.name}" is inactive, so its values cannot be copied. Activate it first.`,
-        errors: [{ field: 'templateId', message: 'Template is inactive' }],
-      });
-    }
-
-    const offered = new Set(template.values.map((value) => value.code));
-    const unknown = values.filter((value) => !offered.has(value.code));
-    if (unknown.length > 0) {
-      throw new BadRequestException({
-        label: 'Values Not In Template',
-        detail: `${pluralize('value', unknown.length, true)} ${unknown.length === 1 ? 'is' : 'are'} not offered by "${template.name}". Pick from its own values.`,
-        errors: [{ field: 'values', message: 'Values not in template' }],
-      });
-    }
-  }
-
   // Replaces the dimension's value set. Values a variant already carries cannot be dropped — the
   // variant holds a foreign key to them, and their codes are baked into that variant's stored SKU.
   async upsertValues(data: UpsertOfferingDimensionValuesDto): Promise<SuccessResponseDto> {
@@ -125,14 +98,33 @@ export class OfferingDimensionsDomainService {
     this.assertDistinctValueCodes(data.values);
 
     const existing = await this.repository.findValuesByDimension(data.dimensionId);
-    const inUse = await this.repository.findValueCodesInUse(data.dimensionId);
-    const incoming = new Set(data.values.map((value) => value.code));
+    const inUse = await this.repository.findValuesInUse(data.dimensionId);
+    const byId = new Map(existing.map((value) => [value.id, value]));
+    const submittedIds = new Set(data.values.map((input) => input.id).filter(Boolean));
+    const submittedCodes = new Set(data.values.map((input) => input.code));
 
-    const dropped = inUse.filter((code) => !incoming.has(code));
+    // A row keeps its id across an edit, so a changed code is a rename of that very value — and the
+    // code is a SKU segment of every variant already built on it.
+    const renamed = data.values
+      .map((input, index) => ({ input, index }))
+      .filter(({ input }) => input.id && inUse.some((value) => value.id === input.id))
+      .filter(({ input }) => byId.get(input.id as string)?.code !== input.code);
+    if (renamed.length > 0) {
+      throw new ConflictException({
+        label: 'Code In Use',
+        detail: `${pluralize('code', renamed.length, true)} ${renamed.length === 1 ? 'is' : 'are'} already part of a variant SKU and cannot change. Rename the label instead, or add a new value.`,
+        errors: renamed.map(({ index }) => ({ field: `values.${index}.code`, message: 'Part of a variant SKU' })),
+      });
+    }
+
+    // Dropped only when NEITHER its id nor its code came back — id is optional, so a caller that sends
+    // just code/value still matches by code exactly as the transaction below does.
+    const dropped = inUse.filter((value) => !submittedIds.has(value.id) && !submittedCodes.has(value.code));
     if (dropped.length > 0) {
+      const quoted = dropped.map((value) => `"${value.code}"`).join(', ');
       throw new ConflictException({
         label: 'Value In Use',
-        detail: `${dropped.map((code) => `"${code}"`).join(', ')} ${dropped.length === 1 ? 'is' : 'are'} used by existing variants and cannot be removed — their codes are part of those SKUs.`,
+        detail: `${quoted} ${dropped.length === 1 ? 'is' : 'are'} used by existing variants and cannot be removed — their codes are part of those SKUs.`,
       });
     }
 
@@ -141,10 +133,10 @@ export class OfferingDimensionsDomainService {
       const kept = new Set<string>();
 
       for (const [index, input] of data.values.entries()) {
-        const match = byCode.get(input.code);
+        const match = (input.id ? byId.get(input.id) : undefined) ?? byCode.get(input.code);
         if (match) {
           kept.add(match.id);
-          await this.repository.updateValue(match.id, { value: input.value, sortOrder: index });
+          await this.repository.updateValue(match.id, { code: input.code, value: input.value, sortOrder: index });
         }
       }
 
@@ -153,7 +145,7 @@ export class OfferingDimensionsDomainService {
       await this.repository.createValues(
         data.values
           .map((input, index) => ({ input, index }))
-          .filter(({ input }) => !byCode.has(input.code))
+          .filter(({ input }) => !(input.id && byId.has(input.id)) && !byCode.has(input.code))
           .map(({ input, index }) => ({
             dimensionId: data.dimensionId,
             code: input.code,
@@ -224,15 +216,38 @@ export class OfferingDimensionsDomainService {
 
   private assertDistinctValueCodes(values: { code: string; value: string }[]): void {
     const codes = new Set<string>();
-    for (const entry of values) {
+    for (const [index, entry] of values.entries()) {
       if (codes.has(entry.code)) {
         throw new BadRequestException({
           label: 'Duplicate Value Code',
           detail: `The code "${entry.code}" appears twice. Each value needs its own code because it becomes a SKU segment.`,
-          errors: [{ field: 'values', message: 'Duplicate code' }],
+          errors: [{ field: `values.${index}.code`, message: 'Duplicate code' }],
         });
       }
       codes.add(entry.code);
+    }
+  }
+
+  // Every submitted value must be one the template offers, so a picked subset cannot become invented values
+  private async assertValuesFromTemplate(templateId: string, values: { code: string }[]): Promise<void> {
+    const template = await this.repository.findTemplateWithValues(templateId);
+    if (!template) throw new NotFoundException('Dimension template not found or out of reach.');
+    if (!template.isActive) {
+      throw new BadRequestException({
+        label: 'Template Inactive',
+        detail: `"${template.name}" is inactive, so its values cannot be copied. Activate it first.`,
+        errors: [{ field: 'templateId', message: 'Template is inactive' }],
+      });
+    }
+
+    const offered = new Set(template.values.map((value) => value.code));
+    const unknown = values.filter((value) => !offered.has(value.code));
+    if (unknown.length > 0) {
+      throw new BadRequestException({
+        label: 'Values Not In Template',
+        detail: `${pluralize('value', unknown.length, true)} ${unknown.length === 1 ? 'is' : 'are'} not offered by "${template.name}". Pick from its own values.`,
+        errors: [{ field: 'values', message: 'Values not in template' }],
+      });
     }
   }
 

@@ -1,5 +1,10 @@
 import type { OfferingDimension, OfferingDimensionValue } from '@/db/schema';
 
+export type DimensionValueSource = Pick<
+  OfferingDimensionValue,
+  'id' | 'dimensionId' | 'code' | 'value' | 'sortOrder'
+> & { canDelete: boolean };
+
 export class OfferingDimensionValueDto {
   id: string;
   dimensionId: string;
@@ -8,7 +13,7 @@ export class OfferingDimensionValueDto {
   sortOrder: number;
   canDelete: boolean;
 
-  static from(entity: OfferingDimensionValue & { canDelete: boolean }): OfferingDimensionValueDto {
+  static from(entity: DimensionValueSource): OfferingDimensionValueDto {
     const dto = new OfferingDimensionValueDto();
     dto.id = entity.id;
     dto.dimensionId = entity.dimensionId;
@@ -35,7 +40,7 @@ export class OfferingDimensionDto {
 
   static from(
     entity: OfferingDimension & { canDelete: boolean },
-    values: (OfferingDimensionValue & { canDelete: boolean })[] = [],
+    values: DimensionValueSource[] = [],
   ): OfferingDimensionDto {
     const dto = new OfferingDimensionDto();
     dto.id = entity.id;

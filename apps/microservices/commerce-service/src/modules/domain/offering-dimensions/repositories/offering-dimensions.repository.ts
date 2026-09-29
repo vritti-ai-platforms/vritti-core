@@ -13,9 +13,11 @@ import {
   offeringVariantValues,
   ownedByWorkspaceExpression,
 } from '@/db/schema';
+import type { DimensionValueSource } from '../dto/entity/offering-dimension.dto';
 
 export type OfferingDimensionWithUsage = OfferingDimension & { canDelete: boolean };
 export type OfferingDimensionValueWithUsage = OfferingDimensionValue & { canDelete: boolean };
+export type OfferingDimensionWithValues = OfferingDimensionWithUsage & { values: DimensionValueSource[] };
 
 @Injectable()
 export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<typeof offeringDimensions> {
@@ -58,21 +60,43 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
       .orderBy(asc(offeringDimensions.sortOrder));
   }
 
-  async findValues(dimensionIds: string[]): Promise<OfferingDimensionValueWithUsage[]> {
-    if (dimensionIds.length === 0) return [];
+  // The dimensions plus their values in one read. The outer id is the qualified TABLE, never
+  // ${offeringDimensions.id} — a select-list column of the query's own FROM table renders bare and
+  // would bind to the subquery's v instead.
+  async findByOfferingWithValues(offeringId: string): Promise<OfferingDimensionWithValues[]> {
     return this.db
       .select({
-        ...getColumns(offeringDimensionValues),
+        ...getColumns(offeringDimensions),
         canDelete: notExists(
           this.db
             .select({ one: sql`1` })
             .from(offeringVariantValues)
-            .where(eq(offeringVariantValues.valueId, offeringDimensionValues.id)),
+            .where(eq(offeringVariantValues.dimensionId, offeringDimensions.id)),
         ).mapWith(Boolean),
+        values: sql<DimensionValueSource[]>`(
+          SELECT COALESCE(
+            json_agg(
+              json_build_object(
+                'id', v.id,
+                'dimensionId', v.dimension_id,
+                'code', v.code,
+                'value', v.value,
+                'sortOrder', v.sort_order,
+                'canDelete', NOT EXISTS (
+                  SELECT 1 FROM ${offeringVariantValues} ovv WHERE ovv.value_id = v.id
+                )
+              )
+              ORDER BY v.sort_order, v.value
+            ),
+            '[]'::json
+          )
+          FROM ${offeringDimensionValues} v
+          WHERE v.dimension_id = ${offeringDimensions}.id
+        )`,
       })
-      .from(offeringDimensionValues)
-      .where(inArray(offeringDimensionValues.dimensionId, dimensionIds))
-      .orderBy(asc(offeringDimensionValues.sortOrder), asc(offeringDimensionValues.value));
+      .from(offeringDimensions)
+      .where(eq(offeringDimensions.offeringId, offeringId))
+      .orderBy(asc(offeringDimensions.sortOrder));
   }
 
   async createValues(rows: NewOfferingDimensionValue[]): Promise<OfferingDimensionValue[]> {
@@ -137,13 +161,12 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // Value codes on this dimension that a variant already carries — these can never be dropped
-  async findValueCodesInUse(dimensionId: string): Promise<string[]> {
-    const rows = await this.db
-      .selectDistinct({ code: offeringDimensionValues.code })
+  async findValuesInUse(dimensionId: string): Promise<{ id: string; code: string }[]> {
+    return this.db
+      .selectDistinct({ id: offeringDimensionValues.id, code: offeringDimensionValues.code })
       .from(offeringVariantValues)
       .innerJoin(offeringDimensionValues, eq(offeringDimensionValues.id, offeringVariantValues.valueId))
       .where(eq(offeringVariantValues.dimensionId, dimensionId));
-    return rows.map((row) => row.code);
   }
 
   async deleteValues(valueIds: string[]): Promise<void> {
@@ -151,7 +174,7 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
     await this.db.delete(offeringDimensionValues).where(inArray(offeringDimensionValues.id, valueIds));
   }
 
-  async updateValue(id: string, data: { value: string; sortOrder: number }): Promise<void> {
+  async updateValue(id: string, data: { code: string; value: string; sortOrder: number }): Promise<void> {
     await this.db.update(offeringDimensionValues).set(data).where(eq(offeringDimensionValues.id, id));
   }
 
