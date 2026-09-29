@@ -1,6 +1,5 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Card, CardContent } from '@vritti/quantum-ui/Card';
 import { Checkbox } from '@vritti/quantum-ui/Checkbox';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
@@ -104,167 +103,173 @@ export const GenerateVariantsWizard: React.FC<GenerateVariantsWizardProps> = ({
   const isLast = stepNumber(steps, step) === steps.length;
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Generate Variants"
-        description={`${offering.name} — additive, so combinations that already exist are skipped`}
-        actions={
-          <Button variant="ghost" size="sm" onClick={onCancel}>
-            Cancel
-          </Button>
-        }
-      />
+    <div className="mx-auto max-w-6xl">
+      <div className="px-6 pt-6">
+        <PageHeader
+          title="Generate Variants"
+          description={`${offering.name} — additive, so combinations that already exist are skipped`}
+          actions={
+            <Button variant="ghost" size="sm" onClick={onCancel}>
+              Cancel
+            </Button>
+          }
+        />
+      </div>
 
-      <StepProgressIndicator steps={toStepDefs(steps)} currentStep={stepNumber(steps, step)} />
+      {/* Floored only from lg up, where the room exists, so the connectors keep their length instead of
+          collapsing; below that it shrinks freely, and the strip alone scrolls if the labels stop fitting */}
+      <div className="overflow-x-auto px-6 pt-6">
+        <div className="lg:min-w-3xl">
+          <StepProgressIndicator steps={toStepDefs(steps)} currentStep={stepNumber(steps, step)} />
+        </div>
+      </div>
 
-      <Card>
-        <CardContent className="flex flex-col gap-4 py-6">
-          {step === 'values' && (
-            <div className="flex flex-col gap-4">
-              <Select
-                label="Sold in"
-                placeholder="Select a unit"
-                value={salesUomId}
-                onChange={(value: unknown) => setSalesUomId(String(value ?? ''))}
-                optionsEndpoint="commerce-api/select-api/uom"
-                fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
-                searchable
-                description="Applies to every variant in this batch."
-              />
+      <div className="flex flex-col gap-4 px-6 py-6">
+        {step === 'values' && (
+          <div className="flex flex-col gap-4">
+            <Select
+              label="Sold in"
+              placeholder="Select a unit"
+              value={salesUomId}
+              onChange={(value: unknown) => setSalesUomId(String(value ?? ''))}
+              optionsEndpoint="commerce-api/select-api/uom"
+              fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
+              searchable
+              description="Applies to every variant in this batch."
+            />
 
-              {dimensions.map((dimension) => {
-                const applies = (selected[dimension.id]?.size ?? 0) > 0;
-                return (
-                  <div key={dimension.id} className="flex flex-col gap-2 border-b pb-3 last:border-b-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CompactSwitch checked={applies} onCheckedChange={() => toggleDimension(dimension)} />
-                        <span className="font-medium text-sm">{dimension.name}</span>
-                      </div>
-                      <span className="font-mono text-muted-foreground text-xs">
-                        {applies ? `${selected[dimension.id]?.size} / ${dimension.values.length}` : 'not in this batch'}
-                      </span>
+            {dimensions.map((dimension) => {
+              const applies = (selected[dimension.id]?.size ?? 0) > 0;
+              return (
+                <div key={dimension.id} className="flex flex-col gap-2 border-b pb-3 last:border-b-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CompactSwitch checked={applies} onCheckedChange={() => toggleDimension(dimension)} />
+                      <span className="font-medium text-sm">{dimension.name}</span>
                     </div>
-                    {applies && (
-                      <div className="flex flex-wrap gap-2">
-                        {dimension.values.map((value) => (
-                          <button
-                            key={value.id}
-                            type="button"
-                            onClick={() => toggleValue(dimension.id, value.id)}
-                            className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm ${
-                              selected[dimension.id]?.has(value.id)
-                                ? 'border-primary/30 bg-primary/10 text-primary'
-                                : 'bg-muted text-muted-foreground opacity-60'
-                            }`}
-                          >
-                            <Checkbox checked={selected[dimension.id]?.has(value.id) ?? false} />
-                            {value.value}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    <span className="font-mono text-muted-foreground text-xs">
+                      {applies ? `${selected[dimension.id]?.size} / ${dimension.values.length}` : 'not in this batch'}
+                    </span>
                   </div>
-                );
-              })}
+                  {applies && (
+                    <div className="flex flex-wrap gap-2">
+                      {dimension.values.map((value) => (
+                        <button
+                          key={value.id}
+                          type="button"
+                          onClick={() => toggleValue(dimension.id, value.id)}
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm ${
+                            selected[dimension.id]?.has(value.id)
+                              ? 'border-primary/30 bg-primary/10 text-primary'
+                              : 'bg-muted text-muted-foreground opacity-60'
+                          }`}
+                        >
+                          <Checkbox checked={selected[dimension.id]?.has(value.id) ?? false} />
+                          {value.value}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
-              {activeDimensions.length > 0 && <SkuOrderStrip offering={offering} dimensions={activeDimensions} />}
+            {activeDimensions.length > 0 && <SkuOrderStrip offering={offering} dimensions={activeDimensions} />}
 
-              <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm">
-                {activeDimensions.map((d) => `${d.name} ${selected[d.id]?.size}`).join('  ×  ') ||
-                  'No dimensions selected'}
-                <span className="ml-2 font-mono font-semibold">= {expected}</span>{' '}
-                <span className="text-muted-foreground">combinations</span>
-              </div>
-            </div>
-          )}
-
-          {step !== 'values' && (
-            <div className="flex flex-col gap-3">
-              <div className="max-h-80 overflow-auto rounded-lg border">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-muted/60">
-                    <tr>
-                      <th className="w-10 p-2" />
-                      <th className="p-2 text-left font-medium">SKU</th>
-                      <th className="p-2 text-left font-medium">Combination</th>
-                      <th className="p-2 text-left font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((row) => (
-                      <tr key={row.key} className={row.exists || row.excluded ? 'opacity-50' : undefined}>
-                        <td className="p-2">
-                          <Checkbox
-                            checked={!row.exists && !row.excluded}
-                            disabled={row.exists}
-                            onCheckedChange={() =>
-                              setExcluded((current) => {
-                                const next = new Set(current);
-                                next.has(row.key) ? next.delete(row.key) : next.add(row.key);
-                                return next;
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="p-2 font-mono text-xs">{row.sku}</td>
-                        <td className="p-2 text-muted-foreground">{row.labels}</td>
-                        <td className="p-2">
-                          <Badge variant={row.exists ? 'success' : row.excluded ? 'secondary' : 'outline'}>
-                            {row.exists ? 'exists' : row.excluded ? 'excluded' : 'new'}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between border-t pt-4">
-            <div className="text-sm">
-              <span className="font-mono font-semibold text-lg">{toCreate.length}</span>{' '}
-              <span className="text-muted-foreground">new {pluralize('variant', toCreate.length)} will be created</span>
-              <div className="text-muted-foreground text-xs">
-                {rows.filter((row) => row.exists).length} already exist · {excluded.size} excluded
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {stepNumber(steps, step) > 1 ? (
-                <Button
-                  variant="outline"
-                  startAdornment={<ArrowLeft className="size-4" />}
-                  onClick={() => setStep(steps[stepNumber(steps, step) - 2].key)}
-                >
-                  Back
-                </Button>
-              ) : null}
-              {isLast ? (
-                <Button
-                  onClick={submit}
-                  isLoading={generateMutation.isPending}
-                  loadingText="Generating..."
-                  disabled={toCreate.length === 0}
-                  startAdornment={<Sparkles className="size-4" />}
-                >
-                  Generate {toCreate.length}
-                </Button>
-              ) : (
-                <Button
-                  onClick={goToCombinations}
-                  disabled={!canAdvance}
-                  isLoading={previewMutation.isPending}
-                  loadingText="Resolving..."
-                  endAdornment={<ArrowRight className="size-4" />}
-                >
-                  Next
-                </Button>
-              )}
+            <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm">
+              {activeDimensions.map((d) => `${d.name} ${selected[d.id]?.size}`).join('  ×  ') ||
+                'No dimensions selected'}
+              <span className="ml-2 font-mono font-semibold">= {expected}</span>{' '}
+              <span className="text-muted-foreground">combinations</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {step !== 'values' && (
+          <div className="flex flex-col gap-3">
+            <div className="max-h-80 overflow-auto rounded-lg border">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-muted/60">
+                  <tr>
+                    <th className="w-10 p-2" />
+                    <th className="p-2 text-left font-medium">SKU</th>
+                    <th className="p-2 text-left font-medium">Combination</th>
+                    <th className="p-2 text-left font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.key} className={row.exists || row.excluded ? 'opacity-50' : undefined}>
+                      <td className="p-2">
+                        <Checkbox
+                          checked={!row.exists && !row.excluded}
+                          disabled={row.exists}
+                          onCheckedChange={() =>
+                            setExcluded((current) => {
+                              const next = new Set(current);
+                              next.has(row.key) ? next.delete(row.key) : next.add(row.key);
+                              return next;
+                            })
+                          }
+                        />
+                      </td>
+                      <td className="p-2 font-mono text-xs">{row.sku}</td>
+                      <td className="p-2 text-muted-foreground">{row.labels}</td>
+                      <td className="p-2">
+                        <Badge variant={row.exists ? 'success' : row.excluded ? 'secondary' : 'outline'}>
+                          {row.exists ? 'exists' : row.excluded ? 'excluded' : 'new'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between border-t pt-4">
+          <div className="text-sm">
+            <span className="font-mono font-semibold text-lg">{toCreate.length}</span>{' '}
+            <span className="text-muted-foreground">new {pluralize('variant', toCreate.length)} will be created</span>
+            <div className="text-muted-foreground text-xs">
+              {rows.filter((row) => row.exists).length} already exist · {excluded.size} excluded
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {stepNumber(steps, step) > 1 ? (
+              <Button
+                variant="outline"
+                startAdornment={<ArrowLeft className="size-4" />}
+                onClick={() => setStep(steps[stepNumber(steps, step) - 2].key)}
+              >
+                Back
+              </Button>
+            ) : null}
+            {isLast ? (
+              <Button
+                onClick={submit}
+                isLoading={generateMutation.isPending}
+                loadingText="Generating..."
+                disabled={toCreate.length === 0}
+                startAdornment={<Sparkles className="size-4" />}
+              >
+                Generate {toCreate.length}
+              </Button>
+            ) : (
+              <Button
+                onClick={goToCombinations}
+                disabled={!canAdvance}
+                isLoading={previewMutation.isPending}
+                loadingText="Resolving..."
+                endAdornment={<ArrowRight className="size-4" />}
+              >
+                Next
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
