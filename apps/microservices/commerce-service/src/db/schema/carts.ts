@@ -1,9 +1,8 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { catalogChannels } from './catalog-channels';
 import { commerceSchema } from './commerce-schema';
 import { parties } from './parties';
-import { LE_GUC, organizationIdColumn, workspaceHierarchyPolicies, workspaceScopeColumns } from './workspace-scope';
+import { LE_GUC, organizationIdColumn, workspaceScopeColumns, workspaceScopePolicies } from './workspace-scope';
 
 export const carts = commerceSchema.table(
   'carts',
@@ -17,7 +16,6 @@ export const carts = commerceSchema.table(
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
-    channelId: uuid('channel_id').references(() => catalogChannels.id, { onDelete: 'set null' }),
     checkoutStartedAt: timestamp('checkout_started_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -31,7 +29,7 @@ export const carts = commerceSchema.table(
       .nullsNotDistinct(),
     index('idx_carts_party').on(table.organizationId, table.legalEntityId, table.siteId, table.partyId),
     index('idx_carts_abandoned').on(table.updatedAt),
-    ...workspaceHierarchyPolicies(),
+    ...workspaceScopePolicies('cart_reach'),
   ],
 );
 

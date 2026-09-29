@@ -1,4 +1,4 @@
-import type { CartDetailDto, CartDto, StaffCartItemDto } from '@domain/carts/dto/entity/cart.dto';
+import type { CartDetailDto, CartDto, CartItemDto, StaffCartItemDto } from '@domain/carts/dto/entity/cart.dto';
 import {
   AddCartItemDto,
   CartScopeDto,
@@ -49,7 +49,7 @@ export class CartsController {
   @MessagePattern({ cmd: 'site.carts.items.remove' })
   removeItem(@Payload() dto: RemoveCartItemDto): Promise<CartDto> {
     this.logger.log(`site.carts.items.remove — party: ${dto.partyId}, variant: ${dto.offeringVariantId}`);
-    return this.service.removeItem(dto.partyId, dto.catalogId, dto.offeringVariantId, dto.currencyCode, dto.siteId);
+    return this.service.removeItem(dto.partyId, dto.offeringVariantId, dto.currencyCode, dto.catalogId, dto.siteId);
   }
 
   // Returns paginated baskets open at this workspace, for the data table
@@ -67,9 +67,20 @@ export class CartsController {
   }
 
   // Returns one basket's lines, priced by the caller's catalogue
+  // Returns paginated, filtered and sorted items of one basket for the data table
+  @MessagePattern({ cmd: 'site.carts.items.table' })
+  itemsTable(
+    @Payload()
+    payload: { cartId: string; currencyCode: string; catalogId?: string; siteId?: string } & TableViewState,
+  ): Promise<{ result: CartItemDto[]; count: number }> {
+    const { cartId, currencyCode, catalogId, siteId, ...state } = payload;
+    this.logger.log(`site.carts.items.table — cart: ${cartId}`);
+    return this.service.findItemsForTable(cartId, state, currencyCode, catalogId, siteId);
+  }
+
   @MessagePattern({ cmd: 'site.carts.findItemsById' })
   findItemsById(
-    @Payload() data: { id: string; currencyCode: string; catalogId: string; siteId?: string },
+    @Payload() data: { id: string; currencyCode: string; catalogId?: string; siteId?: string },
   ): Promise<CartDto> {
     this.logger.log(`site.carts.findItemsById — id: ${data.id}`);
     return this.service.findItemsById(data.id, data.currencyCode, data.catalogId, data.siteId);
@@ -77,7 +88,7 @@ export class CartsController {
 
   // Opens a basket for a shopper, or hands back the one they already have here
   @MessagePattern({ cmd: 'site.carts.create' })
-  create(@Payload() data: { partyId: string; channelId?: string }): Promise<CreateResponseDto<CartDetailDto>> {
+  create(@Payload() data: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
     this.logger.log(`site.carts.create — party: ${data.partyId}`);
     return this.service.create(data);
   }
@@ -93,14 +104,7 @@ export class CartsController {
   @MessagePattern({ cmd: 'site.carts.items.addForCart' })
   addItemForCart(
     @Payload()
-    data: {
-      cartId: string;
-      partyId: string;
-      catalogId: string;
-      offeringVariantId: string;
-      quantity: number;
-      currencyCode: string;
-    },
+    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
   ): Promise<StaffCartItemDto[]> {
     this.logger.log(`site.carts.items.addForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
     return this.service.addItemForCart(data);

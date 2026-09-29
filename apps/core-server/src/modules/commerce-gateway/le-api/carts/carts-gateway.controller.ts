@@ -27,6 +27,7 @@ import {
   UpdateCartLineDto,
 } from './dto/request/cart-request.dto';
 import {
+  type CartItemsTableResponse,
   type CartLinesResponse,
   type CartRow,
   type CartTableResponse,
@@ -54,15 +55,25 @@ export class LeCartsGatewayController {
     return this.service.findForTable(userId);
   }
 
+  // Returns paginated items of one basket for the data table with server-stored state
+  @Get(':id/items/table')
+  @RequirePermission(LE_CARTS.view)
+  findItemsForTable(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: CartsQueryDto,
+    @UserId() userId: string,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<CartItemsTableResponse> {
+    this.logger.log(`GET /commerce-api/le/carts/${id}/items/table`);
+    return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY, legalEntityId);
+  }
+
   // Opens a basket for a shopper, or hands back the one they already have here
   @Post()
   @RequirePermission(LE_CARTS.add)
-  open(
-    @Body() dto: OpenCartDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<CartRow>> {
+  open(@Body() dto: OpenCartDto): Promise<CreateResponseDto<CartRow>> {
     this.logger.log('POST /commerce-api/le/carts');
-    return this.service.create({ partyId: dto.partyId, legalEntityId });
+    return this.service.create({ partyId: dto.partyId });
   }
 
   @Get(':id')

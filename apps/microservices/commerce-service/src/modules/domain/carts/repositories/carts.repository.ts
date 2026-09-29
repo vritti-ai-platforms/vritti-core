@@ -6,7 +6,6 @@ import {
   type CartItem,
   cartItems,
   carts,
-  catalogChannels,
   catalogListingPrices,
   catalogListings,
   offerings,
@@ -48,10 +47,10 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
    * otherwise both find nothing and both insert. A conflict returns no row, which is the signal to
    * read the one that won.
    */
-  async findOrCreateForParty(partyId: string, channelId?: string): Promise<{ cart: Cart; opened: boolean }> {
+  async findOrCreateForParty(partyId: string): Promise<{ cart: Cart; opened: boolean }> {
     const inserted = (await this.db
       .insert(carts)
-      .values({ partyId, channelId })
+      .values({ partyId })
       .onConflictDoNothing({
         target: [carts.organizationId, carts.legalEntityId, carts.siteId, carts.partyId],
       })
@@ -67,22 +66,29 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
   }
 
   /**
-   * Every line of one basket, priced by the catalogue the caller sells from.
+   * The shape of a priced basket line, ready for a `where` to narrow it.
    *
-   * The line stores the product; which catalogue offers it, and at what, is answered per read. The
-   * listing join is `left` so a variant this catalogue no longer lists still shows in the basket and
-   * reports itself unavailable rather than vanishing from under the shopper.
+   * The catalogue is the reader's, not the basket's. A basket records no channel: what a line is
+   * worth is a question about who is looking, so each read resolves its own workspace's range and
+   * prices through that. With no catalogue the listing join matches nothing and every line comes
+   * back priceless and unavailable, which is exactly what having no price list means — and is why
+   * this is never an error.
    *
-   * Two price joins rather than one: the outlet's own price wins, and the organization-wide row is
-   * the fallback. A single join matching both would return the line twice.
+   * Both joins to the listing and the prices are `left`, so a variant the catalogue no longer lists
+   * still shows in the basket and reports itself unavailable rather than vanishing from under the
+   * shopper. Two price joins rather than one: the outlet's own price wins, the organization-wide row
+   * is the fallback, and a single join matching both would return the line twice.
    */
-  async findItems(cartId: string, currencyCode: string, catalogId: string, siteId?: string): Promise<CartItemRow[]> {
+  private lineRows(currencyCode: string, catalogId?: string, siteId?: string) {
     const sitePrice = aliasedTable(catalogListingPrices, 'site_price');
     const orgPrice = aliasedTable(catalogListingPrices, 'org_price');
 
-    const rows = await this.db
+    return this.db
       .select({
         id: cartItems.id,
+        cartId: carts.id,
+        siteId: carts.siteId,
+        legalEntityId: carts.legalEntityId,
         catalogListingId: catalogListings.id,
         offeringVariantId: cartItems.offeringVariantId,
         quantity: cartItems.quantity,
@@ -97,13 +103,14 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         createdAt: cartItems.createdAt,
       })
       .from(cartItems)
+      .innerJoin(carts, eq(carts.id, cartItems.cartId))
       .innerJoin(offeringVariants, eq(offeringVariants.id, cartItems.offeringVariantId))
       .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .leftJoin(
         catalogListings,
         and(
           eq(catalogListings.offeringVariantId, cartItems.offeringVariantId),
-          eq(catalogListings.catalogId, catalogId),
+          catalogId ? eq(catalogListings.catalogId, catalogId) : sql`false`,
         ),
       )
       .leftJoin(
@@ -121,11 +128,47 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
           eq(orgPrice.currencyCode, currencyCode),
           isNull(orgPrice.siteId),
         ),
-      )
+      );
+  }
+
+  // Every line of one basket
+  async findItems(cartId: string, currencyCode: string, catalogId?: string, siteId?: string): Promise<CartItemRow[]> {
+    const rows = await this.lineRows(currencyCode, catalogId, siteId)
       .where(eq(cartItems.cartId, cartId))
       .orderBy(asc(cartItems.createdAt));
-
     return rows as CartItemRow[];
+  }
+
+  /**
+   * One basket's items for the data table — filtered, sorted and paged by the table's own state.
+   *
+   * `findAllAndCount` is bound to `carts`, this repository's table, so the page and its count are
+   * built here. The count joins the variant because a search on name or SKU narrows by it; it skips
+   * the listing and price joins, which cannot change how many items there are.
+   */
+  async findItemsForTable(
+    cartId: string,
+    options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
+    currencyCode: string,
+    catalogId?: string,
+    siteId?: string,
+  ): Promise<{ result: CartItemRow[]; count: number }> {
+    const where = and(eq(cartItems.cartId, cartId), options.where);
+
+    const [rows, [total]] = await Promise.all([
+      this.lineRows(currencyCode, catalogId, siteId)
+        .where(where)
+        .orderBy(...(options.orderBy?.length ? options.orderBy : [asc(cartItems.createdAt)]))
+        .limit(options.limit)
+        .offset(options.offset),
+      this.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(cartItems)
+        .innerJoin(offeringVariants, eq(offeringVariants.id, cartItems.offeringVariantId))
+        .where(where),
+    ]);
+
+    return { result: rows as CartItemRow[], count: Number(total?.count ?? 0) };
   }
 
   /**
@@ -170,72 +213,23 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
   }
 
   /**
-   * Every line a person holds, across every outlet.
+   * Every line a person holds that this workspace can reach.
    *
-   * The staff view. What widens it is the workspace, not the predicate: `workspaceHierarchyPolicies`
-   * on `carts` lets a parent see what its children own, so an org request sees every site's basket
-   * while a site still sees only its own.
-   *
-   * Each basket is priced through the channel it was opened at, which is why `carts` records one —
-   * resolving a channel per row here would otherwise mean a lateral join per line.
+   * The staff view. What bounds it is the workspace, not the predicate: `workspaceScopePolicies` on
+   * `carts` reads upward only, so a site sees its own baskets and its company's, while a company sees
+   * only the ones it holds itself — never a basket one of its outlets is holding. Every line is priced through the reader's own catalogue,
+   * so a basket filled at an outlet the reader does not sell from comes back unpriced rather than
+   * wrong — the honest answer to "what is this worth to me".
    */
   async findAllForParty(
     partyId: string,
     currencyCode: string,
+    catalogId?: string,
+    siteId?: string,
   ): Promise<(CartItemRow & { cartId: string; siteId: string | null; legalEntityId: string })[]> {
-    const sitePrice = aliasedTable(catalogListingPrices, 'site_price');
-    const orgPrice = aliasedTable(catalogListingPrices, 'org_price');
-
-    const rows = await this.db
-      .select({
-        id: cartItems.id,
-        cartId: carts.id,
-        siteId: carts.siteId,
-        legalEntityId: carts.legalEntityId,
-        catalogListingId: catalogListings.id,
-        offeringVariantId: cartItems.offeringVariantId,
-        quantity: cartItems.quantity,
-        amount: sql<bigint | null>`coalesce(${sitePrice.amount}, ${orgPrice.amount})`,
-        currencyCode: sql<string | null>`coalesce(${sitePrice.currencyCode}, ${orgPrice.currencyCode})`,
-        sku: offeringVariants.sku,
-        variantName: offeringVariants.name,
-        offeringName: offerings.name,
-        listingActive: sql<boolean>`${catalogListings.id} is not null`,
-        variantActive: offeringVariants.isActive,
-        offeringActive: offerings.isActive,
-        createdAt: cartItems.createdAt,
-      })
-      .from(cartItems)
-      .innerJoin(carts, eq(carts.id, cartItems.cartId))
-      .innerJoin(offeringVariants, eq(offeringVariants.id, cartItems.offeringVariantId))
-      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
-      .leftJoin(catalogChannels, eq(catalogChannels.id, carts.channelId))
-      .leftJoin(
-        catalogListings,
-        and(
-          eq(catalogListings.offeringVariantId, cartItems.offeringVariantId),
-          eq(catalogListings.catalogId, catalogChannels.catalogId),
-        ),
-      )
-      .leftJoin(
-        sitePrice,
-        and(
-          eq(sitePrice.catalogListingId, catalogListings.id),
-          eq(sitePrice.currencyCode, currencyCode),
-          eq(sitePrice.siteId, carts.siteId),
-        ),
-      )
-      .leftJoin(
-        orgPrice,
-        and(
-          eq(orgPrice.catalogListingId, catalogListings.id),
-          eq(orgPrice.currencyCode, currencyCode),
-          isNull(orgPrice.siteId),
-        ),
-      )
+    const rows = await this.lineRows(currencyCode, catalogId, siteId)
       .where(eq(carts.partyId, partyId))
       .orderBy(asc(cartItems.createdAt));
-
     return rows as (CartItemRow & { cartId: string; siteId: string | null; legalEntityId: string })[];
   }
 
@@ -257,7 +251,6 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         siteId: carts.siteId,
         partyId: carts.partyId,
         partyName: parties.displayName,
-        channelId: carts.channelId,
         checkoutStartedAt: carts.checkoutStartedAt,
         itemCount: sql<number>`(select count(*) from ${cartItems} where ${cartItems.cartId} = ${carts}.id)`,
         createdAt: carts.createdAt,
@@ -281,7 +274,6 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         siteId: carts.siteId,
         partyId: carts.partyId,
         partyName: parties.displayName,
-        channelId: carts.channelId,
         checkoutStartedAt: carts.checkoutStartedAt,
         itemCount: sql<number>`(select count(*) from ${cartItems} where ${cartItems.cartId} = ${carts}.id)`,
         createdAt: carts.createdAt,
@@ -292,15 +284,5 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       .where(eq(carts.id, id))
       .limit(1)) as CartTableRow[];
     return rows[0];
-  }
-
-  /** The listing that sells a variant in a catalogue, or nothing when it does not carry it. */
-  async findListingForVariant(catalogId: string, offeringVariantId: string): Promise<string | undefined> {
-    const rows = await this.db
-      .select({ id: catalogListings.id })
-      .from(catalogListings)
-      .where(and(eq(catalogListings.catalogId, catalogId), eq(catalogListings.offeringVariantId, offeringVariantId)))
-      .limit(1);
-    return rows[0]?.id;
   }
 }

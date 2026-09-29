@@ -129,9 +129,9 @@ export class ShopperGatewayService {
     siteId?: string;
   }): Promise<CartPayload> {
     const { appId: _appId, ...cart } = input;
-    const { catalogId, channelId } = await this.resolveCatalog(input.appId, input.siteId);
+    const { catalogId } = await this.resolveCatalog(input.appId, input.siteId);
     this.logger.log(`site.carts.items.add — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
-    return this.nats.send('commerce', 'site.carts.items.add', { ...cart, catalogId, channelId });
+    return this.nats.send('commerce', 'site.carts.items.add', { ...cart, catalogId });
   }
 
   async updateCartItem(input: {

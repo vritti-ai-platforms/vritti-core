@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -11,7 +10,6 @@ export interface CartRow {
   legalEntityId: string | null;
   partyId: string | null;
   partyName: string | null;
-  channelId: string | null;
   checkoutStartedAt: string | null;
   itemCount: number;
   createdAt: string;
@@ -38,6 +36,13 @@ export interface CartLineRow {
   isAvailable: boolean;
 }
 
+export interface CartItemsTableResponse {
+  result: CartLineRow[];
+  count: number;
+  state: unknown;
+  activeViewId: string | null;
+}
+
 export interface CartLinesResponse {
   currencyCode: string;
   items: CartLineRow[];
@@ -46,11 +51,10 @@ export interface CartLinesResponse {
 }
 
 /**
- * Baskets across the company, for the people who invoice them.
+ * Baskets the company holds itself.
  *
- * Reading downward through the workspace tree is what puts a basket filled at one of the company's
- * tills on this list. Lines are priced through the channel the basket was opened at, so an invoice
- * raised here charges what the outlet was selling at — not what the company would have.
+ * Reach runs upward only, so an outlet's baskets are the outlet's — they do not appear here. Lines
+ * are priced through the company's own channel, resolved per read.
  */
 @Injectable()
 export class LeCartsGatewayService {
@@ -83,16 +87,38 @@ export class LeCartsGatewayService {
 
   // Returns a basket's lines, priced through this site's channel
   async findItems(id: string, currencyCode: string, legalEntityId?: string): Promise<CartLinesResponse> {
-    const { catalogId } = await this.resolveChannel(legalEntityId);
+    const catalogId = await this.resolveCatalog(legalEntityId);
     this.logger.log(`le.carts.findItemsById — id: ${id}`);
     return this.nats.send('commerce', 'le.carts.findItemsById', { id, currencyCode, catalogId, legalEntityId });
   }
 
+  // Returns paginated, filtered and sorted items of one basket for the data table
+  async findItemsForTable(
+    cartId: string,
+    userId: string,
+    currencyCode: string,
+    legalEntityId?: string,
+  ): Promise<CartItemsTableResponse> {
+    this.logger.log(`le.carts.items.table — cart: ${cartId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-le-cart-${cartId}-items`,
+    );
+    const catalogId = await this.resolveCatalog(legalEntityId);
+
+    const { result, count } = await this.nats.send<{ result: CartLineRow[]; count: number }>(
+      'commerce',
+      'le.carts.items.table',
+      { cartId, currencyCode, catalogId, ...(state as object) },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
   // Opens a basket for a shopper, or hands back the one they already have here
   async create(input: { partyId: string; legalEntityId?: string }): Promise<CreateResponseDto<CartRow>> {
-    const { channelId } = await this.resolveChannel(input.legalEntityId);
     this.logger.log(`le.carts.create — party: ${input.partyId}`);
-    return this.nats.send('commerce', 'le.carts.create', { partyId: input.partyId, channelId });
+    return this.nats.send('commerce', 'le.carts.create', { partyId: input.partyId });
   }
 
   // Closes a basket outright — the lines go with it
@@ -111,7 +137,7 @@ export class LeCartsGatewayService {
       legalEntityId?: string;
     },
   ): Promise<CartLinesResponse> {
-    const { catalogId } = await this.resolveChannel(input.legalEntityId);
+    const catalogId = await this.resolveCatalog(input.legalEntityId);
     this.logger.log(`le.carts.items.addForCart — cart: ${cartId}, variant: ${input.offeringVariantId}`);
     await this.nats.send('commerce', 'le.carts.items.addForCart', { cartId, catalogId, ...input });
     return this.findItems(cartId, input.currencyCode, input.legalEntityId);
@@ -138,23 +164,20 @@ export class LeCartsGatewayService {
   }
 
   /**
-   * The APP channel this company sells through, and the catalogue behind it.
+   * The catalogue this company sells from, or nothing when it has not been given a channel.
    *
-   * Refused rather than defaulted: a company with no channel has no range, and pricing a basket against
-   * some other company's catalogue would be worse than saying so.
+   * Never throws — see the site gateway's copy for why a missing price list must not stop a basket.
    */
-  private async resolveChannel(legalEntityId?: string): Promise<{ catalogId: string; channelId: string }> {
+  private async resolveCatalog(legalEntityId?: string): Promise<string | undefined> {
     const resolution = await this.nats.send<{
       resolved: boolean;
       catalog: { catalogId: string; channelId: string } | null;
-    }>('commerce', 'org.catalogChannels.resolve', { type: 'APP', siteId: null, legalEntityId: legalEntityId ?? null });
+    }>('commerce', 'org.catalogChannels.resolve', {
+      type: 'APP',
+      siteId: null,
+      legalEntityId: legalEntityId ?? null,
+    });
 
-    if (!resolution?.catalog) {
-      throw new NotFoundException({
-        label: 'No Catalogue Here',
-        detail: 'This company has no app channel assigned, so nothing can be priced for it yet.',
-      });
-    }
-    return resolution.catalog;
+    return resolution?.catalog?.catalogId;
   }
 }

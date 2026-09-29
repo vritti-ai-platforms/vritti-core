@@ -8,7 +8,6 @@ export interface CartTableRow {
   siteId: string | null;
   partyId: string;
   partyName: string | null;
-  channelId: string | null;
   checkoutStartedAt: Date | null;
   itemCount: number;
   createdAt: Date;
@@ -158,7 +157,6 @@ export class CartDetailDto {
   legalEntityId: string | null;
   partyId: string;
   partyName: string | null;
-  channelId: string | null;
   /** Set while a payment is in flight, which is what freezes the basket. */
   checkoutStartedAt: string | null;
   itemCount: number;
@@ -172,7 +170,6 @@ export class CartDetailDto {
     dto.legalEntityId = row.legalEntityId;
     dto.partyId = row.partyId;
     dto.partyName = row.partyName;
-    dto.channelId = row.channelId;
     dto.checkoutStartedAt = row.checkoutStartedAt?.toISOString() ?? null;
     dto.itemCount = Number(row.itemCount);
     dto.createdAt = row.createdAt.toISOString();

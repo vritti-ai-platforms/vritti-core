@@ -14,7 +14,6 @@ export interface CartData {
   legalEntityId: string;
   partyId: string;
   partyName: string | null;
-  channelId: string | null;
   /** Set while a payment is in flight, which is what freezes the basket. */
   checkoutStartedAt: string | null;
   itemCount: number;
@@ -38,6 +37,8 @@ export interface CartLineData {
   isAvailable: boolean;
 }
 
+export type CartItemsTableResponse = TableResponse<CartLineData>;
+
 export interface CartLinesData {
   currencyCode: string;
   items: CartLineData[];
@@ -57,7 +58,7 @@ export const openCartSchema = z.object({
  * and `useForm`'s generic disagree and RHF refuses the resolver.
  */
 export const addCartLineSchema = z.object({
-  offeringVariantId: z.string().min(1, 'Choose a product'),
+  offeringVariantId: z.string().min(1, 'Choose a variant'),
   quantity: zodNumericField({
     required: 'How many?',
     integer: true,
@@ -70,3 +71,10 @@ export const addCartLineSchema = z.object({
 
 export type OpenCartFormData = z.infer<typeof openCartSchema>;
 export type AddCartLineFormData = z.infer<typeof addCartLineSchema>;
+
+// The offering scopes the variant picker but is never submitted — a variant carries its own offering
+export const addCartLineFormSchema = addCartLineSchema.extend({
+  offeringId: z.string().min(1, 'Choose a product'),
+});
+
+export type AddCartLineFormShape = z.infer<typeof addCartLineFormSchema>;

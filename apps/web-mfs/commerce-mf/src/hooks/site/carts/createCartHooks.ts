@@ -4,11 +4,12 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  useSuspenseQuery,
 } from '@tanstack/react-query';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { CartData, CartLinesData, CartsTableResponse } from '@/schemas/carts';
+import type { CartData, CartItemsTableResponse, CartLinesData, CartsTableResponse } from '@/schemas/carts';
 import type { AddCartLinePayload, createCartsService } from '@/services/site/carts.service';
 
 type CartsService = ReturnType<typeof createCartsService>;
@@ -17,6 +18,7 @@ interface CartKeys {
   table: readonly unknown[];
   cart: (cartId: string) => readonly unknown[];
   items: (cartId: string) => readonly unknown[];
+  itemsTable: (cartId: string) => readonly unknown[];
 }
 
 /**
@@ -26,9 +28,9 @@ interface CartKeys {
  * calls and the permission code the read is gated on, so both are arguments rather than two copies
  * of the same file.
  *
- * Every line mutation answers with the **whole basket**, so the cache is *set* rather than
- * invalidated: the list redraws from the response instead of making a second round trip for what it
- * already has.
+ * Every line mutation answers with the **whole basket**, so the summary is *set* rather than
+ * invalidated. The items table is the exception: it is a server-paged view with its own filters, so
+ * it is refetched rather than patched — a response for the whole basket is not the page it shows.
  */
 export function createCartHooks(service: CartsService, keys: CartKeys, viewPermission: string) {
   const useCartsTable = (options?: Omit<UseQueryOptions<CartsTableResponse, AxiosError>, 'queryKey' | 'queryFn'>) => {
@@ -41,26 +43,31 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
     });
   };
 
-  const useCart = (cartId: string, options?: Omit<UseQueryOptions<CartData, AxiosError>, 'queryKey' | 'queryFn'>) => {
-    const { available } = usePermission(viewPermission);
-    return useQuery<CartData, AxiosError>({
+  // Suspense, like every other detail read: the route holds the skeleton, so the page can treat the
+  // basket as present instead of threading `undefined` through every field it renders.
+  const useCart = (cartId: string) =>
+    useSuspenseQuery<CartData, AxiosError>({
       queryKey: keys.cart(cartId),
       queryFn: () => service.getCart(cartId),
-      enabled: available && Boolean(cartId),
-      ...options,
     });
-  };
 
-  const useCartItems = (
-    cartId: string,
-    options?: Omit<UseQueryOptions<CartLinesData, AxiosError>, 'queryKey' | 'queryFn'>,
-  ) => {
-    const { available } = usePermission(viewPermission);
-    return useQuery<CartLinesData, AxiosError>({
+  const useCartItems = (cartId: string) =>
+    useSuspenseQuery<CartLinesData, AxiosError>({
       queryKey: keys.items(cartId),
       queryFn: () => service.getCartItems(cartId),
-      enabled: available && Boolean(cartId),
+    });
+
+  // Self-gated like every table read: without the permission no request is made
+  const useCartItemsTable = (
+    cartId: string,
+    options?: Omit<UseQueryOptions<CartItemsTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
+  ) => {
+    const { available } = usePermission(viewPermission);
+    return useQuery<CartItemsTableResponse, AxiosError>({
+      queryKey: keys.itemsTable(cartId),
+      queryFn: () => service.getCartItemsTable(cartId),
       ...options,
+      enabled: !!cartId && available && (options?.enabled ?? true),
     });
   };
 
@@ -86,6 +93,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
       mutationFn: (data) => service.addCartLine({ id: cartId, data }),
       onSuccess: (lines, ...rest) => {
         queryClient.setQueryData(keys.items(cartId), lines);
+        queryClient.invalidateQueries({ queryKey: keys.itemsTable(cartId) });
         queryClient.invalidateQueries({ queryKey: keys.cart(cartId) });
         queryClient.invalidateQueries({ queryKey: keys.table });
         options?.onSuccess?.(lines, ...rest);
@@ -107,6 +115,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
         service.updateCartLine({ id: cartId, offeringVariantId, data: { partyId, quantity } }),
       onSuccess: (lines, ...rest) => {
         queryClient.setQueryData(keys.items(cartId), lines);
+        queryClient.invalidateQueries({ queryKey: keys.itemsTable(cartId) });
         queryClient.invalidateQueries({ queryKey: keys.cart(cartId) });
         options?.onSuccess?.(lines, ...rest);
       },
@@ -127,6 +136,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
         service.removeCartLine({ id: cartId, offeringVariantId, partyId }),
       onSuccess: (lines, ...rest) => {
         queryClient.setQueryData(keys.items(cartId), lines);
+        queryClient.invalidateQueries({ queryKey: keys.itemsTable(cartId) });
         queryClient.invalidateQueries({ queryKey: keys.cart(cartId) });
         queryClient.invalidateQueries({ queryKey: keys.table });
         options?.onSuccess?.(lines, ...rest);
@@ -150,6 +160,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
     useCartsTable,
     useCart,
     useCartItems,
+    useCartItemsTable,
     useOpenCart,
     useAddCartLine,
     useUpdateCartLine,

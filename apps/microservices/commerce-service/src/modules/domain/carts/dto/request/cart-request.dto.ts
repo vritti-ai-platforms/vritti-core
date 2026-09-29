@@ -11,8 +11,10 @@ import { IsInt, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-val
  * workspace rides the request as the RLS context rather than as a field — which is what stops a
  * caller naming an outlet whose baskets are not theirs to touch.
  *
- * `catalogId` and `siteId` are not scope: they are how a line gets priced. The gateway resolves both
- * from the caller's APP channel, so what a basket costs is answered by the outlet it is read from.
+ * The pricing context is the **reader's**, not the basket's. A basket records no catalogue, because
+ * what a line is worth is a question about who is asking — so each read carries its own workspace's
+ * catalogue and prices through that. Both fields are optional: a workspace with no channel assigned
+ * still has baskets, and they come back unpriced rather than refused.
  */
 export class CartScopeDto {
   @IsUUID()
@@ -23,9 +25,10 @@ export class CartScopeDto {
   @Length(3, 3)
   currencyCode: string;
 
-  /** The catalogue the caller's channel serves — the line stores a product, not one catalogue's offer of it. */
+  /** The catalogue the reader sells from, when they have one. */
+  @IsOptional()
   @IsUUID()
-  catalogId: string;
+  catalogId?: string;
 
   /** The outlet whose price wins, falling back to the organization-wide row when it has none. */
   @IsOptional()
@@ -37,11 +40,6 @@ export class AddCartItemDto extends CartScopeDto {
   /** The product. Which catalogue offers it is resolved per read, never stored. */
   @IsUUID()
   offeringVariantId: string;
-
-  /** Recorded on the basket when it is opened, so a staff view can price it through the same door. */
-  @IsOptional()
-  @IsUUID()
-  channelId?: string;
 
   // Bounded here as well as by the CHECK, so an out-of-range quantity is a readable refusal rather
   // than a constraint violation surfacing as a server error.

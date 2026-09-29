@@ -1,11 +1,14 @@
 import { DangerZoneSkeleton } from '@vritti/quantum-ui/DangerZone';
-import { CompactTableSkeleton } from '@vritti/quantum-ui/DataTable';
 import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
+import { TabsSkeleton } from '@vritti/quantum-ui/Tabs';
 
 export const CartDetailPageSkeleton = () => (
   <div className="flex flex-col gap-6">
-    <PageHeaderSkeleton showDescription showActions />
-    <CompactTableSkeleton columns={5} actions />
+    <PageHeaderSkeleton showDescription />
+
+    {/* Overview / Items */}
+    <TabsSkeleton count={2} tabWidths={['w-24', 'w-20']} />
+
     <DangerZoneSkeleton />
   </div>
 );

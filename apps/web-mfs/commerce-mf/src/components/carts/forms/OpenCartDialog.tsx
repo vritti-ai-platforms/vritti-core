@@ -2,9 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { Select } from '@vritti/quantum-ui/Select';
 import { useForm } from 'react-hook-form';
 import { type OpenCartFormData, openCartSchema } from '@/schemas/carts';
+import { PersonSelector } from '@/selectors/person';
 import type { CartsBinding } from '../types';
 
 interface OpenCartDialogProps {
@@ -30,14 +30,7 @@ export const OpenCartDialog = ({ binding, onSuccess, onCancel }: OpenCartDialogP
   return (
     <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
       <FormSection title="Shopper" contentClassName="grid grid-cols-1 gap-4">
-        <Select
-          name="partyId"
-          label="Shopper"
-          placeholder="Search people"
-          searchable
-          optionsEndpoint="commerce-api/select-api/people"
-          fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
-        />
+        <PersonSelector name="partyId" label="Shopper" placeholder="Search people" />
       </FormSection>
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

@@ -6,9 +6,12 @@ import { CartDetailPageSkeleton } from '@/components/carts/CartDetailPageSkeleto
 import { CartsPage } from '@/components/carts/CartsPage';
 import type { CartsBinding } from '@/components/carts/types';
 import {
+  LE_CART_ITEMS_TABLE_KEY,
+  LE_CARTS_TABLE_KEY,
   useAddCartLine,
   useCart,
   useCartItems,
+  useCartItemsTable,
   useCartsTable,
   useCloseCart,
   useOpenCart,
@@ -18,11 +21,16 @@ import {
 
 const binding: CartsBinding = {
   scopeNoun: 'company',
-  description: 'Baskets across this company — its own, and every one its outlets are holding.',
+  description: 'Baskets this company holds itself. Outlet baskets live at each outlet.',
   permissions: LE_CARTS,
+  tableKey: LE_CARTS_TABLE_KEY,
+  tableSlug: 'commerce-le-carts',
+  itemsTableKey: LE_CART_ITEMS_TABLE_KEY,
+  itemsTableSlug: (cartId) => `commerce-le-cart-${cartId}-items`,
   useCartsTable,
   useCart,
   useCartItems,
+  useCartItemsTable,
   useOpenCart,
   useAddCartLine,
   useUpdateCartLine,
@@ -33,7 +41,7 @@ const binding: CartsBinding = {
 const routes: RouteObject[] = [
   { index: true, element: <CartsPage binding={binding} /> },
   {
-    path: ':cartId',
+    path: ':cartSlug',
     element: (
       <Suspense fallback={<CartDetailPageSkeleton />}>
         <CartDetailPage binding={binding} />

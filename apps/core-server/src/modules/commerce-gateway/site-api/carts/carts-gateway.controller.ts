@@ -18,7 +18,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { SITE_CARTS } from '@vritti/commerce-permissions/carts';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { SiteId } from '@/security/decorators';
+import { LegalEntityId, SiteId } from '@/security/decorators';
 import {
   AddCartLineDto,
   CartsQueryDto,
@@ -27,6 +27,7 @@ import {
   UpdateCartLineDto,
 } from './dto/request/cart-request.dto';
 import {
+  type CartItemsTableResponse,
   type CartLinesResponse,
   type CartRow,
   CartsGatewayService,
@@ -54,12 +55,26 @@ export class CartsGatewayController {
     return this.service.findForTable(userId);
   }
 
+  // Returns paginated items of one basket for the data table with server-stored state
+  @Get(':id/items/table')
+  @RequirePermission(SITE_CARTS.view)
+  findItemsForTable(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: CartsQueryDto,
+    @UserId() userId: string,
+    @SiteId() siteId: string | undefined,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<CartItemsTableResponse> {
+    this.logger.log(`GET /commerce-api/site/carts/${id}/items/table`);
+    return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY, siteId, legalEntityId);
+  }
+
   // Opens a basket for a shopper, or hands back the one they already have here
   @Post()
   @RequirePermission(SITE_CARTS.add)
-  open(@Body() dto: OpenCartDto, @SiteId() siteId: string | undefined): Promise<CreateResponseDto<CartRow>> {
+  open(@Body() dto: OpenCartDto): Promise<CreateResponseDto<CartRow>> {
     this.logger.log('POST /commerce-api/site/carts');
-    return this.service.create({ partyId: dto.partyId, siteId });
+    return this.service.create({ partyId: dto.partyId });
   }
 
   @Get(':id')
@@ -76,9 +91,10 @@ export class CartsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query() query: CartsQueryDto,
     @SiteId() siteId: string | undefined,
+    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CartLinesResponse> {
     this.logger.log(`GET /commerce-api/site/carts/${id}/items`);
-    return this.service.findItems(id, query.currencyCode ?? DEFAULT_CURRENCY, siteId);
+    return this.service.findItems(id, query.currencyCode ?? DEFAULT_CURRENCY, siteId, legalEntityId);
   }
 
   // Adds a product to the basket
@@ -90,9 +106,15 @@ export class CartsGatewayController {
     @Body() dto: AddCartLineDto,
     @Query() query: CartsQueryDto,
     @SiteId() siteId: string | undefined,
+    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CartLinesResponse> {
     this.logger.log(`POST /commerce-api/site/carts/${id}/items`);
-    return this.service.addItem(id, { ...dto, currencyCode: query.currencyCode ?? DEFAULT_CURRENCY, siteId });
+    return this.service.addItem(id, {
+      ...dto,
+      currencyCode: query.currencyCode ?? DEFAULT_CURRENCY,
+      siteId,
+      legalEntityId,
+    });
   }
 
   /**
@@ -109,12 +131,14 @@ export class CartsGatewayController {
     @Body() dto: UpdateCartLineDto,
     @Query() query: CartsQueryDto,
     @SiteId() siteId: string | undefined,
+    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CartLinesResponse> {
     this.logger.log(`PATCH /commerce-api/site/carts/${id}/items/${offeringVariantId}`);
     return this.service.updateItem(id, offeringVariantId, {
       ...dto,
       currencyCode: query.currencyCode ?? DEFAULT_CURRENCY,
       siteId,
+      legalEntityId,
     });
   }
 
@@ -125,12 +149,14 @@ export class CartsGatewayController {
     @Param('offeringVariantId', new ParseUUIDPipe()) offeringVariantId: string,
     @Query() query: RemoveCartLineQueryDto,
     @SiteId() siteId: string | undefined,
+    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CartLinesResponse> {
     this.logger.log(`DELETE /commerce-api/site/carts/${id}/items/${offeringVariantId}`);
     return this.service.removeItem(id, offeringVariantId, {
       partyId: query.partyId,
       currencyCode: query.currencyCode ?? DEFAULT_CURRENCY,
       siteId,
+      legalEntityId,
     });
   }
 

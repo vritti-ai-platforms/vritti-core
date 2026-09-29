@@ -1,10 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
-import { IsUUID } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 
-// What a storefront sells only means anything next to the channel selling it, so the channel is required
+// Optional: a caller that knows which channel it means names one, and everyone else gets the channel
+// their own workspace sells through, resolved server-side. A browser should not have to hold a
+// channel id to ask what this shop sells.
 export class ChannelItemsSelectQueryDto extends SelectOptionsQueryDto {
-  @ApiProperty({ description: 'The APP catalog channel whose range to list' })
+  @ApiPropertyOptional({ description: "The APP catalog channel whose range to list; defaults to the caller's" })
+  @IsOptional()
   @IsUUID()
-  channelId: string;
+  channelId?: string;
 }

@@ -6,9 +6,12 @@ import { CartDetailPageSkeleton } from '@/components/carts/CartDetailPageSkeleto
 import { CartsPage } from '@/components/carts/CartsPage';
 import type { CartsBinding } from '@/components/carts/types';
 import {
+  CART_ITEMS_TABLE_KEY,
+  CARTS_TABLE_KEY,
   useAddCartLine,
   useCart,
   useCartItems,
+  useCartItemsTable,
   useCartsTable,
   useCloseCart,
   useOpenCart,
@@ -20,9 +23,14 @@ const binding: CartsBinding = {
   scopeNoun: 'outlet',
   description: 'Baskets open at this outlet — one per shopper, plus walk-ins at the till.',
   permissions: SITE_CARTS,
+  tableKey: CARTS_TABLE_KEY,
+  tableSlug: 'commerce-site-carts',
+  itemsTableKey: CART_ITEMS_TABLE_KEY,
+  itemsTableSlug: (cartId) => `commerce-site-cart-${cartId}-items`,
   useCartsTable,
   useCart,
   useCartItems,
+  useCartItemsTable,
   useOpenCart,
   useAddCartLine,
   useUpdateCartLine,
@@ -33,7 +41,7 @@ const binding: CartsBinding = {
 const routes: RouteObject[] = [
   { index: true, element: <CartsPage binding={binding} /> },
   {
-    path: ':cartId',
+    path: ':cartSlug',
     element: (
       <Suspense fallback={<CartDetailPageSkeleton />}>
         <CartDetailPage binding={binding} />

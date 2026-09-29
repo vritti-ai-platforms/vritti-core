@@ -1,7 +1,12 @@
-import type { UseMutationOptions, UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+import type {
+  UseMutationOptions,
+  UseMutationResult,
+  UseQueryResult,
+  UseSuspenseQueryResult,
+} from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { CartData, CartLinesData, CartsTableResponse } from '@/schemas/carts';
+import type { CartData, CartItemsTableResponse, CartLinesData, CartsTableResponse } from '@/schemas/carts';
 import type { AddCartLinePayload } from '@/services/site/carts.service';
 
 // Structural rather than `typeof SITE_…`, so this folder carries no scope bias — a basket is the
@@ -35,9 +40,17 @@ export interface CartsBinding {
   scopeNoun: string;
   description: string;
   permissions: CartPermissions;
+  /** The table query's cache key — refetched whenever the table's filters, sort or search change. */
+  tableKey: readonly unknown[];
+  /** Must equal the gateway's `getCurrentState` key, or saved views never come back. */
+  tableSlug: string;
+  /** The items table's cache key and state key — per basket, so each keeps its own view. */
+  itemsTableKey: (cartId: string) => readonly unknown[];
+  itemsTableSlug: (cartId: string) => string;
   useCartsTable: () => UseQueryResult<CartsTableResponse, AxiosError>;
-  useCart: (cartId: string) => UseQueryResult<CartData, AxiosError>;
-  useCartItems: (cartId: string) => UseQueryResult<CartLinesData, AxiosError>;
+  useCart: (cartId: string) => UseSuspenseQueryResult<CartData, AxiosError>;
+  useCartItems: (cartId: string) => UseSuspenseQueryResult<CartLinesData, AxiosError>;
+  useCartItemsTable: (cartId: string) => UseQueryResult<CartItemsTableResponse, AxiosError>;
   useOpenCart: MutationHook<CartData, { partyId: string }>;
   useAddCartLine: LineMutationHook<AddCartLinePayload>;
   useUpdateCartLine: LineMutationHook<{ offeringVariantId: string; partyId: string; quantity: number }>;

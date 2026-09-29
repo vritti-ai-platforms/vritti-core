@@ -17,6 +17,7 @@ import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { SessionTypeValues } from '@/db/schema';
+import { LegalEntityId, SiteId } from '@/security/decorators';
 import {
   ApiCatalogsSelect,
   ApiCategoriesSelect,
@@ -111,10 +112,32 @@ export class SelectApiController {
     return this.nats.send<SelectQueryResult>('commerce', 'select.offeringVariants', query);
   }
 
-  // What one storefront channel sells — the picker behind "add to their basket" on a person
+  /**
+   * What a storefront sells — the picker behind "add to their basket".
+   *
+   * A caller may name the channel, and one that does not gets the channel its own workspace sells
+   * through. A workspace with none sells nothing yet, which is an empty list rather than an error:
+   * the picker shows "no options" instead of the page failing to load.
+   */
   @Get('channel-items')
-  selectChannelItems(@Query() query: ChannelItemsSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'select.channelItems', query);
+  async selectChannelItems(
+    @Query() query: ChannelItemsSelectQueryDto,
+    @SiteId() siteId: string | undefined,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<SelectQueryResult> {
+    const channelId = query.channelId ?? (await this.resolveAppChannel(siteId, legalEntityId));
+    if (!channelId) return { options: [], hasMore: false };
+    return this.nats.send<SelectQueryResult>('commerce', 'select.channelItems', { ...query, channelId });
+  }
+
+  // The APP channel this workspace sells through, or nothing when it has not been given one
+  private async resolveAppChannel(siteId?: string, legalEntityId?: string): Promise<string | undefined> {
+    const resolution = await this.nats.send<{ catalog: { channelId: string } | null }>(
+      'commerce',
+      'org.catalogChannels.resolve',
+      { type: 'APP', siteId: siteId ?? null, legalEntityId: legalEntityId ?? null },
+    );
+    return resolution?.catalog?.channelId;
   }
 
   @Get('dimension-templates')

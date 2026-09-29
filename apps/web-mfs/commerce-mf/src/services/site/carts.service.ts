@@ -1,6 +1,6 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
-import type { CartData, CartLinesData, CartsTableResponse } from '@/schemas/carts';
+import type { CartData, CartItemsTableResponse, CartLinesData, CartsTableResponse } from '@/schemas/carts';
 
 export interface AddCartLinePayload {
   partyId: string;
@@ -24,6 +24,9 @@ export function createCartsService(base: 'site' | 'le') {
 
     getCart: (id: string): Promise<CartData> =>
       axios.get<CartData>(`${root}/${id}`, { showSuccessToast: false }).then((r) => r.data),
+
+    getCartItemsTable: (id: string): Promise<CartItemsTableResponse> =>
+      axios.get<CartItemsTableResponse>(`${root}/${id}/items/table`, { showSuccessToast: false }).then((r) => r.data),
 
     getCartItems: (id: string): Promise<CartLinesData> =>
       axios.get<CartLinesData>(`${root}/${id}/items`, { showSuccessToast: false }).then((r) => r.data),

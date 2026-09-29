@@ -244,9 +244,12 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
    * search, paging and ordering keep working untouched.
    *
    * The channel is resolved inside it — passing a catalog id instead would let a caller name a
-   * catalogue the channel does not point at. Delisted rows and anything excluded from this channel
-   * are both dropped, so the picker offers exactly what the shop can sell and nothing the server
-   * would then refuse.
+   * catalogue the channel does not point at. Delisting removes the listing row rather than flagging
+   * it, so being listed at all is the test; anything this channel excludes is dropped on top.
+   *
+   * Retired variants are dropped too, on the same `is_active AND is_offering_active` rule a basket
+   * line is priced by — otherwise the picker would offer a product whose line reads unavailable the
+   * moment it lands in the basket.
    */
   async findForSelectInChannel(config: FindForSelectConfig, channelId: string): Promise<SelectQueryResult> {
     const soldByChannel = sql`exists (
@@ -255,13 +258,15 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
         join commerce.catalog_channels ch on ch.catalog_id = l.catalog_id
        where l.offering_variant_id = ${offeringVariants.id}
          and ch.id = ${channelId}
-         and l.is_active
          and not exists (
            select 1 from commerce.catalog_listing_channel_exclusions e
             where e.catalog_listing_id = l.id and e.catalog_channel_id = ch.id
          )
     )`;
-    return super.findForSelect({ ...config, conditions: [soldByChannel] });
+    return super.findForSelect({
+      ...config,
+      conditions: [soldByChannel, eq(offeringVariants.isActive, true), eq(offeringVariants.isOfferingActive, true)],
+    });
   }
 
   // Which of these SKUs are already taken. Org-wide, matching the constraint — RLS scopes it.

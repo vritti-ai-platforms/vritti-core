@@ -10918,6 +10918,44 @@
         ]
       }
     },
+    "/commerce-api/site/carts/{id}/items/table": {
+      "get": {
+        "operationId": "CartsGatewayController_findItemsForTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": false,
+            "in": "query",
+            "description": "ISO 4217 the basket is priced in",
+            "schema": {
+              "example": "INR",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Carts"
+        ]
+      }
+    },
     "/commerce-api/site/carts": {
       "post": {
         "operationId": "CartsGatewayController_open",
@@ -11197,6 +11235,44 @@
       "get": {
         "operationId": "LeCartsGatewayController_findForTable",
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Company Carts"
+        ]
+      }
+    },
+    "/commerce-api/le/carts/{id}/items/table": {
+      "get": {
+        "operationId": "LeCartsGatewayController_findItemsForTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": false,
+            "in": "query",
+            "description": "ISO 4217 the basket is priced in",
+            "schema": {
+              "example": "INR",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -25350,9 +25426,9 @@
           },
           {
             "name": "channelId",
-            "required": true,
+            "required": false,
             "in": "query",
-            "description": "The APP catalog channel whose range to list",
+            "description": "The APP catalog channel whose range to list; defaults to the caller's",
             "schema": {
               "type": "string"
             }
