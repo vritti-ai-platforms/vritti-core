@@ -1,0 +1,43 @@
+VAP — Vritti AI Platform
+Copyright (C) 2026 Vritti AI Platforms Private Limited, Hyderabad, India
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, version 3.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/>.
+
+--------------------------------------------------------------------------------
+
+Why AGPL-3.0 rather than MIT or Apache-2.0
+
+The AGPL closes the network loophole in the GPL: anyone who modifies this
+software and makes it available to users over a network must offer those users
+the corresponding source. For a hosted ERP that is the whole point — it keeps
+the project open while preventing a third party from taking it closed and
+running it as a competing service.
+
+Note this obliges Vritti AI Platforms too. As the copyright holder, Vritti may
+additionally offer the software under separate commercial terms; that is a
+decision for the company, not a right the AGPL grants to anyone else.
+
+Keeping that option open is why outside contributions require a Contributor
+Licence Agreement — see CONTRIBUTING.md and CLA.md. Without one, contributed
+code arrives under the AGPL and nothing more, and no later commercial licence
+can cover it without the written permission of every contributor who wrote it.
+
+--------------------------------------------------------------------------------
+
+Third-party components
+
+This repository depends on packages published under their own licences,
+including MIT, Apache-2.0 and BSD terms. Those licences are unaffected by this
+one, and each dependency remains governed by its own. Apache-2.0 is compatible
+with AGPL-3.0 in this direction.
+
+Full licence text: see LICENSE in the root of this repository.
