@@ -144,7 +144,6 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
             <Button
               size="sm"
               permission={permissions.add}
-              disabled={!partyId}
               startAdornment={<Plus className="size-4" />}
               onClick={addDialog.open}
             >
@@ -157,12 +156,7 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
           title: 'No items',
           description: 'Nothing has been added to this basket yet.',
           action: (
-            <Button
-              permission={permissions.add}
-              disabled={!partyId}
-              startAdornment={<Plus className="size-4" />}
-              onClick={addDialog.open}
-            >
+            <Button permission={permissions.add} startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
               Add Item
             </Button>
           ),

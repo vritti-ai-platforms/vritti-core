@@ -7,7 +7,6 @@ import {
   DateTimeCell,
   NumberCell,
   RowActions,
-  StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
@@ -41,7 +40,6 @@ export const CartsPage: React.FC<{ binding: CartsBinding }> = ({ binding }) => {
       {
         accessorKey: 'partyName',
         header: 'Shopper',
-        cell: ({ row }) => <StringCell value={row.original.partyName ?? 'Walk-in'} />,
         enableSorting: true,
       },
       {
@@ -83,7 +81,7 @@ export const CartsPage: React.FC<{ binding: CartsBinding }> = ({ binding }) => {
                 id: 'view',
                 icon: Eye,
                 label: 'View',
-                onClick: () => navigate(buildSlug(row.original.partyName ?? 'walk-in', row.original.id)),
+                onClick: () => navigate(buildSlug(row.original.partyName, row.original.id)),
               },
             ]}
           />

@@ -15,6 +15,8 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  */
 type Documents = {
     "\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": typeof types.CatalogListingsDocument,
+    "\n  query LeCatalogListings {\n    leCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": typeof types.LeCatalogListingsDocument,
+    "\n  query SiteCatalogListings {\n    siteCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": typeof types.SiteCatalogListingsDocument,
     "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": typeof types.SendWhatsappOtpDocument,
     "\n  mutation VerifyWhatsappOtp($input: VerifyWhatsappOtpInput!) {\n    verifyWhatsappOtp(input: $input) {\n      verified\n    }\n  }\n": typeof types.VerifyWhatsappOtpDocument,
     "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": typeof types.SendSmsOtpDocument,
@@ -38,6 +40,8 @@ type Documents = {
 };
 const documents: Documents = {
     "\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": types.CatalogListingsDocument,
+    "\n  query LeCatalogListings {\n    leCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": types.LeCatalogListingsDocument,
+    "\n  query SiteCatalogListings {\n    siteCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": types.SiteCatalogListingsDocument,
     "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": types.SendWhatsappOtpDocument,
     "\n  mutation VerifyWhatsappOtp($input: VerifyWhatsappOtpInput!) {\n    verifyWhatsappOtp(input: $input) {\n      verified\n    }\n  }\n": types.VerifyWhatsappOtpDocument,
     "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": types.SendSmsOtpDocument,
@@ -78,6 +82,14 @@ export function graphql(source: string): unknown;
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n"): (typeof documents)["\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query LeCatalogListings {\n    leCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n"): (typeof documents)["\n  query LeCatalogListings {\n    leCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query SiteCatalogListings {\n    siteCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n"): (typeof documents)["\n  query SiteCatalogListings {\n    siteCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

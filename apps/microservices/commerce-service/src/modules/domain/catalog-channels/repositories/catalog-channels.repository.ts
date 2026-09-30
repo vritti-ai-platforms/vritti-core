@@ -147,12 +147,21 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return row;
   }
 
-  // Returns every channel that could serve this context. A NULL scope column applies everywhere, so the
-  // caller's own scope and the wildcards both match; the service then picks the most specific.
+  /**
+   * Every channel that could serve the calling workspace; the service then picks the most specific.
+   *
+   * **Which workspace is not an argument.** `workspaceScopePolicies` on `catalog_channels` already
+   * limits this read to the channels the request's own workspace can see — org-owned, its own LE's,
+   * its own site's — and that workspace is the RLS context, derived on the server: a site request's
+   * legal entity is resolved from the site, never taken from the client. Filtering on a site or LE id
+   * here as well only repeated that, and got it wrong: a NULL "don't care" compiled to `IS NULL` and
+   * hid every channel the site or its LE owned.
+   *
+   * What RLS cannot know is which *door* the caller is — which storefront app, which till — so those
+   * two stay: a NULL app or terminal applies everywhere, a named one only to itself.
+   */
   async findCandidates(context: {
     type: CatalogChannelType;
-    legalEntityId?: string | null;
-    siteId?: string | null;
     appId?: string | null;
     terminalId?: string | null;
   }): Promise<CatalogChannelRow[]> {
@@ -165,8 +174,6 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       where: and(
         eq(catalogChannels.type, context.type),
         eq(catalogs.isActive, true),
-        matches(catalogChannels.legalEntityId, context.legalEntityId),
-        matches(catalogChannels.siteId, context.siteId),
         matches(catalogChannels.appId, context.appId),
         matches(catalogChannels.terminalId, context.terminalId),
       ),

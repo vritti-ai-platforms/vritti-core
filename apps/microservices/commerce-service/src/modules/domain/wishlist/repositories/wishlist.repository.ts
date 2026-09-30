@@ -43,7 +43,11 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
         id: wishlistItems.id,
         catalogListingId: catalogListings.id,
         offeringVariantId: wishlistItems.offeringVariantId,
-        amount: sql<bigint | null>`coalesce(${sitePrice.amount}, ${orgPrice.amount})`,
+        // A raw template skips the column's bigint decoder, so the driver's string comes back as-is and
+        // BigInt math on it throws. Decoded here, as the column itself would have been.
+        amount: sql<bigint | null>`coalesce(${sitePrice.amount}, ${orgPrice.amount})`.mapWith((value: unknown) =>
+          value == null ? null : BigInt(value as string),
+        ),
         currencyCode: sql<string | null>`coalesce(${sitePrice.currencyCode}, ${orgPrice.currencyCode})`,
         sku: offeringVariants.sku,
         variantName: offeringVariants.name,

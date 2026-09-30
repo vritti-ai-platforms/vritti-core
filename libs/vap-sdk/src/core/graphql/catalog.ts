@@ -22,3 +22,33 @@ export const CATALOG_LISTINGS_QUERY = graphql(`
     }
   }
 `);
+
+/** The same range for a legal entity's B2B website — checked in LE scope, sent with `x-le-id`. */
+export const LE_CATALOG_LISTINGS_QUERY = graphql(`
+  query LeCatalogListings {
+    leCatalogListings {
+      id
+      offeringVariantId
+      sku
+      name
+      price {
+        ...MoneyFields
+      }
+    }
+  }
+`);
+
+/** The same range for an outlet's customer website — checked in SITE scope, sent with `x-site-id`. */
+export const SITE_CATALOG_LISTINGS_QUERY = graphql(`
+  query SiteCatalogListings {
+    siteCatalogListings {
+      id
+      offeringVariantId
+      sku
+      name
+      price {
+        ...MoneyFields
+      }
+    }
+  }
+`);

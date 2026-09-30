@@ -30,7 +30,7 @@ export const CartDetailPage: React.FC<{ binding: CartsBinding }> = ({ binding })
 
   const handleClose = async () => {
     const confirmed = await confirm({
-      title: `Close ${cart.partyName ?? 'this'}'s basket?`,
+      title: `Close ${cart.partyName}'s basket?`,
       description: `${pluralize('item', lines.items.length, true)} will be removed with it. This cannot be undone.`,
       confirmLabel: 'Close basket',
       variant: 'destructive',
@@ -41,7 +41,7 @@ export const CartDetailPage: React.FC<{ binding: CartsBinding }> = ({ binding })
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-6">
       <PageHeader
-        title={cart.partyName ?? 'Walk-in'}
+        title={cart.partyName}
         titleSlot={
           cart.checkoutStartedAt ? (
             <Badge variant="warning">Checking out</Badge>

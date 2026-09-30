@@ -5,7 +5,7 @@ import { createPeopleOperations } from '../core/domains/people';
 import { createShopperOperations } from '../core/domains/shopper';
 import { createAuthFlows } from '../core/flows/auth';
 import { createVapClient } from '../core/transport/client';
-import type { RequestContext } from '../core/types';
+import { type RequestContext, withoutWorkspace } from '../core/types';
 import { createResponseCacheLink } from './cache/response-cache';
 import { createSignedFetch } from './signed-fetch';
 
@@ -56,8 +56,8 @@ export function createVapSdk(options: VapSdkOptions = {}) {
 
   const build = (rawContext: RequestContext = {}) => {
     const context = scoped(rawContext);
-    const people = createPeopleOperations(client, context);
-    const otp = createOtpOperations(client, context);
+    const people = createPeopleOperations(client, withoutWorkspace(context));
+    const otp = createOtpOperations(client, withoutWorkspace(context));
     return {
       otp,
       people,

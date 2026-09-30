@@ -12,9 +12,11 @@ import type { CatalogResponseDto } from '@commerce/catalogs/dto/response/catalog
 import type { CatalogTableResponseDto } from '@commerce/catalogs/dto/response/catalog-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
+import type { CatalogListing } from '../../../org-api/catalogs/graphql/catalog-listing.type';
 
 const CATALOGS_TABLE_SLUG = 'commerce-le-catalogs';
 const CATALOG_LISTINGS_TABLE_SLUG = (catalogId: string) => `commerce-le-catalog-${catalogId}-items`;
@@ -125,5 +127,46 @@ export class LeCatalogsGatewayService {
   async deleteListing(listingId: string): Promise<SuccessResponseDto> {
     this.logger.log(`le.catalogs.listings.delete — listingId: ${listingId}`);
     return this.nats.send('commerce', 'le.catalogs.listings.delete', { id: listingId });
+  }
+
+  /**
+   * Everything a legal entity's B2B website sells: the LE's own APP channel ahead of the org's.
+   *
+   * The APP channel is resolved for this app at this le, so the website reads the range it was
+   * given and no other — there is no argument naming a catalogue.
+   */
+  async findStorefrontListings(appId: string, legalEntityId: string): Promise<CatalogListing[]> {
+    const resolution = await this.nats.send<{ catalog: { catalogId: string; channelId: string } | null }>(
+      'commerce',
+      'org.catalogChannels.resolve',
+      { type: 'APP', appId },
+    );
+    if (!resolution?.catalog) {
+      throw new NotFoundException({
+        label: 'Store Not Configured',
+        detail: 'This company has no catalogue assigned to its website yet.',
+      });
+    }
+    const { catalogId, channelId } = resolution.catalog;
+
+    this.logger.log(`org.catalogs.listings.forChannel — channelId: ${channelId}, le: ${legalEntityId}`);
+    const rows = await this.nats.send<
+      {
+        id: string;
+        offeringVariantId: string;
+        sku: string | null;
+        variantName: string | null;
+        prices: { price: { currency: string; value: string } }[];
+      }[]
+    >('commerce', 'org.catalogs.listings.forChannel', { channelId, catalogId });
+
+    // The wire shape flattens the price list to the one row this storefront shows.
+    return rows.map((row) => ({
+      id: row.id,
+      offeringVariantId: row.offeringVariantId,
+      sku: row.sku ?? null,
+      name: row.variantName ?? null,
+      price: row.prices[0]?.price ?? null,
+    }));
   }
 }

@@ -13,7 +13,7 @@ export interface CartData {
   siteId: string | null;
   legalEntityId: string;
   partyId: string;
-  partyName: string | null;
+  partyName: string;
   /** Set while a payment is in flight, which is what freezes the basket. */
   checkoutStartedAt: string | null;
   itemCount: number;

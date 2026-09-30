@@ -39,17 +39,10 @@ export class UpdateCatalogChannelDto {
   catalogId: string;
 }
 
+// The workspace is the request's RLS context, not a field: see `findCandidates`
 export class ResolveCatalogChannelDto {
   @IsEnum(CatalogChannelTypeValues)
   type: CatalogChannelType;
-
-  @IsOptional()
-  @IsUUID('all')
-  legalEntityId?: string | null;
-
-  @IsOptional()
-  @IsUUID('all')
-  siteId?: string | null;
 
   @IsOptional()
   @IsUUID('all')

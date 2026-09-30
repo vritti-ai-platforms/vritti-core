@@ -17,7 +17,6 @@ import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { SessionTypeValues } from '@/db/schema';
-import { LegalEntityId, SiteId } from '@/security/decorators';
 import {
   ApiCatalogsSelect,
   ApiCategoriesSelect,
@@ -120,22 +119,18 @@ export class SelectApiController {
    * the picker shows "no options" instead of the page failing to load.
    */
   @Get('channel-items')
-  async selectChannelItems(
-    @Query() query: ChannelItemsSelectQueryDto,
-    @SiteId() siteId: string | undefined,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<SelectQueryResult> {
-    const channelId = query.channelId ?? (await this.resolveAppChannel(siteId, legalEntityId));
+  async selectChannelItems(@Query() query: ChannelItemsSelectQueryDto): Promise<SelectQueryResult> {
+    const channelId = query.channelId ?? (await this.resolveAppChannel());
     if (!channelId) return { options: [], hasMore: false };
     return this.nats.send<SelectQueryResult>('commerce', 'select.channelItems', { ...query, channelId });
   }
 
   // The APP channel this workspace sells through, or nothing when it has not been given one
-  private async resolveAppChannel(siteId?: string, legalEntityId?: string): Promise<string | undefined> {
+  private async resolveAppChannel(): Promise<string | undefined> {
     const resolution = await this.nats.send<{ catalog: { channelId: string } | null }>(
       'commerce',
       'org.catalogChannels.resolve',
-      { type: 'APP', siteId: siteId ?? null, legalEntityId: legalEntityId ?? null },
+      { type: 'APP' },
     );
     return resolution?.catalog?.channelId;
   }

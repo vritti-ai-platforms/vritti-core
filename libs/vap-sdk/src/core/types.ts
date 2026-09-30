@@ -1,3 +1,4 @@
+import { VapError } from './errors';
 import type { ResponseCacheStore } from './transport/response-cache-store';
 
 export type VapSdkConfig = {
@@ -75,3 +76,42 @@ export type RequestContext = {
   /** The legal entity, for a storefront that sells at LE rather than site level. */
   legalEntityId?: string;
 };
+
+/**
+ * The context an ORG-level operation sends: who it acts for, and no workspace.
+ *
+ * A workspace header is not decoration — core checks a request's permissions in the scope it names,
+ * and a site header makes every org-level feature (sign-in codes, people, the catalogue, the
+ * wishlist) unreachable. So the workspace belongs to the operations that act *in* one, and is
+ * stripped from the rest here rather than left for each call to remember.
+ */
+export function withoutWorkspace({ partyId }: RequestContext): RequestContext {
+  return partyId ? { partyId } : {};
+}
+
+/** Which workspace a request acts in. `org` carries no workspace header at all. */
+export type WorkspaceScope = 'org' | 'le' | 'site';
+
+/**
+ * The context for a request made at `scope`: the party, plus only the workspace header that scope
+ * names. `org` is `withoutWorkspace` exactly; `le` and `site` add their one id and nothing else, so
+ * a site request never also claims a legal entity.
+ *
+ * Refused when the scope asks for an id the SDK was not configured with — sending no header would
+ * silently fall back to org, which is the one thing a caller asking for `site` did not want.
+ */
+export function contextForScope(context: RequestContext, scope: WorkspaceScope): RequestContext {
+  const base = withoutWorkspace(context);
+  if (scope === 'org') return base;
+
+  const id = scope === 'site' ? context.siteId : context.legalEntityId;
+  if (!id) {
+    const setting = scope === 'site' ? 'siteId' : 'legalEntityId';
+    throw new VapError(
+      `A ${scope}-scoped request needs \`${setting}\` — set it on createVapSdk or pass it to forContext.`,
+      'Not Configured',
+      undefined,
+    );
+  }
+  return scope === 'site' ? { ...base, siteId: id } : { ...base, legalEntityId: id };
+}

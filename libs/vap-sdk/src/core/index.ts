@@ -1,4 +1,5 @@
 export { resolveConfig, type VapSdkOptions } from './config';
+export { type CatalogListing, type CatalogOperations, createCatalogOperations } from './domains/catalog';
 export {
   createOtpOperations,
   OTP_CHANNELS,
@@ -16,15 +17,14 @@ export {
   type Person,
   type PersonCommunication,
 } from './domains/people';
-export { type CatalogListing, type CatalogOperations, createCatalogOperations } from './domains/catalog';
 export {
   type Cart,
   type CartItem,
   createShopperOperations,
-  type WishlistItem,
-  type WishlistAddResult,
   type Money,
   type ShopperOperations,
+  type WishlistAddResult,
+  type WishlistItem,
 } from './domains/shopper';
 export { PartyRollbackError, VapError } from './errors';
 export {
@@ -54,4 +54,4 @@ export type {
   ResponseCacheContext,
   ResponseCacheStore,
 } from './transport/response-cache-store';
-export type { RequestContext, VapSdkConfig } from './types';
+export type { RequestContext, VapSdkConfig, WorkspaceScope } from './types';

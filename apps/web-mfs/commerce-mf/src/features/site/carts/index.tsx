@@ -21,7 +21,7 @@ import {
 
 const binding: CartsBinding = {
   scopeNoun: 'outlet',
-  description: 'Baskets open at this outlet — one per shopper, plus walk-ins at the till.',
+  description: 'Baskets open at this outlet — one per shopper.',
   permissions: SITE_CARTS,
   tableKey: CARTS_TABLE_KEY,
   tableSlug: 'commerce-site-carts',

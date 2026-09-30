@@ -12,12 +12,32 @@ import type { CatalogResponseDto } from '@commerce/catalogs/dto/response/catalog
 import type { CatalogTableResponseDto } from '@commerce/catalogs/dto/response/catalog-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 
 const CATALOGS_TABLE_SLUG = 'commerce-org-catalogs';
 const CATALOG_LISTINGS_TABLE_SLUG = (catalogId: string) => `commerce-org-catalog-${catalogId}-items`;
+
+/** One sellable line of a storefront's range, as the site sees it. */
+export interface CatalogListingPayload {
+  id: string;
+  offeringVariantId: string;
+  sku: string | null;
+  variantName: string | null;
+  isActive: boolean;
+  prices: { price: { currency: string; value: string } }[];
+}
+
+/** One listing as a storefront shows it — a single price, already chosen for its scope. */
+export interface StorefrontListing {
+  id: string;
+  offeringVariantId: string;
+  sku: string | null;
+  name: string | null;
+  price: { currency: string; value: string } | null;
+}
 
 @Injectable()
 export class CatalogsGatewayService {
@@ -125,5 +145,40 @@ export class CatalogsGatewayService {
   async deleteListing(listingId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.catalogs.listings.delete — listingId: ${listingId}`);
     return this.nats.send('commerce', 'org.catalogs.listings.delete', { id: listingId });
+  }
+
+  /**
+   * Everything an org-wide website sells: the org's APP channel, the organization-wide price row.
+   *
+   * Reached through the credential's own APP channel, so a website can only ever read the range it
+   * was given — there is no argument naming a catalogue.
+   */
+  async findStorefrontListings(appId: string): Promise<StorefrontListing[]> {
+    const resolution = await this.nats.send<{ catalog: { catalogId: string; channelId: string } | null }>(
+      'commerce',
+      'org.catalogChannels.resolve',
+      { type: 'APP', appId },
+    );
+    if (!resolution?.catalog) {
+      throw new NotFoundException({
+        label: 'Store Not Configured',
+        detail: 'This store has no catalogue assigned yet.',
+      });
+    }
+    const { catalogId, channelId } = resolution.catalog;
+
+    this.logger.log(`org.catalogs.listings.forChannel — channelId: ${channelId}`);
+    const rows = await this.nats.send<CatalogListingPayload[]>('commerce', 'org.catalogs.listings.forChannel', {
+      channelId,
+      catalogId,
+    });
+    // The wire shape flattens the price list to the one row this storefront shows.
+    return rows.map((row) => ({
+      id: row.id,
+      offeringVariantId: row.offeringVariantId,
+      sku: row.sku ?? null,
+      name: row.variantName ?? null,
+      price: row.prices[0]?.price ?? null,
+    }));
   }
 }

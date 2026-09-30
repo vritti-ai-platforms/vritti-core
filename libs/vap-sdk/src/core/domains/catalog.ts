@@ -1,7 +1,7 @@
 import type { ApolloClient } from '@apollo/client';
-import { CATALOG_LISTINGS_QUERY } from '../graphql/catalog';
+import { CATALOG_LISTINGS_QUERY, LE_CATALOG_LISTINGS_QUERY, SITE_CATALOG_LISTINGS_QUERY } from '../graphql/catalog';
 import { requireData, run } from '../transport/errors';
-import type { RequestContext } from '../types';
+import { contextForScope, type RequestContext, type WorkspaceScope } from '../types';
 import type { Money } from './shopper';
 
 /** One item a storefront sells. */
@@ -24,20 +24,33 @@ export type CatalogListing = {
  * Read only. A storefront lists what staff put in front of it.
  */
 export function createCatalogOperations(client: ApolloClient, context: RequestContext = {}) {
-  const requestContext = { requestContext: context };
-
   return {
     /**
      * Everything sellable, delisted rows and channel exclusions already dropped.
      *
      * So a CMS filing a page against one of these cannot key it to something the shop cannot sell.
+     *
+     * `scope` picks the workspace the read acts in, and so which APP channel and which price row
+     * answer: `org` (the default) sends no workspace header, `le` sends the configured legal entity,
+     * `site` the configured site.
      */
-    listings(): Promise<CatalogListing[]> {
-      return run(() =>
-        client
-          .query({ query: CATALOG_LISTINGS_QUERY, context: requestContext })
-          .then((r) => requireData(r.data).catalogListings as CatalogListing[]),
-      );
+    async listings(options: { scope?: WorkspaceScope } = {}): Promise<CatalogListing[]> {
+      const scope = options.scope ?? 'org';
+      // Each scope is its own query on core, checked against its own permission — and the header
+      // sent is the one that scope names, so the two always agree.
+      const requestContext = { requestContext: contextForScope(context, scope) };
+      return run(async () => {
+        if (scope === 'site') {
+          const r = await client.query({ query: SITE_CATALOG_LISTINGS_QUERY, context: requestContext });
+          return requireData(r.data).siteCatalogListings as CatalogListing[];
+        }
+        if (scope === 'le') {
+          const r = await client.query({ query: LE_CATALOG_LISTINGS_QUERY, context: requestContext });
+          return requireData(r.data).leCatalogListings as CatalogListing[];
+        }
+        const r = await client.query({ query: CATALOG_LISTINGS_QUERY, context: requestContext });
+        return requireData(r.data).catalogListings as CatalogListing[];
+      });
     },
   };
 }

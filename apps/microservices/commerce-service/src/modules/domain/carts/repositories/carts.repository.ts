@@ -92,7 +92,11 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         catalogListingId: catalogListings.id,
         offeringVariantId: cartItems.offeringVariantId,
         quantity: cartItems.quantity,
-        amount: sql<bigint | null>`coalesce(${sitePrice.amount}, ${orgPrice.amount})`,
+        // A raw template skips the column's bigint decoder, so the driver's string comes back as-is and
+        // BigInt math on it throws. Decoded here, as the column itself would have been.
+        amount: sql<bigint | null>`coalesce(${sitePrice.amount}, ${orgPrice.amount})`.mapWith((value: unknown) =>
+          value == null ? null : BigInt(value as string),
+        ),
         currencyCode: sql<string | null>`coalesce(${sitePrice.currencyCode}, ${orgPrice.currencyCode})`,
         sku: offeringVariants.sku,
         variantName: offeringVariants.name,
@@ -256,7 +260,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         createdAt: carts.createdAt,
         updatedAt: carts.updatedAt,
       },
-      leftJoins: [{ table: parties, on: eq(parties.id, carts.partyId) }],
+      innerJoins: [{ table: parties, on: eq(parties.id, carts.partyId) }],
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
@@ -280,7 +284,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         updatedAt: carts.updatedAt,
       })
       .from(carts)
-      .leftJoin(parties, eq(parties.id, carts.partyId))
+      .innerJoin(parties, eq(parties.id, carts.partyId))
       .where(eq(carts.id, id))
       .limit(1)) as CartTableRow[];
     return rows[0];

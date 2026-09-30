@@ -19,7 +19,6 @@ export {
 export { SITE_LOCATIONS } from './locations';
 export { LE_OFFERINGS, ORG_OFFERINGS, SITE_OFFERINGS } from './offerings';
 export { ORG_PEOPLE } from './people';
-export { ORG_STOREFRONT_CATALOG } from './storefront-catalog';
 export { LE_SUPPLIERS, SITE_SUPPLIERS } from './suppliers';
 export { ORG_TAX_CLASSES } from './tax-classes';
 export { ORG_TAX_COMPONENTS } from './tax-components';

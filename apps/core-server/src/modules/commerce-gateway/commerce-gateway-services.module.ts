@@ -21,7 +21,6 @@ import { OrgDimensionTemplatesGatewayService } from './org-api/dimension-templat
 import { InventoryItemsGatewayService as OrgInventoryItemsGatewayService } from './org-api/inventory-items/services/inventory-items-gateway.service';
 import { OrgOfferingsGatewayService } from './org-api/offerings/services/offerings-gateway.service';
 import { PeopleGatewayService } from './org-api/people/services/people-gateway.service';
-import { ShopperGatewayService } from './org-api/shopper/services/shopper-gateway.service';
 import { TaxClassesGatewayService } from './org-api/tax-classes/services/tax-classes-gateway.service';
 import { TaxComponentsGatewayService } from './org-api/tax-components/services/tax-components-gateway.service';
 import { TaxJurisdictionsGatewayService } from './org-api/tax-jurisdictions/services/tax-jurisdictions-gateway.service';
@@ -49,7 +48,6 @@ import { SiteSuppliersGatewayService } from './site-api/suppliers/services/site-
 import { SiteGroupInventoryItemsGatewayService } from './site-group-api/inventory-items/services/site-group-inventory-items-gateway.service';
 
 const services = [
-  ShopperGatewayService,
   CategoriesGatewayService,
   OrgOfferingsGatewayService,
   LeOfferingsGatewayService,

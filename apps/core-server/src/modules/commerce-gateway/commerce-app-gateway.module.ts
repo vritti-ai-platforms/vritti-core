@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { CommerceGatewayServicesModule } from './commerce-gateway-services.module';
+import { LeCatalogsAppResolver } from './le-api/catalogs/catalogs.app.resolver';
+import { CatalogsAppResolver } from './org-api/catalogs/catalogs.app.resolver';
 import { PeopleAppResolver } from './org-api/people/people.app.resolver';
-import { CartsAppResolver } from './org-api/shopper/carts.app.resolver';
-import { CatalogAppResolver } from './org-api/shopper/catalog.app.resolver';
-import { WishlistAppResolver } from './org-api/shopper/wishlist.app.resolver';
+import { CartsAppResolver } from './site-api/carts/carts.app.resolver';
+import { SiteCatalogsAppResolver } from './site-api/catalogs/catalogs.app.resolver';
 
 /**
  * The external-app GraphQL surface for commerce.
@@ -13,12 +14,12 @@ import { WishlistAppResolver } from './org-api/shopper/wishlist.app.resolver';
  * has to be free of the internal surface's resolvers — which is why it imports
  * `CommerceGatewayServicesModule` (services only) and never `CommerceGatewayModule`.
  *
- * Resolver files stay in their feature folder under `org-api/` etc.; only module membership lives
+ * Resolver files stay in their feature folder under `org-api/`, `le-api/`, `site-api/`; only module membership lives
  * here. Each resolver must be declared in EXACTLY ONE surface module — declaring it in both puts
  * the operation in both schemas, silently.
  */
 @Module({
   imports: [CommerceGatewayServicesModule],
-  providers: [PeopleAppResolver, CartsAppResolver, WishlistAppResolver, CatalogAppResolver],
+  providers: [PeopleAppResolver, CartsAppResolver, CatalogsAppResolver, LeCatalogsAppResolver, SiteCatalogsAppResolver],
 })
 export class CommerceAppGatewayModule {}

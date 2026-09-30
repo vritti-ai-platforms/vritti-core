@@ -5,9 +5,9 @@ import { SITE_CARTS } from '@vritti/commerce-permissions/carts';
 import { AppTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AppId, PartyId, SiteId } from '@/security/decorators';
-import { AddCartItemInput, CartItemRefInput, CartScopeInput, UpdateCartItemInput } from './graphql/shopper.input';
-import { Cart } from './graphql/shopper.type';
-import { ShopperGatewayService } from './services/shopper-gateway.service';
+import { AddCartItemInput, CartItemRefInput, CartScopeInput, UpdateCartItemInput } from './graphql/cart.input';
+import { Cart } from './graphql/cart.type';
+import { CartsGatewayService } from './services/carts-gateway.service';
 
 /**
  * A shopper's basket, for the organization's own storefronts.
@@ -35,7 +35,7 @@ import { ShopperGatewayService } from './services/shopper-gateway.service';
 export class CartsAppResolver {
   private readonly logger = new Logger(CartsAppResolver.name);
 
-  constructor(private readonly service: ShopperGatewayService) {}
+  constructor(private readonly service: CartsGatewayService) {}
 
   /** The shopper's basket, or an empty one. Never creates a row. */
   @Query(() => Cart, { name: 'cart' })
@@ -47,7 +47,7 @@ export class CartsAppResolver {
     @Args('input') input: CartScopeInput,
   ): Promise<Cart> {
     this.logger.log('QUERY cart');
-    return this.service.getCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
+    return this.service.findShopperCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
   }
 
   /** Adds a listing, opening a basket if this is the shopper's first line. */
@@ -60,7 +60,7 @@ export class CartsAppResolver {
     @Args('input') input: AddCartItemInput,
   ): Promise<Cart> {
     this.logger.log('MUTATION addToCart');
-    return this.service.addCartItem({ appId, partyId, siteId, ...input }) as Promise<Cart>;
+    return this.service.addShopperItem({ appId, partyId, siteId, ...input }) as Promise<Cart>;
   }
 
   /** Sets a line to an exact quantity. */
@@ -73,7 +73,7 @@ export class CartsAppResolver {
     @Args('input') input: UpdateCartItemInput,
   ): Promise<Cart> {
     this.logger.log('MUTATION updateCartItem');
-    return this.service.updateCartItem({ appId, partyId, siteId, ...input }) as Promise<Cart>;
+    return this.service.updateShopperItem({ appId, partyId, siteId, ...input }) as Promise<Cart>;
   }
 
   @Mutation(() => Cart, { name: 'removeFromCart' })
@@ -85,7 +85,7 @@ export class CartsAppResolver {
     @Args('input') input: CartItemRefInput,
   ): Promise<Cart> {
     this.logger.log('MUTATION removeFromCart');
-    return this.service.removeCartItem({ appId, partyId, siteId, ...input }) as Promise<Cart>;
+    return this.service.removeShopperItem({ appId, partyId, siteId, ...input }) as Promise<Cart>;
   }
 
   /** Empties the basket — a delete of every line the shopper holds in this storefront. */
@@ -98,8 +98,8 @@ export class CartsAppResolver {
     @Args('input') input: CartScopeInput,
   ): Promise<Cart> {
     this.logger.log('MUTATION clearCart');
-    await this.service.clearCart(partyId);
+    await this.service.clearShopperCart(partyId);
     // The emptied basket rather than a bare success flag, so a caller redraws from one response.
-    return this.service.getCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
+    return this.service.findShopperCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
   }
 }

@@ -8,8 +8,8 @@ export interface CartRow {
   id: string;
   siteId: string | null;
   legalEntityId: string | null;
-  partyId: string | null;
-  partyName: string | null;
+  partyId: string;
+  partyName: string;
   checkoutStartedAt: string | null;
   itemCount: number;
   createdAt: string;
@@ -86,25 +86,20 @@ export class LeCartsGatewayService {
   }
 
   // Returns a basket's lines, priced through this site's channel
-  async findItems(id: string, currencyCode: string, legalEntityId?: string): Promise<CartLinesResponse> {
-    const catalogId = await this.resolveCatalog(legalEntityId);
+  async findItems(id: string, currencyCode: string): Promise<CartLinesResponse> {
+    const catalogId = await this.resolveCatalog();
     this.logger.log(`le.carts.findItemsById — id: ${id}`);
-    return this.nats.send('commerce', 'le.carts.findItemsById', { id, currencyCode, catalogId, legalEntityId });
+    return this.nats.send('commerce', 'le.carts.findItemsById', { id, currencyCode, catalogId });
   }
 
   // Returns paginated, filtered and sorted items of one basket for the data table
-  async findItemsForTable(
-    cartId: string,
-    userId: string,
-    currencyCode: string,
-    legalEntityId?: string,
-  ): Promise<CartItemsTableResponse> {
+  async findItemsForTable(cartId: string, userId: string, currencyCode: string): Promise<CartItemsTableResponse> {
     this.logger.log(`le.carts.items.table — cart: ${cartId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `commerce-le-cart-${cartId}-items`,
     );
-    const catalogId = await this.resolveCatalog(legalEntityId);
+    const catalogId = await this.resolveCatalog();
 
     const { result, count } = await this.nats.send<{ result: CartLineRow[]; count: number }>(
       'commerce',
@@ -116,7 +111,7 @@ export class LeCartsGatewayService {
   }
 
   // Opens a basket for a shopper, or hands back the one they already have here
-  async create(input: { partyId: string; legalEntityId?: string }): Promise<CreateResponseDto<CartRow>> {
+  async create(input: { partyId: string }): Promise<CreateResponseDto<CartRow>> {
     this.logger.log(`le.carts.create — party: ${input.partyId}`);
     return this.nats.send('commerce', 'le.carts.create', { partyId: input.partyId });
   }
@@ -134,33 +129,32 @@ export class LeCartsGatewayService {
       offeringVariantId: string;
       quantity: number;
       currencyCode: string;
-      legalEntityId?: string;
     },
   ): Promise<CartLinesResponse> {
-    const catalogId = await this.resolveCatalog(input.legalEntityId);
+    const catalogId = await this.resolveCatalog();
     this.logger.log(`le.carts.items.addForCart — cart: ${cartId}, variant: ${input.offeringVariantId}`);
     await this.nats.send('commerce', 'le.carts.items.addForCart', { cartId, catalogId, ...input });
-    return this.findItems(cartId, input.currencyCode, input.legalEntityId);
+    return this.findItems(cartId, input.currencyCode);
   }
 
   async updateItem(
     cartId: string,
     offeringVariantId: string,
-    input: { partyId: string; quantity: number; currencyCode: string; legalEntityId?: string },
+    input: { partyId: string; quantity: number; currencyCode: string },
   ): Promise<CartLinesResponse> {
     this.logger.log(`le.carts.items.updateForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
     await this.nats.send('commerce', 'le.carts.items.updateForCart', { cartId, offeringVariantId, ...input });
-    return this.findItems(cartId, input.currencyCode, input.legalEntityId);
+    return this.findItems(cartId, input.currencyCode);
   }
 
   async removeItem(
     cartId: string,
     offeringVariantId: string,
-    input: { partyId: string; currencyCode: string; legalEntityId?: string },
+    input: { partyId: string; currencyCode: string },
   ): Promise<CartLinesResponse> {
     this.logger.log(`le.carts.items.removeForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
     await this.nats.send('commerce', 'le.carts.items.removeForCart', { cartId, offeringVariantId, ...input });
-    return this.findItems(cartId, input.currencyCode, input.legalEntityId);
+    return this.findItems(cartId, input.currencyCode);
   }
 
   /**
@@ -168,15 +162,12 @@ export class LeCartsGatewayService {
    *
    * Never throws — see the site gateway's copy for why a missing price list must not stop a basket.
    */
-  private async resolveCatalog(legalEntityId?: string): Promise<string | undefined> {
+  private async resolveCatalog(): Promise<string | undefined> {
     const resolution = await this.nats.send<{
       resolved: boolean;
       catalog: { catalogId: string; channelId: string } | null;
-    }>('commerce', 'org.catalogChannels.resolve', {
-      type: 'APP',
-      siteId: null,
-      legalEntityId: legalEntityId ?? null,
-    });
+      // The workspace is the request's own RLS context — the server derives a site's LE — so it is not sent.
+    }>('commerce', 'org.catalogChannels.resolve', { type: 'APP' });
 
     return resolution?.catalog?.catalogId;
   }

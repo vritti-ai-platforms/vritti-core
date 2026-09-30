@@ -18,7 +18,6 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { LE_CARTS } from '@vritti/commerce-permissions/carts';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { LegalEntityId } from '@/security/decorators';
 import {
   AddCartLineDto,
   CartsQueryDto,
@@ -62,10 +61,9 @@ export class LeCartsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query() query: CartsQueryDto,
     @UserId() userId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CartItemsTableResponse> {
     this.logger.log(`GET /commerce-api/le/carts/${id}/items/table`);
-    return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY, legalEntityId);
+    return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 
   // Opens a basket for a shopper, or hands back the one they already have here
@@ -86,13 +84,9 @@ export class LeCartsGatewayController {
   // Returns the basket's lines, priced through this outlet's channel
   @Get(':id/items')
   @RequirePermission(LE_CARTS.view)
-  findItems(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Query() query: CartsQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<CartLinesResponse> {
+  findItems(@Param('id', new ParseUUIDPipe()) id: string, @Query() query: CartsQueryDto): Promise<CartLinesResponse> {
     this.logger.log(`GET /commerce-api/le/carts/${id}/items`);
-    return this.service.findItems(id, query.currencyCode ?? DEFAULT_CURRENCY, legalEntityId);
+    return this.service.findItems(id, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 
   // Adds a product to the basket
@@ -103,10 +97,9 @@ export class LeCartsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddCartLineDto,
     @Query() query: CartsQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CartLinesResponse> {
     this.logger.log(`POST /commerce-api/le/carts/${id}/items`);
-    return this.service.addItem(id, { ...dto, currencyCode: query.currencyCode ?? DEFAULT_CURRENCY, legalEntityId });
+    return this.service.addItem(id, { ...dto, currencyCode: query.currencyCode ?? DEFAULT_CURRENCY });
   }
 
   /**
@@ -122,13 +115,11 @@ export class LeCartsGatewayController {
     @Param('offeringVariantId', new ParseUUIDPipe()) offeringVariantId: string,
     @Body() dto: UpdateCartLineDto,
     @Query() query: CartsQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CartLinesResponse> {
     this.logger.log(`PATCH /commerce-api/le/carts/${id}/items/${offeringVariantId}`);
     return this.service.updateItem(id, offeringVariantId, {
       ...dto,
       currencyCode: query.currencyCode ?? DEFAULT_CURRENCY,
-      legalEntityId,
     });
   }
 
@@ -138,13 +129,11 @@ export class LeCartsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('offeringVariantId', new ParseUUIDPipe()) offeringVariantId: string,
     @Query() query: RemoveCartLineQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CartLinesResponse> {
     this.logger.log(`DELETE /commerce-api/le/carts/${id}/items/${offeringVariantId}`);
     return this.service.removeItem(id, offeringVariantId, {
       partyId: query.partyId,
       currencyCode: query.currencyCode ?? DEFAULT_CURRENCY,
-      legalEntityId,
     });
   }
 

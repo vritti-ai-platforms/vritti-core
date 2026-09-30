@@ -1,17 +1,17 @@
 import type { ApolloClient } from '@apollo/client';
 import { VapError } from '../errors';
 import {
-  ADD_TO_WISHLIST,
   ADD_TO_CART,
+  ADD_TO_WISHLIST,
   CART_QUERY,
   CLEAR_CART,
-  WISHLIST_QUERY,
-  REMOVE_FROM_WISHLIST,
   REMOVE_FROM_CART,
+  REMOVE_FROM_WISHLIST,
   UPDATE_CART_ITEM,
+  WISHLIST_QUERY,
 } from '../graphql/shopper';
 import { requireData, run } from '../transport/errors';
-import type { RequestContext } from '../types';
+import { type RequestContext, withoutWorkspace } from '../types';
 
 /** A currency and a major-unit string, exactly as core sends it. See `MoneyFieldsFragment`. */
 export type Money = {
@@ -73,7 +73,10 @@ export type WishlistItem = {
  * so a caller redraws from one response instead of patching what it already had.
  */
 export function createShopperOperations(client: ApolloClient, context: RequestContext = {}, currency?: string) {
+  // A basket is kept at a site, so its calls carry the workspace. A wishlist is the person's across
+  // the whole organization, so its calls carry none — see `withoutWorkspace`.
   const requestContext = { requestContext: context };
+  const wishlistContext = { requestContext: withoutWorkspace(context) };
 
   /**
    * The currency the storefront sells in.
@@ -183,7 +186,7 @@ export function createShopperOperations(client: ApolloClient, context: RequestCo
           .query({
             query: WISHLIST_QUERY,
             variables: { input: { currencyCode: currencyCode() } },
-            context: requestContext,
+            context: wishlistContext,
           })
           .then((r) => requireData(r.data).wishlist as WishlistItem[]),
       );
@@ -202,7 +205,7 @@ export function createShopperOperations(client: ApolloClient, context: RequestCo
           .mutate({
             mutation: ADD_TO_WISHLIST,
             variables: { input: { offeringVariantId, currencyCode: currencyCode() } },
-            context: requestContext,
+            context: wishlistContext,
           })
           .then((r) => requireData(r.data).addToWishlist as WishlistAddResult),
       );
@@ -215,7 +218,7 @@ export function createShopperOperations(client: ApolloClient, context: RequestCo
           .mutate({
             mutation: REMOVE_FROM_WISHLIST,
             variables: { input: { offeringVariantId, currencyCode: currencyCode() } },
-            context: requestContext,
+            context: wishlistContext,
           })
           .then((r) => requireData(r.data).removeFromWishlist as WishlistItem[]),
       );

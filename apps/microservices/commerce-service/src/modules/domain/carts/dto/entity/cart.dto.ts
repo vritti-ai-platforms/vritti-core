@@ -7,7 +7,7 @@ export interface CartTableRow {
   legalEntityId: string;
   siteId: string | null;
   partyId: string;
-  partyName: string | null;
+  partyName: string;
   checkoutStartedAt: Date | null;
   itemCount: number;
   createdAt: Date;
@@ -156,7 +156,7 @@ export class CartDetailDto {
   siteId: string | null;
   legalEntityId: string | null;
   partyId: string;
-  partyName: string | null;
+  partyName: string;
   /** Set while a payment is in flight, which is what freezes the basket. */
   checkoutStartedAt: string | null;
   itemCount: number;

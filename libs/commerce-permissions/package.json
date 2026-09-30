@@ -76,10 +76,6 @@
     "./offerings": {
       "types": "./dist/offerings.d.ts",
       "default": "./dist/offerings.js"
-    },
-    "./storefront-catalog": {
-      "types": "./dist/storefront-catalog.d.ts",
-      "default": "./dist/storefront-catalog.js"
     }
   },
   "files": [

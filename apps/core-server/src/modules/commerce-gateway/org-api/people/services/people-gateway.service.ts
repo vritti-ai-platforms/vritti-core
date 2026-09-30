@@ -62,6 +62,23 @@ export interface StaffWishlistItemRow extends StaffShopperRow {
   createdAt: string;
 }
 
+export interface WishlistItemPayload {
+  id: string;
+  catalogListingId: string;
+  offeringVariantId: string;
+  name: string;
+  sku: string | null;
+  price: { currency: string; value: string } | null;
+  isAvailable: boolean;
+  createdAt: string;
+}
+
+/** What `addToWishlist` answers with — the list, plus whether the mark was already there. */
+export interface WishlistAddPayload {
+  alreadyExists: boolean;
+  wishlist: WishlistItemPayload[];
+}
+
 @Injectable()
 export class PeopleGatewayService {
   private readonly logger = new Logger(PeopleGatewayService.name);
@@ -426,5 +443,43 @@ export class PeopleGatewayService {
   deleteSocialProfile(profileId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.people.socialProfiles.delete — id: ${profileId}`);
     return this.nats.send('commerce', 'org.people.socialProfiles.delete', { id: profileId });
+  }
+
+  // ── The shopper's own wishlist, for a storefront acting for one signed-in party ──
+
+  async listShopperWishlist(
+    appId: string,
+    partyId: string,
+    currencyCode: string,
+    siteId?: string,
+  ): Promise<WishlistItemPayload[]> {
+    // A saved row stores the product, so reading it back needs the catalogue that prices it here
+    const { catalogId } = await this.resolveAppCatalog(appId);
+    this.logger.log(`org.wishlist.list — party: ${partyId}`);
+    return this.nats.send('commerce', 'org.wishlist.list', { appId, partyId, currencyCode, catalogId, siteId });
+  }
+
+  async addToShopperWishlist(input: {
+    appId: string;
+    partyId: string;
+    offeringVariantId: string;
+    currencyCode: string;
+    siteId?: string;
+  }): Promise<WishlistAddPayload> {
+    const { catalogId } = await this.resolveAppCatalog(input.appId);
+    this.logger.log(`org.wishlist.add — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    return this.nats.send('commerce', 'org.wishlist.add', { ...input, catalogId });
+  }
+
+  async removeFromShopperWishlist(input: {
+    appId: string;
+    partyId: string;
+    offeringVariantId: string;
+    currencyCode: string;
+    siteId?: string;
+  }): Promise<WishlistItemPayload[]> {
+    const { catalogId } = await this.resolveAppCatalog(input.appId);
+    this.logger.log(`org.wishlist.remove — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    return this.nats.send('commerce', 'org.wishlist.remove', { ...input, catalogId });
   }
 }

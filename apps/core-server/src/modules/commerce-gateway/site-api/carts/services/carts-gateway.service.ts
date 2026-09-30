@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -8,8 +9,8 @@ export interface CartRow {
   id: string;
   siteId: string | null;
   legalEntityId: string | null;
-  partyId: string | null;
-  partyName: string | null;
+  partyId: string;
+  partyName: string;
   checkoutStartedAt: string | null;
   itemCount: number;
   createdAt: string;
@@ -46,6 +47,25 @@ export interface CartItemsTableResponse {
 export interface CartLinesResponse {
   currencyCode: string;
   items: CartLineRow[];
+  subtotal: { currency: string; value: string };
+  itemCount: number;
+}
+
+export interface CartItemPayload {
+  id: string;
+  catalogListingId: string;
+  offeringVariantId: string;
+  quantity: number;
+  name: string;
+  sku: string | null;
+  unitPrice: { currency: string; value: string } | null;
+  lineTotal: { currency: string; value: string } | null;
+  isAvailable: boolean;
+}
+
+export interface CartPayload {
+  currencyCode: string;
+  items: CartItemPayload[];
   subtotal: { currency: string; value: string };
   itemCount: number;
 }
@@ -87,13 +107,8 @@ export class CartsGatewayService {
   }
 
   // Returns a basket's lines, priced through this site's channel
-  async findItems(
-    id: string,
-    currencyCode: string,
-    siteId?: string,
-    legalEntityId?: string,
-  ): Promise<CartLinesResponse> {
-    const catalogId = await this.resolveCatalog(siteId, legalEntityId);
+  async findItems(id: string, currencyCode: string, siteId?: string): Promise<CartLinesResponse> {
+    const catalogId = await this.resolveCatalog();
     this.logger.log(`site.carts.findItemsById — id: ${id}`);
     return this.nats.send('commerce', 'site.carts.findItemsById', { id, currencyCode, catalogId, siteId });
   }
@@ -104,14 +119,13 @@ export class CartsGatewayService {
     userId: string,
     currencyCode: string,
     siteId?: string,
-    legalEntityId?: string,
   ): Promise<CartItemsTableResponse> {
     this.logger.log(`site.carts.items.table — cart: ${cartId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `commerce-site-cart-${cartId}-items`,
     );
-    const catalogId = await this.resolveCatalog(siteId, legalEntityId);
+    const catalogId = await this.resolveCatalog();
 
     const { result, count } = await this.nats.send<{ result: CartLineRow[]; count: number }>(
       'commerce',
@@ -142,33 +156,32 @@ export class CartsGatewayService {
       quantity: number;
       currencyCode: string;
       siteId?: string;
-      legalEntityId?: string;
     },
   ): Promise<CartLinesResponse> {
-    const catalogId = await this.resolveCatalog(input.siteId, input.legalEntityId);
+    const catalogId = await this.resolveCatalog();
     this.logger.log(`site.carts.items.addForCart — cart: ${cartId}, variant: ${input.offeringVariantId}`);
     await this.nats.send('commerce', 'site.carts.items.addForCart', { cartId, catalogId, ...input });
-    return this.findItems(cartId, input.currencyCode, input.siteId, input.legalEntityId);
+    return this.findItems(cartId, input.currencyCode, input.siteId);
   }
 
   async updateItem(
     cartId: string,
     offeringVariantId: string,
-    input: { partyId: string; quantity: number; currencyCode: string; siteId?: string; legalEntityId?: string },
+    input: { partyId: string; quantity: number; currencyCode: string; siteId?: string },
   ): Promise<CartLinesResponse> {
     this.logger.log(`site.carts.items.updateForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
     await this.nats.send('commerce', 'site.carts.items.updateForCart', { cartId, offeringVariantId, ...input });
-    return this.findItems(cartId, input.currencyCode, input.siteId, input.legalEntityId);
+    return this.findItems(cartId, input.currencyCode, input.siteId);
   }
 
   async removeItem(
     cartId: string,
     offeringVariantId: string,
-    input: { partyId: string; currencyCode: string; siteId?: string; legalEntityId?: string },
+    input: { partyId: string; currencyCode: string; siteId?: string },
   ): Promise<CartLinesResponse> {
     this.logger.log(`site.carts.items.removeForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
     await this.nats.send('commerce', 'site.carts.items.removeForCart', { cartId, offeringVariantId, ...input });
-    return this.findItems(cartId, input.currencyCode, input.siteId, input.legalEntityId);
+    return this.findItems(cartId, input.currencyCode, input.siteId);
   }
 
   /**
@@ -178,22 +191,89 @@ export class CartsGatewayService {
    * them is a separate question, and answering it "no" must not stop the basket being opened, read
    * or added to. The lines come back unpriced and flagged unavailable instead.
    *
-   * Both halves of the caller's position go down, because `null` is a filter and not a wildcard:
-   * resolution matches a scope column with `column IS NULL OR column = :value`, so a column it is
-   * told nothing about can only match rows where that column is NULL. Sending `legalEntityId: null`
-   * would narrow the search to org-owned channels and hide the site's own — which carries an LE id
-   * like every scoped row. The widening is the resolver's to do, not the caller's.
+   * No site or LE is sent: which workspace is asking is the request's RLS context, and the server
+   * derives the site's legal entity itself.
    */
-  private async resolveCatalog(siteId?: string, legalEntityId?: string): Promise<string | undefined> {
+  private async resolveCatalog(): Promise<string | undefined> {
     const resolution = await this.nats.send<{
       resolved: boolean;
       catalog: { catalogId: string; channelId: string } | null;
-    }>('commerce', 'org.catalogChannels.resolve', {
-      type: 'APP',
-      siteId: siteId ?? null,
-      legalEntityId: legalEntityId ?? null,
-    });
+    }>('commerce', 'org.catalogChannels.resolve', { type: 'APP' });
 
     return resolution?.catalog?.catalogId;
+  }
+
+  // ── The shopper's own basket, for a storefront acting for one signed-in party ──
+  //
+  // The catalogue comes from the calling credential's APP channel, never from the caller, so a
+  // storefront cannot reach a catalogue it does not sell even knowing a listing id. `appId` and
+  // `partyId` arrive from `auth`, which the signature covers.
+
+  async findShopperCart(appId: string, partyId: string, currencyCode: string, siteId?: string): Promise<CartPayload> {
+    const catalogId = await this.resolveAppCatalog(appId);
+    this.logger.log(`site.carts.get — party: ${partyId}`);
+    return this.nats.send('commerce', 'site.carts.get', { partyId, currencyCode, catalogId, siteId });
+  }
+
+  async addShopperItem(input: {
+    appId: string;
+    partyId: string;
+    offeringVariantId: string;
+    quantity: number;
+    currencyCode: string;
+    siteId?: string;
+  }): Promise<CartPayload> {
+    const { appId, ...cart } = input;
+    const catalogId = await this.resolveAppCatalog(appId);
+    this.logger.log(`site.carts.items.add — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    return this.nats.send('commerce', 'site.carts.items.add', { ...cart, catalogId });
+  }
+
+  async updateShopperItem(input: {
+    appId: string;
+    partyId: string;
+    offeringVariantId: string;
+    quantity: number;
+    currencyCode: string;
+    siteId?: string;
+  }): Promise<CartPayload> {
+    const { appId, ...cart } = input;
+    const catalogId = await this.resolveAppCatalog(appId);
+    this.logger.log(`site.carts.items.update — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    return this.nats.send('commerce', 'site.carts.items.update', { ...cart, catalogId });
+  }
+
+  async removeShopperItem(input: {
+    appId: string;
+    partyId: string;
+    offeringVariantId: string;
+    currencyCode: string;
+    siteId?: string;
+  }): Promise<CartPayload> {
+    const { appId, ...cart } = input;
+    const catalogId = await this.resolveAppCatalog(appId);
+    this.logger.log(`site.carts.items.remove — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    return this.nats.send('commerce', 'site.carts.items.remove', { ...cart, catalogId });
+  }
+
+  clearShopperCart(partyId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.carts.clear — party: ${partyId}`);
+    return this.nats.send('commerce', 'site.carts.clear', { partyId });
+  }
+
+  // The catalogue a storefront's APP channel sells at this site, refused rather than defaulted
+  private async resolveAppCatalog(appId: string): Promise<string> {
+    const resolution = await this.nats.send<{ catalog: { catalogId: string } | null }>(
+      'commerce',
+      'org.catalogChannels.resolve',
+      { type: 'APP', appId },
+    );
+    if (!resolution?.catalog) {
+      throw new NotFoundException({
+        label: 'Store Not Configured',
+        detail: 'This store has no catalogue assigned yet.',
+      });
+    }
+    return resolution.catalog.catalogId;
   }
 }

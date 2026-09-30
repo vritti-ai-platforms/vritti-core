@@ -2,6 +2,19 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Money {
+  currency: String!
+  value: String!
+}
+
+type CatalogListing {
+  id: ID!
+  offeringVariantId: ID!
+  sku: String
+  name: String
+  price: Money
+}
+
 type Person {
   id: ID!
   displayName: String!
@@ -20,9 +33,20 @@ type PersonCommunication {
   isActive: Boolean!
 }
 
-type Money {
-  currency: String!
-  value: String!
+type WishlistItem {
+  id: ID!
+  catalogListingId: ID!
+  offeringVariantId: ID!
+  name: String!
+  sku: String
+  price: Money
+  isAvailable: Boolean!
+  createdAt: String!
+}
+
+type WishlistAddResult {
+  alreadyExists: Boolean!
+  wishlist: [WishlistItem!]!
 }
 
 type CartItem {
@@ -42,30 +66,6 @@ type Cart {
   items: [CartItem!]!
   subtotal: Money!
   itemCount: Int!
-}
-
-type WishlistItem {
-  id: ID!
-  catalogListingId: ID!
-  offeringVariantId: ID!
-  name: String!
-  sku: String
-  price: Money
-  isAvailable: Boolean!
-  createdAt: String!
-}
-
-type WishlistAddResult {
-  alreadyExists: Boolean!
-  wishlist: [WishlistItem!]!
-}
-
-type CatalogListing {
-  id: ID!
-  offeringVariantId: ID!
-  sku: String
-  name: String
-  price: Money
 }
 
 type TaxRate {
@@ -325,9 +325,11 @@ type VerifyWhatsappOtpResult {
 
 type Query {
   peopleByCommunication(input: FindPeopleByCommunicationInput!): [Person!]!
-  cart(input: CartScopeInput!): Cart!
   wishlist(input: WishlistQueryInput!): [WishlistItem!]!
+  cart(input: CartScopeInput!): Cart!
   catalogListings: [CatalogListing!]!
+  leCatalogListings: [CatalogListing!]!
+  siteCatalogListings: [CatalogListing!]!
 }
 
 input FindPeopleByCommunicationInput {
@@ -335,11 +337,11 @@ input FindPeopleByCommunicationInput {
   value: String!
 }
 
-input CartScopeInput {
+input WishlistQueryInput {
   currencyCode: String!
 }
 
-input WishlistQueryInput {
+input CartScopeInput {
   currencyCode: String!
 }
 
@@ -350,12 +352,12 @@ type Mutation {
   verifyWhatsappOtp(input: VerifyWhatsappOtpInput!): VerifyWhatsappOtpResult!
   createPerson(input: CreatePersonInput!): Person!
   addPersonCommunication(input: AddPersonCommunicationInput!): PersonCommunication!
+  addToWishlist(input: WishlistRefInput!): WishlistAddResult!
+  removeFromWishlist(input: WishlistRefInput!): [WishlistItem!]!
   addToCart(input: AddCartItemInput!): Cart!
   updateCartItem(input: UpdateCartItemInput!): Cart!
   removeFromCart(input: CartItemRefInput!): Cart!
   clearCart(input: CartScopeInput!): Cart!
-  addToWishlist(input: WishlistRefInput!): WishlistAddResult!
-  removeFromWishlist(input: WishlistRefInput!): [WishlistItem!]!
 }
 
 input SendSmsOtpInput {
@@ -389,6 +391,11 @@ input AddPersonCommunicationInput {
   value: String!
 }
 
+input WishlistRefInput {
+  currencyCode: String!
+  offeringVariantId: ID!
+}
+
 input AddCartItemInput {
   currencyCode: String!
   offeringVariantId: ID!
@@ -402,11 +409,6 @@ input UpdateCartItemInput {
 }
 
 input CartItemRefInput {
-  currencyCode: String!
-  offeringVariantId: ID!
-}
-
-input WishlistRefInput {
   currencyCode: String!
   offeringVariantId: ID!
 }
