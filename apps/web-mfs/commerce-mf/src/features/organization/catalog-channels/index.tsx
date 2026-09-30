@@ -1,39 +1,25 @@
+import { ORG_CATALOG_CHANNELS } from '@vritti/commerce-permissions/catalog-channels';
+import { Empty } from '@vritti/quantum-ui/Empty';
+import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import type { RouteObject } from 'react-router-dom';
-import {
-  APP_CHANNEL_ITEMS_KEY,
-  APP_CHANNEL_KEY,
-  useAppChannelItems,
-  useAppChannels,
-  useCatalogChannelsOverview,
-  useCreateAppChannel,
-  useDeleteAppChannel,
-  useSetAppChannelItemVisibility,
-  useUpdateAppChannel,
-} from '@/hooks/organization/catalog-channels';
-import { AppChannelDetailPage } from './AppChannelDetailPage';
-import { AppChannelPage } from './AppChannelPage';
-import { CatalogChannelsPage } from './CatalogChannelsPage';
-import type { CatalogChannelsBinding } from './types';
+import { ChannelItemsPage } from '@/components/catalog-channels/ChannelItemsPage';
+import { ChannelsPage } from '@/components/catalog-channels/ChannelsPage';
+import { orgCatalogChannelsBinding } from './binding';
 
-const binding: CatalogChannelsBinding = {
-  scopeNoun: 'organization',
-  scopeSegment: 'org',
-  description: 'The catalog each way of selling uses. Companies and outlets inherit these unless they override them.',
-  useOverview: useCatalogChannelsOverview,
-  useAppChannels: useAppChannels,
-  useAppItems: useAppChannelItems,
-  useSetItemVisibility: useSetAppChannelItemVisibility,
-  useCreateAppChannel: useCreateAppChannel,
-  useUpdateAppChannel: useUpdateAppChannel,
-  useDeleteAppChannel: useDeleteAppChannel,
-  appChannelsKey: APP_CHANNEL_KEY,
-  appItemsKey: APP_CHANNEL_ITEMS_KEY,
-};
+const gated = (element: React.ReactNode) => (
+  <PermissionGate
+    permission={ORG_CATALOG_CHANNELS.view}
+    fallback={({ reason, title, tip }) => (
+      <Empty icon={<PermissionLockIcon reason={reason} />} title={title} description={tip} />
+    )}
+  >
+    {element}
+  </PermissionGate>
+);
 
 const routes: RouteObject[] = [
-  { index: true, element: <CatalogChannelsPage binding={binding} /> },
-  { path: 'app', element: <AppChannelPage binding={binding} /> },
-  { path: 'app/:slug', element: <AppChannelDetailPage binding={binding} /> },
+  { index: true, element: <ChannelsPage binding={orgCatalogChannelsBinding} /> },
+  { path: ':slug', element: gated(<ChannelItemsPage binding={orgCatalogChannelsBinding} />) },
 ];
 
 export default routes;

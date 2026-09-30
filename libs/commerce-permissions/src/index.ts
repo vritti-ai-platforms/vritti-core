@@ -2,8 +2,8 @@
 // Each feature file hosts one object per workspace scope it's exposed in (ORG_*, LE_*, SITE_*, SITE_GROUP_*).
 
 export { LE_CARTS, SITE_CARTS } from './carts';
-export { ORG_CATALOG_CHANNELS } from './catalog-channels';
-export { ORG_CATALOGS } from './catalogs';
+export { LE_CATALOG_CHANNELS, ORG_CATALOG_CHANNELS, SITE_CATALOG_CHANNELS } from './catalog-channels';
+export { LE_CATALOGS, ORG_CATALOGS, SITE_CATALOGS } from './catalogs';
 export { ORG_CATEGORIES } from './categories';
 export { ORG_COMPANIES } from './companies';
 export {

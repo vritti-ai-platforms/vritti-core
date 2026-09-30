@@ -1,9 +1,13 @@
 import type { Catalog } from '@/db/schema';
 
+export type CatalogOwnerScope = 'ORG' | 'LE' | 'SITE';
+
 export class CatalogDto {
   id: string;
   name: string;
-  ownerLegalEntityId: string | null;
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: CatalogOwnerScope;
   taxInclusive: boolean;
   isActive: boolean;
   listingCount: number;
@@ -15,7 +19,9 @@ export class CatalogDto {
     const dto = new CatalogDto();
     dto.id = entity.id;
     dto.name = entity.name;
-    dto.ownerLegalEntityId = entity.ownerLegalEntityId ?? null;
+    dto.legalEntityId = entity.legalEntityId ?? null;
+    dto.siteId = entity.siteId ?? null;
+    dto.ownerScope = entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG';
     dto.taxInclusive = entity.taxInclusive;
     dto.isActive = entity.isActive;
     dto.listingCount = counts?.items ?? 0;

@@ -5,6 +5,8 @@ export interface CatalogListingRow {
   catalogId: string;
   offeringVariantId: string;
   legalEntityId: string | null;
+  siteId: string | null;
+  isOwned: boolean;
   inventoryItemMrpId: string | null;
   sku: string | null;
   variantName: string | null;
@@ -14,6 +16,8 @@ export interface CatalogListingRow {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type CatalogListingOwnerScope = 'ORG' | 'LE' | 'SITE';
 
 export interface CatalogListingPriceRow {
   id: string;
@@ -44,6 +48,10 @@ export class CatalogListingDto {
   sku: string | null;
   variantName: string | null;
   legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: CatalogListingOwnerScope;
+  canEdit: boolean;
+  canDelete: boolean;
   inventoryItemMrpId: string | null;
   mrp: CurrencyAmountDto | null;
   mrpUomSymbol: string | null;
@@ -64,6 +72,10 @@ export class CatalogListingDto {
     dto.sku = row.sku ?? null;
     dto.variantName = row.variantName ?? null;
     dto.legalEntityId = row.legalEntityId ?? null;
+    dto.siteId = row.siteId ?? null;
+    dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
+    dto.canEdit = row.isOwned;
+    dto.canDelete = row.isOwned;
     dto.inventoryItemMrpId = row.inventoryItemMrpId ?? null;
     dto.mrp =
       row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;

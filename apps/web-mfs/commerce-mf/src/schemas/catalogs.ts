@@ -37,10 +37,15 @@ export const setCatalogListingPriceSchema = z.object({
 
 export type SetCatalogListingPriceFormData = z.infer<typeof setCatalogListingPriceSchema>;
 
+export type CatalogOwnerScope = 'ORG' | 'LE' | 'SITE';
+
 export interface CatalogData {
   id: string;
   name: string;
-  ownerLegalEntityId: string | null;
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: CatalogOwnerScope;
+  ownerName: string;
   taxInclusive: boolean;
   isActive: boolean;
   listingCount: number;
@@ -62,6 +67,11 @@ export interface CatalogListingData {
   sku: string | null;
   variantName: string | null;
   legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: CatalogOwnerScope;
+  ownerName: string;
+  canEdit: boolean;
+  canDelete: boolean;
   inventoryItemMrpId: string | null;
   mrp: CurrencyValue | null;
   mrpUomSymbol: string | null;

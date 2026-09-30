@@ -9,6 +9,7 @@ import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
 import { LeCartsModule } from './modules/legal-entity/carts/carts.module';
 import { LeCatalogChannelsModule } from './modules/legal-entity/catalog-channels/catalog-channels.module';
+import { LeCatalogsModule } from './modules/legal-entity/catalogs/catalogs.module';
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
 import { LeDimensionTemplatesModule } from './modules/legal-entity/dimension-templates/dimension-templates.module';
 import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.module';
@@ -31,6 +32,7 @@ import { OrgWishlistModule } from './modules/organization/wishlist/wishlist.modu
 import { SelectModule } from './modules/select/select.module';
 import { SiteCartsModule } from './modules/site/carts/carts.module';
 import { SiteCatalogChannelsModule } from './modules/site/catalog-channels/catalog-channels.module';
+import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
 import { SiteCustomersModule } from './modules/site/customers/customers.module';
 import { SiteDimensionTemplatesModule } from './modules/site/dimension-templates/dimension-templates.module';
@@ -112,6 +114,8 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     OrgTaxJurisdictionsModule,
     OrgUomModule,
     OrgCatalogsModule,
+    LeCatalogsModule,
+    SiteCatalogsModule,
     OrgCatalogChannelsModule,
     LeCatalogChannelsModule,
     SiteCatalogChannelsModule,

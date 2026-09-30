@@ -25,6 +25,50 @@ export interface CatalogChannelRow {
   updatedAt: Date;
 }
 
+// One assignment, wherever it appears: a channel's default or a single app's / terminal's exception.
+// ownerScope / legalEntityId / siteId are what the gateway's OwnerNameService resolves names from.
+export class ChannelAssignmentDto {
+  channelId: string;
+  catalogId: string;
+  catalogName: string | null;
+  catalogIsActive: boolean;
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: 'ORG' | 'LE' | 'SITE';
+  isOwn: boolean;
+  itemsTotal: number;
+  itemsSelling: number;
+
+  static from(row: CatalogChannelRow): ChannelAssignmentDto {
+    const dto = new ChannelAssignmentDto();
+    dto.channelId = row.id;
+    dto.catalogId = row.catalogId;
+    dto.catalogName = row.catalogName ?? null;
+    dto.catalogIsActive = row.catalogIsActive ?? false;
+    dto.legalEntityId = row.legalEntityId ?? null;
+    dto.siteId = row.siteId ?? null;
+    dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
+    dto.isOwn = row.isOwn;
+    dto.itemsTotal = row.itemsTotal;
+    dto.itemsSelling = row.itemsSelling;
+    return dto;
+  }
+}
+
+// One app or terminal. `name` is null for APP — apps live in core, so the gateway fills it in.
+export class ChannelTargetDto {
+  targetId: string;
+  name: string | null;
+  assignment: ChannelAssignmentDto | null;
+}
+
+// targets is null for B2B, which the CHECK forbids from naming any target
+export class ChannelScreenEntryDto {
+  type: CatalogChannelType;
+  defaultAssignment: ChannelAssignmentDto | null;
+  targets: ChannelTargetDto[] | null;
+}
+
 export class CatalogChannelDto {
   id: string;
   catalogId: string;

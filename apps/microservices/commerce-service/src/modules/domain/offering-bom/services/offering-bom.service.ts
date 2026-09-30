@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   BadRequestException,
   ConflictException,
@@ -16,8 +16,6 @@ import { type BomVariantRef, OfferingBomDomainRepository } from '../repositories
 
 @Injectable()
 export class OfferingBomDomainService {
-  private readonly logger = new Logger(OfferingBomDomainService.name);
-
   constructor(private readonly repository: OfferingBomDomainRepository) {}
 
   // A variant's components plus the inventory item already carrying its SKU. Both only matter to the

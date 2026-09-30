@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { catalogListings, offeringVariants } from '@/db/schema';
-import { CatalogListingDto, CatalogListingMrpOptionDto } from '../dto/entity/catalog-listing.dto';
+import {
+  CatalogListingDto,
+  CatalogListingMrpOptionDto,
+  type CatalogListingRow,
+} from '../dto/entity/catalog-listing.dto';
 import type { AddCatalogListingDto } from '../dto/request/add-catalog-listing.dto';
 import type { SetCatalogListingPriceDto } from '../dto/request/set-catalog-listing-price.dto';
 import { CatalogListingsDomainRepository } from '../repositories/catalog-listings.repository';
@@ -128,28 +132,54 @@ export class CatalogListingsDomainService {
 
   // Sets the price for a (listing, currency, site) slot; refused above the listing's printed MRP
   async setPrice(data: SetCatalogListingPriceDto): Promise<SuccessResponseDto> {
-    const item = await this.repository.findById(data.catalogListingId);
-    if (!item) throw new NotFoundException('Listing not found.');
+    const item = await this.requireOwned(data.catalogListingId);
     const amount = majorToMinor(data.price.value, data.price.currency as CurrencyCode, 'price');
     await this.assertWithinMrp(item.inventoryItemMrpId, amount, data.price.currency);
     await this.repository.upsertPrice(item.id, data.price.currency, amount, data.siteId ?? null);
     return { success: true, message: 'Price updated.' };
   }
 
-  // Visible everywhere by default, so hiding writes one exclusion and showing removes it
+  // Visible everywhere by default, so hiding writes one exclusion and showing removes it. The test is
+  // owning the CHANNEL, not the listing: deciding what your own channel sells is your business even
+  // when the item came from a wider scope, and the RLS on the exclusion is keyed the same way.
   async setChannelVisibility(id: string, catalogChannelId: string, visible: boolean): Promise<SuccessResponseDto> {
-    const listing = await this.repository.findById(id);
-    if (!listing) throw new NotFoundException('Listing not found.');
+    await this.requireOwnedChannel(catalogChannelId);
     if (visible) await this.repository.removeExclusion(id, catalogChannelId);
     else await this.repository.addExclusion(id, catalogChannelId);
     return { success: true, message: visible ? 'Listing shown on this channel.' : 'Listing hidden on this channel.' };
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {
-    const item = await this.repository.findById(id);
-    if (!item) throw new NotFoundException('Listing not found.');
+    const item = await this.requireOwned(id);
     await this.repository.deleteListing(id);
-    return { success: true, message: 'Listing removed.' };
+    return { success: true, message: item.sku ? `"${item.sku}" removed.` : 'Listing removed.' };
+  }
+
+  // Loads the channel behind an exclusion, throwing unless this workspace owns it
+  private async requireOwnedChannel(channelId: string): Promise<void> {
+    const channel = await this.repository.findChannelOwnership(channelId);
+    if (!channel) throw new NotFoundException('Channel not found.');
+    if (!channel.isOwn) {
+      throw new ForbiddenException({
+        label: 'Not Your Channel',
+        detail: 'This channel belongs to a wider scope. Switch to the workspace that owns it to change what it sells.',
+      });
+    }
+  }
+
+  // Loads a listing by id, throwing if not found or owned by a wider scope. Reach lets a company see
+  // the organization's listings, so seeing one is never enough to change or remove it — and the RLS
+  // write policies would silently match zero rows rather than raise, which would read as success.
+  private async requireOwned(id: string): Promise<CatalogListingRow> {
+    const item = await this.repository.findByIdWithRefs(id);
+    if (!item) throw new NotFoundException('Listing not found.');
+    if (!item.isOwned) {
+      throw new ForbiddenException({
+        label: 'Not Your Listing',
+        detail: `${item.sku ? `"${item.sku}"` : 'This listing'} belongs to a wider scope. Switch to the workspace that owns it to change it.`,
+      });
+    }
+    return item;
   }
 
   // Within one catalog a variant is listed either generally or by MRP slice — mixing the two

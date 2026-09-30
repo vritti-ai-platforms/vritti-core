@@ -5,46 +5,83 @@ import { z } from '@vritti/quantum-ui/zod';
 export const CATALOG_CHANNEL_TYPES = ['APP', 'POS', 'B2B'] as const;
 export type CatalogChannelType = (typeof CATALOG_CHANNEL_TYPES)[number];
 
-export const CHANNEL_TYPE_META: Record<CatalogChannelType, { label: string; description: string }> = {
-  APP: { label: 'App', description: 'A storefront or integration calling through the SDK' },
-  POS: { label: 'POS', description: 'A till at one of your outlets' },
-  B2B: { label: 'B2B', description: 'The wholesale invoice generator' },
+// slotLabel and gridLabel name the channel's own parts — never the workspace rendering them, because
+// one set of components serves every scope
+export const CHANNEL_TYPE_META: Record<
+  CatalogChannelType,
+  { label: string; description: string; slotLabel: string; gridLabel: string | null }
+> = {
+  APP: {
+    label: 'App',
+    description: 'Storefronts and integrations calling the SDK',
+    slotLabel: 'Default for all apps',
+    gridLabel: 'Apps',
+  },
+  POS: {
+    label: 'POS',
+    description: 'Billing terminals at your outlets',
+    slotLabel: 'Default for all terminals',
+    gridLabel: 'Terminals',
+  },
+  B2B: {
+    label: 'B2B',
+    description: 'Wholesale invoicing',
+    slotLabel: 'Wholesale catalog',
+    gridLabel: null,
+  },
 };
 
-export type ChannelScope = 'SITE' | 'LEGAL_ENTITY' | 'ORGANIZATION';
+// The level an assignment was made at. Always comes from the row, never from the current workspace.
+export type ChannelOwnerScope = 'ORG' | 'LE' | 'SITE';
 
-export const SCOPE_LABEL: Record<ChannelScope, string> = {
-  SITE: 'outlet',
-  LEGAL_ENTITY: 'company',
-  ORGANIZATION: 'organization',
-};
-
-export const SCOPE_TITLE: Record<ChannelScope, string> = {
+export const OWNER_SCOPE_LABEL: Record<ChannelOwnerScope, string> = {
+  ORG: 'Organization',
+  LE: 'Company',
   SITE: 'Outlet',
-  LEGAL_ENTITY: 'Company',
-  ORGANIZATION: 'Organization',
 };
 
-export const addAppChannelSchema = z.object({
-  catalogId: z.string().uuid('Catalog is required'),
-  appId: z.string().uuid().nullable().optional(),
-});
-
-export type AddAppChannelFormData = z.infer<typeof addAppChannelSchema>;
-
-export const editAppChannelSchema = z.object({
+export const assignCatalogSchema = z.object({
   catalogId: z.string().uuid('Catalog is required'),
 });
 
-export type EditAppChannelFormData = z.infer<typeof editAppChannelSchema>;
+export type AssignCatalogFormData = z.infer<typeof assignCatalogSchema>;
 
+export interface ChannelAssignmentData {
+  channelId: string;
+  catalogId: string;
+  catalogName: string | null;
+  catalogIsActive: boolean;
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: ChannelOwnerScope;
+  ownerName: string;
+  isOwn: boolean;
+  itemsTotal: number;
+  itemsSelling: number;
+}
+
+// One app or terminal. A null assignment means it follows the channel default.
+export interface ChannelTargetData {
+  targetId: string;
+  name: string;
+  assignment: ChannelAssignmentData | null;
+}
+
+// targets is null for B2B, which names no target, and empty for POS above an outlet
+export interface ChannelScreenEntryData {
+  type: CatalogChannelType;
+  defaultAssignment: ChannelAssignmentData | null;
+  targets: ChannelTargetData[] | null;
+}
+
+// One channel row, as the catalog detail's Channels tab reads it — that view is per-catalog and
+// unchanged by the channels screen, which works per workspace instead.
 export interface CatalogChannelData {
   id: string;
   catalogId: string;
   catalogName: string | null;
   catalogIsActive: boolean;
   type: CatalogChannelType;
-  label: string;
   isFallback: boolean;
   legalEntityId: string | null;
   siteId: string | null;
@@ -52,20 +89,10 @@ export interface CatalogChannelData {
   terminalId: string | null;
   terminalName: string | null;
   isOwn: boolean;
-  setAt: ChannelScope;
   itemsTotal: number;
   itemsSelling: number;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface ChannelOverviewData {
-  type: CatalogChannelType;
-  catalogId: string | null;
-  catalogName: string | null;
-  catalogIsActive: boolean | null;
-  isOverride: boolean;
-  inheritedFrom: ChannelScope | null;
 }
 
 export interface ChannelItemData {
@@ -79,4 +106,3 @@ export interface ChannelItemData {
 }
 
 export type ChannelItemsTableResponse = TableResponse<ChannelItemData>;
-export type CatalogChannelsTableResponse = TableResponse<CatalogChannelData>;

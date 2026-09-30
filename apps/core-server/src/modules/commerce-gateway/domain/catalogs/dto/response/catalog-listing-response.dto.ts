@@ -14,6 +14,19 @@ export class CatalogListingResponseDto {
   @ApiPropertyOptional({ nullable: true }) sku: string | null;
   @ApiPropertyOptional({ nullable: true }) variantName: string | null;
   @ApiPropertyOptional({ nullable: true }) legalEntityId: string | null;
+  @ApiPropertyOptional({ nullable: true }) siteId: string | null;
+
+  @ApiProperty({ enum: ['ORG', 'LE', 'SITE'], description: 'Workspace that owns this listing' })
+  ownerScope: 'ORG' | 'LE' | 'SITE';
+
+  @ApiProperty({ description: 'Name of the owning workspace, resolved from core' })
+  ownerName: string;
+
+  @ApiProperty({ description: 'False when the listing belongs to a wider scope than this workspace' })
+  canEdit: boolean;
+
+  @ApiProperty({ description: 'False when the listing belongs to a wider scope than this workspace' })
+  canDelete: boolean;
   @ApiPropertyOptional({ nullable: true, description: 'MRP slice this listing sells' })
   inventoryItemMrpId: string | null;
   @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true }) mrp: CurrencyAmountDto | null;

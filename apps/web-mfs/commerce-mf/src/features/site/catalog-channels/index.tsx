@@ -1,39 +1,25 @@
+import { SITE_CATALOG_CHANNELS } from '@vritti/commerce-permissions/catalog-channels';
+import { Empty } from '@vritti/quantum-ui/Empty';
+import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import type { RouteObject } from 'react-router-dom';
-import { AppChannelDetailPage } from '@/features/organization/catalog-channels/AppChannelDetailPage';
-import { AppChannelPage } from '@/features/organization/catalog-channels/AppChannelPage';
-import { CatalogChannelsPage } from '@/features/organization/catalog-channels/CatalogChannelsPage';
-import type { CatalogChannelsBinding } from '@/features/organization/catalog-channels/types';
-import {
-  APP_CHANNEL_ITEMS_KEY,
-  APP_CHANNEL_KEY,
-  useAppChannelItems,
-  useAppChannels,
-  useCatalogChannelsOverview,
-  useCreateAppChannel,
-  useDeleteAppChannel,
-  useSetAppChannelItemVisibility,
-  useUpdateAppChannel,
-} from '@/hooks/site/catalog-channels';
+import { ChannelItemsPage } from '@/components/catalog-channels/ChannelItemsPage';
+import { ChannelsPage } from '@/components/catalog-channels/ChannelsPage';
+import { siteCatalogChannelsBinding } from './binding';
 
-const binding: CatalogChannelsBinding = {
-  scopeNoun: 'outlet',
-  scopeSegment: 'site',
-  description: 'This outlet sells these catalogs. Anything left alone follows its company.',
-  useOverview: useCatalogChannelsOverview,
-  useAppChannels: useAppChannels,
-  useAppItems: useAppChannelItems,
-  useSetItemVisibility: useSetAppChannelItemVisibility,
-  useCreateAppChannel: useCreateAppChannel,
-  useUpdateAppChannel: useUpdateAppChannel,
-  useDeleteAppChannel: useDeleteAppChannel,
-  appChannelsKey: APP_CHANNEL_KEY,
-  appItemsKey: APP_CHANNEL_ITEMS_KEY,
-};
+const gated = (element: React.ReactNode) => (
+  <PermissionGate
+    permission={SITE_CATALOG_CHANNELS.view}
+    fallback={({ reason, title, tip }) => (
+      <Empty icon={<PermissionLockIcon reason={reason} />} title={title} description={tip} />
+    )}
+  >
+    {element}
+  </PermissionGate>
+);
 
 const routes: RouteObject[] = [
-  { index: true, element: <CatalogChannelsPage binding={binding} /> },
-  { path: 'app', element: <AppChannelPage binding={binding} /> },
-  { path: 'app/:slug', element: <AppChannelDetailPage binding={binding} /> },
+  { index: true, element: <ChannelsPage binding={siteCatalogChannelsBinding} /> },
+  { path: ':slug', element: gated(<ChannelItemsPage binding={siteCatalogChannelsBinding} />) },
 ];
 
 export default routes;

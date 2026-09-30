@@ -3,6 +3,7 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/d
 import { and, asc, eq, inArray, isNull, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   type CatalogListing,
+  catalogChannels,
   catalogListingChannelExclusions,
   catalogListingPrices,
   catalogListings,
@@ -11,6 +12,7 @@ import {
   type NewCatalogListing,
   offeringBom,
   offeringVariants,
+  ownedByWorkspaceExpression,
   uom,
 } from '@/db/schema';
 import type { CatalogListingPriceRow, CatalogListingRow, MrpOptionRow } from '../dto/entity/catalog-listing.dto';
@@ -27,6 +29,8 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       catalogId: catalogListings.catalogId,
       offeringVariantId: catalogListings.offeringVariantId,
       legalEntityId: catalogListings.legalEntityId,
+      siteId: catalogListings.siteId,
+      isOwned: ownedByWorkspaceExpression(),
       inventoryItemMrpId: catalogListings.inventoryItemMrpId,
       sku: offeringVariants.sku,
       variantName: offeringVariants.name,
@@ -120,6 +124,17 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       })
       .from(catalogListingChannelExclusions)
       .where(inArray(catalogListingChannelExclusions.catalogListingId, catalogListingIds));
+  }
+
+  // An exclusion belongs to the channel, so the write is gated on owning the channel. Read here rather
+  // than through the channels domain — a domain module never imports another.
+  async findChannelOwnership(channelId: string): Promise<{ id: string; isOwn: boolean } | undefined> {
+    const [row] = await this.db
+      .select({ id: catalogChannels.id, isOwn: ownedByWorkspaceExpression('catalog_channels') })
+      .from(catalogChannels)
+      .where(eq(catalogChannels.id, channelId))
+      .limit(1);
+    return row;
   }
 
   async addExclusion(catalogListingId: string, catalogChannelId: string): Promise<void> {

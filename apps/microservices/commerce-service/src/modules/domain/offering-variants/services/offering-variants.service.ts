@@ -224,7 +224,7 @@ export class OfferingVariantsDomainService {
 
     const created = await this.repository.transaction(async () => {
       const inserted = await this.repository.insertVariants(
-        planned.map((plan, index) => ({
+        planned.map((plan) => ({
           offeringId: data.offeringId,
           sku: plan.sku,
           name: this.deriveName(data.namePrefix ?? offering.name, plan.ordered),

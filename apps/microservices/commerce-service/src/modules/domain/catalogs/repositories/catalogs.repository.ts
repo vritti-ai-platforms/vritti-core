@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { asc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type Catalog, catalogChannels, catalogListings, catalogs } from '@/db/schema';
+import { type Catalog, catalogChannels, catalogListings, catalogs, ownedByWorkspaceExpression } from '@/db/schema';
 
 export type CatalogWithCounts = Catalog & { items: number; channels: number };
 
@@ -39,8 +39,14 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
     return this.findById<CatalogWithCounts>(id, { select: this.selection() });
   }
 
+  // Scoped to this workspace, mirroring uq_catalogs_owner_name — an LE may reuse a name an org catalog
+  // already has, and reach alone would wrongly report that as taken
   async findByName(name: string): Promise<Catalog | undefined> {
-    const [row] = await this.db.select().from(catalogs).where(sql`lower(${catalogs.name}) = lower(${name})`).limit(1);
+    const [row] = await this.db
+      .select()
+      .from(catalogs)
+      .where(sql`lower(${catalogs.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`)
+      .limit(1);
     return row;
   }
 

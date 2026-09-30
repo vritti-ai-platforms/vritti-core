@@ -2,7 +2,7 @@ import { index, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core'
 import { catalogChannels } from './catalog-channels';
 import { catalogListings } from './catalog-listings';
 import { commerceSchema } from './commerce-schema';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope';
 
 export const catalogListingChannelExclusions = commerceSchema.table(
   'catalog_listing_channel_exclusions',
@@ -21,7 +21,7 @@ export const catalogListingChannelExclusions = commerceSchema.table(
     unique('uq_catalog_listing_channel_exclusions').on(table.catalogListingId, table.catalogChannelId),
     index('idx_catalog_listing_channel_exclusions_listing').on(table.catalogListingId),
     index('idx_catalog_listing_channel_exclusions_channel').on(table.catalogChannelId),
-    orgIsolationPolicy(),
+    ...scopeFromOwnerPolicies({ owner: catalogChannels, fk: table.catalogChannelId }),
   ],
 );
 

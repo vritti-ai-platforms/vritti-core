@@ -6,7 +6,6 @@ import {
   type FulfilmentType,
   FulfilmentTypeValues,
   inventoryItems,
-  type NewOfferingBomLine,
   type NewOfferingVariant,
   type OfferingVariant,
   offeringBom,

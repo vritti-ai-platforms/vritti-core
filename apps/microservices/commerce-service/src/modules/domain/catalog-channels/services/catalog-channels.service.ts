@@ -1,28 +1,30 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
-import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type CatalogChannelType, CatalogChannelTypeValues, catalogChannels, offeringVariants } from '@/db/schema';
+import { CatalogChannelTypeValues, offeringVariants } from '@/db/schema';
 import {
   CatalogChannelDto,
   type CatalogChannelRow,
+  ChannelAssignmentDto,
   ChannelItemDto,
-  ChannelOverviewDto,
   ChannelResolutionDto,
+  ChannelScreenEntryDto,
+  ChannelTargetDto,
   ResolvedCatalogDto,
 } from '../dto/entity/catalog-channel.dto';
-import type { CreateCatalogChannelDto, ResolveCatalogChannelDto } from '../dto/request/upsert-catalog-channel.dto';
-import { CatalogChannelsDomainRepository } from '../repositories/catalog-channels.repository';
+import type {
+  CreateAppChannelDto,
+  CreateB2bChannelDto,
+  CreatePosChannelDto,
+  ResolveCatalogChannelDto,
+} from '../dto/request/upsert-catalog-channel.dto';
+import { CatalogChannelsDomainRepository, type ChannelTarget } from '../repositories/catalog-channels.repository';
 
 @Injectable()
 export class CatalogChannelsDomainService {
   private readonly logger = new Logger(CatalogChannelsDomainService.name);
-
-  private static readonly FIELD_MAP: FieldMap = {
-    catalogId: { column: catalogChannels.catalogId, type: 'string' },
-    appId: { column: catalogChannels.appId, type: 'string' },
-  };
 
   private static readonly ITEM_FIELD_MAP: FieldMap = {
     sku: { column: offeringVariants.sku, type: 'string' },
@@ -30,28 +32,6 @@ export class CatalogChannelsDomainService {
   };
 
   constructor(private readonly repository: CatalogChannelsDomainRepository) {}
-
-  // Returns paginated channels of one type for the data table
-  async findForTable(
-    type: CatalogChannelType,
-    state: TableViewState,
-  ): Promise<{ result: CatalogChannelDto[]; count: number }> {
-    const where = and(
-      eq(catalogChannels.type, type),
-      FilterProcessor.buildWhere(state.filters, CatalogChannelsDomainService.FIELD_MAP),
-      FilterProcessor.buildSearch(state.search, CatalogChannelsDomainService.FIELD_MAP),
-    );
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, CatalogChannelsDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(catalogChannels.appId), asc(catalogChannels.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => CatalogChannelDto.from(row)), count };
-  }
 
   // Returns paginated items of one channel, each flagged with whether that channel sells it
   async findItemsForTable(
@@ -75,15 +55,33 @@ export class CatalogChannelsDomainService {
     return { result: result.map((row) => ChannelItemDto.from(row)), count };
   }
 
-  // Returns one entry per channel type, including the types nothing is assigned to yet
-  async overview(): Promise<ChannelOverviewDto[]> {
-    const rows = await this.repository.findWildcards();
+  /**
+   * Everything the channels screen needs, in one read.
+   *
+   * Per type: the effective default (the most specific wildcard in reach) and one entry per named
+   * target. POS targets are completed here because pos_terminals is local; APP targets carry a null
+   * name because apps live in core, and the gateway fills them in against the organization's apps.
+   */
+  async screen(): Promise<ChannelScreenEntryDto[]> {
+    const [rows, terminals] = await Promise.all([this.repository.findAllInReach(), this.repository.findTerminals()]);
 
     return Object.values(CatalogChannelTypeValues).map((type) => {
-      const candidates = rows.filter((row) => row.type === type);
-      const own = candidates.find((row) => row.isOwn);
-      const effective = own ?? candidates.sort((a, b) => this.specificity(b) - this.specificity(a))[0];
-      return ChannelOverviewDto.from(type, effective);
+      const ofType = rows.filter((row) => row.type === type);
+      const entry = new ChannelScreenEntryDto();
+      entry.type = type;
+      entry.defaultAssignment = this.best(ofType.filter((row) => !row.appId && !row.terminalId));
+
+      if (type === CatalogChannelTypeValues.B2B) {
+        entry.targets = null;
+        return entry;
+      }
+
+      const named = ofType.filter((row) => (type === CatalogChannelTypeValues.APP ? row.appId : row.terminalId));
+      entry.targets =
+        type === CatalogChannelTypeValues.POS
+          ? terminals.map((terminal) => this.target(terminal.id, terminal.name, named, 'terminalId'))
+          : this.appTargets(named);
+      return entry;
     });
   }
 
@@ -96,24 +94,34 @@ export class CatalogChannelsDomainService {
     return rows.map((row) => CatalogChannelDto.from(row));
   }
 
-  // Creates a channel for a named app, or the wildcard when appId is absent
-  async create(data: CreateCatalogChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
-    const catalog = await this.repository.findCatalog(data.catalogId);
-    if (!catalog) throw new NotFoundException('Catalog not found.');
-    await this.assertNotTaken(data);
-
-    const entity = await this.repository.create({
+  // Sells a catalog through an app, or through every unnamed caller when appId is absent
+  createApp(data: CreateAppChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
+    return this.createChannel({
+      type: CatalogChannelTypeValues.APP,
       catalogId: data.catalogId,
-      type: data.type,
       appId: data.appId ?? null,
+      terminalId: null,
     });
+  }
 
-    this.logger.log(`Created ${data.type} channel for catalog ${data.catalogId}`);
-    return {
-      success: true,
-      message: `Now selling "${catalog.name}".`,
-      data: await this.findById(entity.id),
-    };
+  // Sells a catalog at one terminal, or at every terminal in reach when terminalId is absent
+  createPos(data: CreatePosChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
+    return this.createChannel({
+      type: CatalogChannelTypeValues.POS,
+      catalogId: data.catalogId,
+      appId: null,
+      terminalId: data.terminalId ?? null,
+    });
+  }
+
+  // Sells a catalog to wholesale buyers. B2B names no target, so this is one assignment per workspace
+  createB2b(data: CreateB2bChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
+    return this.createChannel({
+      type: CatalogChannelTypeValues.B2B,
+      catalogId: data.catalogId,
+      appId: null,
+      terminalId: null,
+    });
   }
 
   // Points a channel at a different catalog
@@ -172,16 +180,41 @@ export class CatalogChannelsDomainService {
     return ChannelResolutionDto.from(best);
   }
 
-  // Rejects a second wildcard on the same type before the unique index has to
-  private async assertNotTaken(data: CreateCatalogChannelDto): Promise<void> {
-    if (data.appId) return;
-    const existing = await this.repository.findOwnWildcard(data.type);
-    if (existing) {
-      throw new ConflictException({
-        label: 'Already Assigned',
-        detail: `${data.type} already sells a catalog at this scope. Change the existing one instead.`,
-      });
-    }
+  // The one write path behind the three typed entry points. The workspace columns are left to their
+  // GUC defaults, so the row stamps itself with whichever workspace is asking.
+  private async createChannel(target: ChannelTarget): Promise<CreateResponseDto<CatalogChannelDto>> {
+    const catalog = await this.repository.findCatalog(target.catalogId);
+    if (!catalog) throw new NotFoundException('Catalog not found.');
+    await this.assertNotTaken(target);
+
+    const entity = await this.repository.create({
+      catalogId: target.catalogId,
+      type: target.type,
+      appId: target.appId,
+      terminalId: target.terminalId,
+    });
+
+    this.logger.log(`Created ${target.type} channel for catalog ${target.catalogId}`);
+    return {
+      success: true,
+      message: `Now selling "${catalog.name}".`,
+      data: await this.findById(entity.id),
+    };
+  }
+
+  // Rejects a second assignment to the same target before the unique index has to. Named targets are
+  // checked too: without this a repeat app or terminal surfaces as a raw unique violation, not a 409
+  private async assertNotTaken(target: ChannelTarget): Promise<void> {
+    const existing = await this.repository.findOwnChannel(target);
+    if (!existing) return;
+
+    const named = target.appId ? 'this app' : target.terminalId ? 'this terminal' : null;
+    throw new ConflictException({
+      label: 'Already Assigned',
+      detail: named
+        ? `${target.type} already sells a catalog to ${named} at this scope. Change the existing one instead.`
+        : `${target.type} already sells a catalog at this scope. Change the existing one instead.`,
+    });
   }
 
   private async requireChannel(id: string): Promise<CatalogChannelRow> {
@@ -202,7 +235,34 @@ export class CatalogChannelsDomainService {
     return channel;
   }
 
-  // A named target outranks its scope, because "this till" is a deliberate exception to "any till here"
+  // The winning row of a candidate set, or nothing when the set is empty
+  private best(candidates: CatalogChannelRow[]): ChannelAssignmentDto | null {
+    if (candidates.length === 0) return null;
+    const [winner] = [...candidates].sort((a, b) => this.specificity(b) - this.specificity(a));
+    return ChannelAssignmentDto.from(winner);
+  }
+
+  // One grid entry: the target, plus the most specific row naming it, or nothing when it follows the default
+  private target(
+    targetId: string,
+    name: string | null,
+    named: CatalogChannelRow[],
+    key: 'appId' | 'terminalId',
+  ): ChannelTargetDto {
+    const entry = new ChannelTargetDto();
+    entry.targetId = targetId;
+    entry.name = name;
+    entry.assignment = this.best(named.filter((row) => row[key] === targetId));
+    return entry;
+  }
+
+  // Apps are only known here by id — the gateway names them from core and adds the ones with no row yet
+  private appTargets(named: CatalogChannelRow[]): ChannelTargetDto[] {
+    const appIds = [...new Set(named.map((row) => row.appId as string))];
+    return appIds.map((appId) => this.target(appId, null, named, 'appId'));
+  }
+
+  // A named target outranks its scope, because naming one app or terminal is a deliberate exception
   private specificity(row: CatalogChannelRow): number {
     return (row.terminalId ? 8 : 0) + (row.appId ? 8 : 0) + (row.siteId ? 4 : 0) + (row.legalEntityId ? 2 : 0);
   }

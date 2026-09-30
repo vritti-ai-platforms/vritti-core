@@ -3,6 +3,7 @@ import { CommerceGatewayServicesModule } from './commerce-gateway-services.modul
 import { LeCartsGatewayController } from './le-api/carts/carts-gateway.controller';
 import { LeAppCatalogChannelGatewayController } from './le-api/catalog-channels/app-catalog-channel-gateway.controller';
 import { LeCatalogChannelsGatewayController } from './le-api/catalog-channels/catalog-channels-gateway.controller';
+import { LeCatalogsGatewayController } from './le-api/catalogs/catalogs-gateway.controller';
 import { CostCategoriesGatewayController } from './le-api/cost-categories/cost-categories-gateway.controller';
 import { CostCategoriesResolver } from './le-api/cost-categories/cost-categories-gateway.resolver';
 import { LeDimensionTemplatesGatewayController } from './le-api/dimension-templates/dimension-templates-gateway.controller';
@@ -31,6 +32,7 @@ import { SelectApiResolver } from './select-api/select-api.resolver';
 import { CartsGatewayController } from './site-api/carts/carts-gateway.controller';
 import { SiteAppCatalogChannelGatewayController } from './site-api/catalog-channels/app-catalog-channel-gateway.controller';
 import { SiteCatalogChannelsGatewayController } from './site-api/catalog-channels/catalog-channels-gateway.controller';
+import { SiteCatalogsGatewayController } from './site-api/catalogs/catalogs-gateway.controller';
 import { CreditNotesGatewayController } from './site-api/credit-notes/credit-notes-gateway.controller';
 import { CustomersGatewayController } from './site-api/customers/customers-gateway.controller';
 import { SiteDimensionTemplatesGatewayController } from './site-api/dimension-templates/dimension-templates-gateway.controller';
@@ -81,6 +83,8 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     LeCatalogChannelsGatewayController,
     SiteCatalogChannelsGatewayController,
     CatalogsGatewayController,
+    LeCatalogsGatewayController,
+    SiteCatalogsGatewayController,
     OrdersGatewayController,
     PosTerminalsGatewayController,
     PaymentsGatewayController,

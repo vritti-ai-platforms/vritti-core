@@ -1,23 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import {
-  CatalogChannelResponseDto,
-  CatalogChannelTableResponseDto,
-} from '../dto/response/catalog-channel-response.dto';
-import { ChannelItemTableResponseDto } from '../dto/response/channel-item-response.dto';
-
-const CHANNEL = { name: 'channelId', description: 'Channel identifier' };
-
-export function ApiAppChannels() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'App channels',
-      description:
-        'One row per channel: the wildcard every unnamed caller falls back to, plus any named app that overrides it. App names come from the core app registry, so a revoked app drops out.',
-    }),
-    ApiResponse({ status: 200, type: CatalogChannelTableResponseDto }),
-  );
-}
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CatalogChannelResponseDto } from '../dto/response/catalog-channel-response.dto';
 
 export function ApiCreateAppChannel() {
   return applyDecorators(
@@ -31,53 +14,26 @@ export function ApiCreateAppChannel() {
   );
 }
 
-export function ApiUpdateAppChannel() {
+export function ApiCreatePosChannel() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Point a channel at a different catalog',
-      description: 'Rejected when the channel is inherited — change it in the workspace that set it.',
+      summary: 'Add a catalog to the POS channel',
+      description:
+        'Omit terminalId to sell this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.',
     }),
-    ApiParam(CHANNEL),
-    ApiResponse({ status: 200, description: 'Channel repointed.' }),
-    ApiResponse({ status: 409, description: 'The channel is set by a wider scope.' }),
+    ApiResponse({ status: 201, type: CatalogChannelResponseDto }),
+    ApiResponse({ status: 409, description: 'That combination already has a catalog at this scope.' }),
   );
 }
 
-export function ApiDeleteAppChannel() {
+export function ApiCreateB2bChannel() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Remove a channel',
+      summary: 'Add a catalog to the B2B channel',
       description:
-        'A named app falls back to the wildcard. Removing the wildcard leaves the channel resolving to a wider scope, or to nothing at the organization.',
+        'B2B names no target, so this is the single wholesale assignment for the workspace. The scope comes from the workspace.',
     }),
-    ApiParam(CHANNEL),
-    ApiResponse({ status: 200, description: 'Channel removed.' }),
-    ApiResponse({ status: 409, description: 'The channel is set by a wider scope.' }),
-  );
-}
-
-export function ApiAppChannelItems() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'What one channel sells',
-      description:
-        'The resolved catalog — every active listing, each flagged with whether this channel excludes it. Inactive listings never reach a channel and are not returned.',
-    }),
-    ApiParam(CHANNEL),
-    ApiResponse({ status: 200, type: ChannelItemTableResponseDto }),
-  );
-}
-
-export function ApiSetAppChannelItemVisibility() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Exclude or re-include an item',
-      description:
-        'Writes an exclusion against this channel only. Rejected when the channel is inherited — override it first, or the change would alter what every sibling inheriting it sells.',
-    }),
-    ApiParam(CHANNEL),
-    ApiParam({ name: 'listingId', description: 'Catalog listing identifier' }),
-    ApiResponse({ status: 200, description: 'Visibility updated.' }),
-    ApiResponse({ status: 409, description: 'The channel is set by a wider scope.' }),
+    ApiResponse({ status: 201, type: CatalogChannelResponseDto }),
+    ApiResponse({ status: 409, description: 'B2B already sells a catalog at this scope.' }),
   );
 }

@@ -18,6 +18,13 @@ import {
 } from '@/db/schema';
 import type { CatalogChannelRow, ChannelItemRow } from '../dto/entity/catalog-channel.dto';
 
+export interface ChannelTarget {
+  type: CatalogChannelType;
+  catalogId: string;
+  appId: string | null;
+  terminalId: string | null;
+}
+
 @Injectable()
 export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeof catalogChannels> {
   constructor(database: PrimaryDatabaseService) {
@@ -89,14 +96,24 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return result[0];
   }
 
-  // Returns the wildcard channel of every type this workspace can reach, for the landing cards
-  async findWildcards(): Promise<CatalogChannelRow[]> {
+  // Every channel in reach, wildcards and named alike, for the one screen. RLS bounds it to this
+  // workspace and its ancestors, so the service only has to rank what comes back.
+  async findAllInReach(): Promise<CatalogChannelRow[]> {
     return this.findAllWithSelect<CatalogChannelRow>({
       select: CatalogChannelsDomainRepository.selection(),
       leftJoins: CatalogChannelsDomainRepository.joins(),
-      where: and(isNull(catalogChannels.appId), isNull(catalogChannels.terminalId)),
-      orderBy: [asc(catalogChannels.type)],
+      orderBy: [asc(catalogChannels.type), asc(catalogChannels.createdAt)],
     });
+  }
+
+  // The terminals the grid lists. pos_terminals is site-only under RLS, so above an outlet this is
+  // empty — which is exactly the "no grid above an outlet" rule, without a scope check here.
+  async findTerminals(): Promise<{ id: string; name: string }[]> {
+    return this.db
+      .select({ id: posTerminals.id, name: posTerminals.name })
+      .from(posTerminals)
+      .where(eq(posTerminals.isActive, true))
+      .orderBy(asc(posTerminals.name));
   }
 
   // Returns every channel pointing at one catalog — the read-only tab on the catalog detail
@@ -109,16 +126,20 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     });
   }
 
-  // Returns the wildcard channel of a type that this workspace owns, ignoring what it inherits
-  async findOwnWildcard(type: CatalogChannelType): Promise<CatalogChannel | undefined> {
+  // Returns the channel this workspace owns for exactly this target, ignoring what it inherits. A null
+  // target column means the wildcard, so it must be matched as NULL rather than skipped — otherwise a
+  // named app would collide with the fallback.
+  async findOwnChannel(target: ChannelTarget): Promise<CatalogChannel | undefined> {
+    const is = (column: AnyPgColumn, value: string | null) => (value ? eq(column, value) : isNull(column));
+
     const [row] = await this.db
       .select()
       .from(catalogChannels)
       .where(
         and(
-          eq(catalogChannels.type, type),
-          isNull(catalogChannels.appId),
-          isNull(catalogChannels.terminalId),
+          eq(catalogChannels.type, target.type),
+          is(catalogChannels.appId, target.appId),
+          is(catalogChannels.terminalId, target.terminalId),
           sql`${ownedByWorkspaceExpression('catalog_channels')}`,
         ),
       )
@@ -200,7 +221,13 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .limit(options.limit)
       .offset(options.offset);
 
-    const total = this.db.select({ count: sql<number>`count(*)::int` }).from(catalogListings).where(where);
+    // Shares `where` with the rows query, so it needs the same variant join — the active flags and
+    // every sortable/filterable item column live on offering_variants, not on catalog_listings
+    const total = this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(catalogListings)
+      .leftJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(where);
 
     const [result, [{ count }]] = await Promise.all([rows, total]);
     return { result: result as ChannelItemRow[], count };

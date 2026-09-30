@@ -14,7 +14,7 @@ import type { CategoryTreeDto } from '../dto/entity/category-tree.dto';
 import type { CategoriesSelectQueryDto } from '../dto/request/categories-select-query.dto';
 import type { CreateCategoryDto } from '../dto/request/create-category.dto';
 import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
-import { CategoriesDomainRepository } from '../repositories/categories.repository';
+import { CategoriesDomainRepository, type CategoryWithCounts } from '../repositories/categories.repository';
 
 @Injectable()
 export class CategoriesDomainService {
@@ -109,29 +109,14 @@ export class CategoriesDomainService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, CategoriesDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result: rows, count } = await this.categoriesRepository.findAllWithTaxClass({
+    const { result: rows, count } = await this.categoriesRepository.findAllWithCounts({
       where,
       orderBy: orderBy.length > 0 ? orderBy : [asc(categories.sortOrder), asc(categories.name)],
       limit,
       offset,
     });
 
-    const ids = rows.map((row) => row.id);
-    const [referencedIds, parentIdsWithChildren] = await Promise.all([
-      this.categoriesRepository.findReferencedIds(ids),
-      this.categoriesRepository.findParentIdsWithChildren(ids),
-    ]);
-
-    return {
-      result: rows.map((row) =>
-        CategoryDto.from(
-          row,
-          !referencedIds.has(row.id) && !parentIdsWithChildren.has(row.id),
-          row.defaultTaxClassName,
-        ),
-      ),
-      count,
-    };
+    return { result: rows.map((row) => this.toDto(row)), count };
   }
 
   // Creates a new category, computing its path label and full ltree path; blocks adding under a leaf category
@@ -171,16 +156,13 @@ export class CategoriesDomainService {
 
   // Finds a category by ID or throws NotFoundException
   async findById(id: string): Promise<CategoryDto> {
-    const entity = await this.categoriesRepository.findByIdWithTaxClass(id);
-    if (!entity) throw new NotFoundException('Category not found.');
-    const refs = await this.categoriesRepository.countReferences(id);
-    return CategoryDto.from(entity, this.isUnreferenced(refs), entity.defaultTaxClassName);
+    return this.toDto(await this.requireByIdWithCounts(id));
   }
 
   // Updates a category, recomputing path on rename/move and rewriting the affected subtree
   async update(id: string, data: Omit<UpdateCategoryDto, 'id'>): Promise<CategoryDto> {
     return this.database.runInTransaction(async () => {
-      const existing = await this.requireById(id);
+      const existing = await this.requireByIdWithCounts(id);
 
       const nextParentId = data.parentId === undefined ? existing.parentId : data.parentId || null;
       const nextName = data.name ?? existing.name;
@@ -195,7 +177,7 @@ export class CategoriesDomainService {
       }
 
       if (data.categoryRole !== undefined) {
-        await this.assertRoleChangeAllowed(existing, data.categoryRole);
+        this.assertRoleChangeAllowed(existing, data.categoryRole);
       }
 
       const nextRole = data.categoryRole ?? existing.categoryRole;
@@ -220,8 +202,7 @@ export class CategoriesDomainService {
       }
 
       this.logger.log(`Updated category: ${updated.name} (${updated.id})`);
-      const [refs, fresh] = await Promise.all([this.categoriesRepository.countReferences(id), this.requireById(id)]);
-      return CategoryDto.from(fresh, this.isUnreferenced(refs));
+      return this.toDto(await this.requireByIdWithCounts(id));
     });
   }
 
@@ -256,13 +237,12 @@ export class CategoriesDomainService {
 
   // Deletes a category by ID; refuses if anything still references it
   async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.requireById(id);
-    const refs = await this.categoriesRepository.countReferences(id);
+    const existing = await this.requireByIdWithCounts(id);
 
     const parts = _.compact([
-      refs.items > 0 && pluralize('item', refs.items, true),
-      refs.inventoryItems > 0 && pluralize('inventory item', refs.inventoryItems, true),
-      refs.childCategories > 0 && pluralize('child category', refs.childCategories, true),
+      existing.itemCount > 0 && pluralize('item', existing.itemCount, true),
+      existing.inventoryItemCount > 0 && pluralize('inventory item', existing.inventoryItemCount, true),
+      existing.childCount > 0 && pluralize('child category', existing.childCount, true),
     ]);
     if (parts.length > 0) {
       throw new ConflictException({
@@ -293,6 +273,19 @@ export class CategoriesDomainService {
     const entity = await this.categoriesRepository.findById(id);
     if (!entity) throw new NotFoundException('Category not found.');
     return entity;
+  }
+
+  // Loads a category by ID with its tax class name and reference counts, throwing if not found
+  private async requireByIdWithCounts(id: string): Promise<CategoryWithCounts> {
+    const entity = await this.categoriesRepository.findByIdWithCounts(id);
+    if (!entity) throw new NotFoundException('Category not found.');
+    return entity;
+  }
+
+  // Maps a counts-bearing row to its DTO, deriving canDelete from the counts already on the row
+  private toDto(row: CategoryWithCounts): CategoryDto {
+    const canDelete = row.itemCount === 0 && row.inventoryItemCount === 0 && row.childCount === 0;
+    return CategoryDto.from(row, canDelete, row.defaultTaxClassName);
   }
 
   // Loads a parent category, throwing a parent-specific NotFoundException if missing
@@ -336,24 +329,23 @@ export class CategoriesDomainService {
   }
 
   // Guards a role change: a GROUP can only become a leaf with no children; a leaf can only become a GROUP with no items
-  private async assertRoleChangeAllowed(category: Category, nextRole: CategoryRole): Promise<void> {
+  private assertRoleChangeAllowed(category: CategoryWithCounts, nextRole: CategoryRole): void {
     if (nextRole === category.categoryRole) return;
     if (nextRole === CategoryRoleValues.CATEGORY) {
-      const childCount = await this.categoriesRepository.countChildren(category.id);
-      if (childCount > 0) {
+      if (category.childCount > 0) {
         throw new BadRequestException({
           label: 'Group Has Sub-categories',
-          detail: `Cannot turn "${category.name}" into a leaf category — it still has ${pluralize('sub-category', childCount, true)}. Move or delete them first.`,
+          detail: `Cannot turn "${category.name}" into a leaf category — it still has ${pluralize('sub-category', category.childCount, true)}. Move or delete them first.`,
         });
       }
-    } else {
-      const itemCount = await this.categoriesRepository.countItemsForCategory(category.id);
-      if (itemCount > 0) {
-        throw new BadRequestException({
-          label: 'Category Has Items',
-          detail: `Cannot turn "${category.name}" into a group — ${pluralize('item', itemCount, true)} are linked to it. Reassign those items first.`,
-        });
-      }
+      return;
+    }
+    const itemCount = category.itemCount + category.inventoryItemCount;
+    if (itemCount > 0) {
+      throw new BadRequestException({
+        label: 'Category Has Items',
+        detail: `Cannot turn "${category.name}" into a group — ${pluralize('item', itemCount, true)} are linked to it. Reassign those items first.`,
+      });
     }
   }
 
@@ -390,9 +382,5 @@ export class CategoriesDomainService {
 
   private isUniqueViolation(error: unknown): boolean {
     return _.get(error, 'code') === '23505';
-  }
-
-  private isUnreferenced(refs: { items: number; inventoryItems: number; childCategories: number }): boolean {
-    return _.every(refs, (n) => n === 0);
   }
 }

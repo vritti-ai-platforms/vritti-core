@@ -14,6 +14,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { OwnerNameService } from '@/owner-names/owner-name.service';
 
 const CATALOGS_TABLE_SLUG = 'commerce-org-catalogs';
 const CATALOG_LISTINGS_TABLE_SLUG = (catalogId: string) => `commerce-org-catalog-${catalogId}-items`;
@@ -25,10 +26,11 @@ export class CatalogsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
+    private readonly ownerNames: OwnerNameService,
   ) {}
 
   // Returns paginated, filtered and sorted catalogs for the data table
-  async findForTable(userId: string): Promise<CatalogTableResponseDto> {
+  async findForTable(orgId: string, userId: string): Promise<CatalogTableResponseDto> {
     this.logger.log('org.catalogs.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, CATALOGS_TABLE_SLUG);
     const { result, count } = await this.nats.send<{ result: CatalogResponseDto[]; count: number }>(
@@ -36,12 +38,15 @@ export class CatalogsGatewayService {
       'org.catalogs.table',
       state,
     );
-    return { result, count, state, activeViewId };
+    // commerce stores only the owning ids; the names live in core
+    return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
   }
 
-  async findById(id: string): Promise<CatalogResponseDto> {
+  async findById(orgId: string, id: string): Promise<CatalogResponseDto> {
     this.logger.log(`org.catalogs.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.catalogs.findById', { id });
+    const catalog = await this.nats.send<CatalogResponseDto>('commerce', 'org.catalogs.findById', { id });
+    const [withOwner] = await this.ownerNames.resolve(orgId, [catalog]);
+    return withOwner;
   }
 
   async create(dto: CreateCatalogDto): Promise<CreateResponseDto<CatalogResponseDto>> {
@@ -60,7 +65,11 @@ export class CatalogsGatewayService {
   }
 
   // Returns paginated listings of one catalog, each with its prices
-  async findListingsForTable(catalogId: string, userId: string): Promise<CatalogListingTableResponseDto> {
+  async findListingsForTable(
+    orgId: string,
+    catalogId: string,
+    userId: string,
+  ): Promise<CatalogListingTableResponseDto> {
     this.logger.log(`org.catalogs.listings.table — catalogId: ${catalogId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
@@ -71,7 +80,8 @@ export class CatalogsGatewayService {
       'org.catalogs.listings.table',
       { catalogId, state },
     );
-    return { result, count, state, activeViewId };
+    // commerce stores only the owning ids; the names live in core
+    return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
   }
 
   // The MRP slices a variant can be listed at, for the add-listing picker

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type CatalogChannelTypeValue, CHANNEL_TYPES } from '../request/create-catalog-channel.dto';
 
 export class CatalogChannelResponseDto {
   @ApiProperty() id: string;
@@ -67,4 +68,53 @@ export class CatalogChannelTableResponseDto extends TableResponseDto<CatalogChan
   @ApiProperty() declare count: number;
   @ApiProperty() declare state: TableViewState;
   @ApiPropertyOptional({ nullable: true }) declare activeViewId: string | null;
+}
+
+// ─── the one-screen payload ───
+
+export class ChannelAssignmentResponseDto {
+  @ApiProperty() channelId: string;
+  @ApiProperty() catalogId: string;
+  @ApiPropertyOptional({ nullable: true }) catalogName: string | null;
+  @ApiProperty() catalogIsActive: boolean;
+  @ApiPropertyOptional({ nullable: true }) legalEntityId: string | null;
+  @ApiPropertyOptional({ nullable: true }) siteId: string | null;
+
+  @ApiProperty({ enum: ['ORG', 'LE', 'SITE'], description: 'Level this assignment was made at' })
+  ownerScope: 'ORG' | 'LE' | 'SITE';
+
+  @ApiProperty({ description: 'Name of the owning workspace, resolved from core' })
+  ownerName: string;
+
+  @ApiProperty({ description: 'False when a wider level owns it — this workspace may only override' })
+  isOwn: boolean;
+
+  @ApiProperty() itemsTotal: number;
+  @ApiProperty() itemsSelling: number;
+}
+
+export class ChannelTargetResponseDto {
+  @ApiProperty({ description: 'App id or terminal id' }) targetId: string;
+  @ApiProperty() name: string;
+
+  @ApiPropertyOptional({
+    type: ChannelAssignmentResponseDto,
+    nullable: true,
+    description: 'Null means this target follows the channel default',
+  })
+  assignment: ChannelAssignmentResponseDto | null;
+}
+
+export class ChannelScreenEntryResponseDto {
+  @ApiProperty({ enum: CHANNEL_TYPES }) type: CatalogChannelTypeValue;
+
+  @ApiPropertyOptional({ type: ChannelAssignmentResponseDto, nullable: true })
+  defaultAssignment: ChannelAssignmentResponseDto | null;
+
+  @ApiPropertyOptional({
+    type: [ChannelTargetResponseDto],
+    nullable: true,
+    description: 'Null for B2B, which names no target. Empty above an outlet for POS.',
+  })
+  targets: ChannelTargetResponseDto[] | null;
 }

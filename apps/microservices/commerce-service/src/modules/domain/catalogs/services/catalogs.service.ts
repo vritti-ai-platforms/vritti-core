@@ -72,7 +72,6 @@ export class CatalogsDomainService {
     await this.assertNameFree(data.name);
     const created = await this.repository.create({
       name: data.name,
-      ownerLegalEntityId: data.ownerLegalEntityId ?? null,
       taxInclusive: data.taxInclusive ?? false,
     });
     this.logger.log(`Created catalog ${created.name} (${created.id})`);

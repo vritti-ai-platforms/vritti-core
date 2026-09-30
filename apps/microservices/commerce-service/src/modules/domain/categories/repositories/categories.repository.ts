@@ -1,8 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { asc, eq, inArray, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { asc, eq, getColumns, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type Category, categories, inventoryItems, offerings, taxClasses } from '@/db/schema';
+
+export interface CategoryWithCounts extends Category {
+  defaultTaxClassName: string | null;
+  itemCount: number;
+  inventoryItemCount: number;
+  childCount: number;
+}
 
 @Injectable()
 export class CategoriesDomainRepository extends PrimaryBaseRepository<typeof categories> {
@@ -197,61 +204,6 @@ export class CategoriesDomainRepository extends PrimaryBaseRepository<typeof cat
     }));
   }
 
-  // Returns a set of category IDs that are referenced by catalog or inventory items
-  async findReferencedIds(ids: string[]): Promise<Set<string>> {
-    if (ids.length === 0) return new Set();
-    const [itemRows, inventoryItemRows] = await Promise.all([
-      this.db.select({ id: offerings.categoryId }).from(offerings).where(inArray(offerings.categoryId, ids)),
-      this.db
-        .select({ id: inventoryItems.categoryId })
-        .from(inventoryItems)
-        .where(inArray(inventoryItems.categoryId, ids)),
-    ]);
-    const referenced = new Set<string>();
-    for (const row of [...itemRows, ...inventoryItemRows]) {
-      if (row.id) referenced.add(row.id);
-    }
-    return referenced;
-  }
-
-  // Returns a set of category IDs that have child categories
-  async findParentIdsWithChildren(ids: string[]): Promise<Set<string>> {
-    if (ids.length === 0) return new Set();
-    const rows = await this.db
-      .select({ id: categories.parentId })
-      .from(categories)
-      .where(inArray(categories.parentId, ids));
-    const parentIds = new Set<string>();
-    for (const row of rows) {
-      if (row.id) parentIds.add(row.id);
-    }
-    return parentIds;
-  }
-
-  // Counts references to this category across items, inventory items, and child categories
-  async countReferences(id: string): Promise<{ items: number; inventoryItems: number; childCategories: number }> {
-    const [itemRefs] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(offerings)
-      .where(eq(offerings.categoryId, id));
-
-    const [inventoryItemRefs] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryItems)
-      .where(eq(inventoryItems.categoryId, id));
-
-    const [childRefs] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(categories)
-      .where(eq(categories.parentId, id));
-
-    return {
-      items: Number(itemRefs?.count ?? 0),
-      inventoryItems: Number(inventoryItemRefs?.count ?? 0),
-      childCategories: Number(childRefs?.count ?? 0),
-    };
-  }
-
   // Returns child category IDs for a parent, ordered by sort order and name
   async findChildIdsByParent(parentId: string | null): Promise<string[]> {
     const rows = await this.db
@@ -287,46 +239,40 @@ export class CategoriesDomainRepository extends PrimaryBaseRepository<typeof cat
     `);
   }
 
-  // Counts offerings + inventory items linked directly to a category (used to block child creation)
-  async countItemsForCategory(categoryId: string): Promise<number> {
-    const [row] = await this.db
-      .select({
-        n: sql<number>`(${this.db.$count(offerings, eq(offerings.categoryId, categoryId))}
-          + ${this.db.$count(inventoryItems, eq(inventoryItems.categoryId, categoryId))})::int`,
-      })
-      .from(categories)
-      .where(eq(categories.id, categoryId))
-      .limit(1);
-    return row?.n ?? 0;
+  // Tax class name joined, and every reference count resolved as a scalar subquery in the one select
+  private selection() {
+    return {
+      ...getColumns(categories),
+      defaultTaxClassName: taxClasses.name,
+      itemCount: this.db.$count(offerings, eq(offerings.categoryId, categories.id)),
+      inventoryItemCount: this.db.$count(inventoryItems, eq(inventoryItems.categoryId, categories.id)),
+      // Self-correlated, so the inner table needs its own alias and the outer one stays qualified.
+      // $count cannot express this — over an alias() it emits a bare relation name with no table.
+      childCount: sql<number>`(select count(*) from ${categories} as child
+        where child.parent_id = ${categories}.id)`.mapWith(Number),
+    };
   }
 
-  // Loads a category by id joined with its default tax class name (single round trip)
-  async findByIdWithTaxClass(id: string): Promise<(Category & { defaultTaxClassName: string | null }) | undefined> {
-    const { result } = await this.findAllWithTaxClass({ where: eq(categories.id, id), limit: 1, offset: 0 });
-    return result[0];
+  // Loads a category by id with its tax class name and reference counts (one query)
+  findByIdWithCounts(id: string): Promise<CategoryWithCounts | undefined> {
+    return this.findById<CategoryWithCounts>(id, {
+      select: this.selection(),
+      leftJoin: { table: taxClasses, on: eq(taxClasses.id, categories.defaultTaxClassId) },
+    });
   }
 
-  // Returns paginated categories joined with their default tax class name, plus total count
-  findAllWithTaxClass(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
-    result: (Category & { defaultTaxClassName: string | null })[];
+  // Returns paginated categories with their tax class name and reference counts, plus total count
+  findAllWithCounts(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
+    result: CategoryWithCounts[];
     count: number;
   }> {
-    return this.findAllAndCount({
-      select: { ...categories, defaultTaxClassName: taxClasses.name },
+    return this.findAllAndCount<CategoryWithCounts>({
+      select: this.selection(),
       leftJoin: { table: taxClasses, on: eq(taxClasses.id, categories.defaultTaxClassId) },
       where: options?.where,
       orderBy: options?.orderBy,
       limit: options?.limit,
       offset: options?.offset,
     });
-  }
-
-  // Counts direct children of a category (used by assertIsLeaf)
-  async countChildren(categoryId: string): Promise<number> {
-    const [result] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(categories)
-      .where(eq(categories.parentId, categoryId));
-    return Number(result?.count ?? 0);
   }
 }

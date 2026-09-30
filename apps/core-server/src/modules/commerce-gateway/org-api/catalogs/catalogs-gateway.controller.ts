@@ -33,6 +33,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { ORG_CATALOGS } from '@vritti/commerce-permissions/catalogs';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { OrgId } from '@/security/decorators';
 import { CatalogsGatewayService } from './services/catalogs-gateway.service';
 
 @ApiTags('Commerce - Catalogs')
@@ -48,9 +49,9 @@ export class CatalogsGatewayController {
   @Get('table')
   @RequirePermission(ORG_CATALOGS.view)
   @ApiCatalogsTable()
-  getTable(@UserId() userId: string): Promise<CatalogTableResponseDto> {
+  getTable(@OrgId() orgId: string, @UserId() userId: string): Promise<CatalogTableResponseDto> {
     this.logger.log('GET /commerce-api/org/catalogs/table');
-    return this.service.findForTable(userId);
+    return this.service.findForTable(orgId, userId);
   }
 
   @Post()
@@ -66,9 +67,13 @@ export class CatalogsGatewayController {
   @Get(':id/listings/table')
   @RequirePermission(ORG_CATALOGS.listings.view)
   @ApiCatalogListingsTable()
-  getListingsTable(@Param('id') id: string, @UserId() userId: string): Promise<CatalogListingTableResponseDto> {
+  getListingsTable(
+    @OrgId() orgId: string,
+    @Param('id') id: string,
+    @UserId() userId: string,
+  ): Promise<CatalogListingTableResponseDto> {
     this.logger.log(`GET /commerce-api/org/catalogs/${id}/listings/table`);
-    return this.service.findListingsForTable(id, userId);
+    return this.service.findListingsForTable(orgId, id, userId);
   }
 
   // MRP slices belong to the variant rather than to any one catalog, so this sits outside the :id tree
@@ -140,9 +145,9 @@ export class CatalogsGatewayController {
   @Get(':id')
   @RequirePermission(ORG_CATALOGS.view)
   @ApiGetCatalog()
-  findById(@Param('id') id: string): Promise<CatalogResponseDto> {
+  findById(@OrgId() orgId: string, @Param('id') id: string): Promise<CatalogResponseDto> {
     this.logger.log(`GET /commerce-api/org/catalogs/${id}`);
-    return this.service.findById(id);
+    return this.service.findById(orgId, id);
   }
 
   @Patch(':id')
