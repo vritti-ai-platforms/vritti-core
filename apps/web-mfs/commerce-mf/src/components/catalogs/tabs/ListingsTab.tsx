@@ -12,12 +12,12 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { Boxes, IndianRupee, Plus, Trash2 } from 'lucide-react';
+import { Boxes, IndianRupee, Plus, Radio, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import type { CatalogListingData } from '@/schemas/catalogs';
 import type { CatalogsBinding } from '../bindings';
-import { ChannelVisibilityChips } from '../components/ChannelVisibilityChips';
 import { AddListingDialog } from '../forms/AddListingDialog';
+import { ManageVisibilityDialog } from '../forms/ManageVisibilityDialog';
 import { SetListingPriceDialog } from '../forms/SetListingPriceDialog';
 
 interface ListingsTabProps {
@@ -86,17 +86,19 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
       },
       {
         id: 'channels',
-        header: 'Sells on',
-        cell: ({ row }) => (
-          <ChannelVisibilityChips
-            binding={binding}
-            catalogId={catalogId}
-            listingId={row.original.id}
-            channels={channels}
-            hiddenChannelIds={row.original.hiddenChannelIds}
-            disabled={!row.original.canEdit}
-          />
-        ),
+        header: () => <div className="text-center">Sells on</div>,
+        cell: ({ row }) => {
+          const hidden = row.original.hiddenChannelIds.length;
+          return (
+            <div className="text-center">
+              {channels.length === 0 ? (
+                <Badge variant="warning">No channels</Badge>
+              ) : (
+                <span className="text-sm">{`${channels.length - hidden} of ${channels.length}`}</span>
+              )}
+            </div>
+          );
+        },
         enableSorting: false,
       },
       {
@@ -124,6 +126,25 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
                     listing={r}
                     onSuccess={close}
                     onCancel={close}
+                  />
+                ),
+              },
+            },
+            {
+              id: 'visibility',
+              icon: Radio,
+              label: 'Manage Visibility',
+              permission: binding.permissions.listings.edit,
+              dialog: {
+                title: 'Manage Visibility',
+                description: `Which channels sell "${r.variantName ?? r.sku ?? 'this listing'}". It sells everywhere this catalog reaches unless switched off.`,
+                content: (close) => (
+                  <ManageVisibilityDialog
+                    binding={binding}
+                    catalogId={catalogId}
+                    listing={r}
+                    channels={channels}
+                    onClose={close}
                   />
                 ),
               },

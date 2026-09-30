@@ -111,13 +111,13 @@ export class CatalogsGatewayService {
 
   async setListingChannelVisibility(
     listingId: string,
-    catalogChannelId: string,
+    channelId: string,
     visible: boolean,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`org.catalogs.listings.setChannelVisibility — listingId: ${listingId}, visible: ${visible}`);
     return this.nats.send('commerce', 'org.catalogs.listings.setChannelVisibility', {
       id: listingId,
-      catalogChannelId,
+      catalogChannelId: channelId,
       visible,
     });
   }

@@ -52,7 +52,7 @@ export class OrgCatalogListingsController {
     return this.listingsService.setPrice(dto);
   }
 
-  // Hides or shows one listing on one channel of its catalog
+  // Shows or hides one listing on one channel of its catalog
   @MessagePattern({ cmd: 'org.catalogs.listings.setChannelVisibility' })
   setListingChannelVisibility(
     @Payload() data: { id: string; catalogChannelId: string; visible: boolean },

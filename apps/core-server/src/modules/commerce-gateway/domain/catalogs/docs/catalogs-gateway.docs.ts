@@ -90,13 +90,12 @@ export function ApiCatalogChannels() {
 export function ApiSetCatalogListingChannelVisibility() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Hide or show a listing on one channel',
-      description: 'A listing sells on every channel of its catalog unless hidden here.',
+      summary: 'Show or hide a listing on one channel',
+      description:
+        'A listing shows on every channel its catalog reaches unless switched off. The exclusion belongs to the channel, so this is refused unless this workspace owns it.',
     }),
-    ApiParam(ID),
-    ApiParam(LISTING_ID),
-    ApiParam({ name: 'channelId', description: 'Channel identifier' }),
-    ApiResponse({ status: 200, description: 'Visibility changed.' }),
+    ApiResponse({ status: 200, description: 'Channel visibility updated.' }),
+    ApiResponse({ status: 403, description: 'The channel belongs to a wider scope.' }),
   );
 }
 

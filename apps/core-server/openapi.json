@@ -15003,14 +15003,13 @@
     },
     "/commerce-api/org/catalogs/{id}/listings/{listingId}/channels/{channelId}": {
       "patch": {
-        "description": "A listing sells on every channel of its catalog unless hidden here.",
+        "description": "A listing shows on every channel its catalog reaches unless switched off. The exclusion belongs to the channel, so this is refused unless this workspace owns it.",
         "operationId": "CatalogsGatewayController_setListingChannelVisibility",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Catalog identifier",
             "schema": {
               "type": "string"
             }
@@ -15019,7 +15018,6 @@
             "name": "listingId",
             "required": true,
             "in": "path",
-            "description": "Listing identifier",
             "schema": {
               "type": "string"
             }
@@ -15028,7 +15026,6 @@
             "name": "channelId",
             "required": true,
             "in": "path",
-            "description": "Channel identifier",
             "schema": {
               "type": "string"
             }
@@ -15046,7 +15043,10 @@
         },
         "responses": {
           "200": {
-            "description": "Visibility changed."
+            "description": "Channel visibility updated."
+          },
+          "403": {
+            "description": "The channel belongs to a wider scope."
           }
         },
         "security": [
@@ -15054,7 +15054,7 @@
             "bearer": []
           }
         ],
-        "summary": "Hide or show a listing on one channel",
+        "summary": "Show or hide a listing on one channel",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -15503,14 +15503,13 @@
     },
     "/commerce-api/le/catalogs/{id}/listings/{listingId}/channels/{channelId}": {
       "patch": {
-        "description": "A listing sells on every channel of its catalog unless hidden here.",
+        "description": "A listing shows on every channel its catalog reaches unless switched off. The exclusion belongs to the channel, so this is refused unless this workspace owns it.",
         "operationId": "LeCatalogsGatewayController_setListingChannelVisibility",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Catalog identifier",
             "schema": {
               "type": "string"
             }
@@ -15519,7 +15518,6 @@
             "name": "listingId",
             "required": true,
             "in": "path",
-            "description": "Listing identifier",
             "schema": {
               "type": "string"
             }
@@ -15528,7 +15526,6 @@
             "name": "channelId",
             "required": true,
             "in": "path",
-            "description": "Channel identifier",
             "schema": {
               "type": "string"
             }
@@ -15546,7 +15543,10 @@
         },
         "responses": {
           "200": {
-            "description": "Visibility changed."
+            "description": "Channel visibility updated."
+          },
+          "403": {
+            "description": "The channel belongs to a wider scope."
           }
         },
         "security": [
@@ -15554,7 +15554,7 @@
             "bearer": []
           }
         ],
-        "summary": "Hide or show a listing on one channel",
+        "summary": "Show or hide a listing on one channel",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -16003,14 +16003,13 @@
     },
     "/commerce-api/site/catalogs/{id}/listings/{listingId}/channels/{channelId}": {
       "patch": {
-        "description": "A listing sells on every channel of its catalog unless hidden here.",
+        "description": "A listing shows on every channel its catalog reaches unless switched off. The exclusion belongs to the channel, so this is refused unless this workspace owns it.",
         "operationId": "SiteCatalogsGatewayController_setListingChannelVisibility",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Catalog identifier",
             "schema": {
               "type": "string"
             }
@@ -16019,7 +16018,6 @@
             "name": "listingId",
             "required": true,
             "in": "path",
-            "description": "Listing identifier",
             "schema": {
               "type": "string"
             }
@@ -16028,7 +16026,6 @@
             "name": "channelId",
             "required": true,
             "in": "path",
-            "description": "Channel identifier",
             "schema": {
               "type": "string"
             }
@@ -16046,7 +16043,10 @@
         },
         "responses": {
           "200": {
-            "description": "Visibility changed."
+            "description": "Channel visibility updated."
+          },
+          "403": {
+            "description": "The channel belongs to a wider scope."
           }
         },
         "security": [
@@ -16054,7 +16054,7 @@
             "bearer": []
           }
         ],
-        "summary": "Hide or show a listing on one channel",
+        "summary": "Show or hide a listing on one channel",
         "tags": [
           "Commerce - Catalogs"
         ]

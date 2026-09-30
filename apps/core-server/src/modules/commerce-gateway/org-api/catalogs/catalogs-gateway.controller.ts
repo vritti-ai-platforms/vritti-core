@@ -120,7 +120,7 @@ export class CatalogsGatewayController {
     return this.service.findChannels(id);
   }
 
-  // Hides or shows one listing on one channel of this catalog
+  // Shows or hides one listing on one channel of this catalog
   @Patch(':id/listings/:listingId/channels/:channelId')
   @RequirePermission(ORG_CATALOGS.listings.edit)
   @ApiSetCatalogListingChannelVisibility()

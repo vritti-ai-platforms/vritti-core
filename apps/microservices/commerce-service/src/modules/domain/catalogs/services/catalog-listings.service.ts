@@ -139,8 +139,8 @@ export class CatalogListingsDomainService {
     return { success: true, message: 'Price updated.' };
   }
 
-  // Visible everywhere by default, so hiding writes one exclusion and showing removes it. The test is
-  // owning the CHANNEL, not the listing: deciding what your own channel sells is your business even
+  // Shows everywhere by default, so hiding writes one exclusion and showing removes it. The test is
+  // owning the CHANNEL, not the listing: deciding what your own channel shows is your business even
   // when the item came from a wider scope, and the RLS on the exclusion is keyed the same way.
   async setChannelVisibility(id: string, catalogChannelId: string, visible: boolean): Promise<SuccessResponseDto> {
     await this.requireOwnedChannel(catalogChannelId);
