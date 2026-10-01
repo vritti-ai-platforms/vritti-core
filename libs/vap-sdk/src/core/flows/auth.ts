@@ -217,7 +217,6 @@ export function createAuthFlows(people: PeopleOperations, otp: OtpOperations) {
       return { ...outcome, linked: true, local };
     },
 
-
     /**
      * Turns a verified phone number into the party behind it, creating one if the organization has
      * never seen it.
@@ -324,4 +323,3 @@ function splitName(fullName: string): { firstName: string; lastName?: string } {
   if (space === -1) return { firstName: trimmed };
   return { firstName: trimmed.slice(0, space), lastName: trimmed.slice(space + 1) };
 }
-

@@ -3,7 +3,7 @@ import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 /** A wishlist row as the repository reads it, with what its listing currently resolves to joined on. */
 export interface WishlistItemRow {
   id: string;
-  catalogListingId: string;
+  catalogListingId: string | null;
   offeringVariantId: string;
   amount: bigint | null;
   currencyCode: string | null;
@@ -18,7 +18,7 @@ export interface WishlistItemRow {
 
 export class WishlistItemDto {
   id: string;
-  catalogListingId: string;
+  catalogListingId: string | null;
   /** What a storefront joins its own product page on — see `CartItemDto` for why the variant. */
   offeringVariantId: string;
   name: string;

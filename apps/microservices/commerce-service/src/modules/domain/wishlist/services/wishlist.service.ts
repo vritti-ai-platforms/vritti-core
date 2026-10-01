@@ -31,11 +31,13 @@ export class WishlistDomainService {
   }
 
   /**
-   * Saves a product.
+   * Saves a product, whether or not the shop can sell it today.
    *
-   * Checked against the storefront's own catalogue first, for the reason `addItem` is: without it a
-   * credential could file away something from a catalogue it does not sell and has no business
-   * reading. The check proves the offer exists — the row stores the product, not the offer.
+   * Unlike `addItem` on a basket, which must refuse what it cannot sell: a wishlist is the one list
+   * whose purpose includes things that are not for sale right now — "tell me when this is back" is
+   * why somebody saves rather than buys — so refusing a delisted product refuses the feature. The
+   * read path reports those as unavailable and unpriced, which is the honest answer; the save is
+   * not the place to argue with it.
    */
   async add(input: {
     appId: string;
@@ -45,7 +47,7 @@ export class WishlistDomainService {
     currencyCode: string;
     siteId?: string;
   }): Promise<WishlistAddResultDto> {
-    await this.assertSoldHere(input.catalogId, input.offeringVariantId);
+    await this.assertOurProduct(input.offeringVariantId);
     const created = await this.repository.insertIgnoring(input.appId, input.partyId, input.offeringVariantId);
     this.logger.log(
       created
@@ -67,18 +69,22 @@ export class WishlistDomainService {
   }
 
   /**
-   * Refuses a product this catalogue does not carry.
+   * Refuses a product that is not this organization's.
    *
-   * Callers name the variant — stable across outlets — and this resolves the catalogue's offer of it
-   * only to prove there is one. The listing id is thrown away: which catalogue offers a product is a
-   * question each read answers, so storing one would pin the row to a catalogue it may outlive.
+   * All a save needs to prove. The stronger check this replaced — that the storefront's catalogue
+   * carries it — made the wishlist unable to hold anything sold out, which is most of what a
+   * wishlist is for, and it broke the moment a product was delisted under a shopper who was looking
+   * at it.
+   *
+   * RLS is what does the work: the variant is only visible to the organization that owns it, so an
+   * id belonging to someone else does not resolve and this refuses it. Which catalogue offers the
+   * product, and at what price, is a question every read answers for itself.
    */
-  private async assertSoldHere(catalogId: string, offeringVariantId: string): Promise<void> {
-    const listingId = await this.repository.findListingForVariant(catalogId, offeringVariantId);
-    if (!listingId) {
+  private async assertOurProduct(offeringVariantId: string): Promise<void> {
+    if (!(await this.repository.variantExists(offeringVariantId))) {
       throw new NotFoundException({
-        label: 'Not Sold Here',
-        detail: 'This product is not available in this store.',
+        label: 'Unknown Product',
+        detail: 'That product does not exist.',
       });
     }
   }
@@ -113,5 +119,10 @@ export class WishlistDomainService {
   async clear(appId: string, partyId: string): Promise<SuccessResponseDto> {
     await this.repository.deleteAllForParty(appId, partyId);
     return { success: true, message: 'Wishlist cleared.' };
+  }
+
+  /** Which products the party has saved in this storefront, for a product page's toggle. */
+  findVariantIds(appId: string, partyId: string): Promise<string[]> {
+    return this.repository.findVariantIdsForParty(appId, partyId);
   }
 }

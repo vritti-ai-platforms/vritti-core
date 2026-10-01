@@ -42,6 +42,17 @@ type CatalogListing {
   price: Money
 }
 
+type ShopperAddress {
+  id: ID!
+  line1: String!
+  line2: String
+  city: String
+  region: String
+  postalCode: String
+  countryCode: String!
+  isDefault: Boolean!
+}
+
 type Person {
   id: ID!
   displayName: String!
@@ -62,7 +73,7 @@ type PersonCommunication {
 
 type WishlistItem {
   id: ID!
-  catalogListingId: ID!
+  catalogListingId: ID
   offeringVariantId: ID!
   name: String!
   sku: String
@@ -78,7 +89,7 @@ type WishlistAddResult {
 
 type CartItem {
   id: ID!
-  catalogListingId: ID!
+  catalogListingId: ID
   offeringVariantId: ID!
   quantity: Int!
   name: String!
@@ -93,6 +104,11 @@ type Cart {
   items: [CartItem!]!
   subtotal: Money!
   itemCount: Int!
+}
+
+type CartQuantity {
+  offeringVariantId: ID!
+  quantity: Int!
 }
 
 type MutationResult {

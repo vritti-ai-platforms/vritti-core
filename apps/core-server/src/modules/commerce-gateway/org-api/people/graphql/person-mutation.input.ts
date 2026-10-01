@@ -86,3 +86,39 @@ export class FindPeopleByCommunicationInput {
   @MaxLength(255)
   value: string;
 }
+
+/**
+ * A shopper editing their own details.
+ *
+ * Carries **no id**. The party is read from the request signature, so there is nothing here a
+ * caller could change to edit somebody else — the same shape the basket and the wishlist use.
+ *
+ * Phone is absent on purpose: it is the credential the shopper proved by OTP and what core matched
+ * them on, so changing it is a re-verification flow (`sendSmsOtp` → `verifySmsOtp` →
+ * `addPersonCommunication`), not a field on a form. `isActive` is absent because nobody should be
+ * able to switch their own party off through a profile page.
+ */
+@InputType()
+export class UpdateShopperProfileInput {
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @Trim({ nullify: false })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(120)
+  firstName?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @MaxLength(120)
+  lastName?: string | null;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @Trim()
+  @IsEmail()
+  @MaxLength(255)
+  email?: string | null;
+}

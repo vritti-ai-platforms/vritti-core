@@ -89,6 +89,12 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
     return rows as WishlistItemRow[];
   }
 
+  // Which products the party has saved in this storefront — ids only, no catalogue, no price
+  async findVariantIdsForParty(appId: string, partyId: string): Promise<string[]> {
+    const rows = await this.findMany({ where: { appId, partyId } });
+    return rows.map((row) => row.offeringVariantId);
+  }
+
   /**
    * Saves a product, or leaves the existing row alone.
    *
@@ -183,13 +189,19 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
     return rows as (WishlistItemRow & { appId: string })[];
   }
 
-  /** The listing that sells a variant in a catalogue, or nothing when it does not carry it. */
-  async findListingForVariant(catalogId: string, offeringVariantId: string): Promise<string | undefined> {
+  /**
+   * Whether this organization has such a product at all.
+   *
+   * Nothing is said about catalogues — see `assertOurProduct` for why a wishlist must not ask that.
+   * RLS is what makes this a real check: the row is only visible to the organization that owns it,
+   * so an id from anywhere else simply does not resolve.
+   */
+  async variantExists(offeringVariantId: string): Promise<boolean> {
     const rows = await this.db
-      .select({ id: catalogListings.id })
-      .from(catalogListings)
-      .where(and(eq(catalogListings.catalogId, catalogId), eq(catalogListings.offeringVariantId, offeringVariantId)))
+      .select({ id: offeringVariants.id })
+      .from(offeringVariants)
+      .where(eq(offeringVariants.id, offeringVariantId))
       .limit(1);
-    return rows[0]?.id;
+    return rows.length > 0;
   }
 }

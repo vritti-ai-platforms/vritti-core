@@ -6,8 +6,16 @@ export class WishlistItem {
   @Field(() => ID)
   id: string;
 
-  @Field(() => ID)
-  catalogListingId: string;
+  /**
+   * The priced row this line points at, or null once the catalogue stops carrying it.
+   *
+   * Nullable on purpose, and it has to be: a basket keeps a line whose listing has gone — that is
+   * what `isAvailable: false` reports — so a non-null field here makes the whole basket
+   * unserialisable the moment one product is delisted, and the shopper sees an error instead of
+   * their own basket.
+   */
+  @Field(() => ID, { nullable: true })
+  catalogListingId: string | null;
 
   /** What a storefront joins its own product page on — see `CartItem` for why the variant. */
   @Field(() => ID)

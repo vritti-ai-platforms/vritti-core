@@ -137,3 +137,119 @@ export const REMOVE_FROM_WISHLIST = graphql(`
     }
   }
 `);
+
+/**
+ * How many of each product the shopper holds — counts only, nothing priced.
+ *
+ * What a product page reads to show a quantity stepper instead of "Add to cart". Cheap by design:
+ * core resolves no catalogue for it, so asking on every view costs one indexed read.
+ */
+export const CART_QUANTITIES_QUERY = graphql(`
+  query CartQuantities {
+    cartQuantities {
+      offeringVariantId
+      quantity
+    }
+  }
+`);
+
+/** Which products the shopper has saved — ids only, for a product page's "Saved" state. */
+export const WISHLIST_VARIANT_IDS_QUERY = graphql(`
+  query WishlistVariantIds {
+    wishlistVariantIds
+  }
+`);
+
+/** The fields a shopper sees and edits on their own profile. */
+export const ShopperProfileFieldsFragment = graphql(`
+  fragment ShopperProfileFields on Person {
+    id
+    displayName
+    firstName
+    lastName
+    email
+    phone
+  }
+`);
+
+/**
+ * The signed-in shopper's own details.
+ *
+ * Takes no id: core reads the party from the request signature, so this answers "me" and there is
+ * nothing to pass that could ask about somebody else.
+ */
+export const SHOPPER_PROFILE_QUERY = graphql(`
+  query ShopperProfile {
+    shopperProfile {
+      ...ShopperProfileFields
+    }
+  }
+`);
+
+/**
+ * The shopper editing their own details.
+ *
+ * No phone: it is the credential they proved by OTP, and changing it is the OTP flow rather than a
+ * field on a form. Answers the profile as it now stands, including the `displayName` core composes
+ * from the names.
+ */
+export const UPDATE_SHOPPER_PROFILE = graphql(`
+  mutation UpdateShopperProfile($input: UpdateShopperProfileInput!) {
+    updateShopperProfile(input: $input) {
+      ...ShopperProfileFields
+    }
+  }
+`);
+
+/** One of the shopper's saved addresses. */
+export const ShopperAddressFieldsFragment = graphql(`
+  fragment ShopperAddressFields on ShopperAddress {
+    id
+    line1
+    line2
+    city
+    region
+    postalCode
+    countryCode
+    isDefault
+  }
+`);
+
+/**
+ * The shopper's address book.
+ *
+ * Every mutation answers the whole book rather than the row it touched: marking one address the
+ * default unmarks another, so a single row would leave a caller redrawing a list it cannot see all
+ * of.
+ */
+export const SHOPPER_ADDRESSES_QUERY = graphql(`
+  query ShopperAddresses {
+    shopperAddresses {
+      ...ShopperAddressFields
+    }
+  }
+`);
+
+export const ADD_SHOPPER_ADDRESS = graphql(`
+  mutation AddShopperAddress($input: ShopperAddressInput!) {
+    addShopperAddress(input: $input) {
+      ...ShopperAddressFields
+    }
+  }
+`);
+
+export const UPDATE_SHOPPER_ADDRESS = graphql(`
+  mutation UpdateShopperAddress($input: UpdateShopperAddressInput!) {
+    updateShopperAddress(input: $input) {
+      ...ShopperAddressFields
+    }
+  }
+`);
+
+export const REMOVE_SHOPPER_ADDRESS = graphql(`
+  mutation RemoveShopperAddress($input: ShopperAddressRefInput!) {
+    removeShopperAddress(input: $input) {
+      ...ShopperAddressFields
+    }
+  }
+`);

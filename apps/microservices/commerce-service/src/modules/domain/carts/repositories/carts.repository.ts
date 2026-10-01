@@ -10,6 +10,7 @@ import {
   catalogListings,
   offerings,
   offeringVariants,
+  ownedByWorkspaceExpression,
   parties,
 } from '@/db/schema';
 import type { CartItemRow, CartTableRow } from '../dto/entity/cart.dto';
@@ -173,6 +174,22 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     ]);
 
     return { result: rows as CartItemRow[], count: Number(total?.count ?? 0) };
+  }
+
+  /**
+   * How many of each product a party holds in their basket here — what a product page draws its
+   * quantity stepper from.
+   *
+   * The basket at exactly this workspace. RLS alone also lets a site read the baskets its legal
+   * entity holds, and a stepper counting those would offer to change a line in a basket the shopper
+   * is not shopping from. No catalogue and no price: the stepper needs a count, nothing else.
+   */
+  async findQuantitiesForParty(partyId: string): Promise<{ offeringVariantId: string; quantity: number }[]> {
+    return this.db
+      .select({ offeringVariantId: cartItems.offeringVariantId, quantity: cartItems.quantity })
+      .from(cartItems)
+      .innerJoin(carts, eq(carts.id, cartItems.cartId))
+      .where(and(eq(carts.partyId, partyId), ownedByWorkspaceExpression()));
   }
 
   /**

@@ -1,4 +1,3 @@
-
 /**
  * A failure the caller should surface.
  *

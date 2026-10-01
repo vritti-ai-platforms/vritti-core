@@ -1,14 +1,22 @@
 import type { ApolloClient } from '@apollo/client';
 import { VapError } from '../errors';
 import {
+  ADD_SHOPPER_ADDRESS,
   ADD_TO_CART,
   ADD_TO_WISHLIST,
+  CART_QUANTITIES_QUERY,
   CART_QUERY,
   CLEAR_CART,
   REMOVE_FROM_CART,
   REMOVE_FROM_WISHLIST,
+  REMOVE_SHOPPER_ADDRESS,
+  SHOPPER_ADDRESSES_QUERY,
+  SHOPPER_PROFILE_QUERY,
   UPDATE_CART_ITEM,
+  UPDATE_SHOPPER_ADDRESS,
+  UPDATE_SHOPPER_PROFILE,
   WISHLIST_QUERY,
+  WISHLIST_VARIANT_IDS_QUERY,
 } from '../graphql/shopper';
 import { requireData, run } from '../transport/errors';
 import { type RequestContext, withoutWorkspace } from '../types';
@@ -44,6 +52,53 @@ export type Cart = {
 };
 
 /** What `addToWishlist` answers with — the list, plus whether it was already there. */
+/** One of the shopper's saved addresses. */
+export type ShopperAddress = {
+  id: string;
+  line1: string;
+  line2?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postalCode?: string | null;
+  countryCode: string;
+  /** Where orders go unless told otherwise. Marking one default unmarks the previous one. */
+  isDefault: boolean;
+};
+
+/** An address as a shopper writes it. Clearing an optional field means sending `null`. */
+export type ShopperAddressInput = {
+  line1: string;
+  line2?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postalCode?: string | null;
+  countryCode: string;
+  isDefault?: boolean;
+};
+
+/** The shopper's own details, as their profile page shows them. */
+export type ShopperProfile = {
+  id: string;
+  displayName: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+};
+
+/** What a shopper may change about themselves. Phone is absent — that is the OTP flow. */
+export type ShopperProfileInput = {
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+};
+
+/** How many of one product the shopper holds in their basket. */
+export type CartQuantity = {
+  offeringVariantId: string;
+  quantity: number;
+};
+
 export type WishlistAddResult = {
   alreadyExists: boolean;
   wishlist: WishlistItem[];
@@ -176,6 +231,108 @@ export function createShopperOperations(client: ApolloClient, context: RequestCo
             context: requestContext,
           })
           .then((r) => requireData(r.data).clearCart as Cart),
+      );
+    },
+
+    /**
+     * The signed-in shopper's own details.
+     *
+     * Sent with no workspace, like the wishlist: a person belongs to the organization, not to one
+     * of its outlets, so which site the storefront sells from has no bearing on who they are.
+     */
+    async profile(): Promise<ShopperProfile> {
+      requireParty();
+      return run(() =>
+        client
+          .query({ query: SHOPPER_PROFILE_QUERY, context: wishlistContext })
+          .then((r) => requireData(r.data).shopperProfile as ShopperProfile),
+      );
+    },
+
+    /**
+     * The shopper's address book.
+     *
+     * Workspace-less like the profile and the wishlist: a person's addresses belong to them, not to
+     * the outlet they happen to be shopping at.
+     *
+     * Every write answers the whole book, because marking one address the default unmarks another.
+     */
+    async addresses(): Promise<ShopperAddress[]> {
+      requireParty();
+      return run(() =>
+        client
+          .query({ query: SHOPPER_ADDRESSES_QUERY, context: wishlistContext })
+          .then((r) => requireData(r.data).shopperAddresses as ShopperAddress[]),
+      );
+    },
+
+    async addAddress(input: ShopperAddressInput): Promise<ShopperAddress[]> {
+      requireParty();
+      return run(() =>
+        client
+          .mutate({ mutation: ADD_SHOPPER_ADDRESS, variables: { input }, context: wishlistContext })
+          .then((r) => requireData(r.data).addShopperAddress as ShopperAddress[]),
+      );
+    },
+
+    async updateAddress(id: string, input: ShopperAddressInput): Promise<ShopperAddress[]> {
+      requireParty();
+      return run(() =>
+        client
+          .mutate({
+            mutation: UPDATE_SHOPPER_ADDRESS,
+            variables: { input: { id, ...input } },
+            context: wishlistContext,
+          })
+          .then((r) => requireData(r.data).updateShopperAddress as ShopperAddress[]),
+      );
+    },
+
+    async removeAddress(id: string): Promise<ShopperAddress[]> {
+      requireParty();
+      return run(() =>
+        client
+          .mutate({ mutation: REMOVE_SHOPPER_ADDRESS, variables: { input: { id } }, context: wishlistContext })
+          .then((r) => requireData(r.data).removeShopperAddress as ShopperAddress[]),
+      );
+    },
+
+    /** Saves a change to those details, and answers the profile as it now stands. */
+    async updateProfile(input: ShopperProfileInput): Promise<ShopperProfile> {
+      requireParty();
+      return run(() =>
+        client
+          .mutate({ mutation: UPDATE_SHOPPER_PROFILE, variables: { input }, context: wishlistContext })
+          .then((r) => requireData(r.data).updateShopperProfile as ShopperProfile),
+      );
+    },
+
+    /**
+     * How many of each product is in the basket — for a product page's stepper.
+     *
+     * Counts only, so it is cheap enough to ask on every view, unlike `cart()`, which prices every
+     * line. Sent at the configured site, like every other basket call.
+     */
+    async cartQuantities(): Promise<CartQuantity[]> {
+      requireParty();
+      return run(() =>
+        client
+          .query({ query: CART_QUANTITIES_QUERY, context: requestContext })
+          .then((r) => requireData(r.data).cartQuantities as CartQuantity[]),
+      );
+    },
+
+    /**
+     * Which products are saved — ids only, for a product page's "Saved" state.
+     *
+     * Sent with no workspace, like every other wishlist call: the list is the person's, org-wide.
+     */
+    async savedVariantIds(): Promise<string[]> {
+      requireParty();
+      return run(() =>
+        client
+          .query({ query: WISHLIST_VARIANT_IDS_QUERY, context: wishlistContext })
+          .then((r) => requireData(r.data).wishlistVariantIds as string[]),
       );
     },
 

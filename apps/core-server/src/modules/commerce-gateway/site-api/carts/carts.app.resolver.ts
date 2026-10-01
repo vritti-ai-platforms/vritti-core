@@ -6,7 +6,7 @@ import { AppTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AppId, PartyId, SiteId } from '@/security/decorators';
 import { AddCartItemInput, CartItemRefInput, CartScopeInput, UpdateCartItemInput } from './graphql/cart.input';
-import { Cart } from './graphql/cart.type';
+import { Cart, CartQuantity } from './graphql/cart.type';
 import { CartsGatewayService } from './services/carts-gateway.service';
 
 /**
@@ -48,6 +48,19 @@ export class CartsAppResolver {
   ): Promise<Cart> {
     this.logger.log('QUERY cart');
     return this.service.findShopperCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
+  }
+
+  /**
+   * How many of each product the shopper holds — a product page draws its stepper from this.
+   *
+   * The cheap read beside `cart`: counts only, no catalogue resolved and nothing priced, so a page
+   * can ask on every view without paying for the whole basket.
+   */
+  @Query(() => [CartQuantity], { name: 'cartQuantities' })
+  @RequirePermission(SITE_CARTS.view)
+  cartQuantities(@PartyId() partyId: string): Promise<CartQuantity[]> {
+    this.logger.log('QUERY cartQuantities');
+    return this.service.findShopperQuantities(partyId);
   }
 
   /** Adds a listing, opening a basket if this is the shopper's first line. */

@@ -67,6 +67,13 @@ export class CartsController {
   }
 
   // Returns one basket's lines, priced by the caller's catalogue
+  // How many of each product the shopper holds here — a product page's stepper, without pricing
+  @MessagePattern({ cmd: 'site.carts.quantities' })
+  quantities(@Payload() data: { partyId: string }): Promise<{ offeringVariantId: string; quantity: number }[]> {
+    this.logger.log(`site.carts.quantities — party: ${data.partyId}`);
+    return this.service.findQuantities(data.partyId);
+  }
+
   // Returns paginated, filtered and sorted items of one basket for the data table
   @MessagePattern({ cmd: 'site.carts.items.table' })
   itemsTable(

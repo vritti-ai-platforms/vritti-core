@@ -17,7 +17,8 @@ export interface CartTableRow {
 /** One basket line as the repository reads it, with everything the listing resolves to joined on. */
 export interface CartItemRow {
   id: string;
-  catalogListingId: string;
+  /** Null once the catalogue stops carrying it — the line stays, as `isAvailable` explains. */
+  catalogListingId: string | null;
   offeringVariantId: string;
   quantity: number;
   /** Null when the catalogue holds no price for the basket's currency — see `CartItemDto.from`. */
@@ -34,7 +35,8 @@ export interface CartItemRow {
 
 export class CartItemDto {
   id: string;
-  catalogListingId: string;
+  /** Null once the catalogue stops carrying it — the line stays, as `isAvailable` explains. */
+  catalogListingId: string | null;
   /**
    * What a storefront joins its own product page on.
    *

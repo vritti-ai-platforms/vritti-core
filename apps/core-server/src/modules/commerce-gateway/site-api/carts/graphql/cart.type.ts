@@ -6,8 +6,16 @@ export class CartItem {
   @Field(() => ID)
   id: string;
 
-  @Field(() => ID)
-  catalogListingId: string;
+  /**
+   * The priced row this line points at, or null once the catalogue stops carrying it.
+   *
+   * Nullable on purpose, and it has to be: a basket keeps a line whose listing has gone — that is
+   * what `isAvailable: false` reports — so a non-null field here makes the whole basket
+   * unserialisable the moment one product is delisted, and the shopper sees an error instead of
+   * their own basket.
+   */
+  @Field(() => ID, { nullable: true })
+  catalogListingId: string | null;
 
   /**
    * What a storefront joins its own product page on.
@@ -67,4 +75,14 @@ export class Cart {
   /** Quantity across available lines — the number a basket badge shows. */
   @Field(() => Int)
   itemCount: number;
+}
+
+/** How many of one product a shopper holds in their basket — what a product page's stepper shows. */
+@ObjectType()
+export class CartQuantity {
+  @Field(() => ID)
+  offeringVariantId: string;
+
+  @Field(() => Int)
+  quantity: number;
 }

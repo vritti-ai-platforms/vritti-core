@@ -69,6 +69,11 @@ export class CartsDomainService {
     return CartDetailDto.from(cart);
   }
 
+  /** How many of each product the party holds in their basket at this workspace. */
+  findQuantities(partyId: string): Promise<{ offeringVariantId: string; quantity: number }[]> {
+    return this.repository.findQuantitiesForParty(partyId);
+  }
+
   /** Its lines, priced by the catalogue the caller sells from. */
   async findItemsById(id: string, currencyCode: string, catalogId?: string, siteId?: string): Promise<CartDto> {
     const items = await this.repository.findItems(id, currencyCode, catalogId, siteId);

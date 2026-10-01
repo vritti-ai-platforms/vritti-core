@@ -42,7 +42,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 export interface StaffShopperRow {
   id: string;
   appId: string;
-  catalogListingId: string;
+  catalogListingId: string | null;
   name: string;
   sku: string | null;
   isAvailable: boolean;
@@ -64,7 +64,7 @@ export interface StaffWishlistItemRow extends StaffShopperRow {
 
 export interface WishlistItemPayload {
   id: string;
-  catalogListingId: string;
+  catalogListingId: string | null;
   offeringVariantId: string;
   name: string;
   sku: string | null;
@@ -258,6 +258,66 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
   }
 
+  // ── The shopper's own address book, for a storefront acting for one signed-in party ──
+  //
+  // Every method takes `partyId` from the caller's signature, and it is not optional on any of
+  // them. `addShopperAddress` is safe by shape — the party is what the row is created under. The
+  // other two name an **address id**, which is attacker-controlled input, so each one proves the
+  // address belongs to that party before forwarding. `assertOwned` is the single place that check
+  // lives: every app-surface write goes through it, so there is one line to read to know the rule
+  // and one place to change it.
+
+  /** Every address the shopper holds. */
+  listShopperAddresses(partyId: string): Promise<PartyAddressResponseDto[]> {
+    this.logger.log(`org.people.addresses.list — party: ${partyId}`);
+    return this.nats.send('commerce', 'org.people.addresses.list', { personId: partyId });
+  }
+
+  /** Adds one. Scoped by construction — the party is what it is created under. */
+  addShopperAddress(
+    partyId: string,
+    dto: Omit<AddPersonAddressDto, 'personId'>,
+  ): Promise<CreateResponseDto<PartyAddressResponseDto>> {
+    this.logger.log(`org.people.addresses.add — party: ${partyId}`);
+    return this.nats.send('commerce', 'org.people.addresses.add', { personId: partyId, ...dto });
+  }
+
+  /** Edits one of theirs. */
+  async updateShopperAddress(
+    partyId: string,
+    addressId: string,
+    dto: Omit<UpdatePersonAddressDto, 'id'>,
+  ): Promise<SuccessResponseDto> {
+    await this.assertOwned(partyId, addressId);
+    this.logger.log(`org.people.addresses.update — party: ${partyId}, id: ${addressId}`);
+    return this.nats.send('commerce', 'org.people.addresses.update', { id: addressId, ...dto });
+  }
+
+  /** Removes one of theirs. */
+  async removeShopperAddress(partyId: string, addressId: string): Promise<SuccessResponseDto> {
+    await this.assertOwned(partyId, addressId);
+    this.logger.log(`org.people.addresses.remove — party: ${partyId}, id: ${addressId}`);
+    return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
+  }
+
+  /**
+   * Refuses an address that is not this party's.
+   *
+   * The app credential speaks for the whole organization, and RLS scopes rows to it — so an
+   * address id from a *different shopper in the same organization* is visible to this request.
+   * The party is not a tenancy boundary, which is why nothing below this layer enforces it and
+   * why forwarding a caller's id straight through would let one shopper rewrite another's address.
+   *
+   * Answers the same `NotFoundException` for "not yours" as for "no such address", deliberately:
+   * telling the two apart turns this into a way to find out which ids exist.
+   */
+  private async assertOwned(partyId: string, addressId: string): Promise<void> {
+    const addresses = await this.listShopperAddresses(partyId);
+    if (!addresses.some((address) => address.id === addressId)) {
+      throw new NotFoundException({ label: 'Address Not Found', detail: 'That address does not exist.' });
+    }
+  }
+
   // Returns the tax registrations of a person for the data table
   async listRegistrations(personId: string, userId: string): Promise<PersonRegistrationTableResponseDto> {
     this.logger.log(`org.people.registrations.table — personId: ${personId}`);
@@ -447,6 +507,12 @@ export class PeopleGatewayService {
 
   // ── The shopper's own wishlist, for a storefront acting for one signed-in party ──
 
+  // Which products the shopper has saved — ids only, with no catalogue to resolve
+  listShopperWishlistVariantIds(appId: string, partyId: string): Promise<string[]> {
+    this.logger.log(`org.wishlist.variantIds — party: ${partyId}`);
+    return this.nats.send('commerce', 'org.wishlist.variantIds', { appId, partyId });
+  }
+
   async listShopperWishlist(
     appId: string,
     partyId: string,
@@ -468,7 +534,17 @@ export class PeopleGatewayService {
   }): Promise<WishlistAddPayload> {
     const { catalogId } = await this.resolveAppCatalog(input.appId);
     this.logger.log(`org.wishlist.add — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
-    return this.nats.send('commerce', 'org.wishlist.add', { ...input, catalogId });
+
+    // Renamed on the way through, deliberately rather than by assertion. The microservice answers
+    // `wishlistItems` and the schema field is `wishlist`; `nats.send<T>` only *claims* a shape, so
+    // declaring the schema's name here left `wishlist` undefined at runtime and every save failed
+    // on a non-nullable list. Translating between the two contracts is this layer's job.
+    const result = await this.nats.send<{ alreadyExists: boolean; wishlistItems: WishlistItemPayload[] }>(
+      'commerce',
+      'org.wishlist.add',
+      { ...input, catalogId },
+    );
+    return { alreadyExists: result.alreadyExists, wishlist: result.wishlistItems };
   }
 
   async removeFromShopperWishlist(input: {

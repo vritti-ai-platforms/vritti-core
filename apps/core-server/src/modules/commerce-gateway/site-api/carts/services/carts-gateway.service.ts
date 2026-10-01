@@ -53,7 +53,7 @@ export interface CartLinesResponse {
 
 export interface CartItemPayload {
   id: string;
-  catalogListingId: string;
+  catalogListingId: string | null;
   offeringVariantId: string;
   quantity: number;
   name: string;
@@ -254,6 +254,12 @@ export class CartsGatewayService {
     const catalogId = await this.resolveAppCatalog(appId);
     this.logger.log(`site.carts.items.remove — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
     return this.nats.send('commerce', 'site.carts.items.remove', { ...cart, catalogId });
+  }
+
+  // How many of each product the shopper holds in their basket here — a count, no catalogue, no price
+  findShopperQuantities(partyId: string): Promise<{ offeringVariantId: string; quantity: number }[]> {
+    this.logger.log(`site.carts.quantities — party: ${partyId}`);
+    return this.nats.send('commerce', 'site.carts.quantities', { partyId });
   }
 
   clearShopperCart(partyId: string): Promise<SuccessResponseDto> {

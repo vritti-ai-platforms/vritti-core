@@ -1,16 +1,25 @@
 import { Logger } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { AppTypeValues } from '@/db/schema';
+import { PARTY_FUNCTION_TYPES } from '@/modules/commerce-gateway/_shared/dto/party-function-assignment.dto';
+import type { PartyAddressResponseDto } from '@/modules/commerce-gateway/domain/party-addresses/dto/response/party-address-response.dto';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AppId, PartyId, SiteId } from '@/security/decorators';
+import {
+  ShopperAddress,
+  ShopperAddressInput,
+  ShopperAddressRefInput,
+  UpdateShopperAddressInput,
+} from './graphql/address.type';
 import { Person } from './graphql/person.type';
 import { PersonCommunication } from './graphql/person-communication.type';
 import {
   AddPersonCommunicationInput,
   CreatePersonInput,
   FindPeopleByCommunicationInput,
+  UpdateShopperProfileInput,
 } from './graphql/person-mutation.input';
 import { WishlistQueryInput, WishlistRefInput } from './graphql/wishlist.input';
 import { WishlistAddResult, WishlistItem } from './graphql/wishlist.type';
@@ -68,6 +77,89 @@ export class PeopleAppResolver {
     return this.peopleGatewayService.findPeopleByCommunication(input.channel, input.value);
   }
 
+  /**
+   * The signed-in shopper's own details.
+   *
+   * Scoped like the basket and the wishlist: the party comes from the signature, so this answers
+   * "me" and there is no id a caller could change to read somebody else. That is why it is one
+   * query with no argument rather than `person(id:)`.
+   */
+  @Query(() => Person, { name: 'shopperProfile' })
+  @RequirePermission(ORG_PEOPLE.view)
+  shopperProfile(@PartyId() partyId: string): Promise<Person> {
+    this.logger.log('QUERY shopperProfile');
+    return this.peopleGatewayService.findById(partyId);
+  }
+
+  /**
+   * The shopper editing their own details.
+   *
+   * Re-read rather than echoed: `update` answers a success message, and the caller wants the row as
+   * it now stands — including `displayName`, which core composes from the names rather than taking
+   * from the form.
+   */
+  @Mutation(() => Person, { name: 'updateShopperProfile' })
+  @RequirePermission(ORG_PEOPLE.edit)
+  async updateShopperProfile(
+    @PartyId() partyId: string,
+    @Args('input') input: UpdateShopperProfileInput,
+  ): Promise<Person> {
+    this.logger.log('MUTATION updateShopperProfile');
+    await this.peopleGatewayService.update(partyId, input);
+    return this.peopleGatewayService.findById(partyId);
+  }
+
+  /**
+   * The shopper's own address book.
+   *
+   * Flattened on the way out: core's `functions` — REGISTERED, BILLING, SHIPPING, ORDERING, each
+   * with a primary flag — is a business's vocabulary, and a storefront with no checkout has one
+   * question to ask. Primary SHIPPING is what "default" means here.
+   */
+  @Query(() => [ShopperAddress], { name: 'shopperAddresses' })
+  @RequirePermission(ORG_PEOPLE.addresses.view)
+  async shopperAddresses(@PartyId() partyId: string): Promise<ShopperAddress[]> {
+    this.logger.log('QUERY shopperAddresses');
+    const addresses = await this.peopleGatewayService.listShopperAddresses(partyId);
+    return addresses.map(toShopperAddress);
+  }
+
+  @Mutation(() => [ShopperAddress], { name: 'addShopperAddress' })
+  @RequirePermission(ORG_PEOPLE.addresses.add)
+  async addShopperAddress(
+    @PartyId() partyId: string,
+    @Args('input') input: ShopperAddressInput,
+  ): Promise<ShopperAddress[]> {
+    this.logger.log('MUTATION addShopperAddress');
+    await this.peopleGatewayService.addShopperAddress(partyId, toAddressPayload(input));
+    // The whole book back, not the one row: marking a new address default unmarks another, so a
+    // single row would leave the caller redrawing a list it cannot see all of.
+    return this.shopperAddresses(partyId);
+  }
+
+  @Mutation(() => [ShopperAddress], { name: 'updateShopperAddress' })
+  @RequirePermission(ORG_PEOPLE.addresses.edit)
+  async updateShopperAddress(
+    @PartyId() partyId: string,
+    @Args('input') input: UpdateShopperAddressInput,
+  ): Promise<ShopperAddress[]> {
+    this.logger.log('MUTATION updateShopperAddress');
+    const { id, ...address } = input;
+    await this.peopleGatewayService.updateShopperAddress(partyId, id, toAddressPayload(address));
+    return this.shopperAddresses(partyId);
+  }
+
+  @Mutation(() => [ShopperAddress], { name: 'removeShopperAddress' })
+  @RequirePermission(ORG_PEOPLE.addresses.delete)
+  async removeShopperAddress(
+    @PartyId() partyId: string,
+    @Args('input') input: ShopperAddressRefInput,
+  ): Promise<ShopperAddress[]> {
+    this.logger.log('MUTATION removeShopperAddress');
+    await this.peopleGatewayService.removeShopperAddress(partyId, input.id);
+    return this.shopperAddresses(partyId);
+  }
+
   /** Creates the person plus their primary EMAIL and PHONE rows, in one transaction. */
   @Mutation(() => Person, { name: 'createPerson' })
   @RequirePermission(ORG_PEOPLE.add)
@@ -105,6 +197,18 @@ export class PeopleAppResolver {
     >;
   }
 
+  /**
+   * Which products the shopper has saved — a product page draws its Saved state from this.
+   *
+   * Ids only: no catalogue is resolved and nothing is priced, so it is cheap to ask on every view.
+   */
+  @Query(() => [ID], { name: 'wishlistVariantIds' })
+  @RequirePermission(ORG_PEOPLE.wishlist.view)
+  wishlistVariantIds(@AppId() appId: string, @PartyId() partyId: string): Promise<string[]> {
+    this.logger.log('QUERY wishlistVariantIds');
+    return this.peopleGatewayService.listShopperWishlistVariantIds(appId, partyId);
+  }
+
   /** Saving something already saved is the same row, not an error. */
   @Mutation(() => WishlistAddResult, { name: 'addToWishlist' })
   @RequirePermission(ORG_PEOPLE.wishlist.add)
@@ -120,7 +224,7 @@ export class PeopleAppResolver {
       partyId,
       siteId,
       ...input,
-    }) as Promise<WishlistAddResult>;
+    });
   }
 
   /** Unmarking something that was never marked leaves the list in the state asked for. */
@@ -140,4 +244,52 @@ export class PeopleAppResolver {
       ...input,
     }) as Promise<WishlistItem[]>;
   }
+}
+
+/**
+ * Core's address, as a shopper reads it.
+ *
+ * "Default" is the primary SHIPPING function. A party's first address is seeded with all four
+ * functions by the domain service, so the first one a shopper saves is their default without
+ * anybody choosing it — which is the right answer when there is only one.
+ */
+function toShopperAddress(address: PartyAddressResponseDto): ShopperAddress {
+  return {
+    id: address.id,
+    line1: address.line1,
+    line2: address.line2 ?? null,
+    city: address.city ?? null,
+    region: address.region ?? null,
+    postalCode: address.postalCode ?? null,
+    countryCode: address.countryCode,
+    isDefault: (address.functions ?? []).some(
+      (assignment) => assignment.function === PARTY_FUNCTION_TYPES.SHIPPING && assignment.isPrimary,
+    ),
+  };
+}
+
+/**
+ * A shopper's address in the shape core's DTOs accept.
+ *
+ * Two translations, both load-bearing:
+ *
+ * `null` becomes `''` rather than being dropped. The request DTOs type their optional fields as
+ * `string | undefined`, and an omitted key means "leave it alone" — so forwarding `undefined` for a
+ * field the shopper just cleared would silently keep the old value. An empty string is what the
+ * `@Trim()` on those fields turns back into `null`, which is the clearing the shopper asked for.
+ *
+ * `isDefault` becomes a primary SHIPPING function, and **only** SHIPPING. The other three —
+ * REGISTERED, BILLING, ORDERING — are a business's concerns; writing them from a storefront would
+ * have a shopper's "deliver here" quietly decide where a company's invoices go.
+ */
+function toAddressPayload(input: ShopperAddressInput) {
+  return {
+    line1: input.line1,
+    line2: input.line2 ?? '',
+    city: input.city ?? '',
+    region: input.region ?? '',
+    postalCode: input.postalCode ?? '',
+    countryCode: input.countryCode,
+    functions: [{ function: PARTY_FUNCTION_TYPES.SHIPPING, isPrimary: Boolean(input.isDefault) }],
+  };
 }

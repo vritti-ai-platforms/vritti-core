@@ -26,6 +26,13 @@ export class WishlistController {
     return this.service.list(dto.appId, dto.partyId, dto.currencyCode, dto.catalogId, dto.siteId);
   }
 
+  // Which products the shopper has saved — ids only, for a product page's Saved state
+  @MessagePattern({ cmd: 'org.wishlist.variantIds' })
+  variantIds(@Payload() data: { appId: string; partyId: string }): Promise<string[]> {
+    this.logger.log(`org.wishlist.variantIds — party: ${data.partyId}`);
+    return this.service.findVariantIds(data.appId, data.partyId);
+  }
+
   @MessagePattern({ cmd: 'org.wishlist.add' })
   add(@Payload() dto: AddWishlistItemDto): Promise<WishlistAddResultDto> {
     this.logger.log(`wishlist.add — party: ${dto.partyId}, variant: ${dto.offeringVariantId}`);

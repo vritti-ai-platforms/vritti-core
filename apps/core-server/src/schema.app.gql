@@ -15,6 +15,17 @@ type CatalogListing {
   price: Money
 }
 
+type ShopperAddress {
+  id: ID!
+  line1: String!
+  line2: String
+  city: String
+  region: String
+  postalCode: String
+  countryCode: String!
+  isDefault: Boolean!
+}
+
 type Person {
   id: ID!
   displayName: String!
@@ -35,7 +46,7 @@ type PersonCommunication {
 
 type WishlistItem {
   id: ID!
-  catalogListingId: ID!
+  catalogListingId: ID
   offeringVariantId: ID!
   name: String!
   sku: String
@@ -51,7 +62,7 @@ type WishlistAddResult {
 
 type CartItem {
   id: ID!
-  catalogListingId: ID!
+  catalogListingId: ID
   offeringVariantId: ID!
   quantity: Int!
   name: String!
@@ -66,6 +77,11 @@ type Cart {
   items: [CartItem!]!
   subtotal: Money!
   itemCount: Int!
+}
+
+type CartQuantity {
+  offeringVariantId: ID!
+  quantity: Int!
 }
 
 type TaxRate {
@@ -325,8 +341,12 @@ type VerifyWhatsappOtpResult {
 
 type Query {
   peopleByCommunication(input: FindPeopleByCommunicationInput!): [Person!]!
+  shopperProfile: Person!
+  shopperAddresses: [ShopperAddress!]!
   wishlist(input: WishlistQueryInput!): [WishlistItem!]!
+  wishlistVariantIds: [ID!]!
   cart(input: CartScopeInput!): Cart!
+  cartQuantities: [CartQuantity!]!
   catalogListings: [CatalogListing!]!
   leCatalogListings: [CatalogListing!]!
   siteCatalogListings: [CatalogListing!]!
@@ -350,6 +370,10 @@ type Mutation {
   verifySmsOtp(input: VerifySmsOtpInput!): VerifySmsOtpResult!
   sendWhatsappOtp(input: SendWhatsappOtpInput!): SendWhatsappOtpResult!
   verifyWhatsappOtp(input: VerifyWhatsappOtpInput!): VerifyWhatsappOtpResult!
+  updateShopperProfile(input: UpdateShopperProfileInput!): Person!
+  addShopperAddress(input: ShopperAddressInput!): [ShopperAddress!]!
+  updateShopperAddress(input: UpdateShopperAddressInput!): [ShopperAddress!]!
+  removeShopperAddress(input: ShopperAddressRefInput!): [ShopperAddress!]!
   createPerson(input: CreatePersonInput!): Person!
   addPersonCommunication(input: AddPersonCommunicationInput!): PersonCommunication!
   addToWishlist(input: WishlistRefInput!): WishlistAddResult!
@@ -376,6 +400,37 @@ input SendWhatsappOtpInput {
 input VerifyWhatsappOtpInput {
   recipient: String!
   code: String!
+}
+
+input UpdateShopperProfileInput {
+  firstName: String
+  lastName: String
+  email: String
+}
+
+input ShopperAddressInput {
+  line1: String!
+  line2: String
+  city: String
+  region: String
+  postalCode: String
+  countryCode: String!
+  isDefault: Boolean
+}
+
+input UpdateShopperAddressInput {
+  line1: String!
+  line2: String
+  city: String
+  region: String
+  postalCode: String
+  countryCode: String!
+  isDefault: Boolean
+  id: ID!
+}
+
+input ShopperAddressRefInput {
+  id: ID!
 }
 
 input CreatePersonInput {

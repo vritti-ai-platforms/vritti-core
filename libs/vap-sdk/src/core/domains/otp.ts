@@ -1,9 +1,9 @@
 import type { ApolloClient } from '@apollo/client';
-import { requireData, run } from '../transport/errors';
 import { SEND_SMS_OTP, SEND_WHATSAPP_OTP, VERIFY_SMS_OTP, VERIFY_WHATSAPP_OTP } from '../graphql/otp';
 import { PEOPLE_BY_COMMUNICATION_QUERY } from '../graphql/people';
-import { CHANNELS } from './people';
+import { requireData, run } from '../transport/errors';
 import type { RequestContext } from '../types';
+import { CHANNELS } from './people';
 
 /**
  * How a code reaches someone.
@@ -38,7 +38,6 @@ export type VerifyOtpResult = {
    */
   partyId: string | null;
 };
-
 
 /**
  * Signing a shopper in with a phone number and a code sent over WhatsApp.

@@ -37,6 +37,16 @@ type Documents = {
     "\n  query Wishlist($input: WishlistQueryInput!) {\n    wishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n": typeof types.WishlistDocument,
     "\n  mutation AddToWishlist($input: WishlistRefInput!) {\n    addToWishlist(input: $input) {\n      alreadyExists\n      wishlist {\n        ...WishlistItemFields\n      }\n    }\n  }\n": typeof types.AddToWishlistDocument,
     "\n  mutation RemoveFromWishlist($input: WishlistRefInput!) {\n    removeFromWishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n": typeof types.RemoveFromWishlistDocument,
+    "\n  query CartQuantities {\n    cartQuantities {\n      offeringVariantId\n      quantity\n    }\n  }\n": typeof types.CartQuantitiesDocument,
+    "\n  query WishlistVariantIds {\n    wishlistVariantIds\n  }\n": typeof types.WishlistVariantIdsDocument,
+    "\n  fragment ShopperProfileFields on Person {\n    id\n    displayName\n    firstName\n    lastName\n    email\n    phone\n  }\n": typeof types.ShopperProfileFieldsFragmentDoc,
+    "\n  query ShopperProfile {\n    shopperProfile {\n      ...ShopperProfileFields\n    }\n  }\n": typeof types.ShopperProfileDocument,
+    "\n  mutation UpdateShopperProfile($input: UpdateShopperProfileInput!) {\n    updateShopperProfile(input: $input) {\n      ...ShopperProfileFields\n    }\n  }\n": typeof types.UpdateShopperProfileDocument,
+    "\n  fragment ShopperAddressFields on ShopperAddress {\n    id\n    line1\n    line2\n    city\n    region\n    postalCode\n    countryCode\n    isDefault\n  }\n": typeof types.ShopperAddressFieldsFragmentDoc,
+    "\n  query ShopperAddresses {\n    shopperAddresses {\n      ...ShopperAddressFields\n    }\n  }\n": typeof types.ShopperAddressesDocument,
+    "\n  mutation AddShopperAddress($input: ShopperAddressInput!) {\n    addShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n": typeof types.AddShopperAddressDocument,
+    "\n  mutation UpdateShopperAddress($input: UpdateShopperAddressInput!) {\n    updateShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n": typeof types.UpdateShopperAddressDocument,
+    "\n  mutation RemoveShopperAddress($input: ShopperAddressRefInput!) {\n    removeShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n": typeof types.RemoveShopperAddressDocument,
 };
 const documents: Documents = {
     "\n  query CatalogListings {\n    catalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": types.CatalogListingsDocument,
@@ -62,6 +72,16 @@ const documents: Documents = {
     "\n  query Wishlist($input: WishlistQueryInput!) {\n    wishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n": types.WishlistDocument,
     "\n  mutation AddToWishlist($input: WishlistRefInput!) {\n    addToWishlist(input: $input) {\n      alreadyExists\n      wishlist {\n        ...WishlistItemFields\n      }\n    }\n  }\n": types.AddToWishlistDocument,
     "\n  mutation RemoveFromWishlist($input: WishlistRefInput!) {\n    removeFromWishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n": types.RemoveFromWishlistDocument,
+    "\n  query CartQuantities {\n    cartQuantities {\n      offeringVariantId\n      quantity\n    }\n  }\n": types.CartQuantitiesDocument,
+    "\n  query WishlistVariantIds {\n    wishlistVariantIds\n  }\n": types.WishlistVariantIdsDocument,
+    "\n  fragment ShopperProfileFields on Person {\n    id\n    displayName\n    firstName\n    lastName\n    email\n    phone\n  }\n": types.ShopperProfileFieldsFragmentDoc,
+    "\n  query ShopperProfile {\n    shopperProfile {\n      ...ShopperProfileFields\n    }\n  }\n": types.ShopperProfileDocument,
+    "\n  mutation UpdateShopperProfile($input: UpdateShopperProfileInput!) {\n    updateShopperProfile(input: $input) {\n      ...ShopperProfileFields\n    }\n  }\n": types.UpdateShopperProfileDocument,
+    "\n  fragment ShopperAddressFields on ShopperAddress {\n    id\n    line1\n    line2\n    city\n    region\n    postalCode\n    countryCode\n    isDefault\n  }\n": types.ShopperAddressFieldsFragmentDoc,
+    "\n  query ShopperAddresses {\n    shopperAddresses {\n      ...ShopperAddressFields\n    }\n  }\n": types.ShopperAddressesDocument,
+    "\n  mutation AddShopperAddress($input: ShopperAddressInput!) {\n    addShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n": types.AddShopperAddressDocument,
+    "\n  mutation UpdateShopperAddress($input: UpdateShopperAddressInput!) {\n    updateShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n": types.UpdateShopperAddressDocument,
+    "\n  mutation RemoveShopperAddress($input: ShopperAddressRefInput!) {\n    removeShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n": types.RemoveShopperAddressDocument,
 };
 
 /**
@@ -170,6 +190,46 @@ export function graphql(source: "\n  mutation AddToWishlist($input: WishlistRefI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation RemoveFromWishlist($input: WishlistRefInput!) {\n    removeFromWishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n"): (typeof documents)["\n  mutation RemoveFromWishlist($input: WishlistRefInput!) {\n    removeFromWishlist(input: $input) {\n      ...WishlistItemFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query CartQuantities {\n    cartQuantities {\n      offeringVariantId\n      quantity\n    }\n  }\n"): (typeof documents)["\n  query CartQuantities {\n    cartQuantities {\n      offeringVariantId\n      quantity\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query WishlistVariantIds {\n    wishlistVariantIds\n  }\n"): (typeof documents)["\n  query WishlistVariantIds {\n    wishlistVariantIds\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment ShopperProfileFields on Person {\n    id\n    displayName\n    firstName\n    lastName\n    email\n    phone\n  }\n"): (typeof documents)["\n  fragment ShopperProfileFields on Person {\n    id\n    displayName\n    firstName\n    lastName\n    email\n    phone\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ShopperProfile {\n    shopperProfile {\n      ...ShopperProfileFields\n    }\n  }\n"): (typeof documents)["\n  query ShopperProfile {\n    shopperProfile {\n      ...ShopperProfileFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateShopperProfile($input: UpdateShopperProfileInput!) {\n    updateShopperProfile(input: $input) {\n      ...ShopperProfileFields\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateShopperProfile($input: UpdateShopperProfileInput!) {\n    updateShopperProfile(input: $input) {\n      ...ShopperProfileFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment ShopperAddressFields on ShopperAddress {\n    id\n    line1\n    line2\n    city\n    region\n    postalCode\n    countryCode\n    isDefault\n  }\n"): (typeof documents)["\n  fragment ShopperAddressFields on ShopperAddress {\n    id\n    line1\n    line2\n    city\n    region\n    postalCode\n    countryCode\n    isDefault\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ShopperAddresses {\n    shopperAddresses {\n      ...ShopperAddressFields\n    }\n  }\n"): (typeof documents)["\n  query ShopperAddresses {\n    shopperAddresses {\n      ...ShopperAddressFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AddShopperAddress($input: ShopperAddressInput!) {\n    addShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n"): (typeof documents)["\n  mutation AddShopperAddress($input: ShopperAddressInput!) {\n    addShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateShopperAddress($input: UpdateShopperAddressInput!) {\n    updateShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateShopperAddress($input: UpdateShopperAddressInput!) {\n    updateShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RemoveShopperAddress($input: ShopperAddressRefInput!) {\n    removeShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n"): (typeof documents)["\n  mutation RemoveShopperAddress($input: ShopperAddressRefInput!) {\n    removeShopperAddress(input: $input) {\n      ...ShopperAddressFields\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

@@ -23,6 +23,13 @@ export class PeopleAddressesController {
     return this.service.findForTable(personId, state);
   }
 
+  // Returns every address of a person, unpaged — for callers with no table state
+  @MessagePattern({ cmd: 'org.people.addresses.list' })
+  async list(@Payload() data: { personId: string }): Promise<PartyAddressDto[]> {
+    this.logger.log(`people.addresses.list — personId: ${data.personId}`);
+    return this.service.findForParty(data.personId);
+  }
+
   // Adds an address to a person
   @MessagePattern({ cmd: 'org.people.addresses.add' })
   async add(@Payload() dto: AddPersonAddressDto): Promise<CreateResponseDto<PartyAddressDto>> {

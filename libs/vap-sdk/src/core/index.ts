@@ -20,9 +20,14 @@ export {
 export {
   type Cart,
   type CartItem,
+  type CartQuantity,
   createShopperOperations,
   type Money,
+  type ShopperAddress,
+  type ShopperAddressInput,
   type ShopperOperations,
+  type ShopperProfile,
+  type ShopperProfileInput,
   type WishlistAddResult,
   type WishlistItem,
 } from './domains/shopper';
