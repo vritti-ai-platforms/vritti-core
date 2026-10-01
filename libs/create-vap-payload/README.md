@@ -163,7 +163,7 @@ afterwards, so it does not belong in CI.
 `source/` is excluded from this package's `tsconfig.json` and from the root
 `biome.json`, because its files reference `@/…` paths and dependencies that only
 exist once scaffolded. It is verified by scaffolding to a temporary directory and
-building there — see `.github/workflows/create-vap-payload.yml`.
+building there — see "Testing it without publishing" above.
 
 Two rules for anything added:
 
