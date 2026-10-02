@@ -6,7 +6,7 @@ import { type CatalogChannelType, CatalogChannelTypeValues } from '@/db/schema';
 // { type: 'B2B', appId } through validation and fails it on a CHECK constraint instead.
 
 // appId absent means the fallback every unnamed caller resolves to
-export class CreateAppChannelDto {
+export class UpsertAppChannelDto {
   @IsUUID('all')
   catalogId: string;
 
@@ -16,7 +16,7 @@ export class CreateAppChannelDto {
 }
 
 // terminalId absent means every terminal in reach of this workspace
-export class CreatePosChannelDto {
+export class UpsertPosChannelDto {
   @IsUUID('all')
   catalogId: string;
 
@@ -26,20 +26,12 @@ export class CreatePosChannelDto {
 }
 
 // B2B names no target: one assignment per workspace, enforced by ck_catalog_channels_target_matches_type
-export class CreateB2bChannelDto {
+export class UpsertB2bChannelDto {
   @IsUUID('all')
   catalogId: string;
 }
 
-export class UpdateCatalogChannelDto {
-  @IsUUID('all')
-  channelId: string;
-
-  @IsUUID('all')
-  catalogId: string;
-}
-
-// The workspace is the request's RLS context, not a field: see `findCandidates`
+// The workspace is the request's RLS context, not a field: see `findWinningCandidate`
 export class ResolveCatalogChannelDto {
   @IsEnum(CatalogChannelTypeValues)
   type: CatalogChannelType;

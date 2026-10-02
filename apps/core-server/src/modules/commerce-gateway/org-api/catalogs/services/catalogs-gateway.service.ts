@@ -125,8 +125,8 @@ export class CatalogsGatewayService {
 
   // Every channel selling this catalog — read-only on the catalog detail
   async findChannels(catalogId: string): Promise<CatalogChannelResponseDto[]> {
-    this.logger.log(`org.catalogChannels.byCatalog — catalogId: ${catalogId}`);
-    return this.nats.send('commerce', 'org.catalogChannels.byCatalog', { catalogId });
+    this.logger.log(`org.catalogs.channels — catalogId: ${catalogId}`);
+    return this.nats.send('commerce', 'org.catalogs.channels', { catalogId });
   }
 
   async setListingChannelVisibility(

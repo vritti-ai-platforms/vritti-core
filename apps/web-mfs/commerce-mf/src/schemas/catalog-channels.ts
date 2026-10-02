@@ -5,29 +5,39 @@ import { z } from '@vritti/quantum-ui/zod';
 export const CATALOG_CHANNEL_TYPES = ['APP', 'POS', 'B2B'] as const;
 export type CatalogChannelType = (typeof CATALOG_CHANNEL_TYPES)[number];
 
+export const CatalogChannelTypeValues = {
+  APP: 'APP',
+  POS: 'POS',
+  B2B: 'B2B',
+} as const satisfies Record<CatalogChannelType, CatalogChannelType>;
+
 // slotLabel and gridLabel name the channel's own parts — never the workspace rendering them, because
 // one set of components serves every scope
 export const CHANNEL_TYPE_META: Record<
   CatalogChannelType,
-  { label: string; description: string; slotLabel: string; gridLabel: string | null }
+  { label: string; description: string; slotLabel: string; gridLabel: string | null; emptyNote: string }
 > = {
   APP: {
     label: 'App',
     description: 'Storefronts and integrations calling the SDK',
     slotLabel: 'Default for all apps',
     gridLabel: 'Apps',
+    emptyNote: 'No apps are registered yet. Every app you add will use the default above.',
   },
   POS: {
     label: 'POS',
     description: 'Billing terminals at your outlets',
     slotLabel: 'Default for all terminals',
     gridLabel: 'Terminals',
+    emptyNote:
+      'Terminals belong to an outlet, so they are listed only in an outlet workspace. This level sets the default they use.',
   },
   B2B: {
     label: 'B2B',
     description: 'Wholesale invoicing',
     slotLabel: 'Wholesale catalog',
     gridLabel: null,
+    emptyNote: 'B2B names no individual target, so this is the single wholesale assignment for this level.',
   },
 };
 
@@ -46,10 +56,10 @@ export const assignCatalogSchema = z.object({
 
 export type AssignCatalogFormData = z.infer<typeof assignCatalogSchema>;
 
-export interface ChannelAssignmentData {
+export interface ChannelCatalogData {
   channelId: string;
   catalogId: string;
-  catalogName: string | null;
+  catalogName: string;
   catalogIsActive: boolean;
   legalEntityId: string | null;
   siteId: string | null;
@@ -60,39 +70,33 @@ export interface ChannelAssignmentData {
   itemsSelling: number;
 }
 
-// One app or terminal. A null assignment means it follows the channel default.
+// One app or terminal. `catalog` is never null — a target with no row of its own carries the channel
+// default, so nothing downstream has to fall back for itself.
 export interface ChannelTargetData {
   targetId: string;
   name: string;
-  assignment: ChannelAssignmentData | null;
+  catalog: ChannelCatalogData;
+  isAssigned: boolean;
 }
 
 // targets is null for B2B, which names no target, and empty for POS above an outlet
-export interface ChannelScreenEntryData {
+export interface ChannelEntryData {
   type: CatalogChannelType;
-  defaultAssignment: ChannelAssignmentData | null;
+  defaultCatalog: ChannelCatalogData | null;
   targets: ChannelTargetData[] | null;
 }
 
-// One channel row, as the catalog detail's Channels tab reads it — that view is per-catalog and
-// unchanged by the channels screen, which works per workspace instead.
+// One channel selling a catalog, as the catalog detail reads it — enough to name the channel, say
+// which level set it, and decide whether this workspace may toggle a listing's visibility on it
 export interface CatalogChannelData {
   id: string;
-  catalogId: string;
-  catalogName: string | null;
-  catalogIsActive: boolean;
   type: CatalogChannelType;
-  isFallback: boolean;
-  legalEntityId: string | null;
-  siteId: string | null;
   appId: string | null;
   terminalId: string | null;
   terminalName: string | null;
+  legalEntityId: string | null;
+  siteId: string | null;
   isOwn: boolean;
-  itemsTotal: number;
-  itemsSelling: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface ChannelItemData {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { locations, type PosTerminal, posTerminals } from '@/db/schema';
 
@@ -8,6 +8,16 @@ import { locations, type PosTerminal, posTerminals } from '@/db/schema';
 export class PosTerminalsDomainRepository extends PrimaryBaseRepository<typeof posTerminals> {
   constructor(database: PrimaryDatabaseService) {
     super(database, posTerminals);
+  }
+
+  // Every active terminal in reach, unpaginated — callers that render the whole estate rather than a
+  // page of it, such as the channels list
+  async findAllActive(): Promise<{ id: string; name: string }[]> {
+    return this.db
+      .select({ id: posTerminals.id, name: posTerminals.name })
+      .from(posTerminals)
+      .where(eq(posTerminals.isActive, true))
+      .orderBy(asc(posTerminals.name));
   }
 
   // Returns paginated POS terminal options for select dropdowns

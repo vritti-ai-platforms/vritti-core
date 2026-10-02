@@ -10,7 +10,10 @@ import { type AssignCatalogFormData, assignCatalogSchema } from '@/schemas/catal
 import { CatalogSelector } from '@/selectors/catalog';
 
 interface AssignCatalogDialogProps {
-  // The grid already names every app and terminal, so the target is implied by the tile that opened
+  // Catalogs this slot already resolves to. The API refuses an assignment that changes nothing, so
+  // offering one back would only earn a 409.
+  excludeCatalogIds?: (string | null | undefined)[];
+  // The grid already names every app and terminal, so the target is implied by the card that opened
   // this — there is nothing left to pick but the catalog.
   // biome-ignore lint/suspicious/noExplicitAny: one dialog serves several differently-shaped mutations
   mutation: UseMutationResult<any, AxiosError, any>;
@@ -21,6 +24,7 @@ interface AssignCatalogDialogProps {
 }
 
 export const AssignCatalogDialog: React.FC<AssignCatalogDialogProps> = ({
+  excludeCatalogIds,
   mutation,
   transformSubmit,
   submitLabel,
@@ -31,9 +35,12 @@ export const AssignCatalogDialog: React.FC<AssignCatalogDialogProps> = ({
     defaultValues: { catalogId: '' },
   });
 
+  // The endpoint takes one comma-separated list, not repeated params
+  const excludeIds = (excludeCatalogIds ?? []).filter(Boolean).join(',');
+
   return (
     <Form form={form} mutation={mutation} transformSubmit={transformSubmit} resetOnSuccess onCancel={onCancel}>
-      <CatalogSelector name="catalogId" />
+      <CatalogSelector name="catalogId" params={excludeIds ? { excludeIds } : undefined} />
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel

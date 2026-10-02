@@ -1,15 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsUUID } from 'class-validator';
 
-export class UpdateAppChannelDto {
-  @ApiProperty({ description: 'Catalog this channel should sell from now on' })
-  @IsUUID('all')
-  catalogId: string;
-}
-
 // One DTO per channel type: each names a different target, and the database rejects the combinations
 // the others allow. A shared DTO carrying every target column would accept a B2B channel with an app.
-export class CreateAppChannelDto {
+export class UpsertAppChannelDto {
   @ApiProperty({ description: 'Catalog this channel sells' })
   @IsUUID('all')
   catalogId: string;
@@ -23,7 +17,7 @@ export class CreateAppChannelDto {
   appId?: string | null;
 }
 
-export class CreatePosChannelDto {
+export class UpsertPosChannelDto {
   @ApiProperty({ description: 'Catalog this channel sells' })
   @IsUUID('all')
   catalogId: string;
@@ -37,7 +31,7 @@ export class CreatePosChannelDto {
   terminalId?: string | null;
 }
 
-export class CreateB2bChannelDto {
+export class UpsertB2bChannelDto {
   @ApiProperty({ description: 'Catalog this channel sells' })
   @IsUUID('all')
   catalogId: string;

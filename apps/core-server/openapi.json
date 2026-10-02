@@ -13758,7 +13758,7 @@
     "/commerce-api/org/catalog-channels": {
       "get": {
         "description": "One entry per channel type. Each carries the effective default — the nearest assignment at or above this workspace — and, for App and POS, one target per app or terminal with the assignment that overrides the default, or null when it follows it. B2B returns no targets; POS returns none above an outlet, where terminals are not visible.",
-        "operationId": "CatalogChannelsGatewayController_screen",
+        "operationId": "CatalogChannelsGatewayController_list",
         "parameters": [],
         "responses": {
           "200": {
@@ -13768,7 +13768,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ChannelScreenEntryResponseDto"
+                    "$ref": "#/components/schemas/ChannelEntryResponseDto"
                   }
                 }
               }
@@ -13787,22 +13787,22 @@
       }
     },
     "/commerce-api/org/catalog-channels/pos": {
-      "post": {
+      "put": {
         "description": "Omit terminalId to sell this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
-        "operationId": "CatalogChannelsGatewayController_createPos",
+        "operationId": "CatalogChannelsGatewayController_upsertPos",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePosChannelDto"
+                "$ref": "#/components/schemas/UpsertPosChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -13813,7 +13813,7 @@
             }
           },
           "409": {
-            "description": "That combination already has a catalog at this scope."
+            "description": "That target already sells this catalog."
           }
         },
         "security": [
@@ -13821,29 +13821,29 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the POS channel",
+        "summary": "Set the catalog for the POS channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
       }
     },
     "/commerce-api/org/catalog-channels/b2b": {
-      "post": {
+      "put": {
         "description": "B2B names no target, so this is the single wholesale assignment for the workspace. The scope comes from the workspace.",
-        "operationId": "CatalogChannelsGatewayController_createB2b",
+        "operationId": "CatalogChannelsGatewayController_upsertB2b",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateB2bChannelDto"
+                "$ref": "#/components/schemas/UpsertB2bChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -13854,7 +13854,7 @@
             }
           },
           "409": {
-            "description": "B2B already sells a catalog at this scope."
+            "description": "B2B already sells this catalog at this scope."
           }
         },
         "security": [
@@ -13862,7 +13862,7 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the B2B channel",
+        "summary": "Set the catalog for the B2B channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -13960,47 +13960,6 @@
       }
     },
     "/commerce-api/org/catalog-channels/{channelId}": {
-      "patch": {
-        "description": "Rejected when the channel is inherited — change it in the workspace that assigned it.",
-        "operationId": "CatalogChannelsGatewayController_update",
-        "parameters": [
-          {
-            "name": "channelId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateAppChannelDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Now selling the new catalog."
-          },
-          "403": {
-            "description": "The channel belongs to a wider scope."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Point a channel at a different catalog",
-        "tags": [
-          "Commerce - Catalog Channels"
-        ]
-      },
       "delete": {
         "description": "The catalog itself is untouched; callers fall back to this workspace’s default, then to a wider one. Rejected when the channel is inherited.",
         "operationId": "CatalogChannelsGatewayController_remove",
@@ -14034,22 +13993,22 @@
       }
     },
     "/commerce-api/org/catalog-channels/app": {
-      "post": {
+      "put": {
         "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
-        "operationId": "AppCatalogChannelGatewayController_create",
+        "operationId": "AppCatalogChannelGatewayController_upsert",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAppChannelDto"
+                "$ref": "#/components/schemas/UpsertAppChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -14060,7 +14019,7 @@
             }
           },
           "409": {
-            "description": "That combination already has a catalog at this scope."
+            "description": "That target already sells this catalog."
           }
         },
         "security": [
@@ -14068,29 +14027,29 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the App channel",
+        "summary": "Set the catalog for the App channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
       }
     },
     "/commerce-api/le/catalog-channels/app": {
-      "post": {
+      "put": {
         "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
-        "operationId": "LeAppCatalogChannelGatewayController_create",
+        "operationId": "LeAppCatalogChannelGatewayController_upsert",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAppChannelDto"
+                "$ref": "#/components/schemas/UpsertAppChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -14101,7 +14060,7 @@
             }
           },
           "409": {
-            "description": "That combination already has a catalog at this scope."
+            "description": "That target already sells this catalog."
           }
         },
         "security": [
@@ -14109,29 +14068,29 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the App channel",
+        "summary": "Set the catalog for the App channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
       }
     },
     "/commerce-api/site/catalog-channels/app": {
-      "post": {
+      "put": {
         "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
-        "operationId": "SiteAppCatalogChannelGatewayController_create",
+        "operationId": "SiteAppCatalogChannelGatewayController_upsert",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAppChannelDto"
+                "$ref": "#/components/schemas/UpsertAppChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -14142,7 +14101,7 @@
             }
           },
           "409": {
-            "description": "That combination already has a catalog at this scope."
+            "description": "That target already sells this catalog."
           }
         },
         "security": [
@@ -14150,7 +14109,7 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the App channel",
+        "summary": "Set the catalog for the App channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -14159,7 +14118,7 @@
     "/commerce-api/le/catalog-channels": {
       "get": {
         "description": "One entry per channel type. Each carries the effective default — the nearest assignment at or above this workspace — and, for App and POS, one target per app or terminal with the assignment that overrides the default, or null when it follows it. B2B returns no targets; POS returns none above an outlet, where terminals are not visible.",
-        "operationId": "LeCatalogChannelsGatewayController_screen",
+        "operationId": "LeCatalogChannelsGatewayController_list",
         "parameters": [],
         "responses": {
           "200": {
@@ -14169,7 +14128,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ChannelScreenEntryResponseDto"
+                    "$ref": "#/components/schemas/ChannelEntryResponseDto"
                   }
                 }
               }
@@ -14188,22 +14147,22 @@
       }
     },
     "/commerce-api/le/catalog-channels/pos": {
-      "post": {
+      "put": {
         "description": "Omit terminalId to sell this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
-        "operationId": "LeCatalogChannelsGatewayController_createPos",
+        "operationId": "LeCatalogChannelsGatewayController_upsertPos",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePosChannelDto"
+                "$ref": "#/components/schemas/UpsertPosChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -14214,7 +14173,7 @@
             }
           },
           "409": {
-            "description": "That combination already has a catalog at this scope."
+            "description": "That target already sells this catalog."
           }
         },
         "security": [
@@ -14222,29 +14181,29 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the POS channel",
+        "summary": "Set the catalog for the POS channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
       }
     },
     "/commerce-api/le/catalog-channels/b2b": {
-      "post": {
+      "put": {
         "description": "B2B names no target, so this is the single wholesale assignment for the workspace. The scope comes from the workspace.",
-        "operationId": "LeCatalogChannelsGatewayController_createB2b",
+        "operationId": "LeCatalogChannelsGatewayController_upsertB2b",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateB2bChannelDto"
+                "$ref": "#/components/schemas/UpsertB2bChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -14255,7 +14214,7 @@
             }
           },
           "409": {
-            "description": "B2B already sells a catalog at this scope."
+            "description": "B2B already sells this catalog at this scope."
           }
         },
         "security": [
@@ -14263,7 +14222,7 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the B2B channel",
+        "summary": "Set the catalog for the B2B channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -14361,47 +14320,6 @@
       }
     },
     "/commerce-api/le/catalog-channels/{channelId}": {
-      "patch": {
-        "description": "Rejected when the channel is inherited — change it in the workspace that assigned it.",
-        "operationId": "LeCatalogChannelsGatewayController_update",
-        "parameters": [
-          {
-            "name": "channelId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateAppChannelDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Now selling the new catalog."
-          },
-          "403": {
-            "description": "The channel belongs to a wider scope."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Point a channel at a different catalog",
-        "tags": [
-          "Commerce - Catalog Channels"
-        ]
-      },
       "delete": {
         "description": "The catalog itself is untouched; callers fall back to this workspace’s default, then to a wider one. Rejected when the channel is inherited.",
         "operationId": "LeCatalogChannelsGatewayController_remove",
@@ -14437,7 +14355,7 @@
     "/commerce-api/site/catalog-channels": {
       "get": {
         "description": "One entry per channel type. Each carries the effective default — the nearest assignment at or above this workspace — and, for App and POS, one target per app or terminal with the assignment that overrides the default, or null when it follows it. B2B returns no targets; POS returns none above an outlet, where terminals are not visible.",
-        "operationId": "SiteCatalogChannelsGatewayController_screen",
+        "operationId": "SiteCatalogChannelsGatewayController_list",
         "parameters": [],
         "responses": {
           "200": {
@@ -14447,7 +14365,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ChannelScreenEntryResponseDto"
+                    "$ref": "#/components/schemas/ChannelEntryResponseDto"
                   }
                 }
               }
@@ -14466,22 +14384,22 @@
       }
     },
     "/commerce-api/site/catalog-channels/pos": {
-      "post": {
+      "put": {
         "description": "Omit terminalId to sell this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
-        "operationId": "SiteCatalogChannelsGatewayController_createPos",
+        "operationId": "SiteCatalogChannelsGatewayController_upsertPos",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePosChannelDto"
+                "$ref": "#/components/schemas/UpsertPosChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -14492,7 +14410,7 @@
             }
           },
           "409": {
-            "description": "That combination already has a catalog at this scope."
+            "description": "That target already sells this catalog."
           }
         },
         "security": [
@@ -14500,29 +14418,29 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the POS channel",
+        "summary": "Set the catalog for the POS channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
       }
     },
     "/commerce-api/site/catalog-channels/b2b": {
-      "post": {
+      "put": {
         "description": "B2B names no target, so this is the single wholesale assignment for the workspace. The scope comes from the workspace.",
-        "operationId": "SiteCatalogChannelsGatewayController_createB2b",
+        "operationId": "SiteCatalogChannelsGatewayController_upsertB2b",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateB2bChannelDto"
+                "$ref": "#/components/schemas/UpsertB2bChannelDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -14533,7 +14451,7 @@
             }
           },
           "409": {
-            "description": "B2B already sells a catalog at this scope."
+            "description": "B2B already sells this catalog at this scope."
           }
         },
         "security": [
@@ -14541,7 +14459,7 @@
             "bearer": []
           }
         ],
-        "summary": "Add a catalog to the B2B channel",
+        "summary": "Set the catalog for the B2B channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -14639,47 +14557,6 @@
       }
     },
     "/commerce-api/site/catalog-channels/{channelId}": {
-      "patch": {
-        "description": "Rejected when the channel is inherited — change it in the workspace that assigned it.",
-        "operationId": "SiteCatalogChannelsGatewayController_update",
-        "parameters": [
-          {
-            "name": "channelId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateAppChannelDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Now selling the new catalog."
-          },
-          "403": {
-            "description": "The channel belongs to a wider scope."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Point a channel at a different catalog",
-        "tags": [
-          "Commerce - Catalog Channels"
-        ]
-      },
       "delete": {
         "description": "The catalog itself is untouched; callers fall back to this workspace’s default, then to a wider one. Rejected when the channel is inherited.",
         "operationId": "SiteCatalogChannelsGatewayController_remove",
@@ -39195,7 +39072,7 @@
           }
         }
       },
-      "ChannelAssignmentResponseDto": {
+      "ChannelCatalogResponseDto": {
         "type": "object",
         "properties": {
           "channelId": {
@@ -39205,8 +39082,7 @@
             "type": "string"
           },
           "catalogName": {
-            "type": "object",
-            "nullable": true
+            "type": "string"
           },
           "catalogIsActive": {
             "type": "boolean"
@@ -39246,6 +39122,7 @@
         "required": [
           "channelId",
           "catalogId",
+          "catalogName",
           "catalogIsActive",
           "ownerScope",
           "ownerName",
@@ -39264,23 +39141,27 @@
           "name": {
             "type": "string"
           },
-          "assignment": {
-            "nullable": true,
-            "description": "Null means this target follows the channel default",
-            "type": "object",
+          "catalog": {
+            "description": "What this target sells. Never null — a target with no row of its own carries the channel default.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/ChannelAssignmentResponseDto"
+                "$ref": "#/components/schemas/ChannelCatalogResponseDto"
               }
             ]
+          },
+          "isAssigned": {
+            "type": "boolean",
+            "description": "Whether the catalog came from this target rather than the channel default"
           }
         },
         "required": [
           "targetId",
-          "name"
+          "name",
+          "catalog",
+          "isAssigned"
         ]
       },
-      "ChannelScreenEntryResponseDto": {
+      "ChannelEntryResponseDto": {
         "type": "object",
         "properties": {
           "type": {
@@ -39291,12 +39172,12 @@
               "B2B"
             ]
           },
-          "defaultAssignment": {
+          "defaultCatalog": {
             "nullable": true,
             "type": "object",
             "allOf": [
               {
-                "$ref": "#/components/schemas/ChannelAssignmentResponseDto"
+                "$ref": "#/components/schemas/ChannelCatalogResponseDto"
               }
             ]
           },
@@ -39313,7 +39194,7 @@
           "type"
         ]
       },
-      "CreatePosChannelDto": {
+      "UpsertPosChannelDto": {
         "type": "object",
         "properties": {
           "catalogId": {
@@ -39336,16 +39217,6 @@
           "id": {
             "type": "string"
           },
-          "catalogId": {
-            "type": "string"
-          },
-          "catalogName": {
-            "type": "object",
-            "nullable": true
-          },
-          "catalogIsActive": {
-            "type": "boolean"
-          },
           "type": {
             "type": "string",
             "enum": [
@@ -39354,13 +39225,19 @@
               "B2B"
             ]
           },
-          "label": {
-            "type": "string",
-            "description": "Display name — the app or till, or the fallback label"
+          "appId": {
+            "type": "object",
+            "nullable": true,
+            "description": "Named app; null means every app"
           },
-          "isFallback": {
-            "type": "boolean",
-            "description": "True for the wildcard every unnamed caller falls back to"
+          "terminalId": {
+            "type": "object",
+            "nullable": true,
+            "description": "Named terminal; null means every terminal"
+          },
+          "terminalName": {
+            "type": "object",
+            "nullable": true
           },
           "legalEntityId": {
             "type": "object",
@@ -39370,61 +39247,18 @@
             "type": "object",
             "nullable": true
           },
-          "appId": {
-            "type": "object",
-            "nullable": true,
-            "description": "Named app; null means any app"
-          },
-          "terminalId": {
-            "type": "object",
-            "nullable": true,
-            "description": "Named till; null means any till"
-          },
-          "terminalName": {
-            "type": "object",
-            "nullable": true
-          },
           "isOwn": {
             "type": "boolean",
-            "description": "False when inherited — the channel is read-only here"
-          },
-          "setAt": {
-            "type": "string",
-            "enum": [
-              "SITE",
-              "LEGAL_ENTITY",
-              "ORGANIZATION"
-            ]
-          },
-          "itemsTotal": {
-            "type": "number"
-          },
-          "itemsSelling": {
-            "type": "number"
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "updatedAt": {
-            "type": "string"
+            "description": "False when a wider level set it — read-only here"
           }
         },
         "required": [
           "id",
-          "catalogId",
-          "catalogIsActive",
           "type",
-          "label",
-          "isFallback",
-          "isOwn",
-          "setAt",
-          "itemsTotal",
-          "itemsSelling",
-          "createdAt",
-          "updatedAt"
+          "isOwn"
         ]
       },
-      "CreateB2bChannelDto": {
+      "UpsertB2bChannelDto": {
         "type": "object",
         "properties": {
           "catalogId": {
@@ -39494,19 +39328,7 @@
           "sellsHere"
         ]
       },
-      "UpdateAppChannelDto": {
-        "type": "object",
-        "properties": {
-          "catalogId": {
-            "type": "string",
-            "description": "Catalog this channel should sell from now on"
-          }
-        },
-        "required": [
-          "catalogId"
-        ]
-      },
-      "CreateAppChannelDto": {
+      "UpsertAppChannelDto": {
         "type": "object",
         "properties": {
           "catalogId": {

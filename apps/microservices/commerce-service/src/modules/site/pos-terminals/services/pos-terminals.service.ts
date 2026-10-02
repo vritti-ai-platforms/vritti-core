@@ -22,6 +22,11 @@ export class PosTerminalsService {
     return this.posTerminalsService.findForTable(state);
   }
 
+  // Every active terminal, unpaginated — callers that render the whole estate rather than a page
+  list(): Promise<{ id: string; name: string }[]> {
+    return this.posTerminalsService.list();
+  }
+
   // Returns POS-role storage location options for select dropdowns
   findLocationsForSelect(data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.locationsRepository.findForSelect({

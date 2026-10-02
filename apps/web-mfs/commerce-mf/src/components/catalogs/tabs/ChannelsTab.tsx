@@ -15,9 +15,9 @@ const scopeLabel = (row: CatalogChannelData) =>
   row.siteId ? 'One outlet' : row.legalEntityId ? 'One company' : 'Whole organization';
 
 const targetLabel = (row: CatalogChannelData) => {
-  if (row.terminalId) return row.terminalName ?? 'One till';
+  if (row.terminalId) return row.terminalName ?? 'One terminal';
   if (row.appId) return 'One app';
-  return row.type === 'POS' ? 'Any till' : 'Any app';
+  return CHANNEL_TYPE_META[row.type].slotLabel;
 };
 
 // Read-only — bindings are created and repointed on the Catalog Channels page

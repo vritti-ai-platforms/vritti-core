@@ -4,31 +4,16 @@ import { type CatalogChannelTypeValue, CHANNEL_TYPES } from '../request/create-c
 
 export class CatalogChannelResponseDto {
   @ApiProperty() id: string;
-  @ApiProperty() catalogId: string;
-  @ApiPropertyOptional({ nullable: true }) catalogName: string | null;
-  @ApiProperty() catalogIsActive: boolean;
   @ApiProperty({ enum: ['APP', 'POS', 'B2B'] }) type: string;
-
-  @ApiProperty({ description: 'Display name — the app or till, or the fallback label' })
-  label: string;
-
-  @ApiProperty({ description: 'True for the wildcard every unnamed caller falls back to' })
-  isFallback: boolean;
-
+  @ApiPropertyOptional({ nullable: true, description: 'Named app; null means every app' }) appId: string | null;
+  @ApiPropertyOptional({ nullable: true, description: 'Named terminal; null means every terminal' })
+  terminalId: string | null;
+  @ApiPropertyOptional({ nullable: true }) terminalName: string | null;
   @ApiPropertyOptional({ nullable: true }) legalEntityId: string | null;
   @ApiPropertyOptional({ nullable: true }) siteId: string | null;
-  @ApiPropertyOptional({ nullable: true, description: 'Named app; null means any app' }) appId: string | null;
-  @ApiPropertyOptional({ nullable: true, description: 'Named till; null means any till' }) terminalId: string | null;
-  @ApiPropertyOptional({ nullable: true }) terminalName: string | null;
 
-  @ApiProperty({ description: 'False when inherited — the channel is read-only here' })
+  @ApiProperty({ description: 'False when a wider level set it — read-only here' })
   isOwn: boolean;
-
-  @ApiProperty({ enum: ['SITE', 'LEGAL_ENTITY', 'ORGANIZATION'] }) setAt: string;
-  @ApiProperty() itemsTotal: number;
-  @ApiProperty() itemsSelling: number;
-  @ApiProperty() createdAt: string;
-  @ApiProperty() updatedAt: string;
 }
 
 export class ChannelResolutionResponseDto {
@@ -50,19 +35,6 @@ export class ResolvedCatalogResponseDto {
   matchedTarget: boolean;
 }
 
-export class ChannelOverviewResponseDto {
-  @ApiProperty({ enum: ['APP', 'POS', 'B2B'] }) type: string;
-  @ApiPropertyOptional({ nullable: true }) catalogId: string | null;
-  @ApiPropertyOptional({ nullable: true }) catalogName: string | null;
-  @ApiPropertyOptional({ nullable: true }) catalogIsActive: boolean | null;
-
-  @ApiProperty({ description: 'Whether this workspace set it, rather than inheriting it' })
-  isOverride: boolean;
-
-  @ApiPropertyOptional({ enum: ['SITE', 'LEGAL_ENTITY', 'ORGANIZATION'], nullable: true })
-  inheritedFrom: 'SITE' | 'LEGAL_ENTITY' | 'ORGANIZATION' | null;
-}
-
 export class CatalogChannelTableResponseDto extends TableResponseDto<CatalogChannelResponseDto> {
   @ApiProperty({ type: [CatalogChannelResponseDto] }) declare result: CatalogChannelResponseDto[];
   @ApiProperty() declare count: number;
@@ -70,12 +42,18 @@ export class CatalogChannelTableResponseDto extends TableResponseDto<CatalogChan
   @ApiPropertyOptional({ nullable: true }) declare activeViewId: string | null;
 }
 
-// ─── the one-screen payload ───
+// ─── the one-list payload ───
 
-export class ChannelAssignmentResponseDto {
+// What commerce returns: per type, the default under DEFAULT_SLOT plus any app or terminal that
+// overrides it. Only decided slots appear — core joins it to the apps and terminals that exist.
+export const DEFAULT_SLOT = 'default';
+
+export type ResolvedChannels = Record<string, Record<string, ChannelCatalogResponseDto>>;
+
+export class ChannelCatalogResponseDto {
   @ApiProperty() channelId: string;
   @ApiProperty() catalogId: string;
-  @ApiPropertyOptional({ nullable: true }) catalogName: string | null;
+  @ApiProperty() catalogName: string;
   @ApiProperty() catalogIsActive: boolean;
   @ApiPropertyOptional({ nullable: true }) legalEntityId: string | null;
   @ApiPropertyOptional({ nullable: true }) siteId: string | null;
@@ -97,19 +75,21 @@ export class ChannelTargetResponseDto {
   @ApiProperty({ description: 'App id or terminal id' }) targetId: string;
   @ApiProperty() name: string;
 
-  @ApiPropertyOptional({
-    type: ChannelAssignmentResponseDto,
-    nullable: true,
-    description: 'Null means this target follows the channel default',
+  @ApiProperty({
+    type: ChannelCatalogResponseDto,
+    description: 'What this target sells. Never null — a target with no row of its own carries the channel default.',
   })
-  assignment: ChannelAssignmentResponseDto | null;
+  catalog: ChannelCatalogResponseDto;
+
+  @ApiProperty({ description: 'Whether the catalog came from this target rather than the channel default' })
+  isAssigned: boolean;
 }
 
-export class ChannelScreenEntryResponseDto {
+export class ChannelEntryResponseDto {
   @ApiProperty({ enum: CHANNEL_TYPES }) type: CatalogChannelTypeValue;
 
-  @ApiPropertyOptional({ type: ChannelAssignmentResponseDto, nullable: true })
-  defaultAssignment: ChannelAssignmentResponseDto | null;
+  @ApiPropertyOptional({ type: ChannelCatalogResponseDto, nullable: true })
+  defaultCatalog: ChannelCatalogResponseDto | null;
 
   @ApiPropertyOptional({
     type: [ChannelTargetResponseDto],

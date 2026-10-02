@@ -7,9 +7,9 @@ import type { ChannelOwnerScope } from '@/schemas/catalog-channels';
  * `web-mfs/*​/src`, so a class only survives the build if it appears here spelled out.
  */
 export const SCOPE_EDGE: Record<ChannelOwnerScope, string> = {
-  ORG: 'border-muted-foreground/40',
-  LE: 'border-group-amber',
-  SITE: 'border-group-green',
+  ORG: 'border-l-muted-foreground/40',
+  LE: 'border-l-group-amber',
+  SITE: 'border-l-group-green',
 };
 
 export const SCOPE_TINT: Record<ChannelOwnerScope, string> = {

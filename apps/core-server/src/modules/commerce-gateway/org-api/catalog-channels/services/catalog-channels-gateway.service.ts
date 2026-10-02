@@ -1,9 +1,15 @@
-import type { CreateB2bChannelDto, CreatePosChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
-import type {
-  CatalogChannelResponseDto,
-  ChannelAssignmentResponseDto,
-  ChannelScreenEntryResponseDto,
-  ChannelTargetResponseDto,
+import type { UpsertB2bChannelDto, UpsertPosChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
+import {
+  CatalogChannelTypeValues,
+  CHANNEL_TYPES,
+} from '@commerce/catalog-channels/dto/request/create-catalog-channel.dto';
+import {
+  type CatalogChannelResponseDto,
+  type ChannelCatalogResponseDto,
+  ChannelEntryResponseDto,
+  type ChannelTargetResponseDto,
+  DEFAULT_SLOT,
+  type ResolvedChannels,
 } from '@commerce/catalog-channels/dto/response/catalog-channel-response.dto';
 import type {
   ChannelItemResponseDto,
@@ -30,44 +36,50 @@ export class CatalogChannelsGatewayService {
   ) {}
 
   /**
-   * The whole channels screen in one read.
+   * The whole channels list in one read.
    *
-   * commerce returns POS targets complete, because pos_terminals is its own table, but APP targets
-   * only by id — apps live in core. They are named here, and every app with no assignment yet is
-   * added, so the grid lists the estate rather than only the exceptions.
+   * commerce resolves which catalog each configured slot uses; the two lists of what exists come
+   * separately — terminals from commerce, apps from core's own table. Joining decisions to estate is
+   * what turns them into a page, and it happens once for both kinds rather than once per kind.
    */
-  async screen(orgId: string): Promise<ChannelScreenEntryResponseDto[]> {
-    this.logger.log('org.catalogChannels.screen');
-    const [entries, apps] = await Promise.all([
-      this.nats.send<ChannelScreenEntryResponseDto[]>('commerce', 'org.catalogChannels.screen', {}),
+  async list(orgId: string): Promise<ChannelEntryResponseDto[]> {
+    this.logger.log('org.catalogChannels.list');
+    const [resolved, apps, terminals] = await Promise.all([
+      this.nats.send<ResolvedChannels>('commerce', 'org.catalogChannels.list', {}),
       this.appRepository.findAllByOrg(orgId),
+      this.nats.send<{ id: string; name: string }[]>('commerce', 'site.posTerminals.list', {}),
     ]);
 
-    const live = apps.filter((app) => !app.revokedAt);
-    for (const entry of entries) {
-      if (entry.type === 'APP') entry.targets = this.nameApps(entry.targets ?? [], live);
-    }
+    const liveApps = apps.filter((app) => !app.revokedAt).map((app) => ({ id: app.id, name: app.name }));
+
+    const entries = CHANNEL_TYPES.map((type) => {
+      const slots = resolved[type] ?? {};
+      const defaultCatalog = slots[DEFAULT_SLOT] ?? null;
+      const existing =
+        type === CatalogChannelTypeValues.APP ? liveApps : type === CatalogChannelTypeValues.POS ? terminals : null;
+
+      const entry = new ChannelEntryResponseDto();
+      entry.type = type;
+      entry.defaultCatalog = defaultCatalog;
+      entry.targets = this.buildTargets(slots, defaultCatalog, existing);
+      return entry;
+    });
 
     await this.stampOwnerNames(orgId, entries);
     return entries;
   }
 
-  async createPos(dto: CreatePosChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log(`org.posCatalogChannels.create — catalogId: ${dto.catalogId}`);
-    return this.nats.send('commerce', 'org.posCatalogChannels.create', dto);
+  async upsertPos(dto: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log(`org.posCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
+    return this.nats.send('commerce', 'org.posCatalogChannels.upsert', dto);
   }
 
-  async createB2b(dto: CreateB2bChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log(`org.b2bCatalogChannels.create — catalogId: ${dto.catalogId}`);
-    return this.nats.send('commerce', 'org.b2bCatalogChannels.create', dto);
+  async upsertB2b(dto: UpsertB2bChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log(`org.b2bCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
+    return this.nats.send('commerce', 'org.b2bCatalogChannels.upsert', dto);
   }
 
   // Everything below keys on channelId and is type-neutral — only creation differs per type
-  async update(channelId: string, catalogId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.catalogChannels.update — channelId: ${channelId}`);
-    return this.nats.send('commerce', 'org.catalogChannels.update', { channelId, catalogId });
-  }
-
   async remove(channelId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.catalogChannels.delete — channelId: ${channelId}`);
     return this.nats.send('commerce', 'org.catalogChannels.delete', { channelId });
@@ -96,28 +108,47 @@ export class CatalogChannelsGatewayService {
     });
   }
 
-  // One tile per app in the organization, plus any assignment whose app has since been revoked —
-  // dropping those would hide a live assignment
-  private nameApps(targets: ChannelTargetResponseDto[], apps: { id: string; name: string }[]) {
-    const assigned = new Map(targets.map((target) => [target.targetId, target.assignment]));
-    const known = new Set(apps.map((app) => app.id));
+  /**
+   * Every app or terminal that exists, each carrying what it will sell.
+   *
+   * Driven off the list of things that exist rather than the decisions, so a target nobody has
+   * overridden still appears — using the default. A decision whose app or terminal has since gone is
+   * added back at the end, because dropping it would hide an assignment that is still live.
+   */
+  private buildTargets(
+    slots: Record<string, ChannelCatalogResponseDto>,
+    defaultCatalog: ChannelCatalogResponseDto | null,
+    existing: { id: string; name: string }[] | null,
+  ): ChannelTargetResponseDto[] | null {
+    if (existing === null) return null;
+    // An override is an exception to a default, so until one exists there is nothing to except from
+    if (!defaultCatalog) return [];
+
+    const known = new Set(existing.map((target) => target.id));
     return [
-      ...apps.map((app) => ({ targetId: app.id, name: app.name, assignment: assigned.get(app.id) ?? null })),
-      ...targets.filter((target) => !known.has(target.targetId)).map((target) => ({ ...target, name: 'Removed app' })),
+      ...existing.map((target) => ({
+        targetId: target.id,
+        name: target.name,
+        catalog: slots[target.id] ?? defaultCatalog,
+        isAssigned: Boolean(slots[target.id]),
+      })),
+      ...Object.entries(slots)
+        .filter(([id]) => id !== DEFAULT_SLOT && !known.has(id))
+        .map(([id, catalog]) => ({ targetId: id, name: 'Removed', catalog, isAssigned: true })),
     ];
   }
 
-  // commerce stores only the owning ids; the names live in core. One batched pass over the screen.
-  private async stampOwnerNames(orgId: string, entries: ChannelScreenEntryResponseDto[]): Promise<void> {
-    const assignments = entries
-      .flatMap((entry) => [entry.defaultAssignment, ...(entry.targets ?? []).map((target) => target.assignment)])
-      .filter((assignment): assignment is ChannelAssignmentResponseDto => assignment !== null);
-    if (assignments.length === 0) return;
+  // commerce stores only the owning ids; the names live in core. One batched pass over the list.
+  private async stampOwnerNames(orgId: string, entries: ChannelEntryResponseDto[]): Promise<void> {
+    const catalogs = entries
+      .flatMap((entry) => [entry.defaultCatalog, ...(entry.targets ?? []).map((target) => target.catalog)])
+      .filter((catalog): catalog is ChannelCatalogResponseDto => catalog !== null);
+    if (catalogs.length === 0) return;
 
-    const named = await this.ownerNames.resolve(orgId, assignments);
-    const byChannel = new Map(named.map((assignment) => [assignment.channelId, assignment.ownerName]));
-    for (const assignment of assignments) {
-      assignment.ownerName = byChannel.get(assignment.channelId) ?? 'Unknown';
+    const named = await this.ownerNames.resolve(orgId, catalogs);
+    const byChannel = new Map(named.map((catalog) => [catalog.channelId, catalog.ownerName]));
+    for (const catalog of catalogs) {
+      catalog.ownerName = byChannel.get(catalog.channelId) ?? 'Unknown';
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { CreateAppChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
+import type { UpsertAppChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
 import type { CatalogChannelResponseDto } from '@commerce/catalog-channels/dto/response/catalog-channel-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { NatsClientService } from '@vritti/api-sdk/nats';
@@ -10,9 +10,9 @@ export class LeAppCatalogChannelGatewayService {
 
   constructor(private readonly nats: NatsClientService) {}
 
-  async create(dto: CreateAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log(`le.appCatalogChannels.create — catalogId: ${dto.catalogId}`);
-    return this.nats.send('commerce', 'le.appCatalogChannels.create', {
+  async upsert(dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log(`le.appCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
+    return this.nats.send('commerce', 'le.appCatalogChannels.upsert', {
       catalogId: dto.catalogId,
       appId: dto.appId ?? null,
     });

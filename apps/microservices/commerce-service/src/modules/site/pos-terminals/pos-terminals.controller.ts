@@ -21,6 +21,13 @@ export class PosTerminalsController {
     return this.service.findForTable(state);
   }
 
+  // Every active terminal, unpaginated — the channels list names each one
+  @MessagePattern({ cmd: 'site.posTerminals.list' })
+  async list(): Promise<{ id: string; name: string }[]> {
+    this.logger.log('posTerminals.list');
+    return this.service.list();
+  }
+
   // Returns POS-role storage location options for select dropdowns
   @MessagePattern({ cmd: 'site.posTerminals.locationsSelect' })
   async locationsSelect(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {

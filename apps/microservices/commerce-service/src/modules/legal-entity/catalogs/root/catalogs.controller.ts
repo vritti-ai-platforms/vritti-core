@@ -1,4 +1,5 @@
 import type { CatalogDto } from '@domain/catalogs/dto/entity/catalog.dto';
+import type { CatalogChannelDto } from '@domain/catalogs/dto/entity/catalog-channel.dto';
 import { CreateCatalogDto } from '@domain/catalogs/dto/request/create-catalog.dto';
 import { UpdateCatalogDto } from '@domain/catalogs/dto/request/update-catalog.dto';
 import { CatalogListingsDomainService } from '@domain/catalogs/services/catalog-listings.service';
@@ -7,7 +8,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 
 @Controller()
 export class LeCatalogsController {
@@ -33,6 +34,13 @@ export class LeCatalogsController {
   }
 
   // Returns one catalog with its listing and channel counts
+  // Every channel selling one catalog — the read-only tab on the catalog detail
+  @MessagePattern({ cmd: 'le.catalogs.channels' })
+  channels(@Payload() data: { catalogId: string }): Promise<CatalogChannelDto[]> {
+    this.logger.log(`catalogs.channels — catalogId: ${data.catalogId}`);
+    return this.service.findChannels(data.catalogId);
+  }
+
   @MessagePattern({ cmd: 'le.catalogs.findById' })
   findById(@Payload() data: { id: string }): Promise<CatalogDto> {
     this.logger.log(`catalogs.findById — id: ${data.id}`);

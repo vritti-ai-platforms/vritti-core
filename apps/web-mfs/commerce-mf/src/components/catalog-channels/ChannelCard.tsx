@@ -1,36 +1,26 @@
 import { Card } from '@vritti/quantum-ui/Card';
-import { cn } from '@vritti/quantum-ui/cn';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Route } from 'lucide-react';
 import type React from 'react';
-import {
-  CHANNEL_TYPE_META,
-  type ChannelAssignmentData,
-  type ChannelScreenEntryData,
-  type ChannelTargetData,
-} from '@/schemas/catalog-channels';
+import { CHANNEL_TYPE_META, type ChannelEntryData, type ChannelTargetData } from '@/schemas/catalog-channels';
 import { AssignmentSlot } from './AssignmentSlot';
 import type { CatalogChannelsBinding } from './bindings';
+import { AssignCatalogDialog } from './forms/AssignCatalogDialog';
 import { SCOPE_DOT } from './scope-style';
-import { TargetTile } from './TargetTile';
+import { TargetCard } from './TargetCard';
+import { useChannelAssignment } from './useChannelAssignment';
 
 interface ChannelCardProps {
   binding: CatalogChannelsBinding;
-  entry: ChannelScreenEntryData;
-  onAssignDefault: () => void;
-  onRevertDefault: () => void;
-  onAssignTarget: (target: ChannelTargetData) => void;
-  onOpenItems: (assignment: ChannelAssignmentData) => void;
-  isReverting: boolean;
+  entry: ChannelEntryData;
 }
 
-// A stacked bar of where the grid's values come from, denser than a bare "2 of 5 differ"
-const Mix: React.FC<{ targets: ChannelTargetData[]; fallback: ChannelAssignmentData | null }> = ({
-  targets,
-  fallback,
-}) => {
-  const differ = targets.filter((target) => target.assignment).length;
+// A stacked bar of where the grid's catalogs come from, denser than a bare "2 of 5 overridden"
+const Mix: React.FC<{ targets: ChannelTargetData[] }> = ({ targets }) => {
+  const overridden = targets.filter((target) => target.isAssigned).length;
   const counts = targets.reduce<Record<string, number>>((acc, target) => {
-    const from = (target.assignment ?? fallback)?.ownerScope;
-    if (from) acc[from] = (acc[from] ?? 0) + 1;
+    const from = target.catalog.ownerScope;
+    acc[from] = (acc[from] ?? 0) + 1;
     return acc;
   }, {});
 
@@ -47,28 +37,60 @@ const Mix: React.FC<{ targets: ChannelTargetData[]; fallback: ChannelAssignmentD
           ) : null,
         )}
       </span>
-      {differ === 0 ? 'all follow the default' : `${differ} of ${targets.length} differ`}
+      {overridden === 0 ? 'No overrides' : `${overridden} of ${targets.length} overridden`}
     </span>
   );
 };
 
+// Why a card has no grid, in the card's own voice
+const GridNote: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="border-t bg-muted px-6 py-4 text-muted-foreground text-sm">{children}</div>
+);
+
 /**
- * One channel: its default assignment, then every app or terminal beneath it.
+ * The apps or terminals under one channel, or the reason there are none to show.
  *
- * B2B never has a grid — it names no target — and POS has none above an outlet, where terminals are
- * not visible. Both cases say so rather than showing an empty grid.
+ * Three states have to stay distinct: no default yet, so an override would have nothing to except
+ * from; a type that names no target at all; and a type whose targets are simply not visible from
+ * this workspace.
  */
-export const ChannelCard: React.FC<ChannelCardProps> = ({
-  binding,
-  entry,
-  onAssignDefault,
-  onRevertDefault,
-  onAssignTarget,
-  onOpenItems,
-  isReverting,
-}) => {
+const TargetGrid: React.FC<ChannelCardProps> = ({ binding, entry }) => {
+  const { targets, type, defaultCatalog } = entry;
+  const meta = CHANNEL_TYPE_META[type];
+
+  if (!defaultCatalog) return null;
+
+  // null is a type that names no target at all, [] a type whose targets this workspace cannot see.
+  // Both render a note, and which note is a property of the type rather than a branch here.
+  if (targets === null || targets.length === 0) return <GridNote>{meta.emptyNote}</GridNote>;
+
+  return (
+    <>
+      <div className="flex items-center gap-3 border-t bg-muted px-6 py-2.5">
+        <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+          {meta.gridLabel} ({targets.length})
+        </span>
+        <span className="flex-1" />
+        <Mix targets={targets} />
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-3 px-6 py-5">
+        {targets.map((target) => (
+          <TargetCard key={target.targetId} binding={binding} type={type} target={target} />
+        ))}
+      </div>
+    </>
+  );
+};
+
+// One channel: the catalog every unnamed caller gets, then every app or terminal beneath it
+export const ChannelCard: React.FC<ChannelCardProps> = ({ binding, entry }) => {
   const meta = CHANNEL_TYPE_META[entry.type];
-  const targets = entry.targets;
+
+  // The card owns the default slot's dialog and mutations; each card below owns its own
+  const { dialog, submit, remove, openItems, isRemoving } = useChannelAssignment(binding, {
+    type: entry.type,
+    assignment: entry.defaultCatalog,
+  });
 
   return (
     <Card className="overflow-hidden p-0">
@@ -80,54 +102,40 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
       <div className="border-t">
         <AssignmentSlot
           label={meta.slotLabel}
-          assignment={entry.defaultAssignment}
+          assignment={entry.defaultCatalog}
           permission={binding.permissions.edit}
-          onAssign={onAssignDefault}
-          onChange={onAssignDefault}
-          onRevert={onRevertDefault}
+          viewPermission={binding.permissions.view}
+          onAssign={dialog.open}
+          onChange={dialog.open}
+          onRemove={() =>
+            remove(
+              `Remove the ${meta.slotLabel.toLowerCase()}?`,
+              'The catalog itself is untouched. This channel falls back to a wider level, or stops selling if nothing is assigned above.',
+            )
+          }
           onOpenItems={() => {
-            if (entry.defaultAssignment) onOpenItems(entry.defaultAssignment);
+            if (entry.defaultCatalog) openItems(entry.defaultCatalog);
           }}
-          isReverting={isReverting}
+          isRemoving={isRemoving}
         />
       </div>
 
-      {targets === null ? (
-        <div className="border-t bg-muted px-6 py-4 text-muted-foreground text-sm">
-          B2B names no individual target, so this is the single wholesale assignment for this level.
-        </div>
-      ) : targets.length === 0 ? (
-        <div className="border-t bg-muted px-6 py-4 text-muted-foreground text-sm">
-          {entry.type === 'POS'
-            ? 'Terminals belong to an outlet, so they are listed only in an outlet workspace. This level sets the default they follow.'
-            : 'No apps are registered yet. Every app you add will follow the default above.'}
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center gap-3 border-t bg-muted px-6 py-2.5">
-            <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-              {meta.gridLabel} ({targets.length})
-            </span>
-            <span className="flex-1" />
-            <Mix targets={targets} fallback={entry.defaultAssignment} />
-          </div>
-          <div className={cn('grid gap-3 px-6 py-5', 'grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]')}>
-            {targets.map((target) => (
-              <TargetTile
-                key={target.targetId}
-                target={target}
-                fallback={entry.defaultAssignment}
-                permission={binding.permissions.edit}
-                onAssign={() => onAssignTarget(target)}
-                onOpen={() => {
-                  const assignment = target.assignment ?? entry.defaultAssignment;
-                  if (assignment) onOpenItems(assignment);
-                }}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      <TargetGrid binding={binding} entry={entry} />
+
+      <Dialog
+        handle={dialog}
+        icon={Route}
+        title="Catalog for this channel"
+        description="Pick the catalog this surface should sell from. Anything left alone uses the level above."
+        content={() => (
+          <AssignCatalogDialog
+            excludeCatalogIds={[entry.defaultCatalog?.catalogId]}
+            {...submit}
+            submitLabel="Save"
+            onCancel={dialog.close}
+          />
+        )}
+      />
     </Card>
   );
 };

@@ -1,9 +1,4 @@
-import type {
-  CatalogChannelDto,
-  ChannelItemDto,
-  ChannelScreenEntryDto,
-} from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
-import { UpdateCatalogChannelDto } from '@domain/catalog-channels/dto/request/upsert-catalog-channel.dto';
+import type { ChannelItemDto, ResolvedChannelsDto } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -16,25 +11,10 @@ export class SiteCatalogChannelsController {
 
   constructor(private readonly service: CatalogChannelsDomainService) {}
 
-  // Everything the channels screen needs: each type's default plus every app / terminal under it
-  @MessagePattern({ cmd: 'site.catalogChannels.screen' })
-  screen(): Promise<ChannelScreenEntryDto[]> {
-    this.logger.log('catalogChannels.screen');
-    return this.service.screen();
-  }
-
-  // Every channel selling one catalog — the read-only tab on the catalog detail
-  @MessagePattern({ cmd: 'site.catalogChannels.byCatalog' })
-  findByCatalog(@Payload() data: { catalogId: string }): Promise<CatalogChannelDto[]> {
-    this.logger.log(`catalogChannels.byCatalog — catalogId: ${data.catalogId}`);
-    return this.service.findByCatalog(data.catalogId);
-  }
-
-  // Everything below keys on channelId and is type-neutral — only creation differs per type
-  @MessagePattern({ cmd: 'site.catalogChannels.update' })
-  update(@Payload() dto: UpdateCatalogChannelDto): Promise<SuccessResponseDto> {
-    this.logger.log(`catalogChannels.update — channelId: ${dto.channelId}`);
-    return this.service.update(dto.channelId, dto.catalogId);
+  @MessagePattern({ cmd: 'site.catalogChannels.list' })
+  list(): Promise<ResolvedChannelsDto> {
+    this.logger.log('catalogChannels.list');
+    return this.service.list();
   }
 
   @MessagePattern({ cmd: 'site.catalogChannels.delete' })

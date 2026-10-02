@@ -1,7 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { asc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type Catalog, catalogChannels, catalogListings, catalogs, ownedByWorkspaceExpression } from '@/db/schema';
+import {
+  type Catalog,
+  catalogChannels,
+  catalogListings,
+  catalogs,
+  ownedByWorkspaceExpression,
+  posTerminals,
+} from '@/db/schema';
+
+import type { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
 
 export type CatalogWithCounts = Catalog & { items: number; channels: number };
 
@@ -18,6 +27,26 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
       items: this.db.$count(catalogListings, eq(catalogListings.catalogId, catalogs.id)),
       channels: this.db.$count(catalogChannels, eq(catalogChannels.catalogId, catalogs.id)),
     };
+  }
+
+  // Every channel selling one catalog. Read here rather than from the channels domain: a catalog
+  // answering "who sells me" is its own question, and RLS bounds the rows either way.
+  async findChannels(catalogId: string): Promise<CatalogChannelDto[]> {
+    return this.db
+      .select({
+        id: catalogChannels.id,
+        type: catalogChannels.type,
+        appId: catalogChannels.appId,
+        terminalId: catalogChannels.terminalId,
+        terminalName: posTerminals.name,
+        legalEntityId: catalogChannels.legalEntityId,
+        siteId: catalogChannels.siteId,
+        isOwn: ownedByWorkspaceExpression('catalog_channels'),
+      })
+      .from(catalogChannels)
+      .leftJoin(posTerminals, eq(posTerminals.id, catalogChannels.terminalId))
+      .where(eq(catalogChannels.catalogId, catalogId))
+      .orderBy(asc(catalogChannels.type));
   }
 
   // Returns one page of catalogs plus the unpaginated total

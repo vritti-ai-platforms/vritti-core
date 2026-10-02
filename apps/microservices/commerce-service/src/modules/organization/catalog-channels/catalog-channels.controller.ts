@@ -1,13 +1,9 @@
 import type {
-  CatalogChannelDto,
   ChannelItemDto,
   ChannelResolutionDto,
-  ChannelScreenEntryDto,
+  ResolvedChannelsDto,
 } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
-import {
-  ResolveCatalogChannelDto,
-  UpdateCatalogChannelDto,
-} from '@domain/catalog-channels/dto/request/upsert-catalog-channel.dto';
+import { ResolveCatalogChannelDto } from '@domain/catalog-channels/dto/request/upsert-catalog-channel.dto';
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -20,18 +16,11 @@ export class OrgCatalogChannelsController {
 
   constructor(private readonly service: CatalogChannelsDomainService) {}
 
-  // Everything the channels screen needs: each type's default plus every app / terminal under it
-  @MessagePattern({ cmd: 'org.catalogChannels.screen' })
-  screen(): Promise<ChannelScreenEntryDto[]> {
-    this.logger.log('catalogChannels.screen');
-    return this.service.screen();
-  }
-
-  // Every channel selling one catalog — the read-only tab on the catalog detail
-  @MessagePattern({ cmd: 'org.catalogChannels.byCatalog' })
-  findByCatalog(@Payload() data: { catalogId: string }): Promise<CatalogChannelDto[]> {
-    this.logger.log(`catalogChannels.byCatalog — catalogId: ${data.catalogId}`);
-    return this.service.findByCatalog(data.catalogId);
+  // Everything the channels list needs: each type's default plus every app / terminal under it
+  @MessagePattern({ cmd: 'org.catalogChannels.list' })
+  list(): Promise<ResolvedChannelsDto> {
+    this.logger.log('catalogChannels.list');
+    return this.service.list();
   }
 
   // Which catalog serves this channel — the caller's type comes from its API surface, not the payload
@@ -39,13 +28,6 @@ export class OrgCatalogChannelsController {
   resolve(@Payload() dto: ResolveCatalogChannelDto): Promise<ChannelResolutionDto> {
     this.logger.log(`catalogChannels.resolve — type: ${dto.type}`);
     return this.service.tryResolve(dto);
-  }
-
-  // Everything below keys on channelId and is type-neutral — only creation differs per type
-  @MessagePattern({ cmd: 'org.catalogChannels.update' })
-  update(@Payload() dto: UpdateCatalogChannelDto): Promise<SuccessResponseDto> {
-    this.logger.log(`catalogChannels.update — channelId: ${dto.channelId}`);
-    return this.service.update(dto.channelId, dto.catalogId);
   }
 
   @MessagePattern({ cmd: 'org.catalogChannels.delete' })

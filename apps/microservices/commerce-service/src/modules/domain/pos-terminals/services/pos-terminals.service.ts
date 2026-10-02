@@ -59,6 +59,11 @@ export class PosTerminalsDomainService {
   }
 
   // Returns paginated POS terminal options for select dropdowns
+  // Every active terminal in reach, for callers that list the estate rather than page through it
+  list(): Promise<{ id: string; name: string }[]> {
+    return this.repository.findAllActive();
+  }
+
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
       value: query.valueKey || 'id',

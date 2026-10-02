@@ -1,7 +1,7 @@
-import { ApiCreateAppChannel } from '@commerce/catalog-channels/docs/app-catalog-channel-gateway.docs';
-import { CreateAppChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
+import { ApiUpsertAppChannel } from '@commerce/catalog-channels/docs/app-catalog-channel-gateway.docs';
+import { UpsertAppChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
 import type { CatalogChannelResponseDto } from '@commerce/catalog-channels/dto/response/catalog-channel-response.dto';
-import { Body, Controller, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Logger, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto } from '@vritti/api-sdk/responses';
@@ -20,12 +20,11 @@ export class LeAppCatalogChannelGatewayController {
 
   constructor(private readonly service: LeAppCatalogChannelGatewayService) {}
 
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
+  @Put()
   @RequirePermission(LE_CATALOG_CHANNELS.edit)
-  @ApiCreateAppChannel()
-  create(@Body() dto: CreateAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log('POST /commerce-api/le/catalog-channels/app');
-    return this.service.create(dto);
+  @ApiUpsertAppChannel()
+  upsert(@Body() dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log('PUT /commerce-api/le/catalog-channels/app');
+    return this.service.upsert(dto);
   }
 }

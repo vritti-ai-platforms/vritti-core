@@ -1,26 +1,21 @@
 import {
-  ApiCreateB2bChannel,
-  ApiCreatePosChannel,
+  ApiUpsertB2bChannel,
+  ApiUpsertPosChannel,
 } from '@commerce/catalog-channels/docs/app-catalog-channel-gateway.docs';
 import {
   ApiChannelItems,
-  ApiChannelsScreen,
   ApiDeleteChannel,
+  ApiListCatalogChannels,
   ApiSetChannelItemVisibility,
-  ApiUpdateChannel,
 } from '@commerce/catalog-channels/docs/catalog-channels-gateway.docs';
-import {
-  CreateB2bChannelDto,
-  CreatePosChannelDto,
-  UpdateAppChannelDto,
-} from '@commerce/catalog-channels/dto/request/app-channel.dto';
+import { UpsertB2bChannelDto, UpsertPosChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
 import { SetItemVisibilityDto } from '@commerce/catalog-channels/dto/request/set-item-visibility.dto';
 import type {
   CatalogChannelResponseDto,
-  ChannelScreenEntryResponseDto,
+  ChannelEntryResponseDto,
 } from '@commerce/catalog-channels/dto/response/catalog-channel-response.dto';
 import type { ChannelItemTableResponseDto } from '@commerce/catalog-channels/dto/response/channel-item-response.dto';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Patch, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -40,32 +35,30 @@ export class SiteCatalogChannelsGatewayController {
 
   constructor(private readonly service: SiteCatalogChannelsGatewayService) {}
 
-  // The whole screen: each type's default plus every app / terminal under it
+  // The whole list: each type's default plus every app / terminal under it
   @Get()
   @RequirePermission(SITE_CATALOG_CHANNELS.view)
-  @ApiChannelsScreen()
-  screen(@OrgId() orgId: string): Promise<ChannelScreenEntryResponseDto[]> {
+  @ApiListCatalogChannels()
+  list(@OrgId() orgId: string): Promise<ChannelEntryResponseDto[]> {
     this.logger.log('GET /commerce-api/site/catalog-channels');
-    return this.service.screen(orgId);
+    return this.service.list(orgId);
   }
 
   // Creation is per type because each names a different target; everything after it keys on channelId
-  @Post('pos')
-  @HttpCode(HttpStatus.CREATED)
+  @Put('pos')
   @RequirePermission(SITE_CATALOG_CHANNELS.edit)
-  @ApiCreatePosChannel()
-  createPos(@Body() dto: CreatePosChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log('POST /commerce-api/site/catalog-channels/pos');
-    return this.service.createPos(dto);
+  @ApiUpsertPosChannel()
+  upsertPos(@Body() dto: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log('PUT /commerce-api/site/catalog-channels/pos');
+    return this.service.upsertPos(dto);
   }
 
-  @Post('b2b')
-  @HttpCode(HttpStatus.CREATED)
+  @Put('b2b')
   @RequirePermission(SITE_CATALOG_CHANNELS.edit)
-  @ApiCreateB2bChannel()
-  createB2b(@Body() dto: CreateB2bChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log('POST /commerce-api/site/catalog-channels/b2b');
-    return this.service.createB2b(dto);
+  @ApiUpsertB2bChannel()
+  upsertB2b(@Body() dto: UpsertB2bChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log('PUT /commerce-api/site/catalog-channels/b2b');
+    return this.service.upsertB2b(dto);
   }
 
   @Get(':channelId/items/table')
@@ -89,14 +82,6 @@ export class SiteCatalogChannelsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/catalog-channels/${channelId}/items/${listingId}`);
     return this.service.setItemVisibility(channelId, listingId, dto.sellsHere);
-  }
-
-  @Patch(':channelId')
-  @RequirePermission(SITE_CATALOG_CHANNELS.edit)
-  @ApiUpdateChannel()
-  update(@Param('channelId') channelId: string, @Body() dto: UpdateAppChannelDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/catalog-channels/${channelId}`);
-    return this.service.update(channelId, dto.catalogId);
   }
 
   @Delete(':channelId')

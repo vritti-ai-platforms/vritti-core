@@ -7,6 +7,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { catalogs } from '@/db/schema';
 import { CatalogDto } from '../dto/entity/catalog.dto';
+import { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
 import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
 import type { UpdateCatalogDto } from '../dto/request/update-catalog.dto';
 import { CatalogsDomainRepository } from '../repositories/catalogs.repository';
@@ -61,6 +62,12 @@ export class CatalogsDomainService {
       orderDirection: query.orderDirection || 'asc',
       conditions: [eq(catalogs.isActive, true)],
     });
+  }
+
+  // Every channel selling this catalog — the read-only tab on the catalog detail
+  async findChannels(catalogId: string): Promise<CatalogChannelDto[]> {
+    const rows = await this.repository.findChannels(catalogId);
+    return rows.map((row) => CatalogChannelDto.from(row));
   }
 
   async findById(id: string): Promise<CatalogDto> {

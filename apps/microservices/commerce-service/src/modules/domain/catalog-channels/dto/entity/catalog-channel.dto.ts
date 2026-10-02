@@ -9,9 +9,9 @@ const scopeOf = (row: CatalogChannelRow): ChannelScope =>
 export interface CatalogChannelRow {
   id: string;
   catalogId: string;
-  catalogName: string | null;
-  catalogIsActive: boolean | null;
-  catalogTaxInclusive: boolean | null;
+  catalogName: string;
+  catalogIsActive: boolean;
+  catalogTaxInclusive: boolean;
   type: CatalogChannelType;
   legalEntityId: string | null;
   siteId: string | null;
@@ -19,18 +19,23 @@ export interface CatalogChannelRow {
   terminalId: string | null;
   terminalName: string | null;
   isOwn: boolean;
-  itemsTotal: number;
-  itemsSelling: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// One assignment, wherever it appears: a channel's default or a single app's / terminal's exception.
+// The list is the only read that prints "x of y items", and both are correlated subqueries, so it
+// is the only one that selects them
+export interface ChannelListRow extends CatalogChannelRow {
+  itemsTotal: number;
+  itemsSelling: number;
+}
+
+// One catalog as a channel serves it: a channel's default, or one app's or terminal's exception.
 // ownerScope / legalEntityId / siteId are what the gateway's OwnerNameService resolves names from.
-export class ChannelAssignmentDto {
+export class ChannelCatalogDto {
   channelId: string;
   catalogId: string;
-  catalogName: string | null;
+  catalogName: string;
   catalogIsActive: boolean;
   legalEntityId: string | null;
   siteId: string | null;
@@ -39,12 +44,12 @@ export class ChannelAssignmentDto {
   itemsTotal: number;
   itemsSelling: number;
 
-  static from(row: CatalogChannelRow): ChannelAssignmentDto {
-    const dto = new ChannelAssignmentDto();
+  static from(row: ChannelListRow): ChannelCatalogDto {
+    const dto = new ChannelCatalogDto();
     dto.channelId = row.id;
     dto.catalogId = row.catalogId;
-    dto.catalogName = row.catalogName ?? null;
-    dto.catalogIsActive = row.catalogIsActive ?? false;
+    dto.catalogName = row.catalogName;
+    dto.catalogIsActive = row.catalogIsActive;
     dto.legalEntityId = row.legalEntityId ?? null;
     dto.siteId = row.siteId ?? null;
     dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
@@ -55,24 +60,21 @@ export class ChannelAssignmentDto {
   }
 }
 
-// One app or terminal. `name` is null for APP — apps live in core, so the gateway fills it in.
-export class ChannelTargetDto {
-  targetId: string;
-  name: string | null;
-  assignment: ChannelAssignmentDto | null;
-}
+/**
+ * Every slot this workspace resolves, keyed for lookup.
+ *
+ * One entry per channel type, and within it the default under `DEFAULT_SLOT` plus any app or
+ * terminal that overrides it, keyed by its id. Only decided slots appear — an app or terminal using
+ * the default has nothing stored, so core joins this to the lists of apps and terminals that exist.
+ */
+export const DEFAULT_SLOT = 'default';
 
-// targets is null for B2B, which the CHECK forbids from naming any target
-export class ChannelScreenEntryDto {
-  type: CatalogChannelType;
-  defaultAssignment: ChannelAssignmentDto | null;
-  targets: ChannelTargetDto[] | null;
-}
+export type ResolvedChannelsDto = Record<string, Record<string, ChannelCatalogDto>>;
 
 export class CatalogChannelDto {
   id: string;
   catalogId: string;
-  catalogName: string | null;
+  catalogName: string;
   catalogIsActive: boolean;
   type: CatalogChannelType;
   isFallback: boolean;
@@ -83,8 +85,6 @@ export class CatalogChannelDto {
   terminalName: string | null;
   isOwn: boolean;
   setAt: ChannelScope;
-  itemsTotal: number;
-  itemsSelling: number;
   createdAt: string;
   updatedAt: string;
 
@@ -92,8 +92,8 @@ export class CatalogChannelDto {
     const dto = new CatalogChannelDto();
     dto.id = row.id;
     dto.catalogId = row.catalogId;
-    dto.catalogName = row.catalogName ?? null;
-    dto.catalogIsActive = row.catalogIsActive ?? false;
+    dto.catalogName = row.catalogName;
+    dto.catalogIsActive = row.catalogIsActive;
     dto.type = row.type;
     dto.isFallback = !row.appId && !row.terminalId;
     dto.legalEntityId = row.legalEntityId ?? null;
@@ -103,8 +103,6 @@ export class CatalogChannelDto {
     dto.terminalName = row.terminalName ?? null;
     dto.isOwn = row.isOwn;
     dto.setAt = scopeOf(row);
-    dto.itemsTotal = row.itemsTotal;
-    dto.itemsSelling = row.itemsSelling;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;
@@ -149,26 +147,6 @@ export class ChannelItemDto {
   }
 }
 
-export class ChannelOverviewDto {
-  type: CatalogChannelType;
-  catalogId: string | null;
-  catalogName: string | null;
-  catalogIsActive: boolean | null;
-  isOverride: boolean;
-  inheritedFrom: ChannelScope | null;
-
-  static from(type: CatalogChannelType, row?: CatalogChannelRow): ChannelOverviewDto {
-    const dto = new ChannelOverviewDto();
-    dto.type = type;
-    dto.catalogId = row?.catalogId ?? null;
-    dto.catalogName = row?.catalogName ?? null;
-    dto.catalogIsActive = row?.catalogIsActive ?? null;
-    dto.isOverride = row?.isOwn ?? false;
-    dto.inheritedFrom = !row || row.isOwn ? null : scopeOf(row);
-    return dto;
-  }
-}
-
 // Asking is not failing: an operator inspecting an unconfigured channel gets an answer, not an error.
 // Real callers use resolve(), which throws — a storefront with no catalog must not look "in stock".
 export class ChannelResolutionDto {
@@ -194,8 +172,8 @@ export class ResolvedCatalogDto {
   static from(row: CatalogChannelRow): ResolvedCatalogDto {
     const dto = new ResolvedCatalogDto();
     dto.catalogId = row.catalogId;
-    dto.catalogName = row.catalogName ?? '';
-    dto.taxInclusive = row.catalogTaxInclusive ?? false;
+    dto.catalogName = row.catalogName;
+    dto.taxInclusive = row.catalogTaxInclusive;
     dto.channelId = row.id;
     dto.matchedScope = scopeOf(row);
     dto.matchedTarget = Boolean(row.appId || row.terminalId);

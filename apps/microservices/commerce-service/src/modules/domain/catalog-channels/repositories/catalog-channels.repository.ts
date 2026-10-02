@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   type CatalogChannel,
@@ -16,7 +16,23 @@ import {
   posTerminals,
   uom,
 } from '@/db/schema';
-import type { CatalogChannelRow, ChannelItemRow } from '../dto/entity/catalog-channel.dto';
+import type { CatalogChannelRow, ChannelItemRow, ChannelListRow } from '../dto/entity/catalog-channel.dto';
+
+// A row's target, or null when it is a default. Groups every default of a type together, so one
+// DISTINCT ON resolves the default and each named target in the same pass.
+const targetKey = sql`coalesce(${catalogChannels.appId}, ${catalogChannels.terminalId})`;
+
+/**
+ * How strongly a row claims a caller. Highest wins.
+ *
+ * Naming an app or terminal is a deliberate exception, so it outranks any workspace — the most a
+ * workspace alone can score is 4 + 2. Below that the narrower workspace wins, and the organization
+ * scores zero as the fallback everything beats. The one definition both the list and resolve rank by.
+ */
+const specificity = sql`
+  (case when ${catalogChannels.appId} is not null or ${catalogChannels.terminalId} is not null then 8 else 0 end)
+  + (case when ${catalogChannels.siteId} is not null then 4 else 0 end)
+  + (case when ${catalogChannels.legalEntityId} is not null then 2 else 0 end)`;
 
 export interface ChannelTarget {
   type: CatalogChannelType;
@@ -31,6 +47,8 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     super(database, catalogChannels);
   }
 
+  // Each read selects what it shows. A correlated subquery runs once per returned row, so the two
+  // item counts only the list renders would be computed and thrown away on every other read.
   private static selection() {
     return {
       id: catalogChannels.id,
@@ -45,6 +63,16 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       terminalId: catalogChannels.terminalId,
       terminalName: posTerminals.name,
       isOwn: ownedByWorkspaceExpression('catalog_channels'),
+      createdAt: catalogChannels.createdAt,
+      updatedAt: catalogChannels.updatedAt,
+    };
+  }
+
+  // catalog_id is NOT NULL with an FK, so this drops nothing — it only lets the row type say so
+  // Only the channels list prints "x of y items", so only it pays for the two counts
+  private static listSelection() {
+    return {
+      ...CatalogChannelsDomainRepository.selection(),
       itemsTotal: sql<number>`(
         select count(*)::int from ${catalogListings} cl
         join ${offeringVariants} ov on ov.id = cl.offering_variant_id
@@ -59,71 +87,57 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
             where e.catalog_listing_id = cl.id and e.catalog_channel_id = ${catalogChannels}.id
           )
       )`,
-      createdAt: catalogChannels.createdAt,
-      updatedAt: catalogChannels.updatedAt,
     };
   }
 
-  private static joins() {
-    return [
-      { table: catalogs, on: eq(catalogs.id, catalogChannels.catalogId) },
-      { table: posTerminals, on: eq(posTerminals.id, catalogChannels.terminalId) },
-    ];
+  private static innerJoins() {
+    return [{ table: catalogs, on: eq(catalogs.id, catalogChannels.catalogId) }];
   }
 
-  // Returns paginated channels for the data table
-  async findForTable(options: {
-    where?: SQL;
-    orderBy: SQL[];
-    limit: number;
-    offset: number;
-  }): Promise<{ result: CatalogChannelRow[]; count: number }> {
-    return this.findAllAndCount<CatalogChannelRow>({
-      select: CatalogChannelsDomainRepository.selection(),
-      leftJoins: CatalogChannelsDomainRepository.joins(),
-      ...options,
-    });
+  // terminal_id is null on every App and B2B channel and on a POS default, so those rows must survive
+  private static leftJoins() {
+    return [{ table: posTerminals, on: eq(posTerminals.id, catalogChannels.terminalId) }];
   }
 
   // Returns one channel with its catalog and target names
   async findByIdWithMeta(id: string): Promise<CatalogChannelRow | undefined> {
-    const { result } = await this.findForTable({
+    const [row] = await this.findAllWithSelect<CatalogChannelRow>({
+      select: CatalogChannelsDomainRepository.selection(),
+      innerJoins: CatalogChannelsDomainRepository.innerJoins(),
+      leftJoins: CatalogChannelsDomainRepository.leftJoins(),
       where: eq(catalogChannels.id, id),
       orderBy: [asc(catalogChannels.type)],
-      limit: 1,
-      offset: 0,
     });
-    return result[0];
+    return row;
   }
 
-  // Every channel in reach, wildcards and named alike, for the one screen. RLS bounds it to this
-  // workspace and its ancestors, so the service only has to rank what comes back.
-  async findAllInReach(): Promise<CatalogChannelRow[]> {
-    return this.findAllWithSelect<CatalogChannelRow>({
-      select: CatalogChannelsDomainRepository.selection(),
-      leftJoins: CatalogChannelsDomainRepository.joins(),
-      orderBy: [asc(catalogChannels.type), asc(catalogChannels.createdAt)],
-    });
+  /**
+   * The winning row for every slot this workspace can see — each type's default, and each app or
+   * terminal that overrides it.
+   *
+   * DISTINCT ON does the ranking, so nothing downstream compares rows: the defaults of a type share a
+   * null target key and collapse to the most specific one, and every named target keeps its own.
+   * Scope is not a filter — RLS bounds this to the workspace and its ancestors.
+   */
+  async findResolved(): Promise<ChannelListRow[]> {
+    const rows = await this.db
+      .selectDistinctOn([catalogChannels.type, targetKey], CatalogChannelsDomainRepository.listSelection())
+      .from(catalogChannels)
+      .innerJoin(catalogs, eq(catalogs.id, catalogChannels.catalogId))
+      .leftJoin(posTerminals, eq(posTerminals.id, catalogChannels.terminalId))
+      .orderBy(catalogChannels.type, targetKey, desc(specificity));
+    return rows as ChannelListRow[];
   }
 
-  // The terminals the grid lists. pos_terminals is site-only under RLS, so above an outlet this is
-  // empty — which is exactly the "no grid above an outlet" rule, without a scope check here.
-  async findTerminals(): Promise<{ id: string; name: string }[]> {
-    return this.db
-      .select({ id: posTerminals.id, name: posTerminals.name })
-      .from(posTerminals)
-      .where(eq(posTerminals.isActive, true))
-      .orderBy(asc(posTerminals.name));
-  }
-
-  // Returns every channel pointing at one catalog — the read-only tab on the catalog detail
-  async findByCatalog(catalogId: string): Promise<CatalogChannelRow[]> {
-    return this.findAllWithSelect<CatalogChannelRow>({
-      select: CatalogChannelsDomainRepository.selection(),
-      leftJoins: CatalogChannelsDomainRepository.joins(),
-      where: eq(catalogChannels.catalogId, catalogId),
-      orderBy: [asc(catalogChannels.type)],
-    });
+  // Whether any workspace in reach has set this type's default. RLS bounds it to this workspace and
+  // its ancestors, which is exactly the set a named target would fall back to.
+  async hasDefaultInReach(type: CatalogChannelType): Promise<boolean> {
+    const [row] = await this.db
+      .select({ one: sql`1` })
+      .from(catalogChannels)
+      .where(and(eq(catalogChannels.type, type), isNull(catalogChannels.appId), isNull(catalogChannels.terminalId)))
+      .limit(1);
+    return Boolean(row);
   }
 
   // Returns the channel this workspace owns for exactly this target, ignoring what it inherits. A null
@@ -148,7 +162,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
   }
 
   /**
-   * Every channel that could serve the calling workspace; the service then picks the most specific.
+   * The one row that serves the calling workspace, already ranked.
    *
    * **Which workspace is not an argument.** `workspaceScopePolicies` on `catalog_channels` already
    * limits this read to the channels the request's own workspace can see — org-owned, its own LE's,
@@ -160,25 +174,30 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
    * What RLS cannot know is which *door* the caller is — which storefront app, which till — so those
    * two stay: a NULL app or terminal applies everywhere, a named one only to itself.
    */
-  async findCandidates(context: {
+  async findWinningCandidate(context: {
     type: CatalogChannelType;
     appId?: string | null;
     terminalId?: string | null;
-  }): Promise<CatalogChannelRow[]> {
+  }): Promise<CatalogChannelRow | undefined> {
     const matches = (column: AnyPgColumn, value: string | null | undefined) =>
       value ? or(isNull(column), eq(column, value)) : isNull(column);
 
-    return this.findAllWithSelect<CatalogChannelRow>({
-      select: CatalogChannelsDomainRepository.selection(),
-      leftJoins: CatalogChannelsDomainRepository.joins(),
-      where: and(
-        eq(catalogChannels.type, context.type),
-        eq(catalogs.isActive, true),
-        matches(catalogChannels.appId, context.appId),
-        matches(catalogChannels.terminalId, context.terminalId),
-      ),
-      orderBy: [asc(catalogChannels.createdAt)],
-    });
+    const [row] = await this.db
+      .select(CatalogChannelsDomainRepository.selection())
+      .from(catalogChannels)
+      .innerJoin(catalogs, eq(catalogs.id, catalogChannels.catalogId))
+      .leftJoin(posTerminals, eq(posTerminals.id, catalogChannels.terminalId))
+      .where(
+        and(
+          eq(catalogChannels.type, context.type),
+          eq(catalogs.isActive, true),
+          matches(catalogChannels.appId, context.appId),
+          matches(catalogChannels.terminalId, context.terminalId),
+        ),
+      )
+      .orderBy(desc(specificity))
+      .limit(1);
+    return row as CatalogChannelRow | undefined;
   }
 
   // Returns the catalog's active listings, each flagged with whether this channel excludes it.
@@ -271,7 +290,13 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
   // Returns the catalog a channel points at, for the resolve response
   async findCatalog(catalogId: string) {
     const [row] = await this.db
-      .select({ id: catalogs.id, name: catalogs.name, taxInclusive: catalogs.taxInclusive })
+      .select({
+        id: catalogs.id,
+        name: catalogs.name,
+        taxInclusive: catalogs.taxInclusive,
+        legalEntityId: catalogs.legalEntityId,
+        siteId: catalogs.siteId,
+      })
       .from(catalogs)
       .where(eq(catalogs.id, catalogId))
       .limit(1);

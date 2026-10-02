@@ -1,27 +1,16 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ChannelScreenEntryResponseDto } from '../dto/response/catalog-channel-response.dto';
+import { ChannelEntryResponseDto } from '../dto/response/catalog-channel-response.dto';
 import { ChannelItemResponseDto } from '../dto/response/channel-item-response.dto';
 
-export function ApiChannelsScreen() {
+export function ApiListCatalogChannels() {
   return applyDecorators(
     ApiOperation({
       summary: 'What every selling surface of this workspace sells',
       description:
         'One entry per channel type. Each carries the effective default — the nearest assignment at or above this workspace — and, for App and POS, one target per app or terminal with the assignment that overrides the default, or null when it follows it. B2B returns no targets; POS returns none above an outlet, where terminals are not visible.',
     }),
-    ApiResponse({ status: 200, type: [ChannelScreenEntryResponseDto] }),
-  );
-}
-
-export function ApiUpdateChannel() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Point a channel at a different catalog',
-      description: 'Rejected when the channel is inherited — change it in the workspace that assigned it.',
-    }),
-    ApiResponse({ status: 200, description: 'Now selling the new catalog.' }),
-    ApiResponse({ status: 403, description: 'The channel belongs to a wider scope.' }),
+    ApiResponse({ status: 200, type: [ChannelEntryResponseDto] }),
   );
 }
 
