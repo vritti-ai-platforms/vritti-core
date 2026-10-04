@@ -79,7 +79,7 @@ export function createResponseCacheLink(store: ResponseCacheStore, clientId: str
  *
  * Carries the tenant and the scope, not just the query: `clientId` is what identifies the
  * organization client-side (core derives it from the credential), and the party changes
- * what the same query returns. Leaving either out would serve one shopper's or one site's data to
+ * what the same query returns. Leaving either out would serve one party's or one site's data to
  * another.
  *
  * The operation name leads the key so `invalidate` can drop one operation's entries by prefix.

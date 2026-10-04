@@ -21,7 +21,7 @@ import {
 export const dimensionTemplates = commerceSchema.table(
   'dimension_templates',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     ...workspaceScopeColumns,
     code: varchar('code', { length: 50 }).notNull(),
@@ -54,7 +54,7 @@ export type NewDimensionTemplate = typeof dimensionTemplates.$inferInsert;
 export const dimensionTemplateValues = commerceSchema.table(
   'dimension_template_values',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     templateId: uuid('template_id')
       .notNull()

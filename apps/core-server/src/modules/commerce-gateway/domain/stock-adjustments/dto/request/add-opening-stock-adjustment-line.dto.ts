@@ -3,12 +3,12 @@ import { IsNumber, IsOptional, IsUUID } from 'class-validator';
 
 export class AddOpeningStockAdjustmentLineDto {
   @ApiProperty({ description: 'Storage location ID (required for OPENING_STOCK lines)' })
-  @IsUUID()
+  @IsUUID('7')
   locationId: string;
 
   @ApiPropertyOptional({ description: 'Stock adjustment lot draft ID (required for lot/lot_serial-tracked items)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   stockAdjustmentLotId?: string | null;
 
   @ApiProperty({ description: 'Line quantity in the line UOM (magnitude — sign comes from adjustment.type)' })
@@ -16,6 +16,6 @@ export class AddOpeningStockAdjustmentLineDto {
   uomQty: number;
 
   @ApiProperty({ description: 'UOM the line quantity is expressed in. Must be in the item allowed-UOM set.' })
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 }

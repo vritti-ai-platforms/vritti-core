@@ -1,20 +1,20 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsUUID } from 'class-validator';
 
 export class UpdateOpeningLineDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   adjustmentId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   lineId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   locationId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   stockAdjustmentLotId?: string | null;
 
   @IsOptional()
@@ -22,6 +22,6 @@ export class UpdateOpeningLineDto {
   uomQty?: number;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 }

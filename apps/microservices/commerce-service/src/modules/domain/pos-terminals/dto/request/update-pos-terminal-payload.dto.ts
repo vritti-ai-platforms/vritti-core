@@ -2,6 +2,6 @@ import { UpdatePosTerminalDto } from '@domain/pos-terminals/dto/request/update-p
 import { IsUUID } from 'class-validator';
 
 export class UpdatePosTerminalPayloadDto extends UpdatePosTerminalDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 }

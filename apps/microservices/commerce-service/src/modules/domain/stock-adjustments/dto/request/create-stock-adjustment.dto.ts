@@ -3,7 +3,7 @@ import { IsIn, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator'
 import { type StockAdjustmentType, StockAdjustmentTypeValues } from '@/db/schema';
 
 export class CreateStockAdjustmentDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   inventoryItemId: string;
 

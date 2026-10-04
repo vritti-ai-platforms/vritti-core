@@ -3,6 +3,6 @@ import { IsUUID } from 'class-validator';
 
 export class CatalogListingMrpOptionsQueryDto {
   @ApiProperty({ description: 'Variant whose MRP slices to list' })
-  @IsUUID('all')
+  @IsUUID('7')
   offeringVariantId: string;
 }

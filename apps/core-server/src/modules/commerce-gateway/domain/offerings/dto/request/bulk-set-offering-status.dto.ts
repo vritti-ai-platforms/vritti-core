@@ -5,7 +5,7 @@ export class BulkSetOfferingStatusDto {
   @ApiProperty({ type: [String], description: 'Refused outright unless every one of them may make the move' })
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   ids: string[];
 
   @ApiProperty()

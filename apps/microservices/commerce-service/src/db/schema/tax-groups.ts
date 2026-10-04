@@ -6,7 +6,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const taxGroups = commerceSchema.table(
   'tax_groups',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
     name: varchar('name', { length: 100 }).notNull(),

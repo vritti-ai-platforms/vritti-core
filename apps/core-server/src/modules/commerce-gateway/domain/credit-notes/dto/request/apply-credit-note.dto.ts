@@ -3,7 +3,7 @@ import { IsNotEmpty, IsNumber, IsUUID, Min } from 'class-validator';
 
 export class ApplyCreditNoteDto {
   @ApiProperty({ description: 'Invoice to apply credit note against' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   invoiceId: string;
 

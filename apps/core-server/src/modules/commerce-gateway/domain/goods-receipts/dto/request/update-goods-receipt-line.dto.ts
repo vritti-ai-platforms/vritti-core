@@ -4,12 +4,12 @@ import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 export class UpdateGoodsReceiptLineDto {
   @ApiPropertyOptional({ description: 'Goods-receipt lot id', nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   goodsReceiptLotId?: string | null;
 
   @ApiPropertyOptional({ description: 'Storage location id' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   locationId?: string;
 
   @ApiPropertyOptional({ description: 'Line quantity' })

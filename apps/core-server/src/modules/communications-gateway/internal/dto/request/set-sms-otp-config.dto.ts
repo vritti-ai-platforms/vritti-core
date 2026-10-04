@@ -4,7 +4,7 @@ import { IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-
 
 export class SetSmsOtpConfigDto {
   @ApiProperty({ description: "SMS provider the codes are sent through — platform or the org's own" })
-  @IsUUID()
+  @IsUUID('7')
   providerId: string;
 
   @ApiPropertyOptional({

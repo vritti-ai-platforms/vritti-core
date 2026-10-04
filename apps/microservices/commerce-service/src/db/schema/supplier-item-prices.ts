@@ -8,7 +8,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const supplierItemPrices = commerceSchema.table(
   'supplier_item_prices',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     supplierItemId: uuid('supplier_item_id')
       .notNull()

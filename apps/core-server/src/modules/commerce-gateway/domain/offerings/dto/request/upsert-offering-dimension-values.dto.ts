@@ -15,7 +15,7 @@ import {
 export class OfferingDimensionValueInputDto {
   @ApiPropertyOptional({ description: 'Present for a value that already exists; absent for a new one' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   id?: string;
 
   @Trim({ nullify: false })

@@ -3,7 +3,7 @@ import { IsCurrencyCode } from '@vritti/api-sdk/money';
 import { IsBoolean, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateSupplierDto {
-  @IsUUID()
+  @IsUUID('7')
   partyId: string;
 
   @Trim({ nullify: false })

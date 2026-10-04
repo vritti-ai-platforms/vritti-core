@@ -36,8 +36,10 @@ export function useChannelAssignment(binding: CatalogChannelsBinding, slot: Slot
     transformSubmit: ({ catalogId }: AssignCatalogFormData) => ({
       type: slot.type,
       catalogId,
-      appId: slot.type === CatalogChannelTypeValues.APP ? (slot.targetId ?? null) : null,
-      terminalId: slot.type === CatalogChannelTypeValues.POS ? (slot.targetId ?? null) : null,
+      // Only POS names a till; APP and B2B both name an app. Left undefined for a channel's own
+      // default so the request carries no target at all, rather than a null that reads as one.
+      appId: slot.type === CatalogChannelTypeValues.POS ? undefined : slot.targetId,
+      terminalId: slot.type === CatalogChannelTypeValues.POS ? slot.targetId : undefined,
     }),
   };
 

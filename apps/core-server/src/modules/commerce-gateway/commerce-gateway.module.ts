@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CommerceGatewayServicesModule } from './commerce-gateway-services.module';
 import { LeCartsGatewayController } from './le-api/carts/carts-gateway.controller';
-import { LeAppCatalogChannelGatewayController } from './le-api/catalog-channels/app-catalog-channel-gateway.controller';
 import { LeCatalogChannelsGatewayController } from './le-api/catalog-channels/catalog-channels-gateway.controller';
 import { LeCatalogsGatewayController } from './le-api/catalogs/catalogs-gateway.controller';
 import { CostCategoriesGatewayController } from './le-api/cost-categories/cost-categories-gateway.controller';
@@ -12,7 +11,6 @@ import { SuppliersGatewayController } from './le-api/suppliers/suppliers-gateway
 import { TaxGroupsGatewayController } from './le-api/tax-groups/tax-groups-gateway.controller';
 import { TaxGroupsResolver } from './le-api/tax-groups/tax-groups-gateway.resolver';
 import { TaxRegistrationsGatewayController } from './le-api/tax-registrations/tax-registrations-gateway.controller';
-import { AppCatalogChannelGatewayController } from './org-api/catalog-channels/app-catalog-channel-gateway.controller';
 import { CatalogChannelsGatewayController } from './org-api/catalog-channels/catalog-channels-gateway.controller';
 import { CatalogsGatewayController } from './org-api/catalogs/catalogs-gateway.controller';
 import { CategoriesGatewayController } from './org-api/categories/categories-gateway.controller';
@@ -30,7 +28,6 @@ import { UomResolver } from './org-api/uom/uom-gateway.resolver';
 import { SelectApiController } from './select-api/select-api.controller';
 import { SelectApiResolver } from './select-api/select-api.resolver';
 import { CartsGatewayController } from './site-api/carts/carts-gateway.controller';
-import { SiteAppCatalogChannelGatewayController } from './site-api/catalog-channels/app-catalog-channel-gateway.controller';
 import { SiteCatalogChannelsGatewayController } from './site-api/catalog-channels/catalog-channels-gateway.controller';
 import { SiteCatalogsGatewayController } from './site-api/catalogs/catalogs-gateway.controller';
 import { CreditNotesGatewayController } from './site-api/credit-notes/credit-notes-gateway.controller';
@@ -77,9 +74,6 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     LocationsGatewayController,
     InvoicesGatewayController,
     CatalogChannelsGatewayController,
-    AppCatalogChannelGatewayController,
-    LeAppCatalogChannelGatewayController,
-    SiteAppCatalogChannelGatewayController,
     LeCatalogChannelsGatewayController,
     SiteCatalogChannelsGatewayController,
     CatalogsGatewayController,

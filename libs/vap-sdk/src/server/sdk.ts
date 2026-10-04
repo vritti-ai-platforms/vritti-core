@@ -1,8 +1,8 @@
 import { resolveConfig, type VapSdkOptions } from '../core/config';
-import { createCatalogOperations } from '../core/domains/catalog';
+import { createCartOperations } from '../core/domains/cart';
+import { createCatalogChannelsOperations } from '../core/domains/catalogChannels';
 import { createOtpOperations } from '../core/domains/otp';
 import { createPeopleOperations } from '../core/domains/people';
-import { createShopperOperations } from '../core/domains/shopper';
 import { createAuthFlows } from '../core/flows/auth';
 import { createVapClient } from '../core/transport/client';
 import { type RequestContext, withoutWorkspace } from '../core/types';
@@ -13,7 +13,7 @@ import { createSignedFetch } from './signed-fetch';
  * A client for the VAP API, authenticated with an app credential.
  *
  * **Server-side only.** The credential signs every request, so a bundle that could read it could act
- * as this client against its whole organization. React Native gets its own tier, carrying a shopper
+ * as this client against its whole organization. React Native gets its own tier, carrying a party
  * session rather than the app's key.
  *
  * Not storefront-specific: a shop, an appointment booking site and a partner integration all speak to
@@ -26,7 +26,7 @@ import { createSignedFetch } from './signed-fetch';
  * const sdk = createVapSdk({ endpoint, clientId, clientSecret });
  * const { partyId } = await sdk.auth.register(input, hooks);
  *
- * // Everything a signed-in shopper does, acting for them:
+ * // Everything a signed-in party does, acting for them:
  * const scoped = sdk.forContext({ partyId });
  * ```
  */
@@ -62,15 +62,15 @@ export function createVapSdk(options: VapSdkOptions = {}) {
       otp,
       people,
       /**
-       * The signed-in shopper's basket and wishlist.
+       * The signed-in party's basket and wishlist.
        *
        * Present on the unbound SDK only so the shape is uniform; every call refuses without a
-       * party, because core reads the shopper from the signature. Reach it through
+       * party, because core reads the party from the signature. Reach it through
        * `sdk.forContext({ partyId })`.
        */
-      shopper: createShopperOperations(client, context, config.currency),
+      cart: createCartOperations(client, context, config.currency),
       /** The range this storefront sells. Needs no party — it is the shop's catalogue, not a person's. */
-      catalog: createCatalogOperations(client, context),
+      catalogChannels: createCatalogChannelsOperations(client, context),
       /** The shared identity sequences — registration, party repair. Composed over the domains above. */
       auth: createAuthFlows(people, otp),
     };

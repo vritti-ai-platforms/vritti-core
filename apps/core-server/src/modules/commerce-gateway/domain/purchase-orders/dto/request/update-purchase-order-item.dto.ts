@@ -5,7 +5,7 @@ import { IsBoolean, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 export class UpdatePurchaseOrderItemDto {
   @ApiPropertyOptional({ description: 'Inventory item ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId?: string;
 
   @ApiPropertyOptional({ description: 'Ordered uomQty', example: 100 })

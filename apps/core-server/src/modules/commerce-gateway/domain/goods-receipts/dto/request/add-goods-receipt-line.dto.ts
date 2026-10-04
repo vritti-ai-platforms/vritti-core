@@ -7,11 +7,11 @@ export class AddGoodsReceiptLineDto {
     nullable: true,
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   goodsReceiptLotId?: string | null;
 
   @ApiProperty({ description: 'Storage location id where the inventory will land.' })
-  @IsUUID()
+  @IsUUID('7')
   locationId: string;
 
   @ApiProperty({

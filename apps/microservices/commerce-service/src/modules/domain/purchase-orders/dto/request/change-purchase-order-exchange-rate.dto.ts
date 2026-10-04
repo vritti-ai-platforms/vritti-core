@@ -2,7 +2,7 @@ import { IsIn, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 import { ExchangeRateTypeValues } from '@/db/schema';
 
 export class ChangePurchaseOrderExchangeRateDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsIn([ExchangeRateTypeValues.FIXED, ExchangeRateTypeValues.VARIABLE])

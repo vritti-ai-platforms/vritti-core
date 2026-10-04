@@ -21,7 +21,7 @@ export class CreateLocationDto {
 
   @ApiPropertyOptional({ description: 'Parent storage location ID (null for root)', type: String, nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @ApiPropertyOptional({ description: 'Display sort order', default: 1 })
@@ -40,7 +40,7 @@ export class CreateLocationDto {
 
   @ApiPropertyOptional({ description: 'Manager user ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   managerId?: string;
 
   @ApiProperty({

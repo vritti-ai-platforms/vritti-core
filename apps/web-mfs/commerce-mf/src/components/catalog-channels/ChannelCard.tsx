@@ -60,8 +60,8 @@ const TargetGrid: React.FC<ChannelCardProps> = ({ binding, entry }) => {
 
   if (!defaultCatalog) return null;
 
-  // null is a type that names no target at all, [] a type whose targets this workspace cannot see.
-  // Both render a note, and which note is a property of the type rather than a branch here.
+  // An empty grid is a type whose targets this workspace cannot see — terminals above an outlet, or
+  // an organization with no apps yet. Which note explains it is a property of the type, not a branch.
   if (targets === null || targets.length === 0) return <GridNote>{meta.emptyNote}</GridNote>;
 
   return (

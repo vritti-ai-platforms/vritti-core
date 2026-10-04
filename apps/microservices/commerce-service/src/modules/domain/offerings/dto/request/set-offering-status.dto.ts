@@ -1,7 +1,7 @@
 import { IsBoolean, IsUUID } from 'class-validator';
 
 export class SetOfferingStatusDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsBoolean()

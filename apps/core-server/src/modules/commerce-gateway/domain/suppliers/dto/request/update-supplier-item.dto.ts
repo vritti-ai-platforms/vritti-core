@@ -11,7 +11,7 @@ export class UpdateSupplierItemDto {
 
   @ApiPropertyOptional({ description: 'UOM ID for pricing' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 
   @ApiPropertyOptional({ description: 'Minimum order quantity', example: 10 })

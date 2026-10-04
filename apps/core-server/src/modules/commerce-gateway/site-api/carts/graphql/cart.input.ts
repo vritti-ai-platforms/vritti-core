@@ -8,9 +8,9 @@ import { IsInt, IsString, IsUUID, Length, Max, Min } from 'class-validator';
  * decision, and a catalogue may legitimately price the same listing in several. Core still refuses
  * anything outside the caller's own catalogue, so naming a currency widens nothing.
  *
- * Note there is deliberately **no party field on any input below.** The shopper comes from the
+ * Note there is deliberately **no party field on any input below.** The party comes from the
  * request signature via `@PartyId()`. An input that accepted one would let a storefront read any
- * shopper's basket with a perfectly valid signature.
+ * party's basket with a perfectly valid signature.
  */
 @InputType()
 export class CartScopeInput {
@@ -24,7 +24,7 @@ export class CartScopeInput {
 export class AddCartItemInput extends CartScopeInput {
   /** The product, not the listing — the catalogue offer of it is resolved server-side, per site. */
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 
   @Field(() => Int, { defaultValue: 1 })
@@ -38,7 +38,7 @@ export class AddCartItemInput extends CartScopeInput {
 export class UpdateCartItemInput extends CartScopeInput {
   /** The product, not the listing — the catalogue offer of it is resolved server-side, per site. */
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 
   /** An exact quantity, not a delta. Removing is its own mutation. */
@@ -53,6 +53,6 @@ export class UpdateCartItemInput extends CartScopeInput {
 export class CartItemRefInput extends CartScopeInput {
   /** The product, not the listing — the catalogue offer of it is resolved server-side, per site. */
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 }

@@ -4,7 +4,7 @@ import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
 
 export class UpdateCompanyPersonDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim()

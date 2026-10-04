@@ -24,7 +24,7 @@ const ltreeType = customType<{ data: string }>({
 export const categories = commerceSchema.table(
   'categories',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     name: varchar('name', { length: 255 }).notNull(),
     image: varchar('image', { length: 255 }),

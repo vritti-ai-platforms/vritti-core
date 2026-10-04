@@ -7,7 +7,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const uom = commerceSchema.table(
   'uom',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     dimensionId: uuid('dimension_id')
       .notNull()

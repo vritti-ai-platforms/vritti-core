@@ -7,13 +7,13 @@ export class VariantCombinationInputDto {
   @ApiProperty({ type: [String], description: 'Exactly one value id per dimension on the offering' })
   @IsArray()
   @ArrayMinSize(1)
-  @IsUUID('4', { each: true })
+  @IsUUID('7', { each: true })
   valueIds: string[];
 }
 
 export class GenerateVariantsDto {
   @ApiProperty({ description: 'Applies to every variant in this batch' })
-  @IsUUID()
+  @IsUUID('7')
   salesUomId: string;
 
   @ApiProperty({ type: [VariantCombinationInputDto] })

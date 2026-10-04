@@ -3,7 +3,7 @@ import { IsBoolean, IsIn, IsOptional, IsString, IsUUID, Length, MaxLength } from
 import { type TaxJurisdictionLevel, taxJurisdictionLevelEnum } from '@/db/schema';
 
 export class UpdateTaxJurisdictionDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })
@@ -17,7 +17,7 @@ export class UpdateTaxJurisdictionDto {
   level?: TaxJurisdictionLevel;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string;
 
   @IsOptional()

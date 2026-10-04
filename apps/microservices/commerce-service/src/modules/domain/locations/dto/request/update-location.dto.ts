@@ -18,7 +18,7 @@ export class UpdateLocationDto {
   code?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @IsOptional()
@@ -33,7 +33,7 @@ export class UpdateLocationDto {
   area?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   managerId?: string;
 
   @IsOptional()

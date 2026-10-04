@@ -2,11 +2,11 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class AddLineItemDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   adjustmentId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   lineId: string;
 

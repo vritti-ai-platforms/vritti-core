@@ -3,7 +3,7 @@ import { IsBoolean, IsDateString, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID
 import { type PartyLicenseType, partyLicenseTypeEnum } from '@/db/schema';
 
 export class UpdateCompanyLicenseDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()

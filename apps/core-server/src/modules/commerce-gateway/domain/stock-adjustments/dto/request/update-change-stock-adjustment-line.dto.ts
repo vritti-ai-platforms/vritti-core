@@ -4,7 +4,7 @@ import { IsNumber, IsOptional, IsUUID } from 'class-validator';
 export class UpdateChangeStockAdjustmentLineDto {
   @ApiPropertyOptional({ description: 'Quant ID — the existing stock to adjust' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   quantId?: string;
 
   @ApiPropertyOptional({ description: 'Line quantity in the line UOM' })
@@ -14,6 +14,6 @@ export class UpdateChangeStockAdjustmentLineDto {
 
   @ApiPropertyOptional({ description: 'UOM the line quantity is expressed in' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 }

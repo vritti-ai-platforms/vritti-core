@@ -34,7 +34,7 @@ export class CreateInvoiceItemDto {
   taxAmount?: number;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   referenceItemId?: string;
 }
 
@@ -54,7 +54,7 @@ export class CreateInvoiceDto {
   partyType: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyId?: string;
 
   @Trim({ nullify: false })
@@ -70,7 +70,7 @@ export class CreateInvoiceDto {
   referenceType?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   referenceId?: string;
 
   @IsOptional()

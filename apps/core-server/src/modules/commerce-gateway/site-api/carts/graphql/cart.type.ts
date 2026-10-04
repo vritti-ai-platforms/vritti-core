@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { Money } from '../../../org-api/catalogs/graphql/catalog-listing.type';
+import { Money } from '../../../org-api/catalog-channels/graphql/catalog-listing.type';
 
 @ObjectType()
 export class CartItem {
@@ -11,7 +11,7 @@ export class CartItem {
    *
    * Nullable on purpose, and it has to be: a basket keeps a line whose listing has gone — that is
    * what `isAvailable: false` reports — so a non-null field here makes the whole basket
-   * unserialisable the moment one product is delisted, and the shopper sees an error instead of
+   * unserialisable the moment one product is delisted, and the party sees an error instead of
    * their own basket.
    */
   @Field(() => ID, { nullable: true })
@@ -54,7 +54,7 @@ export class CartItem {
 }
 
 /**
- * A basket — a view over the lines a shopper holds, not a record of its own.
+ * A basket — a view over the lines a party holds, not a record of its own.
  *
  * No id and no status: there is no basket row behind this, so neither had anything to address. An
  * empty basket is simply no lines.
@@ -77,7 +77,7 @@ export class Cart {
   itemCount: number;
 }
 
-/** How many of one product a shopper holds in their basket — what a product page's stepper shows. */
+/** How many of one product a party holds in their basket — what a product page's stepper shows. */
 @ObjectType()
 export class CartQuantity {
   @Field(() => ID)

@@ -4,7 +4,7 @@ import { AssignmentTypeValues } from '@/db/schema';
 
 export class AssignRoleInternalDto {
   @ApiProperty({ description: 'Role ID', example: 'uuid-here' })
-  @IsUUID()
+  @IsUUID('7')
   roleId: string;
 
   @ApiPropertyOptional({
@@ -12,7 +12,7 @@ export class AssignRoleInternalDto {
     example: 'uuid-here',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   siteId?: string;
 
   @ApiPropertyOptional({
@@ -20,12 +20,12 @@ export class AssignRoleInternalDto {
     example: 'uuid-here',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   siteGroupId?: string;
 
   @ApiPropertyOptional({ description: "Target legal entity ID (covers all the entity's sites)", example: 'uuid-here' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   legalEntityId?: string;
 
   @ApiPropertyOptional({

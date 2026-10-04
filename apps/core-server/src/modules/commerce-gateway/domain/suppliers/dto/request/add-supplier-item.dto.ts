@@ -5,7 +5,7 @@ import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, M
 
 export class AddSupplierItemDto {
   @ApiProperty({ description: 'Inventory item ID to link' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   inventoryItemId: string;
 
@@ -13,7 +13,7 @@ export class AddSupplierItemDto {
     description:
       "How this supplier's invoice classifies the goods — the same item can be goods from one supplier and job work from another",
   })
-  @IsUUID()
+  @IsUUID('7')
   taxClassId: string;
 
   @Trim()
@@ -28,7 +28,7 @@ export class AddSupplierItemDto {
   unitPrice: CurrencyAmountDto;
 
   @ApiProperty({ description: 'UOM ID for pricing' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   uomId: string;
 

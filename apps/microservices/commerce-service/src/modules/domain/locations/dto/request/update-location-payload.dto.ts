@@ -2,6 +2,6 @@ import { UpdateLocationDto } from '@domain/locations/dto/request/update-location
 import { IsUUID } from 'class-validator';
 
 export class UpdateLocationPayloadDto extends UpdateLocationDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 }

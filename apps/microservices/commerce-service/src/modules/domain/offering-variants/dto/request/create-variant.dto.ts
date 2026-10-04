@@ -2,16 +2,16 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { ArrayMinSize, IsArray, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateVariantDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   salesUomId: string;
 
   // Exactly one value per dimension — a variant is a complete combination
   @IsArray()
   @ArrayMinSize(1)
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   valueIds: string[];
 
   @Trim()

@@ -11,7 +11,7 @@ import { users } from './users';
 export const userRoleAssignments = coreSchema.table(
   'user_role_assignments',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

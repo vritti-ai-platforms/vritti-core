@@ -7,11 +7,11 @@ const REGISTRATION_TYPES = ['GSTIN', 'VAT', 'TIN', 'PAN', 'OTHER'] as const;
 export class CreateTaxRegistrationDto {
   @ApiPropertyOptional({ description: 'Cloud names the entity; VAP takes it from the workspace header' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   legalEntityId?: string;
 
   @ApiProperty({ description: 'Where the entity is registered — drives origin for tax resolution' })
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId: string;
 
   @ApiProperty({ example: '36ABCDE1234F1Z5' })

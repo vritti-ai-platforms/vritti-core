@@ -37,7 +37,7 @@ export class CreateInventoryItemInput {
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
   @Field(() => String)
-  @IsUUID()
+  @IsUUID('7')
   categoryId: string;
 
   @Field(() => String, { nullable: true })
@@ -48,11 +48,11 @@ export class CreateInventoryItemInput {
   description?: string | null;
 
   @Field(() => String)
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @Field(() => String)
-  @IsUUID()
+  @IsUUID('7')
   purchaseTaxGroupId: string;
 
   @Field(() => String, { nullable: true })
@@ -87,7 +87,7 @@ export class UpdateInventoryItemInput {
 
   @Field(() => String, { nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   categoryId?: string;
 
   @Field(() => String, { nullable: true })
@@ -99,7 +99,7 @@ export class UpdateInventoryItemInput {
 
   @Field(() => String, { nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 
   @Field(() => String, { nullable: true })
@@ -108,7 +108,7 @@ export class UpdateInventoryItemInput {
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
   @Field(() => String)
-  @IsUUID()
+  @IsUUID('7')
   purchaseTaxGroupId: string;
 
   @Field(() => String, { nullable: true })

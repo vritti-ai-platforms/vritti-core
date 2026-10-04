@@ -2,18 +2,18 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsOptional, IsUUID } from 'class-validator';
 
 export class AddCatalogListingDto {
-  @IsUUID('all')
+  @IsUUID('7')
   catalogId: string;
 
-  @IsUUID('all')
+  @IsUUID('7')
   offeringVariantId: string;
 
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   legalEntityId?: string | null;
 
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   inventoryItemMrpId?: string | null;
 
   @IsOptional()
@@ -21,6 +21,6 @@ export class AddCatalogListingDto {
   price?: CurrencyAmountDto;
 
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   siteId?: string | null;
 }

@@ -7,6 +7,6 @@ export class GroupMatrixQueryDto {
   @Transform(({ value }) => (Array.isArray(value) ? value : String(value).split(',').filter(Boolean)))
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('4', { each: true })
+  @IsUUID('7', { each: true })
   siteIds: string[];
 }

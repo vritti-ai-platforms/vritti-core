@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, text, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { userStatusEnum } from './enums';
@@ -6,7 +7,7 @@ import { organizations } from './organizations';
 export const users = coreSchema.table(
   'users',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),

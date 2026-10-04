@@ -3,17 +3,17 @@ import { IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 
 export class EnrollSiteSupplierDto {
   @ApiProperty({ description: 'Supplier ID to enroll for this site' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   supplierId: string;
 
   @ApiPropertyOptional({ description: 'Party tax registration pick for goods sourced at this site', nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyTaxRegistrationId?: string | null;
 
   @ApiPropertyOptional({ description: 'Party bank account pick for payments from this site', nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyBankAccountId?: string | null;
 }

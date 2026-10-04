@@ -24,11 +24,11 @@ export class CreateVariantInventoryItemDto {
   pickStrategy?: string;
 
   @ApiProperty({ description: 'Category identifier' })
-  @IsUUID()
+  @IsUUID('7')
   categoryId: string;
 
   @ApiProperty({ description: 'Stocking unit of measure' })
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @Trim()

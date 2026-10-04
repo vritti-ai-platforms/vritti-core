@@ -5,7 +5,7 @@ import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength } from 'class-valida
 export class UpdateWhatsappAccountDto {
   @ApiPropertyOptional()
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   legalEntityId?: string | null;
 
   @ApiPropertyOptional()

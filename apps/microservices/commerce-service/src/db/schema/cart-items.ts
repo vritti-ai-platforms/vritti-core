@@ -8,7 +8,7 @@ import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope'
 export const cartItems = commerceSchema.table(
   'cart_items',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     cartId: uuid('cart_id')
       .notNull()

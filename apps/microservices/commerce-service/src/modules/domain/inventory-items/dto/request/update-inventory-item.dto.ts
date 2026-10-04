@@ -3,7 +3,7 @@ import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator
 import type { InventoryItemType, InventoryPickStrategy } from '@/db/schema';
 
 export class UpdateInventoryItemDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })
@@ -24,7 +24,7 @@ export class UpdateInventoryItemDto {
   type?: InventoryItemType;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   categoryId?: string;
 
   @Trim()
@@ -34,7 +34,7 @@ export class UpdateInventoryItemDto {
   description?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 
   @IsEnum(['none', 'fifo', 'fefo'])

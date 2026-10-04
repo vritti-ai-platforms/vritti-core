@@ -8,7 +8,7 @@ import { normalizePhone } from '../phone';
  * What a signup form collects.
  *
  * Both contact details are required, and that is policy rather than a data constraint: they are the
- * two channels `register` resolves a returning shopper by, so a signup missing one leaves the
+ * two channels `register` resolves a returning party by, so a signup missing one leaves the
  * organization unable to recognise them next time. The `createPerson` primitive still takes an
  * optional phone — an app that genuinely cannot ask for one calls that directly instead.
  */
@@ -277,7 +277,7 @@ export function createAuthFlows(people: PeopleOperations, otp: OtpOperations) {
 
       const local = await hooks.createLocal({ partyId, phone, displayName });
 
-      // Not fatal, and deliberately after the account exists: the shopper is signed in either way, and
+      // Not fatal, and deliberately after the account exists: the party is signed in either way, and
       // the reference is core's record of which local account this party shops from.
       try {
         await people.addCommunication(partyId, CHANNELS.WEB_APP, String(local.id));

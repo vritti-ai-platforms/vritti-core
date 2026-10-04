@@ -2,7 +2,7 @@ import { IsEnum, IsUUID } from 'class-validator';
 import { FulfilmentTypeValues } from '@/db/schema';
 
 export class SetVariantFulfilmentDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsEnum(FulfilmentTypeValues)

@@ -6,7 +6,7 @@ import { IsNumber, IsUUID, Min } from 'class-validator';
 @InputType()
 export class CreateInventoryItemLocationInput {
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   locationId: string;
 
   @Field(() => Float)

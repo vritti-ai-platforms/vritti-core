@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   type CatalogChannel,
   type CatalogChannelType,
+  CatalogChannelTypeValues,
   catalogChannels,
   catalogListingChannelExclusions,
   catalogListingPrices,
@@ -17,6 +18,7 @@ import {
   uom,
 } from '@/db/schema';
 import type { CatalogChannelRow, ChannelItemRow, ChannelListRow } from '../dto/entity/catalog-channel.dto';
+import type { StorefrontListingRow } from '../dto/entity/storefront-listing.dto';
 
 // A row's target, or null when it is a default. Groups every default of a type together, so one
 // DISTINCT ON resolves the default and each named target in the same pass.
@@ -285,6 +287,62 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
           eq(catalogListingChannelExclusions.catalogChannelId, catalogChannelId),
         ),
       );
+  }
+
+  /**
+   * A storefront's whole range in one query: the APP channel this credential resolves to, the
+   * listings of the catalog it points at, each with the price that applies in this workspace.
+   *
+   * Resolved and joined here rather than fetched in steps, so a storefront read is one round trip
+   * and cannot see a catalog its channel does not point at — the catalog id is never an argument.
+   */
+  async findAppListings(appId: string, variantIds?: string[]): Promise<StorefrontListingRow[]> {
+    const channel = this.db
+      .select({ id: catalogChannels.id, catalogId: catalogChannels.catalogId })
+      .from(catalogChannels)
+      .where(
+        and(
+          eq(catalogChannels.type, CatalogChannelTypeValues.APP),
+          or(eq(catalogChannels.appId, appId), isNull(catalogChannels.appId)),
+        ),
+      )
+      .orderBy(desc(specificity))
+      .limit(1)
+      .as('channel');
+
+    // A site's own price wins over the organization-wide row; nulls last puts the site row first
+    const priceColumn = (column: 'currency_code' | 'amount') => sql<string | null>`(
+      select p.${sql.raw(column)} from ${catalogListingPrices} p
+      where p.catalog_listing_id = ${catalogListings}.id
+        and (p.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) or p.site_id is null)
+      order by p.site_id asc nulls last, p.currency_code asc
+      limit 1
+    )`;
+
+    return this.db
+      .select({
+        id: catalogListings.id,
+        offeringVariantId: catalogListings.offeringVariantId,
+        sku: offeringVariants.sku,
+        name: offeringVariants.name,
+        priceCurrency: priceColumn('currency_code'),
+        priceAmount: priceColumn('amount'),
+      })
+      .from(catalogListings)
+      .innerJoin(channel, eq(channel.catalogId, catalogListings.catalogId))
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(
+        and(
+          eq(offeringVariants.isActive, true),
+          eq(offeringVariants.isOfferingActive, true),
+          variantIds?.length ? inArray(catalogListings.offeringVariantId, variantIds) : undefined,
+          sql`not exists (
+            select 1 from ${catalogListingChannelExclusions} e
+            where e.catalog_listing_id = ${catalogListings}.id and e.catalog_channel_id = ${channel.id}
+          )`,
+        ),
+      )
+      .orderBy(asc(offeringVariants.sku));
   }
 
   // Returns the catalog a channel points at, for the resolve response

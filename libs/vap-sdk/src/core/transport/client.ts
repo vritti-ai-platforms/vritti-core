@@ -11,7 +11,7 @@ export interface VapClientOptions {
    * How a request is authenticated — the one thing that differs by environment.
    *
    * A server passes a fetch that signs with the app credential; React Native passes one that attaches
-   * a shopper session token. Everything else about the client is identical, which is what lets both
+   * a party session token. Everything else about the client is identical, which is what lets both
    * run the same documents against the same resolvers.
    */
   fetch: typeof fetch;

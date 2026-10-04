@@ -45,12 +45,12 @@ export class CreateOrderDto {
 
   @ApiPropertyOptional({ description: 'Sales channel ID used for catalog price resolution' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   channelId?: string;
 
   @ApiPropertyOptional({ description: 'Customer ID (links the order to an existing customer record)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   customerId?: string;
 
   @Trim()

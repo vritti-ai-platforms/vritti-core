@@ -5,7 +5,7 @@ import type { Field } from 'payload' with { 'resolution-mode': 'import' };
 import type { VapSdkOptions } from '../core/config';
 import { createPostgresResponseCache } from '../server/cache/postgres';
 import { createVapSdk } from '../server/sdk';
-import { customersCollection } from './collections/customers';
+import { customersCollection } from './collections/parties';
 import { vapCacheCollection } from './collections/vap-cache';
 import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime';
 

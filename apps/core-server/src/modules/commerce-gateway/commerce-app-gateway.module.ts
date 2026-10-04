@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { CommerceGatewayServicesModule } from './commerce-gateway-services.module';
-import { LeCatalogsAppResolver } from './le-api/catalogs/catalogs.app.resolver';
-import { CatalogsAppResolver } from './org-api/catalogs/catalogs.app.resolver';
+import { LeCatalogChannelsAppResolver } from './le-api/catalog-channels/catalog-channels.app.resolver';
+import { CatalogChannelsAppResolver } from './org-api/catalog-channels/catalog-channels.app.resolver';
 import { PeopleAppResolver } from './org-api/people/people.app.resolver';
 import { CartsAppResolver } from './site-api/carts/carts.app.resolver';
-import { SiteCatalogsAppResolver } from './site-api/catalogs/catalogs.app.resolver';
+import { SiteCatalogChannelsAppResolver } from './site-api/catalog-channels/catalog-channels.app.resolver';
 
 /**
  * The external-app GraphQL surface for commerce.
@@ -20,6 +20,12 @@ import { SiteCatalogsAppResolver } from './site-api/catalogs/catalogs.app.resolv
  */
 @Module({
   imports: [CommerceGatewayServicesModule],
-  providers: [PeopleAppResolver, CartsAppResolver, CatalogsAppResolver, LeCatalogsAppResolver, SiteCatalogsAppResolver],
+  providers: [
+    PeopleAppResolver,
+    CartsAppResolver,
+    CatalogChannelsAppResolver,
+    LeCatalogChannelsAppResolver,
+    SiteCatalogChannelsAppResolver,
+  ],
 })
 export class CommerceAppGatewayModule {}

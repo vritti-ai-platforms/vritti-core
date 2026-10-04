@@ -3,7 +3,7 @@ import { IsBoolean, IsDateString, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID
 import { type PartyLicenseType, partyLicenseTypeEnum } from '@/db/schema';
 
 export class CreatePersonLicenseDto {
-  @IsUUID()
+  @IsUUID('7')
   personId: string;
 
   @IsIn(partyLicenseTypeEnum.enumValues)

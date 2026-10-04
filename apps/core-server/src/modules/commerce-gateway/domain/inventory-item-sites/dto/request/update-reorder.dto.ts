@@ -3,7 +3,7 @@ import { IsNumber, IsUUID, Min } from 'class-validator';
 
 export class UpdateReorderDto {
   @ApiProperty({ description: 'Inventory item whose reorder point is being updated' })
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId: string;
 
   @ApiProperty({ description: 'Reorder point in the base UOM' })

@@ -1,4 +1,5 @@
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, jsonb, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { coreSchema } from './core-schema';
@@ -6,7 +7,7 @@ import { orgPlanEnum, orgSizeEnum } from './enums';
 import type { OrgStorage } from './org-storage.types';
 
 export const organizations = coreSchema.table('organizations', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey().default(sql`uuidv7()`),
   name: varchar('name', { length: 255 }).notNull(),
   subdomain: varchar('subdomain', { length: 100 }).unique().notNull(),
   size: orgSizeEnum('size').notNull(),

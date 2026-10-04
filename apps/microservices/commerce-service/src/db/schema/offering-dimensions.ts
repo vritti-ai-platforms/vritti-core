@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { codeCheck, index, integer, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { offerings } from './offerings';
@@ -6,7 +7,7 @@ import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope'
 export const offeringDimensions = commerceSchema.table(
   'offering_dimensions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     offeringId: uuid('offering_id')
       .notNull()
@@ -36,7 +37,7 @@ export type NewOfferingDimension = typeof offeringDimensions.$inferInsert;
 export const offeringDimensionValues = commerceSchema.table(
   'offering_dimension_values',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     dimensionId: uuid('dimension_id')
       .notNull()

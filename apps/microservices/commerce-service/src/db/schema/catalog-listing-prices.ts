@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogListings } from './catalog-listings';
 import { commerceSchema } from './commerce-schema';
@@ -6,7 +7,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const catalogListingPrices = commerceSchema.table(
   'catalog_listing_prices',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     catalogListingId: uuid('catalog_listing_id')
       .notNull()

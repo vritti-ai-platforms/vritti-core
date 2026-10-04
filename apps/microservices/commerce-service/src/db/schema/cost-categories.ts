@@ -16,7 +16,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const costCategories = commerceSchema.table(
   'cost_categories',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),

@@ -49,7 +49,7 @@ export class CreateCompanyDto {
   website?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId?: string;
 
   @IsBoolean()

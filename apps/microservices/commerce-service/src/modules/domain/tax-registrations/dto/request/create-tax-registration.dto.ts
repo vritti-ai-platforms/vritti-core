@@ -6,10 +6,10 @@ export class CreateTaxRegistrationDto {
   // Absent on the VAP path — the column defaults to the workspace entity, so a body value cannot
   // point a registration at someone else's legal entity
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   legalEntityId?: string;
 
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId: string;
 
   @Trim({ nullify: false })

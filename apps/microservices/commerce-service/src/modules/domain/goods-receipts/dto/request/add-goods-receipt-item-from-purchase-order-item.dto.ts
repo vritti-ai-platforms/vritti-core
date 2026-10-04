@@ -2,10 +2,10 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsBoolean, IsNumber, IsNumberString, IsOptional, IsPositive, IsString, IsUUID, Min } from 'class-validator';
 
 export class AddGoodsReceiptItemFromPurchaseOrderItemDto {
-  @IsUUID()
+  @IsUUID('7')
   goodsReceiptId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   purchaseOrderItemId: string;
 
   @IsNumber()

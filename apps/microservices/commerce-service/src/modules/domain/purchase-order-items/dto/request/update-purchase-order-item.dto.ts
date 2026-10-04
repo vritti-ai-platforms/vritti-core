@@ -3,14 +3,14 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsBoolean, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class UpdatePurchaseOrderItemDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
-  @IsUUID()
+  @IsUUID('7')
   itemId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId?: string;
 
   @IsOptional()

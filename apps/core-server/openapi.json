@@ -13786,6 +13786,47 @@
         ]
       }
     },
+    "/commerce-api/org/catalog-channels/app": {
+      "put": {
+        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
+        "operationId": "CatalogChannelsGatewayController_upsertApp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAppChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "That target already sells this catalog."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the catalog for the App channel",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
     "/commerce-api/org/catalog-channels/pos": {
       "put": {
         "description": "Omit terminalId to sell this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
@@ -13992,129 +14033,6 @@
         ]
       }
     },
-    "/commerce-api/org/catalog-channels/app": {
-      "put": {
-        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
-        "operationId": "AppCatalogChannelGatewayController_upsert",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertAppChannelDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "That target already sells this catalog."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Set the catalog for the App channel",
-        "tags": [
-          "Commerce - Catalog Channels"
-        ]
-      }
-    },
-    "/commerce-api/le/catalog-channels/app": {
-      "put": {
-        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
-        "operationId": "LeAppCatalogChannelGatewayController_upsert",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertAppChannelDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "That target already sells this catalog."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Set the catalog for the App channel",
-        "tags": [
-          "Commerce - Catalog Channels"
-        ]
-      }
-    },
-    "/commerce-api/site/catalog-channels/app": {
-      "put": {
-        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
-        "operationId": "SiteAppCatalogChannelGatewayController_upsert",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertAppChannelDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "That target already sells this catalog."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Set the catalog for the App channel",
-        "tags": [
-          "Commerce - Catalog Channels"
-        ]
-      }
-    },
     "/commerce-api/le/catalog-channels": {
       "get": {
         "description": "One entry per channel type. Each carries the effective default — the nearest assignment at or above this workspace — and, for App and POS, one target per app or terminal with the assignment that overrides the default, or null when it follows it. B2B returns no targets; POS returns none above an outlet, where terminals are not visible.",
@@ -14141,6 +14059,47 @@
           }
         ],
         "summary": "What every selling surface of this workspace sells",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels/app": {
+      "put": {
+        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
+        "operationId": "LeCatalogChannelsGatewayController_upsertApp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAppChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "That target already sells this catalog."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the catalog for the App channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -14378,6 +14337,47 @@
           }
         ],
         "summary": "What every selling surface of this workspace sells",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/app": {
+      "put": {
+        "description": "Omit appId to set the fallback every unnamed caller resolves to; supply one to give a single app its own catalog. The scope comes from the workspace.",
+        "operationId": "SiteCatalogChannelsGatewayController_upsertApp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAppChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "That target already sells this catalog."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the catalog for the App channel",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -38193,7 +38193,7 @@
         "properties": {
           "partyId": {
             "type": "string",
-            "description": "The shopper this basket is for — every basket belongs to one."
+            "description": "The party this basket is for — every basket belongs to one."
           }
         },
         "required": [
@@ -38205,7 +38205,7 @@
         "properties": {
           "partyId": {
             "type": "string",
-            "description": "The shopper whose basket this is — the response is their whole list"
+            "description": "The party whose basket this is — the response is their whole list"
           },
           "offeringVariantId": {
             "type": "string",
@@ -39194,17 +39194,16 @@
           "type"
         ]
       },
-      "UpsertPosChannelDto": {
+      "UpsertAppChannelDto": {
         "type": "object",
         "properties": {
           "catalogId": {
             "type": "string",
             "description": "Catalog this channel sells"
           },
-          "terminalId": {
-            "type": "object",
-            "nullable": true,
-            "description": "Named POS terminal. Omit to sell this catalog at every terminal this workspace covers."
+          "appId": {
+            "type": "string",
+            "description": "Named app. Omit for the fallback every unnamed caller resolves to."
           }
         },
         "required": [
@@ -39258,12 +39257,32 @@
           "isOwn"
         ]
       },
+      "UpsertPosChannelDto": {
+        "type": "object",
+        "properties": {
+          "catalogId": {
+            "type": "string",
+            "description": "Catalog this channel sells"
+          },
+          "terminalId": {
+            "type": "string",
+            "description": "Named POS terminal. Omit to sell this catalog at every terminal this workspace covers."
+          }
+        },
+        "required": [
+          "catalogId"
+        ]
+      },
       "UpsertB2bChannelDto": {
         "type": "object",
         "properties": {
           "catalogId": {
             "type": "string",
             "description": "Catalog this channel sells"
+          },
+          "appId": {
+            "type": "string",
+            "description": "Named wholesale site. Omit for the fallback every unnamed company buyer resolves to."
           }
         },
         "required": [
@@ -39326,23 +39345,6 @@
         },
         "required": [
           "sellsHere"
-        ]
-      },
-      "UpsertAppChannelDto": {
-        "type": "object",
-        "properties": {
-          "catalogId": {
-            "type": "string",
-            "description": "Catalog this channel sells"
-          },
-          "appId": {
-            "type": "object",
-            "nullable": true,
-            "description": "Named app. Omit for the fallback every unnamed caller resolves to."
-          }
-        },
-        "required": [
-          "catalogId"
         ]
       },
       "CatalogResponseDto": {

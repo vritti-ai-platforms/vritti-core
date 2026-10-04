@@ -1,9 +1,10 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { decimal, integer, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { taxGroups } from './tax-groups';
 
 export const taxRates = commerceSchema.table('tax_rates', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey().default(sql`uuidv7()`),
   taxGroupId: uuid('tax_group_id')
     .notNull()
     .references(() => taxGroups.id, { onDelete: 'cascade' }),

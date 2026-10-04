@@ -1,7 +1,7 @@
 import { IsInt, IsUUID, Min } from 'class-validator';
 
 export class UpdateInventoryItemUomConversionDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsInt()

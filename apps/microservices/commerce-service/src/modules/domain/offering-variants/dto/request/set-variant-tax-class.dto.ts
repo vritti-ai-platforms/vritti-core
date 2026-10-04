@@ -1,9 +1,9 @@
 import { IsUUID } from 'class-validator';
 
 export class SetVariantTaxClassDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
-  @IsUUID()
+  @IsUUID('7')
   taxClassId: string;
 }

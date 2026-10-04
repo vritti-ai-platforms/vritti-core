@@ -38,7 +38,7 @@ import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-/** A basket or wishlist row as staff see it — the shopper's row plus the storefront it sits in. */
+/** A basket or wishlist row as staff see it — the party's row plus the storefront it sits in. */
 export interface StaffShopperRow {
   id: string;
   appId: string;
@@ -258,23 +258,23 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
   }
 
-  // ── The shopper's own address book, for a storefront acting for one signed-in party ──
+  // ── The party's own address book, for a storefront acting for one signed-in party ──
   //
   // Every method takes `partyId` from the caller's signature, and it is not optional on any of
-  // them. `addShopperAddress` is safe by shape — the party is what the row is created under. The
+  // them. `addPartyAddress` is safe by shape — the party is what the row is created under. The
   // other two name an **address id**, which is attacker-controlled input, so each one proves the
   // address belongs to that party before forwarding. `assertOwned` is the single place that check
   // lives: every app-surface write goes through it, so there is one line to read to know the rule
   // and one place to change it.
 
-  /** Every address the shopper holds. */
+  /** Every address the party holds. */
   listShopperAddresses(partyId: string): Promise<PartyAddressResponseDto[]> {
     this.logger.log(`org.people.addresses.list — party: ${partyId}`);
     return this.nats.send('commerce', 'org.people.addresses.list', { personId: partyId });
   }
 
   /** Adds one. Scoped by construction — the party is what it is created under. */
-  addShopperAddress(
+  addPartyAddress(
     partyId: string,
     dto: Omit<AddPersonAddressDto, 'personId'>,
   ): Promise<CreateResponseDto<PartyAddressResponseDto>> {
@@ -283,7 +283,7 @@ export class PeopleGatewayService {
   }
 
   /** Edits one of theirs. */
-  async updateShopperAddress(
+  async updatePartyAddress(
     partyId: string,
     addressId: string,
     dto: Omit<UpdatePersonAddressDto, 'id'>,
@@ -294,7 +294,7 @@ export class PeopleGatewayService {
   }
 
   /** Removes one of theirs. */
-  async removeShopperAddress(partyId: string, addressId: string): Promise<SuccessResponseDto> {
+  async removePartyAddress(partyId: string, addressId: string): Promise<SuccessResponseDto> {
     await this.assertOwned(partyId, addressId);
     this.logger.log(`org.people.addresses.remove — party: ${partyId}, id: ${addressId}`);
     return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
@@ -304,9 +304,9 @@ export class PeopleGatewayService {
    * Refuses an address that is not this party's.
    *
    * The app credential speaks for the whole organization, and RLS scopes rows to it — so an
-   * address id from a *different shopper in the same organization* is visible to this request.
+   * address id from a *different party in the same organization* is visible to this request.
    * The party is not a tenancy boundary, which is why nothing below this layer enforces it and
-   * why forwarding a caller's id straight through would let one shopper rewrite another's address.
+   * why forwarding a caller's id straight through would let one party rewrite another's address.
    *
    * Answers the same `NotFoundException` for "not yours" as for "no such address", deliberately:
    * telling the two apart turns this into a way to find out which ids exist.
@@ -505,9 +505,9 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.socialProfiles.delete', { id: profileId });
   }
 
-  // ── The shopper's own wishlist, for a storefront acting for one signed-in party ──
+  // ── The party's own wishlist, for a storefront acting for one signed-in party ──
 
-  // Which products the shopper has saved — ids only, with no catalogue to resolve
+  // Which products the party has saved — ids only, with no catalogue to resolve
   listShopperWishlistVariantIds(appId: string, partyId: string): Promise<string[]> {
     this.logger.log(`org.wishlist.variantIds — party: ${partyId}`);
     return this.nats.send('commerce', 'org.wishlist.variantIds', { appId, partyId });

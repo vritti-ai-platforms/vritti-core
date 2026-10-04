@@ -19,7 +19,7 @@ export type UseChannelItems = (channelId: string) => UseQueryResult<ChannelItems
 // One entry point; the service dispatches to the per-type endpoint. Assigning is an upsert, so a
 // caller never has to know whether this workspace already owns a row for the slot.
 export type UseUpsertChannel = Mutation<
-  { type: CatalogChannelType; catalogId: string; appId?: string | null; terminalId?: string | null },
+  { type: CatalogChannelType; catalogId: string; appId?: string; terminalId?: string },
   CreateResponse<unknown>
 >;
 

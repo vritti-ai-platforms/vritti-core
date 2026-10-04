@@ -6,7 +6,7 @@ import { PartyFunctionAssignmentDto } from '@/modules/commerce-gateway/_shared/d
 
 export class AddCompanyPersonDto {
   @ApiProperty({ description: 'The person (PERSON party) to link to the company' })
-  @IsUUID()
+  @IsUUID('7')
   childPartyId: string;
 
   @Trim()

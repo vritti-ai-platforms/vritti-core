@@ -2,7 +2,7 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateVariantDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })
@@ -19,7 +19,7 @@ export class UpdateVariantDto {
   externalSku?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   salesUomId?: string;
 
   @IsOptional()

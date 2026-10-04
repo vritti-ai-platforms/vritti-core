@@ -3,15 +3,15 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, Length, MaxLength } from 'class-validator';
 
 /**
- * One of the shopper's own addresses.
+ * One of the party's own addresses.
  *
  * A flattened view of what core holds. Core models an address with `functions` — REGISTERED,
  * BILLING, SHIPPING, ORDERING, each with its own primary flag — which is the vocabulary a business
- * needs and not one a shopper has. Until there is a checkout that distinguishes "bill to" from
+ * needs and not one a party has. Until there is a checkout that distinguishes "bill to" from
  * "ship to", a storefront has one question to ask, so that whole structure reduces to `isDefault`.
  */
 @ObjectType()
-export class ShopperAddress {
+export class PartyAddress {
   @Field(() => ID)
   id: string;
 
@@ -39,13 +39,13 @@ export class ShopperAddress {
 }
 
 /**
- * An address as a shopper writes it.
+ * An address as a party writes it.
  *
  * `id` is absent: adding is scoped to the party from the signature, and editing names the address
  * in its own input below.
  */
 @InputType()
-export class ShopperAddressInput {
+export class PartyAddressInput {
   @Field(() => String)
   @Trim({ nullify: false })
   @IsString()
@@ -94,16 +94,16 @@ export class ShopperAddressInput {
 
 /** Editing one — the same fields, plus which address. */
 @InputType()
-export class UpdateShopperAddressInput extends ShopperAddressInput {
+export class UpdatePartyAddressInput extends PartyAddressInput {
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 }
 
 /** Removing one. */
 @InputType()
-export class ShopperAddressRefInput {
+export class PartyAddressRefInput {
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 }

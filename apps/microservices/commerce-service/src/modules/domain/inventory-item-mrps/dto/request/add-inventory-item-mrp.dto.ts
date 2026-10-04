@@ -2,10 +2,10 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsUUID } from 'class-validator';
 
 export class AddInventoryItemMrpDto {
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @IsCurrency()

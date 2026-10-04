@@ -5,7 +5,7 @@ import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID,
 export class UpdateUomDto {
   @ApiPropertyOptional({ description: 'Updated dimension UUID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   dimensionId?: string;
 
   @Trim({ nullify: false })
@@ -26,7 +26,7 @@ export class UpdateUomDto {
 
   @ApiPropertyOptional({ description: 'Updated base unit ID (null = this is a base unit)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   baseUnitId?: string | null;
 
   @ApiPropertyOptional({ description: 'Updated count of dimension base UOM units in the ratio' })

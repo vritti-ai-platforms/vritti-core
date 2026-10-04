@@ -9,6 +9,6 @@ export class SetCatalogListingPriceDto {
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   siteId?: string | null;
 }

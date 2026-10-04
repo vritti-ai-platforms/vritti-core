@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, codeCheck, index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
@@ -5,7 +6,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const taxClasses = commerceSchema.table(
   'tax_classes',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),

@@ -2,7 +2,7 @@ import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateOfferingDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })
@@ -27,6 +27,6 @@ export class UpdateOfferingDto {
   description?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   categoryId?: string | null;
 }

@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class UpdateOrderStatusDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   id: string;
 

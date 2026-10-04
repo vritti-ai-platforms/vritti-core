@@ -1,7 +1,7 @@
 import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class EnableInventoryItemSiteDto {
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId: string;
 
   @IsOptional()

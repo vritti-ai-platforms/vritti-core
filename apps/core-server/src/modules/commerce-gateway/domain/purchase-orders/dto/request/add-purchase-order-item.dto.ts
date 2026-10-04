@@ -4,7 +4,7 @@ import { IsBoolean, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class AddPurchaseOrderItemDto {
   @ApiProperty({ description: 'Supplier item ID' })
-  @IsUUID()
+  @IsUUID('7')
   supplierItemId: string;
 
   @ApiProperty({ description: 'Ordered uomQty', example: 100 })

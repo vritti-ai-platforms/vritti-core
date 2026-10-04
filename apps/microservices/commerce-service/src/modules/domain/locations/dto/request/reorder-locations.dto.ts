@@ -2,10 +2,10 @@ import { IsArray, IsOptional, IsUUID } from 'class-validator';
 
 export class ReorderLocationsDto {
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @IsArray()
-  @IsUUID(undefined, { each: true })
+  @IsUUID('7', { each: true })
   orderedIds: string[];
 }

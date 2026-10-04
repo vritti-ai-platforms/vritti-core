@@ -41,7 +41,7 @@ declare module 'fastify' {
      * The person a signed app request is acting for, when it named one.
      *
      * Absent on staff requests, where the acting person *is* the user. Covered by the
-     * request signature, so it cannot be swapped for another shopper in transit.
+     * request signature, so it cannot be swapped for another party in transit.
      */
     partyId?: string;
   }

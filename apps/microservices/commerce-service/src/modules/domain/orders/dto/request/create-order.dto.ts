@@ -36,7 +36,7 @@ export class CreateOrderDto {
   channel: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   customerId?: string;
 
   @IsOptional()

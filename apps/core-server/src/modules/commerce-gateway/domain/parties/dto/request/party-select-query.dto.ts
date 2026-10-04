@@ -4,6 +4,6 @@ import { IsUUID } from 'class-validator';
 
 export class PartySelectQueryDto extends SelectOptionsQueryDto {
   @ApiProperty({ description: 'The party whose records to fetch options for' })
-  @IsUUID()
+  @IsUUID('7')
   partyId: string;
 }

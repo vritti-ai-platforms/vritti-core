@@ -1,11 +1,11 @@
 import { ArrayNotEmpty, IsArray, IsUUID } from 'class-validator';
 
 export class BulkUnlinkSupplierItemsDto {
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   supplierItemIds: string[];
 }

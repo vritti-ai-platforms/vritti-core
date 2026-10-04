@@ -1,7 +1,7 @@
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateUomDto {
-  @IsUUID()
+  @IsUUID('7')
   dimensionId: string;
 
   @IsString()
@@ -15,7 +15,7 @@ export class CreateUomDto {
   symbol: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   baseUnitId?: string;
 
   // Integer pair: `uomQty` units of THIS UOM = `baseUomQty` units of the dimension base UOM.

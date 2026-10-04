@@ -13,7 +13,7 @@ import {
 
 export class OfferingDimensionValueInput {
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   id?: string;
 
   @Trim({ nullify: false })
@@ -31,7 +31,7 @@ export class OfferingDimensionValueInput {
 }
 
 export class UpsertOfferingDimensionValuesDto {
-  @IsUUID()
+  @IsUUID('7')
   dimensionId: string;
 
   @IsArray()

@@ -2,11 +2,11 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 
 export class CreateGoodsReceiptDto {
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   purchaseOrderId?: string;
 
   @IsNotEmpty()

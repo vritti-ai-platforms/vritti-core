@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, decimal, index, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { invoices } from './invoices';
@@ -6,7 +7,7 @@ import { organizationIdColumn } from './workspace-scope';
 export const invoiceItems = commerceSchema.table(
   'invoice_items',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     invoiceId: uuid('invoice_id')
       .notNull()

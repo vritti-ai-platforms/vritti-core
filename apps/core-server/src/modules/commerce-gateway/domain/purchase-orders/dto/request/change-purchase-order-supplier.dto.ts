@@ -3,6 +3,6 @@ import { IsUUID } from 'class-validator';
 
 export class ChangePurchaseOrderSupplierDto {
   @ApiProperty({ description: 'Supplier ID' })
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 }

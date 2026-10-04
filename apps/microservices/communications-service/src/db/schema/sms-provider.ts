@@ -17,7 +17,7 @@ export type SmsProviderCode = (typeof SMS_PROVIDER_CODES)[number];
 export const smsProviders = communicationsSchema.table(
   'sms_providers',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     // Nullable, unlike the WhatsApp tables: platform rows carry no organization. Client inserts
     // omit the column and the RLS GUC fills it; platform inserts pass an explicit null, which
     // bypasses the default (evaluating it without an org context would error).

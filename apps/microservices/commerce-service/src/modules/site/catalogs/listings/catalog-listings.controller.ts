@@ -24,14 +24,6 @@ export class SiteCatalogListingsController {
 
   // The MRP slices a variant can be listed at
   // Everything one storefront channel sells — the list a provisioned website files its pages against
-  @MessagePattern({ cmd: 'site.catalogs.listings.forChannel' })
-  listingsForChannel(
-    @Payload() data: { channelId: string; catalogId: string; siteId?: string | null },
-  ): Promise<CatalogListingDto[]> {
-    this.logger.log(`catalogs.listings.forChannel — channelId: ${data.channelId}, site: ${data.siteId ?? 'org'}`);
-    return this.listingsService.findSellableForChannel(data.channelId, data.catalogId, data.siteId);
-  }
-
   @MessagePattern({ cmd: 'site.catalogs.listings.mrpOptions' })
   findMrpOptions(@Payload() data: { offeringVariantId: string }): Promise<CatalogListingMrpOptionDto[]> {
     this.logger.log(`catalogs.listings.mrpOptions — variantId: ${data.offeringVariantId}`);

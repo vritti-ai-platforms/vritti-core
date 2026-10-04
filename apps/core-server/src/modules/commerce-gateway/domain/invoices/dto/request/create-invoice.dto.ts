@@ -39,7 +39,7 @@ export class CreateInvoiceItemDto {
 
   @ApiPropertyOptional({ description: 'Reference to source item (e.g. PO item)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   referenceItemId?: string;
 }
 
@@ -63,7 +63,7 @@ export class CreateInvoiceDto {
 
   @ApiPropertyOptional({ description: 'Party entity ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyId?: string;
 
   @Trim({ nullify: false })
@@ -82,7 +82,7 @@ export class CreateInvoiceDto {
 
   @ApiPropertyOptional({ description: 'Source reference entity ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   referenceId?: string;
 
   @ApiPropertyOptional({ description: 'Discount amount', example: 500.0 })

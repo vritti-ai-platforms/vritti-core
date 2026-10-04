@@ -2,7 +2,7 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateCompanyBankAccountDto {
-  @IsUUID()
+  @IsUUID('7')
   companyId: string;
 
   @Trim({ nullify: false })

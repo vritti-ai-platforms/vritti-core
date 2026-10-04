@@ -4,7 +4,7 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } fr
 
 export class CreatePaymentDto {
   @ApiProperty({ description: 'Invoice to record payment against' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   invoiceId: string;
 

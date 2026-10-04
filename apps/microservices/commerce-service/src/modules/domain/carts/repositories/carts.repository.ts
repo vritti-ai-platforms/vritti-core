@@ -12,6 +12,7 @@ import {
   offeringVariants,
   ownedByWorkspaceExpression,
   parties,
+  partyChannelCatalogId,
 } from '@/db/schema';
 import type { CartItemRow, CartTableRow } from '../dto/entity/cart.dto';
 
@@ -80,7 +81,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
    * shopper. Two price joins rather than one: the outlet's own price wins, the organization-wide row
    * is the fallback, and a single join matching both would return the line twice.
    */
-  private lineRows(currencyCode: string, catalogId?: string, siteId?: string) {
+  private lineRows(currencyCode: string, appId?: string | null, siteId?: string) {
     const sitePrice = aliasedTable(catalogListingPrices, 'site_price');
     const orgPrice = aliasedTable(catalogListingPrices, 'org_price');
 
@@ -115,7 +116,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         catalogListings,
         and(
           eq(catalogListings.offeringVariantId, cartItems.offeringVariantId),
-          catalogId ? eq(catalogListings.catalogId, catalogId) : sql`false`,
+          eq(catalogListings.catalogId, partyChannelCatalogId(sql`${carts.partyId}`, appId)),
         ),
       )
       .leftJoin(
@@ -137,8 +138,13 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
   }
 
   // Every line of one basket
-  async findItems(cartId: string, currencyCode: string, catalogId?: string, siteId?: string): Promise<CartItemRow[]> {
-    const rows = await this.lineRows(currencyCode, catalogId, siteId)
+  async findItems(
+    cartId: string,
+    currencyCode: string,
+    appId?: string | null,
+    siteId?: string,
+  ): Promise<CartItemRow[]> {
+    const rows = await this.lineRows(currencyCode, appId, siteId)
       .where(eq(cartItems.cartId, cartId))
       .orderBy(asc(cartItems.createdAt));
     return rows as CartItemRow[];
@@ -155,13 +161,13 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     cartId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
     currencyCode: string,
-    catalogId?: string,
+    appId?: string | null,
     siteId?: string,
   ): Promise<{ result: CartItemRow[]; count: number }> {
     const where = and(eq(cartItems.cartId, cartId), options.where);
 
     const [rows, [total]] = await Promise.all([
-      this.lineRows(currencyCode, catalogId, siteId)
+      this.lineRows(currencyCode, appId, siteId)
         .where(where)
         .orderBy(...(options.orderBy?.length ? options.orderBy : [asc(cartItems.createdAt)]))
         .limit(options.limit)
@@ -245,10 +251,10 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
   async findAllForParty(
     partyId: string,
     currencyCode: string,
-    catalogId?: string,
+    appId?: string | null,
     siteId?: string,
   ): Promise<(CartItemRow & { cartId: string; siteId: string | null; legalEntityId: string })[]> {
-    const rows = await this.lineRows(currencyCode, catalogId, siteId)
+    const rows = await this.lineRows(currencyCode, appId, siteId)
       .where(eq(carts.partyId, partyId))
       .orderBy(asc(cartItems.createdAt));
     return rows as (CartItemRow & { cartId: string; siteId: string | null; legalEntityId: string })[];

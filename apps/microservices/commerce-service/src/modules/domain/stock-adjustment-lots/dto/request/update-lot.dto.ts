@@ -2,11 +2,11 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsDateString, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateLotDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   adjustmentId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   lotId: string;
 

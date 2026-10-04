@@ -23,7 +23,7 @@ export class CreateSiteInternalDto {
 
   @ApiPropertyOptional({ description: 'Site group ID', example: 'uuid-here' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   groupId?: string;
 
   @ApiPropertyOptional({ description: 'Site description' })
@@ -37,7 +37,7 @@ export class CreateSiteInternalDto {
   timezone: string;
 
   @ApiProperty({ description: 'Owning legal entity ID — the site currency derives from it', example: 'uuid-here' })
-  @IsUUID()
+  @IsUUID('7')
   legalEntityId: string;
 
   @ApiPropertyOptional({
@@ -45,7 +45,7 @@ export class CreateSiteInternalDto {
     example: 'uuid-here',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   registrationId?: string;
 
   @ApiPropertyOptional({

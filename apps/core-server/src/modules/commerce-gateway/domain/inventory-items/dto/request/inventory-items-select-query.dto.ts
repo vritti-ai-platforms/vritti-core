@@ -5,6 +5,6 @@ import { IsOptional, IsUUID } from 'class-validator';
 export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({ description: 'Exclude items already linked to this supplier' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   excludeOnSupplierId?: string;
 }

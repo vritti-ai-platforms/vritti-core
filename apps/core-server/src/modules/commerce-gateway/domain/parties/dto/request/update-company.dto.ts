@@ -48,7 +48,7 @@ export class UpdateCompanyDto {
 
   @ApiPropertyOptional({ description: 'Tax jurisdiction ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId?: string;
 
   @ApiPropertyOptional({ description: 'Whether the company is selectable' })

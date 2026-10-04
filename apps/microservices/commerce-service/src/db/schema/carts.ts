@@ -7,7 +7,7 @@ import { LE_GUC, organizationIdColumn, workspaceScopeColumns, workspaceScopePoli
 export const carts = commerceSchema.table(
   'carts',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     ...workspaceScopeColumns,
     // Declared here rather than by calling .notNull() on the shared builder: drizzle mutates builders

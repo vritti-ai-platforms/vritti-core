@@ -1,9 +1,9 @@
 import { IsUUID } from 'class-validator';
 
 export class ChangePurchaseOrderSupplierDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 }

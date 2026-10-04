@@ -1,4 +1,5 @@
 import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, index, jsonb, text, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { appTypeEnum } from './enums';
@@ -55,7 +56,7 @@ export interface AppSmsOtpConfig {
 export const apps = coreSchema.table(
   'apps',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),

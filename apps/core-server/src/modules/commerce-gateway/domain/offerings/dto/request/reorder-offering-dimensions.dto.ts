@@ -5,6 +5,6 @@ export class ReorderOfferingDimensionsDto {
   @ApiProperty({ type: [String], description: "Every one of the offering's dimension ids, in the new order" })
   @IsArray()
   @ArrayMinSize(1)
-  @IsUUID(undefined, { each: true })
+  @IsUUID('7', { each: true })
   dimensionIds: string[];
 }

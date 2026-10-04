@@ -15,7 +15,7 @@ type CatalogListing {
   price: Money
 }
 
-type ShopperAddress {
+type PartyAddress {
   id: ID!
   line1: String!
   line2: String
@@ -341,15 +341,18 @@ type VerifyWhatsappOtpResult {
 
 type Query {
   peopleByCommunication(input: FindPeopleByCommunicationInput!): [Person!]!
-  shopperProfile: Person!
-  shopperAddresses: [ShopperAddress!]!
+  partyProfile: Person!
+  partyAddresses: [PartyAddress!]!
   wishlist(input: WishlistQueryInput!): [WishlistItem!]!
   wishlistVariantIds: [ID!]!
   cart(input: CartScopeInput!): Cart!
   cartQuantities: [CartQuantity!]!
   catalogListings: [CatalogListing!]!
+  catalogListingsFromVariants(variantIds: [ID!]!): [CatalogListing!]!
   leCatalogListings: [CatalogListing!]!
+  leCatalogListingsFromVariants(variantIds: [ID!]!): [CatalogListing!]!
   siteCatalogListings: [CatalogListing!]!
+  siteCatalogListingsFromVariants(variantIds: [ID!]!): [CatalogListing!]!
 }
 
 input FindPeopleByCommunicationInput {
@@ -370,10 +373,10 @@ type Mutation {
   verifySmsOtp(input: VerifySmsOtpInput!): VerifySmsOtpResult!
   sendWhatsappOtp(input: SendWhatsappOtpInput!): SendWhatsappOtpResult!
   verifyWhatsappOtp(input: VerifyWhatsappOtpInput!): VerifyWhatsappOtpResult!
-  updateShopperProfile(input: UpdateShopperProfileInput!): Person!
-  addShopperAddress(input: ShopperAddressInput!): [ShopperAddress!]!
-  updateShopperAddress(input: UpdateShopperAddressInput!): [ShopperAddress!]!
-  removeShopperAddress(input: ShopperAddressRefInput!): [ShopperAddress!]!
+  updatePartyProfile(input: UpdatePartyProfileInput!): Person!
+  addPartyAddress(input: PartyAddressInput!): [PartyAddress!]!
+  updatePartyAddress(input: UpdatePartyAddressInput!): [PartyAddress!]!
+  removePartyAddress(input: PartyAddressRefInput!): [PartyAddress!]!
   createPerson(input: CreatePersonInput!): Person!
   addPersonCommunication(input: AddPersonCommunicationInput!): PersonCommunication!
   addToWishlist(input: WishlistRefInput!): WishlistAddResult!
@@ -402,13 +405,13 @@ input VerifyWhatsappOtpInput {
   code: String!
 }
 
-input UpdateShopperProfileInput {
+input UpdatePartyProfileInput {
   firstName: String
   lastName: String
   email: String
 }
 
-input ShopperAddressInput {
+input PartyAddressInput {
   line1: String!
   line2: String
   city: String
@@ -418,7 +421,7 @@ input ShopperAddressInput {
   isDefault: Boolean
 }
 
-input UpdateShopperAddressInput {
+input UpdatePartyAddressInput {
   line1: String!
   line2: String
   city: String
@@ -429,7 +432,7 @@ input UpdateShopperAddressInput {
   id: ID!
 }
 
-input ShopperAddressRefInput {
+input PartyAddressRefInput {
   id: ID!
 }
 

@@ -19,7 +19,7 @@ import { communicationsSchema } from './communications-schema';
 export const smsProviderTemplates = communicationsSchema.table(
   'sms_provider_templates',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     // No FK, matching every other table in this schema (sms_otps references its provider the same
     // way). Deleting a provider therefore leaves these rows behind — the service cascades.

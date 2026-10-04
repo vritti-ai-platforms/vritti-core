@@ -16,7 +16,7 @@ export class CreateLocationDto {
   code: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @IsOptional()
@@ -31,7 +31,7 @@ export class CreateLocationDto {
   area?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   managerId?: string;
 
   @IsIn(Object.values(LocationRoleValues))

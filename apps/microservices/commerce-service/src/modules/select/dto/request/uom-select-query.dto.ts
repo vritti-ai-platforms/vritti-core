@@ -14,18 +14,18 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
   baseOnly?: boolean;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   dimensionId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   supplierId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   purchaseOrderId?: string;
 }

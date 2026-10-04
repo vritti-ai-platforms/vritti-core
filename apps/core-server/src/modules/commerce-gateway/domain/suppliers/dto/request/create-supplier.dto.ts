@@ -5,7 +5,7 @@ import { IsBoolean, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Ma
 
 export class CreateSupplierDto {
   @ApiProperty({ description: 'The party (COMPANY or PERSON) this supplier represents' })
-  @IsUUID()
+  @IsUUID('7')
   partyId: string;
 
   @Trim({ nullify: false })

@@ -3,7 +3,7 @@ import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class EnableInventoryItemDto {
   @ApiProperty({ description: 'Master inventory item to enable at the current site' })
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId: string;
 
   @ApiPropertyOptional({ description: 'Reorder point in the base UOM' })

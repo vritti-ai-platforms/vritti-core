@@ -145,7 +145,7 @@ export function toE164(dialCodeOrCountry: string, nationalNumber: string): strin
  * whichever shares the code first — the thing a longest-prefix match cannot get right.
  *
  * Falls back to the default country with the value intact, so a malformed number still renders for
- * the shopper to correct rather than vanishing from the field.
+ * the party to correct rather than vanishing from the field.
  */
 export function splitPhone(value: string | null | undefined): {
   country: CountryCode;

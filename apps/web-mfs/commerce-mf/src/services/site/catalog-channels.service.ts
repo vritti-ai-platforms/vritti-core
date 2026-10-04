@@ -8,8 +8,8 @@ const BASE = 'commerce-api/site/catalog-channels';
 export interface UpsertChannelPayload {
   type: CatalogChannelType;
   catalogId: string;
-  appId?: string | null;
-  terminalId?: string | null;
+  appId?: string;
+  terminalId?: string;
 }
 
 // One endpoint per type, because each names a target the others forbid. Assigning is a PUT: the API
@@ -26,7 +26,7 @@ export function upsertChannel({
   if (type === CatalogChannelTypeValues.POS) {
     return axios.put<CreateResponse<unknown>>(`${BASE}/pos`, { catalogId, terminalId }).then((r) => r.data);
   }
-  return axios.put<CreateResponse<unknown>>(`${BASE}/b2b`, { catalogId }).then((r) => r.data);
+  return axios.put<CreateResponse<unknown>>(`${BASE}/b2b`, { catalogId, appId }).then((r) => r.data);
 }
 
 export function getCatalogChannels(): Promise<ChannelEntryData[]> {

@@ -8,7 +8,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const creditNotes = commerceSchema.table(
   'credit_notes',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     type: creditNoteTypeEnum('type').notNull(),
@@ -53,7 +53,7 @@ export type NewCreditNote = typeof creditNotes.$inferInsert;
 export const creditNoteApplications = commerceSchema.table(
   'credit_note_applications',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     creditNoteId: uuid('credit_note_id')
       .notNull()

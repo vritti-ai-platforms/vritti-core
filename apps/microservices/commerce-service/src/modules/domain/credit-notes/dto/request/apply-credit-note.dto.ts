@@ -1,11 +1,11 @@
 import { IsNotEmpty, IsNumber, IsUUID, Min } from 'class-validator';
 
 export class ApplyCreditNoteDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   id: string;
 
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   invoiceId: string;
 

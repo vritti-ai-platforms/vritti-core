@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { codeCheck, index, jsonb, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { categories } from './categories';
 import { commerceSchema } from './commerce-schema';
@@ -8,7 +9,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const inventoryItems = commerceSchema.table(
   'inventory_items',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     name: varchar('name', { length: 255 }).notNull(),
     sku: varchar('sku', { length: 100 }).notNull(),

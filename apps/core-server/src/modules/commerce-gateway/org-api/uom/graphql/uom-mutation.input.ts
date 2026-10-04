@@ -7,7 +7,7 @@ import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID,
 @InputType()
 export class CreateUomInput {
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   dimensionId: string;
 
   @Field(() => String)
@@ -26,7 +26,7 @@ export class CreateUomInput {
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   baseUnitId?: string;
 
   @Field(() => Int, { nullable: true })

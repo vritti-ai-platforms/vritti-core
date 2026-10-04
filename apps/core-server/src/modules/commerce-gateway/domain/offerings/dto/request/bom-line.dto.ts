@@ -3,7 +3,7 @@ import { IsNumber, IsOptional, IsPositive, IsUUID } from 'class-validator';
 
 export class AddBomLineDto {
   @ApiProperty({ description: 'Inventory item this variant draws on' })
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId: string;
 
   @ApiProperty({ description: 'Quantity consumed per one of this variant', example: 1 })
@@ -12,7 +12,7 @@ export class AddBomLineDto {
   quantity: number;
 
   @ApiProperty({ description: "Unit the quantity is in; converted to the item's stocking unit" })
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 }
 
@@ -25,6 +25,6 @@ export class UpdateBomLineDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 }

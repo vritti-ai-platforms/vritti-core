@@ -1,9 +1,10 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, integer, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { users } from './users';
 
 export const verifications = coreSchema.table('verifications', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey().default(sql`uuidv7()`),
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),

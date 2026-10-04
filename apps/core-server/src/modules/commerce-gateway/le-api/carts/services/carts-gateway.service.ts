@@ -87,9 +87,8 @@ export class LeCartsGatewayService {
 
   // Returns a basket's lines, priced through this site's channel
   async findItems(id: string, currencyCode: string): Promise<CartLinesResponse> {
-    const catalogId = await this.resolveCatalog();
     this.logger.log(`le.carts.findItemsById — id: ${id}`);
-    return this.nats.send('commerce', 'le.carts.findItemsById', { id, currencyCode, catalogId });
+    return this.nats.send('commerce', 'le.carts.findItemsById', { id, currencyCode, appId: null });
   }
 
   // Returns paginated, filtered and sorted items of one basket for the data table
@@ -99,18 +98,17 @@ export class LeCartsGatewayService {
       userId,
       `commerce-le-cart-${cartId}-items`,
     );
-    const catalogId = await this.resolveCatalog();
 
     const { result, count } = await this.nats.send<{ result: CartLineRow[]; count: number }>(
       'commerce',
       'le.carts.items.table',
-      { cartId, currencyCode, catalogId, ...(state as object) },
+      { cartId, currencyCode, appId: null, ...(state as object) },
     );
 
     return { result, count, state, activeViewId };
   }
 
-  // Opens a basket for a shopper, or hands back the one they already have here
+  // Opens a basket for a party, or hands back the one they already have here
   async create(input: { partyId: string }): Promise<CreateResponseDto<CartRow>> {
     this.logger.log(`le.carts.create — party: ${input.partyId}`);
     return this.nats.send('commerce', 'le.carts.create', { partyId: input.partyId });
@@ -131,9 +129,8 @@ export class LeCartsGatewayService {
       currencyCode: string;
     },
   ): Promise<CartLinesResponse> {
-    const catalogId = await this.resolveCatalog();
     this.logger.log(`le.carts.items.addForCart — cart: ${cartId}, variant: ${input.offeringVariantId}`);
-    await this.nats.send('commerce', 'le.carts.items.addForCart', { cartId, catalogId, ...input });
+    await this.nats.send('commerce', 'le.carts.items.addForCart', { cartId, appId: null, ...input });
     return this.findItems(cartId, input.currencyCode);
   }
 
@@ -155,20 +152,5 @@ export class LeCartsGatewayService {
     this.logger.log(`le.carts.items.removeForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
     await this.nats.send('commerce', 'le.carts.items.removeForCart', { cartId, offeringVariantId, ...input });
     return this.findItems(cartId, input.currencyCode);
-  }
-
-  /**
-   * The catalogue this company sells from, or nothing when it has not been given a channel.
-   *
-   * Never throws — see the site gateway's copy for why a missing price list must not stop a basket.
-   */
-  private async resolveCatalog(): Promise<string | undefined> {
-    const resolution = await this.nats.send<{
-      resolved: boolean;
-      catalog: { catalogId: string; channelId: string } | null;
-      // The workspace is the request's own RLS context — the server derives a site's LE — so it is not sent.
-    }>('commerce', 'org.catalogChannels.resolve', { type: 'APP' });
-
-    return resolution?.catalog?.catalogId;
   }
 }

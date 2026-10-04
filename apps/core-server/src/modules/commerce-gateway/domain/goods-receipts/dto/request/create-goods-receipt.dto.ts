@@ -4,12 +4,12 @@ import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from '
 
 export class CreateGoodsReceiptDto {
   @ApiProperty({ description: 'Supplier ID' })
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
   @ApiPropertyOptional({ description: 'Purchase order ID (optional)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   purchaseOrderId?: string;
 
   @ApiProperty({ description: 'Date the goods were received (ISO string)', example: '2026-04-10' })

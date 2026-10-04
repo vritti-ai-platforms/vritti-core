@@ -1,16 +1,16 @@
 import { IsNotEmpty, IsNumber, IsUUID } from 'class-validator';
 
 export class AddChangeLineDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   adjustmentId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   quantId: string;
 
   @IsNumber()
   uomQty: number;
 
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 }

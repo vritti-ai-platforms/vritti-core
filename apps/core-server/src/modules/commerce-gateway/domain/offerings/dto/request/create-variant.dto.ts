@@ -4,13 +4,13 @@ import { ArrayMinSize, IsArray, IsOptional, IsString, IsUUID, MaxLength } from '
 
 export class CreateVariantDto {
   @ApiProperty()
-  @IsUUID()
+  @IsUUID('7')
   salesUomId: string;
 
   @ApiProperty({ type: [String], description: 'Exactly one value per dimension — a variant is a complete combination' })
   @IsArray()
   @ArrayMinSize(1)
-  @IsUUID('4', { each: true })
+  @IsUUID('7', { each: true })
   valueIds: string[];
 
   @Trim()

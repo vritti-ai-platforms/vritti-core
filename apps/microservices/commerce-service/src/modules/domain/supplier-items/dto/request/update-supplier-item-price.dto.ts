@@ -2,7 +2,7 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsDateString, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class UpdateSupplierItemPriceDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()

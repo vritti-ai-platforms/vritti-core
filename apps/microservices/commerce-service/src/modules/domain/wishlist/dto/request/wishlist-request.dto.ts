@@ -10,10 +10,10 @@ import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
  * gateway resolves both from the caller's APP channel.
  */
 export class WishlistScopeDto {
-  @IsUUID()
+  @IsUUID('7')
   appId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   partyId: string;
 
   /** ISO 4217, so each row can be priced as it is listed back. */
@@ -22,22 +22,22 @@ export class WishlistScopeDto {
   currencyCode: string;
 
   /** The catalogue the caller's storefront sells, so another's product is refused. */
-  @IsUUID()
+  @IsUUID('7')
   catalogId: string;
 
   /** The outlet whose price wins, falling back to the organization-wide row when it has none. */
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   siteId?: string;
 }
 
 export class AddWishlistItemDto extends WishlistScopeDto {
   /** The product. Which catalogue offers it is resolved per read, never stored. */
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 }
 
 export class RemoveWishlistItemDto extends WishlistScopeDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 }

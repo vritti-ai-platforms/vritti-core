@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { IsEnum, IsOptional, IsUUID, ValidateIf } from 'class-validator';
 import { type CatalogChannelType, CatalogChannelTypeValues } from '@/db/schema';
 
 // One DTO per channel type, because each type names a different target and the database rejects the
@@ -7,28 +7,32 @@ import { type CatalogChannelType, CatalogChannelTypeValues } from '@/db/schema';
 
 // appId absent means the fallback every unnamed caller resolves to
 export class UpsertAppChannelDto {
-  @IsUUID('all')
+  @IsUUID('7')
   catalogId: string;
 
-  @IsOptional()
-  @IsUUID('all')
-  appId?: string | null;
+  @ValidateIf((_, value) => value !== undefined)
+  @IsUUID('7')
+  appId?: string;
 }
 
 // terminalId absent means every terminal in reach of this workspace
 export class UpsertPosChannelDto {
-  @IsUUID('all')
+  @IsUUID('7')
   catalogId: string;
 
-  @IsOptional()
-  @IsUUID('all')
-  terminalId?: string | null;
+  @ValidateIf((_, value) => value !== undefined)
+  @IsUUID('7')
+  terminalId?: string;
 }
 
-// B2B names no target: one assignment per workspace, enforced by ck_catalog_channels_target_matches_type
+// appId absent means the fallback every unnamed wholesale caller resolves to
 export class UpsertB2bChannelDto {
-  @IsUUID('all')
+  @IsUUID('7')
   catalogId: string;
+
+  @ValidateIf((_, value) => value !== undefined)
+  @IsUUID('7')
+  appId?: string;
 }
 
 // The workspace is the request's RLS context, not a field: see `findWinningCandidate`
@@ -37,10 +41,10 @@ export class ResolveCatalogChannelDto {
   type: CatalogChannelType;
 
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   appId?: string | null;
 
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   terminalId?: string | null;
 }

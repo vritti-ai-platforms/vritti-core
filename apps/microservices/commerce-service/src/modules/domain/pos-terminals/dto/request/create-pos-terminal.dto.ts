@@ -14,11 +14,11 @@ export class CreatePosTerminalDto {
   @MaxLength(50)
   code: string;
 
-  @IsUUID()
+  @IsUUID('7')
   locationId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   catalogId?: string;
 
   @Trim()

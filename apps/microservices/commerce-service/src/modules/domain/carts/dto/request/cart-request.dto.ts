@@ -17,7 +17,7 @@ import { IsInt, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-val
  * still has baskets, and they come back unpriced rather than refused.
  */
 export class CartScopeDto {
-  @IsUUID()
+  @IsUUID('7')
   partyId: string;
 
   /** ISO 4217. Fixes which of a listing's prices the basket is read at. */
@@ -27,18 +27,18 @@ export class CartScopeDto {
 
   /** The catalogue the reader sells from, when they have one. */
   @IsOptional()
-  @IsUUID()
-  catalogId?: string;
+  @IsUUID('7')
+  appId?: string;
 
   /** The outlet whose price wins, falling back to the organization-wide row when it has none. */
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   siteId?: string;
 }
 
 export class AddCartItemDto extends CartScopeDto {
   /** The product. Which catalogue offers it is resolved per read, never stored. */
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 
   // Bounded here as well as by the CHECK, so an out-of-range quantity is a readable refusal rather
@@ -50,7 +50,7 @@ export class AddCartItemDto extends CartScopeDto {
 }
 
 export class UpdateCartItemDto extends CartScopeDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 
   @IsInt()
@@ -60,12 +60,12 @@ export class UpdateCartItemDto extends CartScopeDto {
 }
 
 export class RemoveCartItemDto extends CartScopeDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 }
 
 /** Emptying needs no currency or catalogue: nothing is read back, so there is no price to resolve. */
 export class ClearCartDto {
-  @IsUUID()
+  @IsUUID('7')
   partyId: string;
 }

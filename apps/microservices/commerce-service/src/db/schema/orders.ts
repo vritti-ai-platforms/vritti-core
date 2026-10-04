@@ -21,7 +21,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const orders = commerceSchema.table(
   'orders',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     orderNumber: varchar('order_number', { length: 50 }).notNull(),
@@ -82,7 +82,7 @@ export type NewOrder = typeof orders.$inferInsert;
 export const orderItems = commerceSchema.table(
   'order_items',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     orderId: uuid('order_id')
       .notNull()

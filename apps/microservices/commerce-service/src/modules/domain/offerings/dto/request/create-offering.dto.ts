@@ -23,12 +23,12 @@ export class CreateOfferingDto {
   description?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   categoryId?: string | null;
 
   @IsEnum(FulfilmentTypeValues)
   fulfilmentType: keyof typeof FulfilmentTypeValues;
 
-  @IsUUID()
+  @IsUUID('7')
   taxClassId: string;
 }

@@ -4,7 +4,7 @@
 import type { CollectionConfig, Field } from 'payload' with { 'resolution-mode': 'import' };
 import type { CollectionLike } from '../runtime';
 
-/** True for a staff account, false for a shopper or an anonymous request. */
+/** True for a staff account, false for a party or an anonymous request. */
 function isStaff(user: { collection?: string } | null | undefined): boolean {
   return user?.collection === 'users';
 }
@@ -25,7 +25,7 @@ const sessionsField: Field = {
   name: 'sessions',
   type: 'array',
   access: {
-    // A session list is the one thing a shopper must not read about anyone else, and must never write.
+    // A session list is the one thing a party must not read about anyone else, and must never write.
     read: ({ doc, req: { user } }) => user?.id === doc?.id,
     update: () => false,
   },
@@ -50,7 +50,7 @@ const sessionsField: Field = {
  * login this app no longer performs.
  *
  * Deliberately not the `users` collection. Two auth collections cost nothing and buy a hard boundary:
- * only `users` is wired to `admin.user`, so a shopper has no route into the admin panel even if these
+ * only `users` is wired to `admin.user`, so a party has no route into the admin panel even if these
  * access rules were later loosened by mistake.
  *
  * `create` stays shut. Sign-in runs through a server action using the Local API, which bypasses these
@@ -61,10 +61,10 @@ export function customersCollection(extraFields: Field[] = []): CollectionLike {
   // Authored against CollectionConfig for the field-level safety, handed back opaque so the built types
   // never name one installed copy of payload.
   const collection: CollectionConfig = {
-    slug: 'customers',
+    slug: 'parties',
     labels: { singular: 'Customer', plural: 'Customers' },
     auth: {
-      // Long enough that a shopper is not signed out mid-basket, short enough that a shared machine
+      // Long enough that a party is not signed out mid-basket, short enough that a shared machine
       // forgets them within the week.
       tokenExpiration: 60 * 60 * 24 * 7,
       // No email/password login. Sessions are minted directly once core has confirmed a code, so the
@@ -81,7 +81,7 @@ export function customersCollection(extraFields: Field[] = []): CollectionLike {
       // Belt and braces. `admin.user` already excludes this collection from the panel; this makes the
       // intent unmissable to anyone reading the config.
       admin: () => false,
-      // Staff see everyone; a shopper sees exactly their own record. Returning a query rather than
+      // Staff see everyone; a party sees exactly their own record. Returning a query rather than
       // `true` is what keeps `GET /api/customers` from becoming a customer list for anyone holding a
       // session cookie.
       read: ({ req: { user } }) => {
@@ -105,7 +105,7 @@ export function customersCollection(extraFields: Field[] = []): CollectionLike {
         index: true,
         admin: {
           description:
-            'E.164, and how a returning shopper is recognised — the number their sign-in code is sent to. Not unique: one number can legitimately belong to more than one account, and the oldest wins.',
+            'E.164, and how a returning party is recognised — the number their sign-in code is sent to. Not unique: one number can legitimately belong to more than one account, and the oldest wins.',
         },
       },
       {
@@ -114,7 +114,7 @@ export function customersCollection(extraFields: Field[] = []): CollectionLike {
         required: true,
         admin: {
           description:
-            'How the storefront greets them — a copy of the party\'s display name in Vritti, which is the source of truth. Taken from there for a shopper the organization already knows, and asked for only when the number is new.',
+            'How the storefront greets them — a copy of the party\'s display name in Vritti, which is the source of truth. Taken from there for a party the organization already knows, and asked for only when the number is new.',
         },
       },
       {
@@ -124,7 +124,7 @@ export function customersCollection(extraFields: Field[] = []): CollectionLike {
         admin: {
           readOnly: true,
           description:
-            'The person in Vritti commerce that orders reference. Resolved when the code is verified: an existing party is reused when the organization already knows this number, so the same shopper at a sibling store is one person rather than two.',
+            'The person in Vritti commerce that orders reference. Resolved when the code is verified: an existing party is reused when the organization already knows this number, so the same party at a sibling store is one person rather than two.',
         },
       },
       sessionsField,

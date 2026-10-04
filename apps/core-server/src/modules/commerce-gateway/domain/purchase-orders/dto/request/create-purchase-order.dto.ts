@@ -4,7 +4,7 @@ import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'c
 
 export class CreatePurchaseOrderDto {
   @ApiProperty({ description: 'Supplier ID' })
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
   @ApiProperty({ description: 'Order date (ISO string)', example: '2026-04-10' })

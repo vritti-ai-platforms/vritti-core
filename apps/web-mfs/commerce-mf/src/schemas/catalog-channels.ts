@@ -15,7 +15,7 @@ export const CatalogChannelTypeValues = {
 // one set of components serves every scope
 export const CHANNEL_TYPE_META: Record<
   CatalogChannelType,
-  { label: string; description: string; slotLabel: string; gridLabel: string | null; emptyNote: string }
+  { label: string; description: string; slotLabel: string; gridLabel: string; emptyNote: string }
 > = {
   APP: {
     label: 'App',
@@ -34,10 +34,10 @@ export const CHANNEL_TYPE_META: Record<
   },
   B2B: {
     label: 'B2B',
-    description: 'Wholesale invoicing',
-    slotLabel: 'Wholesale catalog',
-    gridLabel: null,
-    emptyNote: 'B2B names no individual target, so this is the single wholesale assignment for this level.',
+    description: 'Wholesale sites, for buyers that are companies',
+    slotLabel: 'Default for all wholesale sites',
+    gridLabel: 'Sites',
+    emptyNote: 'No apps are registered yet. Every app you add sells this to company buyers.',
   },
 };
 

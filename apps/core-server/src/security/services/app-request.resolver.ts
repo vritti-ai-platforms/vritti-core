@@ -106,7 +106,7 @@ export class AppRequestResolver {
     // edited in cloud takes effect on the next request rather than when a cache expires.
     auth.permissions = app.permissions;
 
-    // The shopper the app is acting for, when it named one. Signed, so it cannot be
+    // The party the app is acting for, when it named one. Signed, so it cannot be
     // swapped in transit. The workspace headers are left to `applyContextHeaders`,
     // which both callers share.
     if (partyId) auth.partyId = partyId;

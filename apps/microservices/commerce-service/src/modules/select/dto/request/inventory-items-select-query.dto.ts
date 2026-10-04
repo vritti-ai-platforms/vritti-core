@@ -3,6 +3,6 @@ import { IsOptional, IsUUID } from 'class-validator';
 
 export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   excludeOnSupplierId?: string;
 }

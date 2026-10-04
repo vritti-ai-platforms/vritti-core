@@ -8,6 +8,6 @@ export class OrgStructureSelectQueryDto extends SelectOptionsQueryDto {
     example: 'uuid-here',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   excludeId?: string;
 }

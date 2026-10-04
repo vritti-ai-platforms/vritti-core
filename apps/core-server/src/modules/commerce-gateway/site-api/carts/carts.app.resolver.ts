@@ -10,12 +10,12 @@ import { Cart, CartQuantity } from './graphql/cart.type';
 import { CartsGatewayService } from './services/carts-gateway.service';
 
 /**
- * A shopper's basket, for the organization's own storefronts.
+ * A party's basket, for the organization's own storefronts.
  *
- * **Nothing here takes a party or a cart id.** The shopper comes from `@PartyId()`, which reads the
- * party the request was signed for; the basket is whichever one belongs to that shopper in this
+ * **Nothing here takes a party or a cart id.** The party comes from `@PartyId()`, which reads the
+ * party the request was signed for; the basket is whichever one belongs to that party in this
  * app. There is therefore no argument a caller could change to reach somebody else's basket — the
- * only way to act for a different shopper is to sign for them, which requires their credential.
+ * only way to act for a different party is to sign for them, which requires their credential.
  *
  * The catalogue is resolved from the credential too, in the gateway service, so a listing from a
  * range this storefront does not sell is refused even with a valid id.
@@ -37,7 +37,7 @@ export class CartsAppResolver {
 
   constructor(private readonly service: CartsGatewayService) {}
 
-  /** The shopper's basket, or an empty one. Never creates a row. */
+  /** The party's basket, or an empty one. Never creates a row. */
   @Query(() => Cart, { name: 'cart' })
   @RequirePermission(SITE_CARTS.view)
   cart(
@@ -47,11 +47,11 @@ export class CartsAppResolver {
     @Args('input') input: CartScopeInput,
   ): Promise<Cart> {
     this.logger.log('QUERY cart');
-    return this.service.findShopperCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
+    return this.service.findPartyCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
   }
 
   /**
-   * How many of each product the shopper holds — a product page draws its stepper from this.
+   * How many of each product the party holds — a product page draws its stepper from this.
    *
    * The cheap read beside `cart`: counts only, no catalogue resolved and nothing priced, so a page
    * can ask on every view without paying for the whole basket.
@@ -63,7 +63,7 @@ export class CartsAppResolver {
     return this.service.findShopperQuantities(partyId);
   }
 
-  /** Adds a listing, opening a basket if this is the shopper's first line. */
+  /** Adds a listing, opening a basket if this is the party's first line. */
   @Mutation(() => Cart, { name: 'addToCart' })
   @RequirePermission(SITE_CARTS.add)
   addToCart(
@@ -101,7 +101,7 @@ export class CartsAppResolver {
     return this.service.removeShopperItem({ appId, partyId, siteId, ...input }) as Promise<Cart>;
   }
 
-  /** Empties the basket — a delete of every line the shopper holds in this storefront. */
+  /** Empties the basket — a delete of every line the party holds in this storefront. */
   @Mutation(() => Cart, { name: 'clearCart' })
   @RequirePermission(SITE_CARTS.delete)
   async clearCart(
@@ -113,6 +113,6 @@ export class CartsAppResolver {
     this.logger.log('MUTATION clearCart');
     await this.service.clearShopperCart(partyId);
     // The emptied basket rather than a bare success flag, so a caller redraws from one response.
-    return this.service.findShopperCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
+    return this.service.findPartyCart(appId, partyId, input.currencyCode, siteId) as Promise<Cart>;
   }
 }

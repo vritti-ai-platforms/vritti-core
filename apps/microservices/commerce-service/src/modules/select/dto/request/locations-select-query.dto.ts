@@ -7,14 +7,14 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
   locationRoles?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   excludeUsedOnGoodsReceiptItemId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   goodsReceiptLotId?: string;
 }

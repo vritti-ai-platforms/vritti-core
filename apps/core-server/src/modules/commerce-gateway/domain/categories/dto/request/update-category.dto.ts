@@ -13,7 +13,7 @@ export class UpdateCategoryDto {
 
   @ApiPropertyOptional({ description: 'Parent category ID (null to make root-level)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @ApiPropertyOptional({
@@ -38,6 +38,6 @@ export class UpdateCategoryDto {
 
   @ApiPropertyOptional({ description: 'Updated default tax class applied to items in this category' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   defaultTaxClassId?: string;
 }

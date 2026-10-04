@@ -3,10 +3,10 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsBoolean, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class AddPurchaseOrderItemDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
-  @IsUUID()
+  @IsUUID('7')
   supplierItemId: string;
 
   @IsNumber({ maxDecimalPlaces: 3 })

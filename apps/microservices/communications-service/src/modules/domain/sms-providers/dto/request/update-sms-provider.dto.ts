@@ -4,7 +4,7 @@ import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, MaxLengt
 // The provider code is immutable — switching vendors is a new row, not an edit (in-flight OTPs
 // reference this row's provider for stats)
 export class UpdateSmsProviderDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()

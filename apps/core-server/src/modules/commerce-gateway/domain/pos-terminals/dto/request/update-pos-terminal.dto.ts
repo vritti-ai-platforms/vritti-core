@@ -22,12 +22,12 @@ export class UpdatePosTerminalDto {
 
   @ApiPropertyOptional({ description: 'Linked POS storage location ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   locationId?: string;
 
   @ApiPropertyOptional({ description: 'Catalog this terminal sells from' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   catalogId?: string;
 
   @Trim()

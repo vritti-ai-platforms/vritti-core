@@ -29,7 +29,7 @@ function toCoreError(error: unknown): unknown {
   }
 
   // Core is up but failing, or something between us and it is. Either way the caller cannot fix it
-  // and the shopper should not read a stack trace.
+  // and the party should not read a stack trace.
   if (ServerError.is(error) && error.statusCode >= 500) {
     return new VapError('The store is unavailable right now.', undefined, error.statusCode);
   }

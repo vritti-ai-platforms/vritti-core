@@ -3,7 +3,6 @@ import { LegalEntityDomainModule } from '@domain/legal-entity/legal-entity.modul
 import { SiteDomainModule } from '@domain/site/site.module';
 import { Module } from '@nestjs/common';
 import { LeCartsGatewayService } from './le-api/carts/services/carts-gateway.service';
-import { LeAppCatalogChannelGatewayService } from './le-api/catalog-channels/services/app-catalog-channel-gateway.service';
 import { LeCatalogChannelsGatewayService } from './le-api/catalog-channels/services/catalog-channels-gateway.service';
 import { LeCatalogsGatewayService } from './le-api/catalogs/services/catalogs-gateway.service';
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
@@ -12,7 +11,6 @@ import { LeOfferingsGatewayService } from './le-api/offerings/services/offerings
 import { SuppliersGatewayService } from './le-api/suppliers/services/suppliers-gateway.service';
 import { TaxGroupsGatewayService } from './le-api/tax-groups/services/tax-groups-gateway.service';
 import { TaxRegistrationsGatewayService } from './le-api/tax-registrations/services/tax-registrations-gateway.service';
-import { AppCatalogChannelGatewayService } from './org-api/catalog-channels/services/app-catalog-channel-gateway.service';
 import { CatalogChannelsGatewayService } from './org-api/catalog-channels/services/catalog-channels-gateway.service';
 import { CatalogsGatewayService } from './org-api/catalogs/services/catalogs-gateway.service';
 import { CategoriesGatewayService } from './org-api/categories/services/categories-gateway.service';
@@ -26,7 +24,6 @@ import { TaxComponentsGatewayService } from './org-api/tax-components/services/t
 import { TaxJurisdictionsGatewayService } from './org-api/tax-jurisdictions/services/tax-jurisdictions-gateway.service';
 import { UomGatewayService } from './org-api/uom/services/uom-gateway.service';
 import { CartsGatewayService } from './site-api/carts/services/carts-gateway.service';
-import { SiteAppCatalogChannelGatewayService } from './site-api/catalog-channels/services/app-catalog-channel-gateway.service';
 import { SiteCatalogChannelsGatewayService } from './site-api/catalog-channels/services/catalog-channels-gateway.service';
 import { SiteCatalogsGatewayService } from './site-api/catalogs/services/catalogs-gateway.service';
 import { CreditNotesGatewayService } from './site-api/credit-notes/services/credit-notes-gateway.service';
@@ -63,9 +60,6 @@ const services = [
   LocationsGatewayService,
   InvoicesGatewayService,
   CatalogChannelsGatewayService,
-  AppCatalogChannelGatewayService,
-  LeAppCatalogChannelGatewayService,
-  SiteAppCatalogChannelGatewayService,
   LeCatalogChannelsGatewayService,
   SiteCatalogChannelsGatewayService,
   CatalogsGatewayService,

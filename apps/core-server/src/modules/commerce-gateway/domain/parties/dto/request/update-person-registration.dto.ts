@@ -8,7 +8,7 @@ type TaxRegistrationTypeValue = (typeof TAX_REGISTRATION_TYPES)[number];
 export class UpdatePersonRegistrationDto {
   @ApiPropertyOptional({ description: 'Tax jurisdiction ID the registration belongs to' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId?: string;
 
   @Trim({ nullify: false })

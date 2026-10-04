@@ -17,11 +17,11 @@ export class UpdatePosTerminalDto {
   code?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   locationId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   catalogId?: string;
 
   @Trim()

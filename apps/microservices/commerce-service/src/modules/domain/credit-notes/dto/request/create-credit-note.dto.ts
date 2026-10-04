@@ -10,7 +10,7 @@ export class CreateCreditNoteDto {
   partyType: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyId?: string;
 
   @IsString()
@@ -36,6 +36,6 @@ export class CreateCreditNoteDto {
   status?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   issuedBy?: string;
 }

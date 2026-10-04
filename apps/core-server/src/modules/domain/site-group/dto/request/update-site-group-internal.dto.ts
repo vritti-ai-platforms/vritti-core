@@ -33,7 +33,7 @@ export class UpdateSiteGroupInternalDto {
   })
   @IsOptional()
   @ValidateIf((o) => o.parentId !== null)
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @ApiPropertyOptional({ example: true })

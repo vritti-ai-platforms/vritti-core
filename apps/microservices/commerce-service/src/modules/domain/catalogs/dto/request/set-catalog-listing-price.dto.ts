@@ -2,13 +2,13 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsOptional, IsUUID } from 'class-validator';
 
 export class SetCatalogListingPriceDto {
-  @IsUUID('all')
+  @IsUUID('7')
   catalogListingId: string;
 
   @IsCurrency()
   price: CurrencyAmountDto;
 
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   siteId?: string | null;
 }

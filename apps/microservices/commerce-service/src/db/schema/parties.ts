@@ -28,7 +28,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const parties = commerceSchema.table(
   'parties',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyType: partyTypeEnum('party_type').notNull(),
     displayName: varchar('display_name', { length: 255 }).notNull(),
@@ -56,7 +56,7 @@ export type NewParty = typeof parties.$inferInsert;
 export const partyAddresses = commerceSchema.table(
   'party_addresses',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
@@ -87,7 +87,7 @@ export type NewPartyAddress = typeof partyAddresses.$inferInsert;
 export const partyIdentifiers = commerceSchema.table(
   'party_identifiers',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
@@ -116,7 +116,7 @@ export type NewPartyIdentifier = typeof partyIdentifiers.$inferInsert;
 export const partyRelationships = commerceSchema.table(
   'party_relationships',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     parentPartyId: uuid('parent_party_id')
       .notNull()
@@ -146,7 +146,7 @@ export type NewPartyRelationship = typeof partyRelationships.$inferInsert;
 export const partyTaxRegistrations = commerceSchema.table(
   'party_tax_registrations',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
@@ -178,7 +178,7 @@ export type NewPartyTaxRegistration = typeof partyTaxRegistrations.$inferInsert;
 export const partyLicenses = commerceSchema.table(
   'party_licenses',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
@@ -208,7 +208,7 @@ export type NewPartyLicense = typeof partyLicenses.$inferInsert;
 export const partyBankAccounts = commerceSchema.table(
   'party_bank_accounts',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
@@ -240,7 +240,7 @@ export type NewPartyBankAccount = typeof partyBankAccounts.$inferInsert;
 export const partyCommunications = commerceSchema.table(
   'party_communications',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
@@ -271,7 +271,7 @@ export type NewPartyCommunication = typeof partyCommunications.$inferInsert;
 export const partyCommunicationApps = commerceSchema.table(
   'party_communication_apps',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     communicationId: uuid('communication_id')
       .notNull()
@@ -297,7 +297,7 @@ export type NewPartyCommunicationApp = typeof partyCommunicationApps.$inferInser
 export const partySocialProfiles = commerceSchema.table(
   'party_social_profiles',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()
@@ -319,7 +319,7 @@ export type NewPartySocialProfile = typeof partySocialProfiles.$inferInsert;
 export const partyFunctions = commerceSchema.table(
   'party_functions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     partyId: uuid('party_id')
       .notNull()

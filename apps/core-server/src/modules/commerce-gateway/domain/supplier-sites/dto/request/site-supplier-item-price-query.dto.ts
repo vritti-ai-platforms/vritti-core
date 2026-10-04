@@ -3,17 +3,17 @@ import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class SiteSupplierItemPriceQueryDto {
   @ApiProperty({ description: 'Supplier ID' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   supplierId: string;
 
   @ApiProperty({ description: 'Inventory item ID' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   inventoryItemId: string;
 
   @ApiProperty({ description: 'UOM ID for pricing' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   uomId: string;
 }

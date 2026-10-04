@@ -4,13 +4,13 @@ import { ArrayNotEmpty, IsArray, IsUUID, ValidateNested } from 'class-validator'
 
 export class CombinationAxisDto {
   @ApiProperty({ description: 'Dimension the values belong to' })
-  @IsUUID()
+  @IsUUID('7')
   dimensionId: string;
 
   @ApiProperty({ type: [String], description: 'Values selected on this axis' })
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   valueIds: string[];
 }
 

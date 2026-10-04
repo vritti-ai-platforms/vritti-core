@@ -3,7 +3,7 @@ import { IsNumber, IsUUID, Min } from 'class-validator';
 
 export class CreateInventoryItemLocationDto {
   @ApiProperty({ description: 'Storage location ID' })
-  @IsUUID()
+  @IsUUID('7')
   locationId: string;
 
   @ApiProperty({ description: 'Minimum stock level threshold for reorder at this location' })

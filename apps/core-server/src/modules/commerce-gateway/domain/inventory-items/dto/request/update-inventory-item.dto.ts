@@ -28,7 +28,7 @@ export class UpdateInventoryItemDto {
 
   @ApiPropertyOptional({ description: 'Category ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   categoryId?: string;
 
   @Trim()
@@ -40,7 +40,7 @@ export class UpdateInventoryItemDto {
 
   @ApiPropertyOptional({ description: 'Unit of measure ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 
   @ApiPropertyOptional({

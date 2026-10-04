@@ -1,10 +1,10 @@
 import { IsNumber, IsOptional, IsPositive, IsUUID } from 'class-validator';
 
 export class AddBomLineDto {
-  @IsUUID()
+  @IsUUID('7')
   variantId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId: string;
 
   @IsNumber({ maxDecimalPlaces: 3 })
@@ -12,12 +12,12 @@ export class AddBomLineDto {
   quantity: number;
 
   // May differ from how the item is stocked; resolved through inventory_item_uom_conversions
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 }
 
 export class UpdateBomLineDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()
@@ -26,6 +26,6 @@ export class UpdateBomLineDto {
   quantity?: number;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 }

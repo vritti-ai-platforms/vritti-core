@@ -29,7 +29,7 @@ export class UpdateSiteInventoryItemDto {
 
   @ApiPropertyOptional({ description: 'Category ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   categoryId?: string;
 
   @Trim()
@@ -41,7 +41,7 @@ export class UpdateSiteInventoryItemDto {
 
   @ApiPropertyOptional({ description: 'Unit of measure ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 
   @ApiPropertyOptional({
@@ -54,7 +54,7 @@ export class UpdateSiteInventoryItemDto {
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
   @ApiProperty({ description: 'Purchase tax group ID' })
-  @IsUUID()
+  @IsUUID('7')
   purchaseTaxGroupId: string;
 
   @Trim()

@@ -22,7 +22,7 @@ export class VapError extends Error {
  * Core refused, **and** undoing the local record failed too.
  *
  * The state this reports is the one worth interrupting for: an account that can
- * sign in with nothing behind it in commerce. The shopper will get all the way to
+ * sign in with nothing behind it in commerce. The party will get all the way to
  * checkout before anything looks wrong, so a caller should log this loudly and
  * tell them to sign in rather than inviting a retry that will now say their email
  * is taken.

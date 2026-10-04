@@ -5,7 +5,7 @@ import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateStockAdjustmentDto {
   @ApiProperty({ description: 'Inventory item ID' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   inventoryItemId: string;
 

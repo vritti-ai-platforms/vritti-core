@@ -5,7 +5,7 @@ export class BulkSetVariantsStatusDto {
   @ApiProperty({ type: [String], description: 'Refused outright unless every one of them satisfies the BOM rule' })
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   ids: string[];
 
   @ApiProperty()

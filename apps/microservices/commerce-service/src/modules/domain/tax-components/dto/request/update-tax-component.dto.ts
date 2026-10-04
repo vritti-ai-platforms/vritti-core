@@ -3,7 +3,7 @@ import { IsBoolean, IsIn, IsOptional, IsString, IsUUID, MaxLength } from 'class-
 import { type TaxAuthorityLevel, taxAuthorityLevelEnum } from '@/db/schema';
 
 export class UpdateTaxComponentDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })

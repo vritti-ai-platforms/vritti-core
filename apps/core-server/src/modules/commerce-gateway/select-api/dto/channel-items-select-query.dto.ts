@@ -8,6 +8,6 @@ import { IsOptional, IsUUID } from 'class-validator';
 export class ChannelItemsSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({ description: "The APP catalog channel whose range to list; defaults to the caller's" })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   channelId?: string;
 }

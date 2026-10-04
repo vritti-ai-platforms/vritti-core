@@ -20,7 +20,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const goodsReceiptItems = commerceSchema.table(
   'goods_receipt_items',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     goodsReceiptId: uuid('goods_receipt_id')

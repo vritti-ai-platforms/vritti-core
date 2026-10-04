@@ -1,4 +1,5 @@
 import type { ChannelItemDto, ResolvedChannelsDto } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
+import type { StorefrontListingDto } from '@domain/catalog-channels/dto/entity/storefront-listing.dto';
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -15,6 +16,20 @@ export class SiteCatalogChannelsController {
   list(): Promise<ResolvedChannelsDto> {
     this.logger.log('catalogChannels.list');
     return this.service.list();
+  }
+
+  // What a storefront sells — the channel is resolved from the credential, not named by the caller
+  @MessagePattern({ cmd: 'site.catalogChannels.app.listings' })
+  appListings(@Payload() data: { appId: string }): Promise<StorefrontListingDto[]> {
+    this.logger.log(`catalogChannels.app.listings — appId: ${data.appId}`);
+    return this.service.appListings(data.appId);
+  }
+
+  // The same range narrowed to variants the caller already holds — a wishlist or a basket
+  @MessagePattern({ cmd: 'site.catalogChannels.app.listingsFromVariants' })
+  appListingsFromVariants(@Payload() data: { appId: string; variantIds: string[] }): Promise<StorefrontListingDto[]> {
+    this.logger.log(`catalogChannels.app.listingsFromVariants — appId: ${data.appId}`);
+    return this.service.appListings(data.appId, data.variantIds);
   }
 
   @MessagePattern({ cmd: 'site.catalogChannels.delete' })

@@ -4,26 +4,26 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-v
 
 export class CreateStockTransferDto {
   @ApiProperty({ description: 'Inventory item ID' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   inventoryItemId: string;
 
   @ApiProperty({ description: 'Source site ID' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   fromSiteId: string;
 
   @ApiProperty({ description: 'Destination site ID' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   toSiteId: string;
 
   @ApiProperty({ description: 'Source inventory location ID' })
-  @IsUUID()
+  @IsUUID('7')
   fromLocationId: string;
 
   @ApiProperty({ description: 'Destination inventory location ID' })
-  @IsUUID()
+  @IsUUID('7')
   toLocationId: string;
 
   @ApiProperty({ description: 'Transfer quantity', example: 50 })
@@ -33,7 +33,7 @@ export class CreateStockTransferDto {
 
   @ApiPropertyOptional({ description: 'User ID who requested the transfer' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   requestedBy?: string;
 
   @Trim()

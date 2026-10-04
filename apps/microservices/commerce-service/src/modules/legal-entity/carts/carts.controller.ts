@@ -41,19 +41,19 @@ export class LeCartsController {
   @MessagePattern({ cmd: 'le.carts.items.table' })
   itemsTable(
     @Payload()
-    payload: { cartId: string; currencyCode: string; catalogId?: string; siteId?: string } & TableViewState,
+    payload: { cartId: string; currencyCode: string; appId?: string | null; siteId?: string } & TableViewState,
   ): Promise<{ result: CartItemDto[]; count: number }> {
-    const { cartId, currencyCode, catalogId, siteId, ...state } = payload;
+    const { cartId, currencyCode, appId, siteId, ...state } = payload;
     this.logger.log(`le.carts.items.table — cart: ${cartId}`);
-    return this.service.findItemsForTable(cartId, state, currencyCode, catalogId, siteId);
+    return this.service.findItemsForTable(cartId, state, currencyCode, appId, siteId);
   }
 
   @MessagePattern({ cmd: 'le.carts.findItemsById' })
   findItemsById(
-    @Payload() data: { id: string; currencyCode: string; catalogId?: string; siteId?: string },
+    @Payload() data: { id: string; currencyCode: string; appId?: string | null; siteId?: string },
   ): Promise<CartDto> {
     this.logger.log(`le.carts.findItemsById — id: ${data.id}`);
-    return this.service.findItemsById(data.id, data.currencyCode, data.catalogId, data.siteId);
+    return this.service.findItemsById(data.id, data.currencyCode, data.appId, data.siteId);
   }
 
   // Opens a basket for a shopper, or hands back the one they already have here

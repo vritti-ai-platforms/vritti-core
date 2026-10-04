@@ -19,12 +19,12 @@ export class CreatePosTerminalDto {
   code: string;
 
   @ApiProperty({ description: 'Linked POS storage location ID' })
-  @IsUUID()
+  @IsUUID('7')
   locationId: string;
 
   @ApiPropertyOptional({ description: 'Catalog this terminal sells from' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   catalogId?: string;
 
   @Trim()

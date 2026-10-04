@@ -14,6 +14,7 @@ import {
   DEFAULT_SLOT,
   type ResolvedChannelsDto,
 } from '../dto/entity/catalog-channel.dto';
+import { StorefrontListingDto } from '../dto/entity/storefront-listing.dto';
 import type {
   ResolveCatalogChannelDto,
   UpsertAppChannelDto,
@@ -98,12 +99,12 @@ export class CatalogChannelsDomainService {
     });
   }
 
-  // Sells a catalog to wholesale buyers. B2B names no target, so this is one assignment per workspace
+  // Sells a catalog to wholesale buyers — through one wholesale site, or every unnamed caller
   upsertB2b(data: UpsertB2bChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
     return this.upsertChannel({
       type: CatalogChannelTypeValues.B2B,
       catalogId: data.catalogId,
-      appId: null,
+      appId: data.appId ?? null,
       terminalId: null,
     });
   }
@@ -131,6 +132,18 @@ export class CatalogChannelsDomainService {
       success: true,
       message: sellsHere ? 'Item now sells on this channel.' : 'Item excluded from this channel.',
     };
+  }
+
+  /**
+   * What a storefront sells, resolved through its own APP channel.
+   *
+   * `variantIds` narrows to a known set — a wishlist or a basket reconciling rows it already holds.
+   * Omitted, it is the whole range. Either way the catalog comes from the credential, never from the
+   * caller, so a storefront cannot read a range it was not given.
+   */
+  async appListings(appId: string, variantIds?: string[]): Promise<StorefrontListingDto[]> {
+    const rows = await this.repository.findAppListings(appId, variantIds);
+    return rows.map((row) => StorefrontListingDto.from(row));
   }
 
   /**

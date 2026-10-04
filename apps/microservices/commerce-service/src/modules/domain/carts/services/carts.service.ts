@@ -75,8 +75,8 @@ export class CartsDomainService {
   }
 
   /** Its lines, priced by the catalogue the caller sells from. */
-  async findItemsById(id: string, currencyCode: string, catalogId?: string, siteId?: string): Promise<CartDto> {
-    const items = await this.repository.findItems(id, currencyCode, catalogId, siteId);
+  async findItemsById(id: string, currencyCode: string, appId?: string | null, siteId?: string): Promise<CartDto> {
+    const items = await this.repository.findItems(id, currencyCode, appId, siteId);
     return CartDto.from(currencyCode, items);
   }
 
@@ -85,7 +85,7 @@ export class CartsDomainService {
     cartId: string,
     state: TableViewState,
     currencyCode: string,
-    catalogId?: string,
+    appId?: string | null,
     siteId?: string,
   ): Promise<{ result: CartItemDto[]; count: number }> {
     const where =
@@ -100,7 +100,7 @@ export class CartsDomainService {
       cartId,
       { where, orderBy, limit, offset },
       currencyCode,
-      catalogId,
+      appId,
       siteId,
     );
     return { result: result.map((row) => CartItemDto.from(row)), count };
@@ -134,11 +134,11 @@ export class CartsDomainService {
   }
 
   /** The basket, or an empty one. Never opens a cart. */
-  async find(partyId: string, currencyCode: string, catalogId?: string, siteId?: string): Promise<CartDto> {
+  async find(partyId: string, currencyCode: string, appId?: string | null, siteId?: string): Promise<CartDto> {
     const cart = await this.repository.findByParty(partyId);
     if (!cart) return CartDto.from(currencyCode, []);
 
-    const items = await this.repository.findItems(cart.id, currencyCode, catalogId, siteId);
+    const items = await this.repository.findItems(cart.id, currencyCode, appId, siteId);
     return CartDto.from(currencyCode, items);
   }
 
@@ -148,7 +148,7 @@ export class CartsDomainService {
     offeringVariantId: string;
     quantity: number;
     currencyCode: string;
-    catalogId?: string;
+    appId?: string | null;
     siteId?: string;
   }): Promise<CartDto> {
     const quantity = this.requireQuantity(input.quantity);
@@ -157,7 +157,7 @@ export class CartsDomainService {
     await this.repository.upsertItem(cart.id, input.offeringVariantId, quantity);
     this.logger.log(`cart ${cart.id} — party ${input.partyId} added ${input.offeringVariantId} x${quantity}`);
 
-    return this.find(input.partyId, input.currencyCode, input.catalogId, input.siteId);
+    return this.find(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
   /** Sets a line to an exact quantity. Zero is not accepted — removing is its own operation. */
@@ -166,7 +166,7 @@ export class CartsDomainService {
     offeringVariantId: string;
     quantity: number;
     currencyCode: string;
-    catalogId?: string;
+    appId?: string | null;
     siteId?: string;
   }): Promise<CartDto> {
     const quantity = this.requireQuantity(input.quantity);
@@ -175,14 +175,14 @@ export class CartsDomainService {
     const updated = await this.repository.setItemQuantity(cart.id, input.offeringVariantId, quantity);
     if (!updated) throw new NotFoundException('That item is not in your basket.');
 
-    return this.find(input.partyId, input.currencyCode, input.catalogId, input.siteId);
+    return this.find(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
   async removeItem(
     partyId: string,
     offeringVariantId: string,
     currencyCode: string,
-    catalogId?: string,
+    appId?: string | null,
     siteId?: string,
   ): Promise<CartDto> {
     const cart = await this.requireCart(partyId);
@@ -190,7 +190,7 @@ export class CartsDomainService {
     const removed = await this.repository.deleteItem(cart.id, offeringVariantId);
     if (removed === 0) throw new NotFoundException('That item is not in your basket.');
 
-    return this.find(partyId, currencyCode, catalogId, siteId);
+    return this.find(partyId, currencyCode, appId, siteId);
   }
 
   /**
@@ -214,10 +214,10 @@ export class CartsDomainService {
   async findAllForParty(
     partyId: string,
     currencyCode: string,
-    catalogId?: string,
+    appId?: string | null,
     siteId?: string,
   ): Promise<StaffCartItemDto[]> {
-    const rows = await this.repository.findAllForParty(partyId, currencyCode, catalogId, siteId);
+    const rows = await this.repository.findAllForParty(partyId, currencyCode, appId, siteId);
     return rows.map((row) => StaffCartItemDto.fromStaffRow(row));
   }
 
@@ -228,14 +228,14 @@ export class CartsDomainService {
     offeringVariantId: string;
     quantity: number;
     currencyCode: string;
-    catalogId?: string;
+    appId?: string | null;
     siteId?: string;
   }): Promise<StaffCartItemDto[]> {
     const quantity = this.requireQuantity(input.quantity);
 
     await this.repository.upsertItem(input.cartId, input.offeringVariantId, quantity);
     this.logger.log(`cart ${input.cartId} — staff added ${input.offeringVariantId} x${quantity}`);
-    return this.findAllForParty(input.partyId, input.currencyCode, input.catalogId, input.siteId);
+    return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
   /** Sets a line to an exact quantity on a shopper's behalf. */
@@ -245,13 +245,13 @@ export class CartsDomainService {
     offeringVariantId: string;
     quantity: number;
     currencyCode: string;
-    catalogId?: string;
+    appId?: string | null;
     siteId?: string;
   }): Promise<StaffCartItemDto[]> {
     const quantity = this.requireQuantity(input.quantity);
     const updated = await this.repository.setItemQuantity(input.cartId, input.offeringVariantId, quantity);
     if (!updated) throw new NotFoundException('That item is not in their basket.');
-    return this.findAllForParty(input.partyId, input.currencyCode, input.catalogId, input.siteId);
+    return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
   /** Removes a line on a shopper's behalf. */
@@ -260,12 +260,12 @@ export class CartsDomainService {
     partyId: string;
     offeringVariantId: string;
     currencyCode: string;
-    catalogId?: string;
+    appId?: string | null;
     siteId?: string;
   }): Promise<StaffCartItemDto[]> {
     const removed = await this.repository.deleteItem(input.cartId, input.offeringVariantId);
     if (removed === 0) throw new NotFoundException('That item is not in their basket.');
-    return this.findAllForParty(input.partyId, input.currencyCode, input.catalogId, input.siteId);
+    return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
   /** The shopper's basket here, or a refusal — for the operations that edit an existing line. */

@@ -15,7 +15,7 @@ import {
 import { CreateInvoiceItemDto } from './create-invoice.dto';
 
 export class UpdateInvoiceDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   id: string;
 
@@ -24,7 +24,7 @@ export class UpdateInvoiceDto {
   partyType?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyId?: string;
 
   @Trim({ nullify: false })
@@ -40,7 +40,7 @@ export class UpdateInvoiceDto {
   referenceType?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   referenceId?: string;
 
   @IsOptional()

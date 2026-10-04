@@ -26,7 +26,7 @@ export type SendOtpResult = {
 
 export type VerifyOtpResult = {
   verified: boolean;
-  /** The matched person's display name, so a returning shopper can be greeted without a second call. */
+  /** The matched person's display name, so a returning party can be greeted without a second call. */
   displayName: string | null;
   /**
    * The party already reachable at this number, or null when nobody is — the caller's signal to
@@ -40,7 +40,7 @@ export type VerifyOtpResult = {
 };
 
 /**
- * Signing a shopper in with a phone number and a code sent over WhatsApp.
+ * Signing a party in with a phone number and a code sent over WhatsApp.
  *
  * Two operations, because that is what the browser does: ask for a code, then present it. Core keeps
  * them primitive — it will tell you a code was correct and nothing more — so the second half of
@@ -87,7 +87,7 @@ export function createOtpOperations(client: ApolloClient, context: RequestContex
      * ```ts
      * const { verified, partyId } = await sdk.otp.verify(phone, code);
      * if (!verified) return wrongCode();
-     * if (partyId) return signIn(partyId);          // returning shopper
+     * if (partyId) return signIn(partyId);          // returning party
      * return askForName();                          // new — then sdk.people.create
      * ```
      *

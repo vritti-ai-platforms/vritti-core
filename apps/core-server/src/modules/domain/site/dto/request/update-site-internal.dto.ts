@@ -39,7 +39,7 @@ export class UpdateSiteInternalDto {
   })
   @IsOptional()
   @ValidateIf((o) => o.groupId !== null)
-  @IsUUID()
+  @IsUUID('7')
   groupId?: string | null;
 
   @ApiPropertyOptional({ description: 'Site description' })
@@ -55,7 +55,7 @@ export class UpdateSiteInternalDto {
 
   @ApiPropertyOptional({ description: 'Owning legal entity ID — can change but never clear', example: 'uuid-here' })
   @ValidateIf((_, value) => value !== undefined)
-  @IsUUID()
+  @IsUUID('7')
   legalEntityId?: string;
 
   @ApiPropertyOptional({
@@ -63,7 +63,7 @@ export class UpdateSiteInternalDto {
     example: 'uuid-here',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   registrationId?: string;
 
   @ApiPropertyOptional({ example: { city: 'Mysore' } })

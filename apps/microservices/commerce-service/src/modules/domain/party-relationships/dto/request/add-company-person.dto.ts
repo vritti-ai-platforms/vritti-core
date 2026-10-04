@@ -4,10 +4,10 @@ import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
 
 export class AddCompanyPersonDto {
-  @IsUUID()
+  @IsUUID('7')
   companyId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   childPartyId: string;
 
   @Trim()

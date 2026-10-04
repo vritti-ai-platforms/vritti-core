@@ -5,6 +5,6 @@ import { IsUUID } from 'class-validator';
 // Variants are only meaningful within their offering, so the parent is required rather than optional
 export class OfferingVariantsSelectQueryDto extends SelectOptionsQueryDto {
   @ApiProperty({ description: 'Offering whose variants are listed' })
-  @IsUUID()
+  @IsUUID('7')
   offeringId: string;
 }

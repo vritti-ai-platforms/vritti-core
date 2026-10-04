@@ -1,7 +1,7 @@
 import { IsNumber, IsUUID, Min } from 'class-validator';
 
 export class UpdateInventoryItemLocationDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsNumber()

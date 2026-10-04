@@ -4,7 +4,7 @@ import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID, MaxLength, ValidateNe
 import { CompanyAddressInputDto } from './company-address-input.dto';
 
 export class UpdateCompanyDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })
@@ -43,7 +43,7 @@ export class UpdateCompanyDto {
   website?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId?: string;
 
   @IsOptional()

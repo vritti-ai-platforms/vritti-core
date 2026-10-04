@@ -2,10 +2,10 @@ import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsOptional, IsUUID } from 'class-validator';
 
 export class PurchaseOrderItemsSelectQueryDto extends SelectOptionsQueryDto {
-  @IsUUID()
+  @IsUUID('7')
   purchaseOrderId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   excludeOnGoodsReceiptId?: string;
 }

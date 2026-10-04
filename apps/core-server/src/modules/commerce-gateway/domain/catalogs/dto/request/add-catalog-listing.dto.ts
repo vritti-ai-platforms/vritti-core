@@ -4,17 +4,17 @@ import { IsOptional, IsUUID } from 'class-validator';
 
 export class AddCatalogListingDto {
   @ApiProperty()
-  @IsUUID('all')
+  @IsUUID('7')
   offeringVariantId: string;
 
   @ApiPropertyOptional({ nullable: true, description: 'Which LE listed it; null means org-level' })
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   legalEntityId?: string | null;
 
   @ApiPropertyOptional({ nullable: true, description: 'MRP slice this listing sells; null lists any batch' })
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   inventoryItemMrpId?: string | null;
 
   @ApiPropertyOptional({ type: CurrencyAmountDto, example: { currency: 'INR', value: '120.00' } })
@@ -24,6 +24,6 @@ export class AddCatalogListingDto {
 
   @ApiPropertyOptional({ nullable: true, description: 'Per-outlet price; null applies catalog-wide' })
   @IsOptional()
-  @IsUUID('all')
+  @IsUUID('7')
   siteId?: string | null;
 }

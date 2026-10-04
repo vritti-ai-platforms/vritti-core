@@ -29,6 +29,6 @@ export class UpdateOfferingDto {
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   categoryId?: string | null;
 }

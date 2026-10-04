@@ -19,7 +19,7 @@ import { organizationIdColumn, workspaceHierarchyPolicies, workspaceScopeColumns
 export const offerings = commerceSchema.table(
   'offerings',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     ...workspaceScopeColumns,
     code: varchar('code', { length: 50 }).notNull(),

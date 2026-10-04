@@ -7,7 +7,7 @@ import { organizations } from './organizations';
 export const media = coreSchema.table(
   'media',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id')
       .notNull()
       .default(sql.raw("cast(current_setting('app.org_id') as uuid)"))

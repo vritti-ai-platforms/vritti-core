@@ -12,7 +12,7 @@ export class UpdateInvoiceDto {
 
   @ApiPropertyOptional({ description: 'Updated party entity ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyId?: string;
 
   @Trim({ nullify: false })
@@ -31,7 +31,7 @@ export class UpdateInvoiceDto {
 
   @ApiPropertyOptional({ description: 'Updated reference ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   referenceId?: string;
 
   @ApiPropertyOptional({ description: 'Updated discount amount' })

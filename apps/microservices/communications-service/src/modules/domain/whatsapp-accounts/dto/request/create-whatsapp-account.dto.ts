@@ -3,7 +3,7 @@ import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from '
 
 export class CreateWhatsappAccountDto {
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   legalEntityId?: string | null;
 
   @Trim({ nullify: false })

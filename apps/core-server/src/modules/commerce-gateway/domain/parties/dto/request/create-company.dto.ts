@@ -57,7 +57,7 @@ export class CreateCompanyDto {
 
   @ApiPropertyOptional({ description: 'Tax jurisdiction ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId?: string;
 
   @ApiProperty({ description: 'Whether the company is selectable' })

@@ -3,7 +3,7 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'cla
 import { type SocialPlatform, SocialPlatformValues } from '@/db/schema';
 
 export class UpdateSocialProfileDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()

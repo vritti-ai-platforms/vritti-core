@@ -29,7 +29,7 @@ export class CreateOfferingDto {
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   categoryId?: string | null;
 
   @ApiProperty({ enum: FULFILMENT_TYPES, description: 'What happens at picking — decides the bill of materials rules' })
@@ -37,6 +37,6 @@ export class CreateOfferingDto {
   fulfilmentType: (typeof FULFILMENT_TYPES)[number];
 
   @ApiProperty({ description: 'What this product IS for tax purposes. The rate resolves at transaction time.' })
-  @IsUUID()
+  @IsUUID('7')
   taxClassId: string;
 }

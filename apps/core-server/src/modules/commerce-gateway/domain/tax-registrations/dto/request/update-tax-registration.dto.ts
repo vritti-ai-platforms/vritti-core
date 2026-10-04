@@ -7,7 +7,7 @@ const REGISTRATION_TYPES = ['GSTIN', 'VAT', 'TIN', 'PAN', 'OTHER'] as const;
 export class UpdateTaxRegistrationDto {
   @ApiPropertyOptional()
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId?: string;
 
   @ApiPropertyOptional({ example: '36ABCDE1234F1Z5' })

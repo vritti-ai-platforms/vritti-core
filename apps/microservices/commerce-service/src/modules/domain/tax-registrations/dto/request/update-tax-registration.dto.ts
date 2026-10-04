@@ -4,7 +4,7 @@ import { TaxRegistrationTypeValues } from '@/db/schema';
 
 export class UpdateTaxRegistrationDto {
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId?: string;
 
   @IsOptional()

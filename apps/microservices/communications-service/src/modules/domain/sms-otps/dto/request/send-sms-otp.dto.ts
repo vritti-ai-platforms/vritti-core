@@ -2,11 +2,11 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 export class SendSmsOtpDto {
-  @IsUUID()
+  @IsUUID('7')
   appId: string;
 
   // The sms_providers row to deliver through — platform or the org's own
-  @IsUUID()
+  @IsUUID('7')
   providerId: string;
 
   // The provider's template the code is rendered into. Required by providers whose transport

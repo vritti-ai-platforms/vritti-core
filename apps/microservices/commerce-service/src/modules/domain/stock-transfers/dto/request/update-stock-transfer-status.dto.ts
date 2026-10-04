@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class UpdateStockTransferStatusDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   id: string;
 
@@ -9,17 +9,17 @@ export class UpdateStockTransferStatusDto {
   @IsNotEmpty()
   status: string;
 
-  @IsUUID()
+  @IsUUID('7')
   fromLocationId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   toLocationId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   fromBatchId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   receivedBy?: string;
 }

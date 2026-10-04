@@ -5,16 +5,30 @@ export const ORG_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'org.catalog-channels.view',
   edit: 'org.catalog-channels.edit',
+  // What a storefront credential may read through its own channel. POS and B2B get their own
+  // groups when those surfaces exist.
+  app: {
+    listings: 'org.catalog-channels.app.listings',
+    listingsFromVariants: 'org.catalog-channels.app.listings-from-variants',
+  },
 } as const;
 
 export const LE_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'le.catalog-channels.view',
   edit: 'le.catalog-channels.edit',
+  app: {
+    listings: 'le.catalog-channels.app.listings',
+    listingsFromVariants: 'le.catalog-channels.app.listings-from-variants',
+  },
 } as const;
 
 export const SITE_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'site.catalog-channels.view',
   edit: 'site.catalog-channels.edit',
+  app: {
+    listings: 'site.catalog-channels.app.listings',
+    listingsFromVariants: 'site.catalog-channels.app.listings-from-variants',
+  },
 } as const;

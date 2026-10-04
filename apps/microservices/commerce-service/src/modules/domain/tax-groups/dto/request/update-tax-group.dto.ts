@@ -22,7 +22,7 @@ export class UpdateTaxRateDto {
 }
 
 export class UpdateTaxGroupDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })

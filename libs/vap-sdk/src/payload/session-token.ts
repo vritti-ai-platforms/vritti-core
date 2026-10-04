@@ -13,7 +13,7 @@ interface CollectionRuntime {
 }
 
 /**
- * Mints a Payload session for a shopper this app has already authenticated some other way.
+ * Mints a Payload session for a party this app has already authenticated some other way.
  *
  * `payloadLogin` is the password path and `customers` has no password, so this does what a login does
  * *after* the credential check: records a session on the row and signs a token naming it. The JWT

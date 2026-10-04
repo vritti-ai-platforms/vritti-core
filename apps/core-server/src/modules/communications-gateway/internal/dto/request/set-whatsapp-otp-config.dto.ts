@@ -4,7 +4,7 @@ import { IsInt, IsNotEmpty, IsString, IsUUID, Max, Min } from 'class-validator';
 
 export class SetWhatsappOtpConfigDto {
   @ApiProperty({ description: 'WhatsApp account the codes are sent from' })
-  @IsUUID()
+  @IsUUID('7')
   accountId: string;
 
   @ApiProperty({ description: 'Meta phone number ID — the sender' })

@@ -3,7 +3,7 @@ import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsUUID, Min } from 'class-vali
 
 export class AddSupplierItemSiteDto {
   @ApiProperty({ description: 'Site ID the override applies to' })
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   siteId: string;
 

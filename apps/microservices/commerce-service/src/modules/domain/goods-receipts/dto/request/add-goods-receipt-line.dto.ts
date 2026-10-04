@@ -1,17 +1,17 @@
 import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class AddGoodsReceiptLineDto {
-  @IsUUID()
+  @IsUUID('7')
   goodsReceiptId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   itemId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   goodsReceiptLotId?: string | null;
 
-  @IsUUID()
+  @IsUUID('7')
   locationId: string;
 
   @IsNumber()

@@ -13,7 +13,7 @@ export class CreateCategoryDto {
 
   @ApiPropertyOptional({ description: 'Parent category ID (for sub-categories)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @ApiPropertyOptional({
@@ -42,6 +42,6 @@ export class CreateCategoryDto {
     nullable: true,
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   defaultTaxClassId?: string | null;
 }

@@ -1,7 +1,7 @@
 import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateCustomerDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   id: string;
 

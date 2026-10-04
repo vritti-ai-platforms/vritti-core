@@ -15,7 +15,7 @@ export class CreateCreditNoteDto {
 
   @ApiPropertyOptional({ description: 'Party entity ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyId?: string;
 
   @Trim({ nullify: false })
@@ -50,6 +50,6 @@ export class CreateCreditNoteDto {
 
   @ApiPropertyOptional({ description: 'User ID of issuer' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   issuedBy?: string;
 }

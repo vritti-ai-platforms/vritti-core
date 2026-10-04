@@ -7,19 +7,14 @@ import { PARTY_FUNCTION_TYPES } from '@/modules/commerce-gateway/_shared/dto/par
 import type { PartyAddressResponseDto } from '@/modules/commerce-gateway/domain/party-addresses/dto/response/party-address-response.dto';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AppId, PartyId, SiteId } from '@/security/decorators';
-import {
-  ShopperAddress,
-  ShopperAddressInput,
-  ShopperAddressRefInput,
-  UpdateShopperAddressInput,
-} from './graphql/address.type';
+import { PartyAddress, PartyAddressInput, PartyAddressRefInput, UpdatePartyAddressInput } from './graphql/address.type';
 import { Person } from './graphql/person.type';
 import { PersonCommunication } from './graphql/person-communication.type';
 import {
   AddPersonCommunicationInput,
   CreatePersonInput,
   FindPeopleByCommunicationInput,
-  UpdateShopperProfileInput,
+  UpdatePartyProfileInput,
 } from './graphql/person-mutation.input';
 import { WishlistQueryInput, WishlistRefInput } from './graphql/wishlist.input';
 import { WishlistAddResult, WishlistItem } from './graphql/wishlist.type';
@@ -41,7 +36,7 @@ import { PeopleGatewayService } from './services/people-gateway.service';
  * a single transaction.
  *
  * Gated like every other app surface: `@RequireFeature` plus a `@RequirePermission` per operation,
- * resolved against the credential's `app` bucket. So a storefront that may register shoppers is a
+ * resolved against the credential's `app` bucket. So a storefront that may register parties is a
  * credential that was granted exactly that and nothing else — signing a valid request is not itself
  * permission to write people.
  *
@@ -78,86 +73,80 @@ export class PeopleAppResolver {
   }
 
   /**
-   * The signed-in shopper's own details.
+   * The signed-in party's own details.
    *
    * Scoped like the basket and the wishlist: the party comes from the signature, so this answers
    * "me" and there is no id a caller could change to read somebody else. That is why it is one
    * query with no argument rather than `person(id:)`.
    */
-  @Query(() => Person, { name: 'shopperProfile' })
+  @Query(() => Person, { name: 'partyProfile' })
   @RequirePermission(ORG_PEOPLE.view)
-  shopperProfile(@PartyId() partyId: string): Promise<Person> {
-    this.logger.log('QUERY shopperProfile');
+  partyProfile(@PartyId() partyId: string): Promise<Person> {
+    this.logger.log('QUERY partyProfile');
     return this.peopleGatewayService.findById(partyId);
   }
 
   /**
-   * The shopper editing their own details.
+   * The party editing their own details.
    *
    * Re-read rather than echoed: `update` answers a success message, and the caller wants the row as
    * it now stands — including `displayName`, which core composes from the names rather than taking
    * from the form.
    */
-  @Mutation(() => Person, { name: 'updateShopperProfile' })
+  @Mutation(() => Person, { name: 'updatePartyProfile' })
   @RequirePermission(ORG_PEOPLE.edit)
-  async updateShopperProfile(
-    @PartyId() partyId: string,
-    @Args('input') input: UpdateShopperProfileInput,
-  ): Promise<Person> {
-    this.logger.log('MUTATION updateShopperProfile');
+  async updatePartyProfile(@PartyId() partyId: string, @Args('input') input: UpdatePartyProfileInput): Promise<Person> {
+    this.logger.log('MUTATION updatePartyProfile');
     await this.peopleGatewayService.update(partyId, input);
     return this.peopleGatewayService.findById(partyId);
   }
 
   /**
-   * The shopper's own address book.
+   * The party's own address book.
    *
    * Flattened on the way out: core's `functions` — REGISTERED, BILLING, SHIPPING, ORDERING, each
    * with a primary flag — is a business's vocabulary, and a storefront with no checkout has one
    * question to ask. Primary SHIPPING is what "default" means here.
    */
-  @Query(() => [ShopperAddress], { name: 'shopperAddresses' })
+  @Query(() => [PartyAddress], { name: 'partyAddresses' })
   @RequirePermission(ORG_PEOPLE.addresses.view)
-  async shopperAddresses(@PartyId() partyId: string): Promise<ShopperAddress[]> {
-    this.logger.log('QUERY shopperAddresses');
+  async partyAddresses(@PartyId() partyId: string): Promise<PartyAddress[]> {
+    this.logger.log('QUERY partyAddresses');
     const addresses = await this.peopleGatewayService.listShopperAddresses(partyId);
     return addresses.map(toShopperAddress);
   }
 
-  @Mutation(() => [ShopperAddress], { name: 'addShopperAddress' })
+  @Mutation(() => [PartyAddress], { name: 'addPartyAddress' })
   @RequirePermission(ORG_PEOPLE.addresses.add)
-  async addShopperAddress(
-    @PartyId() partyId: string,
-    @Args('input') input: ShopperAddressInput,
-  ): Promise<ShopperAddress[]> {
-    this.logger.log('MUTATION addShopperAddress');
-    await this.peopleGatewayService.addShopperAddress(partyId, toAddressPayload(input));
+  async addPartyAddress(@PartyId() partyId: string, @Args('input') input: PartyAddressInput): Promise<PartyAddress[]> {
+    this.logger.log('MUTATION addPartyAddress');
+    await this.peopleGatewayService.addPartyAddress(partyId, toAddressPayload(input));
     // The whole book back, not the one row: marking a new address default unmarks another, so a
     // single row would leave the caller redrawing a list it cannot see all of.
-    return this.shopperAddresses(partyId);
+    return this.partyAddresses(partyId);
   }
 
-  @Mutation(() => [ShopperAddress], { name: 'updateShopperAddress' })
+  @Mutation(() => [PartyAddress], { name: 'updatePartyAddress' })
   @RequirePermission(ORG_PEOPLE.addresses.edit)
-  async updateShopperAddress(
+  async updatePartyAddress(
     @PartyId() partyId: string,
-    @Args('input') input: UpdateShopperAddressInput,
-  ): Promise<ShopperAddress[]> {
-    this.logger.log('MUTATION updateShopperAddress');
+    @Args('input') input: UpdatePartyAddressInput,
+  ): Promise<PartyAddress[]> {
+    this.logger.log('MUTATION updatePartyAddress');
     const { id, ...address } = input;
-    await this.peopleGatewayService.updateShopperAddress(partyId, id, toAddressPayload(address));
-    return this.shopperAddresses(partyId);
+    await this.peopleGatewayService.updatePartyAddress(partyId, id, toAddressPayload(address));
+    return this.partyAddresses(partyId);
   }
 
-  @Mutation(() => [ShopperAddress], { name: 'removeShopperAddress' })
+  @Mutation(() => [PartyAddress], { name: 'removePartyAddress' })
   @RequirePermission(ORG_PEOPLE.addresses.delete)
-  async removeShopperAddress(
+  async removePartyAddress(
     @PartyId() partyId: string,
-    @Args('input') input: ShopperAddressRefInput,
-  ): Promise<ShopperAddress[]> {
-    this.logger.log('MUTATION removeShopperAddress');
-    await this.peopleGatewayService.removeShopperAddress(partyId, input.id);
-    return this.shopperAddresses(partyId);
+    @Args('input') input: PartyAddressRefInput,
+  ): Promise<PartyAddress[]> {
+    this.logger.log('MUTATION removePartyAddress');
+    await this.peopleGatewayService.removePartyAddress(partyId, input.id);
+    return this.partyAddresses(partyId);
   }
 
   /** Creates the person plus their primary EMAIL and PHONE rows, in one transaction. */
@@ -179,7 +168,7 @@ export class PeopleAppResolver {
     return data;
   }
 
-  // ── Wishlist: the things a shopper marked to come back to ──
+  // ── Wishlist: the things a party marked to come back to ──
   // Both mutations answer with the whole list rather than the row they touched, because the caller is
   // redrawing a row of hearts and a single row would leave it guessing at the rest.
 
@@ -198,7 +187,7 @@ export class PeopleAppResolver {
   }
 
   /**
-   * Which products the shopper has saved — a product page draws its Saved state from this.
+   * Which products the party has saved — a product page draws its Saved state from this.
    *
    * Ids only: no catalogue is resolved and nothing is priced, so it is cheap to ask on every view.
    */
@@ -247,13 +236,13 @@ export class PeopleAppResolver {
 }
 
 /**
- * Core's address, as a shopper reads it.
+ * Core's address, as a party reads it.
  *
  * "Default" is the primary SHIPPING function. A party's first address is seeded with all four
- * functions by the domain service, so the first one a shopper saves is their default without
+ * functions by the domain service, so the first one a party saves is their default without
  * anybody choosing it — which is the right answer when there is only one.
  */
-function toShopperAddress(address: PartyAddressResponseDto): ShopperAddress {
+function toShopperAddress(address: PartyAddressResponseDto): PartyAddress {
   return {
     id: address.id,
     line1: address.line1,
@@ -269,20 +258,20 @@ function toShopperAddress(address: PartyAddressResponseDto): ShopperAddress {
 }
 
 /**
- * A shopper's address in the shape core's DTOs accept.
+ * A party's address in the shape core's DTOs accept.
  *
  * Two translations, both load-bearing:
  *
  * `null` becomes `''` rather than being dropped. The request DTOs type their optional fields as
  * `string | undefined`, and an omitted key means "leave it alone" — so forwarding `undefined` for a
- * field the shopper just cleared would silently keep the old value. An empty string is what the
- * `@Trim()` on those fields turns back into `null`, which is the clearing the shopper asked for.
+ * field the party just cleared would silently keep the old value. An empty string is what the
+ * `@Trim()` on those fields turns back into `null`, which is the clearing the party asked for.
  *
  * `isDefault` becomes a primary SHIPPING function, and **only** SHIPPING. The other three —
  * REGISTERED, BILLING, ORDERING — are a business's concerns; writing them from a storefront would
- * have a shopper's "deliver here" quietly decide where a company's invoices go.
+ * have a party's "deliver here" quietly decide where a company's invoices go.
  */
-function toAddressPayload(input: ShopperAddressInput) {
+function toAddressPayload(input: PartyAddressInput) {
   return {
     line1: input.line1,
     line2: input.line2 ?? '',

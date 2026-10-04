@@ -66,7 +66,7 @@ export class LeCartsGatewayController {
     return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 
-  // Opens a basket for a shopper, or hands back the one they already have here
+  // Opens a basket for a party, or hands back the one they already have here
   @Post()
   @RequirePermission(LE_CARTS.add)
   open(@Body() dto: OpenCartDto): Promise<CreateResponseDto<CartRow>> {

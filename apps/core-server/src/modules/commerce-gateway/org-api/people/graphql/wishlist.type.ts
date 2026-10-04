@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Money } from '../../catalogs/graphql/catalog-listing.type';
+import { Money } from '../../catalog-channels/graphql/catalog-listing.type';
 
 @ObjectType()
 export class WishlistItem {
@@ -11,7 +11,7 @@ export class WishlistItem {
    *
    * Nullable on purpose, and it has to be: a basket keeps a line whose listing has gone — that is
    * what `isAvailable: false` reports — so a non-null field here makes the whole basket
-   * unserialisable the moment one product is delisted, and the shopper sees an error instead of
+   * unserialisable the moment one product is delisted, and the party sees an error instead of
    * their own basket.
    */
   @Field(() => ID, { nullable: true })

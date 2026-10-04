@@ -13,6 +13,6 @@ export class MobileLoginInput {
   password: string;
 
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   organizationId: string;
 }

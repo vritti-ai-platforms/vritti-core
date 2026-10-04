@@ -22,7 +22,7 @@ import { parties } from './parties';
 export const wishlistItems = commerceSchema.table(
   'wishlist_items',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     /** No foreign key — the row lives in core's `apps`, as with `carts.app_id`. */
     appId: uuid('app_id').notNull(),

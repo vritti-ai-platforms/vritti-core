@@ -1,11 +1,11 @@
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   dimensionId?: string;
 
   @IsOptional()
@@ -21,7 +21,7 @@ export class UpdateUomDto {
   symbol?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   baseUnitId?: string | null;
 
   @IsOptional()

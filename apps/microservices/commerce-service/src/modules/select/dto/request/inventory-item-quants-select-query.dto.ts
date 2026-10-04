@@ -3,6 +3,6 @@ import { IsOptional, IsUUID } from 'class-validator';
 
 export class InventoryItemQuantsSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId?: string;
 }

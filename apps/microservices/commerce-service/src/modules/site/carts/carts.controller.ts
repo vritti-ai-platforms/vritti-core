@@ -28,7 +28,7 @@ export class CartsController {
   @MessagePattern({ cmd: 'site.carts.get' })
   get(@Payload() dto: CartScopeDto): Promise<CartDto> {
     this.logger.log(`site.carts.get — party: ${dto.partyId}`);
-    return this.service.find(dto.partyId, dto.currencyCode, dto.catalogId, dto.siteId);
+    return this.service.find(dto.partyId, dto.currencyCode, dto.appId, dto.siteId);
   }
 
   // Adds a listing, opening a basket if this is the first line
@@ -49,7 +49,7 @@ export class CartsController {
   @MessagePattern({ cmd: 'site.carts.items.remove' })
   removeItem(@Payload() dto: RemoveCartItemDto): Promise<CartDto> {
     this.logger.log(`site.carts.items.remove — party: ${dto.partyId}, variant: ${dto.offeringVariantId}`);
-    return this.service.removeItem(dto.partyId, dto.offeringVariantId, dto.currencyCode, dto.catalogId, dto.siteId);
+    return this.service.removeItem(dto.partyId, dto.offeringVariantId, dto.currencyCode, dto.appId, dto.siteId);
   }
 
   // Returns paginated baskets open at this workspace, for the data table
@@ -78,19 +78,19 @@ export class CartsController {
   @MessagePattern({ cmd: 'site.carts.items.table' })
   itemsTable(
     @Payload()
-    payload: { cartId: string; currencyCode: string; catalogId?: string; siteId?: string } & TableViewState,
+    payload: { cartId: string; currencyCode: string; appId?: string | null; siteId?: string } & TableViewState,
   ): Promise<{ result: CartItemDto[]; count: number }> {
-    const { cartId, currencyCode, catalogId, siteId, ...state } = payload;
+    const { cartId, currencyCode, appId, siteId, ...state } = payload;
     this.logger.log(`site.carts.items.table — cart: ${cartId}`);
-    return this.service.findItemsForTable(cartId, state, currencyCode, catalogId, siteId);
+    return this.service.findItemsForTable(cartId, state, currencyCode, appId, siteId);
   }
 
   @MessagePattern({ cmd: 'site.carts.findItemsById' })
   findItemsById(
-    @Payload() data: { id: string; currencyCode: string; catalogId?: string; siteId?: string },
+    @Payload() data: { id: string; currencyCode: string; appId?: string | null; siteId?: string },
   ): Promise<CartDto> {
     this.logger.log(`site.carts.findItemsById — id: ${data.id}`);
-    return this.service.findItemsById(data.id, data.currencyCode, data.catalogId, data.siteId);
+    return this.service.findItemsById(data.id, data.currencyCode, data.appId, data.siteId);
   }
 
   // Opens a basket for a shopper, or hands back the one they already have here

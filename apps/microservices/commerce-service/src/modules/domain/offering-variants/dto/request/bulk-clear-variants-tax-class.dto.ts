@@ -1,11 +1,11 @@
 import { ArrayNotEmpty, IsArray, IsUUID } from 'class-validator';
 
 export class BulkClearVariantsTaxClassDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringId: string;
 
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   ids: string[];
 }

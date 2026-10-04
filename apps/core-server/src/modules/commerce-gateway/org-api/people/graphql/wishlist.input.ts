@@ -10,7 +10,7 @@ export class WishlistRefInput {
 
   /** The product, not the listing — the catalogue offer of it is resolved server-side, per site. */
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 }
 

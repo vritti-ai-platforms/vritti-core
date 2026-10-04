@@ -4,7 +4,7 @@ import { IsBoolean, IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-
 
 export class AddGoodsReceiptItemFromSupplierItemDto {
   @ApiProperty({ description: 'Supplier item row ID — server resolves to (inventoryItemId, uomId).' })
-  @IsUUID()
+  @IsUUID('7')
   supplierItemId: string;
 
   @ApiProperty({
@@ -54,7 +54,7 @@ export class AddGoodsReceiptItemFromPurchaseOrderItemDto {
     description:
       "Purchase order line ID — server resolves to (inventoryItemId, uomId) after verifying it belongs to the GR's linked PO.",
   })
-  @IsUUID()
+  @IsUUID('7')
   purchaseOrderItemId: string;
 
   @ApiProperty({

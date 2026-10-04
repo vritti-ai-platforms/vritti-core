@@ -4,11 +4,11 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateWhatsappAccountDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   legalEntityId?: string | null;
 
   @Trim({ nullify: false })

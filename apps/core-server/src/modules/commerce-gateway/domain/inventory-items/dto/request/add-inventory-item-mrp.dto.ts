@@ -4,7 +4,7 @@ import { IsUUID } from 'class-validator';
 
 export class AddInventoryItemMrpDto {
   @ApiProperty({ description: 'UOM the MRP is quoted in' })
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'MRP amount (with currency)' })

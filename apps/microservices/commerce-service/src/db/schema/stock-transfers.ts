@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { decimal, index, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { stockTransferStatusEnum } from './enums';
@@ -7,7 +8,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const stockTransfers = commerceSchema.table(
   'stock_transfers',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     inventoryItemId: uuid('inventory_item_id')
       .notNull()

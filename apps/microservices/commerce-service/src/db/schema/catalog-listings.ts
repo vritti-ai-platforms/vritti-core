@@ -9,7 +9,7 @@ import { organizationIdColumn, workspaceScopeColumns, workspaceScopePolicies } f
 export const catalogListings = commerceSchema.table(
   'catalog_listings',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     catalogId: uuid('catalog_id')
       .notNull()

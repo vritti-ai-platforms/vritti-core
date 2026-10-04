@@ -20,12 +20,12 @@ export class UpdateVariantDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   salesUomId?: string;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   taxClassId?: string | null;
 
   @ApiPropertyOptional({ description: 'Refused until the bill of materials satisfies the fulfilment type' })

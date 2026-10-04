@@ -6,7 +6,7 @@ import { coreSchema } from './core-schema';
 export const catalogs = coreSchema.table(
   'catalogs',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     version: varchar('version', { length: 50 }).notNull(),
     hash: varchar('hash', { length: 64 }).notNull(),
     // Whole signed document is stored so the license can be re-verified on every load

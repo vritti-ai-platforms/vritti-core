@@ -8,15 +8,15 @@ export class UpdateStockTransferStatusDto {
   status: string;
 
   @ApiProperty({ description: 'Source inventory location ID' })
-  @IsUUID()
+  @IsUUID('7')
   fromLocationId: string;
 
   @ApiProperty({ description: 'Destination inventory location ID' })
-  @IsUUID()
+  @IsUUID('7')
   toLocationId: string;
 
   @ApiPropertyOptional({ description: 'User ID who received the transfer' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   receivedBy?: string;
 }

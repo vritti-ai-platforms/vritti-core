@@ -4,12 +4,12 @@ import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 export class UpdateSupplierSiteDto {
   @ApiPropertyOptional({ description: 'Party tax registration pick for goods sourced at this site', nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyTaxRegistrationId?: string | null;
 
   @ApiPropertyOptional({ description: 'Party bank account pick for payments from this site', nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyBankAccountId?: string | null;
 
   @ApiPropertyOptional({
@@ -17,7 +17,7 @@ export class UpdateSupplierSiteDto {
     nullable: true,
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   orderRelationshipId?: string | null;
 
   @ApiPropertyOptional({ description: 'Whether the site enrollment is active' })

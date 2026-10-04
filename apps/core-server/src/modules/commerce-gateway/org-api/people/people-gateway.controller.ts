@@ -50,14 +50,14 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { PeopleShopperQueryDto } from './dto/request/people-shopper.dto';
+import { PeopleShopperQueryDto } from './dto/request/people-party.dto';
 import { PeopleGatewayService, type StaffWishlistItemRow } from './services/people-gateway.service';
 
 /**
  * What a basket is priced in when the caller names nothing.
  *
  * These storefronts sell in India. A staff screen asking for a person's basket should render, not
- * refuse because nobody passed a currency — and the shopper-facing surface always passes one.
+ * refuse because nobody passed a currency — and the party-facing surface always passes one.
  */
 const DEFAULT_CURRENCY = 'INR';
 
@@ -436,7 +436,7 @@ export class PeopleGatewayController {
   /**
    * What this person saved for later.
    *
-   * Read only, deliberately: a saved list is the shopper's own, and staff adding to it would be
+   * Read only, deliberately: a saved list is the party's own, and staff adding to it would be
    * putting words in their mouth.
    */
   @Get(':id/wishlist')

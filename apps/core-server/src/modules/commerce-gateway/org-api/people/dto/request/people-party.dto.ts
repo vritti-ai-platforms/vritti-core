@@ -9,17 +9,17 @@ import { IsInt, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-val
  */
 export class PeopleCartWriteDto {
   @ApiProperty({ description: 'The storefront app credential whose basket this is' })
-  @IsUUID()
+  @IsUUID('7')
   appId: string;
 }
 
 export class AddPersonCartItemDto extends PeopleCartWriteDto {
   @ApiProperty({ description: 'Which of their baskets to add to — one per outlet they shop at' })
-  @IsUUID()
+  @IsUUID('7')
   cartId: string;
 
   @ApiProperty({ description: 'The offering variant to add — the listing carrying it is resolved server-side' })
-  @IsUUID()
+  @IsUUID('7')
   offeringVariantId: string;
 
   @ApiProperty({ description: 'How many, 1–99', example: 1 })
@@ -40,7 +40,7 @@ export class UpdatePersonCartItemDto extends PeopleCartWriteDto {
 /** A delete carries no body, so the storefront it belongs to travels as a query parameter. */
 export class RemovePersonCartItemQueryDto {
   @ApiProperty({ description: 'The storefront app credential whose basket this is' })
-  @IsUUID()
+  @IsUUID('7')
   appId: string;
 }
 

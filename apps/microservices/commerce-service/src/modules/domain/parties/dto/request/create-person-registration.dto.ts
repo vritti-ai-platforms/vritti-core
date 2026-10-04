@@ -3,10 +3,10 @@ import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } 
 import { type TaxRegistrationType, taxRegistrationTypeEnum } from '@/db/schema';
 
 export class CreatePersonRegistrationDto {
-  @IsUUID()
+  @IsUUID('7')
   personId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId: string;
 
   @Trim({ nullify: false })

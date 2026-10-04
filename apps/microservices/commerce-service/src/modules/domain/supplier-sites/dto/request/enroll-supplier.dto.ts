@@ -1,14 +1,14 @@
 import { IsOptional, IsUUID } from 'class-validator';
 
 export class EnrollSupplierDto {
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyTaxRegistrationId?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyBankAccountId?: string | null;
 }

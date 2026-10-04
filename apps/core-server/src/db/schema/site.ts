@@ -31,7 +31,7 @@ export interface SiteMetadata {
 export const sites = coreSchema.table(
   'sites',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),

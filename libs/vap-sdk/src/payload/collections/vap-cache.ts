@@ -17,7 +17,7 @@ export { VAP_CACHE_TABLE } from '../../server/cache/postgres';
  * from a `CREATE TABLE IF NOT EXISTS` the first time something is cached.
  *
  * Every access rule is shut and reads are staff-only: there is nothing here a visitor should reach, and
- * the keys themselves encode which shopper and which store a result belongs to.
+ * the keys themselves encode which party and which store a result belongs to.
  */
 export function vapCacheCollection(extraFields: Field[] = []): CollectionLike {
   // Authored against CollectionConfig for the field-level safety, handed back opaque so the built types

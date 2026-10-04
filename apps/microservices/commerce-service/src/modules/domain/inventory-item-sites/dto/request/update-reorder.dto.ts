@@ -1,7 +1,7 @@
 import { IsNumber, IsUUID, Min } from 'class-validator';
 
 export class UpdateReorderDto {
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId: string;
 
   @IsNumber({ maxDecimalPlaces: 3 })

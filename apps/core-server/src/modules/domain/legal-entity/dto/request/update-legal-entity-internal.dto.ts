@@ -47,7 +47,7 @@ export class UpdateLegalEntityInternalDto {
 
   @ApiPropertyOptional({ description: 'Parent legal entity ID (subsidiary)', example: 'uuid-here' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string;
 
   @ApiPropertyOptional({ example: true })

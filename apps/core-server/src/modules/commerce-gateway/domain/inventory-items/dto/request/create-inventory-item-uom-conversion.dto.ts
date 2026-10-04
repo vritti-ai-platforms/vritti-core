@@ -3,7 +3,7 @@ import { IsInt, IsUUID, Min } from 'class-validator';
 
 export class CreateInventoryItemUomConversionDto {
   @ApiProperty({ description: 'ID of the alternative UOM' })
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @ApiProperty({

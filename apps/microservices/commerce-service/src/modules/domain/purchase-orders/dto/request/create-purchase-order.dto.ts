@@ -3,7 +3,7 @@ import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'c
 import { ExchangeRateTypeValues } from '@/db/schema';
 
 export class CreatePurchaseOrderDto {
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
   @IsNotEmpty()

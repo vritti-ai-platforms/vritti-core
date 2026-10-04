@@ -23,7 +23,7 @@ export class UpdateLocationDto {
 
   @ApiPropertyOptional({ description: 'Parent storage location ID (null for root)', type: String, nullable: true })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @ApiPropertyOptional({ description: 'Updated display sort order' })
@@ -42,7 +42,7 @@ export class UpdateLocationDto {
 
   @ApiPropertyOptional({ description: 'Updated manager user ID' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   managerId?: string;
 
   @ApiPropertyOptional({ description: 'Updated location role', enum: Object.values(LocationRoleValues) })

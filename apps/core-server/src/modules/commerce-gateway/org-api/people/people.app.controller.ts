@@ -30,7 +30,7 @@ import { PeopleGatewayService } from './services/people-gateway.service';
  * no `@Require(AuthType.Public)`, no `@SkipCsrf()`, no `@UseGuards()`.
  *
  * Gated like every other app surface: `@RequireFeature` plus a `@RequirePermission` per operation,
- * resolved against the credential's `app` bucket. So a storefront that may register shoppers is a
+ * resolved against the credential's `app` bucket. So a storefront that may register parties is a
  * credential that was granted exactly that and nothing else — signing a valid request is not itself
  * permission to write people.
  *

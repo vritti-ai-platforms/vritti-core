@@ -7,7 +7,7 @@ import { IsInt, IsUUID, Min } from 'class-validator';
 @InputType()
 export class CreateInventoryItemUomConversionInput {
   @Field(() => String)
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @Field(() => Int)

@@ -4,15 +4,15 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class AddSupplierItemDto {
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId: string;
 
   // How this supplier's invoice classifies the goods — the same item can be goods from one supplier
   // and job work from another. Required: there is no fallback to the item or its category.
-  @IsUUID()
+  @IsUUID('7')
   taxClassId: string;
 
   @Trim()
@@ -25,7 +25,7 @@ export class AddSupplierItemDto {
   @IsCurrency()
   unitPrice?: CurrencyAmountDto | null;
 
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   uomId: string;
 

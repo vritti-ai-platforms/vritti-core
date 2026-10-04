@@ -5,16 +5,16 @@ import { ArrayMinSize, IsArray, IsOptional, IsString, IsUUID, MaxLength, Validat
 export class VariantCombinationInput {
   @IsArray()
   @ArrayMinSize(1)
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   valueIds: string[];
 }
 
 export class GenerateVariantsDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringId: string;
 
   // Applies to every variant in this batch, and to any inventory item created by auto-link
-  @IsUUID()
+  @IsUUID('7')
   salesUomId: string;
 
   @IsArray()

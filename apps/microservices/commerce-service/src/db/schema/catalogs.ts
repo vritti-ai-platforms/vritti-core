@@ -6,7 +6,7 @@ import { organizationIdColumn, workspaceScopeColumns, workspaceScopePolicies } f
 export const catalogs = commerceSchema.table(
   'catalogs',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     legalEntityId: workspaceScopeColumns.legalEntityId,
     siteId: workspaceScopeColumns.siteId,

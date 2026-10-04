@@ -5,6 +5,6 @@ import { IsOptional, IsUUID } from 'class-validator';
 export class QuantsSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({ description: 'Filter quants to a specific inventory item' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId?: string;
 }

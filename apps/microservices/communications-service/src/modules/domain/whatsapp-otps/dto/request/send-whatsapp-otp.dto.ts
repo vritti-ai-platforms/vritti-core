@@ -2,10 +2,10 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsInt, IsNotEmpty, IsString, IsUUID, Max, Min } from 'class-validator';
 
 export class SendWhatsappOtpDto {
-  @IsUUID()
+  @IsUUID('7')
   appId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   accountId: string;
 
   @Trim({ nullify: false })

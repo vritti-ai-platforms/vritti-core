@@ -19,7 +19,7 @@ import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 export const inventoryItemMrps = commerceSchema.table(
   'inventory_item_mrps',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     inventoryItemId: uuid('inventory_item_id')
       .notNull()

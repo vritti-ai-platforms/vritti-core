@@ -20,7 +20,7 @@ export class CreateTaxJurisdictionDto {
   level: TaxJurisdictionLevel;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string;
 
   @IsCountry()

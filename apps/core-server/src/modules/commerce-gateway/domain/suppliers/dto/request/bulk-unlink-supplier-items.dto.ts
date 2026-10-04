@@ -2,6 +2,6 @@ import { IsArray, IsUUID } from 'class-validator';
 
 export class BulkUnlinkSupplierItemsDto {
   @IsArray()
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   supplierItemIds: string[];
 }

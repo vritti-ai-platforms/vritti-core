@@ -13,6 +13,6 @@ export class SelectRolesInternalDto extends SelectOptionsQueryDto {
     example: 'uuid-here',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   siteId?: string;
 }

@@ -28,7 +28,7 @@ export class TemplateValueInput {
 }
 
 export class UpsertDimensionTemplateValuesDto {
-  @IsUUID()
+  @IsUUID('7')
   templateId: string;
 
   // The complete set the template should end up with — the service replaces rather than diffs.

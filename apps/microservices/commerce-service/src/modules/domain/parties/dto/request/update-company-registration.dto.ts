@@ -3,11 +3,11 @@ import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } 
 import { type TaxRegistrationType, taxRegistrationTypeEnum } from '@/db/schema';
 
 export class UpdateCompanyRegistrationDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId?: string;
 
   @Trim({ nullify: false })

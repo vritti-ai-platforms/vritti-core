@@ -3,10 +3,10 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class UpdateSupplierItemDto {
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   supplierItemId: string;
 
   @Trim()
@@ -16,7 +16,7 @@ export class UpdateSupplierItemDto {
   supplierItemCode?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   uomId?: string;
 
   @IsOptional()

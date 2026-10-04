@@ -1,4 +1,8 @@
-import type { UpsertB2bChannelDto, UpsertPosChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
+import type {
+  UpsertAppChannelDto,
+  UpsertB2bChannelDto,
+  UpsertPosChannelDto,
+} from '@commerce/catalog-channels/dto/request/app-channel.dto';
 import {
   CatalogChannelTypeValues,
   CHANNEL_TYPES,
@@ -21,6 +25,7 @@ import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
+import type { CatalogListing } from '../../../org-api/catalog-channels/graphql/catalog-listing.type';
 
 const ITEMS_TABLE_SLUG = (channelId: string) => `commerce-le-channel-${channelId}-items`;
 
@@ -55,8 +60,9 @@ export class LeCatalogChannelsGatewayService {
     const entries = CHANNEL_TYPES.map((type) => {
       const slots = resolved[type] ?? {};
       const defaultCatalog = slots[DEFAULT_SLOT] ?? null;
-      const existing =
-        type === CatalogChannelTypeValues.APP ? liveApps : type === CatalogChannelTypeValues.POS ? terminals : null;
+      // Only POS names a till. APP and B2B both name an app — which of the two a caller resolves
+      // through comes from the party buying, not from the site.
+      const existing = type === CatalogChannelTypeValues.POS ? terminals : liveApps;
 
       const entry = new ChannelEntryResponseDto();
       entry.type = type;
@@ -67,6 +73,24 @@ export class LeCatalogChannelsGatewayService {
 
     await this.stampOwnerNames(orgId, entries);
     return entries;
+  }
+
+  // The storefront's range — one call, because commerce resolves the channel and joins the prices
+  async appListings(appId: string, variantIds?: string[]): Promise<CatalogListing[]> {
+    if (variantIds) {
+      this.logger.log(`le.catalogChannels.app.listingsFromVariants — ${variantIds.length} variants`);
+      return this.nats.send('commerce', 'le.catalogChannels.app.listingsFromVariants', { appId, variantIds });
+    }
+    this.logger.log('le.catalogChannels.app.listings');
+    return this.nats.send('commerce', 'le.catalogChannels.app.listings', { appId });
+  }
+
+  async upsertApp(dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log(`le.appCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
+    return this.nats.send('commerce', 'le.appCatalogChannels.upsert', {
+      catalogId: dto.catalogId,
+      appId: dto.appId ?? null,
+    });
   }
 
   async upsertPos(dto: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {

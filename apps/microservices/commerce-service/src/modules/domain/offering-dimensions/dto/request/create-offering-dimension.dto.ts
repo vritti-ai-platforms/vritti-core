@@ -2,7 +2,7 @@ import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateOfferingDimensionDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringId: string;
 
   @Trim({ nullify: false })

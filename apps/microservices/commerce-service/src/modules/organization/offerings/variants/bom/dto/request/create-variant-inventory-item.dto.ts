@@ -3,7 +3,7 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'cla
 import type { InventoryItemType, InventoryPickStrategy, InventoryTracking } from '@/db/schema';
 
 export class CreateVariantInventoryItemDto {
-  @IsUUID()
+  @IsUUID('7')
   variantId: string;
 
   @Trim({ nullify: false })
@@ -22,10 +22,10 @@ export class CreateVariantInventoryItemDto {
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;
 
-  @IsUUID()
+  @IsUUID('7')
   categoryId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @Trim()

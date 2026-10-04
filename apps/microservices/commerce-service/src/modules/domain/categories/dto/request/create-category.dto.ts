@@ -9,7 +9,7 @@ export class CreateCategoryDto {
   name: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   // GROUP holds sub-categories; CATEGORY (default) is a leaf that holds inventory items.
@@ -27,6 +27,6 @@ export class CreateCategoryDto {
   isActive?: boolean;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   defaultTaxClassId?: string | null;
 }

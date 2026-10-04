@@ -21,7 +21,7 @@ export class CreateSiteGroupInternalDto {
 
   @ApiPropertyOptional({ description: 'Parent site group ID', example: 'uuid-here' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string;
 
   @ApiPropertyOptional({ description: 'Sort order in the org-structure graph (lower sorts first)', example: 0 })

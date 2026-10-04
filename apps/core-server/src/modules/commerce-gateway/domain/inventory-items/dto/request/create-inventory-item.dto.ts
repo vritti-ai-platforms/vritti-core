@@ -43,7 +43,7 @@ export class CreateInventoryItemDto {
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
   @ApiProperty({ description: 'Category ID' })
-  @IsUUID()
+  @IsUUID('7')
   categoryId: string;
 
   @Trim()
@@ -54,7 +54,7 @@ export class CreateInventoryItemDto {
   description?: string | null;
 
   @ApiProperty({ description: 'Unit of measure ID' })
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @Trim()

@@ -9,7 +9,7 @@ import { organizations } from './organizations';
 export const orgServices = coreSchema.table(
   'org_services',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),

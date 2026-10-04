@@ -22,7 +22,7 @@ export class UpdateTaxJurisdictionDto {
 
   @ApiPropertyOptional({ description: 'Parent jurisdiction ID (for nested jurisdictions)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   @ApiPropertyOptional({ description: 'ISO 3166-1 alpha-2 country code' })

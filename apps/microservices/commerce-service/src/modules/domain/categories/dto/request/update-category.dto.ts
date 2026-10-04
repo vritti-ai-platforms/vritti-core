@@ -3,7 +3,7 @@ import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'cla
 import { type CategoryRole, CategoryRoleValues } from '@/db/schema';
 
 export class UpdateCategoryDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })
@@ -12,7 +12,7 @@ export class UpdateCategoryDto {
   name?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   parentId?: string | null;
 
   // Switch a leaf to a GROUP (only if it has no items) or a GROUP to a leaf (only if it has no children).
@@ -30,6 +30,6 @@ export class UpdateCategoryDto {
   isActive?: boolean;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   defaultTaxClassId?: string | null;
 }

@@ -7,7 +7,7 @@ type TaxRegistrationTypeValue = (typeof TAX_REGISTRATION_TYPES)[number];
 
 export class CreatePersonRegistrationDto {
   @ApiProperty({ description: 'Tax jurisdiction ID the registration belongs to' })
-  @IsUUID()
+  @IsUUID('7')
   jurisdictionId: string;
 
   @Trim({ nullify: false })

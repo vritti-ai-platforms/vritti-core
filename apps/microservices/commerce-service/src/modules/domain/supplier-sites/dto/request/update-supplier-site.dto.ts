@@ -1,19 +1,19 @@
 import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 
 export class UpdateSupplierSiteDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyTaxRegistrationId?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   partyBankAccountId?: string | null;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   orderRelationshipId?: string | null;
 
   @IsOptional()

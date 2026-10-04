@@ -58,7 +58,7 @@ export type VapSdkConfig = {
  * in core's verifier at the same time.
  */
 export type RequestContext = {
-  /** The party the app is acting for — a signed-in shopper, typically. */
+  /** The party the app is acting for — a signed-in party, typically. */
   partyId?: string;
 
   /**
@@ -66,7 +66,7 @@ export type RequestContext = {
    *
    * Price is per listing × site × currency, so a storefront asking "what does this cost" is always
    * asking it of somewhere. A shop with one outlet sets it once from configuration; one with a
-   * store selector sets it per request from what the shopper chose.
+   * store selector sets it per request from what the party chose.
    *
    * Covered by the request signature, and the header **name** is signed too — so a request cannot
    * be re-pointed from one site to another, or from a site to a legal entity, in transit.
@@ -115,3 +115,10 @@ export function contextForScope(context: RequestContext, scope: WorkspaceScope):
   }
   return scope === 'site' ? { ...base, siteId: id } : { ...base, legalEntityId: id };
 }
+
+/** A currency and a major-unit string, exactly as core sends it. See `MoneyFieldsFragment`. */
+export type Money = {
+  currency: string;
+  /** Major units as a **string** — format it, never `Number` it for arithmetic. */
+  value: string;
+};

@@ -5,7 +5,7 @@ import { communicationsSchema } from './communications-schema';
 export const whatsappAccounts = communicationsSchema.table(
   'whatsapp_accounts',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     legalEntityId: uuid('legal_entity_id'),
     metaBusinessId: varchar('meta_business_id', { length: 64 }).notNull(),

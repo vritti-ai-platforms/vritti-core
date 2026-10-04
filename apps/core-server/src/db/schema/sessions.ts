@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, jsonb, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { sessionTypeEnum } from './enums';
@@ -6,15 +7,15 @@ import { users } from './users';
 /**
  * Staff sessions.
  *
- * Storefront shoppers are deliberately absent: their sessions live in the
+ * Storefront parties are deliberately absent: their sessions live in the
  * storefront application itself, which owns the credential and the cookie. Core
  * keeps a `party_identities` mirror for commerce to reference and takes no
- * part in the shopper login.
+ * part in the party login.
  */
 export const sessions = coreSchema.table(
   'sessions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

@@ -9,6 +9,6 @@ export class ReparentSiteGroupInternalDto {
   })
   @IsOptional()
   @ValidateIf((o) => o.parentId !== null)
-  @IsUUID()
+  @IsUUID('7')
   parentId: string | null;
 }

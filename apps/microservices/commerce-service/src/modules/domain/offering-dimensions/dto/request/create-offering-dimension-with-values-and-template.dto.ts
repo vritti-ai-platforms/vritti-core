@@ -27,10 +27,10 @@ export class OfferingDimensionValueInputDto {
 }
 
 export class CreateOfferingDimensionWithValuesAndTemplateDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   templateId: string;
 
   @Trim({ nullify: false })

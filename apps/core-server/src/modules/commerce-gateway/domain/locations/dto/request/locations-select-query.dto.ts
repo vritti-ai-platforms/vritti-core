@@ -25,7 +25,7 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
     example: 'b3f9a8c4-1234-4567-89ab-cdef01234567',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId?: string;
 
   @ApiPropertyOptional({
@@ -33,7 +33,7 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
     example: 'b3f9a8c4-1234-4567-89ab-cdef01234567',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   excludeUsedOnGoodsReceiptItemId?: string;
 
   @ApiPropertyOptional({
@@ -41,6 +41,6 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
     example: 'b3f9a8c4-1234-4567-89ab-cdef01234567',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   goodsReceiptLotId?: string;
 }

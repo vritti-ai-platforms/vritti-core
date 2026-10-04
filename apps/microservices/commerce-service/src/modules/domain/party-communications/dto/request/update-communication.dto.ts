@@ -13,7 +13,7 @@ import {
 import { PartyCommunicationAppInput } from './party-communication-app-input.dto';
 
 export class UpdateCommunicationDto {
-  @IsUUID()
+  @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })

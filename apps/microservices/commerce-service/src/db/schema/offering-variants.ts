@@ -1,3 +1,4 @@
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   boolean,
   decimal,
@@ -23,7 +24,7 @@ import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope'
 export const offeringVariants = commerceSchema.table(
   'offering_variants',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     offeringId: uuid('offering_id')
       .notNull()
@@ -65,7 +66,7 @@ export type NewOfferingVariant = typeof offeringVariants.$inferInsert;
 export const offeringVariantValues = commerceSchema.table(
   'offering_variant_values',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     variantId: uuid('variant_id')
       .notNull()
@@ -95,7 +96,7 @@ export type NewOfferingVariantValue = typeof offeringVariantValues.$inferInsert;
 export const offeringBom = commerceSchema.table(
   'offering_bom',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     variantId: uuid('variant_id')
       .notNull()

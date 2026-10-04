@@ -5,16 +5,16 @@ import { IsOptional, IsUUID } from 'class-validator';
 export class SupplierItemsSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({ description: 'Restrict options to items linked to this supplier' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   supplierId?: string;
 
   @ApiPropertyOptional({ description: 'Exclude items already on this purchase order' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   excludeOnPurchaseOrderId?: string;
 
   @ApiPropertyOptional({ description: 'Exclude items already on this goods receipt' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   excludeOnGoodsReceiptId?: string;
 }

@@ -42,7 +42,7 @@ type CatalogListing {
   price: Money
 }
 
-type ShopperAddress {
+type PartyAddress {
   id: ID!
   line1: String!
   line2: String

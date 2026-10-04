@@ -26,7 +26,7 @@ export class CreateInventoryItemDto {
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;
 
-  @IsUUID()
+  @IsUUID('7')
   categoryId: string;
 
   @Trim()
@@ -35,7 +35,7 @@ export class CreateInventoryItemDto {
   @MaxLength(500)
   description?: string | null;
 
-  @IsUUID()
+  @IsUUID('7')
   uomId: string;
 
   @Trim()

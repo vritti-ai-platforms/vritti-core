@@ -18,7 +18,7 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
 
   @ApiPropertyOptional({ description: 'Filter to UOMs sharing the given dimension' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   dimensionId?: string;
 
   @ApiPropertyOptional({
@@ -26,18 +26,18 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
       'Restrict to UOMs the given inventory item is allowed to transact in (primary UOM + per-item conversions + same-family UOMs).',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   inventoryItemId?: string;
 
   @ApiPropertyOptional({
     description: 'Restrict to UOMs the supplier offers for this item, excluding already-linked UOMs',
   })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   supplierId?: string;
 
   @ApiPropertyOptional({ description: 'Exclude UOMs already on this purchase order for the selected inventory item' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   purchaseOrderId?: string;
 }

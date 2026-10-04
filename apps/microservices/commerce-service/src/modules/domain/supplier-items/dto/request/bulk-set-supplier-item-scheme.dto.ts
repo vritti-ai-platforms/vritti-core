@@ -1,12 +1,12 @@
 import { ArrayNotEmpty, IsArray, IsBoolean, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class BulkSetSupplierItemSchemeDto {
-  @IsUUID()
+  @IsUUID('7')
   supplierId: string;
 
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   supplierItemIds: string[];
 
   @IsOptional()

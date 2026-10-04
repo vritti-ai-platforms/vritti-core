@@ -1,22 +1,22 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateStockTransferDto {
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   inventoryItemId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   fromSiteId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   @IsNotEmpty()
   toSiteId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   fromLocationId: string;
 
-  @IsUUID()
+  @IsUUID('7')
   toLocationId: string;
 
   @IsNumber()
@@ -24,7 +24,7 @@ export class CreateStockTransferDto {
   quantity: number;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   requestedBy?: string;
 
   @IsOptional()

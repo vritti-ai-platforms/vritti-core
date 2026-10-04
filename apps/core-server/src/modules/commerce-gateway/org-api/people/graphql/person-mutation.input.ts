@@ -57,7 +57,7 @@ export class CreatePersonInput {
 @InputType()
 export class AddPersonCommunicationInput {
   @Field(() => ID)
-  @IsUUID()
+  @IsUUID('7')
   personId: string;
 
   @Field(() => String)
@@ -88,18 +88,18 @@ export class FindPeopleByCommunicationInput {
 }
 
 /**
- * A shopper editing their own details.
+ * A party editing their own details.
  *
  * Carries **no id**. The party is read from the request signature, so there is nothing here a
  * caller could change to edit somebody else — the same shape the basket and the wishlist use.
  *
- * Phone is absent on purpose: it is the credential the shopper proved by OTP and what core matched
+ * Phone is absent on purpose: it is the credential the party proved by OTP and what core matched
  * them on, so changing it is a re-verification flow (`sendSmsOtp` → `verifySmsOtp` →
  * `addPersonCommunication`), not a field on a form. `isActive` is absent because nobody should be
  * able to switch their own party off through a profile page.
  */
 @InputType()
-export class UpdateShopperProfileInput {
+export class UpdatePartyProfileInput {
   @Field(() => String, { nullable: true })
   @IsOptional()
   @Trim({ nullify: false })

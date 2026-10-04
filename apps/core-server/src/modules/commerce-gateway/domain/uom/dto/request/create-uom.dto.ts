@@ -4,7 +4,7 @@ import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID,
 
 export class CreateUomDto {
   @ApiProperty({ description: 'Dimension UUID this UOM belongs to' })
-  @IsUUID()
+  @IsUUID('7')
   dimensionId: string;
 
   @Trim({ nullify: false })
@@ -23,7 +23,7 @@ export class CreateUomDto {
 
   @ApiPropertyOptional({ description: 'Base unit ID (null = this is a base unit)' })
   @IsOptional()
-  @IsUUID()
+  @IsUUID('7')
   baseUnitId?: string;
 
   @ApiPropertyOptional({

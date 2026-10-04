@@ -22,8 +22,8 @@ export interface PayloadLike {
   config: { custom?: Record<string, unknown> };
 }
 
-/** The signed-in shopper, as Payload's auth returns them. */
-export interface ShopperLike {
+/** The signed-in party, as Payload's auth returns them. */
+export interface PartyLike {
   id: string | number;
   email?: string | null;
   phone?: string | null;

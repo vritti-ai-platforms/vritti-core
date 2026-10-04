@@ -1,12 +1,12 @@
 import { ArrayNotEmpty, IsArray, IsBoolean, IsUUID } from 'class-validator';
 
 export class BulkSetVariantsStatusDto {
-  @IsUUID()
+  @IsUUID('7')
   offeringId: string;
 
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('all', { each: true })
+  @IsUUID('7', { each: true })
   ids: string[];
 
   @IsBoolean()

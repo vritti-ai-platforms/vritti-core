@@ -1,4 +1,5 @@
 import {
+  ApiUpsertAppChannel,
   ApiUpsertB2bChannel,
   ApiUpsertPosChannel,
 } from '@commerce/catalog-channels/docs/app-catalog-channel-gateway.docs';
@@ -8,7 +9,11 @@ import {
   ApiListCatalogChannels,
   ApiSetChannelItemVisibility,
 } from '@commerce/catalog-channels/docs/catalog-channels-gateway.docs';
-import { UpsertB2bChannelDto, UpsertPosChannelDto } from '@commerce/catalog-channels/dto/request/app-channel.dto';
+import {
+  UpsertAppChannelDto,
+  UpsertB2bChannelDto,
+  UpsertPosChannelDto,
+} from '@commerce/catalog-channels/dto/request/app-channel.dto';
 import { SetItemVisibilityDto } from '@commerce/catalog-channels/dto/request/set-item-visibility.dto';
 import type {
   CatalogChannelResponseDto,
@@ -45,6 +50,14 @@ export class LeCatalogChannelsGatewayController {
   }
 
   // Creation is per type because each names a different target; everything after it keys on channelId
+  @Put('app')
+  @RequirePermission(LE_CATALOG_CHANNELS.edit)
+  @ApiUpsertAppChannel()
+  upsertApp(@Body() dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log('PUT /commerce-api/le/catalog-channels/app');
+    return this.service.upsertApp(dto);
+  }
+
   @Put('pos')
   @RequirePermission(LE_CATALOG_CHANNELS.edit)
   @ApiUpsertPosChannel()
