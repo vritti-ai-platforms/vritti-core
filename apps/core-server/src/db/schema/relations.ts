@@ -79,6 +79,15 @@ export const relations = defineRelations(schema, (r) => ({
       alias: 'leParent',
     }),
     sites: r.many.sites(),
+    bankAccounts: r.many.bankAccounts(),
+  },
+
+  // Bank account relations
+  bankAccounts: {
+    legalEntity: r.one.legalEntities({
+      from: r.bankAccounts.legalEntityId,
+      to: r.legalEntities.id,
+    }),
   },
 
   // Site group relations

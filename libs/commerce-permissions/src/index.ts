@@ -1,6 +1,7 @@
 // Barrel — prefer the per-feature subpaths (@vritti/commerce-permissions/uom) in app code.
 // Each feature file hosts one object per workspace scope it's exposed in (ORG_*, LE_*, SITE_*, SITE_GROUP_*).
 
+export { LE_BANK_ACCOUNTS } from './bank-accounts';
 export { LE_CARTS, SITE_CARTS } from './carts';
 export { LE_CATALOG_CHANNELS, ORG_CATALOG_CHANNELS, SITE_CATALOG_CHANNELS } from './catalog-channels';
 export { LE_CATALOGS, ORG_CATALOGS, SITE_CATALOGS } from './catalogs';

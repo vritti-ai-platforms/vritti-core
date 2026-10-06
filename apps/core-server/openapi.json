@@ -5046,6 +5046,684 @@
         ]
       }
     },
+    "/bank-accounts/table": {
+      "get": {
+        "description": "The user's saved view of the bank accounts held by the legal entity in context (x-le-id).",
+        "operationId": "BankAccountController_findForTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankAccountsTableResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A legal entity context is required."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Bank accounts table",
+        "tags": [
+          "Structure - Bank Accounts"
+        ]
+      }
+    },
+    "/bank-accounts": {
+      "get": {
+        "description": "Every bank account held by the legal entity named by x-le-id, newest first.",
+        "operationId": "BankAccountController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankAccountDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A legal entity context is required."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Bank accounts of the legal entity in context",
+        "tags": [
+          "Structure - Bank Accounts"
+        ]
+      },
+      "post": {
+        "description": "Adds a bank account to the legal entity in context. The account number is unique per legal entity and IFSC.",
+        "operationId": "BankAccountController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeBankAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bank account added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or no legal entity context."
+          },
+          "409": {
+            "description": "The legal entity already holds this account."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a bank account",
+        "tags": [
+          "Structure - Bank Accounts"
+        ]
+      }
+    },
+    "/bank-accounts/{id}": {
+      "get": {
+        "operationId": "BankAccountController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Bank account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankAccountDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bank account not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a bank account",
+        "tags": [
+          "Structure - Bank Accounts"
+        ]
+      },
+      "patch": {
+        "operationId": "BankAccountController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Bank account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBankAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bank account updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bank account not found."
+          },
+          "409": {
+            "description": "The legal entity already holds this account."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a bank account",
+        "tags": [
+          "Structure - Bank Accounts"
+        ]
+      },
+      "delete": {
+        "operationId": "BankAccountController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Bank account ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bank account removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bank account not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a bank account",
+        "tags": [
+          "Structure - Bank Accounts"
+        ]
+      }
+    },
+    "/bank-accounts/internal/table": {
+      "get": {
+        "description": "Resolves one page of the organization's bank accounts from a serialized view state (filters, search, sort, pagination) that cloud holds. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "BankAccountInternalController_findForTable",
+        "parameters": [
+          {
+            "name": "filters",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified FilterCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SearchState",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SortCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bank accounts page retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankAccountsPageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "Bank accounts table",
+        "tags": [
+          "Structure - Bank Accounts (internal)"
+        ]
+      }
+    },
+    "/bank-accounts/internal/legal-entity/{legalEntityId}": {
+      "get": {
+        "description": "Returns every bank account held by the legal entity, newest first.",
+        "operationId": "BankAccountInternalController_list",
+        "parameters": [
+          {
+            "name": "legalEntityId",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bank accounts retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankAccountDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List bank accounts of a legal entity",
+        "tags": [
+          "Structure - Bank Accounts (internal)"
+        ]
+      }
+    },
+    "/bank-accounts/internal": {
+      "post": {
+        "description": "Adds a bank account to a legal entity of the organization. The account number is unique per legal entity and IFSC.",
+        "operationId": "BankAccountInternalController_create",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBankAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bank account created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or legal entity outside the organization."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "409": {
+            "description": "The legal entity already holds this account."
+          }
+        },
+        "summary": "Create bank account",
+        "tags": [
+          "Structure - Bank Accounts (internal)"
+        ]
+      }
+    },
+    "/bank-accounts/internal/{id}": {
+      "get": {
+        "description": "Returns a single bank account by ID.",
+        "operationId": "BankAccountInternalController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Bank account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bank account retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankAccountDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Bank account not found."
+          }
+        },
+        "summary": "Get bank account",
+        "tags": [
+          "Structure - Bank Accounts (internal)"
+        ]
+      },
+      "patch": {
+        "description": "Updates the label, holder, number, IFSC, bank or branch of a bank account.",
+        "operationId": "BankAccountInternalController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Bank account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBankAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bank account updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Bank account not found."
+          },
+          "409": {
+            "description": "The legal entity already holds this account."
+          }
+        },
+        "summary": "Update bank account",
+        "tags": [
+          "Structure - Bank Accounts (internal)"
+        ]
+      },
+      "delete": {
+        "description": "Deletes a bank account.",
+        "operationId": "BankAccountInternalController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Bank account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bank account deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Bank account not found."
+          }
+        },
+        "summary": "Delete bank account",
+        "tags": [
+          "Structure - Bank Accounts (internal)"
+        ]
+      }
+    },
     "/catalog/internal": {
       "put": {
         "description": "Receives the signed version snapshot (catalog license) from cloud-server, verifies its Ed25519 signature and snapshot hash, stores it append-only, and activates it. Idempotent by snapshot hash. Requires Ed25519 signature headers (x-timestamp, x-signature).",
@@ -36328,6 +37006,252 @@
           }
         }
       },
+      "BankAccountDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "label": {
+            "type": "object",
+            "example": "Primary current account",
+            "nullable": true
+          },
+          "accountHolderName": {
+            "type": "string",
+            "example": "Acme Retail Pvt Ltd"
+          },
+          "accountNumber": {
+            "type": "string",
+            "example": "123456789012"
+          },
+          "ifscCode": {
+            "type": "string",
+            "example": "HDFC0001234"
+          },
+          "bankName": {
+            "type": "string",
+            "example": "HDFC Bank"
+          },
+          "branchName": {
+            "type": "object",
+            "example": "MG Road, Bengaluru",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "legalEntityId",
+          "accountHolderName",
+          "accountNumber",
+          "ifscCode",
+          "bankName",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BankAccountsTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankAccountDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "CreateLeBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "object",
+            "description": "Display label for the account",
+            "example": "Primary current account"
+          },
+          "accountHolderName": {
+            "type": "string",
+            "description": "Name the account is held in",
+            "example": "Acme Retail Pvt Ltd"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Account number (5-30 letters or digits)",
+            "example": "123456789012"
+          },
+          "ifscCode": {
+            "type": "string",
+            "description": "IFSC code of the branch",
+            "example": "HDFC0001234"
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Bank name",
+            "example": "HDFC Bank"
+          },
+          "branchName": {
+            "type": "object",
+            "description": "Branch name",
+            "example": "MG Road, Bengaluru"
+          }
+        },
+        "required": [
+          "accountHolderName",
+          "accountNumber",
+          "ifscCode",
+          "bankName"
+        ]
+      },
+      "CreateResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Resource created successfully"
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "UpdateBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "object",
+            "description": "Display label for the account",
+            "example": "Primary current account"
+          },
+          "accountHolderName": {
+            "type": "string",
+            "description": "Name the account is held in",
+            "example": "Acme Retail Pvt Ltd"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Account number (5-30 letters or digits)",
+            "example": "123456789012"
+          },
+          "ifscCode": {
+            "type": "string",
+            "description": "IFSC code of the branch",
+            "example": "HDFC0001234"
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Bank name",
+            "example": "HDFC Bank"
+          },
+          "branchName": {
+            "type": "object",
+            "description": "Branch name",
+            "example": "MG Road, Bengaluru"
+          }
+        }
+      },
+      "BankAccountsPageResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankAccountDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "result",
+          "count"
+        ]
+      },
+      "CreateBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "legalEntityId": {
+            "type": "string",
+            "description": "Owning legal entity ID",
+            "example": "uuid-here"
+          },
+          "label": {
+            "type": "object",
+            "description": "Display label for the account",
+            "example": "Primary current account"
+          },
+          "accountHolderName": {
+            "type": "string",
+            "description": "Name the account is held in",
+            "example": "Acme Retail Pvt Ltd"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Account number (5-30 letters or digits)",
+            "example": "123456789012"
+          },
+          "ifscCode": {
+            "type": "string",
+            "description": "IFSC code of the branch",
+            "example": "HDFC0001234"
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Bank name",
+            "example": "HDFC Bank"
+          },
+          "branchName": {
+            "type": "object",
+            "description": "Branch name",
+            "example": "MG Road, Bengaluru"
+          }
+        },
+        "required": [
+          "legalEntityId",
+          "accountHolderName",
+          "accountNumber",
+          "ifscCode",
+          "bankName"
+        ]
+      },
       "ReceiveCatalogInternalDto": {
         "type": "object",
         "properties": {
@@ -43618,27 +44542,6 @@
         "required": [
           "provider",
           "name"
-        ]
-      },
-      "CreateResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Resource created successfully"
-          },
-          "data": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "success",
-          "message",
-          "data"
         ]
       },
       "UpdateSmsProviderDto": {

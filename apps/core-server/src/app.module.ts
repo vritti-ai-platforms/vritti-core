@@ -44,6 +44,7 @@ import { StructureApiModule } from './modules/core-api/structure/structure.modul
 import { UserApiModule } from './modules/core-api/user/user.module';
 import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
 import { AppDomainModule } from './modules/domain/app/app.module';
+import { BankAccountDomainModule } from './modules/domain/bank-account/bank-account.module';
 import { CatalogDomainModule } from './modules/domain/catalog/catalog.module';
 import { LegalEntityDomainModule } from './modules/domain/legal-entity/legal-entity.module';
 import { OrganizationDomainModule } from './modules/domain/organization/organization.module';
@@ -283,6 +284,7 @@ const graphqlBaseOptions = {
     AppDomainModule,
     VerificationDomainModule,
     LegalEntityDomainModule,
+    BankAccountDomainModule,
     SiteDomainModule,
     SiteGroupDomainModule,
     CatalogDomainModule,

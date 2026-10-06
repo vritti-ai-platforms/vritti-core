@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CommerceGatewayServicesModule } from '@/modules/commerce-gateway/commerce-gateway-services.module';
+import { BankAccountController } from './bank-accounts/bank-account.controller';
+import { BankAccountInternalController } from './bank-accounts/bank-account-internal.controller';
 import { LegalEntityController } from './legal-entities/legal-entity.controller';
 import { StructureController } from './root/structure.controller';
 import { SiteGroupController } from './site-groups/site-group.controller';
@@ -19,6 +21,8 @@ import { TaxRegistrationInternalController } from './tax-registrations/tax-regis
     SiteGroupController,
     TaxRegistrationInternalController,
     TaxJurisdictionInternalController,
+    BankAccountController,
+    BankAccountInternalController,
   ],
 })
 export class StructureApiModule {}

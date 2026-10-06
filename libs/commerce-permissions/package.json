@@ -69,6 +69,10 @@
       "types": "./dist/tax-registrations.d.ts",
       "default": "./dist/tax-registrations.js"
     },
+    "./bank-accounts": {
+      "types": "./dist/bank-accounts.d.ts",
+      "default": "./dist/bank-accounts.js"
+    },
     "./tax-groups": {
       "types": "./dist/tax-groups.d.ts",
       "default": "./dist/tax-groups.js"
