@@ -4,14 +4,6 @@ import { coreSchema } from './core-schema';
 import { sessionTypeEnum } from './enums';
 import { users } from './users';
 
-/**
- * Staff sessions.
- *
- * Storefront parties are deliberately absent: their sessions live in the
- * storefront application itself, which owns the credential and the cookie. Core
- * keeps a `party_identities` mirror for commerce to reference and takes no
- * part in the party login.
- */
 export const sessions = coreSchema.table(
   'sessions',
   {

@@ -7,6 +7,7 @@ import { createPostgresResponseCache } from '../server/cache/postgres';
 import { createVapSdk } from '../server/sdk';
 import { customersCollection } from './collections/parties';
 import { vapCacheCollection } from './collections/vap-cache';
+import { VAP_NEXT_KEY, VapNextConfig } from './next-config';
 import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime';
 
 export interface VapOptions extends VapSdkOptions {
@@ -35,6 +36,18 @@ export interface VapOptions extends VapSdkOptions {
     customers?: Field[];
     vapCache?: Field[];
   };
+
+  /**
+   * What the ready-made sign-in actions need, for an app importing them from
+   * `@vritti/vap-sdk/next/auth` rather than writing its own.
+   *
+   * Parked in `config.custom`, which is server-only, and read back through the running Payload
+   * instance — so the actions need nothing passed at call time, and a storefront configures its
+   * sign-in exactly once, here.
+   *
+   * Omit it entirely if the app wires the flow itself with `createOtpSignInActions`.
+   */
+  auth?: VapNextConfig;
 }
 
 /**
@@ -68,7 +81,7 @@ export interface VapOptions extends VapSdkOptions {
  * client — and the signing key it holds — never reaches the browser bundle.
  */
 export function vap(options: VapOptions = {}): PayloadPlugin {
-  const { enabled = true, fields, databaseUrl, databaseSchema, ...sdkOptions } = options;
+  const { enabled = true, fields, databaseUrl, databaseSchema, auth, ...sdkOptions } = options;
 
   return <T extends ConfigLike>(config: T): T => {
     if (enabled === false) return config;
@@ -90,6 +103,7 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
         // `{ ...config.custom }` anywhere in Payload or in a later plugin would build the client during the
         // config phase — and throw there when a credential is missing, which is exactly what deferring it
         // was meant to avoid. `JSON.stringify` has the same problem. A function reference survives both.
+        ...(auth ? { [VAP_NEXT_KEY]: auth } : {}),
         [SDK_CONFIG_KEY]: () =>
           (client ??= createVapSdk({
             ...sdkOptions,

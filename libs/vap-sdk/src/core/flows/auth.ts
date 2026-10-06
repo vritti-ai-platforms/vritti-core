@@ -1,8 +1,10 @@
-import type { OtpOperations } from '../domains/otp';
 import type { Channel, PeopleOperations, Person } from '../domains/people';
 import { CHANNELS } from '../domains/people';
+import type { SmsOtpOperations } from '../domains/sms-otp';
+import type { WhatsappOtpOperations } from '../domains/whatsapp-otp';
 import { PartyRollbackError, VapError } from '../errors';
-import { normalizePhone } from '../phone';
+import { isValidPhone, normalizePhone, toE164 } from '../phone';
+import { OTP_CHANNELS, type OtpChannel, type SendOtpResult } from '../types';
 
 /**
  * What a signup form collects.
@@ -79,6 +81,164 @@ export type RegisterPersonResult<L extends LocalRecord> = {
 };
 
 /**
+ * Which of the three forms a sign-in is on.
+ *
+ * `name` is reached only when the organization has never seen the number — a returning party goes
+ * straight from `code` to signed in.
+ */
+export type OtpStep = 'phone' | 'code' | 'name';
+
+/**
+ * What has to survive between the three requests.
+ *
+ * Two of these fields are the authentication itself and must be unforgeable wherever the caller
+ * parks them: `phone`, because re-reading it from a form would let a verified session be pointed at
+ * someone else's number, and `verified`, because it *is* the proof. On a web app that means a signed
+ * cookie (`seal` from `@vritti/vap-sdk/server`); on a device, encrypted storage.
+ *
+ * Deliberately not sealed here. This tier runs in Node, a browser and React Native alike, and
+ * `node:crypto` exists in only one of them — so the state is handed over plain and the adapter
+ * decides how to make it tamper-proof.
+ */
+export interface OtpFlowData {
+  /** E.164, normalized once when the code was sent. Never re-read from a form after that. */
+  phone: string;
+  /** Which route the code took, so verifying asks the same one that sent it. */
+  channel: OtpChannel;
+  /** Only ever set true here, after core confirmed the code. */
+  verified: boolean;
+  /** The party behind the number once verified, or null when nobody is. */
+  partyId?: string | null;
+  /** The matched party's display name, so the name step is skipped for anyone core already knows. */
+  displayName?: string | null;
+  /** Where to land once signed in. Validated once, on entry — see `safeReturnTo`. */
+  returnTo?: string | null;
+  /** From core, so the code step can show the wait rather than discovering it as an error. */
+  resendAt: number;
+  /**
+   * When the code stops being accepted, so the code step can count down to it.
+   *
+   * Epoch milliseconds, like `resendAt`. Advisory only — core decides what it still accepts, and a
+   * countdown that has reached zero is never what refuses a code.
+   *
+   * **Not** `expiresAt`: a `SealedOtpFlow` is this interface *and* `SealedState`, whose `expiresAt`
+   * is the cookie's own TTL, and `park` sets it last. Both are `number`, so the collision would
+   * typecheck and the countdown would silently run to the cookie's expiry instead of the code's.
+   */
+  codeExpiresAt: number;
+  /**
+   * How many digits core issued, so the form draws exactly that many boxes.
+   *
+   * Carried in the flow rather than read per-render because it is a property of *this* code: the
+   * credential's config could change between a send and the verify, and the boxes must match the
+   * code actually in the party's hand.
+   */
+  codeLength: number;
+}
+
+/**
+ * What to tell somebody when a step refuses.
+ *
+ * Every one is overridable because a storefront's wording belongs to whoever edits that storefront.
+ * The defaults exist so a new app works before anybody has written copy, not as the final text.
+ */
+export type OtpMessages = {
+  missingPhone?: string | null;
+  invalidPhone?: string | null;
+  tooSoon?: string | null;
+  unavailable?: string | null;
+  expired?: string | null;
+  missingCode?: string | null;
+  invalidCode?: string | null;
+  missingName?: string | null;
+};
+
+const DEFAULTS: Required<{ [K in keyof OtpMessages]: string }> = {
+  missingPhone: 'Enter your phone number.',
+  invalidPhone:
+    'That does not look like a mobile number for the country you picked. Check it and try again.',
+  tooSoon: 'A code was just sent. Wait a moment before asking for another.',
+  unavailable: 'We could not sign you in just now. Try again in a moment.',
+  expired: 'That took too long. Start again with your number.',
+  missingCode: 'Enter the code we sent you.',
+  invalidCode: 'That code is not right, or it has expired. Ask for a new one.',
+  missingName: 'Tell us what to call you.',
+};
+
+/**
+ * What a step decided, and nothing about how to act on it.
+ *
+ * Three outcomes, so an adapter has no judgement left to make: carry on with this state at that
+ * step, sign this person in, or show this message. Returning a bare boolean is what would push the
+ * sequencing back into each app.
+ */
+export type OtpOutcome =
+  /** Persist `flow` wherever the adapter keeps it, then show `step`. */
+  | { status: 'flow'; flow: OtpFlowData; step: OtpStep }
+  /** The number is proven. Hand this to `signInWithVerifiedPhone`, then discard the flow state. */
+  | {
+      status: 'signIn';
+      phone: string;
+      partyId: string | null;
+      displayName: string | null;
+      /** Collected at the name step. Absent for a returning party. */
+      firstName?: string;
+      returnTo: string | null;
+    }
+  /** Re-render the form with this message, and focus `field` if one is named. */
+  | { status: 'error'; error: string; field?: string };
+
+/**
+ * Where a signed-out visitor is sent back to, and how.
+ *
+ * Only a **path on this site** survives. The value ends up as a redirect target, so an
+ * attacker-supplied absolute URL — or the protocol-relative `//evil.example` that looks like a path
+ * and is not — would turn a sign-in page into an open redirect. Anything that fails falls back to
+ * null rather than erroring: a bad `next` is not worth refusing a sign-in over.
+ */
+export function safeReturnTo(requested: string | string[] | null | undefined): string | null {
+  // A repeated query parameter arrives as an array, so `?next=/a&next=/b` comes through as one. The
+  // first is the one the redirect that set it meant; unwrapping here spares every caller three
+  // lines of framework trivia at a place that should read as a single idea.
+  const path = Array.isArray(requested) ? requested[0] : requested;
+  if (!path) return null;
+  // Must be a path, and must not be protocol-relative. `/\` is the backslash variant some browsers
+  // normalise into `//`, so it is rejected by the same rule.
+  if (!path.startsWith('/')) return null;
+  if (path.startsWith('//') || path.startsWith('/\\')) return null;
+  // A control character has no business in a URL, and one smuggled in — a newline especially — can
+  // split a header downstream. Tested by code point rather than with a regex character class on
+  // purpose: spelled as unicode escapes inside a class, a formatter rewrites them into the literal
+  // control bytes they stand for, leaving an invisible range in a security check no reviewer can
+  // read. Comparing numbers cannot be mangled that way.
+  for (const character of path) {
+    const code = character.codePointAt(0) as number;
+    if (code <= 0x1f || code === 0x7f) return null;
+  }
+  return path;
+}
+
+/**
+ * Which step the caller is on, read entirely from the sealed state.
+ *
+ * A total function of the flow, which is why the sign-in needs no `?step=` in the URL: absent state
+ * is the phone form, unverified state is the code form, verified state is the name form. There is no
+ * fourth possibility to reconcile.
+ *
+ * It used to take a requested step from the query string and override it from the cookie. That was
+ * strictly more code for strictly less: a URL that could ask for a step it would never be given,
+ * two routes per app to configure, and `/login?step=name` links that mean nothing to whoever
+ * receives one. Deriving it removes the question instead of answering it.
+ *
+ * Standalone and pure, because the page that renders the form needs it as much as the action that
+ * advances the flow, and a page should not have to construct the SDK to ask one question.
+ */
+export function stepFromFlow(flow: OtpFlowData | null): OtpStep {
+  if (!flow) return 'phone';
+  return flow.verified ? 'name' : 'code';
+}
+
+/**
  * The identity sequences every web app shares.
  *
  * Domains call core; flows decide *policy* — which person a contact detail belongs to, what a signup
@@ -88,8 +248,38 @@ export type RegisterPersonResult<L extends LocalRecord> = {
  *
  * Everything an app alone can do arrives as hooks, which is what keeps this tier free of Payload,
  * Next and React Native alike.
+ *
+ * ## Two ways in, one set of rules
+ *
+ * `sendOtp` / `verifyOtp` / `signInWithVerifiedPhone` are the primitives: three calls, no state
+ * between them, for a surface that collects a whole number on one screen.
+ *
+ * `startOtpSignIn` / `submitOtpCode` / `submitOtpName` are the three-*request* browser sequence
+ * built on those. They add what a form needs and the primitives have no business knowing:
+ * `OtpFlowData` to carry between requests, overridable `OtpMessages`, and a `field` naming the
+ * input to focus.
+ *
+ * ```ts
+ * const out = await sdk.auth.startOtpSignIn({ country: 'IN', nationalNumber: '9000000000' })
+ * if (out.status === 'flow') persist(out.flow)        // seal it, then render out.step
+ * ```
+ *
+ * They were two modules until the split stopped paying: the sequence held no state of its own, so
+ * it was a namespace rather than a layer, and `sendOtp` and friends already lived here — which left
+ * the boundary at "OTP primitives here, OTP sequencing there", a line no caller ever wanted drawn.
  */
-export function createAuthFlows(people: PeopleOperations, otp: OtpOperations) {
+export function createAuthFlows(
+  people: PeopleOperations,
+  whatsappOtp: WhatsappOtpOperations,
+  smsOtp: SmsOtpOperations,
+) {
+  const say = (messages: OtpMessages | undefined, key: keyof OtpMessages): string =>
+    messages?.[key] || DEFAULTS[key];
+
+  /** Which domain a channel means. The only place the two are chosen between. */
+  const channelOps = (channel: OtpChannel) =>
+    channel === OTP_CHANNELS.SMS ? smsOtp : whatsappOtp;
+
   /**
    * The one place a contact detail is turned into a person.
    *
@@ -118,8 +308,65 @@ export function createAuthFlows(people: PeopleOperations, otp: OtpOperations) {
     return byPhone[0];
   }
 
+  /**
+   * Send a code, over whichever channel the caller asked for.
+   *
+   * Here rather than on the domains because picking the channel is an auth decision, not a
+   * WhatsApp or SMS one — and a caller that had to choose the module itself would be writing the
+   * `if` this replaces. The number is normalized first, so the code goes to the same string
+   * `verifyOtp` and `resolveParty` will later match on.
+   *
+   * A local function, like `resolveParty`, because `startOtpSignIn` below calls it. Reaching it
+   * through `this` instead would work until the first caller destructured the object.
+   */
+  async function sendOtp(
+    phone: string,
+    channel: OtpChannel = OTP_CHANNELS.WHATSAPP,
+  ): Promise<SendOtpResult> {
+    const normalized = normalizePhone(phone);
+    if (!normalized) throw new VapError('A phone number is required.', 'Invalid Phone', 400);
+    return channelOps(channel).send(normalized);
+  }
+
+  /**
+   * Check the code and, if it holds, say who the number belongs to.
+   *
+   * ```ts
+   * const { verified, partyId } = await sdk.auth.verifyOtp(phone, code, channel);
+   * if (!verified) return wrongCode();
+   * if (partyId) return signIn(partyId);   // returning party
+   * return askForName();                   // new — then signInWithVerifiedPhone with a firstName
+   * ```
+   *
+   * The lookup is a **second call, made only on success**, and that ordering is the security
+   * property: core answers every failed code identically, so nothing here distinguishes a wrong
+   * code from an expired one from a number with no code outstanding. Somebody enumerating phone
+   * numbers gets `{ verified: false, partyId: null }` every time.
+   *
+   * It resolves through `resolveParty` rather than querying people itself. That is the whole
+   * reason this moved out of the otp domain: the previous version ran its own
+   * `peopleByCommunication` lookup **without normalizing the number first**, so a caller passing
+   * a non-E.164 string got a different answer here than from every other party lookup in the SDK.
+   */
+  async function verifyOtp(
+    phone: string,
+    code: string,
+    channel: OtpChannel = OTP_CHANNELS.WHATSAPP,
+  ): Promise<{ verified: boolean; partyId: string | null; displayName: string | null }> {
+    const normalized = normalizePhone(phone);
+    if (!normalized) throw new VapError('A phone number is required.', 'Invalid Phone', 400);
+
+    const verified = await channelOps(channel).verify(normalized, code);
+    if (!verified) return { verified: false, partyId: null, displayName: null };
+
+    const match = await resolveParty({ phone: normalized });
+    return { verified: true, partyId: match?.id ?? null, displayName: match?.displayName ?? null };
+  }
+
   return {
     resolveParty,
+    sendOtp,
+    verifyOtp,
 
     /**
      * Registers someone who signed up in this web app.
@@ -235,7 +482,7 @@ export function createAuthFlows(people: PeopleOperations, otp: OtpOperations) {
      * flow across requests, which is every browser. Carrying the verified fact between those requests
      * is the caller's job, and it must be carried somewhere a visitor cannot forge.
      */
-    async completeOtpSignIn<L extends LocalRecord>(
+    async signInWithVerifiedPhone<L extends LocalRecord>(
       input: { phone: string; partyId?: string | null; displayName?: string | null; firstName?: string },
       hooks: {
         /** The app's own account for this number, oldest first, or null to create one. */
@@ -287,6 +534,154 @@ export function createAuthFlows(people: PeopleOperations, otp: OtpOperations) {
 
       return { partyId, displayName, local, created };
     },
+
+    /**
+     * Step one of the three-request sign-in — send a code.
+     *
+     * The country and the national number arrive separately so the form still works with JavaScript
+     * off, and `toE164` applies that country's numbering plan, which is what strips the trunk zero
+     * people type out of habit. Then the number is checked against the real plan rather than just
+     * E.164's shape: every send costs money, and an impossible number comes back as a generic
+     * delivery failure that tells the sender nothing.
+     *
+     * Use `sendOtp` instead on a surface that collects the whole number at once and has no flow
+     * state to carry — a mobile screen that signs in without ever leaving it.
+     */
+    async startOtpSignIn(input: {
+      country: string;
+      nationalNumber: string;
+      channel?: OtpChannel;
+      /** The page they were on. Validated here and nowhere else. */
+      next?: string | null;
+      messages?: OtpMessages;
+    }): Promise<OtpOutcome> {
+      const national = input.nationalNumber.trim();
+      if (!national) {
+        return {
+          status: 'error',
+          error: say(input.messages, 'missingPhone'),
+          field: 'nationalNumber',
+        };
+      }
+
+      const phone = toE164(input.country, national);
+      if (!isValidPhone(phone)) {
+        return {
+          status: 'error',
+          error: say(input.messages, 'invalidPhone'),
+          field: 'nationalNumber',
+        };
+      }
+
+      const channel = input.channel ?? OTP_CHANNELS.WHATSAPP;
+      try {
+        const { resendAvailableAt, expiresAt, codeLength } = await sendOtp(phone, channel);
+        return {
+          status: 'flow',
+          step: 'code',
+          flow: {
+            phone,
+            channel,
+            verified: false,
+            returnTo: safeReturnTo(input.next),
+            resendAt: new Date(resendAvailableAt).getTime(),
+            codeExpiresAt: new Date(expiresAt).getTime(),
+            codeLength,
+          },
+        };
+      } catch (error) {
+        // Core refuses a resend inside the credential's cooldown. That is the one failure worth
+        // naming: it is the caller's own doing, and waiting fixes it.
+        if (error instanceof VapError && error.status === 429) {
+          return { status: 'error', error: say(input.messages, 'tooSoon') };
+        }
+        return { status: 'error', error: say(input.messages, 'unavailable') };
+      }
+    },
+
+    /**
+     * Step two — check the code, and find out who the number belongs to.
+     *
+     * A returning party never reaches step three: `verifyOtp` reports the party behind the number,
+     * so only somebody the organization has genuinely never seen is asked for a name.
+     *
+     * `flow` null means the state lapsed or was never started. There is nothing to verify against,
+     * and the number must **not** be taken from the form at this point.
+     */
+    async submitOtpCode(
+      flow: OtpFlowData | null,
+      code: string,
+      messages?: OtpMessages,
+    ): Promise<OtpOutcome> {
+      if (!flow) return { status: 'error', error: say(messages, 'expired') };
+
+      const entered = code.trim();
+      if (!entered) {
+        return { status: 'error', error: say(messages, 'missingCode'), field: 'code' };
+      }
+
+      try {
+        const result = await verifyOtp(flow.phone, entered, flow.channel);
+        // Every failure — wrong, expired, too many attempts, none outstanding — reads identically.
+        // Saying which would tell a stranger whether a code is in flight for a number they do not
+        // hold.
+        if (!result.verified) {
+          return { status: 'error', error: say(messages, 'invalidCode'), field: 'code' };
+        }
+
+        // Nobody holds this number yet, so a name is needed before a person can be made. The state
+        // is handed back verified so the adapter re-seals it: the code is spent now, and this is
+        // the only remaining proof the number was proven.
+        if (!result.partyId) {
+          return {
+            status: 'flow',
+            step: 'name',
+            flow: { ...flow, verified: true, partyId: null, displayName: null },
+          };
+        }
+
+        return {
+          status: 'signIn',
+          phone: flow.phone,
+          partyId: result.partyId,
+          displayName: result.displayName,
+          returnTo: flow.returnTo ?? null,
+        };
+      } catch {
+        return { status: 'error', error: say(messages, 'unavailable') };
+      }
+    },
+
+    /**
+     * Step three — name a first-time party.
+     *
+     * Guarded on the sealed `verified` flag rather than on having arrived at a URL, so reaching this
+     * step by hand achieves nothing.
+     *
+     * It decides and validates; it does not write. The `signIn` outcome goes to
+     * `signInWithVerifiedPhone`, which is what actually creates and links the party — the split is
+     * what keeps every step above free of the app's own account record.
+     */
+    submitOtpName(flow: OtpFlowData | null, name: string, messages?: OtpMessages): OtpOutcome {
+      if (!flow?.verified) return { status: 'error', error: say(messages, 'expired') };
+
+      const firstName = name.trim();
+      if (!firstName) {
+        return { status: 'error', error: say(messages, 'missingName'), field: 'name' };
+      }
+
+      return {
+        status: 'signIn',
+        phone: flow.phone,
+        partyId: flow.partyId ?? null,
+        displayName: flow.displayName ?? null,
+        firstName,
+        returnTo: flow.returnTo ?? null,
+      };
+    },
+
+    /** `stepFromFlow`, for a caller that already holds the flow. */
+    stepFromFlow,
   };
 }
 

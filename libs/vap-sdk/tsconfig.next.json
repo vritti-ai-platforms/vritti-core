@@ -1,0 +1,20 @@
+{
+  // The Next tier: server actions, emitted as ESM so the `'use server'` directive survives.
+  //
+  // Everything else here emits CommonJS, where `"use strict"` lands before any directive and Next's
+  // action transform never sees it — the import then resolves, typechecks, and silently degrades to
+  // an ordinary function. Shaped after @payloadcms/next, whose actions Next does register: a
+  // directive module, re-exported through a barrel that carries no directive of its own.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "declaration": true,
+    "outDir": "dist/next",
+    "rootDir": "src/next",
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/next"]
+}

@@ -60,13 +60,6 @@ export class ChannelCatalogDto {
   }
 }
 
-/**
- * Every slot this workspace resolves, keyed for lookup.
- *
- * One entry per channel type, and within it the default under `DEFAULT_SLOT` plus any app or
- * terminal that overrides it, keyed by its id. Only decided slots appear — an app or terminal using
- * the default has nothing stored, so core joins this to the lists of apps and terminals that exist.
- */
 export const DEFAULT_SLOT = 'default';
 
 export type ResolvedChannelsDto = Record<string, Record<string, ChannelCatalogDto>>;
@@ -149,18 +142,6 @@ export class ChannelItemDto {
 
 // Asking is not failing: an operator inspecting an unconfigured channel gets an answer, not an error.
 // Real callers use resolve(), which throws — a storefront with no catalog must not look "in stock".
-export class ChannelResolutionDto {
-  resolved: boolean;
-  catalog: ResolvedCatalogDto | null;
-
-  static from(row?: CatalogChannelRow): ChannelResolutionDto {
-    const dto = new ChannelResolutionDto();
-    dto.resolved = Boolean(row);
-    dto.catalog = row ? ResolvedCatalogDto.from(row) : null;
-    return dto;
-  }
-}
-
 export class ResolvedCatalogDto {
   catalogId: string;
   catalogName: string;

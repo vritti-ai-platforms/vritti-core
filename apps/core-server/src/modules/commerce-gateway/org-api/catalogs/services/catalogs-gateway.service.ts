@@ -19,7 +19,6 @@ import { OwnerNameService } from '@/owner-names/owner-name.service';
 const CATALOGS_TABLE_SLUG = 'commerce-org-catalogs';
 const CATALOG_LISTINGS_TABLE_SLUG = (catalogId: string) => `commerce-org-catalog-${catalogId}-items`;
 
-/** One sellable line of a storefront's range, as the site sees it. */
 export interface CatalogListingPayload {
   id: string;
   offeringVariantId: string;
@@ -29,7 +28,6 @@ export interface CatalogListingPayload {
   prices: { price: { currency: string; value: string } }[];
 }
 
-/** One listing as a storefront shows it — a single price, already chosen for its scope. */
 export interface StorefrontListing {
   id: string;
   offeringVariantId: string;

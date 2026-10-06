@@ -25,20 +25,6 @@ const TAMPERED = {
   detail: 'This WhatsApp setup link could not be verified. Start the connect flow again from your console.',
 };
 
-/**
- * Carries one signup attempt across the origin hop, as a signed OAuth `state`.
- *
- * Something has to: the callback is a top-level navigation Meta initiates against a host with no org
- * subdomain, so it cannot work out which organization is acting. There is no bearer (the access
- * token lives in JS memory on the tenant origin), and the refresh cookie — which would reach this
- * host — names a user, not an organization.
- *
- * Deliberately stateless rather than a table. The one thing a stored nonce adds is strict single-use,
- * and Meta already enforces that on the thing that matters: the authorization code is single-use with
- * a 30-second TTL, so a replayed callback dies at the exchange. A replay that did win the race would
- * perform the very connect the operator asked for, into the organization sealed inside the MAC — so
- * there is nothing to gain from it.
- */
 @Injectable()
 export class EmbeddedSignupStateService {
   private readonly logger = new Logger(EmbeddedSignupStateService.name);
@@ -56,13 +42,7 @@ export class EmbeddedSignupStateService {
     return `${payload}.${this.mac(payload)}`;
   }
 
-  /**
-   * Recovers an attempt from the `state` Meta echoed back.
-   *
-   * Expiry is reported rather than thrown: the signature still proves where the operator came from,
-   * so an expired attempt can be sent back to its own console with an explanation. Only a forged or
-   * malformed state leaves nowhere trustworthy to go, and that is what raises.
-   */
+  // Recovers an attempt from the `state` Meta echoed back
   verify(raw: string | undefined): { state: EmbeddedSignupState; expired: boolean } {
     if (!raw) throw new BadRequestException(TAMPERED);
 

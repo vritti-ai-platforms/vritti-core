@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, lt, ne } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, ne } from '@vritti/api-sdk/drizzle-orm';
 import { type Session, sessions } from '@/db/schema';
 
 @Injectable()
@@ -37,12 +37,6 @@ export class SessionDomainRepository extends PrimaryBaseRepository<typeof sessio
   async deleteAllByUserId(userId: string): Promise<number> {
     const condition = eq(sessions.userId, userId);
     const result = await this.deleteMany(condition);
-    return result.count;
-  }
-
-  // Removes sessions whose expiry has passed
-  async deleteExpired(): Promise<number> {
-    const result = await this.deleteMany(lt(sessions.expiresAt, new Date()));
     return result.count;
   }
 

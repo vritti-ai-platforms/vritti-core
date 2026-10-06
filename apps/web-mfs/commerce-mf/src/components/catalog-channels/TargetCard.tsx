@@ -16,15 +16,7 @@ interface TargetCardProps {
   target: ChannelTargetData;
 }
 
-/**
- * One app or terminal, showing what it will actually sell.
- *
- * A card with no row of its own carries the channel default and stays quiet; one that names its own
- * catalog carries the colour of the level that set it, which is how a card can legitimately disagree
- * with the default above it.
- *
- * The card owns its own assign dialog and mutations, so only the card you acted on shows as pending.
- */
+// One app or terminal, showing what it will actually sell
 export const TargetCard: React.FC<TargetCardProps> = ({ binding, type, target }) => {
   const { catalog, isAssigned } = target;
   // Owned means this workspace may edit the row itself; a target named by a wider level is assigned

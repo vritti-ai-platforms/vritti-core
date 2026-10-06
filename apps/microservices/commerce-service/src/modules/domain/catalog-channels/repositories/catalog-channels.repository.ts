@@ -5,16 +5,17 @@ import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   type CatalogChannel,
   type CatalogChannelType,
-  CatalogChannelTypeValues,
   catalogChannels,
   catalogListingChannelExclusions,
   catalogListingPrices,
   catalogListings,
   catalogs,
+  channelSpecificity,
   inventoryItemMrps,
   offeringVariants,
   ownedByWorkspaceExpression,
   posTerminals,
+  SITE_GUC,
   uom,
 } from '@/db/schema';
 import type { CatalogChannelRow, ChannelItemRow, ChannelListRow } from '../dto/entity/catalog-channel.dto';
@@ -24,23 +25,16 @@ import type { StorefrontListingRow } from '../dto/entity/storefront-listing.dto'
 // DISTINCT ON resolves the default and each named target in the same pass.
 const targetKey = sql`coalesce(${catalogChannels.appId}, ${catalogChannels.terminalId})`;
 
-/**
- * How strongly a row claims a caller. Highest wins.
- *
- * Naming an app or terminal is a deliberate exception, so it outranks any workspace — the most a
- * workspace alone can score is 4 + 2. Below that the narrower workspace wins, and the organization
- * scores zero as the fallback everything beats. The one definition both the list and resolve rank by.
- */
-const specificity = sql`
-  (case when ${catalogChannels.appId} is not null or ${catalogChannels.terminalId} is not null then 8 else 0 end)
-  + (case when ${catalogChannels.siteId} is not null then 4 else 0 end)
-  + (case when ${catalogChannels.legalEntityId} is not null then 2 else 0 end)`;
-
 export interface ChannelTarget {
   type: CatalogChannelType;
   catalogId: string;
   appId: string | null;
   terminalId: string | null;
+}
+
+export interface StorefrontChannel {
+  id: string;
+  catalogId: string;
 }
 
 @Injectable()
@@ -76,17 +70,20 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return {
       ...CatalogChannelsDomainRepository.selection(),
       itemsTotal: sql<number>`(
-        select count(*)::int from ${catalogListings} cl
-        join ${offeringVariants} ov on ov.id = cl.offering_variant_id
-        where cl.catalog_id = ${catalogChannels}.catalog_id and ov.is_active and ov.is_offering_active
+        select count(*)::int from ${catalogListings}
+        join ${offeringVariants} on ${offeringVariants.id} = ${catalogListings.offeringVariantId}
+        where ${catalogListings.catalogId} = ${catalogChannels.catalogId}
+          and ${offeringVariants.isActive} and ${offeringVariants.isOfferingActive}
       )`,
       itemsSelling: sql<number>`(
-        select count(*)::int from ${catalogListings} cl
-        join ${offeringVariants} ov on ov.id = cl.offering_variant_id
-        where cl.catalog_id = ${catalogChannels}.catalog_id and ov.is_active and ov.is_offering_active
+        select count(*)::int from ${catalogListings}
+        join ${offeringVariants} on ${offeringVariants.id} = ${catalogListings.offeringVariantId}
+        where ${catalogListings.catalogId} = ${catalogChannels.catalogId}
+          and ${offeringVariants.isActive} and ${offeringVariants.isOfferingActive}
           and not exists (
-            select 1 from ${catalogListingChannelExclusions} e
-            where e.catalog_listing_id = cl.id and e.catalog_channel_id = ${catalogChannels}.id
+            select 1 from ${catalogListingChannelExclusions}
+            where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
+              and ${catalogListingChannelExclusions.catalogChannelId} = ${catalogChannels.id}
           )
       )`,
     };
@@ -113,21 +110,14 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return row;
   }
 
-  /**
-   * The winning row for every slot this workspace can see — each type's default, and each app or
-   * terminal that overrides it.
-   *
-   * DISTINCT ON does the ranking, so nothing downstream compares rows: the defaults of a type share a
-   * null target key and collapse to the most specific one, and every named target keeps its own.
-   * Scope is not a filter — RLS bounds this to the workspace and its ancestors.
-   */
+  // The winning row for every slot this workspace can see — each type's default, and each app or terminal that overrides it
   async findResolved(): Promise<ChannelListRow[]> {
     const rows = await this.db
       .selectDistinctOn([catalogChannels.type, targetKey], CatalogChannelsDomainRepository.listSelection())
       .from(catalogChannels)
       .innerJoin(catalogs, eq(catalogs.id, catalogChannels.catalogId))
       .leftJoin(posTerminals, eq(posTerminals.id, catalogChannels.terminalId))
-      .orderBy(catalogChannels.type, targetKey, desc(specificity));
+      .orderBy(catalogChannels.type, targetKey, desc(channelSpecificity));
     return rows as ChannelListRow[];
   }
 
@@ -163,20 +153,8 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return row;
   }
 
-  /**
-   * The one row that serves the calling workspace, already ranked.
-   *
-   * **Which workspace is not an argument.** `workspaceScopePolicies` on `catalog_channels` already
-   * limits this read to the channels the request's own workspace can see — org-owned, its own LE's,
-   * its own site's — and that workspace is the RLS context, derived on the server: a site request's
-   * legal entity is resolved from the site, never taken from the client. Filtering on a site or LE id
-   * here as well only repeated that, and got it wrong: a NULL "don't care" compiled to `IS NULL` and
-   * hid every channel the site or its LE owned.
-   *
-   * What RLS cannot know is which *door* the caller is — which storefront app, which till — so those
-   * two stay: a NULL app or terminal applies everywhere, a named one only to itself.
-   */
-  async findWinningCandidate(context: {
+  // The one row that serves the calling workspace, already ranked
+  async resolveCatalogChannel(context: {
     type: CatalogChannelType;
     appId?: string | null;
     terminalId?: string | null;
@@ -192,12 +170,11 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .where(
         and(
           eq(catalogChannels.type, context.type),
-          eq(catalogs.isActive, true),
           matches(catalogChannels.appId, context.appId),
           matches(catalogChannels.terminalId, context.terminalId),
         ),
       )
-      .orderBy(desc(specificity))
+      .orderBy(desc(channelSpecificity))
       .limit(1);
     return row as CatalogChannelRow | undefined;
   }
@@ -289,58 +266,67 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       );
   }
 
-  /**
-   * A storefront's whole range in one query: the APP channel this credential resolves to, the
-   * listings of the catalog it points at, each with the price that applies in this workspace.
-   *
-   * Resolved and joined here rather than fetched in steps, so a storefront read is one round trip
-   * and cannot see a catalog its channel does not point at — the catalog id is never an argument.
-   */
-  async findAppListings(appId: string, variantIds?: string[]): Promise<StorefrontListingRow[]> {
-    const channel = this.db
-      .select({ id: catalogChannels.id, catalogId: catalogChannels.catalogId })
-      .from(catalogChannels)
-      .where(
-        and(
-          eq(catalogChannels.type, CatalogChannelTypeValues.APP),
-          or(eq(catalogChannels.appId, appId), isNull(catalogChannels.appId)),
-        ),
-      )
-      .orderBy(desc(specificity))
-      .limit(1)
-      .as('channel');
+  // Limits a read to a live variant on a live offering that this channel does not exclude
+  private sellable(channelId: string): SQL {
+    return and(
+      eq(offeringVariants.isActive, true),
+      eq(offeringVariants.isOfferingActive, true),
+      sql`not exists (
+        select 1 from ${catalogListingChannelExclusions}
+        where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
+          and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+      )`,
+    ) as SQL;
+  }
 
-    // A site's own price wins over the organization-wide row; nulls last puts the site row first
-    const priceColumn = (column: 'currency_code' | 'amount') => sql<string | null>`(
-      select p.${sql.raw(column)} from ${catalogListingPrices} p
-      where p.catalog_listing_id = ${catalogListings}.id
-        and (p.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) or p.site_id is null)
-      order by p.site_id asc nulls last, p.currency_code asc
+  // Returns a site's own price, falling back to the organization-wide row
+  private static priceColumn(column: AnyPgColumn) {
+    return sql<string | null>`(
+      select ${column} from ${catalogListingPrices}
+      where ${catalogListingPrices.catalogListingId} = ${catalogListings.id}
+        and (${catalogListingPrices.siteId} = ${sql.raw(SITE_GUC)} or ${catalogListingPrices.siteId} is null)
+      order by ${catalogListingPrices.siteId} asc nulls last, ${catalogListingPrices.currencyCode} asc
       limit 1
     )`;
+  }
+
+  private static listingSelection() {
+    return {
+      id: catalogListings.id,
+      offeringVariantId: catalogListings.offeringVariantId,
+      sku: offeringVariants.sku,
+      name: offeringVariants.name,
+      priceCurrency: CatalogChannelsDomainRepository.priceColumn(catalogListingPrices.currencyCode),
+      priceAmount: CatalogChannelsDomainRepository.priceColumn(catalogListingPrices.amount),
+    };
+  }
+
+  // Returns everything the resolved channel's catalog sells, at this workspace's price
+  findListings(channel: StorefrontChannel): Promise<StorefrontListingRow[]> {
+    return this.db
+      .select(CatalogChannelsDomainRepository.listingSelection())
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.sellable(channel.id)) as SQL)
+      .orderBy(asc(offeringVariants.sku));
+  }
+
+  // Prices variants the caller already holds — a basket or wishlist reconciling stored rows
+  async findListingsByVariants(channel: StorefrontChannel, variantIds: string[]): Promise<StorefrontListingRow[]> {
+    // `inArray` with an empty list is a SQL error in some dialects and an always-false in others;
+    // neither is worth a round trip when the caller already told us it wants nothing.
+    if (!variantIds.length) return [];
 
     return this.db
-      .select({
-        id: catalogListings.id,
-        offeringVariantId: catalogListings.offeringVariantId,
-        sku: offeringVariants.sku,
-        name: offeringVariants.name,
-        priceCurrency: priceColumn('currency_code'),
-        priceAmount: priceColumn('amount'),
-      })
+      .select(CatalogChannelsDomainRepository.listingSelection())
       .from(catalogListings)
-      .innerJoin(channel, eq(channel.catalogId, catalogListings.catalogId))
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
       .where(
         and(
-          eq(offeringVariants.isActive, true),
-          eq(offeringVariants.isOfferingActive, true),
-          variantIds?.length ? inArray(catalogListings.offeringVariantId, variantIds) : undefined,
-          sql`not exists (
-            select 1 from ${catalogListingChannelExclusions} e
-            where e.catalog_listing_id = ${catalogListings}.id and e.catalog_channel_id = ${channel.id}
-          )`,
-        ),
+          eq(catalogListings.catalogId, channel.catalogId),
+          this.sellable(channel.id),
+          inArray(catalogListings.offeringVariantId, variantIds),
+        ) as SQL,
       )
       .orderBy(asc(offeringVariants.sku));
   }
@@ -359,13 +345,5 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .where(eq(catalogs.id, catalogId))
       .limit(1);
     return row;
-  }
-
-  async countForCatalog(catalogId: string): Promise<number> {
-    const [row] = await this.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(catalogChannels)
-      .where(eq(catalogChannels.catalogId, catalogId));
-    return row?.count ?? 0;
   }
 }

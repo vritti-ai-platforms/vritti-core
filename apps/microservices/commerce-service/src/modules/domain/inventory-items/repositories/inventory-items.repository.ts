@@ -92,31 +92,6 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return ((result as unknown as { rows: { id: string }[] }).rows ?? []).map((r) => r.id);
   }
 
-  async findUomBaseUnitId(uomId: string): Promise<{ baseUnitId: string | null } | null> {
-    const [row] = await this.db.select({ baseUnitId: uom.baseUnitId }).from(uom).where(eq(uom.id, uomId)).limit(1);
-    return row ?? null;
-  }
-
-  async insertConversion(
-    inventoryItemId: string,
-    data: { uomId: string; primaryUomQty: number; uomQty: number },
-  ): Promise<void> {
-    await this.db.insert(inventoryItemUomConversions).values({
-      inventoryItemId,
-      uomId: data.uomId,
-      primaryUomQty: data.primaryUomQty,
-      uomQty: data.uomQty,
-    });
-  }
-
-  async findUomFamilyIds(primaryUomId: string): Promise<string[]> {
-    const result = await this.db.execute<{ id: string }>(sql`
-      WITH p AS (SELECT COALESCE(base_unit_id, id) AS family_root FROM ${uom} WHERE id = ${primaryUomId})
-      SELECT u.id FROM ${uom} u, p WHERE COALESCE(u.base_unit_id, u.id) = p.family_root;
-    `);
-    return ((result as unknown as { rows: { id: string }[] }).rows ?? []).map((r) => r.id);
-  }
-
   // Returns paginated inventory items with UOM symbol via LEFT JOIN
   async findAllWithUom(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null })[];

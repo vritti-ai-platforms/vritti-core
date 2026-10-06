@@ -3,7 +3,7 @@ import { createCartHooks } from '@/hooks/site/carts/createCartHooks';
 import { cartsService } from '@/services/legal-entity/carts.service';
 import { LE_CART_ITEMS_KEY, LE_CART_ITEMS_TABLE_KEY, LE_CART_KEY, LE_CARTS_TABLE_KEY } from './keys';
 
-/** Baskets the company holds itself — an outlet's baskets stay at the outlet. */
+// Baskets the company holds itself — an outlet's baskets stay at the outlet
 export const {
   useCartsTable,
   useCart,

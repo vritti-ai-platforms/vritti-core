@@ -97,15 +97,6 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
     });
   }
 
-  async existsById(id: string): Promise<boolean> {
-    const [row] = await this.db
-      .select({ id: stockAdjustments.id })
-      .from(stockAdjustments)
-      .where(eq(stockAdjustments.id, id))
-      .limit(1);
-    return !!row;
-  }
-
   // The totalQuantity aggregate arrives as a numeric string, so the row is mapped after the read rather than
   // in the query
   async findByIdWithRefs(id: string): Promise<StockAdjustmentWithRefs | undefined> {

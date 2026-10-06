@@ -7,12 +7,7 @@ interface ChannelsPageProps {
   binding: CatalogChannelsBinding;
 }
 
-/**
- * The channels list: one card per channel type.
- *
- * Every action belongs to the channel card or target card that offers it — the assign dialog, the
- * mutations, the items route — so this only reads the list and lays the cards out.
- */
+// The channels list: one card per channel type
 export const ChannelsPage: React.FC<ChannelsPageProps> = ({ binding }) => {
   const { data: entries } = binding.useCatalogChannels();
 

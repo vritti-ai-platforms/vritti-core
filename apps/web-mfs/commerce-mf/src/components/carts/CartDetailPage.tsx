@@ -10,13 +10,7 @@ import { ItemsTab } from './tabs/ItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import type { CartsBinding } from './types';
 
-/**
- * One basket, and what is in it.
- *
- * Items are priced through the channel this workspace sells from, resolved per read — so a basket
- * reads the same at the till as it does on the website, and one this workspace cannot price comes
- * back whole with its lines flagged rather than not at all.
- */
+// One basket, and what is in it
 export const CartDetailPage: React.FC<{ binding: CartsBinding }> = ({ binding }) => {
   const { permissions } = binding;
   const { id } = useSlugParams('cartSlug');

@@ -14,13 +14,7 @@ import { SiteService } from './sites/services/site-api.service';
 
 const services = [StructureService, LegalEntityService, SiteService, SiteGroupService, BankAccountService];
 
-/**
- * Structure services, and nothing else.
- *
- * Same reason as `CommerceGatewayServicesModule`: both the internal surface (`StructureApiModule`,
- * which owns the controllers) needs these,
- * and neither may import the other without dragging its resolvers into the other's schema.
- */
+// Structure services, and nothing else
 @Module({
   imports: [
     CommerceGatewayServicesModule,

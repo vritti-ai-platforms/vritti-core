@@ -8,13 +8,7 @@ export interface AddCartLinePayload {
   quantity: number;
 }
 
-/**
- * The same calls, against whichever workspace's baskets.
- *
- * A basket is the same record at an outlet and at the company above it — only the route prefix
- * differs, because that is how the gateway knows which workspace is asking. One factory rather than
- * two files of identical axios wrappers that would drift the first time one of them changed.
- */
+// The same calls, against whichever workspace's baskets
 export function createCartsService(base: 'site' | 'le') {
   const root = `commerce-api/${base}/carts`;
 

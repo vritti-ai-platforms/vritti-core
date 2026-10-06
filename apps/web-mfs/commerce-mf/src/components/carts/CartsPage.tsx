@@ -21,13 +21,7 @@ import type { CartData } from '@/schemas/carts';
 import { OpenCartDialog } from './forms/OpenCartDialog';
 import type { CartsBinding } from './types';
 
-/**
- * The baskets open in this workspace.
- *
- * Reach runs upward only: a site sees its own baskets and its company's, a company sees only the
- * ones it holds itself. The page is the same either way — which workspace is asking is the
- * binding's business, not this component's.
- */
+// The baskets open in this workspace
 export const CartsPage: React.FC<{ binding: CartsBinding }> = ({ binding }) => {
   const { permissions } = binding;
   const navigate = useNavigate();

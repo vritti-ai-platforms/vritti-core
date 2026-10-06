@@ -1,4 +1,4 @@
-/** biome-ignore-all assist/source/organizeImports: <relations depends on tables above relation export> */
+// biome-ignore-all assist/source/organizeImports: <relations depends on tables above relation export>
 // Export schema
 export * from './core-schema';
 // Export all enums

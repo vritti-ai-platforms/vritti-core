@@ -9,16 +9,6 @@ import { UpdateAppInternalDto } from '../dto/request/update-app-internal.dto';
 import { AppResponseDto } from '../dto/response/app-response.dto';
 import { AppSigningKeyResponseDto } from '../dto/response/app-signing-key-response.dto';
 
-/**
- * App credentials, managed from cloud-web.
- *
- * Every route is `@Require(AuthType.Cloud)` — the signature is what authenticates the caller,
- * verified by `CloudRequestResolver` from the auth hook, the same shape as `/users/internal`.
- *
- * The organization comes from `@OrgId()`, which reads the context the guard
- * established from the signed `x-org-id` header. Every lookup is scoped by it:
- * an id alone would let one organization address another's credential.
- */
 @ApiTags('Apps')
 @Controller('apps')
 @SkipCsrf()
@@ -49,12 +39,7 @@ export class AppController {
     return apps.map((app) => new AppResponseDto(app));
   }
 
-  /**
-   * The private key, on demand.
-   *
-   * A separate route rather than a field on the list so revealing a credential
-   * is always a deliberate act — and so it shows up in the access log as one.
-   */
+  // The private key, on demand
   @Get('internal/:id/signing-key')
   @Require(AuthType.Cloud)
   async revealSigningKey(@Param('id') id: string, @OrgId() orgId: string): Promise<AppSigningKeyResponseDto> {
@@ -81,13 +66,7 @@ export class AppController {
     return new AppResponseDto(app);
   }
 
-  /**
-   * New keypair, same client id — the caller swaps one value, not two.
-   *
-   * Returns the new private key rather than the app row: whoever rotates needs the replacement
-   * immediately, and making them call the reveal route straight afterwards would mean two audited
-   * exposures for one intended act.
-   */
+  // New keypair, same client id — the caller swaps one value, not two
   @Post('internal/:id/rotate')
   @Require(AuthType.Cloud)
   @HttpCode(HttpStatus.OK)
@@ -98,11 +77,7 @@ export class AppController {
     return new AppSigningKeyResponseDto(app.clientId, app.signingKey);
   }
 
-  /**
-   * A POST rather than a DELETE because `CoreHttpService.delete` carries no query
-   * string and no body, so a true DELETE could not name the org scope every route
-   * here requires.
-   */
+  // A POST rather than a DELETE because `CoreHttpService.delete` carries no query string and no body, so a true DELETE could not name the org scope every route here requires
   @Post('internal/:id/delete')
   @Require(AuthType.Cloud)
   @HttpCode(HttpStatus.NO_CONTENT)

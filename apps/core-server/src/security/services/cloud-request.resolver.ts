@@ -12,22 +12,6 @@ const header = (requestService: AuthRequestService, name: string): string | unde
   return Array.isArray(value) ? value[0] : value;
 };
 
-/**
- * Authenticates a signed request from the control plane and establishes its tenant.
- *
- * The counterpart to `AppRequestResolver`, called from the same `guard.onAuthenticated` hook
- * in `app.module.ts`. api-sdk owns the mechanism; this owns the key and the org.
- *
- * `x-org-id` is a **signed** input to `verifySignedRequest`, so the organization established
- * here is attested by cloud rather than merely asserted by whoever sent the request. Swapping
- * it in transit invalidates the signature.
- *
- * The header is optional. Some control-plane routes are genuinely not org-scoped — the catalog
- * license is deployment-wide, and the media sweep spans every tenant, where pinning one
- * organization would hide rows from it. Routes that DO need the org read it through `@OrgId()`,
- * which throws when it is absent, so the requirement is enforced where it is used rather than
- * guessed at here.
- */
 @Injectable()
 export class CloudRequestResolver {
   private readonly logger = new Logger(CloudRequestResolver.name);

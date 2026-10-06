@@ -50,28 +50,12 @@ export const catalogChannels = commerceSchema.table(
 export type CatalogChannel = typeof catalogChannels.$inferSelect;
 export type NewCatalogChannel = typeof catalogChannels.$inferInsert;
 
-/**
- * How strongly a row claims a caller. Highest wins.
- *
- * Naming an app or terminal is a deliberate exception, so it outranks any workspace — the most a
- * workspace alone can score is 4 + 2. Below that the narrower workspace wins, and the organization
- * scores zero as the fallback everything beats. A row names at most one target (the CHECK above
- * enforces it), so those two scores never both apply.
- *
- * Lives on the schema rather than in a domain because two domains rank by it — channels to build the
- * list, carts to price a basket — and a second copy that drifted would resolve the wrong catalog.
- */
 export const channelSpecificity = sql`
   (case when ${catalogChannels.appId} is not null or ${catalogChannels.terminalId} is not null then 8 else 0 end)
   + (case when ${catalogChannels.siteId} is not null then 4 else 0 end)
   + (case when ${catalogChannels.legalEntityId} is not null then 2 else 0 end)`;
 
-/**
- * Which channel a party buys through. A company buys wholesale, a person through the storefront.
- *
- * Derived rather than passed, so a caller cannot ask for B2B prices by claiming to be one. Absent or
- * unknown falls back to APP: an anonymous browser is shopping the storefront, not negotiating.
- */
+// Which channel a party buys through
 export const partyChannelType = (partyId: SQL | string | null | undefined) =>
   partyId
     ? sql`coalesce(
@@ -80,26 +64,18 @@ export const partyChannelType = (partyId: SQL | string | null | undefined) =>
         'APP')`
     : sql`'APP'`;
 
-/**
- * The catalog a caller resolves to, as a scalar subquery.
- *
- * The channel comes from the party: a company's basket prices against B2B, a person's against APP.
- * `appId` narrows either of them to one storefront — a wholesale site names an app just as a retail
- * one does, so the same filter serves both.
- *
- * A null party resolves the workspace's own APP default — what a staff surface with no credential
- * gets. RLS bounds the rows either way, so the answer is always within reach.
- */
-export const partyChannelCatalogId = (partyId: SQL | string | null | undefined, appId?: string | null) => {
+export const partyChannelCatalogId = (
+  partyId: SQL | string | null | undefined,
+  // SQL as well as a literal, so a read whose storefront varies per row can correlate on app_id
+  appId?: SQL | string | null,
+) => {
   const channel = partyChannelType(partyId);
+  // Unaliased so the shared `channelSpecificity` applies rather than a hand-spelled copy
   return sql<string>`(
-  select cc.catalog_id from ${catalogChannels} cc
-  where cc.type::text = ${channel}
-    and (${appId ? sql`cc.app_id = ${appId} or ` : sql``}cc.app_id is null)
-  order by
-      (case when cc.app_id is not null then 8 else 0 end)
-    + (case when cc.site_id is not null then 4 else 0 end)
-    + (case when cc.legal_entity_id is not null then 2 else 0 end) desc
+  select ${catalogChannels.catalogId} from ${catalogChannels}
+  where ${catalogChannels.type}::text = ${channel}
+    and (${appId ? sql`${catalogChannels.appId} = ${appId} or ` : sql``}${catalogChannels.appId} is null)
+  order by ${channelSpecificity} desc
   limit 1
 )`;
 };

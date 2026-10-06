@@ -13,12 +13,7 @@ interface OpenCartDialogProps {
   onCancel: () => void;
 }
 
-/**
- * Opens a basket in this workspace.
- *
- * A shopper who already has a basket here gets the one they have rather than a second: the unique on
- * (workspace, party) says there can only be one, and the insert reports which happened.
- */
+// Opens a basket in this workspace
 export const OpenCartDialog = ({ binding, onSuccess, onCancel }: OpenCartDialogProps) => {
   const form = useForm<OpenCartFormData>({
     resolver: zodResolver(openCartSchema),

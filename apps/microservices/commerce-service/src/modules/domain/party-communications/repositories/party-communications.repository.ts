@@ -15,14 +15,7 @@ import type { PartyCommunicationAppDto } from '../dto/entity/party-communication
 
 export type PartyCommunicationRow = PartyCommunication & { apps: PartyCommunicationAppDto[] };
 
-/**
- * Restricts a read to channels that are an actual way to reach someone.
- *
- * Applied here rather than at each call site because a `WEB_APP` row's value is
- * an external account id, not an address — one leaking into notification
- * resolution, a contact picker or the people detail screen would be a bug in
- * every one of those places. One filter, one thing to audit.
- */
+// Restricts a read to channels that are an actual way to reach someone
 const contactableOnly = () => inArray(partyCommunications.channel, [...CONTACTABLE_CHANNELS]);
 
 const appsAgg = sql<PartyCommunicationAppDto[]>`COALESCE(
@@ -63,16 +56,6 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
     };
   }
 
-  // Returns the messaging apps of a communication
-  async findAppsByCommunication(communicationId: string): Promise<PartyCommunicationAppDto[]> {
-    const rows = await this.db
-      .select({ app: partyCommunicationApps.app, handle: partyCommunicationApps.handle })
-      .from(partyCommunicationApps)
-      .where(eq(partyCommunicationApps.communicationId, communicationId))
-      .orderBy(asc(partyCommunicationApps.app));
-    return rows.map((row) => ({ app: row.app, handle: row.handle ?? null }));
-  }
-
   // Replaces the full set of messaging apps for a communication (delete-all then re-insert). Runs in the caller's transaction.
   async replaceApps(communicationId: string, apps: { app: MessagingApp; handle?: string | null }[]): Promise<void> {
     await this.db.delete(partyCommunicationApps).where(eq(partyCommunicationApps.communicationId, communicationId));
@@ -99,22 +82,7 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
     return rows as PartyCommunication[];
   }
 
-  /**
-   * Resolves the parties reachable at a presented email or phone, oldest party first.
-   *
-   * Compares on `lower(value)` to match the `idx_party_communications_lookup`
-   * index, so a shopper who signs up as `A@x.com` having previously used
-   * `a@x.com` resolves to the one party rather than creating a second.
-   *
-   * Returns a list, not a row: the table's unique is `(party_id, channel, value)`
-   * — per party — so one address legitimately sits on several parties, and
-   * picking between them is the caller's policy, not the repository's.
-   *
-   * Narrowed two ways. `PERSON` only, because a shopper account must never be
-   * attached to a company party. And active rows only, so a communication
-   * somebody deliberately deactivated stops being a match. The organization
-   * comes from RLS, never from an argument.
-   */
+  // Resolves the parties reachable at a presented email or phone, oldest party first
   async findPartyIdsByValue(channel: PartyCommunicationChannel, normalizedValue: string): Promise<string[]> {
     const rows = await this.db
       .select({ partyId: partyCommunications.partyId })
@@ -152,15 +120,7 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
   }
 
   // Looks up a communication by party, channel and value
-  /**
-   * The party's existing row on this channel with this value, if any.
-   *
-   * Compared case-insensitively, matching `findPartyIdsByValue` and the
-   * `idx_party_communications_lookup` index. With an exact comparison a party holding
-   * `Ram@X.com` still *matches* a signup for `ram@x.com` — the lookup lowercases —
-   * and then fails this check, so the party ends up with two EMAIL rows differing only
-   * in case. The unique constraint is on the raw value, so it does not catch it either.
-   */
+  // The party's existing row on this channel with this value, if any
   async findByPartyChannelValue(
     partyId: string,
     channel: PartyCommunicationChannel,

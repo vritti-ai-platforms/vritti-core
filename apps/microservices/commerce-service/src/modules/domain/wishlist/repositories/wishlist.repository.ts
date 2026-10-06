@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { aliasedTable, and, desc, eq, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  catalogChannels,
   catalogListingPrices,
   catalogListings,
   offerings,
   offeringVariants,
+  partyChannelCatalogId,
   type WishlistItem,
   wishlistItems,
 } from '@/db/schema';
@@ -18,21 +18,11 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
     super(database, wishlistItems);
   }
 
-  /**
-   * One shopper's wishlist in one storefront, newest first.
-   *
-   * The row stores the product; which catalogue offers it, and at what, is answered per read. The
-   * listing join is `left` so something the shop has since stopped listing still shows on the list
-   * and reports itself unavailable — outliving what it points at is the point of a wishlist.
-   *
-   * Two price joins rather than one: the outlet's own price wins and the organization-wide row is
-   * the fallback. A single join matching both would return the row twice.
-   */
+  // One shopper's wishlist in one storefront, newest first
   async findForParty(
     appId: string,
     partyId: string,
     currencyCode: string,
-    catalogId: string,
     siteId?: string,
   ): Promise<WishlistItemRow[]> {
     const sitePrice = aliasedTable(catalogListingPrices, 'site_price');
@@ -64,7 +54,7 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
         catalogListings,
         and(
           eq(catalogListings.offeringVariantId, wishlistItems.offeringVariantId),
-          eq(catalogListings.catalogId, catalogId),
+          eq(catalogListings.catalogId, partyChannelCatalogId(partyId, appId)),
         ),
       )
       .leftJoin(
@@ -95,13 +85,7 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
     return rows.map((row) => row.offeringVariantId);
   }
 
-  /**
-   * Saves a product, or leaves the existing row alone.
-   *
-   * `do nothing` on the unique rather than a read-then-write: favouriting twice is the same
-   * thing, and two taps in flight would otherwise race. Returns nothing on a conflict, which
-   * the service reads as "already there" — an outcome, not a failure.
-   */
+  // Saves a product, or leaves the existing row alone
   async insertIgnoring(appId: string, partyId: string, offeringVariantId: string): Promise<WishlistItem | undefined> {
     const rows = (await this.db
       .insert(wishlistItems)
@@ -129,7 +113,7 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
     return count;
   }
 
-  /** Empties the list in one statement — the whole point of clearing it. */
+  // Empties the list in one statement — the whole point of clearing it
   async deleteAllForParty(appId: string, partyId: string): Promise<number> {
     const { count } = await this.deleteMany(
       and(eq(wishlistItems.appId, appId), eq(wishlistItems.partyId, partyId)) as SQL,
@@ -137,13 +121,7 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
     return count;
   }
 
-  /**
-   * Everything a person has saved, across every storefront.
-   *
-   * The staff view, so there is no single catalogue to price against — each row is priced through
-   * its own storefront's APP channel, which `app_id` identifies. That join is why the caller need
-   * not resolve a channel per row itself.
-   */
+  // Everything a person has saved, across every storefront
   async findAllForParty(partyId: string, currencyCode: string): Promise<(WishlistItemRow & { appId: string })[]> {
     const rows = await this.db
       .select({
@@ -165,14 +143,13 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
       .innerJoin(offeringVariants, eq(offeringVariants.id, wishlistItems.offeringVariantId))
       .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .leftJoin(
-        catalogChannels,
-        and(eq(catalogChannels.appId, wishlistItems.appId), sql`${catalogChannels.type} = 'APP'`),
-      )
-      .leftJoin(
         catalogListings,
         and(
           eq(catalogListings.offeringVariantId, wishlistItems.offeringVariantId),
-          eq(catalogListings.catalogId, catalogChannels.catalogId),
+          eq(
+            catalogListings.catalogId,
+            partyChannelCatalogId(sql`${wishlistItems.partyId}`, sql`${wishlistItems.appId}`),
+          ),
         ),
       )
       .leftJoin(
@@ -189,13 +166,7 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
     return rows as (WishlistItemRow & { appId: string })[];
   }
 
-  /**
-   * Whether this organization has such a product at all.
-   *
-   * Nothing is said about catalogues — see `assertOurProduct` for why a wishlist must not ask that.
-   * RLS is what makes this a real check: the row is only visible to the organization that owns it,
-   * so an id from anywhere else simply does not resolve.
-   */
+  // Whether this organization has such a product at all
   async variantExists(offeringVariantId: string): Promise<boolean> {
     const rows = await this.db
       .select({ id: offeringVariants.id })

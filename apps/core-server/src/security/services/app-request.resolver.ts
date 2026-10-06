@@ -11,13 +11,6 @@ import { verifySignedRequest } from '@vritti/api-sdk/signing';
 import type { VrittiAppAuth } from 'fastify';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
 
-/**
- * The request accessor the auth hook is handed.
- *
- * Derived from the callback's own signature rather than imported: `RequestService`
- * is not part of api-sdk's named public surface, and taking the type from the
- * contract this service is called through means it cannot drift from it.
- */
 type AuthRequestService = Parameters<OnAuthenticatedCallback>[0];
 
 const header = (requestService: AuthRequestService, name: string): string | undefined => {
@@ -25,30 +18,13 @@ const header = (requestService: AuthRequestService, name: string): string | unde
   return Array.isArray(value) ? value[0] : value;
 };
 
-/**
- * Authenticates a signed request from an external app and establishes its tenant.
- *
- * Called from `guard.onAuthenticated` in `app.module.ts`, which is where
- * `VrittiAuthGuard` hands off an `@Require(AuthType.App)` request. The guard cannot do this
- * itself: verifying a signature needs the app's public key, and that is a row in
- * this deployment's `apps` table. api-sdk owns the mechanism, this owns the lookup.
- *
- * A service rather than an inline closure so the security properties below are
- * testable — see `app-request.resolver.spec.ts`.
- *
- * Every rejection raises the **same** error. An unknown client, a revoked one, a
- * suspended one, a bad signature and a stale timestamp must be indistinguishable,
- * or the endpoint becomes an oracle for which client ids exist. The app-type filter
- * is applied by the guard afterwards and raises the identical error for the same
- * reason.
- */
 @Injectable()
 export class AppRequestResolver {
   private readonly logger = new Logger(AppRequestResolver.name);
 
   constructor(private readonly appService: AppDomainService) {}
 
-  /** True when this request presents an app credential rather than a session. */
+  // True when this request presents an app credential rather than a session
   isAppRequest(requestService: AuthRequestService): boolean {
     return Boolean(header(requestService, CLIENT_ID_HEADER));
   }

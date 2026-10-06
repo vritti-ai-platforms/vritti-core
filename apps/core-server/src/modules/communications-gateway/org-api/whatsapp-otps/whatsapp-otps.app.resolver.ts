@@ -9,15 +9,6 @@ import { SendWhatsappOtpInput, VerifyWhatsappOtpInput } from './graphql/whatsapp
 import { SendWhatsappOtpResult, VerifyWhatsappOtpResult } from './graphql/whatsapp-otp.type';
 import { WhatsappOtpsGatewayService } from './services/whatsapp-otps-gateway.service';
 
-/**
- * Sign-in codes for the organization's own web apps.
- *
- * The sender, template and code policy come from the calling credential's `whatsappOtpConfig`, never
- * from an argument — otherwise one storefront could name another's config and send on their bill.
- *
- * Verifying a number is not signing anyone in. These two operations establish only that whoever
- * holds the phone asked for a code and produced it; turning that into a session is the caller's.
- */
 @Resolver()
 @Require(AuthType.App, AppTypeValues.GRAPHQL)
 @RequireFeature(ORG_WHATSAPP_OTPS.featureCode)
@@ -26,7 +17,7 @@ export class WhatsappOtpsAppResolver {
 
   constructor(private readonly service: WhatsappOtpsGatewayService) {}
 
-  /** Sends a code over WhatsApp, replacing whatever code was live for the number. */
+  // Sends a code over WhatsApp, replacing whatever code was live for the number
   @Mutation(() => SendWhatsappOtpResult, { name: 'sendWhatsappOtp' })
   @RequirePermission(ORG_WHATSAPP_OTPS.send)
   sendWhatsappOtp(
@@ -38,7 +29,7 @@ export class WhatsappOtpsAppResolver {
     return this.service.send(appId, organizationId, input.recipient);
   }
 
-  /** Checks a code. Every failure mode returns `verified: false` — see the service. */
+  // Checks a code. Every failure mode returns `verified: false` — see the service
   @Mutation(() => VerifyWhatsappOtpResult, { name: 'verifyWhatsappOtp' })
   @RequirePermission(ORG_WHATSAPP_OTPS.verify)
   verifyWhatsappOtp(

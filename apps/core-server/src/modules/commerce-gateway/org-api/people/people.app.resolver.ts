@@ -20,33 +20,6 @@ import { WishlistQueryInput, WishlistRefInput } from './graphql/wishlist.input';
 import { WishlistAddResult, WishlistItem } from './graphql/wishlist.type';
 import { PeopleGatewayService } from './services/people-gateway.service';
 
-/**
- * People operations for the organization's own web apps.
- *
- * Sits beside `people-gateway.controller.ts`, which serves the same feature to
- * staff over REST. The split is the caller, not the data: that one is guarded by a
- * session, this one by `@Require(AuthType.App)` — a signed request whose app credential
- * establishes which organization it speaks for. There is no user session here; the
- * calling app authenticated its own visitor before reaching us.
- *
- * Deliberately primitive. These are three separate operations, not a registration
- * endpoint — `@vritti/vap-sdk` composes them into the signup flow so every web app
- * shares one implementation of it. What stays atomic server-side is the part that
- * has to be: `createPerson` writes the party and its primary EMAIL and PHONE rows in
- * a single transaction.
- *
- * Gated like every other app surface: `@RequireFeature` plus a `@RequirePermission` per operation,
- * resolved against the credential's `app` bucket. So a storefront that may register parties is a
- * credential that was granted exactly that and nothing else — signing a valid request is not itself
- * permission to write people.
- *
- * The consequence to hold in mind: an ungranted or revoked credential cannot sign anyone up. That is
- * the point, but it does mean the grant is part of provisioning a storefront, not an afterthought.
- *
- * The wishlist lives here too: it is the person's own list, gated on the same feature. It is scoped
- * like the basket — the party comes from the signature, the catalogue from the credential — so there
- * is no id a caller could change to read somebody else's list.
- */
 @Resolver()
 @Require(AuthType.App, AppTypeValues.GRAPHQL)
 @RequireFeature(ORG_PEOPLE.featureCode)
@@ -55,16 +28,7 @@ export class PeopleAppResolver {
 
   constructor(private readonly peopleGatewayService: PeopleGatewayService) {}
 
-  /**
-   * Who is reachable at this email or phone, oldest party first.
-   *
-   * Returns a list because one address legitimately sits on several people — the
-   * table's unique is per party. Choosing between them is the caller's policy.
-   *
-   * Whole records rather than ids: a caller resolving somebody they have just authenticated needs
-   * their name to greet them, and a second round-trip for it would be the common case rather than
-   * the exception.
-   */
+  // Who is reachable at this email or phone, oldest party first
   @Query(() => [Person], { name: 'peopleByCommunication' })
   @RequirePermission(ORG_PEOPLE.communications.view)
   async peopleByCommunication(@Args('input') input: FindPeopleByCommunicationInput): Promise<Person[]> {
@@ -72,13 +36,7 @@ export class PeopleAppResolver {
     return this.peopleGatewayService.findPeopleByCommunication(input.channel, input.value);
   }
 
-  /**
-   * The signed-in party's own details.
-   *
-   * Scoped like the basket and the wishlist: the party comes from the signature, so this answers
-   * "me" and there is no id a caller could change to read somebody else. That is why it is one
-   * query with no argument rather than `person(id:)`.
-   */
+  // The signed-in party's own details
   @Query(() => Person, { name: 'partyProfile' })
   @RequirePermission(ORG_PEOPLE.view)
   partyProfile(@PartyId() partyId: string): Promise<Person> {
@@ -86,13 +44,7 @@ export class PeopleAppResolver {
     return this.peopleGatewayService.findById(partyId);
   }
 
-  /**
-   * The party editing their own details.
-   *
-   * Re-read rather than echoed: `update` answers a success message, and the caller wants the row as
-   * it now stands — including `displayName`, which core composes from the names rather than taking
-   * from the form.
-   */
+  // The party editing their own details
   @Mutation(() => Person, { name: 'updatePartyProfile' })
   @RequirePermission(ORG_PEOPLE.edit)
   async updatePartyProfile(@PartyId() partyId: string, @Args('input') input: UpdatePartyProfileInput): Promise<Person> {
@@ -101,13 +53,7 @@ export class PeopleAppResolver {
     return this.peopleGatewayService.findById(partyId);
   }
 
-  /**
-   * The party's own address book.
-   *
-   * Flattened on the way out: core's `functions` — REGISTERED, BILLING, SHIPPING, ORDERING, each
-   * with a primary flag — is a business's vocabulary, and a storefront with no checkout has one
-   * question to ask. Primary SHIPPING is what "default" means here.
-   */
+  // The party's own address book
   @Query(() => [PartyAddress], { name: 'partyAddresses' })
   @RequirePermission(ORG_PEOPLE.addresses.view)
   async partyAddresses(@PartyId() partyId: string): Promise<PartyAddress[]> {
@@ -149,7 +95,7 @@ export class PeopleAppResolver {
     return this.partyAddresses(partyId);
   }
 
-  /** Creates the person plus their primary EMAIL and PHONE rows, in one transaction. */
+  // Creates the person plus their primary EMAIL and PHONE rows, in one transaction
   @Mutation(() => Person, { name: 'createPerson' })
   @RequirePermission(ORG_PEOPLE.add)
   async createPerson(@Args('input') input: CreatePersonInput): Promise<Person> {
@@ -158,7 +104,7 @@ export class PeopleAppResolver {
     return data;
   }
 
-  /** Adds a communication — the `WEB_APP` reference in the signup flow. */
+  // Adds a communication — the `WEB_APP` reference in the signup flow
   @Mutation(() => PersonCommunication, { name: 'addPersonCommunication' })
   @RequirePermission(ORG_PEOPLE.communications.add)
   async addPersonCommunication(@Args('input') input: AddPersonCommunicationInput): Promise<PersonCommunication> {
@@ -186,11 +132,7 @@ export class PeopleAppResolver {
     >;
   }
 
-  /**
-   * Which products the party has saved — a product page draws its Saved state from this.
-   *
-   * Ids only: no catalogue is resolved and nothing is priced, so it is cheap to ask on every view.
-   */
+  // Which products the party has saved — a product page draws its Saved state from this
   @Query(() => [ID], { name: 'wishlistVariantIds' })
   @RequirePermission(ORG_PEOPLE.wishlist.view)
   wishlistVariantIds(@AppId() appId: string, @PartyId() partyId: string): Promise<string[]> {
@@ -198,7 +140,7 @@ export class PeopleAppResolver {
     return this.peopleGatewayService.listShopperWishlistVariantIds(appId, partyId);
   }
 
-  /** Saving something already saved is the same row, not an error. */
+  // Saving something already saved is the same row, not an error
   @Mutation(() => WishlistAddResult, { name: 'addToWishlist' })
   @RequirePermission(ORG_PEOPLE.wishlist.add)
   addToWishlist(
@@ -216,7 +158,7 @@ export class PeopleAppResolver {
     });
   }
 
-  /** Unmarking something that was never marked leaves the list in the state asked for. */
+  // Unmarking something that was never marked leaves the list in the state asked for
   @Mutation(() => [WishlistItem], { name: 'removeFromWishlist' })
   @RequirePermission(ORG_PEOPLE.wishlist.delete)
   removeFromWishlist(
@@ -235,13 +177,7 @@ export class PeopleAppResolver {
   }
 }
 
-/**
- * Core's address, as a party reads it.
- *
- * "Default" is the primary SHIPPING function. A party's first address is seeded with all four
- * functions by the domain service, so the first one a party saves is their default without
- * anybody choosing it — which is the right answer when there is only one.
- */
+// Core's address, as a party reads it
 function toShopperAddress(address: PartyAddressResponseDto): PartyAddress {
   return {
     id: address.id,
@@ -257,20 +193,7 @@ function toShopperAddress(address: PartyAddressResponseDto): PartyAddress {
   };
 }
 
-/**
- * A party's address in the shape core's DTOs accept.
- *
- * Two translations, both load-bearing:
- *
- * `null` becomes `''` rather than being dropped. The request DTOs type their optional fields as
- * `string | undefined`, and an omitted key means "leave it alone" — so forwarding `undefined` for a
- * field the party just cleared would silently keep the old value. An empty string is what the
- * `@Trim()` on those fields turns back into `null`, which is the clearing the party asked for.
- *
- * `isDefault` becomes a primary SHIPPING function, and **only** SHIPPING. The other three —
- * REGISTERED, BILLING, ORDERING — are a business's concerns; writing them from a storefront would
- * have a party's "deliver here" quietly decide where a company's invoices go.
- */
+// A party's address in the shape core's DTOs accept
 function toAddressPayload(input: PartyAddressInput) {
   return {
     line1: input.line1,

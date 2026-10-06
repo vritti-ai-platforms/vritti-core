@@ -53,13 +53,6 @@ import type {
 import type { SmsProviderOptionDto } from './dto/response/sms-provider-option-response.dto';
 import { CommunicationsInternalService } from './services/communications-internal.service';
 
-/**
- * Options the cloud-web OTP config screen needs, read from the `communications` schema.
- *
- * Cloud cannot reach a microservice directly, so it signs a request here and core forwards it over
- * NATS. The organization comes from the signed `x-org-id` header the guard established — never a
- * path parameter, which would let one organization enumerate another's senders.
- */
 @ApiTags('Communications - Internal')
 @Controller('communications/internal')
 @SkipCsrf()

@@ -25,12 +25,6 @@ interface AssignmentSlotProps {
   isRemoving?: boolean;
 }
 
-/**
- * One assignment: what it sells, where that came from, and the single action available.
- *
- * Inherited offers Override — a create, not an edit, because the API rejects updating a channel this
- * workspace does not own. No label names a scope; the level shown comes from the row.
- */
 export const AssignmentSlot: React.FC<AssignmentSlotProps> = ({
   label,
   assignment,

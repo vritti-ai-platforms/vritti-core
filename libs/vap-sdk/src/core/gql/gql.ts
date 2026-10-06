@@ -28,9 +28,9 @@ type Documents = {
     "\n  query LeCatalogListingsFromVariants($variantIds: [ID!]!) {\n    leCatalogListingsFromVariants(variantIds: $variantIds) {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": typeof types.LeCatalogListingsFromVariantsDocument,
     "\n  query SiteCatalogListings {\n    siteCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": typeof types.SiteCatalogListingsDocument,
     "\n  query SiteCatalogListingsFromVariants($variantIds: [ID!]!) {\n    siteCatalogListingsFromVariants(variantIds: $variantIds) {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": typeof types.SiteCatalogListingsFromVariantsDocument,
-    "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": typeof types.SendWhatsappOtpDocument,
+    "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n": typeof types.SendWhatsappOtpDocument,
     "\n  mutation VerifyWhatsappOtp($input: VerifyWhatsappOtpInput!) {\n    verifyWhatsappOtp(input: $input) {\n      verified\n    }\n  }\n": typeof types.VerifyWhatsappOtpDocument,
-    "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": typeof types.SendSmsOtpDocument,
+    "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n": typeof types.SendSmsOtpDocument,
     "\n  mutation VerifySmsOtp($input: VerifySmsOtpInput!) {\n    verifySmsOtp(input: $input) {\n      verified\n    }\n  }\n": typeof types.VerifySmsOtpDocument,
     "\n  fragment PersonFields on Person {\n    id\n    displayName\n    firstName\n    lastName\n    email\n    phone\n    isActive\n  }\n": typeof types.PersonFieldsFragmentDoc,
     "\n  fragment PersonCommunicationFields on PersonCommunication {\n    id\n    channel\n    value\n    isPrimary\n    isActive\n  }\n": typeof types.PersonCommunicationFieldsFragmentDoc,
@@ -66,9 +66,9 @@ const documents: Documents = {
     "\n  query LeCatalogListingsFromVariants($variantIds: [ID!]!) {\n    leCatalogListingsFromVariants(variantIds: $variantIds) {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": types.LeCatalogListingsFromVariantsDocument,
     "\n  query SiteCatalogListings {\n    siteCatalogListings {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": types.SiteCatalogListingsDocument,
     "\n  query SiteCatalogListingsFromVariants($variantIds: [ID!]!) {\n    siteCatalogListingsFromVariants(variantIds: $variantIds) {\n      id\n      offeringVariantId\n      sku\n      name\n      price {\n        ...MoneyFields\n      }\n    }\n  }\n": types.SiteCatalogListingsFromVariantsDocument,
-    "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": types.SendWhatsappOtpDocument,
+    "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n": types.SendWhatsappOtpDocument,
     "\n  mutation VerifyWhatsappOtp($input: VerifyWhatsappOtpInput!) {\n    verifyWhatsappOtp(input: $input) {\n      verified\n    }\n  }\n": types.VerifyWhatsappOtpDocument,
-    "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n": types.SendSmsOtpDocument,
+    "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n": types.SendSmsOtpDocument,
     "\n  mutation VerifySmsOtp($input: VerifySmsOtpInput!) {\n    verifySmsOtp(input: $input) {\n      verified\n    }\n  }\n": types.VerifySmsOtpDocument,
     "\n  fragment PersonFields on Person {\n    id\n    displayName\n    firstName\n    lastName\n    email\n    phone\n    isActive\n  }\n": types.PersonFieldsFragmentDoc,
     "\n  fragment PersonCommunicationFields on PersonCommunication {\n    id\n    channel\n    value\n    isPrimary\n    isActive\n  }\n": types.PersonCommunicationFieldsFragmentDoc,
@@ -163,7 +163,7 @@ export function graphql(source: "\n  query SiteCatalogListingsFromVariants($vari
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n"): (typeof documents)["\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n"];
+export function graphql(source: "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n"): (typeof documents)["\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -171,7 +171,7 @@ export function graphql(source: "\n  mutation VerifyWhatsappOtp($input: VerifyWh
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n"): (typeof documents)["\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n    }\n  }\n"];
+export function graphql(source: "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n"): (typeof documents)["\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

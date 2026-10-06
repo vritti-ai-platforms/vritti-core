@@ -4,15 +4,12 @@ import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceiptItem,
   goodsReceiptItems,
-  goodsReceiptLineItems,
   goodsReceiptLines,
   goodsReceiptLots,
   goodsReceipts,
   type InventoryTracking,
   inventoryItems,
-  locations,
   purchaseOrderItems,
-  purchaseOrders,
   uom,
 } from '@/db/schema';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
@@ -322,51 +319,6 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
       )
       .limit(1);
     return rows[0] as GoodsReceiptItem | undefined;
-  }
-
-  // Returns GR-items with a captured supplier price plus the data to build SUPPLIER_PRICE cost rows
-  async findGrItemsForAutoCost(goodsReceiptId: string): Promise<
-    {
-      grItemId: string;
-      inventoryItemSku: string;
-      uomSymbol: string;
-      primaryUomUnitPrice: bigint;
-      currencyCode: string;
-      vendorRef: string | null;
-    }[]
-  > {
-    const rows = await this.db
-      .select({
-        grItemId: goodsReceiptItems.id,
-        inventoryItemSku: inventoryItems.sku,
-        uomSymbol: uom.symbol,
-        primaryUomUnitPrice: goodsReceiptItems.primaryUomUnitPrice,
-        currencyCode: goodsReceiptItems.currencyCode,
-        vendorRef: purchaseOrders.poNumber,
-      })
-      .from(goodsReceiptItems)
-      .innerJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
-      .innerJoin(uom, eq(goodsReceiptItems.uomId, uom.id))
-      .innerJoin(goodsReceipts, eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id))
-      .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
-      .where(
-        and(
-          eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId),
-          sql`${goodsReceiptItems.primaryUomUnitPrice} IS NOT NULL`,
-          sql`${goodsReceiptItems.primaryUomUnitPrice} > 0`,
-          sql`${goodsReceiptItems.currencyCode} IS NOT NULL`,
-        ),
-      )
-      .orderBy(asc(goodsReceiptItems.createdAt));
-
-    return rows.map((r) => ({
-      grItemId: r.grItemId,
-      inventoryItemSku: r.inventoryItemSku,
-      uomSymbol: r.uomSymbol,
-      primaryUomUnitPrice: BigInt(r.primaryUomUnitPrice as unknown as string),
-      currencyCode: r.currencyCode as string,
-      vendorRef: r.vendorRef ?? null,
-    }));
   }
 
   // Returns a minimal GR-item projection used by the publish flow

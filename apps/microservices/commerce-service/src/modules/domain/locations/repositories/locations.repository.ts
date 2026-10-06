@@ -253,13 +253,4 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
       WHERE path <@ cast(${oldPath} as commerce.ltree)
     `);
   }
-
-  // Applies location role to a subtree root and all descendants
-  async updateLocationRoleForSubtree(rootPath: string, locationRole: LocationRole): Promise<void> {
-    await this.db.execute(sql`
-      UPDATE ${locations}
-      SET location_role = cast(${locationRole} as commerce.location_role)
-      WHERE path <@ cast(${rootPath} as ltree)
-    `);
-  }
 }

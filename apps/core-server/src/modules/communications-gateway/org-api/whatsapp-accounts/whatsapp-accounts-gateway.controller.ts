@@ -54,15 +54,7 @@ export class WhatsappAccountsGatewayController {
     return this.service.embeddedSignupConfig();
   }
 
-  /**
-   * Starts a connect and returns where to run it.
-   *
-   * This route replaces the old `POST embedded-signup`, which took the popup's result directly.
-   * That could not survive per-organization subdomains: Meta enforces the SDK's host against a
-   * fixed allowed-domain list, so the popup now runs on one shared origin and the account is
-   * created there. This is consequently the last point at which the caller's grants are visible,
-   * which is why `add` is enforced here and not on the completion endpoint.
-   */
+  // Starts a connect and returns where to run it
   @Post('embedded-signup/state')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_WHATSAPP_ACCOUNTS.add)

@@ -468,27 +468,6 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
     return row as SupplierItemPrice | undefined;
   }
 
-  // Returns the next row after a validity start within the row's own stratum
-  async findNextPrice(
-    supplierItemId: string,
-    siteId: string | null,
-    afterValidFrom: string,
-  ): Promise<SupplierItemPrice | undefined> {
-    const [row] = await this.db
-      .select()
-      .from(supplierItemPrices)
-      .where(
-        and(
-          eq(supplierItemPrices.supplierItemId, supplierItemId),
-          rowStratumSql(siteId),
-          sql`${supplierItemPrices.validFrom} > ${afterValidFrom}::date`,
-        ),
-      )
-      .orderBy(asc(supplierItemPrices.validFrom))
-      .limit(1);
-    return row as SupplierItemPrice | undefined;
-  }
-
   // Returns the stratum row that was delimited to exactly the day before the given validity start
   async findContiguousPreviousPrice(
     supplierItemId: string,
@@ -574,16 +553,6 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   // Loads a per-site override row by id
   async findItemSiteById(id: string): Promise<SupplierItemSite | undefined> {
     const [row] = await this.db.select().from(supplierItemSites).where(eq(supplierItemSites.id, id)).limit(1);
-    return row as SupplierItemSite | undefined;
-  }
-
-  // Loads the per-site override of a supplier item for a site
-  async findItemSite(supplierItemId: string, siteId: string): Promise<SupplierItemSite | undefined> {
-    const [row] = await this.db
-      .select()
-      .from(supplierItemSites)
-      .where(and(eq(supplierItemSites.supplierItemId, supplierItemId), eq(supplierItemSites.siteId, siteId)))
-      .limit(1);
     return row as SupplierItemSite | undefined;
   }
 

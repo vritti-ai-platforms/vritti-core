@@ -3,7 +3,6 @@ import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-/** One basket as the table and the detail header read it. */
 export interface CartRow {
   id: string;
   siteId: string | null;
@@ -23,7 +22,6 @@ export interface CartTableResponse {
   activeViewId: string | null;
 }
 
-/** One line of a basket, priced by the catalogue this site sells from. */
 export interface CartLineRow {
   id: string;
   catalogListingId: string | null;
@@ -50,12 +48,6 @@ export interface CartLinesResponse {
   itemCount: number;
 }
 
-/**
- * Baskets the company holds itself.
- *
- * Reach runs upward only, so an outlet's baskets are the outlet's — they do not appear here. Lines
- * are priced through the company's own channel, resolved per read.
- */
 @Injectable()
 export class LeCartsGatewayService {
   private readonly logger = new Logger(LeCartsGatewayService.name);

@@ -22,14 +22,7 @@ const services = [
   CommunicationsInternalService,
 ];
 
-/**
- * Communications gateway services, and nothing else.
- *
- * Same reason as `CommerceGatewayServicesModule`: both the internal surface
- * (`CommunicationsGatewayModule`, which owns the controllers) and the external-app surface
- * (`CommunicationsAppGatewayModule`) need `WhatsappOtpsGatewayService`, and neither may import the
- * other without dragging its resolvers into the other's schema.
- */
+// Communications gateway services, and nothing else
 @Module({
   imports: [AppDomainModule],
   providers: services,

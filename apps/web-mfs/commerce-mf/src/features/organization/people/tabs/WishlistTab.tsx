@@ -18,13 +18,7 @@ interface WishlistTabProps {
   partyId: string;
 }
 
-/**
- * What this person saved for later on a storefront.
- *
- * Read only, and that is the whole surface: a saved list is the shopper's own, so staff adding to
- * it would be putting words in their mouth. The basket next door is different — staff take orders
- * over the phone.
- */
+// What this person saved for later on a storefront
 export const WishlistTab: React.FC<WishlistTabProps> = ({ partyId }) => {
   const { data: rows, isLoading } = usePersonWishlist(partyId);
 

@@ -12,7 +12,6 @@ import { OwnerNameCacheService } from '@/owner-names/owner-name-cache.service';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { sequentialSortOrders } from '@/utils/sort-order';
 import { LegalEntityDto } from '../dto/entity/legal-entity.dto';
-import type { CreateLeTaxRegistrationInternalDto } from '../dto/request/create-le-tax-registration-internal.dto';
 import type { CreateLegalEntityInternalDto } from '../dto/request/create-legal-entity-internal.dto';
 import type { UpdateLegalEntityInternalDto } from '../dto/request/update-legal-entity-internal.dto';
 import { LegalEntityDomainRepository } from '../repositories/legal-entity.repository';

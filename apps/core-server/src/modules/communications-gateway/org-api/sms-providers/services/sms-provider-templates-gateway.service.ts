@@ -15,13 +15,7 @@ export class SmsProviderTemplatesGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  /**
-   * Reads Vritti's rows rather than the vendor: MSG91 has no endpoint that lists an account's SMS
-   * templates, so these rows are the list (see the schema note on sms_provider_templates).
-   *
-   * The state round-trip carries column visibility only — the row set is small and already scoped
-   * to one provider, so it is not paginated downstream.
-   */
+  // Reads Vritti's rows rather than the vendor: MSG91 has no endpoint that lists an account's SMS templates, so these rows are the list (see the schema note on sms_provider_templates)
   async findForTable(userId: string, providerId: string): Promise<SmsProviderTemplateTableResponseDto> {
     this.logger.log(`smsProviders.templates.list — provider: ${providerId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(

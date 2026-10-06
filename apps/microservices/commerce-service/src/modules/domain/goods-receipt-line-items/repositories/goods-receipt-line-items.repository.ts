@@ -76,28 +76,6 @@ export class GoodsReceiptLineItemsDomainRepository extends PrimaryBaseRepository
     return rows[0] as GoodsReceiptLineItem | undefined;
   }
 
-  // Scopes the duplicate-serial check across the entire goods receipt — catches the case where
-  // the same serial is scanned onto two different lines of the same draft GR (which the line-level
-  // unique constraint wouldn't catch). Mirrors SA's findBySerialOnAdjustment.
-  async findBySerialOnReceipt(
-    goodsReceiptId: string,
-    serialNumber: string,
-  ): Promise<{ id: string; goodsReceiptLineId: string } | undefined> {
-    const rows = await this.db
-      .select({
-        id: goodsReceiptLineItems.id,
-        goodsReceiptLineId: goodsReceiptLineItems.goodsReceiptLineId,
-      })
-      .from(goodsReceiptLineItems)
-      .innerJoin(goodsReceiptLines, eq(goodsReceiptLineItems.goodsReceiptLineId, goodsReceiptLines.id))
-      .innerJoin(goodsReceiptItems, eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItems.id))
-      .where(
-        and(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId), eq(goodsReceiptLineItems.serialNumber, serialNumber)),
-      )
-      .limit(1);
-    return rows[0];
-  }
-
   // True if the serial is already registered in inventory for the given item. Goods receipt
   // REGISTERS new serials, so a hit here is a collision with existing inventory_item_serials.
   async existsSerialInInventory(inventoryItemId: string, serialNumber: string): Promise<boolean> {

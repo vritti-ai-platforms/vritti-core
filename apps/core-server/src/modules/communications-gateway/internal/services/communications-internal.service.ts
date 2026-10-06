@@ -269,13 +269,7 @@ export class CommunicationsInternalService {
     return updated.smsOtpConfig as AppSmsOtpConfig;
   }
 
-  /**
-   * Rejects a config whose template is missing or belongs to another provider.
-   *
-   * Whether a template is needed at all is the transport registry's answer, not a provider code
-   * checked here — a provider that sends a bare body needs none, and hardcoding the distinction
-   * would rot the moment a transport is added.
-   */
+  // Rejects a config whose template is missing or belongs to another provider
   private async validateSmsTemplate(providerCode: string, config: AppSmsOtpConfig): Promise<void> {
     const capabilities = await this.nats.send<{ code: string; requiresTemplate: boolean }[]>(
       'communications',

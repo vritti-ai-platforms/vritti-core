@@ -2,13 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
 import type { App } from '@/db/schema';
 
-/**
- * An app as cloud-web lists it.
- *
- * Carries the public key but **not** the private one. Listing a screenful of
- * private keys to render a table would put every credential in a response that
- * nobody asked for — the private half comes only from the explicit reveal route.
- */
 export class AppResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() clientId: string;
@@ -16,7 +9,7 @@ export class AppResponseDto {
   @ApiProperty() type: string;
   @ApiProperty() signingPublicKey: string;
   @ApiProperty() isActive: boolean;
-  /** Returned so the cloud editor opens on what is currently granted. */
+  // Returned so the cloud editor opens on what is currently granted
   @ApiProperty() permissions: FeatureUnlocks;
   @ApiPropertyOptional({ nullable: true }) lastUsedAt: string | null;
   @ApiPropertyOptional({ nullable: true }) revokedAt: string | null;

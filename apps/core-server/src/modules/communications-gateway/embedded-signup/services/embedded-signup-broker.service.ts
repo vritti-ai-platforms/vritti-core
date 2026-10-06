@@ -4,18 +4,6 @@ import type { FastifyRequest } from 'fastify';
 import { WhatsappAccountsGatewayService } from '../../org-api/whatsapp-accounts/services/whatsapp-accounts-gateway.service';
 import { type EmbeddedSignupState, EmbeddedSignupStateService } from './embedded-signup-state.service';
 
-/**
- * Embedded Signup version this deployment runs.
- *
- * v4 is what makes a redirect flow viable at all. On v2/v3 the popup reported its WABA id over a
- * `postMessage` to the opener and coexistence needed a per-call `featureType` — neither of which
- * survives a top-level redirect, because there is no opener and no `FB.login` options object. On v4
- * `extras` carries nothing but the version (products come from the Facebook Login configuration),
- * coexistence needs no opt-in because Phone Number First detects it, and the WABA id is derived
- * server-side from the token's granular scopes. So nothing is lost by leaving the SDK behind.
- *
- * Omitting `version` entirely would silently select the legacy v2 flow, which deprecates 15 Oct 2026.
- */
 const EMBEDDED_SIGNUP_VERSION = 'v4-public-preview';
 
 // Query keys the console reads off its own URL when the flow returns
@@ -37,19 +25,6 @@ export interface EmbeddedSignupCallbackQuery {
   error_reason?: string;
 }
 
-/**
- * The fixed-origin half of Embedded Signup.
- *
- * Both routes are public, because the origin they are served from is not the tenant subdomain and
- * carries no session. The signed state is what stands in for one: it was issued behind
- * `whatsapp-accounts.add` / `.edit` on the tenant origin, and its MAC is what tells this service
- * which organization is acting.
- *
- * One tab, start to finish. The console navigates here, this redirects into Meta's dialog, and the
- * callback redirects back to the console — which means the authorization code goes straight from
- * Meta to this server without ever being readable by browser script, and no page of ours is rendered
- * along the way.
- */
 @Injectable()
 export class EmbeddedSignupBrokerService {
   private readonly logger = new Logger(EmbeddedSignupBrokerService.name);
@@ -59,12 +34,7 @@ export class EmbeddedSignupBrokerService {
     private readonly accountsGateway: WhatsappAccountsGatewayService,
   ) {}
 
-  /**
-   * Where to send the operator to run one attempt.
-   *
-   * The state rides along as the OAuth `state` parameter, which is both what returns it to us and
-   * the one addition Strict Mode permits on a registered redirect URI.
-   */
+  // Where to send the operator to run one attempt
   resolveDialogUrl(raw: string | undefined): string {
     const { state, expired } = this.stateService.verify(raw);
     if (expired) return this.returnTo(state, false, EXPIRED);
@@ -90,12 +60,7 @@ export class EmbeddedSignupBrokerService {
     return `https://www.facebook.com/${config.graphVersion}/dialog/oauth?${params.toString()}`;
   }
 
-  /**
-   * Completes one attempt from Meta's redirect, then hands the operator back to their console.
-   *
-   * Returns a URL rather than a page: the outcome travels as a query parameter on the console's own
-   * address, so there is no interstitial of ours for the operator to look at or dismiss.
-   */
+  // Completes one attempt from Meta's redirect, then hands the operator back to their console
   async handleCallback(request: FastifyRequest, query: EmbeddedSignupCallbackQuery): Promise<string> {
     // Raises on a forged or malformed state — there is then no trustworthy address to return to,
     // which is the one case that cannot be reported by redirecting
@@ -109,29 +74,13 @@ export class EmbeddedSignupBrokerService {
       return this.returnTo(state, false, query.error ? (query.error_description ?? CANCELLED) : GENERIC_FAILURE);
     }
 
-    /**
-     * The NATS context resolver reads `request.auth`, and this route has none — it is public.
-     * Stamping the organization the signed state names is the same move WhatsappWebhookService makes
-     * after verifying Meta's HMAC: authentication happened out of band, so the resolved org is
-     * written where the rest of the pipeline expects to find it. Without this the microservice runs
-     * with `app.org_id` unset and the insert lands nowhere.
-     *
-     * `cloud` rather than `session`: nothing downstream records who created an account, and a
-     * fabricated session principal would claim more than the state actually proves.
-     */
+    // The NATS context resolver reads `request.auth`, and this route has none — it is public
     request.auth = { kind: 'cloud', organizationId: state.orgId };
 
     // The code is single-use and short-lived, so it is never logged
     this.logger.log(`Completing ${state.mode} for org ${state.orgId}`);
 
     try {
-      /**
-       * No wabaId: on this flow nothing reports one, so it is derived downstream from the token's
-       * granular scopes — which were always the authority, browser payload or not.
-       *
-       * `redirectUri` comes from the same builder that produced the dialog URL's `redirect_uri`, so
-       * the two are identical by construction — which is what the token exchange requires.
-       */
       const signup = { code: query.code, redirectUri: this.accountsGateway.embeddedSignupCallbackUrl() };
 
       if (state.mode === 'reconnect') {
@@ -171,18 +120,7 @@ export class EmbeddedSignupBrokerService {
     return url.toString();
   }
 
-  /**
-   * The sentence to show the operator.
-   *
-   * Three shapes, because a failure here can arrive as any of them:
-   *
-   * - an `HttpException` thrown in this process (the state and mode checks)
-   * - a **plain problem object**, which is how a downstream RFC 9457 error crosses NATS — it is not
-   *   an Error instance at all, so an `instanceof` check alone silently discarded the real reason
-   *   and reported the generic fallback for everything
-   * - anything else, which is not shown: a raw `Error.message` is written for us, not for an
-   *   operator, and can carry internals. It is logged instead.
-   */
+  // The sentence to show the operator
   private failureMessage(error: unknown): string {
     const problem = this.problemOf(error);
     if (typeof problem === 'string') return problem;

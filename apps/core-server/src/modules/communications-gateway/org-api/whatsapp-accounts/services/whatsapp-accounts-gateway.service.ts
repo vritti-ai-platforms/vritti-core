@@ -23,25 +23,8 @@ import { EmbeddedSignupStateService } from '../../../embedded-signup/services/em
 // server-side calls that follow it have to speak the same Graph version.
 const GRAPH_API_VERSION = 'v26.0';
 
-/**
- * Subdomain the signup flow is served from.
- *
- * This server's own host, because that is what already routes here — the flow's routes are
- * core-server routes, reachable on any hostname that reaches core-server, so a dedicated `connect.`
- * name would have been decoration rather than isolation. Meta only requires that ONE fixed origin is
- * registered, and this one already has DNS, a certificate and a proxy rule.
- *
- * Combined with BASE_DOMAIN rather than configured separately, so it cannot drift out of step with
- * the domain the console runs on.
- */
 const CONNECT_SUBDOMAIN = 'api';
 
-/**
- * Everything the broker needs to build Meta's dialog URL.
- *
- * Internal, and not a Swagger DTO: none of it reaches a browser any more. `enabled` lives here too
- * so the one gate is computed in a single place rather than re-derived by each caller.
- */
 export interface EmbeddedSignupSettings {
   appId: string;
   configId: string | null;
@@ -61,11 +44,7 @@ export class WhatsappAccountsGatewayService {
     private readonly signupStateService: EmbeddedSignupStateService,
   ) {}
 
-  /**
-   * Server-side settings for the signup flow. The app secret is not among them — it stays in
-   * communications-service, which is where the code exchange happens, so the minted token never
-   * crosses NATS.
-   */
+  // Server-side settings for the signup flow
   embeddedSignupSettings(): EmbeddedSignupSettings {
     const configId = this.configService.get<string>('META_EMBEDDED_SIGNUP_CONFIG_ID') ?? null;
 
@@ -86,13 +65,7 @@ export class WhatsappAccountsGatewayService {
     return { enabled: this.embeddedSignupSettings().enabled };
   }
 
-  /**
-   * Starts a connect attempt and returns where to run it.
-   *
-   * The permission gate lives here rather than on the completion endpoint, which is public by
-   * necessity — the broker origin has no session. This is the last point in the flow where a
-   * caller's grants can be checked, so `add` is enforced on this route.
-   */
+  // Starts a connect attempt and returns where to run it
   createConnectState(
     organizationId: string,
     userId: string,
@@ -186,37 +159,12 @@ export class WhatsappAccountsGatewayService {
     return this.nats.send('communications', 'org.whatsappAccounts.delete', { id });
   }
 
-  /**
-   * Absolute URL Meta redirects back to once the flow finishes.
-   *
-   * The one value that has to be registered in the Meta app's "Valid OAuth Redirect URIs" list, and
-   * it is built here so it cannot drift from the origin the console actually sends operators to.
-   */
+  // Absolute URL Meta redirects back to once the flow finishes
   embeddedSignupCallbackUrl(): string {
     return `${this.brokerBaseUrl()}${EMBEDDED_SIGNUP_CALLBACK_PATH}`;
   }
 
-  /**
-   * Public origin that serves the signup flow.
-   *
-   * Derived rather than configured. Every input is something this server already validates at boot,
-   * and it *is* the server being addressed — so unlike the mobile client, which has to be told the
-   * API's address, there is nothing here to look up.
-   *
-   * The only judgement call is the port, and `USE_HTTPS` is what settles it: it answers whether this
-   * process terminates TLS, which is the same question as whether the browser reaches it on this
-   * port. Behind a proxy the edge holds 443 and this listener's port is private; served directly, the
-   * port is part of the public address.
-   *
-   * NODE_ENV deliberately does NOT decide it. The apw1 deployment runs `NODE_ENV=production` while
-   * still being served directly on 3001, so treating "production" as proxied emitted
-   * `https://api.local.vrittiai.com` there — an origin with nothing listening on it. Naming an
-   * environment and describing its topology are different things.
-   *
-   * Always https, never `USE_HTTPS ? 'https' : 'http'`: Meta refuses a plaintext redirect URI, so an
-   * http origin could only ever produce a URI it rejects. Better to emit the https form and fail at
-   * connection time, which says something.
-   */
+  // Public origin that serves the signup flow
   private brokerBaseUrl(): string {
     const host = `${CONNECT_SUBDOMAIN}.${this.configService.getOrThrow<string>('BASE_DOMAIN')}`;
 
@@ -239,13 +187,7 @@ export class WhatsappAccountsGatewayService {
     return `${this.brokerBaseUrl()}${EMBEDDED_SIGNUP_BROKER_PATH}?state=${encodeURIComponent(state)}`;
   }
 
-  /**
-   * Holds the caller's return URL to this deployment's own base domain.
-   *
-   * The URL is signed into the state and the callback redirects to it, so without this check a
-   * caller could aim the end of the flow at a site they control — and the redirect would carry the
-   * outcome of a connect performed for their organization.
-   */
+  // Holds the caller's return URL to this deployment's own base domain
   private assertOwnReturnUrl(returnUrl: string): string {
     const baseDomain = this.configService.get<string>('BASE_DOMAIN');
     const rejected = {

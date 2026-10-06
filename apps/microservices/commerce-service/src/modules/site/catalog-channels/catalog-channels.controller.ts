@@ -29,7 +29,7 @@ export class SiteCatalogChannelsController {
   @MessagePattern({ cmd: 'site.catalogChannels.app.listingsFromVariants' })
   appListingsFromVariants(@Payload() data: { appId: string; variantIds: string[] }): Promise<StorefrontListingDto[]> {
     this.logger.log(`catalogChannels.app.listingsFromVariants — appId: ${data.appId}`);
-    return this.service.appListings(data.appId, data.variantIds);
+    return this.service.appListingsFromVariants(data.appId, data.variantIds);
   }
 
   @MessagePattern({ cmd: 'site.catalogChannels.delete' })

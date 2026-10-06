@@ -15,6 +15,7 @@ export interface SendOtpResult {
   sent: boolean;
   expiresAt: Date;
   resendAvailableAt: Date;
+  codeLength: number;
 }
 
 export interface VerifyOtpResult {
@@ -67,6 +68,7 @@ export class WhatsappOtpsGatewayService {
       sent: result.sent,
       expiresAt: new Date(result.expiresAt),
       resendAvailableAt: new Date(result.resendAvailableAt),
+      codeLength: config.codeLength,
     };
   }
 

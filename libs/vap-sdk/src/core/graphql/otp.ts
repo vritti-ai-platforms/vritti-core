@@ -8,6 +8,7 @@ export const SEND_WHATSAPP_OTP = graphql(`
       sent
       expiresAt
       resendAvailableAt
+      codeLength
     }
   }
 `);
@@ -30,6 +31,7 @@ export const SEND_SMS_OTP = graphql(`
       sent
       expiresAt
       resendAvailableAt
+      codeLength
     }
   }
 `);

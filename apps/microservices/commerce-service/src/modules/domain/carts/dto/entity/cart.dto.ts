@@ -1,6 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
-/** One basket as the staff table reads it, with the shopper it belongs to joined on. */
 export interface CartTableRow {
   id: string;
   organizationId: string;
@@ -14,14 +13,13 @@ export interface CartTableRow {
   updatedAt: Date;
 }
 
-/** One basket line as the repository reads it, with everything the listing resolves to joined on. */
 export interface CartItemRow {
   id: string;
-  /** Null once the catalogue stops carrying it — the line stays, as `isAvailable` explains. */
+  // Null once the catalogue stops carrying it — the line stays, as `isAvailable` explains
   catalogListingId: string | null;
   offeringVariantId: string;
   quantity: number;
-  /** Null when the catalogue holds no price for the basket's currency — see `CartItemDto.from`. */
+  // Null when the catalogue holds no price for the basket's currency — see `CartItemDto.from`
   amount: bigint | null;
   currencyCode: string | null;
   sku: string | null;
@@ -35,28 +33,17 @@ export interface CartItemRow {
 
 export class CartItemDto {
   id: string;
-  /** Null once the catalogue stops carrying it — the line stays, as `isAvailable` explains. */
+  // Null once the catalogue stops carrying it — the line stays, as `isAvailable` explains
   catalogListingId: string | null;
-  /**
-   * What a storefront joins its own product page on.
-   *
-   * The variant, not the listing: a listing belongs to one catalogue and a catalogue is per site,
-   * so the listing differs per outlet while the variant does not.
-   */
+  // What a storefront joins its own product page on
   offeringVariantId: string;
   quantity: number;
   name: string;
   sku: string | null;
-  /** Null when nothing in the catalogue prices this listing in the basket's currency. */
+  // Null when nothing in the catalogue prices this listing in the basket's currency
   unitPrice: CurrencyAmountDto | null;
   lineTotal: CurrencyAmountDto | null;
-  /**
-   * Whether this line can still be bought.
-   *
-   * False when the listing was delisted, or the variant or its offering switched off. The line is
-   * still returned — a basket that silently loses things is worse than one that says what happened
-   * — but checkout must refuse it and the storefront should show it as unavailable.
-   */
+  // Whether this line can still be bought
   isAvailable: boolean;
 
   static from(row: CartItemRow): CartItemDto {
@@ -78,41 +65,23 @@ export class CartItemDto {
   }
 }
 
-/** Whether a line is sellable — the same rule `CartItemDto` reports as `isAvailable`. */
+// Whether a line is sellable — the same rule `CartItemDto` reports as `isAvailable`
 function isAvailable(row: CartItemRow): boolean {
   return row.listingActive && row.variantActive && row.offeringActive && row.amount != null;
 }
 
-/**
- * A line's total in minor units.
- *
- * Money is summed as `bigint` minor units and converted exactly once, at the edge.
- * `CurrencyAmountDto.value` is a **major-unit string** for the wire, so adding those up would be
- * decimal arithmetic on text — which is how a basket ends up a paisa short of its own lines.
- */
+// A line's total in minor units
 function lineMinor(row: CartItemRow): bigint | null {
   return row.amount == null ? null : row.amount * BigInt(row.quantity);
 }
 
-/**
- * A basket, assembled from its lines.
- *
- * There is no basket row behind this — a basket *is* the lines a party holds in one storefront, so
- * this is a view over them rather than a record. That is also why it carries no id and no status:
- * neither had anything to address once the parent went, and an empty basket is simply no rows.
- */
 export class CartDto {
-  /** The currency the lines were priced in — the one the caller asked for. */
+  // The currency the lines were priced in — the one the caller asked for
   currencyCode: string;
   items: CartItemDto[];
-  /**
-   * The sum of the lines that can actually be bought.
-   *
-   * Unavailable lines are excluded rather than counted at their last known price — a total that
-   * includes something the shop cannot sell is a number nobody can honour.
-   */
+  // The sum of the lines that can actually be bought
   subtotal: CurrencyAmountDto;
-  /** Quantity summed across available lines, for a basket badge. */
+  // Quantity summed across available lines, for a basket badge
   itemCount: number;
 
   static from(currencyCode: string, items: CartItemRow[]): CartDto {
@@ -128,16 +97,10 @@ export class CartDto {
   }
 }
 
-/**
- * One basket line as staff see it — the shopper's line, plus which storefront it sits in.
- *
- * A person may shop in more than one of the organization's storefronts, so the app is part of the
- * answer rather than context the caller already had.
- */
 export class StaffCartItemDto extends CartItemDto {
-  /** Which basket this line sits in — a person may hold one at each outlet, so an edit must name it. */
+  // Which basket this line sits in — a person may hold one at each outlet, so an edit must name it
   cartId: string;
-  /** The outlet whose basket it is. Null on a basket the company itself holds. */
+  // The outlet whose basket it is. Null on a basket the company itself holds
   siteId: string | null;
   legalEntityId: string;
 
@@ -152,14 +115,13 @@ export class StaffCartItemDto extends CartItemDto {
   }
 }
 
-/** One basket as the staff table shows it. */
 export class CartDetailDto {
   id: string;
   siteId: string | null;
   legalEntityId: string | null;
   partyId: string;
   partyName: string;
-  /** Set while a payment is in flight, which is what freezes the basket. */
+  // Set while a payment is in flight, which is what freezes the basket
   checkoutStartedAt: string | null;
   itemCount: number;
   createdAt: string;

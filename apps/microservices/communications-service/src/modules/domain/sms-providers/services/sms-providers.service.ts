@@ -11,13 +11,6 @@ import type { UpdateSmsProviderDto } from '../dto/request/update-sms-provider.dt
 import { SmsProvidersDomainRepository } from '../repositories/sms-providers.repository';
 import { type SmsProviderCapabilities, SmsProviderRegistry } from './sms-provider-transports';
 
-/**
- * One table serves two owners. CLIENT rows belong to the organization in the RLS context and take
- * the full org CRUD; PLATFORM rows (organization_id NULL) are Vritti-owned senders every org can
- * read and use but only cloud can write — those calls arrive over the internal patterns with no
- * RLS context, which is itself the isolation: with no org GUC set, the policy resolves only the
- * NULL-org rows, so a platform call can never touch a client row.
- */
 @Injectable()
 export class SmsProvidersDomainService {
   private readonly logger = new Logger(SmsProvidersDomainService.name);

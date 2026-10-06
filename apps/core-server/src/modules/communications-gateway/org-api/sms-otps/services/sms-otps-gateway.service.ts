@@ -15,6 +15,7 @@ export interface SendSmsOtpResult {
   sent: boolean;
   expiresAt: Date;
   resendAvailableAt: Date;
+  codeLength: number;
 }
 
 export interface VerifySmsOtpResult {
@@ -65,6 +66,7 @@ export class SmsOtpsGatewayService {
       sent: result.sent,
       expiresAt: new Date(result.expiresAt),
       resendAvailableAt: new Date(result.resendAvailableAt),
+      codeLength: config.codeLength,
     };
   }
 

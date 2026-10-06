@@ -88,16 +88,7 @@ const services = [
   UomGatewayService,
 ];
 
-/**
- * Every commerce gateway service, and nothing else.
- *
- * Services sit apart from the surfaces that use them because BOTH surface modules need them and
- * neither may import the other: `GraphQLModule`'s `include` walks imports transitively, so a
- * surface importing another surface would pull that surface's resolvers into its schema.
- *
- * Holding the services here keeps each surface's closure resolver-free while giving every service
- * exactly one instance — which re-providing per surface would not.
- */
+// Every commerce gateway service, and nothing else
 @Module({
   // Three gateway services inject SiteDomainService / SiteDomainRepository, so the domain module
   // must be imported HERE, where those services are provided.

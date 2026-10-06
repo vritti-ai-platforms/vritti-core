@@ -5,17 +5,6 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-/**
- * Baskets as the company sees them.
- *
- * The staff surface only. A shopper's own operations are addressed by party and belong to the
- * outlet they are buying from, so they live on the site controller; what a company does with a
- * basket is look at it, open one, and invoice it.
- *
- * The domain service is shared and takes no workspace: `carts` owns its scope columns, so RLS
- * decides what this controller can reach. Reach runs upward only, so a company sees the baskets it
- * holds itself and none of its outlets'.
- */
 @Controller()
 export class LeCartsController {
   private readonly logger = new Logger(LeCartsController.name);

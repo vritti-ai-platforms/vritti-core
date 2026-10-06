@@ -12,12 +12,6 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-/**
- * A shopper's basket, for the organization's own storefronts.
- *
- * Every pattern is addressed by app and party rather than by a basket id — see the domain service
- * for why. The gateway is what fills those in, off the signed request.
- */
 @Controller()
 export class CartsController {
   private readonly logger = new Logger(CartsController.name);

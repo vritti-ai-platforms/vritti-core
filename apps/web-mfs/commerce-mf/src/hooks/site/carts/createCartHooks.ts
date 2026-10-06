@@ -21,17 +21,7 @@ interface CartKeys {
   itemsTable: (cartId: string) => readonly unknown[];
 }
 
-/**
- * One set of basket hooks, bound to a workspace.
- *
- * The queries are identical at an outlet and at the company — what differs is the route the service
- * calls and the permission code the read is gated on, so both are arguments rather than two copies
- * of the same file.
- *
- * Every line mutation answers with the **whole basket**, so the summary is *set* rather than
- * invalidated. The items table is the exception: it is a server-paged view with its own filters, so
- * it is refetched rather than patched — a response for the whole basket is not the page it shows.
- */
+// One set of basket hooks, bound to a workspace
 export function createCartHooks(service: CartsService, keys: CartKeys, viewPermission: string) {
   const useCartsTable = (options?: Omit<UseQueryOptions<CartsTableResponse, AxiosError>, 'queryKey' | 'queryFn'>) => {
     const { available } = usePermission(viewPermission);

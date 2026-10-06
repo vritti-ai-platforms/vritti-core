@@ -6,14 +6,6 @@ import { SmsProviderTemplateDto } from '../dto/entity/sms-provider-template.dto'
 import type { AddSmsProviderTemplateDto } from '../dto/request/add-sms-provider-template.dto';
 import { SmsProviderTemplatesDomainRepository } from '../repositories/sms-provider-templates.repository';
 
-/**
- * Storage for the templates registered against a provider.
- *
- * Deliberately knows nothing about MSG91. The vendor round-trip that proves a template exists
- * happens one layer up, in the organization-layer service that can reach both this domain and
- * `sms-providers` — domain modules never import each other, so the snapshot arrives here as an
- * argument rather than being fetched.
- */
 @Injectable()
 export class SmsProviderTemplatesDomainService {
   private readonly logger = new Logger(SmsProviderTemplatesDomainService.name);
@@ -25,13 +17,7 @@ export class SmsProviderTemplatesDomainService {
     return rows.map(SmsProviderTemplateDto.from);
   }
 
-  /**
-   * The stored vendor snapshot for one template, for the send path.
-   *
-   * Returns undefined when the pair is unknown rather than throwing: whether a missing snapshot is
-   * fatal is the transport's call — one that needs no template is unaffected, and MSG91 falls back
-   * to a default variable name.
-   */
+  // The stored vendor snapshot for one template, for the send path
   async findSnapshot(providerId: string, templateId: string): Promise<Record<string, unknown> | undefined> {
     const row = await this.repository.findByTemplateId(providerId, templateId);
     return row?.details;

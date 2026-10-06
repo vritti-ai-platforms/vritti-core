@@ -102,29 +102,6 @@ export class AuthStatusSseService implements OnModuleDestroy {
     return sentCount > 0;
   }
 
-  // Removes a specific connection by subject reference and cleans up if empty
-  removeConnection(userId: string, subject: Subject<MessageEvent>): void {
-    const conns = this.connections.get(userId);
-
-    if (!conns) return;
-
-    const filtered = conns.filter((c) => c.subject !== subject);
-
-    if (filtered.length === 0) {
-      this.connections.delete(userId);
-    } else {
-      this.connections.set(userId, filtered);
-    }
-
-    subject.complete();
-    this.logger.log(`Removed SSE connection for user ${userId} (remaining: ${filtered.length})`);
-  }
-
-  // Returns the total number of users with active connections
-  getConnectionCount(): number {
-    return this.connections.size;
-  }
-
   // Removes closed subjects from the connection map
   private cleanupClosedConnections(): void {
     let cleanedCount = 0;

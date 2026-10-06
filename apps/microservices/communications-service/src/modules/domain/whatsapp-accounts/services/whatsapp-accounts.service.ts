@@ -107,13 +107,7 @@ export class WhatsappAccountsDomainService {
     return this.repository.findAllWabaIds();
   }
 
-  /**
-   * Overwrites the stored credential after a re-run of Embedded Signup.
-   *
-   * `isActive` is deliberately left alone: it is an operator's own switch, and a reconnect is a
-   * credential repair, not a decision to start sending again. Name and business portfolio are
-   * refreshed because Meta is authoritative for both and either can change between connects.
-   */
+  // Overwrites the stored credential after a re-run of Embedded Signup
   async replaceCredentials(
     id: string,
     data: { accessToken: string; name: string; metaBusinessId: string; webhooksSubscribed: boolean },

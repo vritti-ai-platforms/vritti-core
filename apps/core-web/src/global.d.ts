@@ -1,9 +1,4 @@
-/**
- * Type declarations for asset imports
- * These declarations allow TypeScript to recognize and type-check
- * imports of CSS files, images, and other assets that are processed
- * by RSBuild at build time.
- */
+// Type declarations for asset imports These declarations allow TypeScript to recognize and type-check imports of CSS files, images, and other assets that are processed by RSBuild at build time
 
 // CSS Module Declarations
 // CSS files can be imported as side-effects

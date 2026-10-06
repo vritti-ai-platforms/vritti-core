@@ -122,3 +122,34 @@ export type Money = {
   /** Major units as a **string** — format it, never `Number` it for arithmetic. */
   value: string;
 };
+
+/**
+ * How a code reaches someone.
+ *
+ * Core keeps the two apart — `whatsapp-otps` and `sms-otps` are separate domains with separate
+ * permissions — and so does this SDK. This lives here rather than in either domain because it is
+ * what a caller passes to `auth.sendOtp` to pick between them: vocabulary shared by both, owned by
+ * neither.
+ *
+ * WhatsApp sends through the credential's `whatsappOtpConfig` (WABA + template), SMS through its
+ * `smsOtpConfig` (provider account). A credential may carry either or both — core refuses a channel
+ * it has no configuration for.
+ */
+export const OTP_CHANNELS = { WHATSAPP: 'whatsapp', SMS: 'sms' } as const;
+
+export type OtpChannel = (typeof OTP_CHANNELS)[keyof typeof OTP_CHANNELS];
+
+export type SendOtpResult = {
+  sent: boolean;
+  /** When the code stops being accepted. */
+  expiresAt: string;
+  /** The earliest a resend will be allowed. Core enforces it; this is for the countdown. */
+  resendAvailableAt: string;
+  /**
+   * How many digits this credential issues.
+   *
+   * Per-credential config between 4 and 10, so a form must draw this many boxes rather than assume
+   * six. Comes back on the send because that is the first moment a caller could need it.
+   */
+  codeLength: number;
+};

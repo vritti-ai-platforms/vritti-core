@@ -14,13 +14,7 @@ interface Slot {
   targetId?: string | null;
 }
 
-/**
- * Everything one slot can do — a channel's default, or a single app or terminal.
- *
- * Each slot owns its dialog and its mutations, so a pending save or delete belongs to the button that
- * started it and no caller has to track which of them is busy. The items route is here for the same
- * reason: the card that offers the action is the one that knows which catalog it would open.
- */
+// Everything one slot can do — a channel's default, or a single app or terminal
 export function useChannelAssignment(binding: CatalogChannelsBinding, slot: Slot) {
   const dialog = useDialog();
   const confirm = useConfirm();

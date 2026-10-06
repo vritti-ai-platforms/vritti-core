@@ -34,7 +34,7 @@ import {
   type CartTableResponse,
 } from './services/carts-gateway.service';
 
-/** The currency a basket is read in when the caller names none. */
+// The currency a basket is read in when the caller names none
 const DEFAULT_CURRENCY = 'INR';
 
 @ApiTags('Commerce - Carts')
@@ -113,12 +113,7 @@ export class CartsGatewayController {
     });
   }
 
-  /**
-   * A line is addressed by its basket and its product.
-   *
-   * Not by a listing id: which catalogue offers a product is answered per outlet, so the pair that
-   * names a line the same way everywhere is the cart it sits in and the variant it holds.
-   */
+  // A line is addressed by its basket and its product
   @Patch(':id/items/:offeringVariantId')
   @RequirePermission(SITE_CARTS.edit)
   updateItem(

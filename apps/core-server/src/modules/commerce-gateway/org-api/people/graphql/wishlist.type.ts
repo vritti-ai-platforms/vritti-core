@@ -6,18 +6,11 @@ export class WishlistItem {
   @Field(() => ID)
   id: string;
 
-  /**
-   * The priced row this line points at, or null once the catalogue stops carrying it.
-   *
-   * Nullable on purpose, and it has to be: a basket keeps a line whose listing has gone — that is
-   * what `isAvailable: false` reports — so a non-null field here makes the whole basket
-   * unserialisable the moment one product is delisted, and the party sees an error instead of
-   * their own basket.
-   */
+  // The priced row this line points at, or null once the catalogue stops carrying it
   @Field(() => ID, { nullable: true })
   catalogListingId: string | null;
 
-  /** What a storefront joins its own product page on — see `CartItem` for why the variant. */
+  // What a storefront joins its own product page on — see `CartItem` for why the variant
   @Field(() => ID)
   offeringVariantId: string;
 
@@ -37,13 +30,6 @@ export class WishlistItem {
   createdAt: string;
 }
 
-/**
- * What `addToWishlist` answers with.
- *
- * The list, plus whether it was already there. Saving twice saves the same thing, so the mutation
- * cannot fail on a repeat — but "saved" and "already in your wishlist" are different things to
- * tell somebody, and only the insert knows which happened.
- */
 @ObjectType()
 export class WishlistAddResult {
   @Field(() => Boolean)

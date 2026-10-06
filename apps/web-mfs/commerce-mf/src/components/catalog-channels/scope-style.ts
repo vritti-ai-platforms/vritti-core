@@ -1,11 +1,5 @@
 import type { ChannelOwnerScope } from '@/schemas/catalog-channels';
 
-/**
- * Colour encodes WHERE a catalog is assigned — organization neutral, company amber, outlet green.
- *
- * Written as whole literals because Tailwind scans source text: core-web's `@source` covers
- * `web-mfs/*​/src`, so a class only survives the build if it appears here spelled out.
- */
 export const SCOPE_EDGE: Record<ChannelOwnerScope, string> = {
   ORG: 'border-l-muted-foreground/40',
   LE: 'border-l-group-amber',

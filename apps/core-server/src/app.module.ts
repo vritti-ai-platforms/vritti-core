@@ -106,23 +106,7 @@ const graphqlBaseOptions = {
       },
       inject: [ConfigService],
     }),
-    /**
-     * Two Apollo transports, two schemas, one process.
-     *
-     * The storefront surface is a published product API, so it is introspectable in production
-     * and must contain nothing internal. The mobile/web surface is not, and keeps introspection
-     * off outside development.
-     *
-     * `forRootAsync` rather than `forRoot` deliberately: only the async form stamps a unique
-     * `GRAPHQL_MODULE_ID`, which is what lets one dynamic module be registered twice. Each
-     * registration builds its own `ApolloServer` and its own Fastify route, so they share no
-     * state beyond the HTTP adapter.
-     *
-     * BOTH need an explicit `include` — omitting it means "scan every module", which would put
-     * the storefront resolvers back into the internal schema. `include` also follows imports
-     * transitively, so each listed module's closure must be free of the other surface's
-     * resolvers. That is the whole reason the *AppGatewayModule surface modules exist.
-     */
+    // Two Apollo transports, two schemas, one process
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       // `driver` belongs on this object, NOT in useFactory — assertDriver() reads the outer
       // options and throws before the factory ever runs.

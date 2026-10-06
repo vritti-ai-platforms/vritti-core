@@ -6,11 +6,6 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-/**
- * Platform provider management — reached only through core's cloud-signed internal controller.
- * These calls carry no RLS headers on purpose: with no org GUC set, the table policy resolves only
- * the NULL-org (platform) rows, so this surface cannot read or write any client row.
- */
 @Controller()
 export class SmsProvidersInternalController {
   private readonly logger = new Logger(SmsProvidersInternalController.name);

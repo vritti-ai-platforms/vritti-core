@@ -32,16 +32,7 @@ export class PartyCommunicationsDomainService {
     private readonly repository: PartyCommunicationsDomainRepository,
   ) {}
 
-  /**
-   * Resolves the parties reachable at a presented email or phone, oldest party first.
-   *
-   * A list rather than a single party: the table's unique is per party, so one
-   * address legitimately sits on several. Which one wins is the caller's policy —
-   * this only reports who matched.
-   *
-   * The value is matched case-insensitively. Callers are still expected to send a
-   * normalized value, since only case is handled here.
-   */
+  // Resolves the parties reachable at a presented email or phone, oldest party first
   async findPartyIdsByValue(channel: PartyCommunicationChannel, value: string): Promise<string[]> {
     const normalized = value.trim().toLowerCase();
     if (!normalized) return [];
@@ -157,20 +148,7 @@ export class PartyCommunicationsDomainService {
     };
   }
 
-  /**
-   * Whether a row that did not ask to be primary should become one anyway.
-   *
-   * True only when the party has nothing primary on that channel yet. A person whose
-   * single email is filed as non-primary reads as having no email at all —
-   * `findByIdWithDetails` returns the primary — so the first one in claims the slot.
-   * An existing primary is never re-pointed, and an explicit `isPrimary` is never
-   * second-guessed: the caller has already decided.
-   *
-   * This is what lets an app add a contact detail without being handed `isPrimary`,
-   * which it must not have — re-pointing someone's main email is a staff decision.
-   *
-   * Runs inside the caller's transaction so the read and the insert see one state.
-   */
+  // Whether a row that did not ask to be primary should become one anyway
   private async claimsEmptyPrimarySlot(
     partyId: string,
     channel: PartyCommunicationChannel,

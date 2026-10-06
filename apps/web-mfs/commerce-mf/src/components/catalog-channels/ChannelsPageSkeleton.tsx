@@ -49,10 +49,7 @@ const ChannelCardSkeleton: React.FC<{ targets?: number }> = ({ targets }) => (
   </div>
 );
 
-/**
- * The channel types are fixed — App, POS, B2B — so the skeleton shows exactly three cards rather
- * than a generic placeholder. B2B never has a grid, which is why the last one carries only a note.
- */
+// The channel types are fixed — App, POS, B2B — so the skeleton shows exactly three cards rather than a generic placeholder
 export const ChannelsPageSkeleton: React.FC = () => (
   <div className="flex flex-col gap-6">
     <PageHeaderSkeleton showDescription />

@@ -28,13 +28,6 @@ export interface SmsSendOutcome {
 // for `getVersions`, so this is stored whole rather than mapped into invented fields.
 export type SmsTemplateSnapshot = Record<string, unknown>;
 
-/**
- * What a provider can do, as advertised to the UI.
- *
- * The registry is the only honest answer to "which providers can I connect?" — a static enum
- * duplicated across layers drifts the moment a transport is added or removed, which is exactly how
- * TWILIO came to be offered in the connect dropdown with nothing behind it.
- */
 export interface SmsProviderCapabilities {
   code: SmsProviderCode;
   requiresTemplate: boolean;
@@ -83,12 +76,6 @@ interface Msg91SendResponse extends Msg91Envelope {
   message?: string;
 }
 
-/**
- * One version row from POST /v5/sms/getTemplateVersions, verified against a live account.
- *
- * `template_data` carries the approved body with MSG91's `##name##` placeholders — it is the only
- * place the variable name is discoverable, and that name is what a send must key the code under.
- */
 export interface Msg91TemplateVersion {
   template_id?: string;
   template_name?: string;
@@ -116,13 +103,7 @@ export class Msg91SmsTransport implements SmsProviderTransport {
 
   constructor(private readonly http: Msg91HttpService) {}
 
-  /**
-   * Sends through MSG91's Flow API, rendering our code into an approved DLT template.
-   *
-   * Deliberately the Flow API and not MSG91's OTP API: we generate the code, hash it, and own the
-   * expiry, attempt budget and cooldown. Handing that to MSG91 would duplicate the state machine
-   * and make this provider behave unlike every other one in the registry.
-   */
+  // Sends through MSG91's Flow API, rendering our code into an approved DLT template
   async sendOtp(delivery: SmsOtpDelivery): Promise<SmsSendOutcome> {
     const authKey = this.requireAuthKey(delivery.credentials);
 
@@ -147,36 +128,14 @@ export class Msg91SmsTransport implements SmsProviderTransport {
     return { messageId: response.message ?? null };
   }
 
-  /**
-   * Keys the code by the variable the approved template actually declares.
-   *
-   * MSG91 matches variable names exactly and case-sensitively, so a hardcoded `var1` silently
-   * delivers an empty code against a template written as `##number##` — which is what Desi Taakat's
-   * template uses. The name is only discoverable from `template_data`, so it is read from the
-   * stored snapshot at send time.
-   *
-   * Falls back to `var1` when there is no snapshot or no placeholder: the send then either works
-   * (templates that happen to use var1) or fails loudly at MSG91, both better than guessing wrong
-   * and silently sending nothing.
-   */
+  // Keys the code by the variable the approved template actually declares
   private resolveVariables(template: SmsTemplateSnapshot | undefined, code: string): Record<string, string> {
     const body = (template?.data as Msg91TemplateVersion[] | undefined)?.[0]?.template_data;
     const variable = typeof body === 'string' ? body.match(/##(\w+)##/)?.[1] : undefined;
     return { [variable ?? 'var1']: code };
   }
 
-  /**
-   * Reads a template by id, and refuses one the account does not actually have.
-   *
-   * Also the only real proof the stored auth key works — MSG91 publishes no side-effect-free
-   * credential check, so a rejected key surfaces here.
-   *
-   * POST /v5/sms/getTemplateVersions is MSG91's documented template read. An earlier build called
-   * `GET /v5/flow/getVersions` — taken from a third-party OpenAPI mirror, not MSG91's own docs —
-   * which answered every input, valid or garbage, with `{type:"success", message:"<request id>"}`
-   * and so validated nothing. `assertFound` guards the same class of mistake: a response carrying
-   * nothing beyond the envelope describes no template.
-   */
+  // Reads a template by id, and refuses one the account does not actually have
   async fetchTemplate(credentials: Record<string, unknown>, templateId: string): Promise<SmsTemplateSnapshot> {
     const authKey = this.requireAuthKey(credentials);
     this.logger.log(`Fetching MSG91 template ${templateId}`);
@@ -204,14 +163,7 @@ export class Msg91SmsTransport implements SmsProviderTransport {
     }
   }
 
-  /**
-   * Proves an auth key works before it is stored.
-   *
-   * MSG91 publishes no dedicated credential check — no whoami, and the only SMS balance endpoint is
-   * WhatsApp's. The SMS analytics report is the next best thing and is the right shape for a probe:
-   * a GET, read-only, every parameter optional, rejected with 401/403 when the key is bad. The
-   * window is a single day purely to keep the response small; the body is discarded either way.
-   */
+  // Proves an auth key works before it is stored
   async verifyCredentials(credentials: Record<string, unknown>): Promise<void> {
     const authKey = this.requireAuthKey(credentials);
     const today = new Date().toISOString().slice(0, 10);

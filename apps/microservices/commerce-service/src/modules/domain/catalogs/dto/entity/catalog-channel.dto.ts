@@ -1,12 +1,5 @@
 import type { CatalogChannelType } from '@/db/schema';
 
-/**
- * One channel selling this catalog, as the catalog detail page reads it.
- *
- * The channels domain owns the table and its own richer shape; this is the narrower projection a
- * catalog needs — enough to name each channel, say which level set it, and decide whether this
- * workspace may toggle a listing's visibility on it.
- */
 export class CatalogChannelDto {
   id: string;
   type: CatalogChannelType;

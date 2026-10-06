@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type NewUser, type User, users } from '@/db/schema';
+import { type User, users } from '@/db/schema';
 
 @Injectable()
 export class UserDomainRepository extends PrimaryBaseRepository<typeof users> {
@@ -51,23 +51,6 @@ export class UserDomainRepository extends PrimaryBaseRepository<typeof users> {
     });
   }
 
-  // Creates or updates a portal user by email (idempotent)
-  async upsertByEmail(data: NewUser): Promise<User> {
-    const results = await this.db
-      .insert(users)
-      .values(data)
-      .onConflictDoUpdate({
-        target: users.email,
-        set: {
-          fullName: data.fullName,
-          organizationId: data.organizationId,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return results[0] as User;
-  }
-
   // Updates the last login timestamp for a user
   async updateLastLogin(id: string): Promise<User> {
     return this.update(id, { lastLoginAt: new Date() });
@@ -76,13 +59,6 @@ export class UserDomainRepository extends PrimaryBaseRepository<typeof users> {
   // Sets the password hash for a user and marks status as ACTIVE
   async setPassword(id: string, passwordHash: string): Promise<User> {
     return this.update(id, { passwordHash, status: 'ACTIVE', updatedAt: new Date() });
-  }
-
-  // Finds all users belonging to an organization
-  async findByOrganizationId(organizationId: string): Promise<User[]> {
-    return this.model.findMany({
-      where: { organizationId },
-    });
   }
 
   // Finds paginated users with filtering, sorting, and search for table display

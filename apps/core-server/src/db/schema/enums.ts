@@ -19,20 +19,6 @@ export const SessionTypeValues = {
   MOBILE: 'MOBILE' as const,
 };
 
-/**
- * What an app is allowed to do with its credential.
- *
- * The type is enforced, not descriptive: `@Require(AuthType.App, ...)` names the types an
- * endpoint accepts, so a `GRAPHQL` credential cannot call a REST route and an
- * `HTTP` one cannot call `/graphql`.
- *
- * - `GRAPHQL` — signs requests to this deployment's GraphQL surface (the
- *   storefront SDK)
- * - `HTTP` — signs requests to the app-facing REST controllers under
- *   `commerce-api/app/*`
- *
- * Adding a value is permanent: Postgres has no `ALTER TYPE … DROP VALUE`.
- */
 export const appTypeEnum = coreSchema.enum('app_type', ['GRAPHQL', 'HTTP']);
 
 export type AppType = (typeof appTypeEnum.enumValues)[number];

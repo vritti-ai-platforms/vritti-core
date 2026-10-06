@@ -42,10 +42,4 @@ export class InventoryItemSitesDomainService {
   findByItem(inventoryItemId: string): Promise<InventoryItemSite[]> {
     return this.repository.findByItem(inventoryItemId);
   }
-
-  // Returns true when the item has a projection row at the given site
-  async isEnabled(inventoryItemId: string, siteId: string): Promise<boolean> {
-    const existing = await this.repository.findByCompositeKey(inventoryItemId, siteId);
-    return existing != null;
-  }
 }

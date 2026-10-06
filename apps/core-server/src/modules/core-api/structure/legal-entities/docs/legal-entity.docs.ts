@@ -1,5 +1,4 @@
 import { LegalEntityDto } from '@domain/legal-entity/dto/entity/legal-entity.dto';
-import { CreateLeTaxRegistrationInternalDto } from '@domain/legal-entity/dto/request/create-le-tax-registration-internal.dto';
 import { CreateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/create-legal-entity-internal.dto';
 import { ReorderLegalEntitiesInternalDto } from '@domain/legal-entity/dto/request/reorder-legal-entities-internal.dto';
 import { UpdateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/update-legal-entity-internal.dto';

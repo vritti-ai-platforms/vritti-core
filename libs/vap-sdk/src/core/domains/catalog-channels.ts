@@ -6,7 +6,7 @@ import {
   LE_CATALOG_LISTINGS_QUERY,
   SITE_CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
   SITE_CATALOG_LISTINGS_QUERY,
-} from '../graphql/catalogChannels';
+} from '../graphql/catalog-channels';
 import { requireData, run } from '../transport/errors';
 import { contextForScope, type RequestContext, type WorkspaceScope } from '../types';
 import type { Money } from '../types';

@@ -11,9 +11,9 @@ const WABA_FIELDS = 'id,name,account_review_status,owner_business_info,on_behalf
 const REQUIRED_SCOPE = 'whatsapp_business_management';
 
 export interface ResolveWabaOptions {
-  /** A reconnect names the account up front: verified against the grant, never derived from it. */
+  // A reconnect names the account up front: verified against the grant, never derived from it
   expectedWabaId?: string;
-  /** WABAs this organization already holds, so an accumulated grant narrows to the new one. */
+  // WABAs this organization already holds, so an accumulated grant narrows to the new one
   alreadyConnectedWabaIds?: string[];
 }
 
@@ -32,13 +32,6 @@ const AMBIGUOUS_GRANT = {
     'Vritti has access to several WhatsApp Business Accounts that are not connected yet, so it is unclear which one this setup was for. Connect them one at a time, or use Reconnect on the account you meant to refresh.',
 };
 
-/**
- * Turns an Embedded Signup result into a connectable WABA.
- *
- * Owns every Meta Graph call the connect makes, and nothing about persistence — the org layer takes
- * the resolved DTO to the accounts domain. Keeping the exchange here is what preserves the rule that
- * an access token is minted and stored inside this service and never crosses NATS.
- */
 @Injectable()
 export class WhatsappEmbeddedSignupDomainService {
   private readonly logger = new Logger(WhatsappEmbeddedSignupDomainService.name);
@@ -60,13 +53,7 @@ export class WhatsappEmbeddedSignupDomainService {
     return ResolvedWabaDto.from(waba, accessToken, metaBusinessId);
   }
 
-  /**
-   * Subscribes this app to the WABA's webhooks. Without it Meta delivers nothing for the account —
-   * no delivery receipts, no template review outcomes.
-   *
-   * Never throws: it runs after the single-use authorization code has already been spent, so a
-   * transient failure here must not cost the user the whole popup. The stored flag drives repair.
-   */
+  // Subscribes this app to the WABA's webhooks
   async subscribeWebhooks(accessToken: string, wabaId: string): Promise<boolean> {
     try {
       await this.metaGraph.post(accessToken, `/${wabaId}/subscribed_apps`, {});
@@ -79,23 +66,7 @@ export class WhatsappEmbeddedSignupDomainService {
     }
   }
 
-  /**
-   * The security gate on the whole flow, and now also its source of truth.
-   *
-   * The token's granular scopes are the authoritative answer to which WABAs it controls — Meta grants
-   * the scope per asset, so `target_ids` IS the granted set. Two modes:
-   *
-   * - **Expected** (a reconnect, or a legacy popup payload): the id is only ever VERIFIED against
-   *   that set, never trusted. Without the check a caller could pair a valid code of their own with
-   *   somebody else's WABA id and have the server store a row for an account they do not control.
-   * - **Derived** (a fresh connect, which reports nothing): the id comes from the same set. Stronger,
-   *   because there is no browser-supplied value left to distrust.
-   *
-   * Deriving needs one narrowing step, and it is the whole reason `alreadyConnectedWabaIds` exists: a
-   * grant ACCUMULATES across every account the operator has ever authorised, so a returning customer
-   * presents several target_ids while having just picked one. Excluding what is already stored leaves
-   * the new one.
-   */
+  // The security gate on the whole flow, and now also its source of truth
   private resolveWabaId(debug: MetaGraphTokenDebug, options: ResolveWabaOptions): string {
     // No app-id comparison is needed: /debug_token is authenticated with this app's own app token,
     // so a token minted for a different app errors there rather than coming back inspectable
@@ -130,11 +101,7 @@ export class WhatsappEmbeddedSignupDomainService {
       return fresh[0];
     }
 
-    /**
-     * Every granted account is already stored, and there is only one — so this is the operator
-     * re-running the flow for the account they already hold. That is the documented repair gesture,
-     * and `connect()` turns it into a credential replacement.
-     */
+    // Every granted account is already stored, and there is only one — so this is the operator re-running the flow for the account they already hold
     if (fresh.length === 0 && granted_ids.length === 1) {
       this.logger.log(`WABA ${granted_ids[0]} is already connected — treating this as a credential refresh`);
       return granted_ids[0];
@@ -148,16 +115,7 @@ export class WhatsappEmbeddedSignupDomainService {
     throw new BadRequestException(AMBIGUOUS_GRANT);
   }
 
-  /**
-   * The customer's Business Portfolio.
-   *
-   * The Graph node is preferred because it is server-observed, falling back to the on-behalf-of
-   * business (what a Tech Provider sees when the WABA is held through a client relationship) and
-   * finally to the id the signup popup reported. That last source is browser-supplied, but it is
-   * only reached after the token has already proven control of this WABA, so it cannot be used to
-   * attach an account the caller does not hold — and it keeps the connect working when Meta omits
-   * owner_business_info for want of business_management advanced access.
-   */
+  // The customer's Business Portfolio
   private resolveBusinessId(waba: MetaGraphWaba, reportedBusinessId?: string): string {
     const businessId = waba.owner_business_info?.id ?? waba.on_behalf_of_business_info?.id ?? reportedBusinessId;
     if (!businessId) {

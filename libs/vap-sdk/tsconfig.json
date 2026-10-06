@@ -20,5 +20,5 @@
   },
   // The admin-panel component is excluded: it is JSX and ESM, and has its own tsconfig.client.json.
   "include": ["src"],
-  "exclude": ["src/**/*.tsx"]
+  "exclude": ["src/next", "src/**/*.tsx"]
 }

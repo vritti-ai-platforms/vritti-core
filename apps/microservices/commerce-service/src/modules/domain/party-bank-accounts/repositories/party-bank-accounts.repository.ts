@@ -29,26 +29,6 @@ export class PartyBankAccountsDomainRepository extends PrimaryBaseRepository<typ
     return Boolean(row);
   }
 
-  // Returns all bank accounts of a party, primary first
-  async findByPartyId(partyId: string): Promise<PartyBankAccount[]> {
-    const rows = await this.db
-      .select()
-      .from(partyBankAccounts)
-      .where(eq(partyBankAccounts.partyId, partyId))
-      .orderBy(desc(partyBankAccounts.isPrimary), asc(partyBankAccounts.createdAt));
-    return rows as PartyBankAccount[];
-  }
-
-  // Returns the primary bank account of a party, if one is set
-  async findPrimaryByPartyId(partyId: string): Promise<PartyBankAccount | undefined> {
-    const [row] = await this.db
-      .select()
-      .from(partyBankAccounts)
-      .where(and(eq(partyBankAccounts.partyId, partyId), eq(partyBankAccounts.isPrimary, true)))
-      .limit(1);
-    return row as PartyBankAccount | undefined;
-  }
-
   // Looks up a bank account by party and account number
   async findByPartyAndAccountNumber(partyId: string, accountNumber: string): Promise<PartyBankAccount | undefined> {
     const [row] = await this.db

@@ -6,14 +6,6 @@ import { SmsProvidersDomainService } from '@domain/sms-providers/services/sms-pr
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-/**
- * Orchestrates the two domains a template touches — the provider row that holds the credentials,
- * and the template rows themselves. Domain modules never import each other, so the vendor round
- * trip is composed here rather than inside either of them.
- *
- * Every write goes to MSG91 first: a row is only ever stored for a template the vendor confirmed,
- * which is also the only proof we get that the stored auth key works.
- */
 @Injectable()
 export class SmsProviderTemplatesService {
   private readonly logger = new Logger(SmsProviderTemplatesService.name);

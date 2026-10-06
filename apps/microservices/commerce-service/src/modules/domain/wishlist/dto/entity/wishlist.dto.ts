@@ -1,6 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
-/** A wishlist row as the repository reads it, with what its listing currently resolves to joined on. */
 export interface WishlistItemRow {
   id: string;
   catalogListingId: string | null;
@@ -19,17 +18,12 @@ export interface WishlistItemRow {
 export class WishlistItemDto {
   id: string;
   catalogListingId: string | null;
-  /** What a storefront joins its own product page on — see `CartItemDto` for why the variant. */
+  // What a storefront joins its own product page on — see `CartItemDto` for why the variant
   offeringVariantId: string;
   name: string;
   sku: string | null;
   price: CurrencyAmountDto | null;
-  /**
-   * Whether it can still be bought.
-   *
-   * A wishlist outlives the things it points at — that is rather the point of one — so a delisted
-   * item stays on the list and says so, rather than disappearing without explanation.
-   */
+  // Whether it can still be bought
   isAvailable: boolean;
   createdAt: string;
 
@@ -47,15 +41,8 @@ export class WishlistItemDto {
   }
 }
 
-/**
- * The outcome of marking something, not just the resulting list.
- *
- * `add` is idempotent — a second tap saves the same thing — but "saved" and "you already saved
- * this" are different things to say to somebody, and only the insert knows which happened. Without
- * this the caller would have to diff list lengths and guess.
- */
 export class WishlistAddResultDto {
-  /** True when the row was already there, so the caller can say so rather than claiming a save. */
+  // True when the row was already there, so the caller can say so rather than claiming a save
   alreadyExists: boolean;
   wishlistItems: WishlistItemDto[];
 
@@ -67,7 +54,6 @@ export class WishlistAddResultDto {
   }
 }
 
-/** One wishlist row as staff see it, with the storefront it was saved in. */
 export class StaffWishlistItemDto extends WishlistItemDto {
   appId: string;
 

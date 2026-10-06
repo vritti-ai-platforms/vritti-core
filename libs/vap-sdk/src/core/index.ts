@@ -1,13 +1,10 @@
 export { resolveConfig, type VapSdkOptions } from './config';
-export { type CatalogListing, type CatalogChannelsOperations, createCatalogChannelsOperations } from './domains/catalogChannels';
+export { type CatalogListing, type CatalogChannelsOperations, createCatalogChannelsOperations } from './domains/catalog-channels';
+export { createSmsOtpOperations, type SmsOtpOperations } from './domains/sms-otp';
 export {
-  createOtpOperations,
-  OTP_CHANNELS,
-  type OtpChannel,
-  type OtpOperations,
-  type SendOtpResult,
-  type VerifyOtpResult,
-} from './domains/otp';
+  createWhatsappOtpOperations,
+  type WhatsappOtpOperations,
+} from './domains/whatsapp-otp';
 export {
   CHANNELS,
   type Channel,
@@ -35,9 +32,15 @@ export {
   type AuthFlows,
   createAuthFlows,
   type LocalRecord,
+  type OtpFlowData,
+  type OtpMessages,
+  type OtpOutcome,
+  type OtpStep,
   type RegisterPersonHooks,
   type RegisterPersonInput,
   type RegisterPersonResult,
+  safeReturnTo,
+  stepFromFlow,
 } from './flows/auth';
 export {
   type CountryCode,
@@ -58,4 +61,12 @@ export type {
   ResponseCacheContext,
   ResponseCacheStore,
 } from './transport/response-cache-store';
-export type { Money, RequestContext, VapSdkConfig, WorkspaceScope } from './types';
+export { OTP_CHANNELS } from './types';
+export type {
+  Money,
+  OtpChannel,
+  RequestContext,
+  SendOtpResult,
+  VapSdkConfig,
+  WorkspaceScope,
+} from './types';

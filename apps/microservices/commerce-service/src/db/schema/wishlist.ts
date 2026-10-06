@@ -4,27 +4,12 @@ import { commerceSchema } from './commerce-schema';
 import { offeringVariants } from './offering-variants';
 import { parties } from './parties';
 
-/**
- * Something a shopper marked to come back to.
- *
- * Scoped by party and app, never a site: the party is the person across every surface the
- * organization runs, and the app is which storefront they saved it in.
- *
- * It stores the **product**, not one catalogue's offer of it. A listing belongs to a single
- * catalogue and a catalogue is per channel, so a saved row keyed to one would stop resolving the
- * moment the shop relisted the item — and outliving what it points at is the whole character of a
- * wishlist.
- *
- * A row with nothing on it but the fact it exists. There is no quantity to change and no state to
- * move through, which is why the feature grants only view, add and delete: an `edit` would have
- * nothing to edit.
- */
 export const wishlistItems = commerceSchema.table(
   'wishlist_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    /** No foreign key — the row lives in core's `apps`, as with `carts.app_id`. */
+    // No foreign key — the row lives in core's `apps`, as with `carts.app_id`
     appId: uuid('app_id').notNull(),
     partyId: uuid('party_id')
       .notNull()

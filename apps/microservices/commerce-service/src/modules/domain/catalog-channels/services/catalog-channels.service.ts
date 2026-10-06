@@ -10,13 +10,11 @@ import {
   type CatalogChannelRow,
   ChannelCatalogDto,
   ChannelItemDto,
-  ChannelResolutionDto,
   DEFAULT_SLOT,
   type ResolvedChannelsDto,
 } from '../dto/entity/catalog-channel.dto';
 import { StorefrontListingDto } from '../dto/entity/storefront-listing.dto';
 import type {
-  ResolveCatalogChannelDto,
   UpsertAppChannelDto,
   UpsertB2bChannelDto,
   UpsertPosChannelDto,
@@ -56,15 +54,7 @@ export class CatalogChannelsDomainService {
     return { result: result.map((row) => ChannelItemDto.from(row)), count };
   }
 
-  /**
-   * Which catalog every configured slot resolves to, keyed for lookup.
-   *
-   * Every channel type, at every workspace. An app resolves its catalog against whichever workspace
-   * its request authenticated to, so a company or an outlet may give an app its own catalog.
-   *
-   * Decisions only — an app or terminal that has never been overridden has no row and so appears
-   * nowhere here. Naming the estate is core's job, because that is where both lists are reachable.
-   */
+  // Which catalog every configured slot resolves to, keyed for lookup
   async list(): Promise<ResolvedChannelsDto> {
     const rows = await this.repository.findResolved();
 
@@ -134,40 +124,31 @@ export class CatalogChannelsDomainService {
     };
   }
 
-  /**
-   * What a storefront sells, resolved through its own APP channel.
-   *
-   * `variantIds` narrows to a known set — a wishlist or a basket reconciling rows it already holds.
-   * Omitted, it is the whole range. Either way the catalog comes from the credential, never from the
-   * caller, so a storefront cannot read a range it was not given.
-   */
-  async appListings(appId: string, variantIds?: string[]): Promise<StorefrontListingDto[]> {
-    const rows = await this.repository.findAppListings(appId, variantIds);
+  // Returns what a storefront sells, through the APP channel its credential resolves to
+  async appListings(appId: string): Promise<StorefrontListingDto[]> {
+    const channel = await this.repository.resolveCatalogChannel({
+      type: CatalogChannelTypeValues.APP,
+      appId,
+    });
+    if (!channel) return [];
+
+    const rows = await this.repository.findListings(channel);
     return rows.map((row) => StorefrontListingDto.from(row));
   }
 
-  /**
-   * Which catalog serves this caller right now — the runtime lookup behind a basket or a storefront.
-   *
-   * The caller's type comes from the API surface it authenticated against, never from the request,
-   * and the workspace is the request's RLS context. Most specific wins: a named app or terminal beats
-   * the default, a site beats a company, a company beats the organization.
-   *
-   * Never throws. A basket is a list of things someone wants; whether the shop can price them is a
-   * separate question, and answering it "no" must not stop the basket being opened or added to.
-   */
-  async tryResolve(data: ResolveCatalogChannelDto): Promise<ChannelResolutionDto> {
-    return ChannelResolutionDto.from(await this.repository.findWinningCandidate(data));
+  // Prices variants the caller already holds, against the same credential's catalog
+  async appListingsFromVariants(appId: string, variantIds: string[]): Promise<StorefrontListingDto[]> {
+    const channel = await this.repository.resolveCatalogChannel({
+      type: CatalogChannelTypeValues.APP,
+      appId,
+    });
+    if (!channel) return [];
+
+    const rows = await this.repository.findListingsByVariants(channel, variantIds);
+    return rows.map((row) => StorefrontListingDto.from(row));
   }
 
-  /**
-   * The one write path behind the three typed entry points.
-   *
-   * A workspace holds at most one row per slot, so assigning is an upsert: repoint the row this
-   * workspace already owns, or stamp a new one. A new row leaves the workspace columns to their GUC
-   * defaults, which is what makes an assignment under an inherited one an override of it rather than
-   * an edit of it — the wider level's row is untouched and keeps serving everyone else.
-   */
+  // The one write path behind the three typed entry points
   private async upsertChannel(target: ChannelTarget): Promise<CreateResponseDto<CatalogChannelDto>> {
     const catalog = await this.repository.findCatalog(target.catalogId);
     if (!catalog) throw new NotFoundException('Catalog not found.');
@@ -192,26 +173,19 @@ export class CatalogChannelsDomainService {
     };
   }
 
-  /**
-   * Refuses an assignment that would change nothing.
-   *
-   * An override exists to differ from what a target already gets; pointing one at the same catalog
-   * it already inherits just adds a row that resolves identically, and leaves the user believing
-   * they changed something. Resolution is the same ranking the list reads, so this compares against
-   * exactly what that target sells today.
-   */
+  // Refuses an assignment that would change nothing
   private async assertChangesSomething(target: ChannelTarget): Promise<void> {
-    const { catalog } = await this.tryResolve({
+    const current = await this.repository.resolveCatalogChannel({
       type: target.type,
       appId: target.appId,
       terminalId: target.terminalId,
     });
-    if (catalog?.catalogId !== target.catalogId) return;
+    if (current?.catalogId !== target.catalogId) return;
 
     const subject = target.appId || target.terminalId ? 'This target' : 'This level';
     throw new ConflictException({
       label: 'Already Using This Catalog',
-      detail: `${subject} already sells "${catalog.catalogName}". Pick a different catalog, or leave it as it is.`,
+      detail: `${subject} already sells "${current.catalogName}". Pick a different catalog, or leave it as it is.`,
       errors: [{ field: 'catalogId', message: 'Already in use here' }],
     });
   }
@@ -229,13 +203,7 @@ export class CatalogChannelsDomainService {
     });
   }
 
-  /**
-   * Fetch or 404. Named require, not find, because it never hands back an undefined to deal with.
-   *
-   * `owned` additionally refuses a channel a wider scope set: editing or deleting it there would move
-   * the catalog for every level beneath it too, so this workspace has to override instead. Reading an
-   * inherited channel is fine, which is why it is a choice rather than the rule.
-   */
+  // Fetch or 404
   private async requireChannel(id: string, options?: { owned: boolean }): Promise<CatalogChannelRow> {
     const channel = await this.repository.findByIdWithMeta(id);
     if (!channel) throw new NotFoundException('Channel not found.');

@@ -1,8 +1,9 @@
 import { resolveConfig, type VapSdkOptions } from '../core/config';
 import { createCartOperations } from '../core/domains/cart';
-import { createCatalogChannelsOperations } from '../core/domains/catalogChannels';
-import { createOtpOperations } from '../core/domains/otp';
+import { createCatalogChannelsOperations } from '../core/domains/catalog-channels';
 import { createPeopleOperations } from '../core/domains/people';
+import { createSmsOtpOperations } from '../core/domains/sms-otp';
+import { createWhatsappOtpOperations } from '../core/domains/whatsapp-otp';
 import { createAuthFlows } from '../core/flows/auth';
 import { createVapClient } from '../core/transport/client';
 import { type RequestContext, withoutWorkspace } from '../core/types';
@@ -57,9 +58,16 @@ export function createVapSdk(options: VapSdkOptions = {}) {
   const build = (rawContext: RequestContext = {}) => {
     const context = scoped(rawContext);
     const people = createPeopleOperations(client, withoutWorkspace(context));
-    const otp = createOtpOperations(client, withoutWorkspace(context));
+    const whatsappOtp = createWhatsappOtpOperations(client, withoutWorkspace(context));
+    const smsOtp = createSmsOtpOperations(client, withoutWorkspace(context));
     return {
-      otp,
+      /**
+       * The two OTP domains, one per core domain. Primitive on purpose — they send a code and say
+       * whether one holds. To sign somebody in, use `auth.sendOtp` / `auth.verifyOtp`, which pick
+       * the channel and resolve the party.
+       */
+      whatsappOtp,
+      smsOtp,
       people,
       /**
        * The signed-in party's basket and wishlist.
@@ -71,8 +79,8 @@ export function createVapSdk(options: VapSdkOptions = {}) {
       cart: createCartOperations(client, context, config.currency),
       /** The range this storefront sells. Needs no party — it is the shop's catalogue, not a person's. */
       catalogChannels: createCatalogChannelsOperations(client, context),
-      /** The shared identity sequences — registration, party repair. Composed over the domains above. */
-      auth: createAuthFlows(people, otp),
+      /** The shared identity sequences — OTP sign-in, registration, party repair. Composed over the domains above. */
+      auth: createAuthFlows(people, whatsappOtp, smsOtp),
     };
   };
 

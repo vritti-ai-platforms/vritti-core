@@ -1,10 +1,5 @@
-import type {
-  ChannelItemDto,
-  ChannelResolutionDto,
-  ResolvedChannelsDto,
-} from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
+import type { ChannelItemDto, ResolvedChannelsDto } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
 import type { StorefrontListingDto } from '@domain/catalog-channels/dto/entity/storefront-listing.dto';
-import { ResolveCatalogChannelDto } from '@domain/catalog-channels/dto/request/upsert-catalog-channel.dto';
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -35,14 +30,7 @@ export class OrgCatalogChannelsController {
   @MessagePattern({ cmd: 'org.catalogChannels.app.listingsFromVariants' })
   appListingsFromVariants(@Payload() data: { appId: string; variantIds: string[] }): Promise<StorefrontListingDto[]> {
     this.logger.log(`catalogChannels.app.listingsFromVariants — appId: ${data.appId}`);
-    return this.service.appListings(data.appId, data.variantIds);
-  }
-
-  // Which catalog serves this channel — the caller's type comes from its API surface, not the payload
-  @MessagePattern({ cmd: 'org.catalogChannels.resolve' })
-  resolve(@Payload() dto: ResolveCatalogChannelDto): Promise<ChannelResolutionDto> {
-    this.logger.log(`catalogChannels.resolve — type: ${dto.type}`);
-    return this.service.tryResolve(dto);
+    return this.service.appListingsFromVariants(data.appId, data.variantIds);
   }
 
   @MessagePattern({ cmd: 'org.catalogChannels.delete' })

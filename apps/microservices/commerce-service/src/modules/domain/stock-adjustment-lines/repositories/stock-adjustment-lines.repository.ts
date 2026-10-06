@@ -158,16 +158,6 @@ export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<
       .where(eq(stockAdjustmentLines.id, lineId));
   }
 
-  async totalQuantityForAdjustment(adjustmentId: string): Promise<number> {
-    const [result] = await this.db
-      .select({
-        total: sql<string>`COALESCE(SUM(${stockAdjustmentLines.primaryUomQty}), 0)`,
-      })
-      .from(stockAdjustmentLines)
-      .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId));
-    return Number(result?.total ?? 0);
-  }
-
   async countByAdjustmentId(adjustmentId: string): Promise<number> {
     const [result] = await this.db
       .select({ count: sql<number>`COUNT(*)` })

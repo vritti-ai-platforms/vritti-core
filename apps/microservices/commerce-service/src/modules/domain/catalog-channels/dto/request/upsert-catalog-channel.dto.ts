@@ -1,5 +1,4 @@
-import { IsEnum, IsOptional, IsUUID, ValidateIf } from 'class-validator';
-import { type CatalogChannelType, CatalogChannelTypeValues } from '@/db/schema';
+import { IsUUID, ValidateIf } from 'class-validator';
 
 // One DTO per channel type, because each type names a different target and the database rejects the
 // combinations the others allow. A shared DTO carrying `type` plus every target column lets
@@ -33,18 +32,4 @@ export class UpsertB2bChannelDto {
   @ValidateIf((_, value) => value !== undefined)
   @IsUUID('7')
   appId?: string;
-}
-
-// The workspace is the request's RLS context, not a field: see `findWinningCandidate`
-export class ResolveCatalogChannelDto {
-  @IsEnum(CatalogChannelTypeValues)
-  type: CatalogChannelType;
-
-  @IsOptional()
-  @IsUUID('7')
-  appId?: string | null;
-
-  @IsOptional()
-  @IsUUID('7')
-  terminalId?: string | null;
 }

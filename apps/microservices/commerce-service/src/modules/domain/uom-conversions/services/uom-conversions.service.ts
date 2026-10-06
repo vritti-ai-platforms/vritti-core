@@ -18,67 +18,6 @@ export class UomConversionsDomainService {
     return roundQty(new Decimal(qty).times(factor));
   }
 
-  async toUomQuantity(inventoryItemId: string, uomId: string, primaryUomQty: number): Promise<number> {
-    const factor = await this.resolveFactor(inventoryItemId, uomId);
-    return roundQty(new Decimal(primaryUomQty).dividedBy(factor));
-  }
-
-  async convertQuantity(inventoryItemId: string, fromUomId: string, toUomId: string, qty: number): Promise<number> {
-    if (fromUomId === toUomId) return roundQty(new Decimal(qty));
-    const [fromFactor, toFactor] = await Promise.all([
-      this.resolveFactor(inventoryItemId, fromUomId),
-      this.resolveFactor(inventoryItemId, toUomId),
-    ]);
-    return roundQty(new Decimal(qty).times(fromFactor).dividedBy(toFactor));
-  }
-
-  async isCompatibleUom(inventoryItemId: string, uomId: string): Promise<boolean> {
-    const inventoryItemPrimaryUomId = await this.repository.findInventoryItemPrimaryUomId(inventoryItemId);
-    if (!inventoryItemPrimaryUomId) return false;
-    if (inventoryItemPrimaryUomId === uomId) return true;
-
-    const conversion = await this.repository.findInventoryItemConversion(inventoryItemId, uomId);
-    if (conversion) return true;
-
-    const [inventoryItemPrimaryUom, targetUom] = await Promise.all([
-      this.repository.findUom(inventoryItemPrimaryUomId),
-      this.repository.findUom(uomId),
-    ]);
-    if (!inventoryItemPrimaryUom || !targetUom) return false;
-    return effectiveBaseId(inventoryItemPrimaryUom, inventoryItemPrimaryUomId) === effectiveBaseId(targetUom, uomId);
-  }
-
-  async toPrimaryQuantities(inputs: { inventoryItemId: string; uomId: string; qty: number }[]): Promise<number[]> {
-    if (inputs.length === 0) return [];
-
-    const inventoryItemIds = Array.from(new Set(inputs.map((i) => i.inventoryItemId)));
-    const uomIdsFromInputs = new Set(inputs.map((i) => i.uomId));
-
-    const [inventoryItemPrimaryUomIds, inventoryItemConversions] = await Promise.all([
-      this.repository.findInventoryItemPrimaryUomIds(inventoryItemIds),
-      this.repository.findInventoryItemConversionsByInventoryItemIds(inventoryItemIds),
-    ]);
-
-    // Union of: input UOM ids + each inventory item's primary UOM id (needed for dimension-base fallback math).
-    const uomIdsToFetch = new Set<string>(uomIdsFromInputs);
-    for (const inventoryItemId of inventoryItemIds) {
-      const primaryUomId = inventoryItemPrimaryUomIds.get(inventoryItemId);
-      if (primaryUomId) uomIdsToFetch.add(primaryUomId);
-    }
-    const uomRows = await this.repository.findUoms(Array.from(uomIdsToFetch));
-
-    return inputs.map((input) => {
-      const factor = resolveFactorFromMaps(
-        input.inventoryItemId,
-        input.uomId,
-        inventoryItemPrimaryUomIds,
-        inventoryItemConversions,
-        uomRows,
-      );
-      return roundQty(new Decimal(input.qty).times(factor));
-    });
-  }
-
   // Resolves the "primary units per uom unit" factor for an (inventory item, uom) pair.
   // Per-item conversion wins; otherwise we go through the dimension base via the global uom pair.
   private async resolveFactor(inventoryItemId: string, uomId: string): Promise<Decimal> {
@@ -144,7 +83,7 @@ function assertSharedBase(
   }
 }
 
-function resolveFactorFromMaps(
+function _resolveFactorFromMaps(
   inventoryItemId: string,
   uomId: string,
   inventoryItemPrimaryUomIds: Map<string, string>,

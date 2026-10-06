@@ -19,7 +19,7 @@ export class InventoryItemLotsDomainService {
   async findLotsForTable(
     inventoryItemId: string,
     state: TableViewState,
-    siteCurrencyCode?: string,
+    _siteCurrencyCode?: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsDomainService.LOTS_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLotsDomainService.LOTS_FIELD_MAP);

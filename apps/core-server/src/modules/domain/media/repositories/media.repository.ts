@@ -16,13 +16,6 @@ export class MediaDomainRepository extends PrimaryBaseRepository<typeof media> {
     });
   }
 
-  // Finds active media by entity type and entity ID
-  async findByEntity(organizationId: string, entityType: string, entityId: string): Promise<Media[]> {
-    return this.model.findMany({
-      where: { organizationId, entityType, entityId, deletedAt: { isNull: true } },
-    });
-  }
-
   // Finds a single ready media record for an entity (1 media per entity)
   async findOneByEntity(organizationId: string, entityType: string, entityId: string): Promise<Media | undefined> {
     return this.model.findFirst({

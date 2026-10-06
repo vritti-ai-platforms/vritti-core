@@ -6,12 +6,7 @@ import type { PersonWishlistRow } from '@/schemas/person-shopper';
 import { getPersonWishlist } from '@/services/organization/people.service';
 import { PERSON_WISHLIST_KEY } from './keys';
 
-/**
- * What they saved for later. Read only — staff have no write on a shopper's own list.
- *
- * Their basket is no longer here: a basket belongs to the outlet it was opened at, so it lives under
- * Site → Carts rather than on the person.
- */
+// What they saved for later
 export function usePersonWishlist(
   personId: string,
   options?: Omit<UseQueryOptions<PersonWishlistRow[], AxiosError>, 'queryKey' | 'queryFn'>,

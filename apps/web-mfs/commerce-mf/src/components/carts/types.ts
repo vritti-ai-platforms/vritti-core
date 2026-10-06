@@ -29,22 +29,16 @@ type LineMutationHook<TVars> = (
   options?: Omit<UseMutationOptions<CartLinesData, AxiosError, TVars>, 'mutationFn'>,
 ) => UseMutationResult<CartLinesData, AxiosError, TVars>;
 
-/**
- * One set of pages, two workspaces.
- *
- * What each scope supplies is its own hooks — which carry its route and its cache keys — and its own
- * permission codes, because `site.carts.*` and `le.carts.*` are entitled separately in the plan.
- */
 export interface CartsBinding {
-  /** What to call the workspace in prose — "outlet", "company". */
+  // What to call the workspace in prose — "outlet", "company"
   scopeNoun: string;
   description: string;
   permissions: CartPermissions;
-  /** The table query's cache key — refetched whenever the table's filters, sort or search change. */
+  // The table query's cache key — refetched whenever the table's filters, sort or search change
   tableKey: readonly unknown[];
-  /** Must equal the gateway's `getCurrentState` key, or saved views never come back. */
+  // Must equal the gateway's `getCurrentState` key, or saved views never come back
   tableSlug: string;
-  /** The items table's cache key and state key — per basket, so each keeps its own view. */
+  // The items table's cache key and state key — per basket, so each keeps its own view
   itemsTableKey: (cartId: string) => readonly unknown[];
   itemsTableSlug: (cartId: string) => string;
   useCartsTable: () => UseQueryResult<CartsTableResponse, AxiosError>;

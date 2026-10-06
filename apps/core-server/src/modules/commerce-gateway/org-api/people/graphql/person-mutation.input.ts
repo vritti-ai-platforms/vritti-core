@@ -6,16 +6,6 @@ import { Field, ID, InputType } from '@nestjs/graphql';
 import { Trim } from '@vritti/api-sdk/decorators';
 import { IsEmail, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
-/**
- * Creating a person party.
- *
- * Mirrors `CreatePersonDto` so the resolver forwards it straight through, minus the
- * fields an app caller has no business setting — the tax identifier and the
- * address, both of which belong to staff-curated data.
- *
- * `email` and `phone` become the party's **primary** EMAIL and PHONE
- * communications, created in the same transaction as the party itself.
- */
 @InputType()
 export class CreatePersonInput {
   @Field(() => String)
@@ -47,13 +37,6 @@ export class CreatePersonInput {
   phone?: string | null;
 }
 
-/**
- * Adding a communication to an existing person.
- *
- * `isPrimary` is deliberately absent. An app adds a `WEB_APP` reference, which a
- * CHECK on the table forbids from being primary anyway, and re-pointing someone's
- * primary email is a staff decision rather than something a signup should do.
- */
 @InputType()
 export class AddPersonCommunicationInput {
   @Field(() => ID)
@@ -72,7 +55,6 @@ export class AddPersonCommunicationInput {
   value: string;
 }
 
-/** Resolving who is reachable at a presented email or phone. */
 @InputType()
 export class FindPeopleByCommunicationInput {
   @Field(() => String)
@@ -87,17 +69,6 @@ export class FindPeopleByCommunicationInput {
   value: string;
 }
 
-/**
- * A party editing their own details.
- *
- * Carries **no id**. The party is read from the request signature, so there is nothing here a
- * caller could change to edit somebody else — the same shape the basket and the wishlist use.
- *
- * Phone is absent on purpose: it is the credential the party proved by OTP and what core matched
- * them on, so changing it is a re-verification flow (`sendSmsOtp` → `verifySmsOtp` →
- * `addPersonCommunication`), not a field on a form. `isActive` is absent because nobody should be
- * able to switch their own party off through a profile page.
- */
 @InputType()
 export class UpdatePartyProfileInput {
   @Field(() => String, { nullable: true })

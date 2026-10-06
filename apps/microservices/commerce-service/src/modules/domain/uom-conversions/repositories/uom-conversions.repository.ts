@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, inArray } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, inventoryItemUomConversions, uom } from '@/db/schema';
 
 export interface ConversionPair {
@@ -74,58 +74,5 @@ export class UomConversionsDomainRepository extends PrimaryBaseRepository<typeof
       .where(eq(inventoryItems.id, inventoryItemId))
       .limit(1);
     return row ?? null;
-  }
-
-  async findInventoryItemPrimaryUomIds(inventoryItemIds: string[]): Promise<Map<string, string>> {
-    if (inventoryItemIds.length === 0) return new Map();
-    const rows = await this.db
-      .select({ id: inventoryItems.id, uomId: inventoryItems.uomId })
-      .from(inventoryItems)
-      .where(inArray(inventoryItems.id, inventoryItemIds));
-    return new Map(rows.map((r) => [r.id, r.uomId]));
-  }
-
-  async findInventoryItemConversionsByInventoryItemIds(
-    inventoryItemIds: string[],
-  ): Promise<Map<string, Map<string, ConversionPair>>> {
-    const result = new Map<string, Map<string, ConversionPair>>();
-    if (inventoryItemIds.length === 0) return result;
-    const rows = await this.db
-      .select({
-        inventoryItemId: inventoryItemUomConversions.inventoryItemId,
-        uomId: inventoryItemUomConversions.uomId,
-        primaryUomQty: inventoryItemUomConversions.primaryUomQty,
-        uomQty: inventoryItemUomConversions.uomQty,
-      })
-      .from(inventoryItemUomConversions)
-      .where(inArray(inventoryItemUomConversions.inventoryItemId, inventoryItemIds));
-    for (const row of rows) {
-      let perInventoryItem = result.get(row.inventoryItemId);
-      if (!perInventoryItem) {
-        perInventoryItem = new Map();
-        result.set(row.inventoryItemId, perInventoryItem);
-      }
-      perInventoryItem.set(row.uomId, { primaryUomQty: row.primaryUomQty, uomQty: row.uomQty });
-    }
-    return result;
-  }
-
-  async findUoms(uomIds: string[]): Promise<Map<string, UomRow & { id: string }>> {
-    const result = new Map<string, UomRow & { id: string }>();
-    if (uomIds.length === 0) return result;
-    const rows = await this.db
-      .select({
-        id: uom.id,
-        name: uom.name,
-        symbol: uom.symbol,
-        baseUomQty: uom.baseUomQty,
-        uomQty: uom.uomQty,
-        dimensionId: uom.dimensionId,
-        baseUnitId: uom.baseUnitId,
-      })
-      .from(uom)
-      .where(inArray(uom.id, uomIds));
-    for (const row of rows) result.set(row.id, row);
-    return result;
   }
 }

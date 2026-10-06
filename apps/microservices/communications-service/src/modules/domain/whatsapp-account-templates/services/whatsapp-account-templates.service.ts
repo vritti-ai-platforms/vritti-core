@@ -18,14 +18,6 @@ const LIBRARY_PAGE_LIMIT = 24;
 // Entries requested per underlying Meta call while collecting that page
 const LIBRARY_FETCH_LIMIT = 100;
 
-/**
- * Ceiling on Meta calls per request.
- *
- * `category` is NOT honoured as a query parameter — verified against Graph: `language=en_US` filters
- * correctly, `language=en_US&category=UTILITY` still returns AUTHENTICATION entries. So category is
- * narrowed here, which means a page of matches can require walking several Meta pages. The cap stops
- * a rare category/language combination from turning one request into an unbounded crawl.
- */
 const LIBRARY_MAX_PAGES = 8;
 
 // Pages walked when collecting the distinct language list. Bounded for the same reason, and the
@@ -75,14 +67,7 @@ export class WhatsappAccountTemplatesDomainService {
     return (response.data ?? []).map(WhatsappTemplateDto.from);
   }
 
-  /**
-   * Browses Meta's library of pre-written templates. The library is global (not WABA-scoped) but
-   * still needs a token, so it is resolved through the account like every other Graph call.
-   *
-   * Walks Meta's cursor pages until it has a full page of matches, because the library is far larger
-   * than one page and `category` is filtered here rather than by Meta. Returning fewer than
-   * `limit` items alongside a non-null cursor is normal — the caller keeps asking.
-   */
+  // Browses Meta's library of pre-written templates
   async listLibrary(
     credentials: GraphCredentials,
     filters: {
@@ -135,13 +120,7 @@ export class WhatsappAccountTemplatesDomainService {
     return { items: matches.map(TemplateLibraryItemDto.from), nextCursor: cursor ?? null };
   }
 
-  /**
-   * Distinct languages the library ships templates in, fed to the wizard's selector.
-   *
-   * Pages rather than reading one batch: entries are not grouped by language, so a single page
-   * surfaces an arbitrary handful (nb, fr, mr, hu, sv…) and the selector ends up neither complete
-   * nor stable. Bounded by LANGUAGE_MAX_PAGES, and the caller caches the result.
-   */
+  // Distinct languages the library ships templates in, fed to the wizard's selector
   async listLibraryLanguages(credentials: GraphCredentials): Promise<string[]> {
     const { accessToken } = credentials;
     const languages = new Set<string>();

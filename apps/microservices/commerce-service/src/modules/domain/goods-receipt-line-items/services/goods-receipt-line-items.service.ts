@@ -28,12 +28,6 @@ export class GoodsReceiptLineItemsDomainService {
     private readonly linesService: GoodsReceiptLinesDomainService,
   ) {}
 
-  async listByLine(goodsReceiptId: string, itemId: string, lineId: string): Promise<GoodsReceiptLineItemDto[]> {
-    await this.ensureLineBelongsToItem(goodsReceiptId, itemId, lineId);
-    const rows = await this.repository.findByLineId(lineId);
-    return rows.map(GoodsReceiptLineItemDto.from);
-  }
-
   async findForTable(
     goodsReceiptId: string,
     itemId: string,

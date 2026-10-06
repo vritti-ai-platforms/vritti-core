@@ -1,14 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-/**
- * Guards the surface split (see .claude/rules/gateway-conventions.md).
- *
- * Deliberately static — it reads the module files rather than importing them. Importing the real
- * Nest modules pulls the whole graph, including api-sdk's ESM-only `dinero.js`, which jest cannot
- * parse; a guard that breaks whenever an unrelated dependency changes shape is not a guard.
- */
-
 const MODULES_DIR = join(__dirname);
 
 const APP_SURFACE_MODULES = ['commerce-app-gateway.module.ts', 'communications-app-gateway.module.ts'];
@@ -52,11 +44,7 @@ describe('GraphQL surfaces', () => {
   const files = allModuleFiles(MODULES_DIR);
   const byFile = new Map(files.map((f) => [f, readFileSync(f, 'utf8')]));
 
-  /**
-   * THE failure this exists for: a resolver left declared in both its feature module and a surface
-   * module lands in BOTH schemas. Nothing else catches it — it compiles, both endpoints serve it,
-   * and with introspection enabled in production on /graphql it publishes internal operations.
-   */
+  // THE failure this exists for: a resolver left declared in both its feature module and a surface module lands in BOTH schemas
   it('declares every resolver in exactly one module', () => {
     const owners = new Map<string, string[]>();
     for (const [file, source] of byFile) {
@@ -69,11 +57,7 @@ describe('GraphQL surfaces', () => {
     expect(duplicated).toEqual([]);
   });
 
-  /**
-   * `include` walks imports transitively, so an app-surface module importing anything that declares
-   * a resolver would drag that resolver into the storefront schema. Services and domain modules are
-   * resolver-free and therefore safe; another surface module is not.
-   */
+  // `include` walks imports transitively, so an app-surface module importing anything that declares a resolver would drag that resolver into the storefront schema
   it('keeps the app-surface import closures free of other resolvers', () => {
     const declaresResolver = new Map<string, boolean>();
     for (const source of byFile.values()) {
@@ -98,10 +82,7 @@ describe('GraphQL surfaces', () => {
     }
   });
 
-  /**
-   * Without this, adding a surface module and forgetting to list it above makes the closure check
-   * pass by never looking at it — the guard reports green on exactly the case it exists to catch.
-   */
+  // Without this, adding a surface module and forgetting to list it above makes the closure check pass by never looking at it — the guard reports green on exactly the case it exists to catch
   it('checks every module that looks like an app surface', () => {
     const unlisted = files
       .filter((f) => APP_SURFACE_NAME.test(f))

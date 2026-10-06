@@ -3,14 +3,7 @@ import type { App } from '@/db/schema';
 import type { AppDomainRepository } from '../repositories/app.repository';
 import { AppDomainService } from './app.service';
 
-/**
- * Pins the grant sanitizer's keep/drop policy.
- *
- * The regression that motivates this file: the keep-condition once named only the web and
- * mobile buckets, so an API-only grant — the only shape the credential permission editor
- * actually sends — was silently discarded on save and the credential resolved to nothing.
- * Anything outside the four known buckets is dropped on write.
- */
+// Pins the grant sanitizer's keep/drop policy
 describe('AppDomainService — setPermissions grant sanitizing', () => {
   const update = jest.fn();
   const repository = { update } as unknown as AppDomainRepository;

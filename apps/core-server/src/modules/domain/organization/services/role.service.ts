@@ -3,7 +3,6 @@ import { SiteDomainRepository } from '@domain/site/repositories/site.repository'
 import { Injectable, Logger } from '@nestjs/common';
 import type { FeatureUnlocks, ScopeType, SiteType, VersionSnapshot } from '@vritti/api-sdk/catalog-resolver';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { pluralize } from '@vritti/api-sdk/pluralize';
 import { type CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import type { Role } from '@/db/schema';
@@ -249,24 +248,5 @@ export class RoleDomainService {
       siteType = site.type;
     }
     return this.roleRepository.findForSelectOptions(query, orgId, scope, siteType);
-  }
-
-  // One-time data routine: sets scope and site type on existing roles from their template code
-  async backfillScopes(): Promise<{ updated: number }> {
-    const snapshot = await this.catalogService.getActiveSnapshot();
-    const orgs = await this.organizationRepository.findMany();
-    const businessByOrg = new Map(orgs.map((org) => [org.id, org.businessCode]));
-
-    const roles = await this.roleRepository.findMany();
-    let updated = 0;
-    for (const role of roles) {
-      const { scope, siteType } = this.scopeFromSnapshot(snapshot, businessByOrg.get(role.organizationId), role.code);
-      if (role.scope === scope && role.siteType === siteType) continue;
-      await this.roleRepository.update(role.id, { scope, siteType, updatedAt: new Date() });
-      updated++;
-    }
-
-    this.logger.log(`Backfilled scope for ${updated} of ${roles.length} ${pluralize('role', roles.length)}`);
-    return { updated };
   }
 }

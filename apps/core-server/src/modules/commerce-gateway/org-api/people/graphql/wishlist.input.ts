@@ -8,7 +8,7 @@ export class WishlistRefInput {
   @Length(3, 3)
   currencyCode: string;
 
-  /** The product, not the listing — the catalogue offer of it is resolved server-side, per site. */
+  // The product, not the listing — the catalogue offer of it is resolved server-side, per site
   @Field(() => ID)
   @IsUUID('7')
   offeringVariantId: string;

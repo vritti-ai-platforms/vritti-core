@@ -38,7 +38,6 @@ import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-/** A basket or wishlist row as staff see it — the party's row plus the storefront it sits in. */
 export interface StaffShopperRow {
   id: string;
   appId: string;
@@ -73,7 +72,6 @@ export interface WishlistItemPayload {
   createdAt: string;
 }
 
-/** What `addToWishlist` answers with — the list, plus whether the mark was already there. */
 export interface WishlistAddPayload {
   alreadyExists: boolean;
   wishlist: WishlistItemPayload[];
@@ -102,27 +100,13 @@ export class PeopleGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  /**
-   * Resolves the people reachable at an email or phone, oldest party first.
-   *
-   * Returns ids rather than records: one address legitimately sits on several
-   * people, and deciding which of them is "the" person is the caller's policy.
-   */
+  // Resolves the people reachable at an email or phone, oldest party first
   findPartiesByCommunication(channel: PartyCommunicationChannelValue, value: string): Promise<string[]> {
     this.logger.log(`org.people.communications.findByValue — channel: ${channel}`);
     return this.nats.send('commerce', 'org.people.communications.findByValue', { channel, value });
   }
 
-  /**
-   * The same lookup, resolved to whole people.
-   *
-   * Composed here rather than in commerce-service because the lookup lives on the communications
-   * domain and the record on the parties domain, and a domain module may not reach across to
-   * another. This gateway is the layer allowed to join them.
-   *
-   * One extra round-trip per match, which in practice is one: a number belonging to several people
-   * is the exception the list exists for, not the common case.
-   */
+  // The same lookup, resolved to whole people
   async findPeopleByCommunication(
     channel: PartyCommunicationChannelValue,
     value: string,
@@ -155,26 +139,10 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.delete', { id });
   }
 
-  /** A person's saved items. Read only — see the microservice controller for why. */
+  // A person's saved items. Read only — see the microservice controller for why
   listWishlist(partyId: string, currencyCode: string): Promise<StaffWishlistItemRow[]> {
     this.logger.log(`org.people.wishlist.list — partyId: ${partyId}`);
     return this.nats.send('commerce', 'org.people.wishlist.list', { partyId, currencyCode });
-  }
-
-  /** The catalogue a storefront sells, refused rather than defaulted when nothing is configured. */
-  private async resolveAppCatalog(appId: string): Promise<{ catalogId: string }> {
-    const resolution = await this.nats.send<{ resolved: boolean; catalog: { catalogId: string } | null }>(
-      'commerce',
-      'org.catalogChannels.resolve',
-      { type: 'APP', appId },
-    );
-    if (!resolution?.catalog) {
-      throw new NotFoundException({
-        label: 'Store Not Configured',
-        detail: 'That storefront has no catalogue assigned yet.',
-      });
-    }
-    return resolution.catalog;
   }
 
   // Returns the identifiers of a person for the data table
@@ -267,13 +235,13 @@ export class PeopleGatewayService {
   // lives: every app-surface write goes through it, so there is one line to read to know the rule
   // and one place to change it.
 
-  /** Every address the party holds. */
+  // Every address the party holds
   listShopperAddresses(partyId: string): Promise<PartyAddressResponseDto[]> {
     this.logger.log(`org.people.addresses.list — party: ${partyId}`);
     return this.nats.send('commerce', 'org.people.addresses.list', { personId: partyId });
   }
 
-  /** Adds one. Scoped by construction — the party is what it is created under. */
+  // Adds one. Scoped by construction — the party is what it is created under
   addPartyAddress(
     partyId: string,
     dto: Omit<AddPersonAddressDto, 'personId'>,
@@ -282,7 +250,7 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.addresses.add', { personId: partyId, ...dto });
   }
 
-  /** Edits one of theirs. */
+  // Edits one of theirs
   async updatePartyAddress(
     partyId: string,
     addressId: string,
@@ -293,24 +261,14 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.addresses.update', { id: addressId, ...dto });
   }
 
-  /** Removes one of theirs. */
+  // Removes one of theirs
   async removePartyAddress(partyId: string, addressId: string): Promise<SuccessResponseDto> {
     await this.assertOwned(partyId, addressId);
     this.logger.log(`org.people.addresses.remove — party: ${partyId}, id: ${addressId}`);
     return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
   }
 
-  /**
-   * Refuses an address that is not this party's.
-   *
-   * The app credential speaks for the whole organization, and RLS scopes rows to it — so an
-   * address id from a *different party in the same organization* is visible to this request.
-   * The party is not a tenancy boundary, which is why nothing below this layer enforces it and
-   * why forwarding a caller's id straight through would let one party rewrite another's address.
-   *
-   * Answers the same `NotFoundException` for "not yours" as for "no such address", deliberately:
-   * telling the two apart turns this into a way to find out which ids exist.
-   */
+  // Refuses an address that is not this party's
   private async assertOwned(partyId: string, addressId: string): Promise<void> {
     const addresses = await this.listShopperAddresses(partyId);
     if (!addresses.some((address) => address.id === addressId)) {
@@ -519,10 +477,9 @@ export class PeopleGatewayService {
     currencyCode: string,
     siteId?: string,
   ): Promise<WishlistItemPayload[]> {
-    // A saved row stores the product, so reading it back needs the catalogue that prices it here
-    const { catalogId } = await this.resolveAppCatalog(appId);
     this.logger.log(`org.wishlist.list — party: ${partyId}`);
-    return this.nats.send('commerce', 'org.wishlist.list', { appId, partyId, currencyCode, catalogId, siteId });
+    // No catalogue resolved here — commerce prices a saved row inside the query that reads it
+    return this.nats.send('commerce', 'org.wishlist.list', { appId, partyId, currencyCode, siteId });
   }
 
   async addToShopperWishlist(input: {
@@ -532,7 +489,6 @@ export class PeopleGatewayService {
     currencyCode: string;
     siteId?: string;
   }): Promise<WishlistAddPayload> {
-    const { catalogId } = await this.resolveAppCatalog(input.appId);
     this.logger.log(`org.wishlist.add — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
 
     // Renamed on the way through, deliberately rather than by assertion. The microservice answers
@@ -542,7 +498,7 @@ export class PeopleGatewayService {
     const result = await this.nats.send<{ alreadyExists: boolean; wishlistItems: WishlistItemPayload[] }>(
       'commerce',
       'org.wishlist.add',
-      { ...input, catalogId },
+      input,
     );
     return { alreadyExists: result.alreadyExists, wishlist: result.wishlistItems };
   }
@@ -554,8 +510,7 @@ export class PeopleGatewayService {
     currencyCode: string;
     siteId?: string;
   }): Promise<WishlistItemPayload[]> {
-    const { catalogId } = await this.resolveAppCatalog(input.appId);
     this.logger.log(`org.wishlist.remove — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
-    return this.nats.send('commerce', 'org.wishlist.remove', { ...input, catalogId });
+    return this.nats.send('commerce', 'org.wishlist.remove', input);
   }
 }

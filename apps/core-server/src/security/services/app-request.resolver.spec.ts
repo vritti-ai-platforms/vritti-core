@@ -33,7 +33,7 @@ function makeApp(overrides: Partial<App> = {}): App {
 const sign = (input: Record<string, unknown> = {}) =>
   signRequestHeaders({ method: 'POST', path: PATH, body: BODY, ...input }, privateKey);
 
-/** Stands in for what the auth hook hands the resolver. */
+// Stands in for what the auth hook hands the resolver
 function makeRequestService(
   headers: Record<string, string | undefined>,
   body: string | undefined = BODY,
@@ -64,7 +64,7 @@ function makeResolver(app: App | undefined, opts: { touched?: string[] } = {}) {
 
 const emptyAppAuth = () => ({ kind: 'app' }) as VrittiAppAuth;
 
-/** Every rejection must look identical — that is the security property under test. */
+// Every rejection must look identical — that is the security property under test
 async function expectRejected(promise: Promise<unknown>, why: string) {
   await expect(promise).rejects.toMatchObject({ status: 401 });
   expect(why).toBeTruthy();

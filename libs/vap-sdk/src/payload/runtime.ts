@@ -8,6 +8,13 @@ import { VapError } from '../core/errors';
  * that reshape those generics — and so a test can pass a plain object instead of booting a CMS.
  */
 export interface PayloadLike {
+  /**
+   * The instance secret, used to sign anything this package parks in a cookie.
+   *
+   * Declared rather than reached for by cast: `session-token.ts` needed it first and asserted its
+   * way to it, which left the dependency invisible to anybody reading this type.
+   */
+  secret: string;
   find(args: { collection: string; where?: unknown; limit?: number; depth?: number }): Promise<{ docs: unknown[] }>;
   create(args: { collection: string; data: Record<string, unknown> }): Promise<unknown>;
   // `id` is a number under the postgres adapter and a string under mongo, so both are accepted rather

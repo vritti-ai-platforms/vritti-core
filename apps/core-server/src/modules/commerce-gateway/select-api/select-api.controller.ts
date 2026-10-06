@@ -41,7 +41,6 @@ import {
   ApiUomDimensionsSelect,
   ApiUomSelect,
 } from './docs/select-api.docs';
-import { ChannelItemsSelectQueryDto } from './dto/channel-items-select-query.dto';
 import { OfferingVariantsSelectQueryDto } from './dto/offering-variants-select-query.dto';
 
 @ApiTags('Commerce - Select')
@@ -109,30 +108,6 @@ export class SelectApiController {
   @ApiOfferingVariantsSelect()
   selectOfferingVariants(@Query() query: OfferingVariantsSelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.offeringVariants', query);
-  }
-
-  /**
-   * What a storefront sells — the picker behind "add to their basket".
-   *
-   * A caller may name the channel, and one that does not gets the channel its own workspace sells
-   * through. A workspace with none sells nothing yet, which is an empty list rather than an error:
-   * the picker shows "no options" instead of the page failing to load.
-   */
-  @Get('channel-items')
-  async selectChannelItems(@Query() query: ChannelItemsSelectQueryDto): Promise<SelectQueryResult> {
-    const channelId = query.channelId ?? (await this.resolveAppChannel());
-    if (!channelId) return { options: [], hasMore: false };
-    return this.nats.send<SelectQueryResult>('commerce', 'select.channelItems', { ...query, channelId });
-  }
-
-  // The APP channel this workspace sells through, or nothing when it has not been given one
-  private async resolveAppChannel(): Promise<string | undefined> {
-    const resolution = await this.nats.send<{ catalog: { channelId: string } | null }>(
-      'commerce',
-      'org.catalogChannels.resolve',
-      { type: 'APP' },
-    );
-    return resolution?.catalog?.channelId;
   }
 
   @Get('dimension-templates')

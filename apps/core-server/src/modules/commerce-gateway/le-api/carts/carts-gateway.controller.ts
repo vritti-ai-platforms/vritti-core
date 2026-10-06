@@ -33,7 +33,7 @@ import {
   LeCartsGatewayService,
 } from './services/carts-gateway.service';
 
-/** The currency a basket is read in when the caller names none. */
+// The currency a basket is read in when the caller names none
 const DEFAULT_CURRENCY = 'INR';
 
 @ApiTags('Commerce - Company Carts')
@@ -102,12 +102,7 @@ export class LeCartsGatewayController {
     return this.service.addItem(id, { ...dto, currencyCode: query.currencyCode ?? DEFAULT_CURRENCY });
   }
 
-  /**
-   * A line is addressed by its basket and its product.
-   *
-   * Not by a listing id: which catalogue offers a product is answered per outlet, so the pair that
-   * names a line the same way everywhere is the cart it sits in and the variant it holds.
-   */
+  // A line is addressed by its basket and its product
   @Patch(':id/items/:offeringVariantId')
   @RequirePermission(LE_CARTS.edit)
   updateItem(

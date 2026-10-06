@@ -89,14 +89,6 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
     return rows[0];
   }
 
-  // Finds an organization's site groups as id/parentId pairs
-  async findGroupParentPairs(orgId: string): Promise<{ id: string; parentId: string | null }[]> {
-    return this.db
-      .select({ id: siteGroups.id, parentId: siteGroups.parentId })
-      .from(siteGroups)
-      .where(eq(siteGroups.organizationId, orgId));
-  }
-
   // Finds all site groups for an organization for session-structure resolution
   async findGroupsByOrg(orgId: string): Promise<SiteGroup[]> {
     return this.db.select().from(siteGroups).where(eq(siteGroups.organizationId, orgId));
@@ -139,17 +131,6 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
       .from(sites)
       .where(eq(sites.registrationId, registrationId));
     return rows[0]?.count ?? 0;
-  }
-
-  // Resolves a site's currency from its owning legal entity
-  async findLeCurrencyBySiteId(siteId: string): Promise<string | null> {
-    const rows = await this.db
-      .select({ currencyCode: legalEntities.currencyCode })
-      .from(sites)
-      .innerJoin(legalEntities, eq(legalEntities.id, sites.legalEntityId))
-      .where(eq(sites.id, siteId))
-      .limit(1);
-    return rows[0]?.currencyCode ?? null;
   }
 
   // Resolves a site's workspace context

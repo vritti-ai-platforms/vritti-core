@@ -173,12 +173,6 @@ export class SupplierSitesDomainService {
     return SiteSupplierDto.from(row);
   }
 
-  // Returns the enrollment of a supplier for a site with its pick details, or null when not enrolled
-  async findEnrollment(supplierId: string, siteId: string): Promise<SupplierSiteDto | null> {
-    const row = await this.repository.findBySupplierAndSite(supplierId, siteId);
-    return row ? SupplierSiteDto.from(row) : null;
-  }
-
   // Loads an enrollment by ID, throwing when it does not exist
   async findById(id: string): Promise<SupplierSiteDto> {
     const row = await this.repository.findById(id);

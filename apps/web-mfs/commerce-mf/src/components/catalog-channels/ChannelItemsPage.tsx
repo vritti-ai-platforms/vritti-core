@@ -15,12 +15,7 @@ interface ChannelItemsPageProps {
   binding: CatalogChannelsBinding;
 }
 
-/**
- * What one channel sells, item by item.
- *
- * The channel-centric half of the same exclusions data the catalog's Listings tab shows per item.
- * Curating a channel and curating an item are different jobs, so both views exist.
- */
+// What one channel sells, item by item
 export const ChannelItemsPage: React.FC<ChannelItemsPageProps> = ({ binding }) => {
   const { id: channelId } = useSlugParams('slug');
   const queryClient = useQueryClient();

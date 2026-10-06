@@ -184,11 +184,6 @@ export class SiteDomainService {
     return { success: true, message: 'Site feature locks updated successfully.' };
   }
 
-  // Resolves a site's currency from its owning legal entity
-  async getSiteCurrency(siteId: string): Promise<string | null> {
-    return this.siteRepository.findLeCurrencyBySiteId(siteId);
-  }
-
   // Deletes a site
   async remove(id: string): Promise<SuccessResponseDto> {
     const site = await this.siteRepository.findById(id);

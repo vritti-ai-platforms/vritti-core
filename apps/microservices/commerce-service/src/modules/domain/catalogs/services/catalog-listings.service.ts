@@ -53,13 +53,7 @@ export class CatalogListingsDomainService {
   }
 
   // The MRP slices a variant can be listed at, for the add-listing picker
-  /**
-   * Everything one storefront channel sells, priced.
-   *
-   * The list a provisioned website picks from when somebody files a product in its CMS — so it is
-   * the sellable set, not the catalogue: delisted rows and anything excluded from this channel are
-   * dropped, because offering one would let an editor key a page to something the shop cannot sell.
-   */
+  // Everything one storefront channel sells, priced
   async findMrpOptions(offeringVariantId: string): Promise<CatalogListingMrpOptionDto[]> {
     const rows = await this.repository.findMrpOptionsForVariant(offeringVariantId);
     return rows.map((row) => CatalogListingMrpOptionDto.from(row));

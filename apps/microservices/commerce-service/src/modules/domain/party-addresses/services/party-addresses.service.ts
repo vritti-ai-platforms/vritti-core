@@ -53,13 +53,7 @@ export class PartyAddressesDomainService {
     return { result: rows.map(PartyAddressDto.from), count };
   }
 
-  /**
-   * Every address a party holds, oldest first.
-   *
-   * Beside `findForTable` rather than through it: that one wants a `TableViewState` and the saved
-   * view of a staff user, which an address book on a storefront has nothing to supply. Somebody's
-   * own addresses are a handful of rows, so there is nothing here to page.
-   */
+  // Every address a party holds, oldest first
   async findForParty(partyId: string): Promise<PartyAddressDto[]> {
     const { result } = await this.repository.findForTable({
       where: eq(partyAddresses.partyId, partyId),

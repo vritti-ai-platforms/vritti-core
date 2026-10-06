@@ -23,13 +23,6 @@ interface ManageVisibilityDialogProps {
   onClose: () => void;
 }
 
-/**
- * Which of this catalog's channels show this listing.
- *
- * Each switch writes on its own so the dialog can be left open while several are flipped — there is
- * no submit to batch them behind. An exclusion belongs to the channel rather than the listing, so a
- * channel owned by a wider scope is read-only here, which is the rule the RLS enforces too.
- */
 export const ManageVisibilityDialog: React.FC<ManageVisibilityDialogProps> = ({
   binding,
   catalogId,

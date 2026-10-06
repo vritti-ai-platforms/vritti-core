@@ -53,12 +53,6 @@ import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { PeopleShopperQueryDto } from './dto/request/people-party.dto';
 import { PeopleGatewayService, type StaffWishlistItemRow } from './services/people-gateway.service';
 
-/**
- * What a basket is priced in when the caller names nothing.
- *
- * These storefronts sell in India. A staff screen asking for a person's basket should render, not
- * refuse because nobody passed a currency — and the party-facing surface always passes one.
- */
 const DEFAULT_CURRENCY = 'INR';
 
 @ApiTags('Commerce - People')
@@ -433,12 +427,7 @@ export class PeopleGatewayController {
     return this.service.delete(id);
   }
 
-  /**
-   * What this person saved for later.
-   *
-   * Read only, deliberately: a saved list is the party's own, and staff adding to it would be
-   * putting words in their mouth.
-   */
+  // What this person saved for later
   @Get(':id/wishlist')
   @RequirePermission(ORG_PEOPLE.wishlist.view)
   listWishlist(

@@ -102,26 +102,6 @@ export class OfferingVariantsDomainService {
     );
   }
 
-  // Variants one storefront channel sells — the picker behind "add to their basket"
-  findForSelectInChannel(channelId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelectInChannel(
-      {
-        value: query.valueKey || 'id',
-        label: query.labelKey || 'name',
-        description: query.descriptionKey || 'sku',
-        additionalKeys: query.additionalKeys,
-        search: query.search,
-        limit: query.limit,
-        offset: query.offset,
-        values: query.values,
-        excludeIds: query.excludeIds,
-        orderByKey: query.orderByKey || 'name',
-        orderDirection: query.orderDirection || 'asc',
-      },
-      channelId,
-    );
-  }
-
   // Flat rows for the file export, scoped to one offering. Reach is settled first so a variant of an
   // offering this workspace cannot see never reaches the file.
   async findForExport(offeringId: string, page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {

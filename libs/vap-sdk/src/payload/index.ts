@@ -1,5 +1,6 @@
 export { type ConsoleEmailOptions, consoleEmailAdapter } from './console-email';
-export { type OtpChannel, OTP_CHANNELS } from '../core/domains/otp';
+export { type OtpChannel, OTP_CHANNELS } from '../core/types';
+export { open, seal, type SealedState, sealedExpiry } from '../server/sealed-cookie';
 // Re-exported from `core` so a Payload app has one import for everything it needs. The phone rules
 // are universal — React Native will want the same ones — so they live in the core tier.
 export {
@@ -22,10 +23,22 @@ export { vrittiCloudAuth } from './cloud-auth/plugin';
 export type { VrittiCloudAuthOptions } from './cloud-auth/types';
 export { customersCollection } from './collections/parties';
 export { VAP_CACHE_TABLE, vapCacheCollection } from './collections/vap-cache';
+export { type VapNextConfig, VAP_NEXT_KEY } from './next-config';
 export { type VapOptions, vap } from './plugin';
 export {
   createPostgresResponseCache,
   type PostgresResponseCacheOptions,
 } from '../server/cache/postgres';
 export { type IssuedSession, issueSessionToken } from './session-token';
+export { type OtpFlowData, safeReturnTo } from '../core/flows/auth';
+export {
+  createOtpSignInActions,
+  type LocalParty,
+  type OtpActionState,
+  type OtpSignInActions,
+  type OtpSignInOptions,
+  type OtpSignInPorts,
+  type OtpSignInRoutes,
+  type SealedOtpFlow,
+} from './otp-sign-in';
 export { getSdk, type PayloadLike, SDK_CONFIG_KEY, type PartyLike } from './runtime';

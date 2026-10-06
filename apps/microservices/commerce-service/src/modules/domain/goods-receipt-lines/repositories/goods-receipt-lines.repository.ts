@@ -8,7 +8,6 @@ import {
   goodsReceiptLines,
   goodsReceiptLots,
   type InventoryTracking,
-  InventoryTrackingValues,
   inventoryItems,
   locations,
   uom,
@@ -156,14 +155,6 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
     return Number(row?.total ?? 0);
   }
 
-  async countByItemId(itemId: string): Promise<number> {
-    const [row] = await this.db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(goodsReceiptLines)
-      .where(eq(goodsReceiptLines.goodsReceiptItemId, itemId));
-    return Number(row?.count ?? 0);
-  }
-
   // Recomputes isBalanced for a line, syncing serial-tracked lines to their line-item count
   async refreshIsBalanced(lineId: string, tracking: InventoryTracking): Promise<void> {
     if (tracking !== 'serial' && tracking !== 'lot_serial') {
@@ -181,37 +172,6 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
         ), 0)`,
       })
       .where(eq(goodsReceiptLines.id, lineId));
-  }
-
-  // Returns serial-tracked lines whose quantity differs from their line-item count
-  async findUnbalancedSerialLines(
-    goodsReceiptId: string,
-  ): Promise<{ lineId: string; lineQuantity: number; lineItemsCount: number; delta: number }[]> {
-    const rows = await this.db
-      .select({
-        lineId: goodsReceiptLines.id,
-        lineQuantity: goodsReceiptLines.quantity,
-        lineItemsCount: sql<number>`COUNT(${goodsReceiptLineItems.id})`,
-      })
-      .from(goodsReceiptLines)
-      .innerJoin(goodsReceiptItems, eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItems.id))
-      .innerJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
-      .leftJoin(goodsReceiptLineItems, eq(goodsReceiptLineItems.goodsReceiptLineId, goodsReceiptLines.id))
-      .where(
-        and(
-          eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId),
-          inArray(inventoryItems.tracking, [InventoryTrackingValues.SERIAL, InventoryTrackingValues.LOT_SERIAL]),
-        ),
-      )
-      .groupBy(goodsReceiptLines.id, goodsReceiptLines.quantity);
-
-    return rows
-      .map((row) => {
-        const lineQuantity = Number(row.lineQuantity);
-        const lineItemsCount = Number(row.lineItemsCount ?? 0);
-        return { lineId: row.lineId, lineQuantity, lineItemsCount, delta: lineQuantity - lineItemsCount };
-      })
-      .filter((row) => row.delta !== 0);
   }
 
   private async runRichSelect(

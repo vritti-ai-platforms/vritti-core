@@ -7,32 +7,21 @@ import { cartItems, carts, offeringVariants, parties } from '@/db/schema';
 import { CartDetailDto, CartDto, CartItemDto, StaffCartItemDto } from '../dto/entity/cart.dto';
 import { CartsDomainRepository } from '../repositories/carts.repository';
 
-/** The bound the `ck_cart_items_quantity` CHECK enforces. Kept in step with it by hand. */
+// The bound the `ck_cart_items_quantity` CHECK enforces. Kept in step with it by hand
 const MAX_QUANTITY = 99;
 
-/**
- * A shopper's basket at an outlet.
- *
- * A shopper-facing caller names the **party**, never a basket, and that is the security shape of the
- * feature: the cart is found from the party and the request's workspace, so there is no id a caller
- * could change to reach someone else's. Staff name a `cartId`, because a person may hold one at each
- * outlet and "their basket" is then a question with more than one answer.
- *
- * Nothing is minted on a read. A shopper who has added nothing has no cart, and that reads as an
- * empty basket rather than a row to create.
- */
 @Injectable()
 export class CartsDomainService {
   private readonly logger = new Logger(CartsDomainService.name);
 
-  /** What the table may filter, search and sort on. */
+  // What the table may filter, search and sort on
   private static readonly FIELD_MAP: FieldMap = {
     partyName: { column: parties.displayName, type: 'string' },
     createdAt: { column: carts.createdAt, type: 'string' },
     updatedAt: { column: carts.updatedAt, type: 'string' },
   };
 
-  /** What the items table may filter, search and sort on. */
+  // What the items table may filter, search and sort on
   private static readonly ITEM_FIELD_MAP: FieldMap = {
     name: { column: offeringVariants.name, type: 'string' },
     sku: { column: offeringVariants.sku, type: 'string' },
@@ -42,7 +31,7 @@ export class CartsDomainService {
 
   constructor(private readonly repository: CartsDomainRepository) {}
 
-  /** The baskets open at this workspace. */
+  // The baskets open at this workspace
   async findForTable(state: TableViewState): Promise<{ result: CartDetailDto[]; count: number }> {
     const where =
       and(
@@ -62,25 +51,25 @@ export class CartsDomainService {
     return { result: result.map((row) => CartDetailDto.from(row)), count };
   }
 
-  /** One basket. */
+  // One basket
   async findById(id: string): Promise<CartDetailDto> {
     const cart = await this.repository.findByIdWithParty(id);
     if (!cart) throw new NotFoundException('Basket not found.');
     return CartDetailDto.from(cart);
   }
 
-  /** How many of each product the party holds in their basket at this workspace. */
+  // How many of each product the party holds in their basket at this workspace
   findQuantities(partyId: string): Promise<{ offeringVariantId: string; quantity: number }[]> {
     return this.repository.findQuantitiesForParty(partyId);
   }
 
-  /** Its lines, priced by the catalogue the caller sells from. */
+  // Its lines, priced by the catalogue the caller sells from
   async findItemsById(id: string, currencyCode: string, appId?: string | null, siteId?: string): Promise<CartDto> {
     const items = await this.repository.findItems(id, currencyCode, appId, siteId);
     return CartDto.from(currencyCode, items);
   }
 
-  /** One basket's items for the data table, priced by the reader's catalogue when they have one. */
+  // One basket's items for the data table, priced by the reader's catalogue when they have one
   async findItemsForTable(
     cartId: string,
     state: TableViewState,
@@ -106,13 +95,7 @@ export class CartsDomainService {
     return { result: result.map((row) => CartItemDto.from(row)), count };
   }
 
-  /**
-   * Opens a basket for a shopper.
-   *
-   * They may already have one here — the unique says so — which is an outcome to report rather than
-   * a failure: staff asked for their basket and there it is. The insert decides that, not a read
-   * before it: checking first and inserting after is a race two tills can lose.
-   */
+  // Opens a basket for a shopper
   async create(input: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
     const { cart, opened } = await this.repository.findOrCreateForParty(input.partyId);
     if (opened) this.logger.log(`cart ${cart.id} opened for party ${input.partyId}`);
@@ -126,14 +109,14 @@ export class CartsDomainService {
     };
   }
 
-  /** Closes a basket outright — the lines go with it. */
+  // Closes a basket outright — the lines go with it
   async delete(id: string): Promise<SuccessResponseDto> {
     await this.findById(id);
     await this.repository.delete(id);
     return { success: true, message: 'Basket closed.' };
   }
 
-  /** The basket, or an empty one. Never opens a cart. */
+  // The basket, or an empty one. Never opens a cart
   async find(partyId: string, currencyCode: string, appId?: string | null, siteId?: string): Promise<CartDto> {
     const cart = await this.repository.findByParty(partyId);
     if (!cart) return CartDto.from(currencyCode, []);
@@ -142,7 +125,7 @@ export class CartsDomainService {
     return CartDto.from(currencyCode, items);
   }
 
-  /** Adds a product to the basket, opening one if this is the shopper's first line here. */
+  // Adds a product to the basket, opening one if this is the shopper's first line here
   async addItem(input: {
     partyId: string;
     offeringVariantId: string;
@@ -160,7 +143,7 @@ export class CartsDomainService {
     return this.find(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
-  /** Sets a line to an exact quantity. Zero is not accepted — removing is its own operation. */
+  // Sets a line to an exact quantity. Zero is not accepted — removing is its own operation
   async updateItem(input: {
     partyId: string;
     offeringVariantId: string;
@@ -193,24 +176,14 @@ export class CartsDomainService {
     return this.find(partyId, currencyCode, appId, siteId);
   }
 
-  /**
-   * Empties the basket, keeping it open.
-   *
-   * Checkout does not call this — it deletes the cart outright once the order exists, because the
-   * order lines are then the record of what was bought.
-   */
+  // Empties the basket, keeping it open
   async clear(partyId: string): Promise<SuccessResponseDto> {
     const cart = await this.repository.findByParty(partyId);
     if (cart) await this.repository.deleteAllItems(cart.id);
     return { success: true, message: 'Basket emptied.' };
   }
 
-  /**
-   * Every basket line a person holds, across every outlet.
-   *
-   * Each line carries the cart and the workspace that owns it, so staff can tell one outlet's basket
-   * from another's — and so an edit below can name which.
-   */
+  // Every basket line a person holds, across every outlet
   async findAllForParty(
     partyId: string,
     currencyCode: string,
@@ -221,7 +194,7 @@ export class CartsDomainService {
     return rows.map((row) => StaffCartItemDto.fromStaffRow(row));
   }
 
-  /** Adds a line to one of the person's baskets, on their behalf. */
+  // Adds a line to one of the person's baskets, on their behalf
   async addItemForCart(input: {
     cartId: string;
     partyId: string;
@@ -238,7 +211,7 @@ export class CartsDomainService {
     return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
-  /** Sets a line to an exact quantity on a shopper's behalf. */
+  // Sets a line to an exact quantity on a shopper's behalf
   async updateItemForCart(input: {
     cartId: string;
     partyId: string;
@@ -254,7 +227,7 @@ export class CartsDomainService {
     return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
-  /** Removes a line on a shopper's behalf. */
+  // Removes a line on a shopper's behalf
   async removeItemForCart(input: {
     cartId: string;
     partyId: string;
@@ -268,19 +241,14 @@ export class CartsDomainService {
     return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
   }
 
-  /** The shopper's basket here, or a refusal — for the operations that edit an existing line. */
+  // The shopper's basket here, or a refusal — for the operations that edit an existing line
   private async requireCart(partyId: string) {
     const cart = await this.repository.findByParty(partyId);
     if (!cart) throw new NotFoundException('That item is not in your basket.');
     return cart;
   }
 
-  /**
-   * Rejected here rather than left to the CHECK constraint.
-   *
-   * The database would raise a 23514 that surfaces as an opaque server error; a shopper who typed
-   * 200 should be told the limit instead.
-   */
+  // Rejected here rather than left to the CHECK constraint
   private requireQuantity(quantity: number): number {
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
       throw new ConflictException({

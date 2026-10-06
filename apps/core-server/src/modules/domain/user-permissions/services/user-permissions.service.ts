@@ -98,29 +98,8 @@ export interface PermissionContext {
   id: string;
 }
 
-/**
- * The principal whose permissions are being resolved.
- *
- * `FeatureUnlocks` is the boundary between producing a grant set and evaluating one. A user's
- * is derived — role assignments, nearest-wins chain walk, template composition. An app's is
- * stored, already composed, on its credential row. Same type, different provenance, so the
- * branch lives here and everything downstream is shared.
- *
- * An app's grants travel on the source rather than being looked up: the row was already read
- * to verify the request signature, and re-reading it by id would be a second query for data
- * still in hand. `appId` is for logging and cache keys, not a lookup.
- */
 export type GrantSource = { kind: 'user'; userId: string } | { kind: 'app'; appId: string; grants: FeatureUnlocks };
 
-/**
- * Turns grants into an enforceable permission set.
- *
- * Named for users because that is all it resolved at first; it now also resolves app
- * credentials, whose grants live on the app row rather than coming from roles. Both
- * paths converge on the same catalog intersection, so the plan and the node's feature
- * locks bind an app exactly as they bind a person. Renaming the class would touch every
- * injection site for no behavioural gain.
- */
 @Injectable()
 export class UserPermissionsDomainService {
   private readonly logger = new Logger(UserPermissionsDomainService.name);
@@ -134,17 +113,7 @@ export class UserPermissionsDomainService {
     private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
 
-  /**
-   * Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a principal
-   * in a workspace context on a platform.
-   *
-   * Caching is a property of the SOURCE, not of this method. A user's set is cached because
-   * deriving it walks role assignments and composes templates. An app's never is: its grants
-   * arrive with the request that authenticated it, so a cache keyed by app id would serve a set
-   * built from a grant the caller no longer holds, and a revoked permission would keep working
-   * until the entry expired. Recomputing it is cheap anyway — no assignments, no chain walk, no
-   * composition, just one org read against an already-cached catalog snapshot.
-   */
+  // Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a principal in a workspace context on a platform
   async resolveEnabledPermissions(
     source: GrantSource,
     ctx: PermissionContext,
@@ -174,20 +143,7 @@ export class UserPermissionsDomainService {
     return new Set(features.filter((feature) => !feature.locked).map((feature) => feature.code));
   }
 
-  /**
-   * The single entry point every principal's permissions resolve through.
-   *
-   * Producing the grant set is the only thing that differs between a user and an app — the
-   * catalog it is intersected with is identical, and a plan lock, node feature switch,
-   * unprovisioned service or missing prerequisite binds an app exactly as it binds a person.
-   *
-   * The two branches below still run through separate internals (`getPermissionsForContext`
-   * for users, `resolveGrantedFeatures` for apps), which are three near-identical calls to
-   * `resolveUserFeatures`. Merging them is worthwhile but is a change that silently grants or
-   * denies if it is wrong, so it wants characterisation tests across SITE/GROUP/LE/ORG × user/app
-   * first. This unifies the interface without touching the resolution behaviour.
-   * See docs/auth-context-refactor-plan.md §2.4.
-   */
+  // The single entry point every principal's permissions resolve through
   private async resolveFeatures(
     source: GrantSource,
     ctx: PermissionContext,
@@ -203,15 +159,7 @@ export class UserPermissionsDomainService {
     return features;
   }
 
-  /**
-   * Resolves a grant set against the catalog at a workspace context.
-   *
-   * The app-side counterpart of `resolveScopedFeatures`, minus the role machinery: an app
-   * holds one grant set outright, so there is no nearest-wins target selection, no
-   * template composition and nothing to merge. What it keeps is everything that
-   * constrains the grant — the plan entitlement, the node's feature locks, the site type,
-   * and the provisioned services.
-   */
+  // Resolves a grant set against the catalog at a workspace context
   private async resolveGrantedFeatures(
     grants: FeatureUnlocks,
     ctx: PermissionContext,
@@ -240,13 +188,7 @@ export class UserPermissionsDomainService {
     });
   }
 
-  /**
-   * The organization and feature locks that apply at a workspace context.
-   *
-   * Locks live on the node itself — a site, group or legal entity can have a feature
-   * switched off independently of any plan — so which row to read depends entirely on the
-   * scope being resolved.
-   */
+  // The organization and feature locks that apply at a workspace context
   private async resolveNodeContext(
     ctx: PermissionContext,
   ): Promise<{ org: Organization | undefined; locks: WorkspaceFeatureLocks | undefined; siteType?: SiteType }> {
@@ -284,14 +226,7 @@ export class UserPermissionsDomainService {
     }
   }
 
-  /**
-   * Flattens resolved features into the dotted codes `@RequirePermission` is written in.
-   *
-   * Permission identity is scope.feature.permission, so the set carries the requesting
-   * context's scope prefix — the same string the frontend gates on (e.g. `org.uom.view`).
-   * A locked feature contributes nothing, and a locked permission is dropped from an
-   * otherwise unlocked one.
-   */
+  // Flattens resolved features into the dotted codes `@RequirePermission` is written in
   private flattenEnabled(features: PermissionFeature[], scope: ScopeType): Set<string> {
     const scopePrefix = SCOPE_CODE_PREFIX[scope];
     const enabled = new Set<string>();

@@ -40,13 +40,7 @@ export class LeCatalogChannelsGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
-  /**
-   * The whole channels list in one read.
-   *
-   * commerce resolves which catalog each configured slot uses; the two lists of what exists come
-   * separately — terminals from commerce, apps from core's own table. Joining decisions to estate is
-   * what turns them into a page, and it happens once for both kinds rather than once per kind.
-   */
+  // The whole channels list in one read
   async list(orgId: string): Promise<ChannelEntryResponseDto[]> {
     this.logger.log('le.catalogChannels.list');
     const [resolved, apps, terminals] = await Promise.all([
@@ -76,21 +70,20 @@ export class LeCatalogChannelsGatewayService {
   }
 
   // The storefront's range — one call, because commerce resolves the channel and joins the prices
-  async appListings(appId: string, variantIds?: string[]): Promise<CatalogListing[]> {
-    if (variantIds) {
-      this.logger.log(`le.catalogChannels.app.listingsFromVariants — ${variantIds.length} variants`);
-      return this.nats.send('commerce', 'le.catalogChannels.app.listingsFromVariants', { appId, variantIds });
-    }
+  async appListings(appId: string): Promise<CatalogListing[]> {
     this.logger.log('le.catalogChannels.app.listings');
     return this.nats.send('commerce', 'le.catalogChannels.app.listings', { appId });
   }
 
+  // Prices variants the caller already holds — a wishlist or a basket
+  async appListingsFromVariants(appId: string, variantIds: string[]): Promise<CatalogListing[]> {
+    this.logger.log(`le.catalogChannels.app.listingsFromVariants — ${variantIds.length} variants`);
+    return this.nats.send('commerce', 'le.catalogChannels.app.listingsFromVariants', { appId, variantIds });
+  }
+
   async upsertApp(dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
     this.logger.log(`le.appCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
-    return this.nats.send('commerce', 'le.appCatalogChannels.upsert', {
-      catalogId: dto.catalogId,
-      appId: dto.appId ?? null,
-    });
+    return this.nats.send('commerce', 'le.appCatalogChannels.upsert', dto);
   }
 
   async upsertPos(dto: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
@@ -132,13 +125,7 @@ export class LeCatalogChannelsGatewayService {
     });
   }
 
-  /**
-   * Every app or terminal that exists, each carrying what it will sell.
-   *
-   * Driven off the list of things that exist rather than the decisions, so a target nobody has
-   * overridden still appears — using the default. A decision whose app or terminal has since gone is
-   * added back at the end, because dropping it would hide an assignment that is still live.
-   */
+  // Every app or terminal that exists, each carrying what it will sell
   private buildTargets(
     slots: Record<string, ChannelCatalogResponseDto>,
     defaultCatalog: ChannelCatalogResponseDto | null,

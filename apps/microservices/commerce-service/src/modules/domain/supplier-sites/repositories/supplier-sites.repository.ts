@@ -175,43 +175,6 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     return row as (SupplierSite & { partyId: string | null }) | undefined;
   }
 
-  // Loads an enrollment by supplier and site joined with the picked registration, bank account, and order contact
-  async findBySupplierAndSite(supplierId: string, siteId: string): Promise<SupplierSiteWithPicks | undefined> {
-    const [row] = await this.db
-      .select({
-        ...getColumns(supplierSites),
-        registrationNumber: partyTaxRegistrations.registrationNumber,
-        registrationType: partyTaxRegistrations.registrationType,
-        bankAccountName: partyBankAccounts.accountName,
-        bankName: partyBankAccounts.bankName,
-        ...orderContactSelect,
-      })
-      .from(supplierSites)
-      .leftJoin(partyTaxRegistrations, eq(partyTaxRegistrations.id, supplierSites.partyTaxRegistrationId))
-      .leftJoin(partyBankAccounts, eq(partyBankAccounts.id, supplierSites.partyBankAccountId))
-      .leftJoin(orderRel, eq(orderRel.id, supplierSites.orderRelationshipId))
-      .leftJoin(orderParty, eq(orderParty.id, orderRel.childPartyId))
-      .leftJoin(
-        orderEmail,
-        and(
-          eq(orderEmail.partyId, orderRel.childPartyId),
-          eq(orderEmail.channel, PartyCommunicationChannelValues.EMAIL),
-          eq(orderEmail.isPrimary, true),
-        ),
-      )
-      .leftJoin(
-        orderPhone,
-        and(
-          eq(orderPhone.partyId, orderRel.childPartyId),
-          eq(orderPhone.channel, PartyCommunicationChannelValues.PHONE),
-          eq(orderPhone.isPrimary, true),
-        ),
-      )
-      .where(and(eq(supplierSites.supplierId, supplierId), eq(supplierSites.siteId, siteId)))
-      .limit(1);
-    return row as SupplierSiteWithPicks | undefined;
-  }
-
   // Loads the current site's enrollment of a supplier joined with the supplier's commercial identity
   async findSiteSupplier(supplierId: string, siteId: string): Promise<SiteSupplierRow | undefined> {
     const [row] = await this.db

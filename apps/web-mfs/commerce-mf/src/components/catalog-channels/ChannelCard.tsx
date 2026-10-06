@@ -47,13 +47,7 @@ const GridNote: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="border-t bg-muted px-6 py-4 text-muted-foreground text-sm">{children}</div>
 );
 
-/**
- * The apps or terminals under one channel, or the reason there are none to show.
- *
- * Three states have to stay distinct: no default yet, so an override would have nothing to except
- * from; a type that names no target at all; and a type whose targets are simply not visible from
- * this workspace.
- */
+// The apps or terminals under one channel, or the reason there are none to show
 const TargetGrid: React.FC<ChannelCardProps> = ({ binding, entry }) => {
   const { targets, type, defaultCatalog } = entry;
   const meta = CHANNEL_TYPE_META[type];

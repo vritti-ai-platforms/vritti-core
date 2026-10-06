@@ -1,4 +1,4 @@
-import { Field, GraphQLISODateTime, ObjectType } from '@nestjs/graphql';
+import { Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class SendWhatsappOtpResult {
@@ -10,6 +10,9 @@ export class SendWhatsappOtpResult {
 
   @Field(() => GraphQLISODateTime)
   resendAvailableAt: Date;
+
+  @Field(() => Int)
+  codeLength: number;
 }
 
 @ObjectType()

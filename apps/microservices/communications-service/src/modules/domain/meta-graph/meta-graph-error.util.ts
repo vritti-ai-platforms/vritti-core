@@ -25,14 +25,6 @@ interface MetaGraphApiError {
   };
 }
 
-/**
- * Codes that actually mean the stored credential is dead.
- *
- * Deliberately NOT keyed on `type === 'OAuthException'`: that is Meta's catch-all error type and it
- * accompanies ordinary validation failures too (a rejected template button configuration comes back
- * as OAuthException code 100). Treating the type as an auth failure told operators to reconnect a
- * perfectly good account and threw away the real reason.
- */
 const TOKEN_ERROR_CODES = new Set([190]);
 const TOKEN_ERROR_SUBCODES = new Set([102, 463, 467]);
 

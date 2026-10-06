@@ -17,12 +17,7 @@ interface AddCartLineDialogProps {
   onCancel: () => void;
 }
 
-/**
- * Adds a product to a basket: the offering first, then which of its variants.
- *
- * Nothing here checks what the workspace sells — any variant can be added, and one this workspace
- * does not price comes back in the basket flagged unavailable rather than being refused here.
- */
+// Adds a product to a basket: the offering first, then which of its variants
 export const AddCartLineDialog = ({ binding, cartId, partyId, onSuccess, onCancel }: AddCartLineDialogProps) => {
   const form = useForm<AddCartLineFormShape>({
     resolver: zodResolver(addCartLineFormSchema),

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, inArray, isNull, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   type CatalogListing,
   catalogChannels,
@@ -67,15 +67,6 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
     });
   }
 
-  async findByCatalog(catalogId: string): Promise<CatalogListingRow[]> {
-    return this.findAllWithSelect<CatalogListingRow>({
-      select: this.selection(),
-      leftJoins: this.joins(),
-      where: eq(catalogListings.catalogId, catalogId),
-      orderBy: [asc(offeringVariants.sku)],
-    });
-  }
-
   async findByIdWithRefs(id: string): Promise<CatalogListingRow | undefined> {
     const { result } = await this.findAllAndCount<CatalogListingRow>({
       select: this.selection(),
@@ -90,10 +81,6 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
   async insertListing(row: NewCatalogListing): Promise<CatalogListing> {
     const [created] = (await this.db.insert(catalogListings).values(row).returning()) as CatalogListing[];
     return created;
-  }
-
-  async updateListing(id: string, data: Partial<NewCatalogListing>): Promise<void> {
-    await this.db.update(catalogListings).set(data).where(eq(catalogListings.id, id));
   }
 
   async deleteListing(id: string): Promise<void> {
@@ -201,31 +188,6 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
         target: [catalogListingPrices.catalogListingId, catalogListingPrices.currencyCode, catalogListingPrices.siteId],
         set: { amount },
       });
-  }
-
-  async findPriceForSlot(
-    catalogListingId: string,
-    currencyCode: string,
-    siteId: string | null,
-  ): Promise<CatalogListingPriceRow | undefined> {
-    const [row] = await this.db
-      .select({
-        id: catalogListingPrices.id,
-        catalogListingId: catalogListingPrices.catalogListingId,
-        currencyCode: catalogListingPrices.currencyCode,
-        amount: catalogListingPrices.amount,
-        siteId: catalogListingPrices.siteId,
-      })
-      .from(catalogListingPrices)
-      .where(
-        and(
-          eq(catalogListingPrices.catalogListingId, catalogListingId),
-          eq(catalogListingPrices.currencyCode, currencyCode),
-          siteId === null ? isNull(catalogListingPrices.siteId) : eq(catalogListingPrices.siteId, siteId),
-        ),
-      )
-      .limit(1);
-    return row;
   }
 
   async deletePrice(id: string): Promise<void> {

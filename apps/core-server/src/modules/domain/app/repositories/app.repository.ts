@@ -10,14 +10,14 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     super(database, apps);
   }
 
-  /** Resolves a presented client id. The hot path on every signed app request. */
+  // Resolves a presented client id. The hot path on every signed app request
   async findByClientId(clientId: string): Promise<App | undefined> {
     return this.model.findFirst({
       where: { clientId },
     });
   }
 
-  /** Options for the app picker — active, unrevoked credentials only. */
+  // Options for the app picker — active, unrevoked credentials only
   async findAppsForSelect(organizationId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return super.findForSelect({
       value: query.valueKey || 'id',
@@ -36,7 +36,7 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     });
   }
 
-  /** Every app an organization owns, newest first. */
+  // Every app an organization owns, newest first
   async findAllByOrg(organizationId: string): Promise<App[]> {
     return this.model.findMany({
       where: { organizationId },
@@ -44,10 +44,7 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     });
   }
 
-  /**
-   * Scoped by org as well as id on purpose: the caller supplies both, and
-   * matching on id alone would let one organization address another's app.
-   */
+  // Scoped by org as well as id on purpose: the caller supplies both, and matching on id alone would let one organization address another's app
   async findByIdInOrg(id: string, organizationId: string): Promise<App | undefined> {
     return this.model.findFirst({
       where: { id, organizationId },
@@ -75,20 +72,17 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     return app;
   }
 
-  /** Replaces the keypair, keeping the client id so callers only swap one value. */
+  // Replaces the keypair, keeping the client id so callers only swap one value
   async rotateKeys(id: string, signingKey: string, signingPublicKey: string): Promise<App> {
     return this.update(id, { signingKey, signingPublicKey });
   }
 
-  /** Removes the credential outright — no row, no resolvable client id, nothing to restore. */
+  // Removes the credential outright — no row, no resolvable client id, nothing to restore
   async deleteById(id: string): Promise<void> {
     await this.db.delete(apps).where(eq(apps.id, id));
   }
 
-  /**
-   * Stamps usage. Never awaited by the guard: failing to record that a valid
-   * request happened must not fail the request.
-   */
+  // Stamps usage
   async touchLastUsed(id: string): Promise<void> {
     await this.db.update(apps).set({ lastUsedAt: new Date() }).where(eq(apps.id, id));
   }

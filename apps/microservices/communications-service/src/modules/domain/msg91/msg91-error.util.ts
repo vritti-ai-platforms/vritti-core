@@ -9,13 +9,6 @@ import { isAxiosError } from 'axios';
 
 const logger = new Logger('Msg91Error');
 
-/**
- * MSG91's response envelope — the same shape for success and failure.
- *
- * `type` is the field that matters: MSG91 answers a rejected request with **HTTP 200** and
- * `{ type: 'error' }` as readily as it does with a 4xx, so status alone is not a usable signal.
- * Trusting it would record a dead send as delivered.
- */
 export interface Msg91Envelope {
   // /v5/flow and friends
   type?: string;
@@ -38,14 +31,7 @@ const KEY_REJECTED = {
     'MSG91 rejected the auth key stored for this provider. Check the key in the MSG91 panel and save it again on this provider.',
 };
 
-/**
- * Rethrows a failed MSG91 call as an RFC 9457 problem.
- *
- * Like the WhatsApp access token and unlike a deployment-owned secret, the auth key belongs to the
- * organization, so auth failures ARE the caller's to fix and surface as such. MSG91's `message` is
- * short operator-facing prose ("flow id missing", "template not found") and never echoes the key,
- * so it is forwarded as the detail.
- */
+// Rethrows a failed MSG91 call as an RFC 9457 problem
 export function rethrowMsg91Error(error: unknown, detail: string): never {
   if (!isAxiosError(error)) {
     throw error instanceof Error ? error : new InternalServerErrorException('MSG91 request failed.');
@@ -77,15 +63,7 @@ export function rethrowMsg91Error(error: unknown, detail: string): never {
   }
 }
 
-/**
- * Applies the same treatment to a 200 that carries a failure in its body. Separate from the axios
- * path above because nothing threw — the request "succeeded" and the envelope is the only evidence.
- *
- * MSG91 uses two different envelopes depending on the endpoint family, both verified against a live
- * account: `/v5/flow` answers `{type, message}`, while `/v5/sms/*` answers
- * `{status, hasError, errors, data}` — and returns HTTP 200 for a miss either way. Checking only
- * one shape lets the other's failures through as successes.
- */
+// Applies the same treatment to a 200 that carries a failure in its body
 export function rejectMsg91Envelope(envelope: Msg91Envelope | undefined, fallback: string): void {
   if (!envelope) return;
 

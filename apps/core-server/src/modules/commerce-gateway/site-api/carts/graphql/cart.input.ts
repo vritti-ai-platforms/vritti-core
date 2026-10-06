@@ -1,17 +1,6 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
 import { IsInt, IsString, IsUUID, Length, Max, Min } from 'class-validator';
 
-/**
- * The currency a basket is read and totalled in.
- *
- * Supplied by the storefront rather than guessed here: which currency a shop sells in is its own
- * decision, and a catalogue may legitimately price the same listing in several. Core still refuses
- * anything outside the caller's own catalogue, so naming a currency widens nothing.
- *
- * Note there is deliberately **no party field on any input below.** The party comes from the
- * request signature via `@PartyId()`. An input that accepted one would let a storefront read any
- * party's basket with a perfectly valid signature.
- */
 @InputType()
 export class CartScopeInput {
   @Field(() => String)
@@ -22,7 +11,7 @@ export class CartScopeInput {
 
 @InputType()
 export class AddCartItemInput extends CartScopeInput {
-  /** The product, not the listing — the catalogue offer of it is resolved server-side, per site. */
+  // The product, not the listing — the catalogue offer of it is resolved server-side, per site
   @Field(() => ID)
   @IsUUID('7')
   offeringVariantId: string;
@@ -36,12 +25,12 @@ export class AddCartItemInput extends CartScopeInput {
 
 @InputType()
 export class UpdateCartItemInput extends CartScopeInput {
-  /** The product, not the listing — the catalogue offer of it is resolved server-side, per site. */
+  // The product, not the listing — the catalogue offer of it is resolved server-side, per site
   @Field(() => ID)
   @IsUUID('7')
   offeringVariantId: string;
 
-  /** An exact quantity, not a delta. Removing is its own mutation. */
+  // An exact quantity, not a delta. Removing is its own mutation
   @Field(() => Int)
   @IsInt()
   @Min(1)
@@ -51,7 +40,7 @@ export class UpdateCartItemInput extends CartScopeInput {
 
 @InputType()
 export class CartItemRefInput extends CartScopeInput {
-  /** The product, not the listing — the catalogue offer of it is resolved server-side, per site. */
+  // The product, not the listing — the catalogue offer of it is resolved server-side, per site
   @Field(() => ID)
   @IsUUID('7')
   offeringVariantId: string;

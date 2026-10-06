@@ -4,13 +4,6 @@ import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
 import type { FastifyRequest } from 'fastify';
 import { WhatsappWebhookService } from './services/whatsapp-webhook.service';
 
-/**
- * Delivery receipts from Meta for the sign-in codes this deployment sent.
- *
- * Public by necessity — Meta authenticates with an HMAC of the raw body rather than a bearer, so
- * the signature check inside the service IS the authentication. The path is unprefixed and stable
- * because it is registered in the Meta app dashboard (or as a per-WABA override_callback_uri).
- */
 @ApiExcludeController()
 @Controller('communications/webhooks')
 @SkipCsrf()

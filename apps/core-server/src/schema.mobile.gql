@@ -442,6 +442,7 @@ type SendSmsOtpResult {
   sent: Boolean!
   expiresAt: DateTime!
   resendAvailableAt: DateTime!
+  codeLength: Int!
 }
 
 """
@@ -457,6 +458,7 @@ type SendWhatsappOtpResult {
   sent: Boolean!
   expiresAt: DateTime!
   resendAvailableAt: DateTime!
+  codeLength: Int!
 }
 
 type VerifyWhatsappOtpResult {

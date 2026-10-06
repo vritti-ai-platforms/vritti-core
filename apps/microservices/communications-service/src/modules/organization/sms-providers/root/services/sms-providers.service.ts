@@ -9,13 +9,6 @@ import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 
-/**
- * The organization surface for provider rows.
- *
- * Everything here passes straight through to the domain except `delete`, which spans two domains:
- * there are no foreign keys anywhere in this schema, so nothing cascades on its own and a removed
- * provider would leave its template rows behind.
- */
 @Injectable()
 export class SmsProvidersService {
   private readonly logger = new Logger(SmsProvidersService.name);

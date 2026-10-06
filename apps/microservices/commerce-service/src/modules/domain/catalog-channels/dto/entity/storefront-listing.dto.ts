@@ -9,12 +9,6 @@ export interface StorefrontListingRow {
   priceAmount: string | null;
 }
 
-/**
- * One item a storefront sells, resolved through its own APP channel.
- *
- * Deliberately narrow: a storefront shows a name and a price, so nothing about who may edit the
- * listing, its MRP slice or which other channels hide it crosses the wire.
- */
 export class StorefrontListingDto {
   id: string;
   offeringVariantId: string;

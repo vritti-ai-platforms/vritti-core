@@ -7,16 +7,9 @@ import { generateSigningKeyPair } from '@vritti/api-sdk/signing';
 import type { App, AppSmsOtpConfig, AppType, AppWhatsappOtpConfig } from '@/db/schema';
 import { AppDomainRepository } from '../repositories/app.repository';
 
-/** Marks the value in logs and lets secret scanners recognise a leaked client id. */
+// Marks the value in logs and lets secret scanners recognise a leaked client id
 const CLIENT_ID_PREFIX = 'vca_';
 
-/**
- * Owns the credential rows.
- *
- * The signature check, clock skew and rejection policy live in
- * `AppRequestResolver`, which calls into here for the one thing only this server
- * can do: turning a client id into a row.
- */
 @Injectable()
 export class AppDomainService {
   private readonly logger = new Logger(AppDomainService.name);
@@ -28,14 +21,7 @@ export class AppDomainService {
     return this.repository.findAppsForSelect(organizationId, query);
   }
 
-  /**
-   * Mints an app and its keypair.
-   *
-   * Both halves are stored, mirroring `cloud.deployments.signing_key` /
-   * `signing_public_key` — the private half has to be readable later because it
-   * lives in the client's environment, not just in whoever was watching the
-   * screen the day it was created.
-   */
+  // Mints an app and its keypair
   async create(input: {
     organizationId: string;
     name: string;
@@ -68,7 +54,7 @@ export class AppDomainService {
     return this.repository.findByIdInOrg(id, organizationId);
   }
 
-  /** Replaces the keypair, keeping the client id so a caller swaps one value. */
+  // Replaces the keypair, keeping the client id so a caller swaps one value
   async rotate(id: string): Promise<App> {
     const { privateKey, publicKey } = generateSigningKeyPair();
     const app = await this.repository.rotateKeys(id, privateKey, publicKey);
@@ -108,62 +94,31 @@ export class AppDomainService {
     return this.repository.update(id, { name: name.trim() });
   }
 
-  /**
-   * Replaces what the credential may do.
-   *
-   * A whole-set replace rather than a merge: the editor sends the complete selection,
-   * so a permission absent from it has been taken away. Merging would make revoking
-   * impossible.
-   *
-   * The grant is sanitized first. It arrives as free-form JSON over the cloud webhook,
-   * and a malformed shape would not fail validation — it would simply resolve to nothing
-   * later, at the point where the reason is hardest to see.
-   */
+  // Replaces what the credential may do
   async setPermissions(id: string, permissions: FeatureUnlocks): Promise<App> {
     const app = await this.repository.update(id, { permissions: sanitizeGrants(permissions) });
     this.logger.log(`Set permissions on app ${app.clientId}: ${Object.keys(app.permissions).join(', ') || 'none'}`);
     return app;
   }
 
-  /**
-   * Removes the credential outright. The client id stops resolving on the next
-   * request — the same uniform 401 an unknown client gets.
-   */
+  // Removes the credential outright
   async delete(app: App): Promise<void> {
     await this.repository.deleteById(app.id);
     this.logger.log(`Deleted app ${app.clientId}`);
   }
 
-  /**
-   * Resolves a presented client id.
-   *
-   * Returns the row whatever its state. Refusing an inactive or revoked app is
-   * `AppRequestResolver`'s job, so that every rejection looks identical from
-   * outside; deciding it here would split that policy across two places.
-   */
+  // Resolves a presented client id
   findByClientId(clientId: string): Promise<App | undefined> {
     return this.repository.findByClientId(clientId);
   }
 
-  /**
-   * Stamps usage after a request verifies.
-   *
-   * Fire-and-forget by contract: the caller does not await it, and a failure to
-   * record that a valid request happened must never fail that request.
-   */
+  // Stamps usage after a request verifies
   touchLastUsed(appId: string): void {
     void this.repository.touchLastUsed(appId).catch(() => undefined);
   }
 }
 
-/**
- * Keeps only what `FeatureUnlocks` allows: feature codes mapping to per-platform arrays
- * of action codes.
- *
- * An empty array is meaningful and preserved — it means "a member of this feature with
- * no actions", which the resolver reads as view-only membership. `undefined` is the
- * absence of membership, so a platform key is dropped rather than defaulted.
- */
+// Keeps only what `FeatureUnlocks` allows: feature codes mapping to per-platform arrays of action codes
 function sanitizeGrants(grants: FeatureUnlocks): FeatureUnlocks {
   const clean: FeatureUnlocks = {};
   for (const [featureCode, platforms] of Object.entries(grants ?? {})) {

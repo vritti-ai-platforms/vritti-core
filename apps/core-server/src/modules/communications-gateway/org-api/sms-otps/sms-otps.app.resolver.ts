@@ -9,15 +9,6 @@ import { SendSmsOtpInput, VerifySmsOtpInput } from './graphql/sms-otp.input';
 import { SendSmsOtpResult, VerifySmsOtpResult } from './graphql/sms-otp.type';
 import { SmsOtpsGatewayService } from './services/sms-otps-gateway.service';
 
-/**
- * SMS sign-in codes for the organization's own web apps.
- *
- * The provider and code policy come from the calling credential's `smsOtpConfig`, never from an
- * argument — otherwise one storefront could name another's config and send on their bill.
- *
- * Verifying a number is not signing anyone in. These two operations establish only that whoever
- * holds the phone asked for a code and produced it; turning that into a session is the caller's.
- */
 @Resolver()
 @Require(AuthType.App, AppTypeValues.GRAPHQL)
 @RequireFeature(ORG_SMS_OTPS.featureCode)
@@ -26,7 +17,7 @@ export class SmsOtpsAppResolver {
 
   constructor(private readonly service: SmsOtpsGatewayService) {}
 
-  /** Sends a code over SMS, replacing whatever code was live for the number. */
+  // Sends a code over SMS, replacing whatever code was live for the number
   @Mutation(() => SendSmsOtpResult, { name: 'sendSmsOtp' })
   @RequirePermission(ORG_SMS_OTPS.send)
   sendSmsOtp(
@@ -38,7 +29,7 @@ export class SmsOtpsAppResolver {
     return this.service.send(appId, organizationId, input.recipient);
   }
 
-  /** Checks a code. Every failure mode returns `verified: false` — see the service. */
+  // Checks a code. Every failure mode returns `verified: false` — see the service
   @Mutation(() => VerifySmsOtpResult, { name: 'verifySmsOtp' })
   @RequirePermission(ORG_SMS_OTPS.verify)
   verifySmsOtp(@AppId() appId: string, @Args('input') input: VerifySmsOtpInput): Promise<VerifySmsOtpResult> {
