@@ -1,3 +1,4 @@
+import { AttributeTemplatesDomainService } from '@domain/attribute-templates/services/attribute-templates.service';
 import { CategoriesSelectQueryDto } from '@domain/categories/dto/request/categories-select-query.dto';
 import { CategoriesDomainService } from '@domain/categories/services/categories.service';
 import { CostCategoriesDomainService } from '@domain/cost-categories/services/cost-categories.service';
@@ -49,6 +50,7 @@ export class SelectController {
   constructor(
     private readonly categoriesService: CategoriesDomainService,
     private readonly inventoryItemsService: InventoryItemsDomainService,
+    private readonly attributeTemplatesService: AttributeTemplatesDomainService,
     private readonly dimensionTemplatesService: DimensionTemplatesDomainService,
     private readonly offeringsService: OfferingsDomainService,
     private readonly offeringVariantsService: OfferingVariantsDomainService,
@@ -109,6 +111,12 @@ export class SelectController {
   async dimensionTemplates(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.dimensionTemplates');
     return this.dimensionTemplatesService.findForSelect(query);
+  }
+
+  @MessagePattern({ cmd: 'select.attributeTemplates' })
+  async attributeTemplates(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.attributeTemplates');
+    return this.attributeTemplatesService.findForSelect(query);
   }
 
   // Returns paginated UOM options for the select component

@@ -20,6 +20,7 @@ import {
 import { OfferingVariantDto, type OfferingVariantTableRowDto } from '../dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '../dto/entity/variant-combination.dto';
 import type { BulkClearVariantsTaxClassDto } from '../dto/request/bulk-clear-variants-tax-class.dto';
+import type { BulkSetVariantsAttributeDto } from '../dto/request/bulk-set-variants-attribute.dto';
 import type { BulkSetVariantsStatusDto } from '../dto/request/bulk-set-variants-status.dto';
 import type { BulkSetVariantsTaxClassDto } from '../dto/request/bulk-set-variants-tax-class.dto';
 import type { CreateVariantDto } from '../dto/request/create-variant.dto';
@@ -79,6 +80,22 @@ export class OfferingVariantsDomainService {
     });
 
     return { result: rows.map((row) => this.toTableRow(row)), count };
+  }
+
+  // Variant options for a storefront's own picker — which variant a product page is about. Not scoped
+  // to a catalog on purpose: a page should be fileable before the variant is listed anywhere.
+  findOptions(query: {
+    search?: string;
+    excludeIds?: string[];
+    limit?: number;
+    offset?: number;
+  }): Promise<{ items: { id: string; sku: string; name: string }[]; total: number }> {
+    return this.repository.findOptions({
+      search: query.search,
+      excludeIds: query.excludeIds,
+      limit: Math.min(query.limit ?? 50, 200),
+      offset: query.offset ?? 0,
+    });
   }
 
   // Options for the breadcrumb switcher: this offering's variants, keyed by SKU
@@ -328,6 +345,91 @@ export class OfferingVariantsDomainService {
     };
   }
 
+  // Replaces every attribute value this variant carries. Attributes sit outside the combination matrix,
+  // so there is nothing to regenerate — the SKU, the combination key and the variant's own identity are
+  // all untouched, which is why this is an edit rather than a create.
+  async setAttributes(id: string, valueIds: string[]): Promise<SuccessResponseDto> {
+    const { variant, offering } = await this.requireOwnedVariant(id);
+
+    const available = await this.repository.findAttributeValues(offering.id);
+    const byValueId = new Map(available.map((row) => [row.valueId, row.attributeId]));
+    // Deduplicated rather than refused: the same value twice means the same thing as once, and the
+    // (variant, value) unique index would otherwise turn a harmless payload into a constraint error
+    const rows = [...new Set(valueIds)].map((valueId) => {
+      const attributeId = byValueId.get(valueId);
+      if (!attributeId) {
+        throw new BadRequestException({
+          label: 'Unknown Value',
+          detail: 'One of the selected values does not belong to this offering.',
+          errors: [{ field: 'valueIds', message: 'Unknown value' }],
+        });
+      }
+      return { variantId: id, attributeId, valueId };
+    });
+
+    await this.repository.transaction(async () => {
+      await this.repository.deleteVariantAttributeValues(id);
+      await this.repository.insertVariantAttributeValues(rows);
+    });
+
+    this.logger.log(`Set ${rows.length} attribute values on variant ${variant.sku} (${id})`);
+    return {
+      success: true,
+      message:
+        rows.length === 0
+          ? `"${variant.sku}" no longer carries any attributes.`
+          : `"${variant.sku}" now carries ${pluralize('attribute value', rows.length, true)}.`,
+    };
+  }
+
+  // The batch form of setAttributes, narrowed to ONE attribute. Ownership and membership are settled
+  // before anything is written, so the whole selection moves together or nothing does.
+  async bulkSetAttribute(data: BulkSetVariantsAttributeDto): Promise<SuccessResponseDto> {
+    const offering = await this.requireOwnedOffering(data.offeringId);
+    const variants = await this.requireVariantsInOffering(offering, data.ids);
+
+    const attribute = await this.repository.findAttributeInOffering(data.attributeId, offering.id);
+    if (!attribute) {
+      throw new NotFoundException({
+        label: 'Attribute Not Found',
+        detail: `That attribute does not belong to "${offering.name}".`,
+      });
+    }
+
+    // Membership in the NAMED attribute, not merely in the offering: a value of a different attribute
+    // stored under this one would be invisible to the delete-by-attribute that this action relies on
+    const available = await this.repository.findAttributeValues(offering.id);
+    const onAttribute = new Set(
+      available.filter((row) => row.attributeId === data.attributeId).map((row) => row.valueId),
+    );
+    const valueIds = [...new Set(data.valueIds)];
+    if (valueIds.some((valueId) => !onAttribute.has(valueId))) {
+      throw new BadRequestException({
+        label: 'Unknown Value',
+        detail: `One of the selected values does not belong to "${attribute.name}".`,
+        errors: [{ field: 'valueIds', message: 'Unknown value' }],
+      });
+    }
+
+    await this.repository.transaction(async () => {
+      await this.repository.deleteVariantAttributeValuesForAttribute(data.ids, data.attributeId);
+      await this.repository.insertVariantAttributeValues(
+        data.ids.flatMap((variantId) => valueIds.map((valueId) => ({ variantId, attributeId: attribute.id, valueId }))),
+      );
+    });
+
+    this.logger.log(
+      `Bulk set ${valueIds.length} "${attribute.name}" values on ${data.ids.length} variants of ${offering.code}`,
+    );
+    return {
+      success: true,
+      message:
+        valueIds.length === 0
+          ? `"${attribute.name}" cleared on ${pluralize('variant', variants.length, true)}.`
+          : `"${attribute.name}" set to ${pluralize('value', valueIds.length, true)} on ${pluralize('variant', variants.length, true)}.`,
+    };
+  }
+
   // Pins this variant's own tax class, exempting it from the offering's cascade from here on
   async setTaxClass(id: string, data: SetVariantTaxClassDto): Promise<SuccessResponseDto> {
     const { variant } = await this.requireOwnedVariant(id);
@@ -517,6 +619,7 @@ export class OfferingVariantsDomainService {
   private toTableRow(variant: OfferingVariantTableRow): OfferingVariantTableRowDto {
     return OfferingVariantDto.fromTableRow(variant, {
       values: variant.values,
+      attributeValues: variant.attributeValues,
       bomLineCount: variant.bomLineCount,
       salesUomName: variant.salesUomName,
       taxClassName: variant.taxClassName,
@@ -530,6 +633,7 @@ export class OfferingVariantsDomainService {
   private toDto(variant: OfferingVariantTableRow): OfferingVariantDto {
     return OfferingVariantDto.from(variant, {
       values: variant.values,
+      attributeValues: variant.attributeValues,
       bomLineCount: variant.bomLineCount,
       salesUomName: variant.salesUomName,
       canMarkActive: variant.canMarkActive,

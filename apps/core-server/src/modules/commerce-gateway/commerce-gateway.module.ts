@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CommerceGatewayServicesModule } from './commerce-gateway-services.module';
+import { LeAttributeTemplatesGatewayController } from './le-api/attribute-templates/attribute-templates-gateway.controller';
 import { LeCartsGatewayController } from './le-api/carts/carts-gateway.controller';
 import { LeCatalogChannelsGatewayController } from './le-api/catalog-channels/catalog-channels-gateway.controller';
 import { LeCatalogsGatewayController } from './le-api/catalogs/catalogs-gateway.controller';
@@ -11,6 +12,7 @@ import { SuppliersGatewayController } from './le-api/suppliers/suppliers-gateway
 import { TaxGroupsGatewayController } from './le-api/tax-groups/tax-groups-gateway.controller';
 import { TaxGroupsResolver } from './le-api/tax-groups/tax-groups-gateway.resolver';
 import { TaxRegistrationsGatewayController } from './le-api/tax-registrations/tax-registrations-gateway.controller';
+import { OrgAttributeTemplatesGatewayController } from './org-api/attribute-templates/attribute-templates-gateway.controller';
 import { CatalogChannelsGatewayController } from './org-api/catalog-channels/catalog-channels-gateway.controller';
 import { CatalogsGatewayController } from './org-api/catalogs/catalogs-gateway.controller';
 import { CategoriesGatewayController } from './org-api/categories/categories-gateway.controller';
@@ -27,6 +29,7 @@ import { UomGatewayController } from './org-api/uom/uom-gateway.controller';
 import { UomResolver } from './org-api/uom/uom-gateway.resolver';
 import { SelectApiController } from './select-api/select-api.controller';
 import { SelectApiResolver } from './select-api/select-api.resolver';
+import { SiteAttributeTemplatesGatewayController } from './site-api/attribute-templates/attribute-templates-gateway.controller';
 import { CartsGatewayController } from './site-api/carts/carts-gateway.controller';
 import { SiteCatalogChannelsGatewayController } from './site-api/catalog-channels/catalog-channels-gateway.controller';
 import { SiteCatalogsGatewayController } from './site-api/catalogs/catalogs-gateway.controller';
@@ -95,8 +98,11 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     TaxClassesGatewayController,
     TaxComponentsGatewayController,
     TaxJurisdictionsGatewayController,
+    OrgAttributeTemplatesGatewayController,
     OrgDimensionTemplatesGatewayController,
+    LeAttributeTemplatesGatewayController,
     LeDimensionTemplatesGatewayController,
+    SiteAttributeTemplatesGatewayController,
     SiteDimensionTemplatesGatewayController,
     TaxGroupsGatewayController,
     TaxRegistrationsGatewayController,

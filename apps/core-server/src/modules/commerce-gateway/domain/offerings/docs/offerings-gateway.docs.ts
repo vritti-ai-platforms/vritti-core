@@ -1,5 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { OfferingAttributeResponseDto } from '../dto/response/offering-attribute-response.dto';
 import { OfferingDimensionResponseDto } from '../dto/response/offering-dimension-response.dto';
 import { OfferingResponseDto } from '../dto/response/offering-response.dto';
 import { OfferingTableResponseDto } from '../dto/response/offering-table-response.dto';
@@ -174,6 +175,88 @@ export function ApiDeleteOfferingDimension() {
     }),
     ApiParam({ name: 'dimensionId', description: 'Dimension identifier' }),
     ApiResponse({ status: 200, description: 'Dimension removed.' }),
+    ApiResponse({ status: 409, description: 'In use by variants.' }),
+  );
+}
+
+export function ApiListOfferingAttributes() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List an offering’s attributes',
+      description: 'Attributes with their values, in the order a storefront renders them.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, type: [OfferingAttributeResponseDto], description: 'Attributes retrieved.' }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiCreateOfferingAttribute() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Add a custom attribute',
+      description:
+        'Appends an empty attribute defined inline. Its values are set through the values endpoint, and which of them a variant carries is set on the variant.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 201, type: OfferingAttributeResponseDto, description: 'Attribute added.' }),
+    ApiResponse(NOT_OWNED),
+  );
+}
+
+export function ApiCreateOfferingAttributeWithValuesAndTemplate() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Add an attribute from a template',
+      description:
+        'Appends an attribute seeded from a template — its code, name and values are copied server-side, so the request carries only the template reference. The copy keeps no link back, so editing the template later never reshapes the offering.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 201, type: OfferingAttributeResponseDto, description: 'Attribute added from template.' }),
+    ApiResponse({ status: 400, description: 'Template has no values.' }),
+    ApiResponse(NOT_FOUND),
+    ApiResponse(NOT_OWNED),
+  );
+}
+
+export function ApiUpsertOfferingAttributeValues() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Set an attribute's values",
+      description:
+        'Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them.',
+    }),
+    ApiParam({ name: 'attributeId', description: 'Attribute identifier' }),
+    ApiResponse({ status: 200, description: 'Values saved.' }),
+    ApiResponse({ status: 400, description: 'Duplicate value code.' }),
+    ApiResponse({ status: 409, description: 'A value in use by existing variants was removed.' }),
+    ApiResponse(NOT_OWNED),
+  );
+}
+
+export function ApiReorderOfferingAttributes() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Reorder attributes',
+      description:
+        'Sets the order a storefront renders these filter groups in. Nothing derived is stored, so this is always allowed.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, description: 'Order updated.' }),
+    ApiResponse({ status: 400, description: "The list does not match the offering's attributes." }),
+    ApiResponse({ status: 409, description: 'Variants exist, so the order is locked.' }),
+    ApiResponse(NOT_OWNED),
+  );
+}
+
+export function ApiDeleteOfferingAttribute() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Remove an attribute',
+      description: 'Refused while any variant holds one of its values.',
+    }),
+    ApiParam({ name: 'attributeId', description: 'Attribute identifier' }),
+    ApiResponse({ status: 200, description: 'Attribute removed.' }),
     ApiResponse({ status: 409, description: 'In use by variants.' }),
   );
 }
@@ -403,6 +486,34 @@ export function ApiSetOfferingTaxClass() {
   );
 }
 
+export function ApiBulkSetVariantsAttribute() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Set one attribute across many variants',
+      description:
+        "Replaces only the named attribute's values on every selected variant, leaving their other attributes alone. " +
+        'An empty value list clears the attribute across the selection.',
+    }),
+    ApiParam({ name: 'id', description: 'Offering identifier' }),
+    ApiResponse({ status: 200, description: 'Attribute set.' }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiSetVariantAttributes() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Set a variant's attributes",
+      description:
+        'Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the ' +
+        'SKU and the variant matrix are untouched. An empty list clears them.',
+    }),
+    ApiParam({ name: 'variantId', description: 'Variant identifier' }),
+    ApiResponse({ status: 200, description: 'Attributes set.' }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
 export function ApiSetVariantTaxClass() {
   return applyDecorators(
     ApiOperation({
@@ -477,6 +588,19 @@ export function ApiUpdateOfferingDimension() {
     }),
     ApiParam({ name: 'dimensionId', description: 'Dimension identifier' }),
     ApiResponse({ status: 200, description: 'Dimension renamed.' }),
+    ApiResponse(NOT_OWNED),
+  );
+}
+
+export function ApiUpdateOfferingAttribute() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Rename an attribute',
+      description:
+        'Changes the label only. The code is fixed once the attribute exists, because a storefront filters on it.',
+    }),
+    ApiParam({ name: 'attributeId', description: 'Attribute identifier' }),
+    ApiResponse({ status: 200, description: 'Attribute renamed.' }),
     ApiResponse(NOT_OWNED),
   );
 }

@@ -3,6 +3,7 @@ import { SITE_OFFERINGS } from '@vritti/commerce-permissions/offerings';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
 import type {
+  OfferingAttributeData,
   OfferingData,
   OfferingDimensionData,
   OfferingsTableResponse,
@@ -11,6 +12,7 @@ import type {
   VariantBomData,
 } from '@/schemas/offerings';
 import {
+  getAttributes,
   getDimensions,
   getOffering,
   getOfferingsTable,
@@ -55,6 +57,16 @@ export function useOfferingDimensions(offeringId: string, options?: Options<Offe
   return useQuery<OfferingDimensionData[], AxiosError>({
     queryKey: [...OFFERINGS_KEY, offeringId, 'dimensions'],
     queryFn: () => getDimensions(offeringId),
+    ...options,
+    enabled: available && !!offeringId && (options?.enabled ?? true),
+  });
+}
+
+export function useOfferingAttributes(offeringId: string, options?: Options<OfferingAttributeData[]>) {
+  const { available } = usePermission(SITE_OFFERINGS.attributes.view);
+  return useQuery<OfferingAttributeData[], AxiosError>({
+    queryKey: [...OFFERINGS_KEY, offeringId, 'attributes'],
+    queryFn: () => getAttributes(offeringId),
     ...options,
     enabled: available && !!offeringId && (options?.enabled ?? true),
   });

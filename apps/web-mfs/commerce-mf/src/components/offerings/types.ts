@@ -3,26 +3,34 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type { AxiosError } from 'axios';
 import type {
   AddBomLineData,
+  BulkSetVariantsAttributeData,
+  CreateAttributeData,
+  CreateAttributeFromTemplateData,
   CreateDimensionData,
   CreateDimensionFromTemplateData,
   CreateOfferingData,
   CreateVariantData,
   DeleteBomLineData,
   GenerateVariantsData,
+  OfferingAttributeData,
   OfferingData,
   OfferingDimensionData,
   OfferingsTableResponse,
   OfferingVariantData,
   OfferingVariantsTableResponse,
   PreviewCombinationsData,
+  ReorderAttributesData,
   ReorderDimensionsData,
   SetOfferingFulfilmentData,
   SetOfferingTaxClassData,
+  SetVariantAttributesData,
   SetVariantFulfilmentData,
   SetVariantTaxClassData,
+  UpdateAttributeData,
   UpdateBomLineData,
   UpdateDimensionData,
   UpdateOfferingFormData,
+  UpsertAttributeValuesData,
   UpsertDimensionValuesData,
   VariantBomData,
   VariantCombinationsData,
@@ -38,6 +46,7 @@ export interface OfferingPermissions {
   setTaxClass: string;
   export: string;
   dimensions: { view: string; add: string; addFromTemplate: string; edit: string; delete: string };
+  attributes: { view: string; add: string; addFromTemplate: string; edit: string; delete: string };
   // createInventoryItem is organization-only, so the shared shape leaves it optional
   variants: {
     view: string;
@@ -45,6 +54,7 @@ export interface OfferingPermissions {
     edit: string;
     delete: string;
     setTaxClass: string;
+    setAttributes: string;
     export: string;
     // createInventoryItem is organization-only, so the shared shape leaves it optional
     bom: {
@@ -68,6 +78,10 @@ export type UseOfferingDimensions = (offeringId: string) => {
   data: OfferingDimensionData[] | undefined;
   isLoading: boolean;
 };
+export type UseOfferingAttributes = (offeringId: string) => {
+  data: OfferingAttributeData[] | undefined;
+  isLoading: boolean;
+};
 export type UseOfferingVariantsTable = (offeringId: string) => {
   data: OfferingVariantsTableResponse | undefined;
   isLoading: boolean;
@@ -85,14 +99,27 @@ export type UseVariantBom = (variantId: string) => {
 export type UseCreateOffering = MutationHook<CreateResponse<OfferingData>, CreateOfferingData>;
 export type UseUpdateOffering = MutationHook<SuccessResponse, { id: string; data: UpdateOfferingFormData }>;
 export type UseCreateDimension = MutationHook<CreateResponse<OfferingDimensionData>, CreateDimensionData>;
+export type UseCreateAttribute = MutationHook<CreateResponse<OfferingAttributeData>, CreateAttributeData>;
 export type UseCreateDimensionFromTemplate = MutationHook<
   CreateResponse<OfferingDimensionData>,
   CreateDimensionFromTemplateData
 >;
+export type UseCreateAttributeFromTemplate = MutationHook<
+  CreateResponse<OfferingAttributeData>,
+  CreateAttributeFromTemplateData
+>;
 export type UseUpsertDimensionValues = MutationHook<SuccessResponse, UpsertDimensionValuesData>;
+export type UseUpsertAttributeValues = MutationHook<SuccessResponse, UpsertAttributeValuesData>;
+
+export type UseSetVariantAttributes = MutationHook<SuccessResponse, SetVariantAttributesData>;
+
+export type UseBulkSetVariantsAttribute = MutationHook<SuccessResponse, BulkSetVariantsAttributeData>;
 export type UseReorderDimensions = MutationHook<SuccessResponse, ReorderDimensionsData>;
+export type UseReorderAttributes = MutationHook<SuccessResponse, ReorderAttributesData>;
 export type UseUpdateDimension = MutationHook<SuccessResponse, UpdateDimensionData>;
+export type UseUpdateAttribute = MutationHook<SuccessResponse, UpdateAttributeData>;
 export type UseDeleteDimension = MutationHook<SuccessResponse, string>;
+export type UseDeleteAttribute = MutationHook<SuccessResponse, string>;
 export type UseCreateVariant = MutationHook<CreateResponse<OfferingVariantData>, CreateVariantData>;
 export type UsePreviewVariantCombinations = MutationHook<VariantCombinationsData, PreviewCombinationsData>;
 export type UseGenerateVariants = MutationHook<SuccessResponse, GenerateVariantsData>;

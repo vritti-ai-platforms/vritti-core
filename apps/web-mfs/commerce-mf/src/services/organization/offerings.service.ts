@@ -2,6 +2,9 @@ import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   AddBomLineData,
+  BulkSetVariantsAttributeData,
+  CreateAttributeData,
+  CreateAttributeFromTemplateData,
   CreateDimensionData,
   CreateDimensionFromTemplateData,
   CreateOfferingData,
@@ -9,20 +12,25 @@ import type {
   CreateVariantInventoryItemData,
   DeleteBomLineData,
   GenerateVariantsData,
+  OfferingAttributeData,
   OfferingData,
   OfferingDimensionData,
   OfferingsTableResponse,
   OfferingVariantData,
   OfferingVariantsTableResponse,
   PreviewCombinationsData,
+  ReorderAttributesData,
   ReorderDimensionsData,
   SetOfferingFulfilmentData,
   SetOfferingTaxClassData,
+  SetVariantAttributesData,
   SetVariantFulfilmentData,
   SetVariantTaxClassData,
+  UpdateAttributeData,
   UpdateBomLineData,
   UpdateDimensionData,
   UpdateOfferingFormData,
+  UpsertAttributeValuesData,
   UpsertDimensionValuesData,
   VariantBomData,
   VariantCombinationsData,
@@ -70,6 +78,11 @@ export function getDimensions(offeringId: string): Promise<OfferingDimensionData
   return axios.get<OfferingDimensionData[]>(`${BASE}/${offeringId}/dimensions`).then((r) => r.data);
 }
 
+// Attributes, in the order a storefront renders them
+export function getAttributes(offeringId: string): Promise<OfferingAttributeData[]> {
+  return axios.get<OfferingAttributeData[]>(`${BASE}/${offeringId}/attributes`).then((r) => r.data);
+}
+
 // Appends a dimension seeded from a template — the copy keeps no link back to the template
 export function createDimension({
   offeringId,
@@ -77,6 +90,16 @@ export function createDimension({
 }: CreateDimensionData): Promise<CreateResponse<OfferingDimensionData>> {
   return axios
     .post<CreateResponse<OfferingDimensionData>>(`${BASE}/${offeringId}/dimensions`, data)
+    .then((r) => r.data);
+}
+
+// Appends an attribute defined inline; its values are set separately
+export function createAttribute({
+  offeringId,
+  ...data
+}: CreateAttributeData): Promise<CreateResponse<OfferingAttributeData>> {
+  return axios
+    .post<CreateResponse<OfferingAttributeData>>(`${BASE}/${offeringId}/attributes`, data)
     .then((r) => r.data);
 }
 
@@ -90,17 +113,39 @@ export function createDimensionFromTemplate({
     .then((r) => r.data);
 }
 
+export function createAttributeFromTemplate({
+  offeringId,
+  ...data
+}: CreateAttributeFromTemplateData): Promise<CreateResponse<OfferingAttributeData>> {
+  return axios
+    .post<CreateResponse<OfferingAttributeData>>(`${BASE}/${offeringId}/attributes/with-values-and-template`, data)
+    .then((r) => r.data);
+}
+
 // Replaces a dimension's value set
 export function upsertDimensionValues({ dimensionId, ...data }: UpsertDimensionValuesData): Promise<SuccessResponse> {
   return axios.put<SuccessResponse>(`${BASE}/dimensions/${dimensionId}/values`, data).then((r) => r.data);
+}
+
+// Replaces an attribute's value set
+export function upsertAttributeValues({ attributeId, ...data }: UpsertAttributeValuesData): Promise<SuccessResponse> {
+  return axios.put<SuccessResponse>(`${BASE}/attributes/${attributeId}/values`, data).then((r) => r.data);
 }
 // Position drives SKU segment order, so the whole ordered list travels together
 export function reorderDimensions({ offeringId, dimensionIds }: ReorderDimensionsData): Promise<SuccessResponse> {
   return axios.put<SuccessResponse>(`${BASE}/${offeringId}/dimensions/order`, { dimensionIds }).then((r) => r.data);
 }
 
+export function reorderAttributes({ offeringId, attributeIds }: ReorderAttributesData): Promise<SuccessResponse> {
+  return axios.put<SuccessResponse>(`${BASE}/${offeringId}/attributes/order`, { attributeIds }).then((r) => r.data);
+}
+
 export function deleteDimension(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/dimensions/${id}`).then((r) => r.data);
+}
+
+export function deleteAttribute(id: string): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/attributes/${id}`).then((r) => r.data);
 }
 
 // Variants with their dimension values and bill of materials
@@ -251,6 +296,20 @@ export function setOfferingTaxClass({ id, taxClassId }: SetOfferingTaxClassData)
   return axios.patch<SuccessResponse>(`${BASE}/${id}/tax-class`, { taxClassId }).then((r) => r.data);
 }
 
+// Replaces only the named attribute's values on every selected variant, leaving the rest alone
+export function bulkSetVariantsAttribute({
+  offeringId,
+  ...data
+}: BulkSetVariantsAttributeData): Promise<SuccessResponse> {
+  return axios.put<SuccessResponse>(`${BASE}/${offeringId}/variants/attributes`, data).then((r) => r.data);
+}
+
+// Replaces every attribute value this variant carries; the attribute each belongs to is derived
+// server-side, and an empty list clears them
+export function setVariantAttributes({ variantId, valueIds }: SetVariantAttributesData): Promise<SuccessResponse> {
+  return axios.put<SuccessResponse>(`${BASE}/variants/${variantId}/attributes`, { valueIds }).then((r) => r.data);
+}
+
 export function setVariantTaxClass({ variantId, taxClassId }: SetVariantTaxClassData): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${BASE}/variants/${variantId}/tax-class`, { taxClassId }).then((r) => r.data);
 }
@@ -262,4 +321,9 @@ export function clearVariantTaxClass(variantId: string): Promise<SuccessResponse
 // Renames a dimension; its code is fixed because every derived SKU carries it
 export function updateDimension({ id, name }: UpdateDimensionData): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${BASE}/dimensions/${id}`, { name }).then((r) => r.data);
+}
+
+// Renames an attribute; its code is fixed because a storefront filters on it
+export function updateAttribute({ id, name }: UpdateAttributeData): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/attributes/${id}`, { name }).then((r) => r.data);
 }

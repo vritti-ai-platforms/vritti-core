@@ -8,6 +8,14 @@ export class OfferingVariantValueRefResponseDto {
   @ApiProperty() valueCode: string;
 }
 
+export class OfferingVariantAttributeValueRefResponseDto {
+  @ApiProperty() attributeId: string;
+  @ApiProperty() attributeName: string;
+  @ApiProperty() valueId: string;
+  @ApiProperty() value: string;
+  @ApiProperty() valueCode: string;
+}
+
 export class OfferingBomLineResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() variantId: string;
@@ -36,6 +44,11 @@ export class OfferingVariantResponseDto {
   @ApiProperty() isActive: boolean;
   @ApiProperty() isOfferingActive: boolean;
   @ApiProperty({ type: [OfferingVariantValueRefResponseDto] }) values: OfferingVariantValueRefResponseDto[];
+  @ApiProperty({
+    type: [OfferingVariantAttributeValueRefResponseDto],
+    description: 'Several entries may share an attributeId — an attribute is multi-valued, unlike a dimension',
+  })
+  attributeValues: OfferingVariantAttributeValueRefResponseDto[];
   @ApiProperty() bomLineCount: number;
   @ApiProperty({ description: "Whether the bill of materials satisfies this variant's fulfilment type" })
   canMarkActive: boolean;

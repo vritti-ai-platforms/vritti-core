@@ -5,11 +5,13 @@ import type {
 } from '@domain/offering-variants/dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '@domain/offering-variants/dto/entity/variant-combination.dto';
 import type { BulkClearVariantsTaxClassDto } from '@domain/offering-variants/dto/request/bulk-clear-variants-tax-class.dto';
+import { BulkSetVariantsAttributeDto } from '@domain/offering-variants/dto/request/bulk-set-variants-attribute.dto';
 import { BulkSetVariantsStatusDto } from '@domain/offering-variants/dto/request/bulk-set-variants-status.dto';
 import type { BulkSetVariantsTaxClassDto } from '@domain/offering-variants/dto/request/bulk-set-variants-tax-class.dto';
 import { CreateVariantDto } from '@domain/offering-variants/dto/request/create-variant.dto';
 import { GenerateVariantsDto } from '@domain/offering-variants/dto/request/generate-variants.dto';
 import type { PreviewCombinationsDto } from '@domain/offering-variants/dto/request/preview-combinations.dto';
+import { SetVariantAttributesDto } from '@domain/offering-variants/dto/request/set-variant-attributes.dto';
 import { SetVariantFulfilmentDto } from '@domain/offering-variants/dto/request/set-variant-fulfilment.dto';
 import { SetVariantTaxClassDto } from '@domain/offering-variants/dto/request/set-variant-tax-class.dto';
 import { UpdateVariantDto } from '@domain/offering-variants/dto/request/update-variant.dto';
@@ -103,6 +105,23 @@ export class OrgOfferingVariantsController {
   bulkSetStatus(@Payload() dto: BulkSetVariantsStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bulkSetStatus — count: ${dto.ids.length}, isActive: ${dto.isActive}`);
     return this.service.bulkSetStatus(dto);
+  }
+
+  // Sets ONE attribute across many variants, replacing only that attribute's values on each
+  @MessagePattern({ cmd: 'org.offerings.variants.bulkSetAttribute' })
+  bulkSetAttribute(@Payload() dto: BulkSetVariantsAttributeDto): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `offerings.variants.bulkSetAttribute — count: ${dto.ids.length}, attributeId: ${dto.attributeId}, values: ${dto.valueIds.length}`,
+    );
+    return this.service.bulkSetAttribute(dto);
+  }
+
+  // Replaces the attribute values this variant carries; attributes sit outside the combination matrix,
+  // so nothing about the variant's identity changes
+  @MessagePattern({ cmd: 'org.offerings.variants.setAttributes' })
+  setAttributes(@Payload() dto: SetVariantAttributesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.setAttributes — id: ${dto.id}, values: ${dto.valueIds.length}`);
+    return this.service.setAttributes(dto.id, dto.valueIds);
   }
 
   // Pins this variant's own tax class, exempting it from the offering's cascade

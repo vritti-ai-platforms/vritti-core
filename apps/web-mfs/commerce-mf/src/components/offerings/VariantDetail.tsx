@@ -6,6 +6,7 @@ import type React from 'react';
 import { FULFILMENT_TYPE_META } from '@/schemas/offerings';
 import type { OfferingsBinding } from './bindings';
 import { VariantHeaderActions } from './components/VariantHeaderActions';
+import { AttributesTab } from './variant-tabs/AttributesTab';
 import { BomTab } from './variant-tabs/BomTab';
 import { OverviewTab } from './variant-tabs/OverviewTab';
 
@@ -59,6 +60,20 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
             value: 'overview',
             label: 'Overview',
             content: <OverviewTab offering={offering} variant={variant} />,
+          },
+          {
+            value: 'attributes',
+            label: 'Attributes',
+            permission: PERMISSIONS.attributes.view,
+            content: (
+              <AttributesTab
+                permissions={PERMISSIONS}
+                offering={offering}
+                variant={variant}
+                useAttributes={binding.useAttributes}
+                useSetAttributes={binding.useSetVariantAttributes}
+              />
+            ),
           },
           {
             value: 'bom',

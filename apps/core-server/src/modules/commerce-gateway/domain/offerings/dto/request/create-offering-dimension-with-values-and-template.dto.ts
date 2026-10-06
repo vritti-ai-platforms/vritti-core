@@ -1,7 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 
 export class OfferingDimensionValueInputDto {
   @ApiProperty({ example: 'red' })
@@ -21,6 +30,12 @@ export class OfferingDimensionValueInputDto {
 }
 
 export class CreateOfferingDimensionWithValuesAndTemplateDto {
+  // The template the values were taken from. Required: the microservice checks every submitted
+  // value really belongs to it, so without this a caller could invent values and claim a template.
+  @ApiProperty({ format: 'uuid', description: 'Template the values were chosen from' })
+  @IsUUID('7')
+  templateId: string;
+
   @ApiProperty({ example: 'colour' })
   @Trim({ nullify: false })
   @IsString()

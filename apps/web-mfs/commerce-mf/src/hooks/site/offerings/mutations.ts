@@ -3,24 +3,32 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type { AxiosError } from 'axios';
 import type {
   AddBomLineData,
+  BulkSetVariantsAttributeData,
+  CreateAttributeData,
+  CreateAttributeFromTemplateData,
   CreateDimensionData,
   CreateDimensionFromTemplateData,
   CreateOfferingData,
   CreateVariantData,
   DeleteBomLineData,
   GenerateVariantsData,
+  OfferingAttributeData,
   OfferingData,
   OfferingDimensionData,
   OfferingVariantData,
   PreviewCombinationsData,
+  ReorderAttributesData,
   ReorderDimensionsData,
   SetOfferingFulfilmentData,
   SetOfferingTaxClassData,
+  SetVariantAttributesData,
   SetVariantFulfilmentData,
   SetVariantTaxClassData,
+  UpdateAttributeData,
   UpdateBomLineData,
   UpdateDimensionData,
   UpdateOfferingFormData,
+  UpsertAttributeValuesData,
   UpsertDimensionValuesData,
   VariantCombinationsData,
 } from '@/schemas/offerings';
@@ -29,30 +37,38 @@ import {
   addSuggestedComponent,
   bulkClearVariantsTaxClass,
   bulkSetOfferingsStatus,
+  bulkSetVariantsAttribute,
   bulkSetVariantsStatus,
   bulkSetVariantsTaxClass,
   clearVariantFulfilment,
   clearVariantTaxClass,
+  createAttribute,
+  createAttributeFromTemplate,
   createDimension,
   createDimensionFromTemplate,
   createOffering,
   createVariant,
+  deleteAttribute,
   deleteBomLine,
   deleteDimension,
   deleteOffering,
   deleteVariant,
   generateVariants,
   previewVariantCombinations,
+  reorderAttributes,
   reorderDimensions,
   setOfferingFulfilment,
   setOfferingStatus,
   setOfferingTaxClass,
+  setVariantAttributes,
   setVariantFulfilment,
   setVariantTaxClass,
+  updateAttribute,
   updateBomLine,
   updateDimension,
   updateOffering,
   updateVariant,
+  upsertAttributeValues,
   upsertDimensionValues,
 } from '@/services/site/offerings.service';
 import { OFFERINGS_KEY } from './keys';
@@ -153,6 +169,22 @@ export function useBulkSetVariantsTaxClass(
   });
 }
 
+// One attribute across the whole selection. Scoped to that attribute so a batch cannot clear values
+// the dialog never showed.
+export function useBulkSetVariantsAttribute(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, BulkSetVariantsAttributeData>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, BulkSetVariantsAttributeData>({
+    ...options,
+    mutationFn: bulkSetVariantsAttribute,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
 export function useBulkSetVariantsStatus(
   options?: Omit<
     UseMutationOptions<SuccessResponse, AxiosError, { offeringId: string; ids: string[]; isActive: boolean }>,
@@ -201,6 +233,23 @@ export function useCreateDimension(
   });
 }
 
+export function useCreateAttribute(
+  options?: Omit<
+    UseMutationOptions<CreateResponse<OfferingAttributeData>, AxiosError, CreateAttributeData>,
+    'mutationFn'
+  >,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<CreateResponse<OfferingAttributeData>, AxiosError, CreateAttributeData>({
+    ...options,
+    mutationFn: createAttribute,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
 export function useCreateDimensionFromTemplate(
   options?: Omit<
     UseMutationOptions<CreateResponse<OfferingDimensionData>, AxiosError, CreateDimensionFromTemplateData>,
@@ -211,6 +260,23 @@ export function useCreateDimensionFromTemplate(
   return useMutation<CreateResponse<OfferingDimensionData>, AxiosError, CreateDimensionFromTemplateData>({
     ...options,
     mutationFn: createDimensionFromTemplate,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useCreateAttributeFromTemplate(
+  options?: Omit<
+    UseMutationOptions<CreateResponse<OfferingAttributeData>, AxiosError, CreateAttributeFromTemplateData>,
+    'mutationFn'
+  >,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<CreateResponse<OfferingAttributeData>, AxiosError, CreateAttributeFromTemplateData>({
+    ...options,
+    mutationFn: createAttributeFromTemplate,
     onSuccess: (...args) => {
       invalidate();
       options?.onSuccess?.(...args);
@@ -231,6 +297,20 @@ export function useUpsertDimensionValues(
     },
   });
 }
+
+export function useUpsertAttributeValues(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpsertAttributeValuesData>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, UpsertAttributeValuesData>({
+    ...options,
+    mutationFn: upsertAttributeValues,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
 export function useReorderDimensions(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, ReorderDimensionsData>, 'mutationFn'>,
 ) {
@@ -238,6 +318,20 @@ export function useReorderDimensions(
   return useMutation<SuccessResponse, AxiosError, ReorderDimensionsData>({
     ...options,
     mutationFn: reorderDimensions,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useReorderAttributes(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, ReorderAttributesData>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, ReorderAttributesData>({
+    ...options,
+    mutationFn: reorderAttributes,
     onSuccess: (...args) => {
       invalidate();
       options?.onSuccess?.(...args);
@@ -259,6 +353,20 @@ export function useUpdateDimension(
   });
 }
 
+export function useUpdateAttribute(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpdateAttributeData>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, UpdateAttributeData>({
+    ...options,
+    mutationFn: updateAttribute,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
 export function useDeleteDimension(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
@@ -266,6 +374,20 @@ export function useDeleteDimension(
   return useMutation<SuccessResponse, AxiosError, string>({
     ...options,
     mutationFn: deleteDimension,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useDeleteAttribute(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, string>({
+    ...options,
+    mutationFn: deleteAttribute,
     onSuccess: (...args) => {
       invalidate();
       options?.onSuccess?.(...args);
@@ -426,6 +548,22 @@ export function useSetOfferingTaxClass(
   return useMutation<SuccessResponse, AxiosError, SetOfferingTaxClassData>({
     ...options,
     mutationFn: setOfferingTaxClass,
+    onSuccess: (...args) => {
+      invalidate();
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+// The whole set in one call: attributes are multi-valued, so a per-value toggle would make an eight-tag
+// variant eight requests and leave it half-tagged if one failed
+export function useSetVariantAttributes(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetVariantAttributesData>, 'mutationFn'>,
+) {
+  const invalidate = useInvalidate();
+  return useMutation<SuccessResponse, AxiosError, SetVariantAttributesData>({
+    ...options,
+    mutationFn: setVariantAttributes,
     onSuccess: (...args) => {
       invalidate();
       options?.onSuccess?.(...args);

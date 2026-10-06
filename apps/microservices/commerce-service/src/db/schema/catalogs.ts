@@ -1,6 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, check, index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
+import { catalogFilterModeEnum } from './enums';
 import { organizationIdColumn, workspaceScopeColumns, workspaceScopePolicies } from './workspace-scope';
 
 export const catalogs = commerceSchema.table(
@@ -12,6 +13,10 @@ export const catalogs = commerceSchema.table(
     siteId: workspaceScopeColumns.siteId,
     name: varchar('name', { length: 255 }).notNull(),
     taxInclusive: boolean('tax_inclusive').notNull().default(false),
+    // What the number beside a storefront filter value counts. STATIC counts the whole catalog and
+    // costs one query; NARROWING counts what each value would still return given the other groups'
+    // selections, which prevents dead-end clicks but costs one aggregate per selected group.
+    filterMode: catalogFilterModeEnum('filter_mode').notNull().default('STATIC'),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

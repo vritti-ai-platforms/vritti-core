@@ -2,9 +2,11 @@ import { commerceSchema } from './commerce-schema';
 
 export const catalogChannelTypeEnum = commerceSchema.enum('catalog_channel_type', ['APP', 'POS', 'B2B']);
 export const fulfilmentTypeEnum = commerceSchema.enum('fulfilment_type', ['STOCK', 'ASSEMBLY', 'COMPOSITE', 'SERVICE']);
+export const catalogFilterModeEnum = commerceSchema.enum('catalog_filter_mode', ['STATIC', 'NARROWING']);
 
 export type CatalogChannelType = (typeof catalogChannelTypeEnum.enumValues)[number];
 export type FulfilmentType = (typeof fulfilmentTypeEnum.enumValues)[number];
+export type CatalogFilterMode = (typeof catalogFilterModeEnum.enumValues)[number];
 
 export const CatalogChannelTypeValues = {
   APP: 'APP' as const,
@@ -614,3 +616,8 @@ export const SocialPlatformValues = {
   WEBSITE: 'WEBSITE' as const,
 };
 export type SocialPlatform = (typeof socialPlatformEnum.enumValues)[number];
+
+export const CatalogFilterModeValues = {
+  STATIC: 'STATIC' as const,
+  NARROWING: 'NARROWING' as const,
+};

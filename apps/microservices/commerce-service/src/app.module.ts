@@ -7,6 +7,7 @@ import { DB_SCHEMA } from '@/db/schema/commerce-schema';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
+import { LeAttributeTemplatesModule } from './modules/legal-entity/attribute-templates/attribute-templates.module';
 import { LeCartsModule } from './modules/legal-entity/carts/carts.module';
 import { LeCatalogChannelsModule } from './modules/legal-entity/catalog-channels/catalog-channels.module';
 import { LeCatalogsModule } from './modules/legal-entity/catalogs/catalogs.module';
@@ -16,6 +17,7 @@ import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.mo
 import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
 import { LeTaxRegistrationsModule } from './modules/legal-entity/tax-registrations/tax-registrations.module';
+import { OrgAttributeTemplatesModule } from './modules/organization/attribute-templates/attribute-templates.module';
 import { OrgCatalogChannelsModule } from './modules/organization/catalog-channels/catalog-channels.module';
 import { OrgCatalogsModule } from './modules/organization/catalogs/catalogs.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
@@ -30,6 +32,7 @@ import { OrgTaxJurisdictionsModule } from './modules/organization/tax-jurisdicti
 import { OrgUomModule } from './modules/organization/uom/uom.module';
 import { OrgWishlistModule } from './modules/organization/wishlist/wishlist.module';
 import { SelectModule } from './modules/select/select.module';
+import { SiteAttributeTemplatesModule } from './modules/site/attribute-templates/attribute-templates.module';
 import { SiteCartsModule } from './modules/site/carts/carts.module';
 import { SiteCatalogChannelsModule } from './modules/site/catalog-channels/catalog-channels.module';
 import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
@@ -120,14 +123,17 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     LeCatalogChannelsModule,
     SiteCatalogChannelsModule,
     OrgInventoryItemsModule,
+    OrgAttributeTemplatesModule,
     OrgDimensionTemplatesModule,
     OrgOfferingsModule,
     LeCostCategoriesModule,
     LeTaxGroupsModule,
     LeTaxRegistrationsModule,
     LeSuppliersModule,
+    LeAttributeTemplatesModule,
     LeDimensionTemplatesModule,
     LeOfferingsModule,
+    SiteAttributeTemplatesModule,
     SiteDimensionTemplatesModule,
     SiteOfferingsModule,
     SiteInventoryItemsModule,

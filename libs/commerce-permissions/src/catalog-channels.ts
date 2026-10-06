@@ -9,6 +9,7 @@ export const ORG_CATALOG_CHANNELS = {
   // groups when those surfaces exist.
   app: {
     listings: 'org.catalog-channels.app.listings',
+    listing: 'org.catalog-channels.app.listing',
     listingsFromVariants: 'org.catalog-channels.app.listings-from-variants',
   },
 } as const;
@@ -19,6 +20,7 @@ export const LE_CATALOG_CHANNELS = {
   edit: 'le.catalog-channels.edit',
   app: {
     listings: 'le.catalog-channels.app.listings',
+    listing: 'le.catalog-channels.app.listing',
     listingsFromVariants: 'le.catalog-channels.app.listings-from-variants',
   },
 } as const;
@@ -29,6 +31,7 @@ export const SITE_CATALOG_CHANNELS = {
   edit: 'site.catalog-channels.edit',
   app: {
     listings: 'site.catalog-channels.app.listings',
+    listing: 'site.catalog-channels.app.listing',
     listingsFromVariants: 'site.catalog-channels.app.listings-from-variants',
   },
 } as const;

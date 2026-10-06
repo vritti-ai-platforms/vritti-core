@@ -8,6 +8,14 @@ export class OfferingVariantValueRefDto {
   valueCode: string;
 }
 
+export class OfferingVariantAttributeValueRefDto {
+  attributeId: string;
+  attributeName: string;
+  valueId: string;
+  value: string;
+  valueCode: string;
+}
+
 export class OfferingVariantDto {
   id: string;
   offeringId: string;
@@ -24,6 +32,8 @@ export class OfferingVariantDto {
   isActive: boolean;
   isOfferingActive: boolean;
   values: OfferingVariantValueRefDto[];
+  // Several entries may share an attributeId — an attribute is multi-valued, unlike a dimension
+  attributeValues: OfferingVariantAttributeValueRefDto[];
   bomLineCount: number;
   canMarkActive: boolean;
   canDelete: boolean;
@@ -38,6 +48,7 @@ export class OfferingVariantDto {
     entity: OfferingVariant,
     options: {
       values?: OfferingVariantValueRefDto[];
+      attributeValues?: OfferingVariantAttributeValueRefDto[];
       bomLineCount?: number;
       salesUomName?: string | null;
       canMarkActive?: boolean;
@@ -47,6 +58,7 @@ export class OfferingVariantDto {
   ): OfferingVariantTableRowDto {
     const {
       values = [],
+      attributeValues = [],
       bomLineCount = 0,
       salesUomName = null,
       canMarkActive = false,
@@ -71,6 +83,7 @@ export class OfferingVariantDto {
       isActive: entity.isActive && entity.isOfferingActive,
       isOfferingActive: entity.isOfferingActive,
       values,
+      attributeValues,
       bomLineCount,
       canMarkActive,
       canDelete,
@@ -83,6 +96,7 @@ export class OfferingVariantDto {
     entity: OfferingVariant,
     options: {
       values?: OfferingVariantValueRefDto[];
+      attributeValues?: OfferingVariantAttributeValueRefDto[];
       bomLineCount?: number;
       salesUomName?: string | null;
       canMarkActive?: boolean;

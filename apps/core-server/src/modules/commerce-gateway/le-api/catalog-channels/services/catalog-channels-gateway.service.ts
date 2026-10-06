@@ -26,6 +26,12 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 import type { CatalogListing } from '../../../org-api/catalog-channels/graphql/catalog-listing.type';
+import type {
+  CatalogListings,
+  FilterInput,
+  ListingFilter,
+  ListingQuery,
+} from '../../../org-api/catalog-channels/graphql/catalog-listings.type';
 
 const ITEMS_TABLE_SLUG = (channelId: string) => `commerce-le-channel-${channelId}-items`;
 
@@ -70,9 +76,27 @@ export class LeCatalogChannelsGatewayService {
   }
 
   // The storefront's range — one call, because commerce resolves the channel and joins the prices
-  async appListings(appId: string): Promise<CatalogListing[]> {
-    this.logger.log('le.catalogChannels.app.listings');
-    return this.nats.send('commerce', 'le.catalogChannels.app.listings', { appId });
+  // The page plus what the lazy `filters` field will need, so the channel resolves once per request
+  async appListings(appId: string, query: ListingQuery): Promise<CatalogListings> {
+    this.logger.log(`le.catalogChannels.app.listings — page: ${query.page ?? 1}`);
+    const page = await this.nats.send<Omit<CatalogListings, 'filters' | 'appId' | 'selected' | 'scope'>>(
+      'commerce',
+      'le.catalogChannels.app.listings',
+      { appId, ...query },
+    );
+    return { ...page, filters: [], appId, selected: query.filters ?? [], scope: 'le' };
+  }
+
+  // One listing by the variant a storefront stores against its own product row
+  async appListing(appId: string, variantId: string): Promise<CatalogListing | null> {
+    this.logger.log(`le.catalogChannels.app.listing — variantId: ${variantId}`);
+    return this.nats.send('commerce', 'le.catalogChannels.app.listing', { appId, variantId });
+  }
+
+  // Only sent when the client selected the `filters` field — see CatalogListingsFieldsResolver
+  async appListingFilters(appId: string, filters: FilterInput[]): Promise<ListingFilter[]> {
+    this.logger.log(`le.catalogChannels.app.listingFilters — selected: ${filters.length}`);
+    return this.nats.send('commerce', 'le.catalogChannels.app.listingFilters', { appId, filters });
   }
 
   // Prices variants the caller already holds — a wishlist or a basket

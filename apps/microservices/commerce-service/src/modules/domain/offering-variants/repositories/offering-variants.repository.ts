@@ -1,6 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, getColumns, inArray, notExists, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  and,
+  asc,
+  eq,
+  getColumns,
+  ilike,
+  inArray,
+  notExists,
+  notInArray,
+  or,
+  type SQL,
+  sql,
+} from '@vritti/api-sdk/drizzle-orm';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   type FulfilmentType,
@@ -8,10 +20,13 @@ import {
   inventoryItems,
   type NewOfferingVariant,
   type OfferingVariant,
+  offeringAttributes,
+  offeringAttributeValues,
   offeringBom,
   offeringDimensions,
   offeringDimensionValues,
   offerings,
+  offeringVariantAttributeValues,
   offeringVariants,
   offeringVariantValues,
   orderItems,
@@ -32,6 +47,14 @@ export interface OfferingRef {
 export interface VariantValueRef {
   dimensionId: string;
   dimensionName: string;
+  valueId: string;
+  value: string;
+  valueCode: string;
+}
+
+export interface VariantAttributeValueRef {
+  attributeId: string;
+  attributeName: string;
   valueId: string;
   value: string;
   valueCode: string;
@@ -58,6 +81,7 @@ export type OfferingVariantTableRow = OfferingVariant & {
   salesUomName: string | null;
   taxClassName: string | null;
   values: VariantValueRef[];
+  attributeValues: VariantAttributeValueRef[];
   bomLineCount: number;
   canMarkActive: boolean;
   canDelete: boolean;
@@ -70,6 +94,11 @@ export interface DimensionValueRow {
   valueId: string;
   value: string;
   valueCode: string;
+}
+
+export interface AttributeValueRow {
+  attributeId: string;
+  valueId: string;
 }
 
 @Injectable()
@@ -112,12 +141,32 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .where(eq(offeringVariantValues.variantId, offeringVariants.id));
   }
 
+  // The attribute values the variant carries. Ordered by attribute then value so the UI groups them
+  // without sorting, and unlike valuesJson() there may be several rows per attribute.
+  private attributeValuesJson() {
+    return this.db
+      .select({
+        json: sql`coalesce(json_agg(json_build_object(
+          'attributeId', ${offeringAttributes.id},
+          'attributeName', ${offeringAttributes.name},
+          'valueId', ${offeringAttributeValues.id},
+          'value', ${offeringAttributeValues.value},
+          'valueCode', ${offeringAttributeValues.code}
+        ) order by ${offeringAttributes.sortOrder}, ${offeringAttributeValues.sortOrder}), '[]'::json)`,
+      })
+      .from(offeringVariantAttributeValues)
+      .innerJoin(offeringAttributes, eq(offeringAttributes.id, offeringVariantAttributeValues.attributeId))
+      .innerJoin(offeringAttributeValues, eq(offeringAttributeValues.id, offeringVariantAttributeValues.valueId))
+      .where(eq(offeringVariantAttributeValues.variantId, offeringVariants.id));
+  }
+
   private tableSelection() {
     return {
       ...getColumns(offeringVariants),
       salesUomName: uom.name,
       taxClassName: taxClasses.name,
       values: sql<VariantValueRef[]>`(${this.valuesJson()})`,
+      attributeValues: sql<VariantAttributeValueRef[]>`(${this.attributeValuesJson()})`,
       bomLineCount: this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id)),
       canMarkActive: sql<boolean>`${offeringVariants.isActive} or ${this.db.$count(
         offeringBom,
@@ -184,6 +233,16 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .orderBy(asc(offeringDimensions.sortOrder), asc(offeringDimensionValues.sortOrder));
   }
 
+  // Every attribute value an offering offers, so an assignment can be checked against the offering that
+  // owns it. Only the ids matter — the caller is validating a submitted set, not rendering it.
+  async findAttributeValues(offeringId: string): Promise<AttributeValueRow[]> {
+    return this.db
+      .select({ attributeId: offeringAttributes.id, valueId: offeringAttributeValues.id })
+      .from(offeringAttributes)
+      .innerJoin(offeringAttributeValues, eq(offeringAttributeValues.attributeId, offeringAttributes.id))
+      .where(eq(offeringAttributes.offeringId, offeringId));
+  }
+
   async countDimensions(offeringId: string): Promise<number> {
     const [row] = await this.db
       .select({ n: sql<number>`count(*)::int` })
@@ -201,6 +260,36 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
         eq(offeringVariants.isOfferingActive, true),
       ],
     });
+  }
+
+  // Variant options for a picker, across every offering this workspace can reach. `excludeIds` is
+  // applied in SQL rather than by the caller: filtering a page after it is fetched can return an empty
+  // page while matches sit on the next one, which reads as "nothing left" and is indistinguishable
+  // from it.
+  async findOptions(options: {
+    search?: string;
+    excludeIds?: string[];
+    limit: number;
+    offset: number;
+  }): Promise<{ items: { id: string; sku: string; name: string }[]; total: number }> {
+    const search = options.search?.trim();
+    const where = and(
+      search ? or(ilike(offeringVariants.sku, `%${search}%`), ilike(offeringVariants.name, `%${search}%`)) : undefined,
+      options.excludeIds?.length ? notInArray(offeringVariants.id, options.excludeIds) : undefined,
+    );
+
+    const items = this.db
+      .select({ id: offeringVariants.id, sku: offeringVariants.sku, name: offeringVariants.name })
+      .from(offeringVariants)
+      .where(where)
+      .orderBy(asc(offeringVariants.sku))
+      .limit(options.limit)
+      .offset(options.offset);
+
+    const count = this.db.select({ count: sql<number>`count(*)::int` }).from(offeringVariants).where(where);
+
+    const [rows, [{ count: total }]] = await Promise.all([items, count]);
+    return { items: rows, total };
   }
 
   // Which of these SKUs are already taken. Org-wide, matching the constraint — RLS scopes it.
@@ -329,5 +418,43 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
 
   async deleteVariantValues(variantId: string): Promise<void> {
     await this.db.delete(offeringVariantValues).where(eq(offeringVariantValues.variantId, variantId));
+  }
+
+  async insertVariantAttributeValues(
+    rows: { variantId: string; attributeId: string; valueId: string }[],
+  ): Promise<void> {
+    if (rows.length === 0) return;
+    await this.db.insert(offeringVariantAttributeValues).values(rows);
+  }
+
+  async deleteVariantAttributeValues(variantId: string): Promise<void> {
+    await this.db.delete(offeringVariantAttributeValues).where(eq(offeringVariantAttributeValues.variantId, variantId));
+  }
+
+  // Clears ONE attribute across many variants, leaving their other attributes alone — the bulk action
+  // sets a single axis, so it must not touch what it was not shown
+  async deleteVariantAttributeValuesForAttribute(variantIds: string[], attributeId: string): Promise<void> {
+    if (variantIds.length === 0) return;
+    await this.db
+      .delete(offeringVariantAttributeValues)
+      .where(
+        and(
+          inArray(offeringVariantAttributeValues.variantId, variantIds),
+          eq(offeringVariantAttributeValues.attributeId, attributeId),
+        ),
+      );
+  }
+
+  // One attribute, restricted to an offering — an id from another offering simply does not come back
+  async findAttributeInOffering(
+    attributeId: string,
+    offeringId: string,
+  ): Promise<{ id: string; name: string } | undefined> {
+    const [row] = await this.db
+      .select({ id: offeringAttributes.id, name: offeringAttributes.name })
+      .from(offeringAttributes)
+      .where(and(eq(offeringAttributes.id, attributeId), eq(offeringAttributes.offeringId, offeringId)))
+      .limit(1);
+    return row;
   }
 }

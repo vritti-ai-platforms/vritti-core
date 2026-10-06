@@ -175,6 +175,19 @@ export function ApiDimensionTemplatesSelect() {
   );
 }
 
+export function ApiAttributeTemplatesSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get attribute template select options',
+      description:
+        'Returns paginated active attribute template options for the select component. Templates owned by a wider scope are included, so a site sees its own plus those of its legal entity and organization.',
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Attribute template select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
 export function ApiCatalogsSelect() {
   return applyDecorators(
     ApiOperation({ summary: 'Catalog options', description: 'Price lists, for binding a channel to one.' }),

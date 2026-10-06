@@ -1,6 +1,7 @@
 import { resolveConfig, type VapSdkOptions } from '../core/config';
 import { createCartOperations } from '../core/domains/cart';
 import { createCatalogChannelsOperations } from '../core/domains/catalog-channels';
+import { createOfferingsOperations } from '../core/domains/offerings';
 import { createPeopleOperations } from '../core/domains/people';
 import { createSmsOtpOperations } from '../core/domains/sms-otp';
 import { createWhatsappOtpOperations } from '../core/domains/whatsapp-otp';
@@ -79,6 +80,7 @@ export function createVapSdk(options: VapSdkOptions = {}) {
       cart: createCartOperations(client, context, config.currency),
       /** The range this storefront sells. Needs no party — it is the shop's catalogue, not a person's. */
       catalogChannels: createCatalogChannelsOperations(client, context),
+      offerings: createOfferingsOperations(client, context),
       /** The shared identity sequences — OTP sign-in, registration, party repair. Composed over the domains above. */
       auth: createAuthFlows(people, whatsappOtp, smsOtp),
     };

@@ -5,6 +5,7 @@ import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   type CatalogChannel,
   type CatalogChannelType,
+  type CatalogFilterMode,
   catalogChannels,
   catalogListingChannelExclusions,
   catalogListingPrices,
@@ -12,14 +13,22 @@ import {
   catalogs,
   channelSpecificity,
   inventoryItemMrps,
+  offeringAttributes,
+  offeringAttributeValues,
+  offeringDimensions,
+  offeringDimensionValues,
+  offeringVariantAttributeValues,
   offeringVariants,
+  offeringVariantValues,
   ownedByWorkspaceExpression,
   posTerminals,
   SITE_GUC,
   uom,
 } from '@/db/schema';
 import type { CatalogChannelRow, ChannelItemRow, ChannelListRow } from '../dto/entity/catalog-channel.dto';
+import type { ListingFilterRow } from '../dto/entity/listing-filter.dto';
 import type { StorefrontListingRow } from '../dto/entity/storefront-listing.dto';
+import { type ListingSort, ListingSortValues } from '../dto/request/listing-query.dto';
 
 // A row's target, or null when it is a default. Groups every default of a type together, so one
 // DISTINCT ON resolves the default and each named target in the same pass.
@@ -35,6 +44,14 @@ export interface ChannelTarget {
 export interface StorefrontChannel {
   id: string;
   catalogId: string;
+  filterMode: CatalogFilterMode;
+}
+
+// One selected filter group. The code may name a dimension or an attribute; `filterPredicate` tries
+// both rather than making the caller know which, because a storefront URL carries only codes.
+export interface ListingFilterSelection {
+  code: string;
+  values: string[];
 }
 
 @Injectable()
@@ -52,6 +69,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       catalogName: catalogs.name,
       catalogIsActive: catalogs.isActive,
       catalogTaxInclusive: catalogs.taxInclusive,
+      catalogFilterMode: catalogs.filterMode,
       type: catalogChannels.type,
       legalEntityId: catalogChannels.legalEntityId,
       siteId: catalogChannels.siteId,
@@ -301,14 +319,177 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     };
   }
 
-  // Returns everything the resolved channel's catalog sells, at this workspace's price
-  findListings(channel: StorefrontChannel): Promise<StorefrontListingRow[]> {
-    return this.db
+  // One selected group, matched against whichever junction its code lives in. A storefront URL carries
+  // codes only, so the kind is discovered here rather than declared: the two EXISTS are ORed, and
+  // because a code is unique per offering within each kind, at most one of them can match.
+  private static filterPredicate(selection: ListingFilterSelection): SQL {
+    // Spelled out with sql.join rather than handed the array: Drizzle expands a JS array inside a
+    // template into a parenthesised placeholder LIST — `any(($2, $3))` — which is a row constructor,
+    // not an array, and Postgres rejects it. An IN list is what was meant and what this builds.
+    const values = sql.join(
+      selection.values.map((value) => sql`${value}`),
+      sql`, `,
+    );
+
+    return sql`(
+      exists (
+        select 1 from ${offeringVariantValues} ovv
+          join ${offeringDimensions} d on d.id = ovv.dimension_id
+          join ${offeringDimensionValues} dv on dv.id = ovv.value_id
+        where ovv.variant_id = ${offeringVariants.id}
+          and d.code = ${selection.code}
+          and dv.code in (${values})
+      )
+      or exists (
+        select 1 from ${offeringVariantAttributeValues} ova
+          join ${offeringAttributes} a on a.id = ova.attribute_id
+          join ${offeringAttributeValues} av on av.id = ova.value_id
+        where ova.variant_id = ${offeringVariants.id}
+          and a.code = ${selection.code}
+          and av.code in (${values})
+      )
+    )`;
+  }
+
+  // AND across groups, OR within one. One EXISTS per group rather than a HAVING over a join, which
+  // would miscount the moment a variant carries two values of the same group.
+  static filtersWhere(selections: ListingFilterSelection[]): SQL | undefined {
+    const predicates = selections
+      .filter((selection) => selection.values.length > 0)
+      .map((selection) => CatalogChannelsDomainRepository.filterPredicate(selection));
+    return predicates.length ? (and(...predicates) as SQL) : undefined;
+  }
+
+  // Price is a correlated subquery, so it cannot be named in ORDER BY — it is spelled out again here.
+  // Every branch ends in `id asc`: without a unique tiebreak two rows that tie can swap between pages
+  // and a shopper sees one product twice and another never.
+  private static orderBy(sort: ListingSort): SQL[] {
+    const price = CatalogChannelsDomainRepository.priceColumn(catalogListingPrices.amount);
+    switch (sort) {
+      case ListingSortValues.PRICE_ASC:
+        return [sql`${price} asc nulls last`, asc(catalogListings.id)];
+      case ListingSortValues.PRICE_DESC:
+        return [sql`${price} desc nulls last`, asc(catalogListings.id)];
+      case ListingSortValues.NEWEST:
+        return [desc(catalogListings.createdAt), asc(catalogListings.id)];
+      default:
+        return [asc(offeringVariants.sku), asc(catalogListings.id)];
+    }
+  }
+
+  // One page of what the resolved channel's catalog sells, at this workspace's price, plus the
+  // unfiltered-by-page total the pager needs
+  async findListings(
+    channel: StorefrontChannel,
+    query: { filters: ListingFilterSelection[]; page: number; perPage: number; sort: ListingSort },
+  ): Promise<{ rows: StorefrontListingRow[]; total: number }> {
+    const where = and(
+      eq(catalogListings.catalogId, channel.catalogId),
+      this.sellable(channel.id),
+      CatalogChannelsDomainRepository.filtersWhere(query.filters),
+    ) as SQL;
+
+    const rows = this.db
       .select(CatalogChannelsDomainRepository.listingSelection())
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
-      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.sellable(channel.id)) as SQL)
-      .orderBy(asc(offeringVariants.sku));
+      .where(where)
+      .orderBy(...CatalogChannelsDomainRepository.orderBy(query.sort))
+      .limit(query.perPage)
+      .offset((query.page - 1) * query.perPage);
+
+    // Shares `where` with the rows query, so it needs the same variant join — the active flags the
+    // sellable predicate reads live on offering_variants, not on catalog_listings
+    const count = this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(where);
+
+    const [result, [{ count: total }]] = await Promise.all([rows, count]);
+    return { rows: result, total };
+  }
+
+  // One listing by the variant it is for, in the resolved channel's catalog. The variant id is what a
+  // storefront stores against its own product row, so this is the detail page's read.
+  async findListingByVariant(channel: StorefrontChannel, variantId: string): Promise<StorefrontListingRow | undefined> {
+    const [row] = await this.db
+      .select(CatalogChannelsDomainRepository.listingSelection())
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(
+        and(
+          eq(catalogListings.catalogId, channel.catalogId),
+          this.sellable(channel.id),
+          eq(catalogListings.offeringVariantId, variantId),
+        ) as SQL,
+      )
+      .limit(1);
+    return row;
+  }
+
+  // The dimension groups present on the listings this channel sells, with a count per value.
+  //
+  // Walked from the variants in the catalog rather than from the offerings' declared dimensions: an
+  // offering may declare six flavours while only two are on variants that reach here, and offering
+  // the other four would be offering a click that returns nothing.
+  //
+  // Grouped by code across offerings, because a dimension row belongs to one offering —
+  // unique(offering_id, code) — so a catalog of 47 products can hold 40 separate "Flavour" rows.
+  // The heading is picked deterministically rather than left to whichever row the planner reached
+  // first, since two offerings can spell one code's name differently.
+  findListingDimensions(channel: StorefrontChannel, where?: SQL): Promise<ListingFilterRow[]> {
+    return this.db
+      .select({
+        code: offeringDimensions.code,
+        name: sql<string>`(array_agg(${offeringDimensions.name} order by ${offeringDimensions.sortOrder}, ${offeringDimensions.id}))[1]`,
+        sortOrder: sql<number>`min(${offeringDimensions.sortOrder})::int`,
+        valueCode: offeringDimensionValues.code,
+        valueName: sql<string>`(array_agg(${offeringDimensionValues.value} order by ${offeringDimensionValues.sortOrder}, ${offeringDimensionValues.id}))[1]`,
+        valueSortOrder: sql<number>`min(${offeringDimensionValues.sortOrder})::int`,
+        count: sql<number>`count(distinct ${catalogListings.id})::int`,
+      })
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offeringVariantValues, eq(offeringVariantValues.variantId, offeringVariants.id))
+      .innerJoin(offeringDimensions, eq(offeringDimensions.id, offeringVariantValues.dimensionId))
+      .innerJoin(offeringDimensionValues, eq(offeringDimensionValues.id, offeringVariantValues.valueId))
+      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.sellable(channel.id), where) as SQL)
+      .groupBy(offeringDimensions.code, offeringDimensionValues.code)
+      .orderBy(
+        sql`min(${offeringDimensions.sortOrder})`,
+        offeringDimensions.code,
+        sql`min(${offeringDimensionValues.sortOrder})`,
+        offeringDimensionValues.code,
+      );
+  }
+
+  // The attribute groups, same shape and same grouping rule. Separate from dimensions because they
+  // hang off a different junction; the service concatenates them into one rail.
+  findListingAttributes(channel: StorefrontChannel, where?: SQL): Promise<ListingFilterRow[]> {
+    return this.db
+      .select({
+        code: offeringAttributes.code,
+        name: sql<string>`(array_agg(${offeringAttributes.name} order by ${offeringAttributes.sortOrder}, ${offeringAttributes.id}))[1]`,
+        sortOrder: sql<number>`min(${offeringAttributes.sortOrder})::int`,
+        valueCode: offeringAttributeValues.code,
+        valueName: sql<string>`(array_agg(${offeringAttributeValues.value} order by ${offeringAttributeValues.sortOrder}, ${offeringAttributeValues.id}))[1]`,
+        valueSortOrder: sql<number>`min(${offeringAttributeValues.sortOrder})::int`,
+        count: sql<number>`count(distinct ${catalogListings.id})::int`,
+      })
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offeringVariantAttributeValues, eq(offeringVariantAttributeValues.variantId, offeringVariants.id))
+      .innerJoin(offeringAttributes, eq(offeringAttributes.id, offeringVariantAttributeValues.attributeId))
+      .innerJoin(offeringAttributeValues, eq(offeringAttributeValues.id, offeringVariantAttributeValues.valueId))
+      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.sellable(channel.id), where) as SQL)
+      .groupBy(offeringAttributes.code, offeringAttributeValues.code)
+      .orderBy(
+        sql`min(${offeringAttributes.sortOrder})`,
+        offeringAttributes.code,
+        sql`min(${offeringAttributeValues.sortOrder})`,
+        offeringAttributeValues.code,
+      );
   }
 
   // Prices variants the caller already holds — a basket or wishlist reconciling stored rows

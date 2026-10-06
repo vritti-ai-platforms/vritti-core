@@ -26,6 +26,7 @@ import {
   Receipt,
   Sparkles,
   SwatchBook,
+  Tags,
   Trash2,
   Undo2,
 } from 'lucide-react';
@@ -34,14 +35,17 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FULFILMENT_TYPE_META, type OfferingData, type OfferingVariantData } from '@/schemas/offerings';
 import { AddVariantDialog } from '../forms/AddVariantDialog';
+import { BulkSetVariantsAttributeDialog } from '../forms/BulkSetVariantsAttributeDialog';
 import { BulkSetVariantsTaxClassDialog } from '../forms/SetTaxClassDialog';
 import type {
   OfferingPermissions,
   UseBulkClearVariantsTaxClass,
+  UseBulkSetVariantsAttribute,
   UseBulkSetVariantsStatus,
   UseBulkSetVariantsTaxClass,
   UseCreateVariant,
   UseDeleteVariant,
+  UseOfferingAttributes,
   UseOfferingDimensions,
   UseOfferingVariantsTable,
   UseUpdateVariant,
@@ -51,12 +55,14 @@ interface VariantsTabProps {
   useVariantsTable: UseOfferingVariantsTable;
   // The matrix wizard is a route; adding one by hand stays a dialog here
   useDimensions: UseOfferingDimensions;
+  useAttributes: UseOfferingAttributes;
   useCreateVariant: UseCreateVariant;
   useDelete: UseDeleteVariant;
   useUpdate: UseUpdateVariant;
   useBulkSetStatus: UseBulkSetVariantsStatus;
   useBulkSetTaxClass: UseBulkSetVariantsTaxClass;
   useBulkClearTaxClass: UseBulkClearVariantsTaxClass;
+  useBulkSetAttribute: UseBulkSetVariantsAttribute;
   tableKey: readonly unknown[];
   tableSlug: string;
   exportEndpoint: string;
@@ -69,12 +75,14 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   offering,
   useVariantsTable,
   useDimensions,
+  useAttributes,
   useCreateVariant,
   useDelete,
   useUpdate,
   useBulkSetStatus,
   useBulkSetTaxClass,
   useBulkClearTaxClass,
+  useBulkSetAttribute,
   tableKey,
   tableSlug,
   exportEndpoint,
@@ -96,14 +104,18 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   const confirm = useConfirm();
   const { data: response, isLoading } = useVariantsTable(offering.id);
   const { data: dimensions = [] } = useDimensions(offering.id);
+  const { data: attributes = [] } = useAttributes(offering.id);
   const addDialog = useDialog();
   const deleteMutation = useDelete();
   const setStatusMutation = useUpdate();
   const bulkSetStatusMutation = useBulkSetStatus();
   const taxClassDialog = useDialog();
+  const attributeDialog = useDialog();
   const clearTaxClassMutation = useBulkClearTaxClass();
   // The row selection is captured when the dialog opens, so closing the selection bar cannot strand it
   const [taxClassTargets, setTaxClassTargets] = useState<string[]>([]);
+  // The rows themselves, not just their ids: the dialog reads what they already carry to seed its ticks
+  const [attributeTargets, setAttributeTargets] = useState<OfferingVariantData[]>([]);
 
   const meta = FULFILMENT_TYPE_META[offering.fulfilmentType];
 
@@ -326,6 +338,24 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
               <Button
                 size="sm"
                 variant="outline"
+                permission={permissions.variants.setAttributes}
+                startAdornment={<Tags className="size-4" />}
+                disabled={!offering.canEdit || attributes.length === 0}
+                disabledTip={
+                  offering.canEdit
+                    ? 'This product has no attributes yet. Add one on the Attributes tab.'
+                    : 'This offering belongs to a wider scope.'
+                }
+                onClick={() => {
+                  setAttributeTargets(rows.map((row) => row.original));
+                  attributeDialog.open();
+                }}
+              >
+                Set Attribute
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
                 permission={permissions.variants.edit}
                 startAdornment={<Undo2 className="size-4" />}
                 isLoading={clearTaxClassMutation.isPending}
@@ -445,6 +475,26 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
             dimensions={dimensions}
             useCreate={useCreateVariant}
             onSuccess={close}
+            onCancel={close}
+          />
+        )}
+      />
+
+      <Dialog
+        handle={attributeDialog}
+        icon={Tags}
+        title="Set Attribute"
+        description="One attribute across the selection. Its values are replaced; the others are left alone."
+        content={(close) => (
+          <BulkSetVariantsAttributeDialog
+            useSet={useBulkSetAttribute}
+            offeringId={offering.id}
+            attributes={attributes}
+            variants={attributeTargets}
+            onSuccess={() => {
+              table.resetRowSelection();
+              close();
+            }}
             onCancel={close}
           />
         )}

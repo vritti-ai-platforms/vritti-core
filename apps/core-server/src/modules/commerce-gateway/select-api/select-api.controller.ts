@@ -18,6 +18,7 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { SessionTypeValues } from '@/db/schema';
 import {
+  ApiAttributeTemplatesSelect,
   ApiCatalogsSelect,
   ApiCategoriesSelect,
   ApiCostCategoriesSelect,
@@ -114,6 +115,12 @@ export class SelectApiController {
   @ApiDimensionTemplatesSelect()
   selectDimensionTemplates(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.dimensionTemplates', query);
+  }
+
+  @Get('attribute-templates')
+  @ApiAttributeTemplatesSelect()
+  selectAttributeTemplates(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.attributeTemplates', query);
   }
 
   @Get('catalogs')

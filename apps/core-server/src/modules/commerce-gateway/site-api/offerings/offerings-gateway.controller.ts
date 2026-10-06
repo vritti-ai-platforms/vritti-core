@@ -3,16 +3,20 @@ import {
   ApiAddSuggestedComponent,
   ApiBulkClearVariantsTaxClass,
   ApiBulkSetOfferingStatus,
+  ApiBulkSetVariantsAttribute,
   ApiBulkSetVariantsStatus,
   ApiBulkSetVariantsTaxClass,
   ApiClearVariantFulfilment,
   ApiClearVariantTaxClass,
   ApiCreateOffering,
+  ApiCreateOfferingAttribute,
+  ApiCreateOfferingAttributeWithValuesAndTemplate,
   ApiCreateOfferingDimension,
   ApiCreateOfferingDimensionWithValuesAndTemplate,
   ApiCreateOfferingVariant,
   ApiDeleteBomLine,
   ApiDeleteOffering,
+  ApiDeleteOfferingAttribute,
   ApiDeleteOfferingDimension,
   ApiDeleteOfferingVariant,
   ApiExportOfferings,
@@ -20,41 +24,54 @@ import {
   ApiGenerateOfferingVariants,
   ApiGetOffering,
   ApiGetOfferingVariant,
+  ApiListOfferingAttributes,
   ApiListOfferingDimensions,
   ApiOfferingsTable,
   ApiOfferingVariantsTable,
   ApiPreviewOfferingVariantCombinations,
+  ApiReorderOfferingAttributes,
   ApiReorderOfferingDimensions,
   ApiSetOfferingFulfilment,
   ApiSetOfferingStatus,
   ApiSetOfferingTaxClass,
+  ApiSetVariantAttributes,
   ApiSetVariantFulfilment,
   ApiSetVariantTaxClass,
   ApiUpdateBomLine,
   ApiUpdateOffering,
+  ApiUpdateOfferingAttribute,
   ApiUpdateOfferingDimension,
   ApiUpdateOfferingVariant,
+  ApiUpsertOfferingAttributeValues,
   ApiUpsertOfferingDimensionValues,
   ApiVariantBom,
 } from '@commerce/offerings/docs/offerings-gateway.docs';
 import { AddBomLineDto, UpdateBomLineDto } from '@commerce/offerings/dto/request/bom-line.dto';
 import { BulkClearVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-clear-variants-tax-class.dto';
 import { BulkSetOfferingStatusDto } from '@commerce/offerings/dto/request/bulk-set-offering-status.dto';
+import { BulkSetVariantsAttributeDto } from '@commerce/offerings/dto/request/bulk-set-variants-attribute.dto';
 import { BulkSetVariantsStatusDto } from '@commerce/offerings/dto/request/bulk-set-variants-status.dto';
 import { BulkSetVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-set-variants-tax-class.dto';
 import { CreateOfferingDto } from '@commerce/offerings/dto/request/create-offering.dto';
+import { CreateOfferingAttributeDto } from '@commerce/offerings/dto/request/create-offering-attribute.dto';
+import { CreateOfferingAttributeWithValuesAndTemplateDto } from '@commerce/offerings/dto/request/create-offering-attribute-with-values-and-template.dto';
 import { CreateOfferingDimensionDto } from '@commerce/offerings/dto/request/create-offering-dimension.dto';
 import { CreateOfferingDimensionWithValuesAndTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-with-values-and-template.dto';
 import { CreateVariantDto } from '@commerce/offerings/dto/request/create-variant.dto';
 import { GenerateVariantsDto } from '@commerce/offerings/dto/request/generate-variants.dto';
+import { ReorderOfferingAttributesDto } from '@commerce/offerings/dto/request/reorder-offering-attributes.dto';
 import { ReorderOfferingDimensionsDto } from '@commerce/offerings/dto/request/reorder-offering-dimensions.dto';
 import { SetFulfilmentDto } from '@commerce/offerings/dto/request/set-fulfilment.dto';
 import { SetOfferingStatusDto } from '@commerce/offerings/dto/request/set-offering-status.dto';
 import { SetTaxClassDto } from '@commerce/offerings/dto/request/set-tax-class.dto';
+import { SetVariantAttributesDto } from '@commerce/offerings/dto/request/set-variant-attributes.dto';
 import { UpdateOfferingDto } from '@commerce/offerings/dto/request/update-offering.dto';
+import { UpdateOfferingAttributeDto } from '@commerce/offerings/dto/request/update-offering-attribute.dto';
 import { UpdateOfferingDimensionDto } from '@commerce/offerings/dto/request/update-offering-dimension.dto';
 import { UpdateVariantDto } from '@commerce/offerings/dto/request/update-variant.dto';
+import { UpsertOfferingAttributeValuesDto } from '@commerce/offerings/dto/request/upsert-offering-attribute-values.dto';
 import { UpsertOfferingDimensionValuesDto } from '@commerce/offerings/dto/request/upsert-offering-dimension-values.dto';
+import type { OfferingAttributeResponseDto } from '@commerce/offerings/dto/response/offering-attribute-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
@@ -193,6 +210,81 @@ export class SiteOfferingsGatewayController {
     return this.service.deleteDimension(dimensionId);
   }
 
+  // Returns an offering's attributes
+  @Get(':id/attributes')
+  @RequirePermission(SITE_OFFERINGS.attributes.view)
+  @ApiListOfferingAttributes()
+  listAttributes(@Param('id') id: string): Promise<OfferingAttributeResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/offerings/${id}/attributes`);
+    return this.service.listAttributes(id);
+  }
+
+  // Appends an attribute defined inline; its values are set separately
+  @Post(':id/attributes')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(SITE_OFFERINGS.attributes.add)
+  @ApiCreateOfferingAttribute()
+  createAttribute(
+    @Param('id') id: string,
+    @Body() dto: CreateOfferingAttributeDto,
+  ): Promise<CreateResponseDto<OfferingAttributeResponseDto>> {
+    this.logger.log(`POST /commerce-api/site/offerings/${id}/attributes`);
+    return this.service.createAttribute(id, dto);
+  }
+
+  // Appends an attribute together with the values the caller chose
+  @Post(':id/attributes/with-values-and-template')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(SITE_OFFERINGS.attributes.addFromTemplate)
+  @ApiCreateOfferingAttributeWithValuesAndTemplate()
+  createAttributeWithValuesAndTemplate(
+    @Param('id') id: string,
+    @Body() dto: CreateOfferingAttributeWithValuesAndTemplateDto,
+  ): Promise<CreateResponseDto<OfferingAttributeResponseDto>> {
+    this.logger.log(`POST /commerce-api/site/offerings/${id}/attributes/with-values-and-template`);
+    return this.service.createAttributeWithValuesAndTemplate(id, dto);
+  }
+
+  // Replaces an attribute's value set
+  @Put('attributes/:attributeId/values')
+  @RequirePermission(SITE_OFFERINGS.attributes.edit)
+  @ApiUpsertOfferingAttributeValues()
+  upsertAttributeValues(
+    @Param('attributeId') attributeId: string,
+    @Body() dto: UpsertOfferingAttributeValuesDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/site/offerings/attributes/${attributeId}/values`);
+    return this.service.upsertAttributeValues(attributeId, dto);
+  }
+  // Reorders the groups — the order a storefront renders its filters in
+  @Put(':id/attributes/order')
+  @RequirePermission(SITE_OFFERINGS.attributes.edit)
+  @ApiReorderOfferingAttributes()
+  reorderAttributes(@Param('id') id: string, @Body() dto: ReorderOfferingAttributesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/site/offerings/${id}/attributes/order`);
+    return this.service.reorderAttributes(id, dto.attributeIds);
+  }
+
+  // Renames an attribute; its code is fixed because a storefront filters on it
+  @Patch('attributes/:attributeId')
+  @RequirePermission(SITE_OFFERINGS.attributes.edit)
+  @ApiUpdateOfferingAttribute()
+  updateAttribute(
+    @Param('attributeId') attributeId: string,
+    @Body() dto: UpdateOfferingAttributeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/offerings/attributes/${attributeId}`);
+    return this.service.updateAttribute(attributeId, dto);
+  }
+
+  @Delete('attributes/:attributeId')
+  @RequirePermission(SITE_OFFERINGS.attributes.delete)
+  @ApiDeleteOfferingAttribute()
+  deleteAttribute(@Param('attributeId') attributeId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/offerings/attributes/${attributeId}`);
+    return this.service.deleteAttribute(attributeId);
+  }
+
   // Returns paginated variants of one offering for the data table
   @Get(':id/variants/table')
   @RequirePermission(SITE_OFFERINGS.variants.view)
@@ -291,6 +383,17 @@ export class SiteOfferingsGatewayController {
   setTaxClass(@Param('id') id: string, @Body() dto: SetTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/offerings/${id}/tax-class`);
     return this.service.setTaxClass(id, dto);
+  }
+
+  @Put('variants/:variantId/attributes')
+  @RequirePermission(SITE_OFFERINGS.variants.setAttributes)
+  @ApiSetVariantAttributes()
+  setVariantAttributes(
+    @Param('variantId') variantId: string,
+    @Body() dto: SetVariantAttributesDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/site/offerings/variants/${variantId}/attributes`);
+    return this.service.setVariantAttributes(variantId, dto);
   }
 
   @Patch('variants/:variantId/tax-class')
@@ -416,6 +519,18 @@ export class SiteOfferingsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/offerings/${id}/variants/tax-class — ${dto.ids.length} selected`);
     return this.service.bulkSetVariantsTaxClass(id, dto);
+  }
+
+  // Sets one attribute across many variants of one offering, leaving their other attributes alone
+  @Put(':id/variants/attributes')
+  @RequirePermission(SITE_OFFERINGS.variants.setAttributes)
+  @ApiBulkSetVariantsAttribute()
+  bulkSetVariantsAttribute(
+    @Param('id') id: string,
+    @Body() dto: BulkSetVariantsAttributeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/site/offerings/${id}/variants/attributes — ${dto.ids.length} selected`);
+    return this.service.bulkSetVariantsAttribute(id, dto);
   }
 
   // Bulk-activates or deactivates variants of one offering

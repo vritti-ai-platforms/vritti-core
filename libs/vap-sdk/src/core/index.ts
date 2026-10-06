@@ -1,25 +1,4 @@
 export { resolveConfig, type VapSdkOptions } from './config';
-export { type CatalogListing, type CatalogChannelsOperations, createCatalogChannelsOperations } from './domains/catalog-channels';
-export { createSmsOtpOperations, type SmsOtpOperations } from './domains/sms-otp';
-export {
-  createWhatsappOtpOperations,
-  type WhatsappOtpOperations,
-} from './domains/whatsapp-otp';
-export {
-  CHANNELS,
-  type Channel,
-  type CreatePersonInput,
-  createPeopleOperations,
-  type PeopleOperations,
-  type Person,
-  type PersonCommunication,
-  type PartyAddress,
-  type PartyAddressInput,
-  type PartyProfile,
-  type PartyProfileInput,
-  type WishlistAddResult,
-  type WishlistItem,
-} from './domains/people';
 export {
   type Cart,
   type CartItem,
@@ -27,6 +6,43 @@ export {
   type CartQuantity,
   createCartOperations,
 } from './domains/cart';
+export {
+  type CatalogChannelsOperations,
+  type CatalogListing,
+  type CatalogListings,
+  createCatalogChannelsOperations,
+  type FilterKind,
+  type ListingFilter,
+  type ListingFilterSelection,
+  type ListingQuery,
+  type ListingSort,
+} from './domains/catalog-channels';
+export {
+  createOfferingsOperations,
+  type OfferingsOperations,
+  type OfferingVariantOption,
+  type OfferingVariantOptions,
+} from './domains/offerings';
+export {
+  CHANNELS,
+  type Channel,
+  type CreatePersonInput,
+  createPeopleOperations,
+  type PartyAddress,
+  type PartyAddressInput,
+  type PartyProfile,
+  type PartyProfileInput,
+  type PeopleOperations,
+  type Person,
+  type PersonCommunication,
+  type WishlistAddResult,
+  type WishlistItem,
+} from './domains/people';
+export { createSmsOtpOperations, type SmsOtpOperations } from './domains/sms-otp';
+export {
+  createWhatsappOtpOperations,
+  type WhatsappOtpOperations,
+} from './domains/whatsapp-otp';
 export { PartyRollbackError, VapError } from './errors';
 export {
   type AuthFlows,
@@ -61,7 +77,6 @@ export type {
   ResponseCacheContext,
   ResponseCacheStore,
 } from './transport/response-cache-store';
-export { OTP_CHANNELS } from './types';
 export type {
   Money,
   OtpChannel,
@@ -70,3 +85,4 @@ export type {
   VapSdkConfig,
   WorkspaceScope,
 } from './types';
+export { OTP_CHANNELS } from './types';

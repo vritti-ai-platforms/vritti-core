@@ -1,5 +1,10 @@
 import type { ChannelItemDto, ResolvedChannelsDto } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
-import type { StorefrontListingDto } from '@domain/catalog-channels/dto/entity/storefront-listing.dto';
+import type { ListingFilterDto } from '@domain/catalog-channels/dto/entity/listing-filter.dto';
+import type {
+  StorefrontListingDto,
+  StorefrontListingsDto,
+} from '@domain/catalog-channels/dto/entity/storefront-listing.dto';
+import type { ListingQueryDto } from '@domain/catalog-channels/dto/request/listing-query.dto';
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -18,11 +23,29 @@ export class SiteCatalogChannelsController {
     return this.service.list();
   }
 
-  // What a storefront sells — the channel is resolved from the credential, not named by the caller
+  // One page of what a storefront sells — the channel is resolved from the credential, not named by
+  // the caller. Always paged: nothing reads the whole range any more.
   @MessagePattern({ cmd: 'site.catalogChannels.app.listings' })
-  appListings(@Payload() data: { appId: string }): Promise<StorefrontListingDto[]> {
-    this.logger.log(`catalogChannels.app.listings — appId: ${data.appId}`);
-    return this.service.appListings(data.appId);
+  appListings(@Payload() data: { appId: string } & ListingQueryDto): Promise<StorefrontListingsDto> {
+    const { appId, ...query } = data;
+    this.logger.log(`catalogChannels.app.listings — appId: ${appId}, page: ${query.page ?? 1}`);
+    return this.service.appListings(appId, query);
+  }
+
+  // One listing, by the variant a storefront stores against its own product row
+  @MessagePattern({ cmd: 'site.catalogChannels.app.listing' })
+  appListing(@Payload() data: { appId: string; variantId: string }): Promise<StorefrontListingDto | null> {
+    this.logger.log(`catalogChannels.app.listing — variantId: ${data.variantId}`);
+    return this.service.appListing(data.appId, data.variantId);
+  }
+
+  // The filter rail for the same resolved catalog, counted per the catalog's own filter mode
+  @MessagePattern({ cmd: 'site.catalogChannels.app.listingFilters' })
+  appListingFilters(
+    @Payload() data: { appId: string; filters?: { code: string; values: string[] }[] },
+  ): Promise<ListingFilterDto[]> {
+    this.logger.log(`catalogChannels.app.listingFilters — appId: ${data.appId}`);
+    return this.service.appListingFilters(data.appId, data.filters ?? []);
   }
 
   // The same range narrowed to variants the caller already holds — a wishlist or a basket

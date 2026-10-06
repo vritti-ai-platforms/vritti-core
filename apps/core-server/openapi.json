@@ -6675,6 +6675,332 @@
         ]
       }
     },
+    "/commerce-api/org/offerings/{id}/attributes": {
+      "get": {
+        "description": "Attributes with their values, in the order a storefront renders them.",
+        "operationId": "OrgOfferingsGatewayController_listAttributes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attributes retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List an offering’s attributes",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      },
+      "post": {
+        "description": "Appends an empty attribute defined inline. Its values are set through the values endpoint, and which of them a variant carries is set on the variant.",
+        "operationId": "OrgOfferingsGatewayController_createAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOfferingAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a custom attribute",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/{id}/attributes/with-values-and-template": {
+      "post": {
+        "description": "Appends an attribute seeded from a template — its code, name and values are copied server-side, so the request carries only the template reference. The copy keeps no link back, so editing the template later never reshapes the offering.",
+        "operationId": "OrgOfferingsGatewayController_createAttributeWithValuesAndTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOfferingAttributeWithValuesAndTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute added from template.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Template has no values."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add an attribute from a template",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/attributes/{attributeId}/values": {
+      "put": {
+        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them.",
+        "operationId": "OrgOfferingsGatewayController_upsertAttributeValues",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertOfferingAttributeValuesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Values saved."
+          },
+          "400": {
+            "description": "Duplicate value code."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "409": {
+            "description": "A value in use by existing variants was removed."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set an attribute's values",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/{id}/attributes/order": {
+      "put": {
+        "description": "Sets the order a storefront renders these filter groups in. Nothing derived is stored, so this is always allowed.",
+        "operationId": "OrgOfferingsGatewayController_reorderAttributes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderOfferingAttributesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order updated."
+          },
+          "400": {
+            "description": "The list does not match the offering's attributes."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "409": {
+            "description": "Variants exist, so the order is locked."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reorder attributes",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/attributes/{attributeId}": {
+      "patch": {
+        "description": "Changes the label only. The code is fixed once the attribute exists, because a storefront filters on it.",
+        "operationId": "OrgOfferingsGatewayController_updateAttribute",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOfferingAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attribute renamed."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rename an attribute",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      },
+      "delete": {
+        "description": "Refused while any variant holds one of its values.",
+        "operationId": "OrgOfferingsGatewayController_deleteAttribute",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute removed."
+          },
+          "409": {
+            "description": "In use by variants."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove an attribute",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
     "/commerce-api/org/offerings/{id}/variants/table": {
       "get": {
         "description": "One page of an offering's variants, merged with the caller's saved table view state.",
@@ -7206,6 +7532,50 @@
         ]
       }
     },
+    "/commerce-api/org/offerings/variants/{variantId}/attributes": {
+      "put": {
+        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the SKU and the variant matrix are untouched. An empty list clears them.",
+        "operationId": "OrgOfferingsGatewayController_setVariantAttributes",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetVariantAttributesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attributes set."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set a variant's attributes",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
     "/commerce-api/org/offerings/variants/{variantId}/tax-class": {
       "patch": {
         "description": "Overrides the offering's tax class for this variant, exempting it from future cascades.",
@@ -7677,6 +8047,50 @@
           }
         ],
         "summary": "Override or clear the tax class on many variants",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/{id}/variants/attributes": {
+      "put": {
+        "description": "Replaces only the named attribute's values on every selected variant, leaving their other attributes alone. An empty value list clears the attribute across the selection.",
+        "operationId": "OrgOfferingsGatewayController_bulkSetVariantsAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetVariantsAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attribute set."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set one attribute across many variants",
         "tags": [
           "Commerce - Offerings (Org)"
         ]
@@ -8301,6 +8715,332 @@
         ]
       }
     },
+    "/commerce-api/le/offerings/{id}/attributes": {
+      "get": {
+        "description": "Attributes with their values, in the order a storefront renders them.",
+        "operationId": "LeOfferingsGatewayController_listAttributes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attributes retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List an offering’s attributes",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      },
+      "post": {
+        "description": "Appends an empty attribute defined inline. Its values are set through the values endpoint, and which of them a variant carries is set on the variant.",
+        "operationId": "LeOfferingsGatewayController_createAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOfferingAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a custom attribute",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/attributes/with-values-and-template": {
+      "post": {
+        "description": "Appends an attribute seeded from a template — its code, name and values are copied server-side, so the request carries only the template reference. The copy keeps no link back, so editing the template later never reshapes the offering.",
+        "operationId": "LeOfferingsGatewayController_createAttributeWithValuesAndTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOfferingAttributeWithValuesAndTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute added from template.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Template has no values."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add an attribute from a template",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/attributes/{attributeId}/values": {
+      "put": {
+        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them.",
+        "operationId": "LeOfferingsGatewayController_upsertAttributeValues",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertOfferingAttributeValuesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Values saved."
+          },
+          "400": {
+            "description": "Duplicate value code."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "409": {
+            "description": "A value in use by existing variants was removed."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set an attribute's values",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/attributes/order": {
+      "put": {
+        "description": "Sets the order a storefront renders these filter groups in. Nothing derived is stored, so this is always allowed.",
+        "operationId": "LeOfferingsGatewayController_reorderAttributes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderOfferingAttributesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order updated."
+          },
+          "400": {
+            "description": "The list does not match the offering's attributes."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "409": {
+            "description": "Variants exist, so the order is locked."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reorder attributes",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/attributes/{attributeId}": {
+      "patch": {
+        "description": "Changes the label only. The code is fixed once the attribute exists, because a storefront filters on it.",
+        "operationId": "LeOfferingsGatewayController_updateAttribute",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOfferingAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attribute renamed."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rename an attribute",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      },
+      "delete": {
+        "description": "Refused while any variant holds one of its values.",
+        "operationId": "LeOfferingsGatewayController_deleteAttribute",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute removed."
+          },
+          "409": {
+            "description": "In use by variants."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove an attribute",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
     "/commerce-api/le/offerings/{id}/variants/table": {
       "get": {
         "description": "One page of an offering's variants, merged with the caller's saved table view state.",
@@ -8778,6 +9518,50 @@
         ]
       }
     },
+    "/commerce-api/le/offerings/variants/{variantId}/attributes": {
+      "put": {
+        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the SKU and the variant matrix are untouched. An empty list clears them.",
+        "operationId": "LeOfferingsGatewayController_setVariantAttributes",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetVariantAttributesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attributes set."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set a variant's attributes",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
     "/commerce-api/le/offerings/variants/{variantId}/tax-class": {
       "patch": {
         "description": "Overrides the offering's tax class for this variant, exempting it from future cascades.",
@@ -9249,6 +10033,50 @@
           }
         ],
         "summary": "Override or clear the tax class on many variants",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/variants/attributes": {
+      "put": {
+        "description": "Replaces only the named attribute's values on every selected variant, leaving their other attributes alone. An empty value list clears the attribute across the selection.",
+        "operationId": "LeOfferingsGatewayController_bulkSetVariantsAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetVariantsAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attribute set."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set one attribute across many variants",
         "tags": [
           "Commerce - Offerings (LE)"
         ]
@@ -9873,6 +10701,332 @@
         ]
       }
     },
+    "/commerce-api/site/offerings/{id}/attributes": {
+      "get": {
+        "description": "Attributes with their values, in the order a storefront renders them.",
+        "operationId": "SiteOfferingsGatewayController_listAttributes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attributes retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List an offering’s attributes",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      },
+      "post": {
+        "description": "Appends an empty attribute defined inline. Its values are set through the values endpoint, and which of them a variant carries is set on the variant.",
+        "operationId": "SiteOfferingsGatewayController_createAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOfferingAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a custom attribute",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/attributes/with-values-and-template": {
+      "post": {
+        "description": "Appends an attribute seeded from a template — its code, name and values are copied server-side, so the request carries only the template reference. The copy keeps no link back, so editing the template later never reshapes the offering.",
+        "operationId": "SiteOfferingsGatewayController_createAttributeWithValuesAndTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOfferingAttributeWithValuesAndTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute added from template.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingAttributeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Template has no values."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add an attribute from a template",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/attributes/{attributeId}/values": {
+      "put": {
+        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them.",
+        "operationId": "SiteOfferingsGatewayController_upsertAttributeValues",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertOfferingAttributeValuesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Values saved."
+          },
+          "400": {
+            "description": "Duplicate value code."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "409": {
+            "description": "A value in use by existing variants was removed."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set an attribute's values",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/attributes/order": {
+      "put": {
+        "description": "Sets the order a storefront renders these filter groups in. Nothing derived is stored, so this is always allowed.",
+        "operationId": "SiteOfferingsGatewayController_reorderAttributes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderOfferingAttributesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order updated."
+          },
+          "400": {
+            "description": "The list does not match the offering's attributes."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          },
+          "409": {
+            "description": "Variants exist, so the order is locked."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reorder attributes",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/attributes/{attributeId}": {
+      "patch": {
+        "description": "Changes the label only. The code is fixed once the attribute exists, because a storefront filters on it.",
+        "operationId": "SiteOfferingsGatewayController_updateAttribute",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOfferingAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attribute renamed."
+          },
+          "403": {
+            "description": "Owned by a wider scope — switch workspace to change it."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rename an attribute",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      },
+      "delete": {
+        "description": "Refused while any variant holds one of its values.",
+        "operationId": "SiteOfferingsGatewayController_deleteAttribute",
+        "parameters": [
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "description": "Attribute identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute removed."
+          },
+          "409": {
+            "description": "In use by variants."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove an attribute",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
     "/commerce-api/site/offerings/{id}/variants/table": {
       "get": {
         "description": "One page of an offering's variants, merged with the caller's saved table view state.",
@@ -10350,6 +11504,50 @@
         ]
       }
     },
+    "/commerce-api/site/offerings/variants/{variantId}/attributes": {
+      "put": {
+        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the SKU and the variant matrix are untouched. An empty list clears them.",
+        "operationId": "SiteOfferingsGatewayController_setVariantAttributes",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetVariantAttributesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attributes set."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set a variant's attributes",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
     "/commerce-api/site/offerings/variants/{variantId}/tax-class": {
       "patch": {
         "description": "Overrides the offering's tax class for this variant, exempting it from future cascades.",
@@ -10821,6 +12019,50 @@
           }
         ],
         "summary": "Override or clear the tax class on many variants",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/variants/attributes": {
+      "put": {
+        "description": "Replaces only the named attribute's values on every selected variant, leaving their other attributes alone. An empty value list clears the attribute across the selection.",
+        "operationId": "SiteOfferingsGatewayController_bulkSetVariantsAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetVariantsAttributeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attribute set."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set one attribute across many variants",
         "tags": [
           "Commerce - Offerings (Site)"
         ]
@@ -23864,6 +25106,307 @@
         ]
       }
     },
+    "/commerce-api/org/attribute-templates": {
+      "get": {
+        "description": "Returns every template this workspace can reach — org-owned ones plus its own — each with its values.",
+        "operationId": "OrgAttributeTemplatesGatewayController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Filter by name or description",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute templates retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttributeTemplateResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List attribute templates",
+        "tags": [
+          "Commerce - Attribute Templates (Org)"
+        ]
+      },
+      "post": {
+        "description": "Creates a template owned by the calling workspace. The owner is derived from the workspace context, never from the request body.",
+        "operationId": "OrgAttributeTemplatesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttributeTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute template created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeTemplateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "409": {
+            "description": "A template with this name already exists in this workspace."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/attribute-templates/{id}": {
+      "patch": {
+        "description": "Only the workspace that owns the template may change it.",
+        "operationId": "OrgAttributeTemplatesGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAttributeTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          },
+          "404": {
+            "description": "Template not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (Org)"
+        ]
+      },
+      "delete": {
+        "operationId": "OrgAttributeTemplatesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          },
+          "404": {
+            "description": "Template not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/attribute-templates/{id}/active": {
+      "patch": {
+        "description": "Separate from editing, and refused while the template has no values — an empty template would seed an attribute with nothing.",
+        "operationId": "OrgAttributeTemplatesGatewayController_setActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetAttributeTemplateActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template activation changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The template has no values to activate."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activate or deactivate an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/attribute-templates/{id}/values": {
+      "put": {
+        "description": "Takes the complete set the template should end up with. Values that are unchanged keep their ids; removing every value deactivates the template.",
+        "operationId": "OrgAttributeTemplatesGatewayController_upsertValues",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAttributeTemplateValuesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Values replaced successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace an attribute template's values",
+        "tags": [
+          "Commerce - Attribute Templates (Org)"
+        ]
+      }
+    },
     "/commerce-api/org/dimension-templates": {
       "get": {
         "description": "Returns every template this workspace can reach — org-owned ones plus its own — each with its values.",
@@ -24165,6 +25708,307 @@
         ]
       }
     },
+    "/commerce-api/le/attribute-templates": {
+      "get": {
+        "description": "Returns every template this workspace can reach — org-owned ones plus its own — each with its values.",
+        "operationId": "LeAttributeTemplatesGatewayController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Filter by name or description",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute templates retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttributeTemplateResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List attribute templates",
+        "tags": [
+          "Commerce - Attribute Templates (LE)"
+        ]
+      },
+      "post": {
+        "description": "Creates a template owned by the calling workspace. The owner is derived from the workspace context, never from the request body.",
+        "operationId": "LeAttributeTemplatesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttributeTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute template created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeTemplateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "409": {
+            "description": "A template with this name already exists in this workspace."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/attribute-templates/{id}": {
+      "patch": {
+        "description": "Only the workspace that owns the template may change it.",
+        "operationId": "LeAttributeTemplatesGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAttributeTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          },
+          "404": {
+            "description": "Template not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (LE)"
+        ]
+      },
+      "delete": {
+        "operationId": "LeAttributeTemplatesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          },
+          "404": {
+            "description": "Template not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/attribute-templates/{id}/active": {
+      "patch": {
+        "description": "Separate from editing, and refused while the template has no values — an empty template would seed an attribute with nothing.",
+        "operationId": "LeAttributeTemplatesGatewayController_setActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetAttributeTemplateActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template activation changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The template has no values to activate."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activate or deactivate an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/attribute-templates/{id}/values": {
+      "put": {
+        "description": "Takes the complete set the template should end up with. Values that are unchanged keep their ids; removing every value deactivates the template.",
+        "operationId": "LeAttributeTemplatesGatewayController_upsertValues",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAttributeTemplateValuesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Values replaced successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace an attribute template's values",
+        "tags": [
+          "Commerce - Attribute Templates (LE)"
+        ]
+      }
+    },
     "/commerce-api/le/dimension-templates": {
       "get": {
         "description": "Returns every template this workspace can reach — org-owned ones plus its own — each with its values.",
@@ -24463,6 +26307,307 @@
         "summary": "Replace a dimension template's values",
         "tags": [
           "Commerce - Dimension Templates (LE)"
+        ]
+      }
+    },
+    "/commerce-api/site/attribute-templates": {
+      "get": {
+        "description": "Returns every template this workspace can reach — org-owned ones plus its own — each with its values.",
+        "operationId": "SiteAttributeTemplatesGatewayController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Filter by name or description",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute templates retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttributeTemplateResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List attribute templates",
+        "tags": [
+          "Commerce - Attribute Templates (Site)"
+        ]
+      },
+      "post": {
+        "description": "Creates a template owned by the calling workspace. The owner is derived from the workspace context, never from the request body.",
+        "operationId": "SiteAttributeTemplatesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttributeTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute template created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeTemplateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "409": {
+            "description": "A template with this name already exists in this workspace."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/attribute-templates/{id}": {
+      "patch": {
+        "description": "Only the workspace that owns the template may change it.",
+        "operationId": "SiteAttributeTemplatesGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAttributeTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          },
+          "404": {
+            "description": "Template not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (Site)"
+        ]
+      },
+      "delete": {
+        "operationId": "SiteAttributeTemplatesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          },
+          "404": {
+            "description": "Template not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/attribute-templates/{id}/active": {
+      "patch": {
+        "description": "Separate from editing, and refused while the template has no values — an empty template would seed an attribute with nothing.",
+        "operationId": "SiteAttributeTemplatesGatewayController_setActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetAttributeTemplateActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template activation changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The template has no values to activate."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activate or deactivate an attribute template",
+        "tags": [
+          "Commerce - Attribute Templates (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/attribute-templates/{id}/values": {
+      "put": {
+        "description": "Takes the complete set the template should end up with. Values that are unchanged keep their ids; removing every value deactivates the template.",
+        "operationId": "SiteAttributeTemplatesGatewayController_upsertValues",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Attribute template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAttributeTemplateValuesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Values replaced successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "The template belongs to a wider scope."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace an attribute template's values",
+        "tags": [
+          "Commerce - Attribute Templates (Site)"
         ]
       }
     },
@@ -27259,6 +29404,161 @@
           }
         ],
         "summary": "Get dimension template select options",
+        "tags": [
+          "Commerce - Select"
+        ]
+      }
+    },
+    "/commerce-api/select-api/attribute-templates": {
+      "get": {
+        "description": "Returns paginated active attribute template options for the select component. Templates owned by a wider scope are included, so a site sees its own plus those of its legal entity and organization.",
+        "operationId": "SelectApiController_selectAttributeTemplates",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by name",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute template select options retrieved successfully."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get attribute template select options",
         "tags": [
           "Commerce - Select"
         ]
@@ -37766,6 +40066,11 @@
       "CreateOfferingDimensionWithValuesAndTemplateDto": {
         "type": "object",
         "properties": {
+          "templateId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Template the values were chosen from"
+          },
           "code": {
             "type": "string",
             "example": "colour"
@@ -37786,6 +40091,7 @@
           }
         },
         "required": [
+          "templateId",
           "code",
           "name",
           "values"
@@ -37837,6 +40143,215 @@
           "name"
         ]
       },
+      "OfferingAttributeValueResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "attributeId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "description": "Code a storefront filters by",
+            "example": "high-protein"
+          },
+          "value": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "number"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "False once a variant carries this value"
+          }
+        },
+        "required": [
+          "id",
+          "attributeId",
+          "code",
+          "value",
+          "sortOrder",
+          "canDelete"
+        ]
+      },
+      "OfferingAttributeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "offeringId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Position of this group in a storefront filter rail"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingAttributeValueResponseDto"
+            }
+          },
+          "valueCount": {
+            "type": "number"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "False once any variant carries a value on this axis"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "offeringId",
+          "code",
+          "name",
+          "sortOrder",
+          "values",
+          "valueCount",
+          "canDelete",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateOfferingAttributeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "size"
+          },
+          "name": {
+            "type": "string",
+            "example": "Size"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true,
+            "description": "What this axis is for"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
+      "OfferingAttributeValueInputDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "red"
+          },
+          "value": {
+            "type": "string",
+            "example": "Red"
+          }
+        },
+        "required": [
+          "code",
+          "value"
+        ]
+      },
+      "CreateOfferingAttributeWithValuesAndTemplateDto": {
+        "type": "object",
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Template the values were chosen from"
+          },
+          "code": {
+            "type": "string",
+            "example": "colour"
+          },
+          "name": {
+            "type": "string",
+            "example": "Colour"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingAttributeValueInputDto"
+            }
+          }
+        },
+        "required": [
+          "templateId",
+          "code",
+          "name",
+          "values"
+        ]
+      },
+      "UpsertOfferingAttributeValuesDto": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingAttributeValueInputDto"
+            }
+          }
+        },
+        "required": [
+          "values"
+        ]
+      },
+      "ReorderOfferingAttributesDto": {
+        "type": "object",
+        "properties": {
+          "attributeIds": {
+            "description": "Every one of the offering's attribute ids, in the new order",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "attributeIds"
+        ]
+      },
+      "UpdateOfferingAttributeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New label; the code is fixed because a storefront filters on it"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true,
+            "description": "What this axis is for"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "OfferingVariantValueRefResponseDto": {
         "type": "object",
         "properties": {
@@ -37859,6 +40374,33 @@
         "required": [
           "dimensionId",
           "dimensionName",
+          "valueId",
+          "value",
+          "valueCode"
+        ]
+      },
+      "OfferingVariantAttributeValueRefResponseDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "string"
+          },
+          "attributeName": {
+            "type": "string"
+          },
+          "valueId": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributeId",
+          "attributeName",
           "valueId",
           "value",
           "valueCode"
@@ -37903,6 +40445,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OfferingVariantValueRefResponseDto"
+            }
+          },
+          "attributeValues": {
+            "description": "Several entries may share an attributeId — an attribute is multi-valued, unlike a dimension",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingVariantAttributeValueRefResponseDto"
             }
           },
           "bomLineCount": {
@@ -37958,6 +40507,7 @@
           "isActive",
           "isOfferingActive",
           "values",
+          "attributeValues",
           "bomLineCount",
           "canMarkActive",
           "fulfilmentType",
@@ -38187,6 +40737,13 @@
               "$ref": "#/components/schemas/OfferingVariantValueRefResponseDto"
             }
           },
+          "attributeValues": {
+            "description": "Several entries may share an attributeId — an attribute is multi-valued, unlike a dimension",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingVariantAttributeValueRefResponseDto"
+            }
+          },
           "bomLineCount": {
             "type": "number"
           },
@@ -38240,6 +40797,7 @@
           "isActive",
           "isOfferingActive",
           "values",
+          "attributeValues",
           "bomLineCount",
           "canMarkActive",
           "fulfilmentType",
@@ -38363,6 +40921,22 @@
         },
         "required": [
           "taxClassId"
+        ]
+      },
+      "SetVariantAttributesDto": {
+        "type": "object",
+        "properties": {
+          "valueIds": {
+            "description": "Every attribute value this variant carries, replacing the current set. Empty clears them.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "valueIds"
         ]
       },
       "OfferingBomLineResponseDto": {
@@ -38533,6 +41107,37 @@
         "required": [
           "ids",
           "taxClassId"
+        ]
+      },
+      "BulkSetVariantsAttributeDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "description": "Variants to set this attribute on",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "attributeId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The one attribute being set; the others are left alone"
+          },
+          "valueIds": {
+            "description": "Values of this attribute to apply to every selected variant. Empty clears the attribute.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "ids",
+          "attributeId",
+          "valueIds"
         ]
       },
       "BulkSetVariantsStatusDto": {
@@ -43462,6 +46067,217 @@
           }
         }
       },
+      "AttributeTemplateValueResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Template value ID"
+          },
+          "templateId": {
+            "type": "string",
+            "description": "Template this value belongs to"
+          },
+          "code": {
+            "type": "string",
+            "description": "Code a storefront filters by",
+            "example": "high-protein"
+          },
+          "value": {
+            "type": "string",
+            "description": "The value itself",
+            "example": "M"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Sort order within the template"
+          }
+        },
+        "required": [
+          "id",
+          "templateId",
+          "code",
+          "value",
+          "sortOrder"
+        ]
+      },
+      "AttributeTemplateResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Template ID"
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable identifier, unique across the organization",
+            "example": "apparel-size"
+          },
+          "name": {
+            "type": "string",
+            "description": "Template name",
+            "example": "Apparel Size"
+          },
+          "description": {
+            "type": "object",
+            "description": "What the template is for",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the template can be applied to new attributes"
+          },
+          "legalEntityId": {
+            "type": "object",
+            "description": "Owning legal entity, when LE-owned",
+            "nullable": true
+          },
+          "siteId": {
+            "type": "object",
+            "description": "Owning site, when site-owned",
+            "nullable": true
+          },
+          "ownerScope": {
+            "type": "string",
+            "description": "Which scope owns this template",
+            "enum": [
+              "ORG",
+              "LE",
+              "SITE"
+            ]
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "Name of the owning workspace — the legal entity or site, or \"Organization\" at org scope",
+            "example": "Acme Pharma Pvt Ltd"
+          },
+          "values": {
+            "description": "Values seeded onto an attribute",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttributeTemplateValueResponseDto"
+            }
+          },
+          "valueCount": {
+            "type": "number",
+            "description": "Number of values on the template"
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the current workspace owns this template and may change it"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "Whether this template can be deleted"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the template was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "When the template was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isActive",
+          "ownerScope",
+          "ownerName",
+          "values",
+          "valueCount",
+          "canEdit",
+          "canDelete",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateAttributeTemplateDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Stable identifier, unique across the organization",
+            "example": "apparel-size"
+          },
+          "name": {
+            "type": "string",
+            "description": "Template name",
+            "example": "Apparel Size"
+          },
+          "description": {
+            "type": "object",
+            "description": "What the template is for",
+            "nullable": true
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
+      "UpdateAttributeTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Template name"
+          },
+          "description": {
+            "type": "object",
+            "description": "What the template is for",
+            "nullable": true
+          }
+        }
+      },
+      "SetAttributeTemplateActiveDto": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the template can be applied to new attributes"
+          }
+        },
+        "required": [
+          "isActive"
+        ]
+      },
+      "TemplateValueInputDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Code a storefront filters by",
+            "example": "high-protein"
+          },
+          "value": {
+            "type": "string",
+            "description": "Label shown to the user",
+            "example": "Medium"
+          }
+        },
+        "required": [
+          "code",
+          "value"
+        ]
+      },
+      "UpsertAttributeTemplateValuesDto": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "description": "The complete set of values the template should end up with",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TemplateValueInputDto"
+            }
+          }
+        },
+        "required": [
+          "values"
+        ]
+      },
       "DimensionTemplateValueResponseDto": {
         "type": "object",
         "properties": {
@@ -43637,25 +46453,6 @@
         },
         "required": [
           "isActive"
-        ]
-      },
-      "TemplateValueInputDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "Segment this value contributes to a derived SKU",
-            "example": "m"
-          },
-          "value": {
-            "type": "string",
-            "description": "Label shown to the user",
-            "example": "Medium"
-          }
-        },
-        "required": [
-          "code",
-          "value"
         ]
       },
       "UpsertDimensionTemplateValuesDto": {

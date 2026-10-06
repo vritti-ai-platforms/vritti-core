@@ -27,3 +27,10 @@ export class StorefrontListingDto {
     return dto;
   }
 }
+
+export class StorefrontListingsDto {
+  items: StorefrontListingDto[];
+  total: number;
+  page: number;
+  perPage: number;
+}

@@ -4,7 +4,6 @@ import {
   decimal,
   index,
   integer,
-  jsonb,
   text,
   timestamp,
   unique,
@@ -15,6 +14,7 @@ import {
 import { commerceSchema } from './commerce-schema';
 import { fulfilmentTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
+import { offeringAttributes, offeringAttributeValues } from './offering-attributes';
 import { offeringDimensions, offeringDimensionValues } from './offering-dimensions';
 import { offerings } from './offerings';
 import { taxClasses } from './tax-classes';
@@ -44,7 +44,6 @@ export const offeringVariants = commerceSchema.table(
     isActive: boolean('is_active').notNull().default(false),
     isOfferingActive: boolean('is_offering_active').notNull().default(false),
     combinationKey: text('combination_key').notNull(),
-    attributes: jsonb('attributes').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -92,6 +91,39 @@ export const offeringVariantValues = commerceSchema.table(
 
 export type OfferingVariantValue = typeof offeringVariantValues.$inferSelect;
 export type NewOfferingVariantValue = typeof offeringVariantValues.$inferInsert;
+
+// Unique on (variant, value) rather than (variant, attribute): an attribute is multi-valued, so one
+// variant is both High Protein and High Fibre. That is the single difference from the dimension
+// junction above, and the reason attributes stay out of combination_key and the variant matrix.
+export const offeringVariantAttributeValues = commerceSchema.table(
+  'offering_variant_attribute_values',
+  {
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
+    organizationId: organizationIdColumn,
+    variantId: uuid('variant_id')
+      .notNull()
+      .references(() => offeringVariants.id, { onDelete: 'cascade' }),
+    attributeId: uuid('attribute_id')
+      .notNull()
+      .references(() => offeringAttributes.id, { onDelete: 'restrict' }),
+    valueId: uuid('value_id')
+      .notNull()
+      .references(() => offeringAttributeValues.id, { onDelete: 'restrict' }),
+  },
+  (table) => [
+    unique('uq_offering_variant_attribute_values_variant_value').on(table.variantId, table.valueId),
+    index('idx_offering_variant_attribute_values_value').on(table.valueId),
+    index('idx_offering_variant_attribute_values_attribute').on(table.attributeId),
+    ...scopeFromOwnerPolicies({
+      owner: offerings,
+      fk: table.variantId,
+      through: [{ table: offeringVariants, fk: (parent) => parent.offeringId }],
+    }),
+  ],
+);
+
+export type OfferingVariantAttributeValue = typeof offeringVariantAttributeValues.$inferSelect;
+export type NewOfferingVariantAttributeValue = typeof offeringVariantAttributeValues.$inferInsert;
 
 export const offeringBom = commerceSchema.table(
   'offering_bom',

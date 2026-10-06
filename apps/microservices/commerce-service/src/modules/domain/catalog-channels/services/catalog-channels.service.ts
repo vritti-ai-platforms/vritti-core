@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
-import { and, asc } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { CatalogChannelTypeValues, offeringVariants } from '@/db/schema';
+import { CatalogChannelTypeValues, CatalogFilterModeValues, offeringVariants } from '@/db/schema';
 import {
   CatalogChannelDto,
   type CatalogChannelRow,
@@ -13,13 +13,20 @@ import {
   DEFAULT_SLOT,
   type ResolvedChannelsDto,
 } from '../dto/entity/catalog-channel.dto';
-import { StorefrontListingDto } from '../dto/entity/storefront-listing.dto';
+import { ListingFilterDto, ListingFilterKindValues } from '../dto/entity/listing-filter.dto';
+import { StorefrontListingDto, type StorefrontListingsDto } from '../dto/entity/storefront-listing.dto';
+import { LISTINGS_PER_PAGE, type ListingQueryDto, ListingSortValues } from '../dto/request/listing-query.dto';
 import type {
   UpsertAppChannelDto,
   UpsertB2bChannelDto,
   UpsertPosChannelDto,
 } from '../dto/request/upsert-catalog-channel.dto';
-import { CatalogChannelsDomainRepository, type ChannelTarget } from '../repositories/catalog-channels.repository';
+import {
+  CatalogChannelsDomainRepository,
+  type ChannelTarget,
+  type ListingFilterSelection,
+  type StorefrontChannel,
+} from '../repositories/catalog-channels.repository';
 
 @Injectable()
 export class CatalogChannelsDomainService {
@@ -124,28 +131,120 @@ export class CatalogChannelsDomainService {
     };
   }
 
-  // Returns what a storefront sells, through the APP channel its credential resolves to
-  async appListings(appId: string): Promise<StorefrontListingDto[]> {
-    const channel = await this.repository.resolveCatalogChannel({
-      type: CatalogChannelTypeValues.APP,
-      appId,
-    });
-    if (!channel) return [];
+  // One page of what a storefront sells, through the APP channel its credential resolves to
+  async appListings(appId: string, query: ListingQueryDto): Promise<StorefrontListingsDto> {
+    const page = query.page ?? 1;
+    const perPage = query.perPage ?? LISTINGS_PER_PAGE;
 
-    const rows = await this.repository.findListings(channel);
-    return rows.map((row) => StorefrontListingDto.from(row));
+    const channel = await this.resolveStorefrontChannel(appId);
+    if (!channel) return { items: [], total: 0, page, perPage };
+
+    const { rows, total } = await this.repository.findListings(channel, {
+      filters: query.filters ?? [],
+      page,
+      perPage,
+      sort: query.sort ?? ListingSortValues.FEATURED,
+    });
+    return { items: rows.map((row) => StorefrontListingDto.from(row)), total, page, perPage };
+  }
+
+  // One listing, found by the variant a storefront stores against its own product row
+  async appListing(appId: string, variantId: string): Promise<StorefrontListingDto | null> {
+    const channel = await this.resolveStorefrontChannel(appId);
+    if (!channel) return null;
+
+    const row = await this.repository.findListingByVariant(channel, variantId);
+    return row ? StorefrontListingDto.from(row) : null;
   }
 
   // Prices variants the caller already holds, against the same credential's catalog
   async appListingsFromVariants(appId: string, variantIds: string[]): Promise<StorefrontListingDto[]> {
-    const channel = await this.repository.resolveCatalogChannel({
-      type: CatalogChannelTypeValues.APP,
-      appId,
-    });
+    const channel = await this.resolveStorefrontChannel(appId);
     if (!channel) return [];
 
     const rows = await this.repository.findListingsByVariants(channel, variantIds);
     return rows.map((row) => StorefrontListingDto.from(row));
+  }
+
+  // The filter rail: dimension groups then attribute groups, each value carrying a listing count.
+  //
+  // The unfiltered pass always runs, because it is the only thing that knows the full set of groups
+  // and values. Narrowing then overwrites the counts it can and leaves the rest at zero, which is how
+  // a value that would return nothing still renders — as a disabled zero rather than vanishing, so the
+  // rail does not reshape itself under the pointer.
+  async appListingFilters(appId: string, selected: ListingFilterSelection[]): Promise<ListingFilterDto[]> {
+    const channel = await this.resolveStorefrontChannel(appId);
+    if (!channel) return [];
+
+    const groups = await this.readFilterGroups(channel);
+    if (channel.filterMode === CatalogFilterModeValues.NARROWING) {
+      await this.narrowCounts(
+        channel,
+        groups,
+        selected.filter((entry) => entry.values.length > 0),
+      );
+    }
+    return groups;
+  }
+
+  // Each group is counted with every OTHER group's selections applied, but never its own. Applying the
+  // whole filter instead would compute Chocolate as "Kesar Badam AND Chocolate" the moment Kesar Badam
+  // is ticked, zeroing every other flavour and making a second flavour unselectable forever.
+  //
+  // So: one pass for the unselected groups with the full filter, plus one per selected group.
+  private async narrowCounts(
+    channel: StorefrontChannel,
+    groups: ListingFilterDto[],
+    selected: ListingFilterSelection[],
+  ): Promise<void> {
+    const selectedCodes = new Set(selected.map((entry) => entry.code));
+    const passes = [
+      { codes: groups.map((g) => g.code).filter((code) => !selectedCodes.has(code)), filters: selected },
+      ...selected.map((entry) => ({
+        codes: [entry.code],
+        filters: selected.filter((other) => other.code !== entry.code),
+      })),
+    ];
+
+    const results = await Promise.all(
+      passes.map(async (pass) => ({
+        codes: new Set(pass.codes),
+        groups: await this.readFilterGroups(channel, CatalogChannelsDomainRepository.filtersWhere(pass.filters)),
+      })),
+    );
+
+    const narrowed = new Map<string, number>();
+    for (const result of results) {
+      for (const group of result.groups) {
+        if (!result.codes.has(group.code)) continue;
+        for (const value of group.values) narrowed.set(`${group.code} ${value.code}`, value.count);
+      }
+    }
+
+    for (const group of groups) {
+      for (const value of group.values) {
+        value.count = narrowed.get(`${group.code} ${value.code}`) ?? 0;
+      }
+    }
+  }
+
+  // Dimensions first, attributes after — the order the rail renders them in
+  private async readFilterGroups(channel: StorefrontChannel, where?: SQL): Promise<ListingFilterDto[]> {
+    const [dimensions, attributes] = await Promise.all([
+      this.repository.findListingDimensions(channel, where),
+      this.repository.findListingAttributes(channel, where),
+    ]);
+    return [
+      ...ListingFilterDto.group(dimensions, ListingFilterKindValues.DIMENSION),
+      ...ListingFilterDto.group(attributes, ListingFilterKindValues.ATTRIBUTE),
+    ];
+  }
+
+  // The storefront reads need the channel's identity and its catalog's counting mode, nothing else
+  private async resolveStorefrontChannel(appId: string): Promise<StorefrontChannel | undefined> {
+    const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
+    if (!channel) return undefined;
+    return { id: channel.id, catalogId: channel.catalogId, filterMode: channel.catalogFilterMode };
   }
 
   // The one write path behind the three typed entry points

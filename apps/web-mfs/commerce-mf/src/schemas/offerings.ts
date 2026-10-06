@@ -89,9 +89,26 @@ export const createDimensionSchema = z.object({
   description: z.string().max(500, 'Description cannot exceed 500 characters'),
 });
 
+// A custom attribute is created empty; its values are set afterwards from the card
+export const createAttributeSchema = z.object({
+  code: zodCodeField({ max: 50 }),
+  name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
+  description: z.string().max(500, 'Description cannot exceed 500 characters'),
+});
+
 // The template supplies code, name and values — only the reference travels, and the copy keeps no
 // link back, so editing the template later never reshapes the offering
 export const createDimensionFromTemplateSchema = z.object({
+  templateId: z.string().min(1, 'Select a template'),
+  code: zodCodeField({ max: 50 }),
+  name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
+  description: z.string().max(500, 'Description cannot exceed 500 characters').nullable(),
+  valueCodes: z.array(z.string()).min(1, 'Pick at least one value'),
+});
+
+// The template supplies code, name and values — only the reference travels, and the copy keeps no
+// link back, so editing the template later never reshapes the offering
+export const createAttributeFromTemplateSchema = z.object({
   templateId: z.string().min(1, 'Select a template'),
   code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
@@ -104,7 +121,18 @@ export interface DimensionTemplateValueOption {
   value: string;
 }
 
+export interface AttributeTemplateValueOption {
+  code: string;
+  value: string;
+}
+
 export const dimensionValueSchema = z.object({
+  id: z.string().optional(),
+  code: zodCodeField({ max: 50 }),
+  value: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
+});
+
+export const attributeValueSchema = z.object({
   id: z.string().optional(),
   code: zodCodeField({ max: 50 }),
   value: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
@@ -115,7 +143,23 @@ export const dimensionValuesSchema = z.object({
   templateId: z.string().nullable().optional(),
 });
 
+export const attributeValuesSchema = z.object({
+  values: z.array(attributeValueSchema).min(1, 'Add at least one value'),
+  templateId: z.string().nullable().optional(),
+});
+
+// valueIds has no minimum: clearing the attribute across the selection is a legitimate save
+export const bulkSetVariantsAttributeSchema = z.object({
+  attributeId: z.string().min(1, 'Select an attribute'),
+  valueIds: z.array(z.string()),
+});
+
 export const updateDimensionSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
+  description: z.string().max(500, 'Description cannot exceed 500 characters'),
+});
+
+export const updateAttributeSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
   description: z.string().max(500, 'Description cannot exceed 500 characters'),
 });
@@ -127,6 +171,11 @@ export type CreateDimensionFormData = z.infer<typeof createDimensionSchema>;
 export type CreateDimensionFromTemplateFormData = z.infer<typeof createDimensionFromTemplateSchema>;
 export type UpdateDimensionFormData = z.infer<typeof updateDimensionSchema>;
 export type DimensionValuesFormData = z.infer<typeof dimensionValuesSchema>;
+export type CreateAttributeFormData = z.infer<typeof createAttributeSchema>;
+export type CreateAttributeFromTemplateFormData = z.infer<typeof createAttributeFromTemplateSchema>;
+export type UpdateAttributeFormData = z.infer<typeof updateAttributeSchema>;
+export type AttributeValuesFormData = z.infer<typeof attributeValuesSchema>;
+export type BulkSetVariantsAttributeFormData = z.infer<typeof bulkSetVariantsAttributeSchema>;
 
 export type OfferingOwnerScope = 'ORG' | 'LE' | 'SITE';
 
@@ -168,6 +217,15 @@ export interface DimensionValueData {
   canDelete: boolean;
 }
 
+export interface AttributeValueData {
+  id: string;
+  attributeId: string;
+  code: string;
+  value: string;
+  sortOrder: number;
+  canDelete: boolean;
+}
+
 export interface OfferingDimensionData {
   id: string;
   offeringId: string;
@@ -182,9 +240,32 @@ export interface OfferingDimensionData {
   updatedAt: string;
 }
 
+export interface OfferingAttributeData {
+  id: string;
+  offeringId: string;
+  code: string;
+  name: string;
+  description: string | null;
+  sortOrder: number;
+  values: AttributeValueData[];
+  valueCount: number;
+  canDelete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface VariantValueRefData {
   dimensionId: string;
   dimensionName: string;
+  valueId: string;
+  value: string;
+  valueCode: string;
+}
+
+// Several entries may share an attributeId — an attribute is multi-valued, unlike a dimension
+export interface VariantAttributeValueRefData {
+  attributeId: string;
+  attributeName: string;
   valueId: string;
   value: string;
   valueCode: string;
@@ -219,6 +300,7 @@ export interface OfferingVariantData {
   isOfferingActive: boolean;
   sortOrder: number;
   values: VariantValueRefData[];
+  attributeValues: VariantAttributeValueRefData[];
   bomLineCount: number;
   canMarkActive: boolean;
   canDelete: boolean;
@@ -274,6 +356,13 @@ export interface CreateDimensionData {
   description: string | null;
 }
 
+export interface CreateAttributeData {
+  offeringId: string;
+  code: string;
+  name: string;
+  description: string | null;
+}
+
 export interface CreateDimensionFromTemplateData {
   offeringId: string;
   templateId: string;
@@ -281,6 +370,15 @@ export interface CreateDimensionFromTemplateData {
   name: string;
   description: string | null;
   values: DimensionTemplateValueOption[];
+}
+
+export interface CreateAttributeFromTemplateData {
+  offeringId: string;
+  templateId: string;
+  code: string;
+  name: string;
+  description: string | null;
+  values: AttributeTemplateValueOption[];
 }
 
 // One field per dimension, each optional — a variant carries whichever axes apply to it, so leaving
@@ -307,9 +405,20 @@ export interface UpdateDimensionData {
   description: string | null;
 }
 
+export interface UpdateAttributeData {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
 export interface ReorderDimensionsData {
   offeringId: string;
   dimensionIds: string[];
+}
+
+export interface ReorderAttributesData {
+  offeringId: string;
+  attributeIds: string[];
 }
 
 export interface SetOfferingTaxClassData {
@@ -335,6 +444,27 @@ export interface SetVariantFulfilmentData {
 export interface UpsertDimensionValuesData {
   dimensionId: string;
   values: { id?: string; code: string; value: string }[];
+}
+
+export interface UpsertAttributeValuesData {
+  attributeId: string;
+  values: { id?: string; code: string; value: string }[];
+}
+
+// Flat and empty-allowed: the attribute each value belongs to is derived server-side, and an empty
+// list is how a variant's attributes are cleared
+export interface SetVariantAttributesData {
+  variantId: string;
+  valueIds: string[];
+}
+
+// One attribute at a time: only its values are replaced on each selected variant, so the batch cannot
+// wipe attributes the dialog never showed. Empty valueIds clears it across the selection.
+export interface BulkSetVariantsAttributeData {
+  offeringId: string;
+  ids: string[];
+  attributeId: string;
+  valueIds: string[];
 }
 
 export interface GenerateVariantsData {

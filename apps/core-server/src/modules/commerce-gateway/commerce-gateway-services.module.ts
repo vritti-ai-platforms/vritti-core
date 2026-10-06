@@ -2,6 +2,7 @@ import { AppDomainModule } from '@domain/app/app.module';
 import { LegalEntityDomainModule } from '@domain/legal-entity/legal-entity.module';
 import { SiteDomainModule } from '@domain/site/site.module';
 import { Module } from '@nestjs/common';
+import { LeAttributeTemplatesGatewayService } from './le-api/attribute-templates/services/attribute-templates-gateway.service';
 import { LeCartsGatewayService } from './le-api/carts/services/carts-gateway.service';
 import { LeCatalogChannelsGatewayService } from './le-api/catalog-channels/services/catalog-channels-gateway.service';
 import { LeCatalogsGatewayService } from './le-api/catalogs/services/catalogs-gateway.service';
@@ -11,6 +12,7 @@ import { LeOfferingsGatewayService } from './le-api/offerings/services/offerings
 import { SuppliersGatewayService } from './le-api/suppliers/services/suppliers-gateway.service';
 import { TaxGroupsGatewayService } from './le-api/tax-groups/services/tax-groups-gateway.service';
 import { TaxRegistrationsGatewayService } from './le-api/tax-registrations/services/tax-registrations-gateway.service';
+import { OrgAttributeTemplatesGatewayService } from './org-api/attribute-templates/services/attribute-templates-gateway.service';
 import { CatalogChannelsGatewayService } from './org-api/catalog-channels/services/catalog-channels-gateway.service';
 import { CatalogsGatewayService } from './org-api/catalogs/services/catalogs-gateway.service';
 import { CategoriesGatewayService } from './org-api/categories/services/categories-gateway.service';
@@ -23,6 +25,7 @@ import { TaxClassesGatewayService } from './org-api/tax-classes/services/tax-cla
 import { TaxComponentsGatewayService } from './org-api/tax-components/services/tax-components-gateway.service';
 import { TaxJurisdictionsGatewayService } from './org-api/tax-jurisdictions/services/tax-jurisdictions-gateway.service';
 import { UomGatewayService } from './org-api/uom/services/uom-gateway.service';
+import { SiteAttributeTemplatesGatewayService } from './site-api/attribute-templates/services/attribute-templates-gateway.service';
 import { CartsGatewayService } from './site-api/carts/services/carts-gateway.service';
 import { SiteCatalogChannelsGatewayService } from './site-api/catalog-channels/services/catalog-channels-gateway.service';
 import { SiteCatalogsGatewayService } from './site-api/catalogs/services/catalogs-gateway.service';
@@ -80,8 +83,11 @@ const services = [
   TaxClassesGatewayService,
   TaxComponentsGatewayService,
   TaxJurisdictionsGatewayService,
+  OrgAttributeTemplatesGatewayService,
   OrgDimensionTemplatesGatewayService,
+  LeAttributeTemplatesGatewayService,
   LeDimensionTemplatesGatewayService,
+  SiteAttributeTemplatesGatewayService,
   SiteDimensionTemplatesGatewayService,
   TaxGroupsGatewayService,
   TaxRegistrationsGatewayService,

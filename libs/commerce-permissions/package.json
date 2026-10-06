@@ -49,6 +49,10 @@
       "types": "./dist/locations.d.ts",
       "default": "./dist/locations.js"
     },
+    "./attribute-templates": {
+      "types": "./dist/attribute-templates.d.ts",
+      "default": "./dist/attribute-templates.js"
+    },
     "./dimension-templates": {
       "types": "./dist/dimension-templates.d.ts",
       "default": "./dist/dimension-templates.js"

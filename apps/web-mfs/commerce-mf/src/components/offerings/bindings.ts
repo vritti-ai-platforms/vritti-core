@@ -5,35 +5,44 @@ import type {
   UseAddSuggestedComponent,
   UseBulkClearVariantsTaxClass,
   UseBulkSetOfferingsStatus,
+  UseBulkSetVariantsAttribute,
   UseBulkSetVariantsStatus,
   UseBulkSetVariantsTaxClass,
   UseClearVariantFulfilment,
   UseClearVariantTaxClass,
+  UseCreateAttribute,
+  UseCreateAttributeFromTemplate,
   UseCreateDimension,
   UseCreateDimensionFromTemplate,
   UseCreateOffering,
   UseCreateVariant,
+  UseDeleteAttribute,
   UseDeleteBomLine,
   UseDeleteDimension,
   UseDeleteOffering,
   UseDeleteVariant,
   UseGenerateVariants,
+  UseOfferingAttributes,
   UseOfferingDimensions,
   UseOfferingsTable,
   UseOfferingVariantsTable,
   UsePreviewVariantCombinations,
+  UseReorderAttributes,
   UseReorderDimensions,
   UseSetOfferingFulfilment,
   UseSetOfferingStatus,
   UseSetOfferingTaxClass,
+  UseSetVariantAttributes,
   UseSetVariantFulfilment,
   UseSetVariantTaxClass,
   UseSuspenseOffering,
   UseSuspenseVariant,
+  UseUpdateAttribute,
   UseUpdateBomLine,
   UseUpdateDimension,
   UseUpdateOffering,
   UseUpdateVariant,
+  UseUpsertAttributeValues,
   UseUpsertDimensionValues,
   UseVariantBom,
 } from './types';
@@ -57,6 +66,16 @@ export interface OfferingsBinding {
   useDeleteOffering: UseDeleteOffering;
   useSetOfferingStatus: UseSetOfferingStatus;
   useBulkSetOfferingsStatus: UseBulkSetOfferingsStatus;
+
+  useAttributes: UseOfferingAttributes;
+  useCreateAttribute: UseCreateAttribute;
+  useCreateAttributeFromTemplate: UseCreateAttributeFromTemplate;
+  useUpsertAttributeValues: UseUpsertAttributeValues;
+  useUpdateAttribute: UseUpdateAttribute;
+  useReorderAttributes: UseReorderAttributes;
+  useDeleteAttribute: UseDeleteAttribute;
+  useSetVariantAttributes: UseSetVariantAttributes;
+  useBulkSetVariantsAttribute: UseBulkSetVariantsAttribute;
 
   useDimensions: UseOfferingDimensions;
   useCreateDimension: UseCreateDimension;

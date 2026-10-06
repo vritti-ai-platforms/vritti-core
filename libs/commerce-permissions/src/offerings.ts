@@ -5,6 +5,9 @@
 // Dimensions and variants are tabs on the offering, so each carries its own view alongside the parent's.
 // Seeding a dimension from a template is its own permission: it copies a shared, wider-scoped template
 // onto the offering, which is a different act from defining one inline.
+// Attributes mirror dimensions exactly: a tab on the offering defining the groups and their values. They
+// differ only in not being part of a SKU, so which values a variant carries is set on the variant —
+// `variants.set-attributes` — rather than fixed by the combination matrix.
 // A variant's bill of materials is edited under variants — it records which stock a variant draws on,
 // which is ordinary variant maintenance. Manufacturing BOMs belong to inventory items, not here.
 export const ORG_OFFERINGS = {
@@ -23,12 +26,20 @@ export const ORG_OFFERINGS = {
     edit: 'org.offerings.dimensions.edit',
     delete: 'org.offerings.dimensions.delete',
   },
+  attributes: {
+    view: 'org.offerings.attributes.view',
+    add: 'org.offerings.attributes.add',
+    addFromTemplate: 'org.offerings.attributes.add-from-template',
+    edit: 'org.offerings.attributes.edit',
+    delete: 'org.offerings.attributes.delete',
+  },
   variants: {
     view: 'org.offerings.variants.view',
     add: 'org.offerings.variants.add',
     edit: 'org.offerings.variants.edit',
     delete: 'org.offerings.variants.delete',
     setTaxClass: 'org.offerings.variants.set-tax-class',
+    setAttributes: 'org.offerings.variants.set-attributes',
     export: 'org.offerings.variants.export',
     // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
     // `variants` in the catalog — the authoring script takes only the first segment.
@@ -62,12 +73,20 @@ export const LE_OFFERINGS = {
     edit: 'le.offerings.dimensions.edit',
     delete: 'le.offerings.dimensions.delete',
   },
+  attributes: {
+    view: 'le.offerings.attributes.view',
+    add: 'le.offerings.attributes.add',
+    addFromTemplate: 'le.offerings.attributes.add-from-template',
+    edit: 'le.offerings.attributes.edit',
+    delete: 'le.offerings.attributes.delete',
+  },
   variants: {
     view: 'le.offerings.variants.view',
     add: 'le.offerings.variants.add',
     edit: 'le.offerings.variants.edit',
     delete: 'le.offerings.variants.delete',
     setTaxClass: 'le.offerings.variants.set-tax-class',
+    setAttributes: 'le.offerings.variants.set-attributes',
     export: 'le.offerings.variants.export',
     // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
     // `variants` in the catalog — the authoring script takes only the first segment.
@@ -98,12 +117,25 @@ export const SITE_OFFERINGS = {
     edit: 'site.offerings.dimensions.edit',
     delete: 'site.offerings.dimensions.delete',
   },
+  attributes: {
+    view: 'site.offerings.attributes.view',
+    add: 'site.offerings.attributes.add',
+    addFromTemplate: 'site.offerings.attributes.add-from-template',
+    edit: 'site.offerings.attributes.edit',
+    delete: 'site.offerings.attributes.delete',
+  },
+  // What a storefront credential may read. Site scope only: the picker that uses it is one outlet's
+  // website choosing which variant a page is about.
+  app: {
+    variants: 'site.offerings.app.variants',
+  },
   variants: {
     view: 'site.offerings.variants.view',
     add: 'site.offerings.variants.add',
     edit: 'site.offerings.variants.edit',
     delete: 'site.offerings.variants.delete',
     setTaxClass: 'site.offerings.variants.set-tax-class',
+    setAttributes: 'site.offerings.variants.set-attributes',
     export: 'site.offerings.variants.export',
     // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
     // `variants` in the catalog — the authoring script takes only the first segment.

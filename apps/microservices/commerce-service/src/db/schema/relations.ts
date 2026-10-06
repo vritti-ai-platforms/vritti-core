@@ -15,6 +15,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.taxClasses.id,
     }),
     dimensions: r.many.offeringDimensions(),
+    attributes: r.many.offeringAttributes(),
     variants: r.many.offeringVariants(),
     orderItems: r.many.orderItems(),
   },
@@ -31,6 +32,19 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.offeringDimensions.id,
     }),
   },
+  offeringAttributes: {
+    offering: r.one.offerings({
+      from: r.offeringAttributes.offeringId,
+      to: r.offerings.id,
+    }),
+    values: r.many.offeringAttributeValues(),
+  },
+  offeringAttributeValues: {
+    attribute: r.one.offeringAttributes({
+      from: r.offeringAttributeValues.attributeId,
+      to: r.offeringAttributes.id,
+    }),
+  },
   offeringVariants: {
     offering: r.one.offerings({
       from: r.offeringVariants.offeringId,
@@ -41,6 +55,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.uom.id,
     }),
     dimensionValues: r.many.offeringVariantValues(),
+    attributeValues: r.many.offeringVariantAttributeValues(),
     bom: r.many.offeringBom(),
     orderItems: r.many.orderItems(),
   },
@@ -56,6 +71,20 @@ export const relations = defineRelations(schema, (r) => ({
     value: r.one.offeringDimensionValues({
       from: r.offeringVariantValues.valueId,
       to: r.offeringDimensionValues.id,
+    }),
+  },
+  offeringVariantAttributeValues: {
+    variant: r.one.offeringVariants({
+      from: r.offeringVariantAttributeValues.variantId,
+      to: r.offeringVariants.id,
+    }),
+    attribute: r.one.offeringAttributes({
+      from: r.offeringVariantAttributeValues.attributeId,
+      to: r.offeringAttributes.id,
+    }),
+    value: r.one.offeringAttributeValues({
+      from: r.offeringVariantAttributeValues.valueId,
+      to: r.offeringAttributeValues.id,
     }),
   },
   offeringBom: {

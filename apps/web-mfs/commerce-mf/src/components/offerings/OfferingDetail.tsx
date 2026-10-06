@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import type { OfferingsBinding } from './bindings';
 import { EditOfferingDialog } from './forms/EditOfferingDialog';
 import { SetTaxClassDialog } from './forms/SetTaxClassDialog';
+import { AttributesTab } from './tabs/AttributesTab';
 import { DimensionsTab } from './tabs/DimensionsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { VariantsTab } from './tabs/VariantsTab';
@@ -113,6 +114,24 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
             ),
           },
           {
+            value: 'attributes',
+            label: 'Attributes',
+            permission: PERMISSIONS.attributes.view,
+            content: (
+              <AttributesTab
+                permissions={PERMISSIONS}
+                offering={offering}
+                useAttributes={binding.useAttributes}
+                useCreate={binding.useCreateAttribute}
+                useCreateFromTemplate={binding.useCreateAttributeFromTemplate}
+                useUpsertValues={binding.useUpsertAttributeValues}
+                useUpdate={binding.useUpdateAttribute}
+                useReorder={binding.useReorderAttributes}
+                useDelete={binding.useDeleteAttribute}
+              />
+            ),
+          },
+          {
             value: 'variants',
             label: 'Variants',
             permission: PERMISSIONS.variants.view,
@@ -122,12 +141,14 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
                 offering={offering}
                 useVariantsTable={binding.useVariantsTable}
                 useDimensions={binding.useDimensions}
+                useAttributes={binding.useAttributes}
                 useCreateVariant={binding.useCreateVariant}
                 useDelete={binding.useDeleteVariant}
                 useUpdate={binding.useUpdateVariant}
                 useBulkSetStatus={binding.useBulkSetVariantsStatus}
                 useBulkSetTaxClass={binding.useBulkSetVariantsTaxClass}
                 useBulkClearTaxClass={binding.useBulkClearVariantsTaxClass}
+                useBulkSetAttribute={binding.useBulkSetVariantsAttribute}
                 tableKey={binding.variantsTableKey(offering.id)}
                 tableSlug={binding.variantsTableSlug(offering.id)}
                 exportEndpoint={binding.variantsExportEndpoint(offering.id)}

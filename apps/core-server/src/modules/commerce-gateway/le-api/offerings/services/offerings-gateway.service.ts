@@ -1,19 +1,26 @@
 import type { AddBomLineDto, UpdateBomLineDto } from '@commerce/offerings/dto/request/bom-line.dto';
 import type { BulkClearVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-clear-variants-tax-class.dto';
 import type { BulkSetOfferingStatusDto } from '@commerce/offerings/dto/request/bulk-set-offering-status.dto';
+import type { BulkSetVariantsAttributeDto } from '@commerce/offerings/dto/request/bulk-set-variants-attribute.dto';
 import type { BulkSetVariantsStatusDto } from '@commerce/offerings/dto/request/bulk-set-variants-status.dto';
 import type { BulkSetVariantsTaxClassDto } from '@commerce/offerings/dto/request/bulk-set-variants-tax-class.dto';
 import type { CreateOfferingDto } from '@commerce/offerings/dto/request/create-offering.dto';
+import type { CreateOfferingAttributeDto } from '@commerce/offerings/dto/request/create-offering-attribute.dto';
+import type { CreateOfferingAttributeWithValuesAndTemplateDto } from '@commerce/offerings/dto/request/create-offering-attribute-with-values-and-template.dto';
 import type { CreateOfferingDimensionDto } from '@commerce/offerings/dto/request/create-offering-dimension.dto';
 import type { CreateOfferingDimensionWithValuesAndTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-with-values-and-template.dto';
 import type { CreateVariantDto } from '@commerce/offerings/dto/request/create-variant.dto';
 import type { GenerateVariantsDto } from '@commerce/offerings/dto/request/generate-variants.dto';
 import type { SetFulfilmentDto } from '@commerce/offerings/dto/request/set-fulfilment.dto';
 import type { SetTaxClassDto } from '@commerce/offerings/dto/request/set-tax-class.dto';
+import type { SetVariantAttributesDto } from '@commerce/offerings/dto/request/set-variant-attributes.dto';
 import type { UpdateOfferingDto } from '@commerce/offerings/dto/request/update-offering.dto';
+import type { UpdateOfferingAttributeDto } from '@commerce/offerings/dto/request/update-offering-attribute.dto';
 import type { UpdateOfferingDimensionDto } from '@commerce/offerings/dto/request/update-offering-dimension.dto';
 import type { UpdateVariantDto } from '@commerce/offerings/dto/request/update-variant.dto';
+import type { UpsertOfferingAttributeValuesDto } from '@commerce/offerings/dto/request/upsert-offering-attribute-values.dto';
 import type { UpsertOfferingDimensionValuesDto } from '@commerce/offerings/dto/request/upsert-offering-dimension-values.dto';
+import type { OfferingAttributeResponseDto } from '@commerce/offerings/dto/response/offering-attribute-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
@@ -201,6 +208,50 @@ export class LeOfferingsGatewayService {
     return this.nats.send('commerce', 'le.offerings.dimensions.delete', { id: dimensionId });
   }
 
+  // Returns an offering's attributes with their values
+  async listAttributes(offeringId: string): Promise<OfferingAttributeResponseDto[]> {
+    this.logger.log(`offerings.attributes.list — offeringId: ${offeringId}`);
+    return this.nats.send('commerce', 'le.offerings.attributes.list', { offeringId });
+  }
+
+  // Appends an attribute seeded from a template — the copy keeps no link back to the template
+  async createAttribute(
+    offeringId: string,
+    dto: CreateOfferingAttributeDto,
+  ): Promise<CreateResponseDto<OfferingAttributeResponseDto>> {
+    this.logger.log(`offerings.attributes.create — offeringId: ${offeringId}, code: ${dto.code}`);
+    return this.nats.send('commerce', 'le.offerings.attributes.create', { offeringId, ...dto });
+  }
+
+  // The template supplies code, name and values — the microservice copies them
+  async createAttributeWithValuesAndTemplate(
+    offeringId: string,
+    dto: CreateOfferingAttributeWithValuesAndTemplateDto,
+  ): Promise<CreateResponseDto<OfferingAttributeResponseDto>> {
+    this.logger.log(`le.offerings.attributes.createWithValuesAndTemplate — ${dto.code}, ${dto.values.length} values`);
+    return this.nats.send('commerce', 'le.offerings.attributes.createWithValuesAndTemplate', { offeringId, ...dto });
+  }
+
+  async reorderAttributes(offeringId: string, attributeIds: string[]): Promise<SuccessResponseDto> {
+    this.logger.log(`le.offerings.attributes.reorder — offeringId: ${offeringId}`);
+    return this.nats.send('commerce', 'le.offerings.attributes.reorder', { offeringId, attributeIds });
+  }
+
+  async upsertAttributeValues(attributeId: string, dto: UpsertOfferingAttributeValuesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.offerings.attributes.values.upsert — attributeId: ${attributeId}`);
+    return this.nats.send('commerce', 'le.offerings.attributes.values.upsert', { attributeId, ...dto });
+  }
+
+  async updateAttribute(attributeId: string, dto: UpdateOfferingAttributeDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.attributes.update — id: ${attributeId}`);
+    return this.nats.send('commerce', 'le.offerings.attributes.update', { id: attributeId, ...dto });
+  }
+
+  async deleteAttribute(attributeId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.attributes.delete — id: ${attributeId}`);
+    return this.nats.send('commerce', 'le.offerings.attributes.delete', { id: attributeId });
+  }
+
   // Returns an offering's variants with their dimension values and bill of materials
 
   // Additive — combinations that already exist are skipped, never recreated or removed
@@ -253,6 +304,18 @@ export class LeOfferingsGatewayService {
   async setTaxClass(id: string, dto: SetTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.setTaxClass — id: ${id}`);
     return this.nats.send('commerce', 'le.offerings.setTaxClass', { id, ...dto });
+  }
+
+  // Flat value ids: the attribute each belongs to is derived by the microservice from the offering
+  // Only the named attribute is replaced; the microservice leaves the selection's other attributes alone
+  async bulkSetVariantsAttribute(offeringId: string, dto: BulkSetVariantsAttributeDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.bulkSetAttribute — count: ${dto.ids.length}, attributeId: ${dto.attributeId}`);
+    return this.nats.send('commerce', 'le.offerings.variants.bulkSetAttribute', { offeringId, ...dto });
+  }
+
+  async setVariantAttributes(variantId: string, dto: SetVariantAttributesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.setAttributes — id: ${variantId}, values: ${dto.valueIds.length}`);
+    return this.nats.send('commerce', 'le.offerings.variants.setAttributes', { id: variantId, ...dto });
   }
 
   async setVariantTaxClass(variantId: string, dto: SetTaxClassDto): Promise<SuccessResponseDto> {

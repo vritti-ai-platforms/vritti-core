@@ -1,3 +1,4 @@
+export * from './attribute-templates';
 export * from './cart-items';
 export * from './carts';
 export * from './catalog-channels';
@@ -33,6 +34,7 @@ export * from './inventory-stock-levels';
 export * from './invoice-items';
 export * from './invoices';
 export * from './locations';
+export * from './offering-attributes';
 export * from './offering-dimensions';
 export * from './offering-variants';
 export * from './offerings';

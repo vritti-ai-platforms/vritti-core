@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Checkbox } from '@vritti/quantum-ui/Checkbox';
+import { CheckboxGroup } from '@vritti/quantum-ui/CheckboxGroup';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Select } from '@vritti/quantum-ui/Select';
@@ -70,12 +71,9 @@ export const GenerateVariantsWizard: React.FC<GenerateVariantsWizardProps> = ({
   const toCreate = rows.filter((row) => !row.exists && !row.excluded);
   const canAdvance = step === 'values' ? !!salesUomId && expected > 0 : toCreate.length > 0;
 
-  const toggleValue = (dimensionId: string, valueId: string) => {
-    setSelected((current) => {
-      const next = new Set(current[dimensionId]);
-      next.has(valueId) ? next.delete(valueId) : next.add(valueId);
-      return { ...current, [dimensionId]: next };
-    });
+  // The group reports its whole value list rather than one toggle, so this axis is replaced outright
+  const setDimensionValues = (dimensionId: string, valueIds: string[]) => {
+    setSelected((current) => ({ ...current, [dimensionId]: new Set(valueIds) }));
   };
 
   // A dimension with nothing selected is simply not one of this batch's axes — the variants created
@@ -152,23 +150,18 @@ export const GenerateVariantsWizard: React.FC<GenerateVariantsWizardProps> = ({
                     </span>
                   </div>
                   {applies && (
-                    <div className="flex flex-wrap gap-2">
-                      {dimension.values.map((value) => (
-                        <button
-                          key={value.id}
-                          type="button"
-                          onClick={() => toggleValue(dimension.id, value.id)}
-                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm ${
-                            selected[dimension.id]?.has(value.id)
-                              ? 'border-primary/30 bg-primary/10 text-primary'
-                              : 'bg-muted text-muted-foreground opacity-60'
-                          }`}
-                        >
-                          <Checkbox checked={selected[dimension.id]?.has(value.id) ?? false} />
-                          {value.value}
-                        </button>
-                      ))}
-                    </div>
+                    <CheckboxGroup
+                      columns={2}
+                      options={dimension.values.map((value) => ({
+                        value: value.id,
+                        label: value.value,
+                        description: value.code,
+                      }))}
+                      value={dimension.values
+                        .filter((value) => selected[dimension.id]?.has(value.id))
+                        .map((value) => value.id)}
+                      onValueChange={(ids) => setDimensionValues(dimension.id, ids)}
+                    />
                   )}
                 </div>
               );

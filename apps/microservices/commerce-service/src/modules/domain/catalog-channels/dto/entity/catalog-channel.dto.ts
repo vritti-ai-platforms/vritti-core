@@ -1,5 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { CatalogChannelType } from '@/db/schema';
+import type { CatalogChannelType, CatalogFilterMode } from '@/db/schema';
 
 export type ChannelScope = 'SITE' | 'LEGAL_ENTITY' | 'ORGANIZATION';
 
@@ -12,6 +12,7 @@ export interface CatalogChannelRow {
   catalogName: string;
   catalogIsActive: boolean;
   catalogTaxInclusive: boolean;
+  catalogFilterMode: CatalogFilterMode;
   type: CatalogChannelType;
   legalEntityId: string | null;
   siteId: string | null;

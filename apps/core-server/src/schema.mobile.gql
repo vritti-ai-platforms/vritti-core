@@ -42,6 +42,40 @@ type CatalogListing {
   price: Money
 }
 
+type ListingFilterValue {
+  code: String!
+  name: String!
+
+  """
+  Listings carrying this value. Zero renders disabled rather than hidden.
+  """
+  count: Int!
+}
+
+type ListingFilter {
+  """Ordering and presentation only — both kinds filter identically"""
+  kind: FilterKind!
+  code: String!
+  name: String!
+  sortOrder: Int!
+  values: [ListingFilterValue!]!
+}
+
+enum FilterKind {
+  DIMENSION
+  ATTRIBUTE
+}
+
+type CatalogListings {
+  items: [CatalogListing!]!
+
+  """Matching listings across every page"""
+  total: Int!
+  page: Int!
+  perPage: Int!
+  filters: [ListingFilter!]!
+}
+
 type PartyAddress {
   id: ID!
   line1: String!
@@ -109,6 +143,19 @@ type Cart {
 type CartQuantity {
   offeringVariantId: ID!
   quantity: Int!
+}
+
+type OfferingVariantOption {
+  id: ID!
+  sku: String!
+  name: String!
+}
+
+type OfferingVariantOptions {
+  items: [OfferingVariantOption!]!
+
+  """Matching variants across every page, after excludeIds"""
+  total: Int!
 }
 
 type MutationResult {

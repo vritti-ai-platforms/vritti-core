@@ -1,3 +1,4 @@
+import { AttributeTemplatesDomainModule } from '@domain/attribute-templates/attribute-templates.module';
 import { CategoriesDomainModule } from '@domain/categories/categories.module';
 import { CostCategoriesDomainModule } from '@domain/cost-categories/cost-categories.module';
 import { CustomersDomainModule } from '@domain/customers/customers.module';
@@ -30,6 +31,7 @@ import { SelectController } from './select.controller';
   imports: [
     CategoriesDomainModule,
     InventoryItemsDomainModule,
+    AttributeTemplatesDomainModule,
     DimensionTemplatesDomainModule,
     OfferingsDomainModule,
     OfferingVariantsDomainModule,
