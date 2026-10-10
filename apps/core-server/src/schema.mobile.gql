@@ -76,6 +76,34 @@ type CatalogListings {
   filters: [ListingFilter!]!
 }
 
+type VariantOption {
+  code: String!
+  name: String!
+  selected: Boolean!
+
+  """
+  The sibling this option leads to, holding every other axis where it is. Null when that combination is not sold here — render it disabled rather than hiding it, or the range looks smaller than it is.
+  """
+  sku: String
+}
+
+type VariantAxis {
+  """The dimension code, e.g. pack-size"""
+  code: String!
+  name: String!
+  sortOrder: Int!
+  options: [VariantOption!]!
+}
+
+type CatalogListingDetail {
+  listing: CatalogListing!
+
+  """
+  Only axes and values a sellable sibling carries — never an option the shop cannot fulfil
+  """
+  axes: [VariantAxis!]!
+}
+
 type PartyAddress {
   id: ID!
   line1: String!

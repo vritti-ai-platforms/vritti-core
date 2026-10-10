@@ -7,6 +7,7 @@ import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AppId } from '@/security/decorators';
 import { CatalogListing } from '../../org-api/catalog-channels/graphql/catalog-listing.type';
 import {
+  CatalogListingDetail,
   CatalogListings,
   FilterInput,
   ListingSort,
@@ -33,18 +34,22 @@ export class LeCatalogChannelsAppResolver {
     @Args({ name: 'sort', type: () => ListingSort, nullable: true }) sort?: ListingSort,
   ): Promise<CatalogListings> {
     this.logger.log(`QUERY leCatalogListings — page: ${page ?? 1}, filters: ${filters?.length ?? 0}`);
-    return this.service.appListings(appId, { filters, page, perPage, sort });
+    return this.service.appCatalogChannelListings(appId, { filters, page, perPage, sort });
   }
 
-  // One listing, by the variant a storefront stores against its own product row
-  @Query(() => CatalogListing, { name: 'leCatalogListing', nullable: true })
-  @RequirePermission(LE_CATALOG_CHANNELS.app.listing)
-  leCatalogListing(
+  // One listing by SKU, with the axes a product page switches flavour and size on.
+  //
+  // By SKU because that is what a storefront puts in its address bar. Guarded by `app.listings`
+  // rather than a permission of its own — the same catalogue read narrowed to one row, and an app
+  // credential carries one composed permission set that a newly authored code does not reach.
+  @Query(() => CatalogListingDetail, { name: 'leCatalogListingBySku', nullable: true })
+  @RequirePermission(LE_CATALOG_CHANNELS.app.listings)
+  leCatalogListingBySku(
     @AppId() appId: string,
-    @Args({ name: 'variantId', type: () => ID }) variantId: string,
-  ): Promise<CatalogListing | null> {
-    this.logger.log(`QUERY leCatalogListing — variantId: ${variantId}`);
-    return this.service.appListing(appId, variantId);
+    @Args({ name: 'sku', type: () => String }) sku: string,
+  ): Promise<CatalogListingDetail | null> {
+    this.logger.log(`QUERY leCatalogListingBySku — sku: ${sku}`);
+    return this.service.appListingBySku(appId, sku);
   }
 
   // The same range narrowed to variants the caller already holds — reconciling a wishlist or a basket

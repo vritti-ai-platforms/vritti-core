@@ -51,11 +51,30 @@ export const CATALOG_LISTINGS_QUERY = graphql(`
   }
 `);
 
-/** One listing, by the variant a storefront stores against its own product row. Null when not sold here. */
-export const CATALOG_LISTING_QUERY = graphql(`
-  query CatalogListing($variantId: ID!) {
-    catalogListing(variantId: $variantId) {
-      ...ListingFields
+/**
+ * One listing by SKU, with the axes a product page switches flavour and size on.
+ *
+ * `axes` carries only values a sellable sibling holds, and each option's `sku` is resolved by
+ * holding every other axis where it is — so from 250g · Dark Chocolate the 750g option leads to
+ * 750g · Dark Chocolate, and is null when that combination is not sold here.
+ */
+export const CATALOG_LISTING_QUERY_BY_SKU = graphql(`
+  query CatalogListingBySku($sku: String!) {
+    catalogListingBySku(sku: $sku) {
+      listing {
+        ...ListingFields
+      }
+      axes {
+        code
+        name
+        sortOrder
+        options {
+          code
+          name
+          selected
+          sku
+        }
+      }
     }
   }
 `);
@@ -94,10 +113,23 @@ export const LE_CATALOG_LISTINGS_QUERY = graphql(`
   }
 `);
 
-export const LE_CATALOG_LISTING_QUERY = graphql(`
-  query LeCatalogListing($variantId: ID!) {
-    leCatalogListing(variantId: $variantId) {
-      ...ListingFields
+export const LE_CATALOG_LISTING_QUERY_BY_SKU = graphql(`
+  query LeCatalogListingBySku($sku: String!) {
+    leCatalogListingBySku(sku: $sku) {
+      listing {
+        ...ListingFields
+      }
+      axes {
+        code
+        name
+        sortOrder
+        options {
+          code
+          name
+          selected
+          sku
+        }
+      }
     }
   }
 `);
@@ -135,10 +167,23 @@ export const SITE_CATALOG_LISTINGS_QUERY = graphql(`
   }
 `);
 
-export const SITE_CATALOG_LISTING_QUERY = graphql(`
-  query SiteCatalogListing($variantId: ID!) {
-    siteCatalogListing(variantId: $variantId) {
-      ...ListingFields
+export const SITE_CATALOG_LISTING_QUERY_BY_SKU = graphql(`
+  query SiteCatalogListingBySku($sku: String!) {
+    siteCatalogListingBySku(sku: $sku) {
+      listing {
+        ...ListingFields
+      }
+      axes {
+        code
+        name
+        sortOrder
+        options {
+          code
+          name
+          selected
+          sku
+        }
+      }
     }
   }
 `);

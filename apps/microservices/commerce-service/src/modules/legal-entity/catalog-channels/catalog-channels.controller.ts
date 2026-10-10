@@ -4,6 +4,7 @@ import type {
   StorefrontListingDto,
   StorefrontListingsDto,
 } from '@domain/catalog-channels/dto/entity/storefront-listing.dto';
+import type { CatalogListingDetailDto } from '@domain/catalog-channels/dto/entity/variant-axis.dto';
 import type { ListingQueryDto } from '@domain/catalog-channels/dto/request/listing-query.dto';
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
@@ -26,17 +27,17 @@ export class LeCatalogChannelsController {
   // One page of what a storefront sells — the channel is resolved from the credential, not named by
   // the caller. Always paged: nothing reads the whole range any more.
   @MessagePattern({ cmd: 'le.catalogChannels.app.listings' })
-  appListings(@Payload() data: { appId: string } & ListingQueryDto): Promise<StorefrontListingsDto> {
+  appCatalogChannelListings(@Payload() data: { appId: string } & ListingQueryDto): Promise<StorefrontListingsDto> {
     const { appId, ...query } = data;
     this.logger.log(`catalogChannels.app.listings — appId: ${appId}, page: ${query.page ?? 1}`);
-    return this.service.appListings(appId, query);
+    return this.service.appCatalogChannelListings(appId, query);
   }
 
-  // One listing, by the variant a storefront stores against its own product row
-  @MessagePattern({ cmd: 'le.catalogChannels.app.listing' })
-  appListing(@Payload() data: { appId: string; variantId: string }): Promise<StorefrontListingDto | null> {
-    this.logger.log(`catalogChannels.app.listing — variantId: ${data.variantId}`);
-    return this.service.appListing(data.appId, data.variantId);
+  // One listing by SKU, with the axes a product page switches flavour and size on
+  @MessagePattern({ cmd: 'le.catalogChannels.app.listingBySku' })
+  appListingBySku(@Payload() data: { appId: string; sku: string }): Promise<CatalogListingDetailDto | null> {
+    this.logger.log(`catalogChannels.app.listingBySku — sku: ${data.sku}`);
+    return this.service.appListingBySku(data.appId, data.sku);
   }
 
   // The filter rail for the same resolved catalog, counted per the catalog's own filter mode

@@ -9,6 +9,7 @@ export {
 export {
   type CatalogChannelsOperations,
   type CatalogListing,
+  type CatalogListingDetail,
   type CatalogListings,
   createCatalogChannelsOperations,
   type FilterKind,

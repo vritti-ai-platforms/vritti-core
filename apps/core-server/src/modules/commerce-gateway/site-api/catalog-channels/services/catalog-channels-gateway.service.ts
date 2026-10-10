@@ -27,6 +27,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 import type { CatalogListing } from '../../../org-api/catalog-channels/graphql/catalog-listing.type';
 import type {
+  CatalogListingDetail,
   CatalogListings,
   FilterInput,
   ListingFilter,
@@ -77,7 +78,7 @@ export class SiteCatalogChannelsGatewayService {
 
   // The storefront's range — one call, because commerce resolves the channel and joins the prices
   // The page plus what the lazy `filters` field will need, so the channel resolves once per request
-  async appListings(appId: string, query: ListingQuery): Promise<CatalogListings> {
+  async appCatalogChannelListings(appId: string, query: ListingQuery): Promise<CatalogListings> {
     this.logger.log(`site.catalogChannels.app.listings — page: ${query.page ?? 1}`);
     const page = await this.nats.send<Omit<CatalogListings, 'filters' | 'appId' | 'selected' | 'scope'>>(
       'commerce',
@@ -87,10 +88,10 @@ export class SiteCatalogChannelsGatewayService {
     return { ...page, filters: [], appId, selected: query.filters ?? [], scope: 'site' };
   }
 
-  // One listing by the variant a storefront stores against its own product row
-  async appListing(appId: string, variantId: string): Promise<CatalogListing | null> {
-    this.logger.log(`site.catalogChannels.app.listing — variantId: ${variantId}`);
-    return this.nats.send('commerce', 'site.catalogChannels.app.listing', { appId, variantId });
+  // One listing by SKU, with the variant axes a product page switches on
+  async appListingBySku(appId: string, sku: string): Promise<CatalogListingDetail | null> {
+    this.logger.log(`site.catalogChannels.app.listingBySku — sku: ${sku}`);
+    return this.nats.send('commerce', 'site.catalogChannels.app.listingBySku', { appId, sku });
   }
 
   // Only sent when the client selected the `filters` field — see CatalogListingsFieldsResolver

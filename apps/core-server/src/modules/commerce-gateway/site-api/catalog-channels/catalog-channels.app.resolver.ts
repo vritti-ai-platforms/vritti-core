@@ -7,6 +7,7 @@ import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AppId } from '@/security/decorators';
 import { CatalogListing } from '../../org-api/catalog-channels/graphql/catalog-listing.type';
 import {
+  CatalogListingDetail,
   CatalogListings,
   FilterInput,
   ListingSort,
@@ -33,18 +34,18 @@ export class SiteCatalogChannelsAppResolver {
     @Args({ name: 'sort', type: () => ListingSort, nullable: true }) sort?: ListingSort,
   ): Promise<CatalogListings> {
     this.logger.log(`QUERY siteCatalogListings — page: ${page ?? 1}, filters: ${filters?.length ?? 0}`);
-    return this.service.appListings(appId, { filters, page, perPage, sort });
+    return this.service.appCatalogChannelListings(appId, { filters, page, perPage, sort });
   }
 
-  // One listing, by the variant a storefront stores against its own product row
-  @Query(() => CatalogListing, { name: 'siteCatalogListing', nullable: true })
-  @RequirePermission(SITE_CATALOG_CHANNELS.app.listing)
-  siteCatalogListing(
+  // One listing by SKU, with the axes a product page switches flavour and size on.
+  @Query(() => CatalogListingDetail, { name: 'siteCatalogListingBySku', nullable: true })
+  @RequirePermission(SITE_CATALOG_CHANNELS.app.listings)
+  siteCatalogListingBySku(
     @AppId() appId: string,
-    @Args({ name: 'variantId', type: () => ID }) variantId: string,
-  ): Promise<CatalogListing | null> {
-    this.logger.log(`QUERY siteCatalogListing — variantId: ${variantId}`);
-    return this.service.appListing(appId, variantId);
+    @Args({ name: 'sku', type: () => String }) sku: string,
+  ): Promise<CatalogListingDetail | null> {
+    this.logger.log(`QUERY siteCatalogListingBySku — sku: ${sku}`);
+    return this.service.appListingBySku(appId, sku);
   }
 
   // The same range narrowed to variants the caller already holds — reconciling a wishlist or a basket

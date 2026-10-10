@@ -86,6 +86,53 @@ export class CatalogListings {
   scope: ListingScope;
 }
 
+@ObjectType()
+export class VariantOption {
+  @Field(() => String)
+  code: string;
+
+  @Field(() => String)
+  name: string;
+
+  @Field(() => Boolean)
+  selected: boolean;
+
+  @Field(() => String, {
+    nullable: true,
+    description:
+      'The sibling this option leads to, holding every other axis where it is. Null when that ' +
+      'combination is not sold here — render it disabled rather than hiding it, or the range looks ' +
+      'smaller than it is.',
+  })
+  sku: string | null;
+}
+
+@ObjectType()
+export class VariantAxis {
+  @Field(() => String, { description: 'The dimension code, e.g. pack-size' })
+  code: string;
+
+  @Field(() => String)
+  name: string;
+
+  @Field(() => Int)
+  sortOrder: number;
+
+  @Field(() => [VariantOption])
+  options: VariantOption[];
+}
+
+@ObjectType()
+export class CatalogListingDetail {
+  @Field(() => CatalogListing)
+  listing: CatalogListing;
+
+  @Field(() => [VariantAxis], {
+    description: 'Only axes and values a sellable sibling carries — never an option the shop cannot fulfil',
+  })
+  axes: VariantAxis[];
+}
+
 export type ListingScope = 'org' | 'le' | 'site';
 
 export interface ListingQuery {

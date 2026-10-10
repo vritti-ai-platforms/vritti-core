@@ -26,7 +26,13 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 import type { CatalogListing } from '../graphql/catalog-listing.type';
-import type { CatalogListings, FilterInput, ListingFilter, ListingQuery } from '../graphql/catalog-listings.type';
+import type {
+  CatalogListingDetail,
+  CatalogListings,
+  FilterInput,
+  ListingFilter,
+  ListingQuery,
+} from '../graphql/catalog-listings.type';
 
 const ITEMS_TABLE_SLUG = (channelId: string) => `commerce-org-channel-${channelId}-items`;
 
@@ -72,7 +78,7 @@ export class CatalogChannelsGatewayService {
 
   // The storefront's range — one call, because commerce resolves the channel and joins the prices
   // The page plus what the lazy `filters` field will need, so the channel resolves once per request
-  async appListings(appId: string, query: ListingQuery): Promise<CatalogListings> {
+  async appCatalogChannelListings(appId: string, query: ListingQuery): Promise<CatalogListings> {
     this.logger.log(`org.catalogChannels.app.listings — page: ${query.page ?? 1}`);
     const page = await this.nats.send<Omit<CatalogListings, 'filters' | 'appId' | 'selected' | 'scope'>>(
       'commerce',
@@ -82,10 +88,10 @@ export class CatalogChannelsGatewayService {
     return { ...page, filters: [], appId, selected: query.filters ?? [], scope: 'org' };
   }
 
-  // One listing by the variant a storefront stores against its own product row
-  async appListing(appId: string, variantId: string): Promise<CatalogListing | null> {
-    this.logger.log(`org.catalogChannels.app.listing — variantId: ${variantId}`);
-    return this.nats.send('commerce', 'org.catalogChannels.app.listing', { appId, variantId });
+  // One listing by SKU, with the variant axes a product page switches on
+  async appListingBySku(appId: string, sku: string): Promise<CatalogListingDetail | null> {
+    this.logger.log(`org.catalogChannels.app.listingBySku — sku: ${sku}`);
+    return this.nats.send('commerce', 'org.catalogChannels.app.listingBySku', { appId, sku });
   }
 
   // Only sent when the client selected the `filters` field — see CatalogListingsFieldsResolver

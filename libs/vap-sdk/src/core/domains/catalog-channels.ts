@@ -1,12 +1,12 @@
 import type { ApolloClient } from '@apollo/client';
 import {
-  CATALOG_LISTING_QUERY,
+  CATALOG_LISTING_QUERY_BY_SKU,
   CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
   CATALOG_LISTINGS_QUERY,
-  LE_CATALOG_LISTING_QUERY,
+  LE_CATALOG_LISTING_QUERY_BY_SKU,
   LE_CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
   LE_CATALOG_LISTINGS_QUERY,
-  SITE_CATALOG_LISTING_QUERY,
+  SITE_CATALOG_LISTING_QUERY_BY_SKU,
   SITE_CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
   SITE_CATALOG_LISTINGS_QUERY,
 } from '../graphql/catalog-channels';
@@ -46,6 +46,33 @@ export type CatalogListings = {
   page: number;
   perPage: number;
   filters: ListingFilter[];
+};
+
+/** One option on an axis — a flavour, a pack size. */
+export type VariantOption = {
+  code: string;
+  name: string;
+  selected: boolean;
+  /**
+   * The sibling this option leads to, holding every other axis where it is. `null` when that
+   * combination is not sold here — render it disabled rather than hiding it, or the range looks
+   * smaller than it is.
+   */
+  sku: string | null;
+};
+
+/** One axis of an offering — Pack Size, Flavours — as a product page switches on it. */
+export type VariantAxis = {
+  code: string;
+  name: string;
+  sortOrder: number;
+  options: VariantOption[];
+};
+
+/** One listing with the axes its product page switches on. */
+export type CatalogListingDetail = {
+  listing: CatalogListing;
+  axes: VariantAxis[];
 };
 
 /** One item a storefront sells. */
@@ -123,37 +150,38 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
     },
 
     /**
-     * One listing, by the variant a storefront stores against its own product record.
+     * One listing by SKU, with the axes its product page switches on.
      *
-     * The read a product page wants: it already knows which variant it is about, and needs that
-     * variant's price and whether this shop sells it at all. `null` is the honest answer to the
-     * second question — the row is absent from the resolved catalogue, delisted, or excluded from
-     * this channel, and a page can say "not available" rather than guessing from a missing price.
+     * By SKU because that is what a storefront puts in its address bar: core's SKU already names
+     * the offering and one value per dimension, so the URL says what the page is and needs no
+     * second lookup to be readable.
      *
-     * Prefer this over pulling the range to look one row up in it.
+     * `null` is the honest answer to "does this shop sell it" — the row is absent from the
+     * resolved catalogue, delisted, or excluded from this channel — and a page can say so rather
+     * than guessing from a missing price.
      */
-    async listing(
-      variantId: string,
+    async listingBySku(
+      sku: string,
       options: { scope?: WorkspaceScope; cacheSeconds?: number } = {},
-    ): Promise<CatalogListing | null> {
+    ): Promise<CatalogListingDetail | null> {
       const scope = options.scope ?? 'org';
       const ttlSeconds = options.cacheSeconds ?? DEFAULT_LISTINGS_CACHE_SECONDS;
       const requestContext = {
         requestContext: contextForScope(context, scope),
         ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
       };
-      const variables = { variantId };
+      const variables = { sku };
       return run(async () => {
         if (scope === 'site') {
-          const r = await client.query({ query: SITE_CATALOG_LISTING_QUERY, variables, context: requestContext });
-          return (requireData(r.data).siteCatalogListing as CatalogListing | null) ?? null;
+          const r = await client.query({ query: SITE_CATALOG_LISTING_QUERY_BY_SKU, variables, context: requestContext });
+          return (requireData(r.data).siteCatalogListingBySku as CatalogListingDetail | null) ?? null;
         }
         if (scope === 'le') {
-          const r = await client.query({ query: LE_CATALOG_LISTING_QUERY, variables, context: requestContext });
-          return (requireData(r.data).leCatalogListing as CatalogListing | null) ?? null;
+          const r = await client.query({ query: LE_CATALOG_LISTING_QUERY_BY_SKU, variables, context: requestContext });
+          return (requireData(r.data).leCatalogListingBySku as CatalogListingDetail | null) ?? null;
         }
-        const r = await client.query({ query: CATALOG_LISTING_QUERY, variables, context: requestContext });
-        return (requireData(r.data).catalogListing as CatalogListing | null) ?? null;
+        const r = await client.query({ query: CATALOG_LISTING_QUERY_BY_SKU, variables, context: requestContext });
+        return (requireData(r.data).catalogListingBySku as CatalogListingDetail | null) ?? null;
       });
     },
 

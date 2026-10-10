@@ -15,6 +15,7 @@ import {
 } from '../dto/entity/catalog-channel.dto';
 import { ListingFilterDto, ListingFilterKindValues } from '../dto/entity/listing-filter.dto';
 import { StorefrontListingDto, type StorefrontListingsDto } from '../dto/entity/storefront-listing.dto';
+import { buildVariantAxes, type CatalogListingDetailDto } from '../dto/entity/variant-axis.dto';
 import { LISTINGS_PER_PAGE, type ListingQueryDto, ListingSortValues } from '../dto/request/listing-query.dto';
 import type {
   UpsertAppChannelDto,
@@ -132,11 +133,11 @@ export class CatalogChannelsDomainService {
   }
 
   // One page of what a storefront sells, through the APP channel its credential resolves to
-  async appListings(appId: string, query: ListingQueryDto): Promise<StorefrontListingsDto> {
+  async appCatalogChannelListings(appId: string, query: ListingQueryDto): Promise<StorefrontListingsDto> {
     const page = query.page ?? 1;
     const perPage = query.perPage ?? LISTINGS_PER_PAGE;
 
-    const channel = await this.resolveStorefrontChannel(appId);
+    const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return { items: [], total: 0, page, perPage };
 
     const { rows, total } = await this.repository.findListings(channel, {
@@ -148,18 +149,29 @@ export class CatalogChannelsDomainService {
     return { items: rows.map((row) => StorefrontListingDto.from(row)), total, page, perPage };
   }
 
-  // One listing, found by the variant a storefront stores against its own product row
-  async appListing(appId: string, variantId: string): Promise<StorefrontListingDto | null> {
-    const channel = await this.resolveStorefrontChannel(appId);
+  // One listing by SKU, with the axes a product page switches on.
+  //
+  // By SKU because that is what a storefront puts in its address bar: the SKU already names the
+  // offering and one value per dimension, so the URL says what the page is and needs no second
+  // lookup to be readable. Null when this shop does not sell it, which a page renders as "not
+  // found" rather than guessing.
+  async appListingBySku(appId: string, sku: string): Promise<CatalogListingDetailDto | null> {
+    const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return null;
 
-    const row = await this.repository.findListingByVariant(channel, variantId);
-    return row ? StorefrontListingDto.from(row) : null;
+    const row = await this.repository.findListingBySku(channel, sku);
+    if (!row) return null;
+
+    const siblings = await this.repository.findSellableSiblings(channel, row.offeringId);
+    return {
+      listing: StorefrontListingDto.from(row),
+      axes: buildVariantAxes(siblings, row.offeringVariantId),
+    };
   }
 
   // Prices variants the caller already holds, against the same credential's catalog
   async appListingsFromVariants(appId: string, variantIds: string[]): Promise<StorefrontListingDto[]> {
-    const channel = await this.resolveStorefrontChannel(appId);
+    const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return [];
 
     const rows = await this.repository.findListingsByVariants(channel, variantIds);
@@ -173,11 +185,11 @@ export class CatalogChannelsDomainService {
   // a value that would return nothing still renders — as a disabled zero rather than vanishing, so the
   // rail does not reshape itself under the pointer.
   async appListingFilters(appId: string, selected: ListingFilterSelection[]): Promise<ListingFilterDto[]> {
-    const channel = await this.resolveStorefrontChannel(appId);
+    const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return [];
 
     const groups = await this.readFilterGroups(channel);
-    if (channel.filterMode === CatalogFilterModeValues.NARROWING) {
+    if (channel.catalogFilterMode === CatalogFilterModeValues.NARROWING) {
       await this.narrowCounts(
         channel,
         groups,
@@ -217,13 +229,13 @@ export class CatalogChannelsDomainService {
     for (const result of results) {
       for (const group of result.groups) {
         if (!result.codes.has(group.code)) continue;
-        for (const value of group.values) narrowed.set(`${group.code} ${value.code}`, value.count);
+        for (const value of group.values) narrowed.set(`${group.code}|${value.code}`, value.count);
       }
     }
 
     for (const group of groups) {
       for (const value of group.values) {
-        value.count = narrowed.get(`${group.code} ${value.code}`) ?? 0;
+        value.count = narrowed.get(`${group.code}|${value.code}`) ?? 0;
       }
     }
   }
@@ -238,13 +250,6 @@ export class CatalogChannelsDomainService {
       ...ListingFilterDto.group(dimensions, ListingFilterKindValues.DIMENSION),
       ...ListingFilterDto.group(attributes, ListingFilterKindValues.ATTRIBUTE),
     ];
-  }
-
-  // The storefront reads need the channel's identity and its catalog's counting mode, nothing else
-  private async resolveStorefrontChannel(appId: string): Promise<StorefrontChannel | undefined> {
-    const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
-    if (!channel) return undefined;
-    return { id: channel.id, catalogId: channel.catalogId, filterMode: channel.catalogFilterMode };
   }
 
   // The one write path behind the three typed entry points

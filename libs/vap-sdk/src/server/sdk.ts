@@ -58,7 +58,11 @@ export function createVapSdk(options: VapSdkOptions = {}) {
 
   const build = (rawContext: RequestContext = {}) => {
     const context = scoped(rawContext);
-    const people = createPeopleOperations(client, withoutWorkspace(context));
+    // Currency goes in for the same reason the basket gets it: the wishlist prices its rows, so
+    // `savedVariantIds`, `addToWishlist` and `removeFromWishlist` all send a currency code to core.
+    // Without it every one of them threw "VAP is not configured for prices" — the guard was right,
+    // the wiring simply skipped the argument.
+    const people = createPeopleOperations(client, withoutWorkspace(context), config.currency);
     const whatsappOtp = createWhatsappOtpOperations(client, withoutWorkspace(context));
     const smsOtp = createSmsOtpOperations(client, withoutWorkspace(context));
     return {

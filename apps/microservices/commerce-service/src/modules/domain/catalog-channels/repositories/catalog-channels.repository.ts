@@ -41,10 +41,26 @@ export interface ChannelTarget {
   terminalId: string | null;
 }
 
+// Named to match `selection()`'s own columns, so the resolved row satisfies this structurally and
+// the readers below can take it straight from `resolveCatalogChannel` — no mapping step, and no
+// service method whose only job is to perform one.
 export interface StorefrontChannel {
   id: string;
   catalogId: string;
-  filterMode: CatalogFilterMode;
+  catalogFilterMode: CatalogFilterMode;
+}
+
+// One (variant, dimension) pair of a sellable sibling — the rows the variant switcher is pivoted
+// from. Flat rather than nested because it is one join; the service turns it into axes.
+export interface VariantSiblingRow {
+  variantId: string;
+  sku: string;
+  dimensionCode: string;
+  dimensionName: string;
+  dimensionSortOrder: number;
+  valueCode: string;
+  valueName: string;
+  valueSortOrder: number;
 }
 
 // One selected filter group. The code may name a dimension or an attribute; `filterPredicate` tries
@@ -410,22 +426,57 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return { rows: result, total };
   }
 
-  // One listing by the variant it is for, in the resolved channel's catalog. The variant id is what a
-  // storefront stores against its own product row, so this is the detail page's read.
-  async findListingByVariant(channel: StorefrontChannel, variantId: string): Promise<StorefrontListingRow | undefined> {
+  // One listing by SKU, which is what a storefront puts in its own address bar. The SKU is unique
+  // org-wide, and the catalog + sellable predicate keeps the answer to what THIS shop sells.
+  async findListingBySku(
+    channel: StorefrontChannel,
+    sku: string,
+  ): Promise<(StorefrontListingRow & { offeringId: string }) | undefined> {
     const [row] = await this.db
-      .select(CatalogChannelsDomainRepository.listingSelection())
+      .select({ ...CatalogChannelsDomainRepository.listingSelection(), offeringId: offeringVariants.offeringId })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
       .where(
         and(
           eq(catalogListings.catalogId, channel.catalogId),
           this.sellable(channel.id),
-          eq(catalogListings.offeringVariantId, variantId),
+          eq(offeringVariants.sku, sku),
         ) as SQL,
       )
       .limit(1);
     return row;
+  }
+
+  // Every variant of one offering this channel actually sells, each with the value it carries on
+  // each axis. One row per (variant, dimension); the service pivots them into axes.
+  //
+  // Walked from the sellable listings rather than from the offering's declared combinations, so an
+  // option the shop cannot sell is never offered — the same rule the filter rail follows.
+  findSellableSiblings(channel: StorefrontChannel, offeringId: string): Promise<VariantSiblingRow[]> {
+    return this.db
+      .select({
+        variantId: offeringVariants.id,
+        sku: offeringVariants.sku,
+        dimensionCode: offeringDimensions.code,
+        dimensionName: offeringDimensions.name,
+        dimensionSortOrder: offeringDimensions.sortOrder,
+        valueCode: offeringDimensionValues.code,
+        valueName: offeringDimensionValues.value,
+        valueSortOrder: offeringDimensionValues.sortOrder,
+      })
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offeringVariantValues, eq(offeringVariantValues.variantId, offeringVariants.id))
+      .innerJoin(offeringDimensions, eq(offeringDimensions.id, offeringVariantValues.dimensionId))
+      .innerJoin(offeringDimensionValues, eq(offeringDimensionValues.id, offeringVariantValues.valueId))
+      .where(
+        and(
+          eq(catalogListings.catalogId, channel.catalogId),
+          this.sellable(channel.id),
+          eq(offeringVariants.offeringId, offeringId),
+        ) as SQL,
+      )
+      .orderBy(asc(offeringDimensions.sortOrder), asc(offeringDimensionValues.sortOrder));
   }
 
   // The dimension groups present on the listings this channel sells, with a count per value.

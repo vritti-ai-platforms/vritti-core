@@ -6,7 +6,7 @@ import { AppTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AppId } from '@/security/decorators';
 import { CatalogListing } from './graphql/catalog-listing.type';
-import { CatalogListings, FilterInput, ListingSort } from './graphql/catalog-listings.type';
+import { CatalogListingDetail, CatalogListings, FilterInput, ListingSort } from './graphql/catalog-listings.type';
 import { CatalogChannelsGatewayService } from './services/catalog-channels-gateway.service';
 
 @Resolver()
@@ -29,19 +29,24 @@ export class CatalogChannelsAppResolver {
     @Args({ name: 'sort', type: () => ListingSort, nullable: true }) sort?: ListingSort,
   ): Promise<CatalogListings> {
     this.logger.log(`QUERY catalogListings — page: ${page ?? 1}, filters: ${filters?.length ?? 0}`);
-    return this.service.appListings(appId, { filters, page, perPage, sort });
+    return this.service.appCatalogChannelListings(appId, { filters, page, perPage, sort });
   }
 
-  // One listing, by the variant a storefront stores against its own product row. Null when this
-  // credential's catalog does not sell it, which is the honest answer to "can I sell this".
-  @Query(() => CatalogListing, { name: 'catalogListing', nullable: true })
-  @RequirePermission(ORG_CATALOG_CHANNELS.app.listing)
-  catalogListing(
+  // One listing by SKU, with the axes a product page switches flavour and size on.
+  //
+  // By SKU because that is what the storefront puts in its address bar: it already names the
+  // offering and one value per dimension, so the URL says what the page is. Guarded by
+  // `app.listings` rather than a permission of its own — it is the same catalogue read narrowed to
+  // one row, and an app credential carries one composed permission set that a newly authored code
+  // does not reach.
+  @Query(() => CatalogListingDetail, { name: 'catalogListingBySku', nullable: true })
+  @RequirePermission(ORG_CATALOG_CHANNELS.app.listings)
+  catalogListingBySku(
     @AppId() appId: string,
-    @Args({ name: 'variantId', type: () => ID }) variantId: string,
-  ): Promise<CatalogListing | null> {
-    this.logger.log(`QUERY catalogListing — variantId: ${variantId}`);
-    return this.service.appListing(appId, variantId);
+    @Args({ name: 'sku', type: () => String }) sku: string,
+  ): Promise<CatalogListingDetail | null> {
+    this.logger.log(`QUERY catalogListingBySku — sku: ${sku}`);
+    return this.service.appListingBySku(appId, sku);
   }
 
   // The same range narrowed to variants the caller already holds — a wishlist or a basket
