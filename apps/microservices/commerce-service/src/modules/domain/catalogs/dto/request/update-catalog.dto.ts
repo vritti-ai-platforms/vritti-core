@@ -1,5 +1,6 @@
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { type CatalogFilterMode, catalogFilterModeEnum } from '@/db/schema';
 
 export class UpdateCatalogDto {
   @IsUUID('7')
@@ -18,4 +19,9 @@ export class UpdateCatalogDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  // STATIC counts each filter value across the whole catalog; NARROWING applies the other selected groups
+  @IsOptional()
+  @IsIn(catalogFilterModeEnum.enumValues)
+  filterMode?: CatalogFilterMode;
 }

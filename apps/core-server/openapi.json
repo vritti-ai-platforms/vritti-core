@@ -45344,6 +45344,14 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "filterMode": {
+            "type": "string",
+            "enum": [
+              "STATIC",
+              "NARROWING"
+            ],
+            "description": "How storefront filter counts are computed: STATIC counts each value across the whole catalog; NARROWING counts it with the other selected groups applied"
           }
         }
       },
