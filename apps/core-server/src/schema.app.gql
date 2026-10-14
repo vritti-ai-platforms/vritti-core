@@ -508,9 +508,9 @@ type CheckoutSession {
 }
 
 type Query {
+  paymentIntent(input: PaymentIntentRefInput!): PaymentIntent!
   appSites(types: [AppSiteType!]): [AppSite!]!
   appLegalEntities: [AppLegalEntity!]!
-  paymentIntent(input: PaymentIntentRefInput!): PaymentIntent!
   peopleByCommunication(input: FindPeopleByCommunicationInput!): [Person!]!
   partyProfile: Person!
   partyAddresses: [PartyAddress!]!
