@@ -155,8 +155,7 @@ export type OtpMessages = {
 
 const DEFAULTS: Required<{ [K in keyof OtpMessages]: string }> = {
   missingPhone: 'Enter your phone number.',
-  invalidPhone:
-    'That does not look like a mobile number for the country you picked. Check it and try again.',
+  invalidPhone: 'That does not look like a mobile number for the country you picked. Check it and try again.',
   tooSoon: 'A code was just sent. Wait a moment before asking for another.',
   unavailable: 'We could not sign you in just now. Try again in a moment.',
   expired: 'That took too long. Start again with your number.',
@@ -273,12 +272,10 @@ export function createAuthFlows(
   whatsappOtp: WhatsappOtpOperations,
   smsOtp: SmsOtpOperations,
 ) {
-  const say = (messages: OtpMessages | undefined, key: keyof OtpMessages): string =>
-    messages?.[key] || DEFAULTS[key];
+  const say = (messages: OtpMessages | undefined, key: keyof OtpMessages): string => messages?.[key] || DEFAULTS[key];
 
   /** Which domain a channel means. The only place the two are chosen between. */
-  const channelOps = (channel: OtpChannel) =>
-    channel === OTP_CHANNELS.SMS ? smsOtp : whatsappOtp;
+  const channelOps = (channel: OtpChannel) => (channel === OTP_CHANNELS.SMS ? smsOtp : whatsappOtp);
 
   /**
    * The one place a contact detail is turned into a person.
@@ -319,10 +316,7 @@ export function createAuthFlows(
    * A local function, like `resolveParty`, because `startOtpSignIn` below calls it. Reaching it
    * through `this` instead would work until the first caller destructured the object.
    */
-  async function sendOtp(
-    phone: string,
-    channel: OtpChannel = OTP_CHANNELS.WHATSAPP,
-  ): Promise<SendOtpResult> {
+  async function sendOtp(phone: string, channel: OtpChannel = OTP_CHANNELS.WHATSAPP): Promise<SendOtpResult> {
     const normalized = normalizePhone(phone);
     if (!normalized) throw new VapError('A phone number is required.', 'Invalid Phone', 400);
     return channelOps(channel).send(normalized);
@@ -608,11 +602,7 @@ export function createAuthFlows(
      * `flow` null means the state lapsed or was never started. There is nothing to verify against,
      * and the number must **not** be taken from the form at this point.
      */
-    async submitOtpCode(
-      flow: OtpFlowData | null,
-      code: string,
-      messages?: OtpMessages,
-    ): Promise<OtpOutcome> {
+    async submitOtpCode(flow: OtpFlowData | null, code: string, messages?: OtpMessages): Promise<OtpOutcome> {
       if (!flow) return { status: 'error', error: say(messages, 'expired') };
 
       const entered = code.trim();

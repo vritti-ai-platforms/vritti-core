@@ -46,6 +46,46 @@ export function ApiListSites() {
   );
 }
 
+export function ApiSelectSites() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Select sites',
+      description:
+        "The organization's active sites as select options, ordered by sort order. Each option carries its " +
+        'legal entity in `additionals.legalEntityId`, so choosing a site also supplies the entity it belongs to.',
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiHeader({ name: 'x-org-id', description: 'Organization ID scoping the request', required: true }),
+    ApiResponse({ status: 200, description: 'Select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiSelectSiteTypes() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Select site types',
+      description:
+        'The site types this organization actually has, as select options. Read from its own sites rather ' +
+        'than from the enum, so a type nobody operates is never offered.',
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiHeader({ name: 'x-org-id', description: 'Organization ID scoping the request', required: true }),
+    ApiResponse({ status: 200, description: 'Select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
 export function ApiGetSite() {
   return applyDecorators(
     ApiOperation({

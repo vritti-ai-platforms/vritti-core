@@ -2,11 +2,25 @@ import { SiteDto } from '@domain/site/dto/entity/site.dto';
 import { CreateSiteInternalDto } from '@domain/site/dto/request/create-site-internal.dto';
 import { ReorderSitesInternalDto } from '@domain/site/dto/request/reorder-sites-internal.dto';
 import { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site-internal.dto';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import { OrgId } from '@/security/decorators/org-id.decorator';
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';
 import {
@@ -15,9 +29,12 @@ import {
   ApiGetSite,
   ApiListSites,
   ApiReorderSites,
+  ApiSelectSites,
+  ApiSelectSiteTypes,
   ApiSetSiteLocks,
   ApiUpdateSite,
 } from './docs/site.docs';
+import { SiteSelectQueryDto } from './dto/request/site-select-query.dto';
 import { SiteService } from './services/site-api.service';
 
 @ApiTags('Sites')
@@ -43,6 +60,22 @@ export class SiteController {
   async list(@OrgId() orgId: string): Promise<SiteDto[]> {
     this.logger.log(`GET /sites/internal — org ${orgId}`);
     return this.siteApiService.findByOrg(orgId);
+  }
+
+  // Returns the organization's active sites as select options
+  @Get('select')
+  @ApiSelectSites()
+  async findForSelect(@OrgId() orgId: string, @Query() query: SiteSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(`GET /sites/internal/select — org ${orgId}`);
+    return this.siteApiService.findForSelect(orgId, query);
+  }
+
+  // Returns the site types this organization actually has, as select options
+  @Get('types')
+  @ApiSelectSiteTypes()
+  async findTypesForSelect(@OrgId() orgId: string): Promise<SelectQueryResult> {
+    this.logger.log(`GET /sites/internal/types — org ${orgId}`);
+    return this.siteApiService.findTypesForSelect(orgId);
   }
 
   // Returns a single site

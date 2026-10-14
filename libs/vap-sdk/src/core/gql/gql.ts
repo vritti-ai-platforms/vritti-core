@@ -61,6 +61,8 @@ type Documents = {
     "\n  mutation AddPartyAddress($input: PartyAddressInput!) {\n    addPartyAddress(input: $input) {\n      ...PartyAddressFields\n    }\n  }\n": typeof types.AddPartyAddressDocument,
     "\n  mutation UpdatePartyAddress($input: UpdatePartyAddressInput!) {\n    updatePartyAddress(input: $input) {\n      ...PartyAddressFields\n    }\n  }\n": typeof types.UpdatePartyAddressDocument,
     "\n  mutation RemovePartyAddress($input: PartyAddressRefInput!) {\n    removePartyAddress(input: $input) {\n      ...PartyAddressFields\n    }\n  }\n": typeof types.RemovePartyAddressDocument,
+    "\n  query AppSites($types: [AppSiteType!]) {\n    appSites(types: $types) {\n      id\n      code\n      name\n      type\n      timezone\n      legalEntityId\n      currencyCode\n      sortOrder\n    }\n  }\n": typeof types.AppSitesDocument,
+    "\n  query AppLegalEntities {\n    appLegalEntities {\n      id\n      code\n      name\n      currencyCode\n      country\n      sortOrder\n    }\n  }\n": typeof types.AppLegalEntitiesDocument,
 };
 const documents: Documents = {
     "\n  fragment MoneyFields on Money {\n    currency\n    value\n  }\n": types.MoneyFieldsFragmentDoc,
@@ -110,6 +112,8 @@ const documents: Documents = {
     "\n  mutation AddPartyAddress($input: PartyAddressInput!) {\n    addPartyAddress(input: $input) {\n      ...PartyAddressFields\n    }\n  }\n": types.AddPartyAddressDocument,
     "\n  mutation UpdatePartyAddress($input: UpdatePartyAddressInput!) {\n    updatePartyAddress(input: $input) {\n      ...PartyAddressFields\n    }\n  }\n": types.UpdatePartyAddressDocument,
     "\n  mutation RemovePartyAddress($input: PartyAddressRefInput!) {\n    removePartyAddress(input: $input) {\n      ...PartyAddressFields\n    }\n  }\n": types.RemovePartyAddressDocument,
+    "\n  query AppSites($types: [AppSiteType!]) {\n    appSites(types: $types) {\n      id\n      code\n      name\n      type\n      timezone\n      legalEntityId\n      currencyCode\n      sortOrder\n    }\n  }\n": types.AppSitesDocument,
+    "\n  query AppLegalEntities {\n    appLegalEntities {\n      id\n      code\n      name\n      currencyCode\n      country\n      sortOrder\n    }\n  }\n": types.AppLegalEntitiesDocument,
 };
 
 /**
@@ -314,6 +318,14 @@ export function graphql(source: "\n  mutation UpdatePartyAddress($input: UpdateP
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation RemovePartyAddress($input: PartyAddressRefInput!) {\n    removePartyAddress(input: $input) {\n      ...PartyAddressFields\n    }\n  }\n"): (typeof documents)["\n  mutation RemovePartyAddress($input: PartyAddressRefInput!) {\n    removePartyAddress(input: $input) {\n      ...PartyAddressFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query AppSites($types: [AppSiteType!]) {\n    appSites(types: $types) {\n      id\n      code\n      name\n      type\n      timezone\n      legalEntityId\n      currencyCode\n      sortOrder\n    }\n  }\n"): (typeof documents)["\n  query AppSites($types: [AppSiteType!]) {\n    appSites(types: $types) {\n      id\n      code\n      name\n      type\n      timezone\n      legalEntityId\n      currencyCode\n      sortOrder\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query AppLegalEntities {\n    appLegalEntities {\n      id\n      code\n      name\n      currencyCode\n      country\n      sortOrder\n    }\n  }\n"): (typeof documents)["\n  query AppLegalEntities {\n    appLegalEntities {\n      id\n      code\n      name\n      currencyCode\n      country\n      sortOrder\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

@@ -5,6 +5,7 @@ import { type WorkspaceFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/common/events/auth-status.events';
 import { type LegalEntity, type SiteMetadata, type SiteType } from '@/db/schema';
 import { OwnerNameCacheService } from '@/owner-names/owner-name-cache.service';
@@ -69,6 +70,16 @@ export class SiteDomainService {
   async findByOrg(orgId: string): Promise<SiteDto[]> {
     const sites = await this.siteRepository.findByOrg(orgId);
     return sites.map(SiteDto.from);
+  }
+
+  // Returns an organization's active sites as select options, optionally within one legal entity
+  findForSelect(orgId: string, query: SelectOptionsQueryDto & { legalEntityId?: string }): Promise<SelectQueryResult> {
+    return this.siteRepository.findForOrgSelectOptions(orgId, query);
+  }
+
+  // The site types this organization actually has — the options behind a type filter
+  findTypesForOrg(orgId: string): Promise<SiteType[]> {
+    return this.siteRepository.findTypesForOrg(orgId);
   }
 
   // Returns a single site by ID

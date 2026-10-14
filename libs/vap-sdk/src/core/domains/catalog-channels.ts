@@ -173,7 +173,11 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
       const variables = { sku };
       return run(async () => {
         if (scope === 'site') {
-          const r = await client.query({ query: SITE_CATALOG_LISTING_QUERY_BY_SKU, variables, context: requestContext });
+          const r = await client.query({
+            query: SITE_CATALOG_LISTING_QUERY_BY_SKU,
+            variables,
+            context: requestContext,
+          });
           return (requireData(r.data).siteCatalogListingBySku as CatalogListingDetail | null) ?? null;
         }
         if (scope === 'le') {

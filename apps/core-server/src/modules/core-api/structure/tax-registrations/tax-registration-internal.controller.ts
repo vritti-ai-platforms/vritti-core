@@ -52,10 +52,11 @@ export class TaxRegistrationInternalController {
     return this.service.update(id, dto);
   }
 
-  @Delete(':id')
+  // Scoped to the legal entity so cloud can only remove a registration that entity actually owns
+  @Delete('legal-entity/:legalEntityId/:id')
   @HttpCode(HttpStatus.OK)
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /tax-registrations/internal/${id}`);
-    return this.service.delete(id);
+  delete(@Param('legalEntityId') legalEntityId: string, @Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /tax-registrations/internal/legal-entity/${legalEntityId}/${id}`);
+    return this.service.deleteForLegalEntity(legalEntityId, id);
   }
 }

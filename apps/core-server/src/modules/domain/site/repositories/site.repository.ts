@@ -2,7 +2,27 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { type LegalEntity, legalEntities, type Site, type SiteGroup, siteGroups, sites } from '@/db/schema';
+import {
+  type LegalEntity,
+  legalEntities,
+  type Site,
+  type SiteGroup,
+  type SiteType,
+  siteGroups,
+  sites,
+} from '@/db/schema';
+
+/** A sellable site with its legal entity's currency joined on — what the app surface returns. */
+export interface AppSiteRow {
+  id: string;
+  code: string;
+  name: string;
+  type: SiteType;
+  timezone: string;
+  legalEntityId: string;
+  currencyCode: string;
+  sortOrder: number;
+}
 
 @Injectable()
 export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
@@ -38,6 +58,105 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
       orderBy: { sortOrder: 'asc', name: 'asc' },
       conditions,
     });
+  }
+
+  /**
+   * The sites an organization can sell from, each carrying its legal entity's currency.
+   *
+   * One query doing all the narrowing, because every part of it is a database's job: both `is_active`
+   * flags, the optional type filter, and the currency that comes from the joined entity. The caller
+   * says which types it wants — a storefront asks for OUTLET, an ops tool might ask for all — so the
+   * judgement stays with the caller while the filtering stays in SQL.
+   *
+   * The join is inner on purpose: a site whose legal entity is inactive has no currency to price in,
+   * so it is not sellable and must not be offered.
+   */
+  async findForAppByOrg(orgId: string, types?: SiteType[]): Promise<AppSiteRow[]> {
+    const conditions: SQL[] = [
+      eq(sites.organizationId, orgId),
+      eq(sites.isActive, true),
+      eq(legalEntities.isActive, true),
+    ];
+    // Absent means every type. An empty array would mean "none", which no caller can want — it is
+    // what an unfiltered request looks like after a bad map — so it is treated as absent too.
+    if (types?.length) conditions.push(inArray(sites.type, types));
+
+    return (
+      this.db
+        .select({
+          id: sites.id,
+          code: sites.code,
+          name: sites.name,
+          type: sites.type,
+          timezone: sites.timezone,
+          legalEntityId: sites.legalEntityId,
+          currencyCode: legalEntities.currencyCode,
+          sortOrder: sites.sortOrder,
+        })
+        .from(sites)
+        .innerJoin(legalEntities, eq(legalEntities.id, sites.legalEntityId))
+        .where(and(...conditions))
+        // Staff drag these into the order they want them shown; name breaks a tie.
+        .orderBy(asc(sites.sortOrder), asc(sites.name))
+    );
+  }
+
+  /**
+   * An organization's active sites as select options, optionally narrowed to one legal entity.
+   *
+   * Org-scoped where `findForSelectOptions` above is entity-scoped-and-required: a caller may be
+   * choosing across the whole organization, or — once an entity is settled — only within it. The
+   * narrowing is the database's, so a picker filtered to one entity is not handed the rest to discard.
+   *
+   * `legalEntityId` also rides back as an additional, so a caller that listed across the organization
+   * still learns which entity each site belongs to.
+   */
+  async findForOrgSelectOptions(
+    orgId: string,
+    query: SelectOptionsQueryDto & { legalEntityId?: string },
+  ): Promise<SelectQueryResult> {
+    const conditions: SQL[] = [];
+
+    if (query.search) {
+      const term = `%${query.search}%`;
+      conditions.push(sql`(${sites.name} ilike ${term} or ${sites.code} ilike ${term})`);
+    }
+
+    return this.findForSelect({
+      value: 'id',
+      label: 'name',
+      description: 'code',
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      where: {
+        organizationId: orgId,
+        isActive: true,
+        ...(query.legalEntityId ? { legalEntityId: query.legalEntityId } : {}),
+      },
+      orderBy: { sortOrder: 'asc', name: 'asc' },
+      additionalKeys: 'legalEntityId',
+      conditions,
+    });
+  }
+
+  /**
+   * The site types this organization actually has, as select options.
+   *
+   * `selectDistinct` over the org's own sites rather than the enum's three values: an organization with
+   * no warehouses should not be offered WAREHOUSE, and a list of options nobody can pick is a list that
+   * invites a setting with no effect.
+   *
+   * Active sites only, matching every other read here — a type that survives only on a switched-off
+   * site is not one this organization operates.
+   */
+  async findTypesForOrg(orgId: string): Promise<SiteType[]> {
+    const rows = await this.db
+      .selectDistinct({ type: sites.type })
+      .from(sites)
+      .where(and(eq(sites.organizationId, orgId), eq(sites.isActive, true)))
+      .orderBy(asc(sites.type));
+    return rows.map((row) => row.type);
   }
 
   // Finds sites by ids scoped to an organization

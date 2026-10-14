@@ -1,10 +1,11 @@
 'use server';
 
-import { getSdk } from '@vritti/vap-sdk/payload';
+import { getSdk, type PayloadLike } from '@vritti/vap-sdk/payload';
 import { revalidatePath } from 'next/cache';
 import { requireParty } from './party.js';
 import { resolvePayload, vapNextConfig } from './payload-adapter.js';
-import { formField, withPartyErrors, type PartyActionState } from './state.js';
+import { formField, type PartyActionState, withPartyErrors } from './state.js';
+import { resolveWorkspace } from './visitor-session.js';
 
 /**
  * A party's own details and address book, as server actions a storefront imports directly.
@@ -19,8 +20,7 @@ import { formField, withPartyErrors, type PartyActionState } from './state.js';
  */
 
 const accountRoute = (config: { routes: { account?: string } }) => config.routes.account ?? '/account';
-const addressesRoute = (config: { routes: { addresses?: string } }) =>
-  config.routes.addresses ?? '/account/addresses';
+const addressesRoute = (config: { routes: { addresses?: string } }) => config.routes.addresses ?? '/account/addresses';
 
 /** The fields, as core takes them. Empty means cleared, which `null` says and `''` would not. */
 function readAddress(formData: FormData) {
@@ -36,10 +36,19 @@ function readAddress(formData: FormData) {
 }
 
 /** Adds one, or edits the one named by `id` — the form carries it when editing. */
-export async function saveAddressAction(
-  _previous: PartyActionState,
-  formData: FormData,
-): Promise<PartyActionState> {
+/**
+ * The SDK bound to this party *and* where they are shopping.
+ *
+ * Both halves are needed: core reads the party from the signature, and a basket or wishlist line is
+ * priced — per listing x site x currency — so a call that names only the party has no currency to
+ * price in and is refused. Fetched per action rather than passed in, because `resolveWorkspace` is
+ * request-cached and an action is one request.
+ */
+async function actingFor(payload: PayloadLike, partyId: string) {
+  return getSdk(payload).forContext({ partyId, ...(await resolveWorkspace()) });
+}
+
+export async function saveAddressAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
   const payload = await resolvePayload();
   const route = addressesRoute(vapNextConfig(payload));
   const party = await requireParty(route);
@@ -47,7 +56,7 @@ export async function saveAddressAction(
   const address = readAddress(formData);
   if (!address.line1) return { error: 'Please enter the address.', field: 'line1' };
 
-  const people = getSdk(payload).forContext({ partyId: party.partyId }).people;
+  const people = (await actingFor(payload, party.partyId)).people;
   const id = formField(formData, 'id');
 
   const result = await withPartyErrors(payload, () =>
@@ -57,10 +66,7 @@ export async function saveAddressAction(
   return result;
 }
 
-export async function removeAddressAction(
-  _previous: PartyActionState,
-  formData: FormData,
-): Promise<PartyActionState> {
+export async function removeAddressAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
   const payload = await resolvePayload();
   const route = addressesRoute(vapNextConfig(payload));
   const party = await requireParty(route);
@@ -68,11 +74,8 @@ export async function removeAddressAction(
   const id = formField(formData, 'id');
   if (!id) return { error: 'Nothing to remove.' };
 
-  const result = await withPartyErrors(payload, () =>
-    getSdk(payload)
-      .forContext({ partyId: party.partyId })
-      .people.removeAddress(id)
-      .then(() => ({ ok: true })),
+  const result = await withPartyErrors(payload, async () =>
+    (await actingFor(payload, party.partyId)).people.removeAddress(id).then(() => ({ ok: true })),
   );
   revalidatePath(route);
   return result;
@@ -85,10 +88,7 @@ export async function removeAddressAction(
  * as a generic failure. It is the field core composes `displayName` from, so an empty one is not a
  * clearing — it is a profile with nobody in it.
  */
-export async function updateProfileAction(
-  _previous: PartyActionState,
-  formData: FormData,
-): Promise<PartyActionState> {
+export async function updateProfileAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
   const payload = await resolvePayload();
   const config = vapNextConfig(payload);
   const route = accountRoute(config);
@@ -101,15 +101,13 @@ export async function updateProfileAction(
   const email = formField(formData, 'email');
 
   const result = await withPartyErrors(payload, async () => {
-    const profile = await getSdk(payload)
-      .forContext({ partyId: party.partyId })
-      .people.updateProfile({
-        // Empty means cleared, which is a real choice on an optional field — `null` says that,
-        // where `''` would store a blank string that reads as a name of no characters.
-        firstName,
-        lastName: lastName || null,
-        email: email || null,
-      });
+    const profile = await (await actingFor(payload, party.partyId)).people.updateProfile({
+      // Empty means cleared, which is a real choice on an optional field — `null` says that,
+      // where `''` would store a blank string that reads as a name of no characters.
+      firstName,
+      lastName: lastName || null,
+      email: email || null,
+    });
 
     /**
      * The storefront's own copy of the name, kept in step.

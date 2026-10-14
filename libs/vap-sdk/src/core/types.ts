@@ -15,25 +15,28 @@ export type VapSdkConfig = {
   clientSecret: string;
 
   /**
-   * The currency this storefront sells in, ISO 4217 — e.g. `INR`.
+   * Where a visitor with no session of their own starts.
    *
-   * Required by the basket and wishlist operations, which read a listing's price in it. Left
-   * out deliberately rather than defaulted: a guessed currency finds no price for any listing the
-   * catalogue does not carry in it, and the failure looks like an empty basket rather than a
-   * misconfiguration. Nothing else in the SDK reads it.
-   */
-  currency?: string;
-
-  /**
-   * The site this storefront sells from, when it always sells from one.
+   * **A seed, not a setting.** A storefront's selling context belongs to the visitor: it lives on
+   * their session and their store switcher changes it. These two say what a *new* session is given,
+   * which is why a provisioned site has them injected by cloud rather than written here by hand.
    *
-   * A default for every request, so a single-outlet shop configures it once instead of threading it
-   * through every call. `forContext({ siteId })` overrides it — which is what a store selector does.
+   * There is deliberately no `currency`. It belongs to the legal entity, so it is resolved from core
+   * (`structure.sites()`) when a session is seeded and recorded there — a second place to state it
+   * could only disagree with the entity it claims to describe.
    */
   siteId?: string;
-
-  /** The legal entity default, for a storefront that sells at LE rather than site level. */
   legalEntityId?: string;
+
+  /**
+   * Which site types this app may act at — `structure.sites()` asks for these unless a caller says
+   * otherwise.
+   *
+   * **Empty or absent means every type**, which is one instruction with one representation. Injected,
+   * like the two ids above: whether a shop should offer warehouses is a deployment's decision, not a
+   * constant for a component to carry.
+   */
+  siteTypes?: string[];
 
   /** Overridable for tests. Defaults to the global `fetch`. */
   fetch?: typeof fetch;
@@ -70,11 +73,28 @@ export type RequestContext = {
    *
    * Covered by the request signature, and the header **name** is signed too — so a request cannot
    * be re-pointed from one site to another, or from a site to a legal entity, in transit.
+   *
+   * `null` as well as absent, because a resolved workspace says so explicitly: a session acting at its
+   * legal entity's level *has* no site, which is a different statement from not having been asked.
+   * Both read as "send no site header".
    */
-  siteId?: string;
+  siteId?: string | null;
 
   /** The legal entity, for a storefront that sells at LE rather than site level. */
-  legalEntityId?: string;
+  legalEntityId?: string | null;
+};
+
+/**
+ * What a caller hands `forContext` — the request context, plus the currency to price in.
+ *
+ * `currencyCode` sits outside `RequestContext` on purpose. Everything in that type is covered by the
+ * request signature; this is not. It rides in the operation body as a variable, which the body hash
+ * already covers, so putting it beside the signed fields would misrepresent what protects it.
+ *
+ * It comes from the visitor's session, which took it from the legal entity that session acts in.
+ */
+export type SdkContext = RequestContext & {
+  currencyCode?: string;
 };
 
 /**

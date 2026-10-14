@@ -54,15 +54,15 @@ const sessionsField: Field = {
  * access rules were later loosened by mistake.
  *
  * `create` stays shut. Sign-in runs through a server action using the Local API, which bypasses these
- * rules — so closing `create` stops `POST /api/customers` being used to mint an account around the
+ * rules — so closing `create` stops `POST /api/parties` being used to mint an account around the
  * verification that is supposed to precede one.
  */
-export function customersCollection(extraFields: Field[] = []): CollectionLike {
+export function partyCollection(extraFields: Field[] = []): CollectionLike {
   // Authored against CollectionConfig for the field-level safety, handed back opaque so the built types
   // never name one installed copy of payload.
   const collection: CollectionConfig = {
     slug: 'parties',
-    labels: { singular: 'Customer', plural: 'Customers' },
+    labels: { singular: 'Party', plural: 'Parties' },
     auth: {
       // Long enough that a party is not signed out mid-basket, short enough that a shared machine
       // forgets them within the week.
@@ -82,7 +82,7 @@ export function customersCollection(extraFields: Field[] = []): CollectionLike {
       // intent unmissable to anyone reading the config.
       admin: () => false,
       // Staff see everyone; a party sees exactly their own record. Returning a query rather than
-      // `true` is what keeps `GET /api/customers` from becoming a customer list for anyone holding a
+      // `true` is what keeps `GET /api/parties` from becoming a party list for anyone holding a
       // session cookie.
       read: ({ req: { user } }) => {
         if (!user) return false;
@@ -114,7 +114,7 @@ export function customersCollection(extraFields: Field[] = []): CollectionLike {
         required: true,
         admin: {
           description:
-            'How the storefront greets them — a copy of the party\'s display name in Vritti, which is the source of truth. Taken from there for a party the organization already knows, and asked for only when the number is new.',
+            "How the storefront greets them — a copy of the party's display name in Vritti, which is the source of truth. Taken from there for a party the organization already knows, and asked for only when the number is new.",
         },
       },
       {

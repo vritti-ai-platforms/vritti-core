@@ -41,6 +41,7 @@ import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
 import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
 import { CoreSelectApiModule } from './modules/core-api/select-api/select-api.module';
 import { StructureApiModule } from './modules/core-api/structure/structure.module';
+import { StructureAppGatewayModule } from './modules/core-api/structure/structure-app-gateway.module';
 import { UserApiModule } from './modules/core-api/user/user.module';
 import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
 import { AppDomainModule } from './modules/domain/app/app.module';
@@ -117,7 +118,12 @@ const graphqlBaseOptions = {
       driver: ApolloDriver,
       useFactory: () => ({
         ...graphqlBaseOptions,
-        include: [CommerceAppGatewayModule, CommunicationsAppGatewayModule, PaymentsAppGatewayModule],
+        include: [
+          CommerceAppGatewayModule,
+          CommunicationsAppGatewayModule,
+          StructureAppGatewayModule,
+          PaymentsAppGatewayModule,
+        ],
         autoSchemaFile: join(process.cwd(), 'src/schema.app.gql'),
         path: '/graphql',
         // Public product surface: integrators codegen against it rather than reverse-engineering
@@ -366,6 +372,7 @@ const graphqlBaseOptions = {
     StructureApiModule,
     CommerceAppGatewayModule,
     CommunicationsAppGatewayModule,
+    StructureAppGatewayModule,
     // Storefront payments surface — intents and cart checkout over the app GraphQL schema
     PaymentsAppGatewayModule,
     CatalogApiModule,

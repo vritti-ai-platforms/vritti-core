@@ -561,6 +561,48 @@ type MobileTokens {
   expiresIn: Int!
 }
 
+type AppLegalEntity {
+  id: String!
+  code: String!
+  name: String!
+
+  """
+  ISO 4217. The currency a session in this entity prices in — the only place it is stated, so a storefront never configures one of its own.
+  """
+  currencyCode: String!
+
+  """ISO 3166-1 alpha-2"""
+  country: String!
+  sortOrder: Int!
+}
+
+type AppSite {
+  id: String!
+  code: String!
+  name: String!
+
+  """
+  Only OUTLET sites sell to the public; a storefront switcher should offer those alone.
+  """
+  type: AppSiteType!
+
+  """IANA zone, for rendering this store's own dates"""
+  timezone: String!
+
+  """The entity this store belongs to — picking a store picks this too"""
+  legalEntityId: String!
+
+  """The legal entity's currency, resolved so one choice carries it"""
+  currencyCode: String!
+  sortOrder: Int!
+}
+
+enum AppSiteType {
+  OUTLET
+  WAREHOUSE
+  PRODUCTION
+}
+
 type PaymentReference {
   type: String!
   id: String!

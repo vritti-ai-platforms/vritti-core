@@ -5,8 +5,11 @@ import { SiteDomainService } from '@domain/site/services/site.service';
 import { UserRoleDomainService } from '@domain/user-role/services/user-role.service';
 import { Injectable } from '@nestjs/common';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import type { UserRoleAssignment } from '@/db/schema';
 import type { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
+import type { SiteSelectQueryDto } from '../dto/request/site-select-query.dto';
+import { SITE_TYPE_LABELS } from '../site-type-labels';
 
 @Injectable()
 export class SiteService {
@@ -23,6 +26,26 @@ export class SiteService {
   // Lists all sites for an organization
   async findByOrg(orgId: string): Promise<SiteDto[]> {
     return this.siteService.findByOrg(orgId);
+  }
+
+  // Returns the organization's active sites as select options, optionally within one legal entity
+  findForSelect(orgId: string, query: SiteSelectQueryDto): Promise<SelectQueryResult> {
+    return this.siteService.findForSelect(orgId, query);
+  }
+
+  /**
+   * The site types this organization has, as select options.
+   *
+   * Labelled here rather than in each consumer: `OUTLET` is a database value, "Outlet" is what an
+   * operator reads, and the two parting company across three screens is how one of them ends up
+   * showing the enum.
+   */
+  async findTypesForSelect(orgId: string): Promise<SelectQueryResult> {
+    const types = await this.siteService.findTypesForOrg(orgId);
+    return {
+      options: types.map((type) => ({ value: type, label: SITE_TYPE_LABELS[type] ?? type })),
+      hasMore: false,
+    };
   }
 
   // Returns a single site by ID

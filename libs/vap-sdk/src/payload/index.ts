@@ -1,6 +1,4 @@
-export { type ConsoleEmailOptions, consoleEmailAdapter } from './console-email';
-export { type OtpChannel, OTP_CHANNELS } from '../core/types';
-export { open, seal, type SealedState, sealedExpiry } from '../server/sealed-cookie';
+export { type OtpFlowData, safeReturnTo } from '../core/flows/auth';
 // Re-exported from `core` so a Payload app has one import for everything it needs. The phone rules
 // are universal — React Native will want the same ones — so they live in the core tier.
 export {
@@ -15,30 +13,27 @@ export {
   splitPhone,
   toE164,
 } from '../core/phone';
+export { OTP_CHANNELS, type OtpChannel } from '../core/types';
+export { createPostgresResponseCache, type PostgresResponseCacheOptions } from '../server/cache/postgres';
+export { open, type SealedState, seal, sealedExpiry } from '../server/sealed-cookie';
+export {
+  type VapPaymentEvent,
+  type VapPaymentEventData,
+  VapWebhookError,
+  type VapWebhookEvent,
+  verifyVapWebhook,
+} from '../server/webhooks';
 export { reconcileMirroredUsers } from './cloud-auth/accounts';
 export { cloudAuthFields } from './cloud-auth/collection';
 export { CLOUD_AUTH_ENV, type CloudAuthCredentials } from './cloud-auth/config';
 export { CALLBACK_URL_PATH } from './cloud-auth/endpoints';
 export { vrittiCloudAuth } from './cloud-auth/plugin';
 export type { VrittiCloudAuthOptions } from './cloud-auth/types';
-export { customersCollection } from './collections/parties';
+export { partyCollection } from './collections/parties';
 export { VAP_CACHE_TABLE, vapCacheCollection } from './collections/vap-cache';
-export { type VapNextConfig, VAP_NEXT_KEY } from './next-config';
-export { type VapOptions, vap } from './plugin';
-export { type PaymentEventHandler, VAP_WEBHOOK_PATH } from './webhooks';
-export {
-  type VapPaymentEvent,
-  type VapPaymentEventData,
-  type VapWebhookEvent,
-  VapWebhookError,
-  verifyVapWebhook,
-} from '../server/webhooks';
-export {
-  createPostgresResponseCache,
-  type PostgresResponseCacheOptions,
-} from '../server/cache/postgres';
-export { type IssuedSession, issueSessionToken } from './session-token';
-export { type OtpFlowData, safeReturnTo } from '../core/flows/auth';
+export { VISITOR_SESSIONS_SLUG, visitorSessionCollection } from './collections/visitor-sessions';
+export { type ConsoleEmailOptions, consoleEmailAdapter } from './console-email';
+export { VAP_NEXT_KEY, type VapNextConfig } from './next-config';
 export {
   createOtpSignInActions,
   type LocalParty,
@@ -49,4 +44,7 @@ export {
   type OtpSignInRoutes,
   type SealedOtpFlow,
 } from './otp-sign-in';
-export { getSdk, type PayloadLike, SDK_CONFIG_KEY, type PartyLike } from './runtime';
+export { type VapOptions, vap } from './plugin';
+export { getSdk, type PartyLike, type PayloadLike, SDK_CONFIG_KEY } from './runtime';
+export { type IssuedSession, issueSessionToken } from './session-token';
+export { type PaymentEventHandler, VAP_WEBHOOK_PATH } from './webhooks';

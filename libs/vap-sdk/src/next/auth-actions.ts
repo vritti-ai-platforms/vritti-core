@@ -1,8 +1,10 @@
 'use server';
 
 import { createOtpSignInActions, type OtpActionState } from '@vritti/vap-sdk/payload';
-import { nextOtpPorts } from './ports.js';
+import { getCurrentParty } from './party.js';
 import { resolvePayload, vapNextConfig, vapNextMessages } from './payload-adapter.js';
+import { nextOtpPorts } from './ports.js';
+import { linkVisitorSession } from './visitor-session.js';
 
 /**
  * Sign-in, as server actions a storefront imports directly.
@@ -36,27 +38,39 @@ const actions = async () => {
 };
 
 /** Step one — send a code to the number on the form. */
-export async function requestOtpAction(
-  previous: OtpActionState,
-  formData: FormData,
-): Promise<OtpActionState> {
+export async function requestOtpAction(previous: OtpActionState, formData: FormData): Promise<OtpActionState> {
   return (await actions()).request(previous, formData);
 }
 
 /** Step two — check the code, and sign in whoever the number already belongs to. */
-export async function verifyOtpAction(
-  previous: OtpActionState,
-  formData: FormData,
-): Promise<OtpActionState> {
-  return (await actions()).verify(previous, formData);
+export async function verifyOtpAction(previous: OtpActionState, formData: FormData): Promise<OtpActionState> {
+  const state = await (await actions()).verify(previous, formData);
+  await carryVisitorSession();
+  return state;
 }
 
 /** Step three — name a first-time party, then sign them in. */
-export async function completeOtpAction(
-  previous: OtpActionState,
-  formData: FormData,
-): Promise<OtpActionState> {
-  return (await actions()).complete(previous, formData);
+export async function completeOtpAction(previous: OtpActionState, formData: FormData): Promise<OtpActionState> {
+  const state = await (await actions()).complete(previous, formData);
+  await carryVisitorSession();
+  return state;
+}
+
+/**
+ * Links the visitor's session to whoever just signed in, so the store they were browsing stays theirs.
+ *
+ * Runs after the step rather than inside it: the party only exists once the sign-in has written its
+ * cookie. Failure is swallowed — losing the link costs a shopper their chosen store, which is a poor
+ * outcome but a far better one than a sign-in that reports failure after having succeeded.
+ */
+async function carryVisitorSession(): Promise<void> {
+  try {
+    const payload = await resolvePayload();
+    const party = await getCurrentParty();
+    await linkVisitorSession(payload, party?.partyId ?? null);
+  } catch {
+    // Deliberately silent — see above.
+  }
 }
 
 /** Abandons the flow, so a mistyped number is one click to fix. */

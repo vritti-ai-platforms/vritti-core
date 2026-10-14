@@ -11,6 +11,11 @@ export const ORG_CATALOG_CHANNELS = {
     listings: 'org.catalog-channels.app.listings',
     listing: 'org.catalog-channels.app.listing',
     listingsFromVariants: 'org.catalog-channels.app.listings-from-variants',
+    // Where a storefront may sell from — the options behind a store switcher. One code per read, as
+    // above. Hung off this feature rather than a new one because a credential that may read the
+    // catalogue already has to know which store it is reading for.
+    sites: 'org.catalog-channels.app.sites',
+    legalEntities: 'org.catalog-channels.app.legal-entities',
   },
 } as const;
 

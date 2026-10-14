@@ -44,6 +44,18 @@ export class LegalEntityDomainRepository extends PrimaryBaseRepository<typeof le
     });
   }
 
+  // The legal entities an organization can sell as, narrowed in SQL rather than by the caller
+  async findActiveByOrg(orgId: string): Promise<LegalEntity[]> {
+    return (
+      this.db
+        .select()
+        .from(legalEntities)
+        .where(and(eq(legalEntities.organizationId, orgId), eq(legalEntities.isActive, true)))
+        // Staff drag these into the order they want them shown; name breaks a tie.
+        .orderBy(asc(legalEntities.sortOrder), asc(legalEntities.name))
+    );
+  }
+
   // Finds all legal entities for an organization ordered by creation time
   async findByOrg(orgId: string): Promise<LegalEntity[]> {
     return this.model.findMany({

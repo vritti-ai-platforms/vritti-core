@@ -4,7 +4,7 @@ import type { TaxRegistrationResponseDto } from '@commerce/tax-registrations/dto
 import type { TaxRegistrationTableResponseDto } from '@commerce/tax-registrations/dto/response/tax-registration-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService, type TableViewState } from '@vritti/api-sdk/data-table';
-import { ConflictException } from '@vritti/api-sdk/exceptions';
+import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -80,5 +80,15 @@ export class TaxRegistrationsGatewayService {
 
     this.logger.log(`le.taxRegistrations.delete — id: ${id}`);
     return this.nats.send('commerce', 'le.taxRegistrations.delete', { id });
+  }
+
+  // Cloud names the legal entity explicitly, so the registration must belong to it — a mismatch is a 404,
+  // never a delete of another entity's registration
+  async deleteForLegalEntity(legalEntityId: string, id: string): Promise<SuccessResponseDto> {
+    const registration = await this.findById(id);
+    if (registration.legalEntityId !== legalEntityId) {
+      throw new NotFoundException('Tax registration not found.');
+    }
+    return this.delete(id);
   }
 }

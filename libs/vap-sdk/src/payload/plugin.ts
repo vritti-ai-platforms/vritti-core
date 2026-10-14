@@ -5,8 +5,9 @@ import type { Field } from 'payload' with { 'resolution-mode': 'import' };
 import type { VapSdkOptions } from '../core/config';
 import { createPostgresResponseCache } from '../server/cache/postgres';
 import { createVapSdk } from '../server/sdk';
-import { customersCollection } from './collections/parties';
+import { partyCollection } from './collections/parties';
 import { vapCacheCollection } from './collections/vap-cache';
+import { visitorSessionCollection } from './collections/visitor-sessions';
 import { VAP_NEXT_KEY, VapNextConfig } from './next-config';
 import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime';
 import { type PaymentEventHandler, paymentWebhookEndpoint } from './webhooks';
@@ -34,8 +35,9 @@ export interface VapOptions extends VapSdkOptions {
 
   /** Extra fields appended to the generated collections, for a storefront's own columns. */
   fields?: {
-    customers?: Field[];
+    parties?: Field[];
     vapCache?: Field[];
+    visitorSessions?: Field[];
   };
 
   /**
@@ -115,8 +117,9 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
       ...config,
       collections: [
         ...(config.collections ?? []),
-        customersCollection(fields?.customers),
+        partyCollection(fields?.parties),
         vapCacheCollection(fields?.vapCache),
+        visitorSessionCollection(fields?.visitorSessions),
       ],
       ...(onPaymentEvent
         ? {

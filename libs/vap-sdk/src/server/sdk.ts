@@ -6,10 +6,11 @@ import { createOfferingsOperations } from '../core/domains/offerings';
 import { createPaymentsOperations } from '../core/domains/payments';
 import { createPeopleOperations } from '../core/domains/people';
 import { createSmsOtpOperations } from '../core/domains/sms-otp';
+import { createStructureOperations } from '../core/domains/structure';
 import { createWhatsappOtpOperations } from '../core/domains/whatsapp-otp';
 import { createAuthFlows } from '../core/flows/auth';
 import { createVapClient } from '../core/transport/client';
-import { type RequestContext, withoutWorkspace } from '../core/types';
+import { type SdkContext, withoutWorkspace } from '../core/types';
 import { createResponseCacheLink } from './cache/response-cache';
 import { createSignedFetch } from './signed-fetch';
 
@@ -57,24 +58,25 @@ export function createVapSdk(options: VapSdkOptions = {}) {
   });
 
   /**
-   * Configuration supplies the scope a storefront always sells in; a caller overrides it.
+   * Configuration seeds the scope; the caller's own context wins.
    *
-   * A single-outlet shop sets `siteId` once and never thinks about it again. A shop with a store
-   * selector passes the chosen one to `forContext`, and it wins.
+   * A visitor's selling context lives on their session — `forContext(await resolveWorkspace())` is
+   * what a storefront passes, and a store switcher is what changes it. The configured ids are the
+   * fallback for a visitor who has not chosen yet.
    */
-  const scoped = (context: RequestContext): RequestContext => ({
+  const scoped = (context: SdkContext): SdkContext => ({
     siteId: config.siteId,
     legalEntityId: config.legalEntityId,
     ...context,
   });
 
-  const build = (rawContext: RequestContext = {}) => {
-    const context = scoped(rawContext);
+  const build = (rawContext: SdkContext = {}) => {
+    const { currencyCode, ...context } = scoped(rawContext);
     // Currency goes in for the same reason the basket gets it: the wishlist prices its rows, so
     // `savedVariantIds`, `addToWishlist` and `removeFromWishlist` all send a currency code to core.
-    // Without it every one of them threw "VAP is not configured for prices" — the guard was right,
-    // the wiring simply skipped the argument.
-    const people = createPeopleOperations(client, withoutWorkspace(context), config.currency);
+    // It comes from the context rather than from configuration, so a visitor who switched to a store
+    // in another legal entity is priced in that entity's currency rather than the deployment's.
+    const people = createPeopleOperations(client, withoutWorkspace(context), currencyCode);
     const whatsappOtp = createWhatsappOtpOperations(client, withoutWorkspace(context));
     const smsOtp = createSmsOtpOperations(client, withoutWorkspace(context));
     return {
@@ -93,9 +95,20 @@ export function createVapSdk(options: VapSdkOptions = {}) {
        * party, because core reads the party from the signature. Reach it through
        * `sdk.forContext({ partyId })`.
        */
-      cart: createCartOperations(client, context, config.currency),
+      cart: createCartOperations(client, context, currencyCode),
       /** The range this storefront sells. Needs no party — it is the shop's catalogue, not a person's. */
       catalogChannels: createCatalogChannelsOperations(client, context),
+      /**
+       * The organization's own shape: its stores and legal entities.
+       *
+       * Named for what it reads rather than for what one use of it is called — core's `structure`
+       * module owns these same rows. It is the options source behind a store switcher and the
+       * authority a switch is checked against, but it is also just "where may this app sell".
+       *
+       * Distinct from the *workspace*, which is the one of these a given request acts in. This answers
+       * what exists; `resolveWorkspace()` in the Next tier answers where the visitor is.
+       */
+      structure: createStructureOperations(client, context, config.siteTypes),
       offerings: createOfferingsOperations(client, context),
       /**
        * Taking a payment for anything — intents, confirmation, one status read. Site-scoped; party
@@ -103,10 +116,11 @@ export function createVapSdk(options: VapSdkOptions = {}) {
        */
       payments: createPaymentsOperations(client, context),
       /**
-       * The basket, checked out: order and payment intent in one call. Needs a party, like the
-       * basket, and the configured `currency`.
+       * The basket, checked out: order and payment intent in one call. Needs a party, like the basket,
+       * and the currency it is priced in — which comes from the session's workspace rather than from
+       * configuration, so a party who switched site checks out in that site's legal entity's currency.
        */
-      checkout: createCheckoutOperations(client, context, config.currency),
+      checkout: createCheckoutOperations(client, context, currencyCode),
       /** The shared identity sequences — OTP sign-in, registration, party repair. Composed over the domains above. */
       auth: createAuthFlows(people, whatsappOtp, smsOtp),
     };
@@ -119,13 +133,25 @@ export function createVapSdk(options: VapSdkOptions = {}) {
     client,
 
     /**
+     * Where a visitor with no session of their own starts, as configured.
+     *
+     * Only the seed — never the credential. A caller resolving a default workspace needs these two
+     * ids and has no business reaching into the client for anything else.
+     */
+    defaults: {
+      siteId: config.siteId ?? null,
+      legalEntityId: config.legalEntityId ?? null,
+      siteTypes: config.siteTypes ?? [],
+    },
+
+    /**
      * The same operations, bound to a party.
      *
      * The party travels as a header **and** inside the signature, so it cannot be stripped or
      * re-pointed in transit. Registration deliberately uses the unbound client: it runs before a
      * party exists.
      */
-    forContext: (context: RequestContext) => build(context),
+    forContext: (context: SdkContext) => build(context),
   };
 }
 

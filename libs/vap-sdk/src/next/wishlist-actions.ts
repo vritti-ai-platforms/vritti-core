@@ -1,10 +1,11 @@
 'use server';
 
-import { getSdk } from '@vritti/vap-sdk/payload';
+import { getSdk, type PayloadLike } from '@vritti/vap-sdk/payload';
 import { revalidatePath } from 'next/cache';
 import { requireParty } from './party.js';
 import { resolvePayload } from './payload-adapter.js';
-import { formField, returnToFrom, withPartyErrors, type PartyActionState } from './state.js';
+import { formField, type PartyActionState, returnToFrom, withPartyErrors } from './state.js';
+import { resolveWorkspace } from './visitor-session.js';
 
 /**
  * The saved list, as server actions a storefront imports directly.
@@ -19,17 +20,26 @@ import { formField, returnToFrom, withPartyErrors, type PartyActionState } from 
  * basket counts — so the form says which it wants with `intent`. A form posted without one
  * (JavaScript off, a stale page) saves, and "already there" still comes back as an outcome.
  */
-export async function toggleWishlistAction(
-  _previous: PartyActionState,
-  formData: FormData,
-): Promise<PartyActionState> {
+/**
+ * The SDK bound to this party *and* where they are shopping.
+ *
+ * Both halves are needed: core reads the party from the signature, and a basket or wishlist line is
+ * priced — per listing x site x currency — so a call that names only the party has no currency to
+ * price in and is refused. Fetched per action rather than passed in, because `resolveWorkspace` is
+ * request-cached and an action is one request.
+ */
+async function actingFor(payload: PayloadLike, partyId: string) {
+  return getSdk(payload).forContext({ partyId, ...(await resolveWorkspace()) });
+}
+
+export async function toggleWishlistAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
   const returnTo = returnToFrom(formData);
   const party = await requireParty(returnTo);
   const variantId = formField(formData, 'offeringVariantId');
   if (!variantId) return { error: 'Nothing to save.' };
 
   const payload = await resolvePayload();
-  const people = getSdk(payload).forContext({ partyId: party.partyId }).people;
+  const people = (await actingFor(payload, party.partyId)).people;
 
   if (formField(formData, 'intent') === 'remove') {
     const removed = await withPartyErrors(payload, () =>
@@ -60,11 +70,8 @@ export async function removeFromWishlistAction(
   if (!variantId) return { error: 'Nothing to remove.' };
 
   const payload = await resolvePayload();
-  const result = await withPartyErrors(payload, () =>
-    getSdk(payload)
-      .forContext({ partyId: party.partyId })
-      .people.removeFromWishlist(variantId)
-      .then(() => ({ ok: true })),
+  const result = await withPartyErrors(payload, async () =>
+    (await actingFor(payload, party.partyId)).people.removeFromWishlist(variantId).then(() => ({ ok: true })),
   );
   revalidatePath(returnTo);
   return result;

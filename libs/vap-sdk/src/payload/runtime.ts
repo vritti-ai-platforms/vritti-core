@@ -1,5 +1,5 @@
-import type { VapSdk } from '../server/sdk';
 import { VapError } from '../core/errors';
+import type { VapSdk } from '../server/sdk';
 
 /**
  * What these helpers need from a Payload instance.
@@ -15,11 +15,24 @@ export interface PayloadLike {
    * way to it, which left the dependency invisible to anybody reading this type.
    */
   secret: string;
-  find(args: { collection: string; where?: unknown; limit?: number; depth?: number }): Promise<{ docs: unknown[] }>;
-  create(args: { collection: string; data: Record<string, unknown> }): Promise<unknown>;
+  // `overrideAccess` is declared because a collection this package owns keeps its access rules shut —
+  // the visitor session is written by server actions through the Local API and by nothing else.
+  find(args: {
+    collection: string;
+    where?: unknown;
+    limit?: number;
+    depth?: number;
+    overrideAccess?: boolean;
+  }): Promise<{ docs: unknown[] }>;
+  create(args: { collection: string; data: Record<string, unknown>; overrideAccess?: boolean }): Promise<unknown>;
   // `id` is a number under the postgres adapter and a string under mongo, so both are accepted rather
   // than forcing every caller to cast whichever one their database gives them.
-  update(args: { collection: string; id: string | number; data: Record<string, unknown> }): Promise<unknown>;
+  update(args: {
+    collection: string;
+    id: string | number;
+    data: Record<string, unknown>;
+    overrideAccess?: boolean;
+  }): Promise<unknown>;
   delete(args: { collection: string; id?: string | number; where?: unknown }): Promise<unknown>;
   logger?: {
     error: (...args: unknown[]) => void;
