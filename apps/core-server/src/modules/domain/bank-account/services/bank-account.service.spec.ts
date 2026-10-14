@@ -35,7 +35,16 @@ describe('BankAccountDomainService', () => {
   const create = jest.fn();
   const findById = jest.fn();
   const update = jest.fn();
-  const repository = { findDuplicate, create, findById, update } as unknown as BankAccountDomainRepository;
+  const countReferences = jest.fn();
+  const deleteRow = jest.fn();
+  const repository = {
+    findDuplicate,
+    create,
+    findById,
+    update,
+    countReferences,
+    delete: deleteRow,
+  } as unknown as BankAccountDomainRepository;
   const service = new BankAccountDomainService(repository);
 
   beforeEach(() => {
@@ -128,6 +137,30 @@ describe('BankAccountDomainService', () => {
       findById.mockResolvedValue(row({ organizationId: 'org-2' }));
 
       await expect(service.findById(ORG, 'ba-1')).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('delete', () => {
+    it('refuses with 409 Bank Account In Use naming what still settles into it', async () => {
+      findById.mockResolvedValue(row());
+      countReferences.mockResolvedValue({ gatewayConfigs: 2, linkedAccounts: 1 });
+
+      const error = await service.delete(ORG, 'ba-1').catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(ConflictException);
+      const body = (error as ConflictException).getResponse() as { label: string; detail: string };
+      expect(body.label).toBe('Bank Account In Use');
+      expect(body.detail).toContain('2 payment gateway configs');
+      expect(body.detail).toContain('1 linked account');
+      expect(deleteRow).not.toHaveBeenCalled();
+    });
+
+    it('deletes an account nothing references', async () => {
+      findById.mockResolvedValue(row());
+      countReferences.mockResolvedValue({ gatewayConfigs: 0, linkedAccounts: 0 });
+
+      await expect(service.delete(ORG, 'ba-1')).resolves.toMatchObject({ success: true });
+      expect(deleteRow).toHaveBeenCalledWith('ba-1');
     });
   });
 });

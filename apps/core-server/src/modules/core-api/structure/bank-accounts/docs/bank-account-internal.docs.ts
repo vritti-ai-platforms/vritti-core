@@ -99,5 +99,6 @@ export function ApiDeleteBankAccountInternal() {
     ApiResponse({ status: 200, description: 'Bank account deleted successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
     ApiResponse({ status: 404, description: 'Bank account not found.' }),
+    ApiResponse({ status: 409, description: 'A payment gateway config or linked account still uses the account.' }),
   );
 }

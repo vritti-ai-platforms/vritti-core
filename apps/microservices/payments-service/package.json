@@ -1,0 +1,92 @@
+{
+  "name": "payments-service",
+  "version": "0.0.1",
+  "description": "Payments microservice for VAP platform",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "typecheck": "tsc --noEmit",
+    "check": "biome check --write .",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "start": "infisical run --path=/payments-service -- nest start",
+    "dev": "infisical run --path=/payments-service -- nest start --watch",
+    "dev:dev": "infisical run --env=dev-local --path=/payments-service -- nest start --watch",
+    "dev:apw1": "infisical run --env=apw1-local --path=/payments-service -- nest start --watch",
+    "debug": "infisical run --path=/payments-service -- nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "db:generate": "infisical run --path=/payments-service -- drizzle-kit generate --name v$npm_package_version",
+    "db:generate:custom": "infisical run --path=/payments-service -- drizzle-kit generate --custom --name",
+    "db:migrate": "infisical run --path=/payments-service -- drizzle-kit migrate",
+    "db:migrate:dev": "infisical run --env=dev-local --path=/payments-service -- drizzle-kit migrate",
+    "db:migrate:apw1": "infisical run --env=apw1-local --path=/payments-service -- drizzle-kit migrate",
+    "db:grant": "infisical run --path=/payments-service -- node ../../../tools/run-sql.cjs init-db/01-grant-app-role.sql",
+    "db:grant:dev": "infisical run --env=dev-local --path=/payments-service -- node ../../../tools/run-sql.cjs init-db/01-grant-app-role.sql",
+    "db:grant:prod": "infisical run --env=apw1-local --path=/payments-service -- node ../../../tools/run-sql.cjs init-db/01-grant-app-role.sql",
+    "db:deploy": "node dist/db/migrate.js",
+    "db:studio": "infisical run --path=/payments-service -- drizzle-kit studio",
+    "db:studio:dev": "infisical run --env=dev-local --path=/payments-service -- drizzle-kit studio",
+    "db:studio:apw1": "infisical run --env=apw1-local --path=/payments-service -- drizzle-kit studio",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@nats-io/transport-node": "^3.4.0",
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/config": "^12.0.0",
+    "@nestjs/core": "^12.0.1",
+    "@nestjs/microservices": "^12.0.1",
+    "@nestjs/swagger": "^12.0.1",
+    "@vritti/api-sdk": "0.6.2",
+    "axios": "^1.20.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.4",
+    "dotenv": "^16.4.7",
+    "pg": "^8.23.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.2",
+    "@nestjs/cli": "^12.0.0",
+    "@nestjs/schematics": "^12.0.0",
+    "@swc/cli": "^0.8.1",
+    "@swc/core": "^1.13.5",
+    "@swc/jest": "^0.2.39",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.10.7",
+    "@types/pg": "^8.23.1",
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
+    "drizzle-kit": "1.0.0-rc.3",
+    "drizzle-orm": "1.0.0-rc.3",
+    "jest": "^30.0.0",
+    "source-map-support": "^0.5.21",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^6.0.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "@swc/jest"
+      ]
+    },
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1",
+      "^@domain/(.*)$": "<rootDir>/modules/domain/$1"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!\\.pnpm)(?!@nestjs)(?!@nats-io)"
+    ]
+  }
+}

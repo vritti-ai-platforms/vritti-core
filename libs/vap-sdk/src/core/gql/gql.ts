@@ -32,11 +32,17 @@ type Documents = {
     "\n  query SiteCatalogListings($filters: [FilterInput!], $page: Int, $perPage: Int, $sort: ListingSort) {\n    siteCatalogListings(filters: $filters, page: $page, perPage: $perPage, sort: $sort) {\n      items {\n        ...ListingFields\n      }\n      total\n      page\n      perPage\n      filters {\n        kind\n        code\n        name\n        sortOrder\n        values {\n          code\n          name\n          count\n        }\n      }\n    }\n  }\n": typeof types.SiteCatalogListingsDocument,
     "\n  query SiteCatalogListingBySku($sku: String!) {\n    siteCatalogListingBySku(sku: $sku) {\n      listing {\n        ...ListingFields\n      }\n      axes {\n        code\n        name\n        sortOrder\n        options {\n          code\n          name\n          selected\n          sku\n        }\n      }\n    }\n  }\n": typeof types.SiteCatalogListingBySkuDocument,
     "\n  query SiteCatalogListingsFromVariants($variantIds: [ID!]!) {\n    siteCatalogListingsFromVariants(variantIds: $variantIds) {\n      ...ListingFields\n    }\n  }\n": typeof types.SiteCatalogListingsFromVariantsDocument,
+    "\n  mutation StartCheckoutFromCart($input: StartCheckoutInput!) {\n    startCheckoutFromCart(input: $input) {\n      order {\n        id\n        orderNumber\n        total {\n          ...MoneyFields\n        }\n      }\n      paymentIntent {\n        ...PaymentIntentFields\n      }\n    }\n  }\n": typeof types.StartCheckoutFromCartDocument,
     "\n  query SiteOfferingVariants($search: String, $excludeIds: [ID!], $limit: Int, $offset: Int) {\n    siteOfferingVariants(search: $search, excludeIds: $excludeIds, limit: $limit, offset: $offset) {\n      items {\n        id\n        sku\n        name\n      }\n      total\n    }\n  }\n": typeof types.SiteOfferingVariantsDocument,
     "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n": typeof types.SendWhatsappOtpDocument,
     "\n  mutation VerifyWhatsappOtp($input: VerifyWhatsappOtpInput!) {\n    verifyWhatsappOtp(input: $input) {\n      verified\n    }\n  }\n": typeof types.VerifyWhatsappOtpDocument,
     "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n": typeof types.SendSmsOtpDocument,
     "\n  mutation VerifySmsOtp($input: VerifySmsOtpInput!) {\n    verifySmsOtp(input: $input) {\n      verified\n    }\n  }\n": typeof types.VerifySmsOtpDocument,
+    "\n  fragment PaymentIntentFields on PaymentIntent {\n    id\n    status\n    amount {\n      ...MoneyFields\n    }\n    reference {\n      type\n      id\n    }\n    description\n    checkout {\n      gateway\n      payload\n    }\n    failure {\n      code\n      message\n    }\n    paidAt\n    expiresAt\n    createdAt\n  }\n": typeof types.PaymentIntentFieldsFragmentDoc,
+    "\n  mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {\n    createPaymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n": typeof types.CreatePaymentIntentDocument,
+    "\n  mutation ConfirmPayment($input: ConfirmPaymentInput!) {\n    confirmPayment(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n": typeof types.ConfirmPaymentDocument,
+    "\n  query PaymentIntent($input: PaymentIntentRefInput!) {\n    paymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n": typeof types.PaymentIntentDocument,
+    "\n  mutation CancelPaymentIntent($input: PaymentIntentRefInput!) {\n    cancelPaymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n": typeof types.CancelPaymentIntentDocument,
     "\n  fragment PersonFields on Person {\n    id\n    displayName\n    firstName\n    lastName\n    email\n    phone\n    isActive\n  }\n": typeof types.PersonFieldsFragmentDoc,
     "\n  fragment PersonCommunicationFields on PersonCommunication {\n    id\n    channel\n    value\n    isPrimary\n    isActive\n  }\n": typeof types.PersonCommunicationFieldsFragmentDoc,
     "\n  query PeopleByCommunication($input: FindPeopleByCommunicationInput!) {\n    peopleByCommunication(input: $input) {\n      ...PersonFields\n    }\n  }\n": typeof types.PeopleByCommunicationDocument,
@@ -75,11 +81,17 @@ const documents: Documents = {
     "\n  query SiteCatalogListings($filters: [FilterInput!], $page: Int, $perPage: Int, $sort: ListingSort) {\n    siteCatalogListings(filters: $filters, page: $page, perPage: $perPage, sort: $sort) {\n      items {\n        ...ListingFields\n      }\n      total\n      page\n      perPage\n      filters {\n        kind\n        code\n        name\n        sortOrder\n        values {\n          code\n          name\n          count\n        }\n      }\n    }\n  }\n": types.SiteCatalogListingsDocument,
     "\n  query SiteCatalogListingBySku($sku: String!) {\n    siteCatalogListingBySku(sku: $sku) {\n      listing {\n        ...ListingFields\n      }\n      axes {\n        code\n        name\n        sortOrder\n        options {\n          code\n          name\n          selected\n          sku\n        }\n      }\n    }\n  }\n": types.SiteCatalogListingBySkuDocument,
     "\n  query SiteCatalogListingsFromVariants($variantIds: [ID!]!) {\n    siteCatalogListingsFromVariants(variantIds: $variantIds) {\n      ...ListingFields\n    }\n  }\n": types.SiteCatalogListingsFromVariantsDocument,
+    "\n  mutation StartCheckoutFromCart($input: StartCheckoutInput!) {\n    startCheckoutFromCart(input: $input) {\n      order {\n        id\n        orderNumber\n        total {\n          ...MoneyFields\n        }\n      }\n      paymentIntent {\n        ...PaymentIntentFields\n      }\n    }\n  }\n": types.StartCheckoutFromCartDocument,
     "\n  query SiteOfferingVariants($search: String, $excludeIds: [ID!], $limit: Int, $offset: Int) {\n    siteOfferingVariants(search: $search, excludeIds: $excludeIds, limit: $limit, offset: $offset) {\n      items {\n        id\n        sku\n        name\n      }\n      total\n    }\n  }\n": types.SiteOfferingVariantsDocument,
     "\n  mutation SendWhatsappOtp($input: SendWhatsappOtpInput!) {\n    sendWhatsappOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n": types.SendWhatsappOtpDocument,
     "\n  mutation VerifyWhatsappOtp($input: VerifyWhatsappOtpInput!) {\n    verifyWhatsappOtp(input: $input) {\n      verified\n    }\n  }\n": types.VerifyWhatsappOtpDocument,
     "\n  mutation SendSmsOtp($input: SendSmsOtpInput!) {\n    sendSmsOtp(input: $input) {\n      sent\n      expiresAt\n      resendAvailableAt\n      codeLength\n    }\n  }\n": types.SendSmsOtpDocument,
     "\n  mutation VerifySmsOtp($input: VerifySmsOtpInput!) {\n    verifySmsOtp(input: $input) {\n      verified\n    }\n  }\n": types.VerifySmsOtpDocument,
+    "\n  fragment PaymentIntentFields on PaymentIntent {\n    id\n    status\n    amount {\n      ...MoneyFields\n    }\n    reference {\n      type\n      id\n    }\n    description\n    checkout {\n      gateway\n      payload\n    }\n    failure {\n      code\n      message\n    }\n    paidAt\n    expiresAt\n    createdAt\n  }\n": types.PaymentIntentFieldsFragmentDoc,
+    "\n  mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {\n    createPaymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n": types.CreatePaymentIntentDocument,
+    "\n  mutation ConfirmPayment($input: ConfirmPaymentInput!) {\n    confirmPayment(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n": types.ConfirmPaymentDocument,
+    "\n  query PaymentIntent($input: PaymentIntentRefInput!) {\n    paymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n": types.PaymentIntentDocument,
+    "\n  mutation CancelPaymentIntent($input: PaymentIntentRefInput!) {\n    cancelPaymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n": types.CancelPaymentIntentDocument,
     "\n  fragment PersonFields on Person {\n    id\n    displayName\n    firstName\n    lastName\n    email\n    phone\n    isActive\n  }\n": types.PersonFieldsFragmentDoc,
     "\n  fragment PersonCommunicationFields on PersonCommunication {\n    id\n    channel\n    value\n    isPrimary\n    isActive\n  }\n": types.PersonCommunicationFieldsFragmentDoc,
     "\n  query PeopleByCommunication($input: FindPeopleByCommunicationInput!) {\n    peopleByCommunication(input: $input) {\n      ...PersonFields\n    }\n  }\n": types.PeopleByCommunicationDocument,
@@ -189,6 +201,10 @@ export function graphql(source: "\n  query SiteCatalogListingsFromVariants($vari
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  mutation StartCheckoutFromCart($input: StartCheckoutInput!) {\n    startCheckoutFromCart(input: $input) {\n      order {\n        id\n        orderNumber\n        total {\n          ...MoneyFields\n        }\n      }\n      paymentIntent {\n        ...PaymentIntentFields\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation StartCheckoutFromCart($input: StartCheckoutInput!) {\n    startCheckoutFromCart(input: $input) {\n      order {\n        id\n        orderNumber\n        total {\n          ...MoneyFields\n        }\n      }\n      paymentIntent {\n        ...PaymentIntentFields\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  query SiteOfferingVariants($search: String, $excludeIds: [ID!], $limit: Int, $offset: Int) {\n    siteOfferingVariants(search: $search, excludeIds: $excludeIds, limit: $limit, offset: $offset) {\n      items {\n        id\n        sku\n        name\n      }\n      total\n    }\n  }\n"): (typeof documents)["\n  query SiteOfferingVariants($search: String, $excludeIds: [ID!], $limit: Int, $offset: Int) {\n    siteOfferingVariants(search: $search, excludeIds: $excludeIds, limit: $limit, offset: $offset) {\n      items {\n        id\n        sku\n        name\n      }\n      total\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -206,6 +222,26 @@ export function graphql(source: "\n  mutation SendSmsOtp($input: SendSmsOtpInput
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation VerifySmsOtp($input: VerifySmsOtpInput!) {\n    verifySmsOtp(input: $input) {\n      verified\n    }\n  }\n"): (typeof documents)["\n  mutation VerifySmsOtp($input: VerifySmsOtpInput!) {\n    verifySmsOtp(input: $input) {\n      verified\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment PaymentIntentFields on PaymentIntent {\n    id\n    status\n    amount {\n      ...MoneyFields\n    }\n    reference {\n      type\n      id\n    }\n    description\n    checkout {\n      gateway\n      payload\n    }\n    failure {\n      code\n      message\n    }\n    paidAt\n    expiresAt\n    createdAt\n  }\n"): (typeof documents)["\n  fragment PaymentIntentFields on PaymentIntent {\n    id\n    status\n    amount {\n      ...MoneyFields\n    }\n    reference {\n      type\n      id\n    }\n    description\n    checkout {\n      gateway\n      payload\n    }\n    failure {\n      code\n      message\n    }\n    paidAt\n    expiresAt\n    createdAt\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {\n    createPaymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n"): (typeof documents)["\n  mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {\n    createPaymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ConfirmPayment($input: ConfirmPaymentInput!) {\n    confirmPayment(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n"): (typeof documents)["\n  mutation ConfirmPayment($input: ConfirmPaymentInput!) {\n    confirmPayment(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query PaymentIntent($input: PaymentIntentRefInput!) {\n    paymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n"): (typeof documents)["\n  query PaymentIntent($input: PaymentIntentRefInput!) {\n    paymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CancelPaymentIntent($input: PaymentIntentRefInput!) {\n    cancelPaymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n"): (typeof documents)["\n  mutation CancelPaymentIntent($input: PaymentIntentRefInput!) {\n    cancelPaymentIntent(input: $input) {\n      ...PaymentIntentFields\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

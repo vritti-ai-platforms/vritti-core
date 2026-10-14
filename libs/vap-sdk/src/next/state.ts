@@ -30,11 +30,14 @@ export const returnToFrom = (data: FormData) => formField(data, 'returnTo') || '
  * The callback returns the state to show, so an outcome that is neither success nor failure —
  * "already in your wishlist" — has a way out. Returning a fixed `{ ok: true }` here is what
  * swallowed that the first time.
+ *
+ * Generic over the state so the payment actions can carry their own fields. The failure states are
+ * cast to `S`: every action state here is all-optional, so an error-only state is always a valid one.
  */
-export async function withPartyErrors(
+export async function withPartyErrors<S extends object = PartyActionState>(
   payload: PayloadLike,
-  run: () => Promise<PartyActionState>,
-): Promise<PartyActionState> {
+  run: () => Promise<S>,
+): Promise<S> {
   try {
     return await run();
   } catch (error) {
@@ -56,10 +59,10 @@ export async function withPartyErrors(
       // Everything else VapError carries is written to be read by whoever asked — a delisted item,
       // a quantity out of range, "the store is unavailable" for a 5xx. Surfaced rather than
       // replaced, so the next failure names itself.
-      return { error: error.message };
+      return { error: error.message } as S;
     }
 
     // Not from core at all — a bug here, or the network. Nothing a party can act on.
-    return { error: 'We could not do that just now. Try again in a moment.' };
+    return { error: 'We could not do that just now. Try again in a moment.' } as S;
   }
 }

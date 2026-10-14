@@ -19,11 +19,30 @@ export {
   type ListingSort,
 } from './domains/catalog-channels';
 export {
+  type CheckoutOperations,
+  type CheckoutOrder,
+  type CheckoutSession,
+  createCheckoutOperations,
+  type StartCheckoutInput,
+} from './domains/checkout';
+export {
   createOfferingsOperations,
   type OfferingsOperations,
   type OfferingVariantOption,
   type OfferingVariantOptions,
 } from './domains/offerings';
+export {
+  type CreatePaymentIntentInput,
+  createPaymentsOperations,
+  type GatewayResponse,
+  type PaymentChannel,
+  type PaymentCheckout,
+  type PaymentFailure,
+  type PaymentIntent,
+  type PaymentIntentStatus,
+  type PaymentReference,
+  type PaymentsOperations,
+} from './domains/payments';
 export {
   CHANNELS,
   type Channel,

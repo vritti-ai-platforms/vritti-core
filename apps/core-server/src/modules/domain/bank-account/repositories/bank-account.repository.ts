@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { desc, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type BankAccount, bankAccounts } from '@/db/schema';
+import { count, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { type BankAccount, bankAccounts, paymentGatewayConfigs, paymentLinkedAccounts } from '@/db/schema';
 
 @Injectable()
 export class BankAccountDomainRepository extends PrimaryBaseRepository<typeof bankAccounts> {
@@ -41,5 +41,14 @@ export class BankAccountDomainRepository extends PrimaryBaseRepository<typeof ba
     return this.model.findFirst({
       where: { legalEntityId, accountNumber, ifscCode },
     });
+  }
+
+  // Counts the gateway configs and linked accounts that settle into the bank account
+  async countReferences(id: string): Promise<{ gatewayConfigs: number; linkedAccounts: number }> {
+    const [[configs], [linked]] = await Promise.all([
+      this.db.select({ value: count() }).from(paymentGatewayConfigs).where(eq(paymentGatewayConfigs.bankAccountId, id)),
+      this.db.select({ value: count() }).from(paymentLinkedAccounts).where(eq(paymentLinkedAccounts.bankAccountId, id)),
+    ]);
+    return { gatewayConfigs: Number(configs?.value ?? 0), linkedAccounts: Number(linked?.value ?? 0) };
   }
 }

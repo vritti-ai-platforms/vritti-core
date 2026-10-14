@@ -74,6 +74,11 @@ class EnvironmentVariables {
   @Min(10)
   BCRYPT_SALT_ROUNDS: number;
 
+  // Encrypts payment gateway credentials at rest (AES-256-GCM, key = sha256 of this value)
+  @IsString()
+  @MinLength(32)
+  PAYMENT_CREDENTIALS_KEY: string;
+
   // JWT
   @IsString()
   @MinLength(32)

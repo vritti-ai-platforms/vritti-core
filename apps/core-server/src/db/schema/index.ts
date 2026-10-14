@@ -20,6 +20,10 @@ export * from './legal-entity';
 export * from './site-group';
 export * from './site';
 export * from './bank-account';
+export * from './payment-gateway-config';
+export * from './payment-linked-account';
+export * from './app-webhook-endpoint';
+export * from './webhook-delivery';
 export * from './role';
 export * from './user-role-assignment';
 // Export relations last (depends on tables above)

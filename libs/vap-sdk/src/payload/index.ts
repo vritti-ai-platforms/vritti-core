@@ -25,6 +25,14 @@ export { customersCollection } from './collections/parties';
 export { VAP_CACHE_TABLE, vapCacheCollection } from './collections/vap-cache';
 export { type VapNextConfig, VAP_NEXT_KEY } from './next-config';
 export { type VapOptions, vap } from './plugin';
+export { type PaymentEventHandler, VAP_WEBHOOK_PATH } from './webhooks';
+export {
+  type VapPaymentEvent,
+  type VapPaymentEventData,
+  type VapWebhookEvent,
+  VapWebhookError,
+  verifyVapWebhook,
+} from '../server/webhooks';
 export {
   createPostgresResponseCache,
   type PostgresResponseCacheOptions,

@@ -537,6 +537,534 @@
         ]
       }
     },
+    "/apps/internal/{appId}/webhook-endpoint": {
+      "get": {
+        "description": "Returns the endpoint payment events are delivered to, or null when the app has none.",
+        "operationId": "AppWebhookController_findEndpoint",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endpoint retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppWebhookEndpointDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "App not found in this organization."
+          }
+        },
+        "summary": "Get the app webhook endpoint",
+        "tags": [
+          "Apps"
+        ]
+      },
+      "put": {
+        "description": "One endpoint per app. The URL must be a public https address.",
+        "operationId": "AppWebhookController_upsertEndpoint",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAppWebhookEndpointInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Endpoint saved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppWebhookEndpointDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid URL or event list."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "App not found in this organization."
+          }
+        },
+        "summary": "Register or replace the app webhook endpoint",
+        "tags": [
+          "Apps"
+        ]
+      },
+      "delete": {
+        "description": "Removes the endpoint together with its delivery history.",
+        "operationId": "AppWebhookController_deleteEndpoint",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endpoint deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "App or endpoint not found."
+          }
+        },
+        "summary": "Delete the app webhook endpoint",
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/internal/{appId}/webhook-endpoint/test": {
+      "post": {
+        "description": "Queues a webhook.test event to the endpoint regardless of its event subscription.",
+        "operationId": "AppWebhookController_sendTest",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test event queued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryRefResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "App or endpoint not found."
+          }
+        },
+        "summary": "Send a test webhook",
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/internal/{appId}/webhook-deliveries/table": {
+      "get": {
+        "description": "Resolves one page of the app's deliveries from a serialized view state (filters, search, sort, pagination) that cloud holds. Payloads are never included.",
+        "operationId": "AppWebhookController_findDeliveriesForTable",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filters",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified FilterCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SearchState",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SortCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deliveries page retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveriesPageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "App not found in this organization."
+          }
+        },
+        "summary": "Webhook deliveries table",
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/internal/{appId}/webhook-deliveries/{deliveryId}/redeliver": {
+      "post": {
+        "description": "Puts a delivery back in the queue for an immediate attempt with a fresh retry budget.",
+        "operationId": "AppWebhookController_redeliver",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deliveryId",
+            "required": true,
+            "in": "path",
+            "description": "Webhook delivery ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delivery requeued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryRefResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "App or delivery not found."
+          },
+          "409": {
+            "description": "The delivery is being sent or is waiting on its next retry."
+          }
+        },
+        "summary": "Redeliver a webhook",
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/internal/{appId}/webhook-public-key": {
+      "get": {
+        "description": "The Ed25519 public key (base64 spki DER) that verifies x-vap-signature on deliveries.",
+        "operationId": "AppWebhookController_findPublicKey",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": true,
+            "in": "path",
+            "description": "App ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public key retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookPublicKeyResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "App not found in this organization."
+          }
+        },
+        "summary": "Get the webhook verification key",
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/select-api/apps": {
       "get": {
         "description": "Active, unrevoked API credentials this organization owns. Revoked apps drop out of the picker.",
@@ -5269,6 +5797,9 @@
           },
           "404": {
             "description": "Bank account not found."
+          },
+          "409": {
+            "description": "A payment gateway config or linked account still uses the account."
           }
         },
         "security": [
@@ -5532,6 +6063,16 @@
             }
           },
           {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the bank account must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
             "name": "x-timestamp",
             "in": "header",
             "description": "Unix seconds when the request was signed",
@@ -5592,6 +6133,16 @@
             "in": "path",
             "description": "Bank account ID",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the bank account must belong to",
+            "schema": {
+              "example": "uuid-here",
               "type": "string"
             }
           },
@@ -5673,6 +6224,16 @@
             }
           },
           {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the bank account must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
             "name": "x-timestamp",
             "in": "header",
             "description": "Unix seconds when the request was signed",
@@ -5716,11 +6277,1047 @@
           },
           "404": {
             "description": "Bank account not found."
+          },
+          "409": {
+            "description": "A payment gateway config or linked account still uses the account."
           }
         },
         "summary": "Delete bank account",
         "tags": [
           "Structure - Bank Accounts (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/table": {
+      "get": {
+        "description": "Resolves one page of the organization's payment gateway configs from a serialized view state (filters, search, sort, pagination) that cloud holds. Secrets are never included. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "PaymentGatewayConfigInternalController_findForTable",
+        "parameters": [
+          {
+            "name": "filters",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified FilterCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SearchState",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SortCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateway configs page retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentGatewayConfigsPageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "Payment gateway configs table",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/gateways": {
+      "get": {
+        "description": "The gateways payments-service can charge through, with the credential fields each one takes. Intersect with the catalog to offer only what the deployment is entitled to.",
+        "operationId": "PaymentGatewayConfigInternalController_listGateways",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateways retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentGatewayOptionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List supported payment gateways",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/legal-entity/{legalEntityId}": {
+      "get": {
+        "description": "Returns every payment gateway config of the legal entity, newest first.",
+        "operationId": "PaymentGatewayConfigInternalController_list",
+        "parameters": [
+          {
+            "name": "legalEntityId",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateway configs retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentGatewayConfigDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List payment gateway configs of a legal entity",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/bank-account/{bankAccountId}": {
+      "get": {
+        "description": "Returns every payment gateway config that settles into the bank account, newest first.",
+        "operationId": "PaymentGatewayConfigInternalController_listByBankAccount",
+        "parameters": [
+          {
+            "name": "bankAccountId",
+            "required": true,
+            "in": "path",
+            "description": "Bank account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateway configs retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentGatewayConfigDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List payment gateway configs settling into a bank account",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal": {
+      "post": {
+        "description": "Adds a payment gateway config to a legal entity of the organization. Credentials are validated against the gateway field list, encrypted at rest and never returned. One config per legal entity, type, gateway, site and app.",
+        "operationId": "PaymentGatewayConfigInternalController_create",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentGatewayConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment gateway config created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, unsupported gateway, incomplete credentials, or a reference outside the legal entity."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "409": {
+            "description": "A config already occupies this scope."
+          }
+        },
+        "summary": "Create payment gateway config",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/{id}": {
+      "get": {
+        "description": "Returns a single payment gateway config by ID, without its secrets.",
+        "operationId": "PaymentGatewayConfigInternalController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the config must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bankAccountId",
+            "required": false,
+            "in": "query",
+            "description": "Bank account the config must settle into",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateway config retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentGatewayConfigDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          }
+        },
+        "summary": "Get payment gateway config",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      },
+      "patch": {
+        "description": "Updates a payment gateway config. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext.",
+        "operationId": "PaymentGatewayConfigInternalController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the config must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bankAccountId",
+            "required": false,
+            "in": "query",
+            "description": "Bank account the config must settle into",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePaymentGatewayConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment gateway config updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, unsupported gateway or incomplete credentials."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          },
+          "409": {
+            "description": "A config already occupies this scope."
+          }
+        },
+        "summary": "Update payment gateway config",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      },
+      "delete": {
+        "description": "Deletes a payment gateway config.",
+        "operationId": "PaymentGatewayConfigInternalController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the config must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bankAccountId",
+            "required": false,
+            "in": "query",
+            "description": "Bank account the config must settle into",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateway config deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          }
+        },
+        "summary": "Delete payment gateway config",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/{id}/verify": {
+      "post": {
+        "description": "Has the provider check the stored credentials. A pass records verifiedAt and the merchant id the provider reports; a rejection names the credential field at fault.",
+        "operationId": "PaymentGatewayConfigInternalController_verify",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the config must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bankAccountId",
+            "required": false,
+            "in": "query",
+            "description": "Bank account the config must settle into",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateway config verified successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentGatewayConfigVerificationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The provider rejected the credentials, or the gateway is not supported."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          }
+        },
+        "summary": "Verify payment gateway config",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-linked-accounts/internal": {
+      "get": {
+        "description": "Every linked account registered against a split-enabled gateway config, newest first. Pass legalEntityId to require the collector to belong to that legal entity. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "PaymentLinkedAccountInternalController_list",
+        "parameters": [
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the collector config must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectorConfigId",
+            "required": true,
+            "in": "query",
+            "description": "Collector gateway config whose linked accounts to list",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentLinkedAccountDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          }
+        },
+        "summary": "Linked accounts of a collector",
+        "tags": [
+          "Structure - Payment Linked Accounts (internal)"
+        ]
+      },
+      "post": {
+        "description": "Opens a linked account at the collector's gateway for a bank account of the organization (any legal entity). Business details are forwarded to the gateway and not stored. Transfers open 24 hours after registration. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "PaymentLinkedAccountInternalController_register",
+        "parameters": [
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the collector config must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPaymentLinkedAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Linked account registered.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, split payments off, or an unknown bank account."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          },
+          "409": {
+            "description": "The bank account is already linked to this collector."
+          }
+        },
+        "summary": "Register a linked account",
+        "tags": [
+          "Structure - Payment Linked Accounts (internal)"
+        ]
+      }
+    },
+    "/payment-linked-accounts/internal/{id}/refresh": {
+      "post": {
+        "description": "Pulls the linked account's activation status from the gateway and records it. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "PaymentLinkedAccountInternalController_refresh",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment linked account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the collector config must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status refreshed; data carries the linked account.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The account was never created at the gateway."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Linked account not found."
+          }
+        },
+        "summary": "Refresh a linked account status",
+        "tags": [
+          "Structure - Payment Linked Accounts (internal)"
+        ]
+      }
+    },
+    "/payment-linked-accounts/internal/{id}": {
+      "delete": {
+        "description": "Removes the local linked-account record; the account at the gateway is left in place. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "PaymentLinkedAccountInternalController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment linked account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "legalEntityId",
+            "required": false,
+            "in": "query",
+            "description": "Legal entity the collector config must belong to",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Linked account removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Linked account not found."
+          }
+        },
+        "summary": "Remove a linked account",
+        "tags": [
+          "Structure - Payment Linked Accounts (internal)"
         ]
       }
     },
@@ -36738,6 +38335,219 @@
           }
         }
       },
+      "AppWebhookEndpointDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "appId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://shop.example.com/webhooks/vritti"
+          },
+          "events": {
+            "type": "array",
+            "example": [
+              "payment_intent.succeeded",
+              "payment_intent.payment_failed",
+              "payment_intent.expired"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "payment_intent.succeeded",
+                "payment_intent.payment_failed",
+                "payment_intent.expired"
+              ]
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "appId",
+          "url",
+          "events",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpsertAppWebhookEndpointInternalDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "HTTPS URL the events are POSTed to",
+            "example": "https://shop.example.com/webhooks/vritti"
+          },
+          "events": {
+            "type": "array",
+            "example": [
+              "payment_intent.succeeded",
+              "payment_intent.payment_failed",
+              "payment_intent.expired"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "payment_intent.succeeded",
+                "payment_intent.payment_failed",
+                "payment_intent.expired"
+              ]
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "url",
+          "events",
+          "isActive"
+        ]
+      },
+      "SuccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Operation completed successfully"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "WebhookDeliveryRefResponseDto": {
+        "type": "object",
+        "properties": {
+          "deliveryId": {
+            "type": "string",
+            "example": "uuid-here"
+          }
+        },
+        "required": [
+          "deliveryId"
+        ]
+      },
+      "WebhookDeliveryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "eventId": {
+            "type": "string",
+            "description": "The payment event id, or test_<uuid> for a test send",
+            "example": "uuid-here"
+          },
+          "eventType": {
+            "type": "string",
+            "example": "payment_intent.succeeded"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "DELIVERED",
+              "FAILED"
+            ],
+            "example": "PENDING"
+          },
+          "attempts": {
+            "type": "number",
+            "example": 1
+          },
+          "lastStatusCode": {
+            "type": "object",
+            "example": 500,
+            "nullable": true
+          },
+          "lastError": {
+            "type": "object",
+            "example": "HTTP 500",
+            "nullable": true
+          },
+          "nextAttemptAt": {
+            "type": "string",
+            "example": "2026-01-15T10:31:00Z"
+          },
+          "deliveredAt": {
+            "type": "object",
+            "example": "2026-01-15T10:30:01Z",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "eventType",
+          "status",
+          "attempts",
+          "nextAttemptAt",
+          "createdAt"
+        ]
+      },
+      "WebhookDeliveriesPageResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookDeliveryDto"
+            }
+          },
+          "count": {
+            "type": "number",
+            "example": 42
+          }
+        },
+        "required": [
+          "result",
+          "count"
+        ]
+      },
+      "WebhookPublicKeyResponseDto": {
+        "type": "object",
+        "properties": {
+          "publicKey": {
+            "type": "string",
+            "description": "Ed25519 public key, base64 spki DER, that verifies x-vap-signature",
+            "example": "MCowBQYDK2VwAyEA..."
+          }
+        },
+        "required": [
+          "publicKey"
+        ]
+      },
       "LoginDto": {
         "type": "object",
         "properties": {
@@ -37645,23 +39455,6 @@
           "fullName",
           "locale",
           "timezone"
-        ]
-      },
-      "SuccessResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Operation completed successfully"
-          }
-        },
-        "required": [
-          "success",
-          "message"
         ]
       },
       "UserDto": {
@@ -39391,6 +41184,489 @@
           "accountNumber",
           "ifscCode",
           "bankName"
+        ]
+      },
+      "PaymentGatewayConfigDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "bankAccountId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "APP",
+              "POS",
+              "B2B"
+            ],
+            "example": "APP"
+          },
+          "siteId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          },
+          "appId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          },
+          "gatewayCode": {
+            "type": "string",
+            "example": "razorpay"
+          },
+          "label": {
+            "type": "object",
+            "example": "Storefront Razorpay",
+            "nullable": true
+          },
+          "keyId": {
+            "type": "string",
+            "description": "The public half of the credential pair",
+            "example": "rzp_live_AbCdEf123456"
+          },
+          "hasWebhookSecret": {
+            "type": "boolean",
+            "description": "Whether a webhook signing secret is on file",
+            "example": true
+          },
+          "providerMerchantId": {
+            "type": "object",
+            "example": "MID12345",
+            "nullable": true
+          },
+          "splitEnabled": {
+            "type": "boolean",
+            "description": "Whether this config collects payments that are split to linked accounts",
+            "example": false
+          },
+          "verifiedAt": {
+            "type": "object",
+            "description": "When the stored credentials last passed the provider check",
+            "example": "2024-01-15T10:30:00Z",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "legalEntityId",
+          "bankAccountId",
+          "type",
+          "gatewayCode",
+          "keyId",
+          "hasWebhookSecret",
+          "splitEnabled",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaymentGatewayConfigsPageResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentGatewayConfigDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "result",
+          "count"
+        ]
+      },
+      "PaymentGatewayOptionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "razorpay"
+          },
+          "credentialFields": {
+            "description": "The credential fields a config for this gateway must carry",
+            "example": [
+              "key_id",
+              "key_secret"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "supportsSplit": {
+            "type": "boolean",
+            "description": "Whether the gateway can split a collected payment to linked accounts",
+            "example": true
+          }
+        },
+        "required": [
+          "code",
+          "credentialFields",
+          "supportsSplit"
+        ]
+      },
+      "CreatePaymentGatewayConfigDto": {
+        "type": "object",
+        "properties": {
+          "legalEntityId": {
+            "type": "string",
+            "description": "Owning legal entity ID",
+            "example": "uuid-here"
+          },
+          "bankAccountId": {
+            "type": "string",
+            "description": "Bank account the gateway settles into",
+            "example": "uuid-here"
+          },
+          "type": {
+            "type": "string",
+            "description": "Where the gateway is used",
+            "enum": [
+              "APP",
+              "POS",
+              "B2B"
+            ],
+            "example": "APP"
+          },
+          "siteId": {
+            "type": "object",
+            "description": "Site the config is pinned to",
+            "example": "uuid-here"
+          },
+          "appId": {
+            "type": "object",
+            "description": "App the config is pinned to (type must be APP)",
+            "example": "uuid-here"
+          },
+          "gatewayCode": {
+            "type": "string",
+            "description": "Gateway provider code",
+            "example": "razorpay"
+          },
+          "label": {
+            "type": "object",
+            "description": "Display label for the config",
+            "example": "Storefront Razorpay"
+          },
+          "credentials": {
+            "type": "object",
+            "description": "Provider credentials keyed by field name; the required keys depend on gatewayCode",
+            "example": {
+              "key_id": "rzp_live_AbCdEf123456",
+              "key_secret": "xxxxxxxxxxxxxxxx"
+            }
+          },
+          "webhookSecret": {
+            "type": "object",
+            "description": "Webhook signing secret issued by the provider"
+          },
+          "providerMerchantId": {
+            "type": "object",
+            "description": "Merchant ID assigned by the provider",
+            "example": "MID12345"
+          },
+          "splitEnabled": {
+            "type": "boolean",
+            "description": "Collect payments through this config and split them to linked accounts; the gateway must support splits",
+            "example": false
+          }
+        },
+        "required": [
+          "legalEntityId",
+          "bankAccountId",
+          "type",
+          "gatewayCode",
+          "credentials"
+        ]
+      },
+      "UpdatePaymentGatewayConfigDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Where the gateway is used",
+            "enum": [
+              "APP",
+              "POS",
+              "B2B"
+            ],
+            "example": "APP"
+          },
+          "siteId": {
+            "type": "object",
+            "description": "Site the config is pinned to",
+            "example": "uuid-here"
+          },
+          "appId": {
+            "type": "object",
+            "description": "App the config is pinned to (type must be APP)",
+            "example": "uuid-here"
+          },
+          "gatewayCode": {
+            "type": "string",
+            "description": "Gateway provider code",
+            "example": "razorpay"
+          },
+          "label": {
+            "type": "object",
+            "description": "Display label for the config",
+            "example": "Storefront Razorpay"
+          },
+          "credentials": {
+            "type": "object",
+            "description": "Provider credentials keyed by field name; the required keys depend on gatewayCode",
+            "example": {
+              "key_id": "rzp_live_AbCdEf123456",
+              "key_secret": "xxxxxxxxxxxxxxxx"
+            }
+          },
+          "webhookSecret": {
+            "type": "object",
+            "description": "Webhook signing secret issued by the provider"
+          },
+          "providerMerchantId": {
+            "type": "object",
+            "description": "Merchant ID assigned by the provider",
+            "example": "MID12345"
+          },
+          "splitEnabled": {
+            "type": "boolean",
+            "description": "Collect payments through this config and split them to linked accounts; the gateway must support splits",
+            "example": false
+          }
+        }
+      },
+      "PaymentGatewayConfigVerificationDto": {
+        "type": "object",
+        "properties": {
+          "verifiedAt": {
+            "type": "string",
+            "description": "When the provider accepted the stored credentials",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "providerMerchantId": {
+            "type": "object",
+            "description": "Merchant id the provider reported, or the one already on file when it reports none",
+            "example": "MID12345",
+            "nullable": true
+          }
+        },
+        "required": [
+          "verifiedAt"
+        ]
+      },
+      "PaymentGatewayConfigVerificationResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Payment gateway config \"Storefront Razorpay\" verified successfully."
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaymentGatewayConfigVerificationDto"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "PaymentLinkedAccountDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "collectorConfigId": {
+            "type": "string",
+            "description": "Split-enabled gateway config that collects the payments",
+            "example": "uuid-here"
+          },
+          "bankAccountId": {
+            "type": "string",
+            "description": "Bank account the linked account settles into",
+            "example": "uuid-here"
+          },
+          "recipientLegalEntityId": {
+            "type": "string",
+            "description": "Legal entity that holds the recipient bank account",
+            "example": "uuid-here"
+          },
+          "providerAccountId": {
+            "type": "object",
+            "example": "acc_00000000000001",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_REVIEW",
+              "ACTION_REQUIRED",
+              "ACTIVE",
+              "SUSPENDED",
+              "FAILED"
+            ],
+            "example": "IN_REVIEW"
+          },
+          "transfersAllowedAt": {
+            "type": "object",
+            "description": "When the provider starts accepting transfers to this account",
+            "example": "2024-01-16T10:30:00Z",
+            "nullable": true
+          },
+          "lastError": {
+            "type": "object",
+            "description": "Why the last registration attempt failed",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "collectorConfigId",
+          "bankAccountId",
+          "recipientLegalEntityId",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaymentLinkedAccountAddressDto": {
+        "type": "object",
+        "properties": {
+          "street1": {
+            "type": "string",
+            "example": "12 MG Road"
+          },
+          "street2": {
+            "type": "string",
+            "example": "Indiranagar"
+          },
+          "city": {
+            "type": "string",
+            "example": "Bengaluru"
+          },
+          "state": {
+            "type": "string",
+            "example": "Karnataka"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "560038"
+          },
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code",
+            "example": "IN"
+          }
+        },
+        "required": [
+          "street1",
+          "city",
+          "state",
+          "postalCode",
+          "country"
+        ]
+      },
+      "RegisterPaymentLinkedAccountDto": {
+        "type": "object",
+        "properties": {
+          "collectorConfigId": {
+            "type": "string",
+            "description": "Split-enabled gateway config that collects the payments",
+            "example": "uuid-here"
+          },
+          "bankAccountId": {
+            "type": "string",
+            "description": "Bank account the linked account settles into",
+            "example": "uuid-here"
+          },
+          "email": {
+            "type": "string",
+            "example": "accounts@acme.example"
+          },
+          "phone": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "legalBusinessName": {
+            "type": "string",
+            "example": "Acme Foods Private Limited"
+          },
+          "businessType": {
+            "type": "string",
+            "description": "Provider business type",
+            "example": "private_limited"
+          },
+          "contactName": {
+            "type": "string",
+            "example": "Asha Rao"
+          },
+          "category": {
+            "type": "string",
+            "description": "Provider business category; required by some providers (e.g. Razorpay)",
+            "example": "food"
+          },
+          "subcategory": {
+            "type": "string",
+            "description": "Provider business subcategory; required by some providers (e.g. Razorpay)",
+            "example": "restaurant"
+          },
+          "address": {
+            "$ref": "#/components/schemas/PaymentLinkedAccountAddressDto"
+          },
+          "pan": {
+            "type": "string",
+            "example": "ABCDE1234F"
+          },
+          "gst": {
+            "type": "string",
+            "example": "29ABCDE1234F1Z5"
+          }
+        },
+        "required": [
+          "collectorConfigId",
+          "bankAccountId",
+          "email",
+          "phone",
+          "legalBusinessName",
+          "businessType",
+          "contactName",
+          "address"
         ]
       },
       "ReceiveCatalogInternalDto": {

@@ -4,6 +4,7 @@ export class OrderItemDto {
   id: string;
   itemName: string;
   variantName: string | null;
+  sku: string | null;
   quantity: number;
   unitPrice: string;
   taxRate: number;
@@ -17,6 +18,7 @@ export class OrderItemDto {
     dto.id = entity.id;
     dto.itemName = entity.itemName;
     dto.variantName = entity.variantName ?? null;
+    dto.sku = entity.sku ?? null;
     dto.quantity = entity.quantity;
     dto.unitPrice = entity.unitPrice.toString();
     dto.taxRate = entity.taxRate;
@@ -42,6 +44,10 @@ export class OrderDto {
   deliveryCharge: string;
   discountAmount: string;
   totalAmount: string;
+  currencyCode: string | null;
+  paidAt: string | null;
+  // Set when a payment landed on an order that had already been cancelled
+  needsReview: boolean;
   placedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -61,6 +67,9 @@ export class OrderDto {
     dto.deliveryCharge = entity.deliveryCharge.toString();
     dto.discountAmount = entity.discountAmount.toString();
     dto.totalAmount = entity.totalAmount.toString();
+    dto.currencyCode = entity.currencyCode ?? null;
+    dto.paidAt = entity.paidAt?.toISOString() ?? null;
+    dto.needsReview = entity.needsReview;
     dto.placedAt = entity.placedAt.toISOString();
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
@@ -77,6 +86,10 @@ export class OrderDetailDto extends OrderDto {
   completedAt: string | null;
   cancelledAt: string | null;
   cancellationReason: string | null;
+  partyId: string | null;
+  paymentIntentId: string | null;
+  paymentMethod: string | null;
+  paymentReference: string | null;
   items: OrderItemDto[];
 
   static fromDetail(entity: Order, items: OrderItemDto[]): OrderDetailDto {
@@ -90,6 +103,10 @@ export class OrderDetailDto extends OrderDto {
     dto.completedAt = entity.completedAt?.toISOString() ?? null;
     dto.cancelledAt = entity.cancelledAt?.toISOString() ?? null;
     dto.cancellationReason = entity.cancellationReason ?? null;
+    dto.partyId = entity.partyId ?? null;
+    dto.paymentIntentId = entity.paymentIntentId ?? null;
+    dto.paymentMethod = entity.paymentMethod ?? null;
+    dto.paymentReference = entity.paymentReference ?? null;
     dto.items = items;
     return dto;
   }

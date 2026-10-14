@@ -2,8 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type BankAccount, bankAccounts } from '@/db/schema';
+import type { BankAccountScope } from '../bank-account-scope';
 import { BankAccountDto } from '../dto/entity/bank-account.dto';
 import type { CreateBankAccountDto } from '../dto/request/create-bank-account.dto';
 import type { UpdateBankAccountDto } from '../dto/request/update-bank-account.dto';
@@ -54,8 +56,8 @@ export class BankAccountDomainService {
   }
 
   // Returns a single bank account
-  async findById(orgId: string, id: string): Promise<BankAccountDto> {
-    return BankAccountDto.from(await this.requireInOrg(orgId, id));
+  async findById(orgId: string, id: string, scope?: BankAccountScope): Promise<BankAccountDto> {
+    return BankAccountDto.from(await this.requireInScope(orgId, id, scope));
   }
 
   // Creates a bank account after checking the number is new to the legal entity
@@ -82,8 +84,13 @@ export class BankAccountDomainService {
   }
 
   // Updates a bank account, re-checking uniqueness when the number or branch changes
-  async update(orgId: string, id: string, dto: UpdateBankAccountDto): Promise<SuccessResponseDto> {
-    const existing = await this.requireInOrg(orgId, id);
+  async update(
+    orgId: string,
+    id: string,
+    dto: UpdateBankAccountDto,
+    scope?: BankAccountScope,
+  ): Promise<SuccessResponseDto> {
+    const existing = await this.requireInScope(orgId, id, scope);
 
     const accountNumber = dto.accountNumber ?? existing.accountNumber;
     const ifscCode = dto.ifscCode ?? existing.ifscCode;
@@ -104,19 +111,36 @@ export class BankAccountDomainService {
     return { success: true, message: `Bank account "${displayName(row)}" updated successfully.` };
   }
 
-  // Deletes a bank account
-  async delete(orgId: string, id: string): Promise<SuccessResponseDto> {
-    const existing = await this.requireInOrg(orgId, id);
+  // Deletes a bank account nothing settles into; one a gateway config or linked account still uses is a 409
+  async delete(orgId: string, id: string, scope?: BankAccountScope): Promise<SuccessResponseDto> {
+    const existing = await this.requireInScope(orgId, id, scope);
+    const { gatewayConfigs, linkedAccounts } = await this.bankAccountRepository.countReferences(id);
+    if (gatewayConfigs > 0 || linkedAccounts > 0) {
+      const uses = [
+        gatewayConfigs > 0 && pluralize('payment gateway config', gatewayConfigs, true),
+        linkedAccounts > 0 && pluralize('linked account', linkedAccounts, true),
+      ].filter(Boolean);
+      throw new ConflictException({
+        label: 'Bank Account In Use',
+        detail: `This bank account is used by ${uses.join(' and ')}. Move or remove them before deleting it.`,
+      });
+    }
     await this.bankAccountRepository.delete(id);
 
     this.logger.log(`Deleted bank account ${id}`);
     return { success: true, message: `Bank account "${displayName(existing)}" deleted successfully.` };
   }
 
-  // Loads the account, hiding rows that belong to another organization behind the same 404
-  private async requireInOrg(orgId: string, id: string): Promise<BankAccount> {
+  // Loads the account, hiding rows outside the organization or the caller's legal entity behind the same 404
+  private async requireInScope(orgId: string, id: string, scope?: BankAccountScope): Promise<BankAccount> {
     const row = await this.bankAccountRepository.findById(id);
-    if (!row || row.organizationId !== orgId) throw new NotFoundException('Bank account not found.');
+    if (
+      !row ||
+      row.organizationId !== orgId ||
+      (scope?.legalEntityId !== undefined && row.legalEntityId !== scope.legalEntityId)
+    ) {
+      throw new NotFoundException('Bank account not found.');
+    }
     return row;
   }
 

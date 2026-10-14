@@ -5,15 +5,16 @@ import { fileURLToPath } from 'node:url';
 /**
  * The tier boundary, enforced at build time.
  *
- * `core/` runs in Node, a browser and React Native alike; `native/` runs on a device. Neither may
- * reach for a Node builtin, a database driver, a server framework, or a higher tier.
+ * `core/` runs in Node, a browser and React Native alike; `native/` runs on a device; `checkout/`
+ * runs in a browser. None may reach for a Node builtin, a database driver, a server framework, or a
+ * higher tier.
  *
  * This runs in `build` rather than as a test because one such import does not fail this package —
  * it fails at Metro bundle time in an app that consumed it, a long way from the edit that caused it.
  * A folder boundary nothing checks is one that rots.
  */
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');
-const TIERS = ['core', 'native'];
+const TIERS = ['core', 'native', 'checkout'];
 
 const FORBIDDEN = [
   [/from '(node:[^']+)'/g, 'a Node builtin'],

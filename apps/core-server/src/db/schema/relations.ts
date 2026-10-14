@@ -55,6 +55,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.apps.organizationId,
       to: r.organizations.id,
     }),
+    paymentGatewayConfigs: r.many.paymentGatewayConfigs(),
   },
 
   // Provisioned external service relations
@@ -80,6 +81,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     sites: r.many.sites(),
     bankAccounts: r.many.bankAccounts(),
+    paymentGatewayConfigs: r.many.paymentGatewayConfigs(),
   },
 
   // Bank account relations
@@ -87,6 +89,58 @@ export const relations = defineRelations(schema, (r) => ({
     legalEntity: r.one.legalEntities({
       from: r.bankAccounts.legalEntityId,
       to: r.legalEntities.id,
+    }),
+    paymentGatewayConfigs: r.many.paymentGatewayConfigs(),
+    paymentLinkedAccounts: r.many.paymentLinkedAccounts(),
+  },
+
+  // Payment gateway config relations
+  paymentGatewayConfigs: {
+    legalEntity: r.one.legalEntities({
+      from: r.paymentGatewayConfigs.legalEntityId,
+      to: r.legalEntities.id,
+    }),
+    bankAccount: r.one.bankAccounts({
+      from: r.paymentGatewayConfigs.bankAccountId,
+      to: r.bankAccounts.id,
+    }),
+    site: r.one.sites({
+      from: r.paymentGatewayConfigs.siteId,
+      to: r.sites.id,
+    }),
+    app: r.one.apps({
+      from: r.paymentGatewayConfigs.appId,
+      to: r.apps.id,
+    }),
+    linkedAccounts: r.many.paymentLinkedAccounts(),
+  },
+
+  // Payment linked account relations
+  paymentLinkedAccounts: {
+    collectorConfig: r.one.paymentGatewayConfigs({
+      from: r.paymentLinkedAccounts.collectorConfigId,
+      to: r.paymentGatewayConfigs.id,
+    }),
+    bankAccount: r.one.bankAccounts({
+      from: r.paymentLinkedAccounts.bankAccountId,
+      to: r.bankAccounts.id,
+    }),
+  },
+
+  // Outbound webhook endpoint relations
+  appWebhookEndpoints: {
+    app: r.one.apps({
+      from: r.appWebhookEndpoints.appId,
+      to: r.apps.id,
+    }),
+    deliveries: r.many.webhookDeliveries(),
+  },
+
+  // Outbound webhook delivery relations
+  webhookDeliveries: {
+    endpoint: r.one.appWebhookEndpoints({
+      from: r.webhookDeliveries.endpointId,
+      to: r.appWebhookEndpoints.id,
     }),
   },
 
@@ -121,6 +175,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.sites.legalEntityId,
       to: r.legalEntities.id,
     }),
+    paymentGatewayConfigs: r.many.paymentGatewayConfigs(),
   },
 
   // Role relations

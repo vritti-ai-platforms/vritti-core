@@ -17,6 +17,7 @@ export interface CartItemRow {
   id: string;
   // Null once the catalogue stops carrying it — the line stays, as `isAvailable` explains
   catalogListingId: string | null;
+  offeringId: string;
   offeringVariantId: string;
   quantity: number;
   // Null when the catalogue holds no price for the basket's currency — see `CartItemDto.from`

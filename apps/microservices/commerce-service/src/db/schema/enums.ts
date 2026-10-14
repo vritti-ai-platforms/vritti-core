@@ -31,6 +31,7 @@ export const BOM_RULES = {
 
 export const orderSourceEnum = commerceSchema.enum('order_source', ['ONLINE', 'WALK_IN']);
 export const orderStatusEnum = commerceSchema.enum('order_status', [
+  'AWAITING_PAYMENT',
   'PENDING',
   'ACCEPTED',
   'PREPARING',
@@ -90,6 +91,7 @@ export const OrderSourceValues = {
 };
 
 export const OrderStatusValues = {
+  AWAITING_PAYMENT: 'AWAITING_PAYMENT' as const,
   PENDING: 'PENDING' as const,
   ACCEPTED: 'ACCEPTED' as const,
   PREPARING: 'PREPARING' as const,

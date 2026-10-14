@@ -2,7 +2,20 @@ import type { BankAccountDto } from '@domain/bank-account/dto/entity/bank-accoun
 import { CreateBankAccountDto } from '@domain/bank-account/dto/request/create-bank-account.dto';
 import { UpdateBankAccountDto } from '@domain/bank-account/dto/request/update-bank-account.dto';
 import type { BankAccountsPageResponseDto } from '@domain/bank-account/dto/response/bank-accounts-page-response.dto';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -15,6 +28,7 @@ import {
   ApiListBankAccountsInternal,
   ApiUpdateBankAccountInternal,
 } from './docs/bank-account-internal.docs';
+import { BankAccountScopeQueryDto } from './dto/request/bank-account-scope-query.dto';
 import { GetBankAccountsInternalDto } from './dto/request/get-bank-accounts-internal.dto';
 import { BankAccountService } from './services/bank-account-api.service';
 
@@ -42,7 +56,10 @@ export class BankAccountInternalController {
   // Lists a legal entity's bank accounts
   @Get('legal-entity/:legalEntityId')
   @ApiListBankAccountsInternal()
-  list(@OrgId() orgId: string, @Param('legalEntityId') legalEntityId: string): Promise<BankAccountDto[]> {
+  list(
+    @OrgId() orgId: string,
+    @Param('legalEntityId', ParseUUIDPipe) legalEntityId: string,
+  ): Promise<BankAccountDto[]> {
     this.logger.log(`GET /bank-accounts/internal/legal-entity/${legalEntityId} — org ${orgId}`);
     return this.bankAccountService.listByLegalEntity(orgId, legalEntityId);
   }
@@ -59,9 +76,13 @@ export class BankAccountInternalController {
   // Returns a single bank account
   @Get(':id')
   @ApiGetBankAccountInternal()
-  findById(@OrgId() orgId: string, @Param('id') id: string): Promise<BankAccountDto> {
+  findById(
+    @OrgId() orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() scope: BankAccountScopeQueryDto,
+  ): Promise<BankAccountDto> {
     this.logger.log(`GET /bank-accounts/internal/${id}`);
-    return this.bankAccountService.findById(orgId, id);
+    return this.bankAccountService.findById(orgId, id, scope);
   }
 
   // Updates a bank account
@@ -69,19 +90,24 @@ export class BankAccountInternalController {
   @ApiUpdateBankAccountInternal()
   update(
     @OrgId() orgId: string,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() scope: BankAccountScopeQueryDto,
     @Body() dto: UpdateBankAccountDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /bank-accounts/internal/${id}`);
-    return this.bankAccountService.update(orgId, id, dto);
+    return this.bankAccountService.update(orgId, id, dto, scope);
   }
 
   // Deletes a bank account
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiDeleteBankAccountInternal()
-  delete(@OrgId() orgId: string, @Param('id') id: string): Promise<SuccessResponseDto> {
+  delete(
+    @OrgId() orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() scope: BankAccountScopeQueryDto,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /bank-accounts/internal/${id}`);
-    return this.bankAccountService.delete(orgId, id);
+    return this.bankAccountService.delete(orgId, id, scope);
   }
 }

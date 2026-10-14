@@ -1,0 +1,9 @@
+{
+  // Typechecks the jest suites, which the build tsconfigs exclude so no test lands in `dist`.
+  // Jest itself runs them through @swc/jest (types stripped, not checked) — see the `jest` key in
+  // package.json — so `tsc -p tsconfig.test.json` is what catches a test that no longer compiles.
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["src/**/*.test.ts"],
+  "exclude": []
+}

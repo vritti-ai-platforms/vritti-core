@@ -416,7 +416,57 @@ type VerifyWhatsappOtpResult {
   verified: Boolean!
 }
 
+type PaymentReference {
+  type: String!
+  id: String!
+}
+
+type PaymentCheckout {
+  gateway: String!
+  payload: String!
+}
+
+type PaymentFailure {
+  code: String
+  message: String
+}
+
+type PaymentIntent {
+  id: ID!
+  status: PaymentIntentStatus!
+  amount: Money!
+  reference: PaymentReference!
+  description: String
+  checkout: PaymentCheckout
+  failure: PaymentFailure
+  paidAt: String
+  expiresAt: String
+  createdAt: String!
+}
+
+enum PaymentIntentStatus {
+  CREATED
+  REQUIRES_ACTION
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELED
+  EXPIRED
+}
+
+type CheckoutOrder {
+  id: ID!
+  orderNumber: String!
+  total: Money!
+}
+
+type CheckoutSession {
+  order: CheckoutOrder!
+  paymentIntent: PaymentIntent!
+}
+
 type Query {
+  paymentIntent(input: PaymentIntentRefInput!): PaymentIntent!
   peopleByCommunication(input: FindPeopleByCommunicationInput!): [Person!]!
   partyProfile: Person!
   partyAddresses: [PartyAddress!]!
@@ -434,6 +484,10 @@ type Query {
   siteCatalogListingBySku(sku: String!): CatalogListingDetail
   siteCatalogListingsFromVariants(variantIds: [ID!]!): [CatalogListing!]!
   siteOfferingVariants(search: String, excludeIds: [ID!], limit: Int, offset: Int): OfferingVariantOptions!
+}
+
+input PaymentIntentRefInput {
+  paymentIntentId: ID!
 }
 
 input FindPeopleByCommunicationInput {
@@ -462,6 +516,10 @@ enum ListingSort {
 }
 
 type Mutation {
+  createPaymentIntent(input: CreatePaymentIntentInput!): PaymentIntent!
+  confirmPayment(input: ConfirmPaymentInput!): PaymentIntent!
+  cancelPaymentIntent(input: PaymentIntentRefInput!): PaymentIntent!
+  startCheckoutFromCart(input: StartCheckoutInput!): CheckoutSession!
   sendSmsOtp(input: SendSmsOtpInput!): SendSmsOtpResult!
   verifySmsOtp(input: VerifySmsOtpInput!): VerifySmsOtpResult!
   sendWhatsappOtp(input: SendWhatsappOtpInput!): SendWhatsappOtpResult!
@@ -478,6 +536,61 @@ type Mutation {
   updateCartItem(input: UpdateCartItemInput!): Cart!
   removeFromCart(input: CartItemRefInput!): Cart!
   clearCart(input: CartScopeInput!): Cart!
+}
+
+input CreatePaymentIntentInput {
+  amount: MoneyInput!
+  reference: PaymentReferenceInput!
+  description: String
+  customer: PaymentCustomerInput
+  idempotencyKey: String!
+  metadata: [KeyValueInput!]
+  channel: PaymentChannel = APP
+}
+
+input MoneyInput {
+  currency: String!
+  value: String!
+}
+
+input PaymentReferenceInput {
+  type: String!
+  id: String!
+}
+
+input PaymentCustomerInput {
+  name: String
+  email: String
+  phone: String
+}
+
+input KeyValueInput {
+  key: String!
+  value: String!
+}
+
+enum PaymentChannel {
+  APP
+  POS
+  B2B
+}
+
+input ConfirmPaymentInput {
+  paymentIntentId: ID!
+  gatewayResponse: GatewayResponseInput!
+}
+
+input GatewayResponseInput {
+  orderId: String!
+  paymentId: String!
+  signature: String!
+}
+
+input StartCheckoutInput {
+  currencyCode: String!
+  addressId: ID
+  notes: String
+  idempotencyKey: String!
 }
 
 input SendSmsOtpInput {

@@ -561,6 +561,55 @@ type MobileTokens {
   expiresIn: Int!
 }
 
+type PaymentReference {
+  type: String!
+  id: String!
+}
+
+type PaymentCheckout {
+  gateway: String!
+  payload: String!
+}
+
+type PaymentFailure {
+  code: String
+  message: String
+}
+
+type PaymentIntent {
+  id: ID!
+  status: PaymentIntentStatus!
+  amount: Money!
+  reference: PaymentReference!
+  description: String
+  checkout: PaymentCheckout
+  failure: PaymentFailure
+  paidAt: String
+  expiresAt: String
+  createdAt: String!
+}
+
+enum PaymentIntentStatus {
+  CREATED
+  REQUIRES_ACTION
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELED
+  EXPIRED
+}
+
+type CheckoutOrder {
+  id: ID!
+  orderNumber: String!
+  total: Money!
+}
+
+type CheckoutSession {
+  order: CheckoutOrder!
+  paymentIntent: PaymentIntent!
+}
+
 type Query {
   inventoryItems(first: Int, after: String, filters: [FeedFilterInput!], search: FeedSearchInput, sort: [FeedSortInput!]): InventoryItemConnection!
   inventoryItem(id: ID!): InventoryItem!

@@ -48,6 +48,8 @@ import { BankAccountDomainModule } from './modules/domain/bank-account/bank-acco
 import { CatalogDomainModule } from './modules/domain/catalog/catalog.module';
 import { LegalEntityDomainModule } from './modules/domain/legal-entity/legal-entity.module';
 import { OrganizationDomainModule } from './modules/domain/organization/organization.module';
+import { PaymentGatewayConfigDomainModule } from './modules/domain/payment-gateway-config/payment-gateway-config.module';
+import { PaymentLinkedAccountDomainModule } from './modules/domain/payment-linked-account/payment-linked-account.module';
 import { SessionDomainModule } from './modules/domain/session/session.module';
 import { SiteDomainModule } from './modules/domain/site/site.module';
 import { SiteGroupDomainModule } from './modules/domain/site-group/site-group.module';
@@ -57,6 +59,8 @@ import { UserRoleDomainModule } from './modules/domain/user-role/user-role.modul
 import { VerificationDomainModule } from './modules/domain/verification/verification.module';
 import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module';
 import { GiteaInternalModule } from './modules/gitea-gateway/internal/gitea-internal.module';
+import { PaymentsAppGatewayModule } from './modules/payments-gateway/payments-app-gateway.module';
+import { PaymentWebhookModule } from './modules/payments-gateway/webhooks/payment-webhook.module';
 import { StorageInternalModule } from './modules/storage-internal/storage-internal.module';
 import { AppRequestResolver } from './security/services/app-request.resolver';
 import { CloudRequestResolver } from './security/services/cloud-request.resolver';
@@ -113,7 +117,7 @@ const graphqlBaseOptions = {
       driver: ApolloDriver,
       useFactory: () => ({
         ...graphqlBaseOptions,
-        include: [CommerceAppGatewayModule, CommunicationsAppGatewayModule],
+        include: [CommerceAppGatewayModule, CommunicationsAppGatewayModule, PaymentsAppGatewayModule],
         autoSchemaFile: join(process.cwd(), 'src/schema.app.gql'),
         path: '/graphql',
         // Public product surface: integrators codegen against it rather than reverse-engineering
@@ -269,6 +273,8 @@ const graphqlBaseOptions = {
     VerificationDomainModule,
     LegalEntityDomainModule,
     BankAccountDomainModule,
+    PaymentGatewayConfigDomainModule,
+    PaymentLinkedAccountDomainModule,
     SiteDomainModule,
     SiteGroupDomainModule,
     CatalogDomainModule,
@@ -287,7 +293,7 @@ const graphqlBaseOptions = {
         siteGroupContextResolver: SiteGroupContextResolverService,
       ) => ({
         natsUrl: config.get<string>('NATS_URL'),
-        services: [{ name: 'commerce' }, { name: 'communications' }],
+        services: [{ name: 'commerce' }, { name: 'communications' }, { name: 'payments' }],
         contextResolver: async (request) => {
           const auth = request.auth;
           // A cloud-signed call without an organization IS the platform scope: the send goes out
@@ -360,6 +366,8 @@ const graphqlBaseOptions = {
     StructureApiModule,
     CommerceAppGatewayModule,
     CommunicationsAppGatewayModule,
+    // Storefront payments surface — intents and cart checkout over the app GraphQL schema
+    PaymentsAppGatewayModule,
     CatalogApiModule,
     UserPermissionsApiModule,
     MediaApiModule,
@@ -377,6 +385,8 @@ const graphqlBaseOptions = {
     // The one fixed origin allowed to spawn Meta's Embedded Signup popup — unprefixed for the same
     // reason: its absolute URL is registered in the Meta app's allowed-domain lists
     WhatsappEmbeddedSignupBrokerModule,
+    // Public payment-provider callbacks — unprefixed so the path matches the URL registered with the provider
+    PaymentWebhookModule,
     // Forwards requests to the self-hosted Gitea instance over HTTP
     GiteaGatewayModule,
     // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the

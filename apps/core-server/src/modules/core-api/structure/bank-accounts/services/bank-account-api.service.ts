@@ -1,3 +1,4 @@
+import type { BankAccountScope } from '@domain/bank-account/bank-account-scope';
 import type { BankAccountDto } from '@domain/bank-account/dto/entity/bank-account.dto';
 import type { CreateBankAccountDto } from '@domain/bank-account/dto/request/create-bank-account.dto';
 import type { UpdateBankAccountDto } from '@domain/bank-account/dto/request/update-bank-account.dto';
@@ -9,6 +10,7 @@ import { Injectable } from '@nestjs/common';
 import { DataTableStateService, type TableViewState } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { parseTableQueryParam } from '@/utils/parse-table-query';
 import type { CreateLeBankAccountDto } from '../dto/request/create-le-bank-account.dto';
 import type { GetBankAccountsInternalDto } from '../dto/request/get-bank-accounts-internal.dto';
 
@@ -26,9 +28,9 @@ export class BankAccountService {
   // Cloud's data table: it holds the view state and sends it serialized, core resolves the page
   async findForTableWithQuery(orgId: string, query: GetBankAccountsInternalDto): Promise<BankAccountsPageResponseDto> {
     return this.findForTableWithState(orgId, {
-      filters: query.filters ? JSON.parse(query.filters) : [],
-      search: query.search ? JSON.parse(query.search) : null,
-      sort: query.sort ? JSON.parse(query.sort) : [],
+      filters: parseTableQueryParam<TableViewState['filters']>(query.filters, 'filters', []),
+      search: parseTableQueryParam<TableViewState['search'] | null>(query.search, 'search', null),
+      sort: parseTableQueryParam<TableViewState['sort']>(query.sort, 'sort', []),
       pagination: { limit: query.limit ?? 20, offset: query.offset ?? 0 },
     } as TableViewState);
   }
@@ -76,19 +78,29 @@ export class BankAccountService {
     return this.bankAccountService.create(orgId, { ...dto, legalEntityId: this.requireLegalEntity(legalEntityId) });
   }
 
-  // Returns a single bank account
-  async findById(orgId: string, id: string): Promise<BankAccountDto> {
-    return this.bankAccountService.findById(orgId, id);
+  // Returns a single bank account, provided it sits in the caller's scope
+  async findById(orgId: string, id: string, scope: BankAccountScope): Promise<BankAccountDto> {
+    return this.bankAccountService.findById(orgId, id, scope);
   }
 
-  // Updates a bank account
-  async update(orgId: string, id: string, dto: UpdateBankAccountDto): Promise<SuccessResponseDto> {
-    return this.bankAccountService.update(orgId, id, dto);
+  // Updates a bank account, provided it sits in the caller's scope
+  async update(
+    orgId: string,
+    id: string,
+    dto: UpdateBankAccountDto,
+    scope: BankAccountScope,
+  ): Promise<SuccessResponseDto> {
+    return this.bankAccountService.update(orgId, id, dto, scope);
   }
 
-  // Deletes a bank account
-  async delete(orgId: string, id: string): Promise<SuccessResponseDto> {
-    return this.bankAccountService.delete(orgId, id);
+  // Deletes a bank account, provided it sits in the caller's scope
+  async delete(orgId: string, id: string, scope: BankAccountScope): Promise<SuccessResponseDto> {
+    return this.bankAccountService.delete(orgId, id, scope);
+  }
+
+  // The tenant surface's scope: the legal entity from the x-le-id header, which every by-id route requires
+  scopeForContext(legalEntityId: string | undefined): BankAccountScope {
+    return { legalEntityId: this.requireLegalEntity(legalEntityId) };
   }
 
   // Rejects a legal entity that does not exist or belongs to another organization

@@ -1,7 +1,9 @@
 import { resolveConfig, type VapSdkOptions } from '../core/config';
 import { createCartOperations } from '../core/domains/cart';
 import { createCatalogChannelsOperations } from '../core/domains/catalog-channels';
+import { createCheckoutOperations } from '../core/domains/checkout';
 import { createOfferingsOperations } from '../core/domains/offerings';
+import { createPaymentsOperations } from '../core/domains/payments';
 import { createPeopleOperations } from '../core/domains/people';
 import { createSmsOtpOperations } from '../core/domains/sms-otp';
 import { createWhatsappOtpOperations } from '../core/domains/whatsapp-otp';
@@ -30,6 +32,16 @@ import { createSignedFetch } from './signed-fetch';
  *
  * // Everything a signed-in party does, acting for them:
  * const scoped = sdk.forContext({ partyId });
+ *
+ * // Payments (site-scoped). Checkout a basket, or take a payment for anything else:
+ * const { order, paymentIntent } = await scoped.checkout.startFromCart({ idempotencyKey });
+ * const intent = await sdk.payments.createPaymentIntent({
+ *   amount: { currency: 'INR', value: '499.00' },
+ *   reference: { type: 'booking', id: bookingId },
+ *   idempotencyKey: `booking-${bookingId}`,
+ * });
+ * // Browser: openCheckout(intent.checkout) from '@vritti/vap-sdk/checkout', then
+ * // sdk.payments.confirmPayment(...). Outcomes arrive as webhooks — see `verifyVapWebhook`.
  * ```
  */
 export function createVapSdk(options: VapSdkOptions = {}) {
@@ -85,6 +97,16 @@ export function createVapSdk(options: VapSdkOptions = {}) {
       /** The range this storefront sells. Needs no party — it is the shop's catalogue, not a person's. */
       catalogChannels: createCatalogChannelsOperations(client, context),
       offerings: createOfferingsOperations(client, context),
+      /**
+       * Taking a payment for anything — intents, confirmation, one status read. Site-scoped; party
+       * optional, so a guest can pay. Never cached.
+       */
+      payments: createPaymentsOperations(client, context),
+      /**
+       * The basket, checked out: order and payment intent in one call. Needs a party, like the
+       * basket, and the configured `currency`.
+       */
+      checkout: createCheckoutOperations(client, context, config.currency),
       /** The shared identity sequences — OTP sign-in, registration, party repair. Composed over the domains above. */
       auth: createAuthFlows(people, whatsappOtp, smsOtp),
     };

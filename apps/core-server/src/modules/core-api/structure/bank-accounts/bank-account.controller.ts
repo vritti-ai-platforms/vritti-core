@@ -70,9 +70,13 @@ export class BankAccountController {
   @Get(':id')
   @RequirePermission(LE_BANK_ACCOUNTS.view)
   @ApiGetBankAccount()
-  findById(@OrgId() orgId: string, @Param('id') id: string): Promise<BankAccountDto> {
+  findById(
+    @OrgId() orgId: string,
+    @LegalEntityId() legalEntityId: string | undefined,
+    @Param('id') id: string,
+  ): Promise<BankAccountDto> {
     this.logger.log(`GET /bank-accounts/${id}`);
-    return this.bankAccountService.findById(orgId, id);
+    return this.bankAccountService.findById(orgId, id, this.bankAccountService.scopeForContext(legalEntityId));
   }
 
   // Updates a bank account
@@ -81,11 +85,12 @@ export class BankAccountController {
   @ApiUpdateBankAccount()
   update(
     @OrgId() orgId: string,
+    @LegalEntityId() legalEntityId: string | undefined,
     @Param('id') id: string,
     @Body() dto: UpdateBankAccountDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /bank-accounts/${id}`);
-    return this.bankAccountService.update(orgId, id, dto);
+    return this.bankAccountService.update(orgId, id, dto, this.bankAccountService.scopeForContext(legalEntityId));
   }
 
   // Deletes a bank account
@@ -93,8 +98,12 @@ export class BankAccountController {
   @HttpCode(HttpStatus.OK)
   @RequirePermission(LE_BANK_ACCOUNTS.delete)
   @ApiDeleteBankAccount()
-  delete(@OrgId() orgId: string, @Param('id') id: string): Promise<SuccessResponseDto> {
+  delete(
+    @OrgId() orgId: string,
+    @LegalEntityId() legalEntityId: string | undefined,
+    @Param('id') id: string,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /bank-accounts/${id}`);
-    return this.bankAccountService.delete(orgId, id);
+    return this.bankAccountService.delete(orgId, id, this.bankAccountService.scopeForContext(legalEntityId));
   }
 }

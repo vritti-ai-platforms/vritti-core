@@ -26,7 +26,7 @@ import { createHash, createPrivateKey, sign } from 'node:crypto';
  */
 export const WORKSPACE_HEADER_ORDER = ['x-site-id', 'x-sg-id', 'x-le-id', 'x-org-id'] as const;
 
-type SignInput = {
+export type SignInput = {
   method: string;
   path: string;
   body: string;
@@ -48,8 +48,11 @@ type SignInput = {
  * so a bare request produces the same bytes it always has — and the workspace header's
  * **name** is signed, so re-scoping a request from a site to a legal entity cannot
  * survive even with the id unchanged.
+ *
+ * Exported for `signing.test.ts`, which pins its output byte for byte; not part of the
+ * package's public surface (`server/index.ts` does not re-export it).
  */
-function buildCanonical(input: SignInput, timestamp: number): string {
+export function buildCanonical(input: SignInput, timestamp: number): string {
   const bodyHash = createHash('sha256').update(input.body).digest('hex');
   const lines = [input.method.toUpperCase(), input.path, '', bodyHash, String(timestamp)];
 

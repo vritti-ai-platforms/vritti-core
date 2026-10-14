@@ -70,5 +70,6 @@ export function ApiDeleteBankAccount() {
     ApiParam(ID),
     ApiResponse({ status: 200, description: 'Bank account removed.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Bank account not found.' }),
+    ApiResponse({ status: 409, description: 'A payment gateway config or linked account still uses the account.' }),
   );
 }

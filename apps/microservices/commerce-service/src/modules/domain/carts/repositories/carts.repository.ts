@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { aliasedTable, and, asc, eq, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { aliasedTable, and, asc, eq, gt, isNull, lte, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type Cart,
   type CartItem,
@@ -58,6 +58,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         siteId: carts.siteId,
         legalEntityId: carts.legalEntityId,
         catalogListingId: catalogListings.id,
+        offeringId: offeringVariants.offeringId,
         offeringVariantId: cartItems.offeringVariantId,
         quantity: cartItems.quantity,
         // A raw template skips the column's bigint decoder, so the driver's string comes back as-is and
@@ -184,6 +185,16 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
   // Empties a basket without closing it — the cart row survives for the shopper to fill again
   async deleteAllItems(cartId: string): Promise<void> {
     await this.db.delete(cartItems).where(eq(cartItems.cartId, cartId));
+  }
+
+  // Takes an ordered quantity off a line — the line goes when nothing of it is left
+  async consumeItem(cartId: string, offeringVariantId: string, quantity: number): Promise<void> {
+    const line = and(eq(cartItems.cartId, cartId), eq(cartItems.offeringVariantId, offeringVariantId));
+    await this.db.delete(cartItems).where(and(line, lte(cartItems.quantity, quantity)));
+    await this.db
+      .update(cartItems)
+      .set({ quantity: sql`${cartItems.quantity} - ${quantity}`, updatedAt: new Date() })
+      .where(and(line, gt(cartItems.quantity, quantity)));
   }
 
   // Every line a person holds that this workspace can reach

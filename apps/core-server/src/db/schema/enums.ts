@@ -96,9 +96,43 @@ export const TaxRegimeValues = {
   NONE: 'NONE' as const,
 };
 
+export const paymentGatewayConfigTypeEnum = coreSchema.enum('payment_gateway_config_type', ['APP', 'POS', 'B2B']);
+export type PaymentGatewayConfigType = (typeof paymentGatewayConfigTypeEnum.enumValues)[number];
+export const PaymentGatewayConfigTypeValues = {
+  APP: 'APP' as const,
+  POS: 'POS' as const,
+  B2B: 'B2B' as const,
+};
+
+export const paymentLinkedAccountStatusEnum = coreSchema.enum('payment_linked_account_status', [
+  'PENDING',
+  'IN_REVIEW',
+  'ACTION_REQUIRED',
+  'ACTIVE',
+  'SUSPENDED',
+  'FAILED',
+]);
+export type PaymentLinkedAccountStatus = (typeof paymentLinkedAccountStatusEnum.enumValues)[number];
+export const PaymentLinkedAccountStatusValues = {
+  PENDING: 'PENDING' as const,
+  IN_REVIEW: 'IN_REVIEW' as const,
+  ACTION_REQUIRED: 'ACTION_REQUIRED' as const,
+  ACTIVE: 'ACTIVE' as const,
+  SUSPENDED: 'SUSPENDED' as const,
+  FAILED: 'FAILED' as const,
+};
+
 // External services an organization can provision — features declare the ones they depend on
 export const serviceTypeEnum = coreSchema.enum('service_type', ['GITEA']);
 export type ServiceType = (typeof serviceTypeEnum.enumValues)[number];
 export const ServiceTypeValues = {
   GITEA: 'GITEA' as const,
+};
+
+export const webhookDeliveryStatusEnum = coreSchema.enum('webhook_delivery_status', ['PENDING', 'DELIVERED', 'FAILED']);
+export type WebhookDeliveryStatus = (typeof webhookDeliveryStatusEnum.enumValues)[number];
+export const WebhookDeliveryStatusValues = {
+  PENDING: 'PENDING' as const,
+  DELIVERED: 'DELIVERED' as const,
+  FAILED: 'FAILED' as const,
 };

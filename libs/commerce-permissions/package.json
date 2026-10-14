@@ -84,6 +84,10 @@
     "./offerings": {
       "types": "./dist/offerings.d.ts",
       "default": "./dist/offerings.js"
+    },
+    "./payments": {
+      "types": "./dist/payments.d.ts",
+      "default": "./dist/payments.js"
     }
   },
   "files": [

@@ -9,6 +9,7 @@ import { customersCollection } from './collections/parties';
 import { vapCacheCollection } from './collections/vap-cache';
 import { VAP_NEXT_KEY, VapNextConfig } from './next-config';
 import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime';
+import { type PaymentEventHandler, paymentWebhookEndpoint } from './webhooks';
 
 export interface VapOptions extends VapSdkOptions {
   /** Mirrors `s3Storage` — off leaves the config untouched, so a branch can disable it without edits. */
@@ -48,6 +49,26 @@ export interface VapOptions extends VapSdkOptions {
    * Omit it entirely if the app wires the flow itself with `createOtpSignInActions`.
    */
   auth?: VapNextConfig;
+
+  /**
+   * Receives core's payment webhooks — succeeded, failed, expired.
+   *
+   * Setting it adds `POST /api/vap/webhooks` (after any endpoints the site already has), which
+   * verifies each delivery against this plugin's `clientSecret` before calling you. Register that URL
+   * as the website's webhook URL in cloud. Throw to have core retry; make the handler idempotent on
+   * `event.id`, since retries and duplicate deliveries both happen.
+   *
+   * ```ts
+   * vap({
+   *   ...credentials,
+   *   onPaymentEvent: async (event, { payload }) => {
+   *     if (event.type !== 'payment_intent.succeeded') return;
+   *     await payload.update({ collection: 'bookings', id: event.data.reference.id, data: { paid: true } });
+   *   },
+   * })
+   * ```
+   */
+  onPaymentEvent?: PaymentEventHandler;
 }
 
 /**
@@ -81,7 +102,7 @@ export interface VapOptions extends VapSdkOptions {
  * client — and the signing key it holds — never reaches the browser bundle.
  */
 export function vap(options: VapOptions = {}): PayloadPlugin {
-  const { enabled = true, fields, databaseUrl, databaseSchema, auth, ...sdkOptions } = options;
+  const { enabled = true, fields, databaseUrl, databaseSchema, auth, onPaymentEvent, ...sdkOptions } = options;
 
   return <T extends ConfigLike>(config: T): T => {
     if (enabled === false) return config;
@@ -97,6 +118,14 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
         customersCollection(fields?.customers),
         vapCacheCollection(fields?.vapCache),
       ],
+      ...(onPaymentEvent
+        ? {
+            endpoints: [
+              ...(config.endpoints ?? []),
+              paymentWebhookEndpoint({ clientSecret: sdkOptions.clientSecret, onPaymentEvent }),
+            ],
+          }
+        : {}),
       custom: {
         ...config.custom,
         // A function rather than a getter, and that matters: spreading an object invokes its getters, so

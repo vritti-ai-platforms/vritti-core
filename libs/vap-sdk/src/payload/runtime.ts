@@ -47,6 +47,8 @@ export interface PartyLike {
  */
 export interface ConfigLike {
   collections?: unknown[];
+  /** Root endpoints, served under the API route (`/api` by default). Appended to, never replaced. */
+  endpoints?: unknown[];
   custom?: Record<string, unknown>;
 }
 

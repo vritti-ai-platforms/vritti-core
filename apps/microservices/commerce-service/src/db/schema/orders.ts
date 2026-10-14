@@ -1,6 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   bigint,
+  boolean,
   decimal,
   index,
   integer,
@@ -16,6 +17,7 @@ import { customers } from './customers';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
 import { offeringVariants } from './offering-variants';
 import { offerings } from './offerings';
+import { parties } from './parties';
 import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const orders = commerceSchema.table(
@@ -29,6 +31,7 @@ export const orders = commerceSchema.table(
     channel: orderSourceEnum('channel').notNull(),
     status: orderStatusEnum('status').notNull().default('PENDING'),
     customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+    partyId: uuid('party_id').references(() => parties.id, { onDelete: 'set null' }),
     customerName: varchar('customer_name', { length: 255 }),
     customerPhone: varchar('customer_phone', { length: 20 }),
     deliveryAddress: text('delivery_address'),
@@ -38,6 +41,7 @@ export const orders = commerceSchema.table(
     deliveryCharge: bigint('delivery_charge', { mode: 'bigint' }).notNull().default(0n),
     discountAmount: bigint('discount_amount', { mode: 'bigint' }).notNull().default(0n),
     totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull().default(0n),
+    currencyCode: varchar('currency_code', { length: 3 }),
     notes: text('notes'),
     externalOrderId: varchar('external_order_id', { length: 100 }),
     placedAt: timestamp('placed_at', { withTimezone: true }).defaultNow().notNull(),
@@ -46,6 +50,14 @@ export const orders = commerceSchema.table(
     completedAt: timestamp('completed_at', { withTimezone: true }),
     cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
     cancellationReason: text('cancellation_reason'),
+    paymentIntentId: uuid('payment_intent_id'),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+    paymentMethod: varchar('payment_method', { length: 30 }),
+    paymentReference: varchar('payment_reference', { length: 100 }),
+    needsReview: boolean('needs_review').notNull().default(false),
+    // The storefront's checkout idempotency key: a retried checkout finds the order it already opened instead of
+    // opening a second one (whose payment would then collide with the first under the same key)
+    checkoutKey: varchar('checkout_key', { length: 100 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -54,6 +66,9 @@ export const orders = commerceSchema.table(
   },
   (table) => [
     unique('uq_orders_org_number').on(table.organizationId, table.orderNumber),
+    unique('uq_orders_payment_intent').on(table.paymentIntentId),
+    unique('uq_orders_party_checkout_key').on(table.organizationId, table.partyId, table.checkoutKey),
+    index('idx_orders_party').on(table.organizationId, table.partyId),
     index('idx_orders_site').on(table.organizationId, table.siteId),
     index('idx_orders_status').on(table.status),
     orgIsolationPolicy(),
@@ -95,6 +110,7 @@ export const orderItems = commerceSchema.table(
       .references(() => offeringVariants.id),
     itemName: varchar('item_name', { length: 255 }).notNull(),
     variantName: varchar('variant_name', { length: 255 }),
+    sku: varchar('sku', { length: 200 }),
     quantity: integer('quantity').notNull().default(1),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     taxRate: decimal('tax_rate', { precision: 5, scale: 2, mode: 'number' }).notNull(),

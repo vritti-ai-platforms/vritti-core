@@ -2,9 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { cartItems, carts, offeringVariants, parties } from '@/db/schema';
-import { CartDetailDto, CartDto, CartItemDto, StaffCartItemDto } from '../dto/entity/cart.dto';
+import { CartDetailDto, CartDto, CartItemDto, type CartItemRow, StaffCartItemDto } from '../dto/entity/cart.dto';
 import { CartsDomainRepository } from '../repositories/carts.repository';
 
 // The bound the `ck_cart_items_quantity` CHECK enforces. Kept in step with it by hand
@@ -123,6 +124,28 @@ export class CartsDomainService {
 
     const items = await this.repository.findItems(cart.id, currencyCode, appId, siteId);
     return CartDto.from(currencyCode, items);
+  }
+
+  // The basket's lines priced exactly as `find` prices them, with the cart they sit in — what checkout snapshots
+  async findForCheckout(
+    partyId: string,
+    currencyCode: string,
+    appId?: string | null,
+    siteId?: string,
+  ): Promise<{ cartId: string; lines: CartItemRow[] } | null> {
+    const cart = await this.repository.findByParty(partyId);
+    if (!cart) return null;
+    return { cartId: cart.id, lines: await this.repository.findItems(cart.id, currencyCode, appId, siteId) };
+  }
+
+  // Takes paid-for quantities out of the shopper's basket, leaving anything added since checkout
+  async consumeOrderedLines(partyId: string, lines: { offeringVariantId: string; quantity: number }[]): Promise<void> {
+    const cart = await this.repository.findByParty(partyId);
+    if (!cart) return;
+    for (const line of lines) {
+      await this.repository.consumeItem(cart.id, line.offeringVariantId, line.quantity);
+    }
+    this.logger.log(`cart ${cart.id} — consumed ${pluralize('paid line', lines.length, true)} for party ${partyId}`);
   }
 
   // Adds a product to the basket, opening one if this is the shopper's first line here

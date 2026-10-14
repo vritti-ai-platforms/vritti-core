@@ -1,0 +1,22 @@
+import { AppWebhookDomainModule } from '@domain/app-webhook/app-webhook.module';
+import { OrganizationDomainModule } from '@domain/organization/organization.module';
+import { PaymentGatewayConfigDomainModule } from '@domain/payment-gateway-config/payment-gateway-config.module';
+import { Module } from '@nestjs/common';
+import { ScopedNatsClientService } from '@/services/scoped-nats-client.service';
+import { CommerceOrderPaymentHandlerService } from './services/commerce-order-payment-handler.service';
+import { PaymentEventDispatcherService } from './services/payment-event-dispatcher.service';
+import { PaymentJobsService } from './services/payment-jobs.service';
+
+// Payment event fan-out and the background jobs that feed it. Singletons only — nothing here may depend on a
+// request-scoped provider, or the timers in PaymentJobsService could not be constructed at boot
+@Module({
+  imports: [PaymentGatewayConfigDomainModule, AppWebhookDomainModule, OrganizationDomainModule],
+  providers: [
+    ScopedNatsClientService,
+    CommerceOrderPaymentHandlerService,
+    PaymentEventDispatcherService,
+    PaymentJobsService,
+  ],
+  exports: [PaymentEventDispatcherService],
+})
+export class PaymentEventsModule {}
