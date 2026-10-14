@@ -97,7 +97,7 @@ async function bootstrap() {
       : {},
   );
 
-  // Create NestJS application
+  // Create the NestJS application
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, fastifyAdapter, loggerOptions);
 
   // Get services from DI container
