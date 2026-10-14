@@ -31,6 +31,21 @@ export class PaymentCheckout {
   // JSON-encoded launch options for that gateway's checkout widget
   @Field(() => String)
   payload: string;
+
+  // Path on core the gateway posts its checkout result to, set when the intent has storefront return urls
+  @Field(() => String, {
+    nullable: true,
+    description: "Path on the core API the gateway's checkout posts its result to. Prefix it with the core origin.",
+  })
+  callbackPath?: string | null;
+
+  // Path on core the gateway sends the shopper to when they abandon the checkout
+  @Field(() => String, {
+    nullable: true,
+    description:
+      "Path on the core API the gateway's checkout sends a cancelled payment to. Prefix it with the core origin.",
+  })
+  cancelPath?: string | null;
 }
 
 @ObjectType()

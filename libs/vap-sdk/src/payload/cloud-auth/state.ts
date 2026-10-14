@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { open, seal, type SealedState, sealedExpiry } from '../../server/sealed-cookie';
+import { open, type SealedState, seal, sealedExpiry } from '../../server/sealed-cookie';
 
 export const STATE_COOKIE = 'vritti-cloud-oauth';
 const STATE_TTL_MS = 10 * 60 * 1000;

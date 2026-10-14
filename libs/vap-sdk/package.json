@@ -34,10 +34,6 @@
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"
     },
-    "./checkout": {
-      "types": "./dist/checkout/index.d.ts",
-      "default": "./dist/checkout/index.js"
-    },
     "./native": {
       "types": "./dist/native/index.d.ts",
       "default": "./dist/native/index.js"
@@ -61,6 +57,10 @@
     "./next/payments": {
       "types": "./dist/next/payments.d.ts",
       "default": "./dist/next/payments.js"
+    },
+    "./next/checkout": {
+      "types": "./dist/next/checkout.d.ts",
+      "default": "./dist/next/checkout.js"
     },
     "./next/wishlist": {
       "types": "./dist/next/wishlist.d.ts",

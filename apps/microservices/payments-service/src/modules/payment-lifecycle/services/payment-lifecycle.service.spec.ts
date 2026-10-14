@@ -48,6 +48,8 @@ const intent = (overrides: Partial<PaymentIntent> = {}): PaymentIntent => ({
   tax: null,
   customer: null,
   metadata: null,
+  returnUrl: null,
+  checkoutUrl: null,
   failureCode: null,
   failureMessage: null,
   succeededAt: null,
@@ -238,6 +240,46 @@ describe('PaymentLifecycleService', () => {
       expect(error).toBeInstanceOf(ConflictException);
       expect((error as ConflictException).getResponse()).toMatchObject({ label: 'Payment Ended' });
       expect(transport.createOrder).not.toHaveBeenCalled();
+    });
+
+    it('stores the return and checkout urls on a new intent', async () => {
+      intents.findByIdempotencyKey.mockResolvedValue(undefined);
+      intents.create.mockResolvedValue(intent({ status: 'CREATED', providerOrderId: null, checkout: null }));
+      transport.createOrder.mockResolvedValue({ providerOrderId: 'order_1', checkout: {} });
+
+      await service.create({
+        ...createDto,
+        returnUrl: 'https://shop.example/thanks',
+        checkoutUrl: 'https://shop.example/checkout?retry=k1',
+      });
+
+      expect(intents.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          returnUrl: 'https://shop.example/thanks',
+          checkoutUrl: 'https://shop.example/checkout?retry=k1',
+        }),
+      );
+    });
+
+    it('moves the urls of a reused intent to the latest ones without treating them as a conflict', async () => {
+      const stored = intent({ returnUrl: 'https://shop.example/old', checkoutUrl: 'https://shop.example/checkout' });
+      intents.findByIdempotencyKey.mockResolvedValue(stored);
+      intents.update.mockImplementation(async (_id: string, data: Partial<PaymentIntent>) => ({ ...stored, ...data }));
+
+      const result = await service.create({ ...createDto, returnUrl: 'https://shop.example/new' });
+
+      expect(intents.update).toHaveBeenCalledWith('pi-1', { returnUrl: 'https://shop.example/new' });
+      expect(result.returnUrl).toBe('https://shop.example/new');
+      expect(result.checkoutUrl).toBe('https://shop.example/checkout');
+      expect(transport.createOrder).not.toHaveBeenCalled();
+    });
+
+    it('leaves a reused intent untouched when its urls are unchanged', async () => {
+      intents.findByIdempotencyKey.mockResolvedValue(intent({ returnUrl: 'https://shop.example/thanks' }));
+
+      await service.create({ ...createDto, returnUrl: 'https://shop.example/thanks' });
+
+      expect(intents.update).not.toHaveBeenCalled();
     });
 
     it('refuses a key reused for a different amount', async () => {

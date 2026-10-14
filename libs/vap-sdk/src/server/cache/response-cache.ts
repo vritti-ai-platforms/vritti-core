@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { ApolloLink, Observable } from '@apollo/client';
-import { WORKSPACE_HEADER_ORDER } from '../signing';
 import { PARTY_ID_HEADER } from '../../core/transport/headers';
 import type { ResponseCacheContext, ResponseCacheStore } from '../../core/transport/response-cache-store';
+import { WORKSPACE_HEADER_ORDER } from '../signing';
 
 /**
  * Where cached operation results live.

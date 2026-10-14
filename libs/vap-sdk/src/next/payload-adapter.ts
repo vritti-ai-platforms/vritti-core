@@ -27,8 +27,7 @@ export { VAP_NEXT_KEY };
  * this throws something that names the cause, instead of failing later as a null dereference.
  */
 export async function resolvePayload(): Promise<PayloadLike> {
-  const cache = (globalThis as { _payload?: Map<string, { payload?: unknown; promise?: unknown }> })
-    ._payload;
+  const cache = (globalThis as { _payload?: Map<string, { payload?: unknown; promise?: unknown }> })._payload;
   const entry = cache?.get('default');
   const instance = entry?.payload ?? (entry?.promise ? await entry.promise : undefined);
 
@@ -45,8 +44,7 @@ export async function resolvePayload(): Promise<PayloadLike> {
 
 /** The app's own settings, read from `payload.config.custom` where `vap({ auth })` put them. */
 export function vapNextConfig(payload: PayloadLike): VapNextConfig {
-  const custom = (payload as unknown as { config?: { custom?: Record<string, unknown> } }).config
-    ?.custom;
+  const custom = (payload as unknown as { config?: { custom?: Record<string, unknown> } }).config?.custom;
   const config = custom?.[VAP_NEXT_KEY] as VapNextConfig | undefined;
 
   if (!config?.routes) {
@@ -64,9 +62,11 @@ export async function vapNextMessages(
   slug: string | undefined,
 ): Promise<OtpMessages | undefined> {
   if (!slug) return undefined;
-  const findGlobal = (payload as unknown as {
-    findGlobal?: (args: { slug: string; depth?: number }) => Promise<{ messages?: OtpMessages }>;
-  }).findGlobal;
+  const findGlobal = (
+    payload as unknown as {
+      findGlobal?: (args: { slug: string; depth?: number }) => Promise<{ messages?: OtpMessages }>;
+    }
+  ).findGlobal;
   if (!findGlobal) return undefined;
   try {
     return (await findGlobal.call(payload, { slug, depth: 0 })).messages;

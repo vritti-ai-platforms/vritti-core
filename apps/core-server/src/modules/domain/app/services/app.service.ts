@@ -5,6 +5,7 @@ import { PLATFORMS } from '@vritti/api-sdk/catalog-resolver';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { generateSigningKeyPair } from '@vritti/api-sdk/signing';
 import type { App, AppSmsOtpConfig, AppType, AppWhatsappOtpConfig } from '@/db/schema';
+import { normalizeOrigins } from '../allowed-origins';
 import { AppDomainRepository } from '../repositories/app.repository';
 
 // Marks the value in logs and lets secret scanners recognise a leaked client id
@@ -27,6 +28,7 @@ export class AppDomainService {
     name: string;
     type: AppType;
     permissions?: FeatureUnlocks;
+    allowedOrigins?: string[];
   }): Promise<App> {
     const { privateKey, publicKey } = generateSigningKeyPair();
 
@@ -40,6 +42,7 @@ export class AppDomainService {
       // Omitted means an empty grant, which authenticates but can do nothing — a new
       // credential is inert until someone says what it is for.
       permissions: sanitizeGrants(input.permissions ?? {}),
+      allowedOrigins: normalizeOrigins(input.allowedOrigins ?? []),
     });
 
     this.logger.log(`Created ${input.type} app ${app.clientId} for org ${input.organizationId}`);
@@ -98,6 +101,13 @@ export class AppDomainService {
   async setPermissions(id: string, permissions: FeatureUnlocks): Promise<App> {
     const app = await this.repository.update(id, { permissions: sanitizeGrants(permissions) });
     this.logger.log(`Set permissions on app ${app.clientId}: ${Object.keys(app.permissions).join(', ') || 'none'}`);
+    return app;
+  }
+
+  // Replaces the storefront origins the hosted checkout may redirect a shopper to
+  async setAllowedOrigins(id: string, allowedOrigins: string[]): Promise<App> {
+    const app = await this.repository.update(id, { allowedOrigins: normalizeOrigins(allowedOrigins) });
+    this.logger.log(`Set allowed origins on app ${app.clientId}: ${app.allowedOrigins.join(', ') || 'none'}`);
     return app;
   }
 

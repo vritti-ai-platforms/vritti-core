@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   IsUUID,
   Matches,
   MaxLength,
@@ -20,6 +21,13 @@ export enum PaymentChannel {
 }
 
 registerEnumType(PaymentChannel, { name: 'PaymentChannel' });
+
+// A storefront page the hosted checkout redirects to; its origin is checked against the app's allowed origins
+const STOREFRONT_URL = { protocols: ['http', 'https'], require_protocol: true, require_tld: false };
+const RETURN_URL_DESCRIPTION =
+  "Where the hosted checkout sends the shopper once paid. Its origin must be one of the app's allowed origins.";
+const CHECKOUT_URL_DESCRIPTION =
+  "Where the hosted checkout sends the shopper back to after a failed or cancelled payment. Its origin must be one of the app's allowed origins.";
 
 @InputType()
 export class MoneyInput {
@@ -126,6 +134,18 @@ export class CreatePaymentIntentInput {
   @IsOptional()
   @IsEnum(PaymentChannel)
   channel?: PaymentChannel;
+
+  @Field(() => String, { nullable: true, description: RETURN_URL_DESCRIPTION })
+  @IsOptional()
+  @IsUrl(STOREFRONT_URL, { message: 'returnUrl must be an http(s) URL' })
+  @MaxLength(2048)
+  returnUrl?: string;
+
+  @Field(() => String, { nullable: true, description: CHECKOUT_URL_DESCRIPTION })
+  @IsOptional()
+  @IsUrl(STOREFRONT_URL, { message: 'checkoutUrl must be an http(s) URL' })
+  @MaxLength(2048)
+  checkoutUrl?: string;
 }
 
 @InputType()
@@ -170,9 +190,14 @@ export class PaymentIntentRefInput {
 
 @InputType()
 export class StartCheckoutInput {
-  @Field(() => String)
+  // Optional: core prices the basket in the site's own currency. Sent only by older SDKs, and then it must agree
+  @Field(() => String, {
+    nullable: true,
+    description: "Optional. The site's currency is used; a different value is refused.",
+  })
+  @IsOptional()
   @Matches(/^[A-Z]{3}$/, { message: 'currencyCode must be an ISO 4217 code' })
-  currencyCode: string;
+  currencyCode?: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
@@ -190,4 +215,16 @@ export class StartCheckoutInput {
   @IsNotEmpty()
   @MaxLength(100)
   idempotencyKey: string;
+
+  @Field(() => String, { nullable: true, description: RETURN_URL_DESCRIPTION })
+  @IsOptional()
+  @IsUrl(STOREFRONT_URL, { message: 'returnUrl must be an http(s) URL' })
+  @MaxLength(2048)
+  returnUrl?: string;
+
+  @Field(() => String, { nullable: true, description: CHECKOUT_URL_DESCRIPTION })
+  @IsOptional()
+  @IsUrl(STOREFRONT_URL, { message: 'checkoutUrl must be an http(s) URL' })
+  @MaxLength(2048)
+  checkoutUrl?: string;
 }

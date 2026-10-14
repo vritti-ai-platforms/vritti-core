@@ -383,6 +383,8 @@ export class PaymentLifecycleService {
         status: PaymentIntentStatusValues.CREATED,
         customer: dto.customer ?? null,
         metadata: dto.metadata ?? null,
+        returnUrl: dto.returnUrl ?? null,
+        checkoutUrl: dto.checkoutUrl ?? null,
         expiresAt: new Date(Date.now() + INTENT_TTL_MS),
       });
 
@@ -445,7 +447,11 @@ export class PaymentLifecycleService {
         detail: 'This payment has ended. Start a new checkout.',
       });
     }
-    return intent;
+    // The storefront's pages are not part of the payment, so a retry may move them; the latest ones win
+    const urls = changedCheckoutUrls(intent, dto);
+    if (!urls) return intent;
+    this.logger.log(`Updated checkout urls of intent ${intent.id}`);
+    return this.intents.update(intent.id, urls);
   }
 
   private async requireIntent(id: string): Promise<PaymentIntent> {
@@ -475,6 +481,17 @@ function assertSameRequest(intent: PaymentIntent, dto: CreatePaymentIntentDto, a
       errors: [{ field: 'idempotencyKey', message: 'Already used for a different payment' }],
     });
   }
+}
+
+// The return/checkout urls a retry sends that differ from the stored ones; a url the retry leaves out is kept
+function changedCheckoutUrls(
+  intent: PaymentIntent,
+  dto: CreatePaymentIntentDto,
+): Pick<Partial<PaymentIntent>, 'returnUrl' | 'checkoutUrl'> | null {
+  const changes: Pick<Partial<PaymentIntent>, 'returnUrl' | 'checkoutUrl'> = {};
+  if (dto.returnUrl !== undefined && dto.returnUrl !== intent.returnUrl) changes.returnUrl = dto.returnUrl;
+  if (dto.checkoutUrl !== undefined && dto.checkoutUrl !== intent.checkoutUrl) changes.checkoutUrl = dto.checkoutUrl;
+  return Object.keys(changes).length > 0 ? changes : null;
 }
 
 // The gateway's payment must be for this intent's order and exactly this intent's amount; `field` names where the

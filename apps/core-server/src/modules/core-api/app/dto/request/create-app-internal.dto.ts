@@ -1,6 +1,7 @@
+import { IsStorefrontOrigin, MAX_ALLOWED_ORIGINS } from '@domain/app/allowed-origins';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
-import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 import { AppTypeValues } from '@/db/schema';
 
 export class CreateAppInternalDto {
@@ -21,4 +22,16 @@ export class CreateAppInternalDto {
   @IsObject()
   @IsOptional()
   permissions?: FeatureUnlocks;
+
+  @ApiPropertyOptional({
+    description:
+      'Storefront origins the hosted checkout may send a shopper back to — scheme, host and optional port only (https, or http on localhost). Replaces the whole list.',
+    type: [String],
+    example: ['https://shop.example', 'http://localhost:3000'],
+  })
+  @IsArray()
+  @ArrayMaxSize(MAX_ALLOWED_ORIGINS)
+  @IsStorefrontOrigin({ each: true })
+  @IsOptional()
+  allowedOrigins?: string[];
 }

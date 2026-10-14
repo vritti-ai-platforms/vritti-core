@@ -41,7 +41,7 @@ import { createSignedFetch } from './signed-fetch';
  *   reference: { type: 'booking', id: bookingId },
  *   idempotencyKey: `booking-${bookingId}`,
  * });
- * // Browser: openCheckout(intent.checkout) from '@vritti/vap-sdk/checkout', then
+ * // Browser: openCheckout(intent.checkout) from '@vritti/vap-sdk/next/checkout', then
  * // sdk.payments.confirmPayment(...). Outcomes arrive as webhooks — see `verifyVapWebhook`.
  * ```
  */
@@ -56,6 +56,10 @@ export function createVapSdk(options: VapSdkOptions = {}) {
     fetch: createSignedFetch(config),
     links: config.responseCache ? [createResponseCacheLink(config.responseCache, config.clientId)] : [],
   });
+
+  // Where the world reaches core — the endpoint's origin. Core answers its checkout callback as a path,
+  // since it cannot know its own public address; the SDK makes it absolute against this
+  const coreOrigin = originOf(config.endpoint);
 
   /**
    * Configuration seeds the scope; the caller's own context wins.
@@ -114,13 +118,13 @@ export function createVapSdk(options: VapSdkOptions = {}) {
        * Taking a payment for anything — intents, confirmation, one status read. Site-scoped; party
        * optional, so a guest can pay. Never cached.
        */
-      payments: createPaymentsOperations(client, context),
+      payments: createPaymentsOperations(client, context, coreOrigin),
       /**
        * The basket, checked out: order and payment intent in one call. Needs a party, like the basket,
        * and the currency it is priced in — which comes from the session's workspace rather than from
        * configuration, so a party who switched site checks out in that site's legal entity's currency.
        */
-      checkout: createCheckoutOperations(client, context, currencyCode),
+      checkout: createCheckoutOperations(client, context, currencyCode, coreOrigin),
       /** The shared identity sequences — OTP sign-in, registration, party repair. Composed over the domains above. */
       auth: createAuthFlows(people, whatsappOtp, smsOtp),
     };
@@ -156,3 +160,11 @@ export function createVapSdk(options: VapSdkOptions = {}) {
 }
 
 export type VapSdk = ReturnType<typeof createVapSdk>;
+
+function originOf(endpoint: string): string | undefined {
+  try {
+    return new URL(endpoint).origin;
+  } catch {
+    return undefined;
+  }
+}

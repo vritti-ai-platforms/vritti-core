@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { allowedOriginOf, parseStorefrontUrl } from '@domain/app/allowed-origins';
+import { AppDomainService } from '@domain/app/services/app.service';
 import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -40,11 +42,19 @@ interface IntentRequest {
   metadata?: Record<string, string>;
   idempotencyKey: string;
   channel: PaymentGatewayConfigType;
+  urls: StorefrontUrls;
+}
+
+interface StorefrontUrls {
+  returnUrl?: string;
+  checkoutUrl?: string;
 }
 
 interface ResolvedScope {
   legalEntityId: string;
   siteId?: string;
+  // The site's selling currency — its legal entity's. Known only for a site scope
+  currencyCode?: string;
 }
 
 // The storefront's payment surface. Every intent an app touches is checked to be that app's own — an intent of
@@ -59,6 +69,7 @@ export class PaymentIntentsGatewayService {
     private readonly configService: PaymentGatewayConfigDomainService,
     private readonly siteContextResolver: SiteContextResolverService,
     private readonly dispatcher: PaymentEventDispatcherService,
+    private readonly appService: AppDomainService,
   ) {}
 
   // Opens an intent against the gateway config resolved for the caller's legal entity, site, app and channel
@@ -72,6 +83,7 @@ export class PaymentIntentsGatewayService {
       });
     }
     const amountMinor = toMinor(input.amount.value, input.amount.currency);
+    const urls = await this.requireAllowedUrls(caller, input);
     const intent = await this.openIntent(caller, await this.resolveScope(caller), {
       amountMinor,
       currency: input.amount.currency,
@@ -81,8 +93,9 @@ export class PaymentIntentsGatewayService {
       metadata: toMetadata(input.metadata),
       idempotencyKey: input.idempotencyKey,
       channel: input.channel ?? PaymentChannel.APP,
+      urls,
     });
-    return toPaymentIntent(intent);
+    return toPaymentIntent(intent, caller.orgId);
   }
 
   // Completes an intent from the gateway checkout's response, then settles whatever it paid for. A gateway callback
@@ -103,12 +116,12 @@ export class PaymentIntentsGatewayService {
 
     // Never fails the confirmation: whatever does not go through now is retried by the pending-events sweep
     await this.dispatcher.dispatch(caller.orgId, events);
-    return toPaymentIntent(intent);
+    return toPaymentIntent(intent, caller.orgId);
   }
 
   // Reads one of the app's intents
   async findById(caller: PaymentCallerContext, paymentIntentId: string): Promise<PaymentIntent> {
-    return toPaymentIntent(await this.findOwned(caller, paymentIntentId, true));
+    return toPaymentIntent(await this.findOwned(caller, paymentIntentId, true), caller.orgId);
   }
 
   // Cancels one of the app's intents and settles what the cancellation produced, like a confirmation does
@@ -122,7 +135,7 @@ export class PaymentIntentsGatewayService {
 
     // Never fails the cancellation: whatever does not go through now is retried by the pending-events sweep
     await this.dispatcher.dispatch(caller.orgId, events);
-    return toPaymentIntent(intent);
+    return toPaymentIntent(intent, caller.orgId);
   }
 
   // Turns the party's cart into an order awaiting payment and opens the intent that pays for it. The gateway is
@@ -145,13 +158,15 @@ export class PaymentIntentsGatewayService {
         errors: [{ field: 'x-site-id', message: 'Required for checkout' }],
       });
     }
+    const currencyCode = checkoutCurrency(scope, input.currencyCode);
+    const urls = await this.requireAllowedUrls(caller, input);
     await this.requireConfig(caller, scope, PaymentChannel.APP);
 
-    this.logger.log(`site.orders.createFromCart — party: ${partyId}`);
+    this.logger.log(`site.orders.createFromCart — party: ${partyId}, currency: ${currencyCode}`);
     const order = await this.nats.send<CheckoutOrderResponseDto>('commerce', 'site.orders.createFromCart', {
       appId: caller.appId,
       partyId,
-      currencyCode: input.currencyCode,
+      currencyCode,
       ...(input.addressId ? { addressId: input.addressId } : {}),
       ...(input.notes ? { notes: input.notes } : {}),
       // A retried checkout reuses the order this key already opened, so the payment below is the same payment
@@ -169,6 +184,7 @@ export class PaymentIntentsGatewayService {
         metadata: { orderNumber: order.orderNumber },
         idempotencyKey: input.idempotencyKey,
         channel: PaymentChannel.APP,
+        urls,
         ...(customer && { customer }),
       });
     } catch (error: unknown) {
@@ -178,7 +194,7 @@ export class PaymentIntentsGatewayService {
 
     return {
       order: { id: order.orderId, orderNumber: order.orderNumber, total: order.total },
-      paymentIntent: toPaymentIntent(intent),
+      paymentIntent: toPaymentIntent(intent, caller.orgId),
     };
   }
 
@@ -219,6 +235,8 @@ export class PaymentIntentsGatewayService {
       ...(request.description ? { description: request.description } : {}),
       ...(request.customer ? { customer: request.customer } : {}),
       ...(request.metadata ? { metadata: request.metadata } : {}),
+      ...(request.urls.returnUrl ? { returnUrl: request.urls.returnUrl } : {}),
+      ...(request.urls.checkoutUrl ? { checkoutUrl: request.urls.checkoutUrl } : {}),
       idempotencyKey: namespacedIdempotencyKey(caller, request.idempotencyKey),
     });
   }
@@ -241,11 +259,35 @@ export class PaymentIntentsGatewayService {
     return config;
   }
 
+  // The storefront urls the hosted checkout may redirect to, each refused unless its origin is one the calling app
+  // allows — otherwise any app could turn core's callback into an open redirect
+  private async requireAllowedUrls(caller: PaymentCallerContext, input: StorefrontUrls): Promise<StorefrontUrls> {
+    if (!input.returnUrl && !input.checkoutUrl) return {};
+    const app = await this.appService.findInOrg(caller.appId, caller.orgId);
+    const allowedOrigins = app?.allowedOrigins ?? [];
+    for (const field of ['returnUrl', 'checkoutUrl'] as const) {
+      const value = input[field];
+      if (value && !allowedOriginOf(value, allowedOrigins)) {
+        const origin = parseStorefrontUrl(value)?.origin ?? originForMessage(value);
+        this.logger.warn(`Refused ${field} for app ${caller.appId} — origin ${origin} is not allowed`);
+        throw new BadRequestException({
+          label: 'Return URL Not Allowed',
+          detail: `${origin} is not an allowed origin for this app. Add it to the app's allowed origins in Vritti Cloud.`,
+          errors: [{ field, message: `Origin ${origin} is not allowed` }],
+        });
+      }
+    }
+    return {
+      ...(input.returnUrl ? { returnUrl: input.returnUrl } : {}),
+      ...(input.checkoutUrl ? { checkoutUrl: input.checkoutUrl } : {}),
+    };
+  }
+
   // The site's legal entity when a site is in context, otherwise the legal entity header on its own
   private async resolveScope(caller: PaymentCallerContext): Promise<ResolvedScope> {
     if (caller.siteId) {
       const site = await this.siteContextResolver.resolve(caller.siteId);
-      return { legalEntityId: site.legalEntityId, siteId: caller.siteId };
+      return { legalEntityId: site.legalEntityId, siteId: caller.siteId, currencyCode: site.siteCurrencyCode };
     }
     if (caller.legalEntityId) return { legalEntityId: caller.legalEntityId };
     throw new BadRequestException({
@@ -302,6 +344,26 @@ export function namespacedIdempotencyKey(caller: PaymentCallerContext, clientKey
 }
 
 // Converts a major-unit amount to minor units, naming the GraphQL field on failure
+// The currency a site's checkout prices in: its legal entity's, never the storefront's choice. A storefront may still
+// send one (older SDKs always did), but only to agree with it — a different one would price the basket in a currency
+// the site does not sell in
+function checkoutCurrency(scope: ResolvedScope, requested?: string): string {
+  if (!scope.currencyCode) {
+    throw new BadRequestException({
+      label: 'Currency Not Set',
+      detail: "This site's legal entity has no currency, so its basket cannot be priced.",
+    });
+  }
+  if (requested && requested !== scope.currencyCode) {
+    throw new BadRequestException({
+      label: 'Currency Mismatch',
+      detail: `This site sells in ${scope.currencyCode}, not ${requested}.`,
+      errors: [{ field: 'currencyCode', message: `Must be ${scope.currencyCode} or left out` }],
+    });
+  }
+  return scope.currencyCode;
+}
+
 function toMinor(value: string, currency: string): bigint {
   return majorToMinor(value, currency as CurrencyCode, 'amount.value');
 }
@@ -312,15 +374,33 @@ function toMetadata(entries: KeyValueInput[] | undefined): Record<string, string
   return Object.fromEntries(entries.map((entry) => [entry.key, entry.value]));
 }
 
+// The origin to name in an error for a URL that is not an allowed storefront page, without echoing a whole URL back
+function originForMessage(value: string): string {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return 'That URL';
+  }
+}
+
+// Gateways whose embedded checkout posts its result to a callback url core can host
+const HOSTED_CALLBACK_GATEWAYS = new Set(['razorpay', 'hdfc-razorpay']);
+
+// The paths of core's hosted checkout callback for an intent — paths only, as core does not know its public origin
+export function checkoutCallbackPaths(orgId: string, paymentIntentId: string) {
+  const base = `/payments/checkout/${orgId}/${paymentIntentId}`;
+  return { callbackPath: `${base}/callback`, cancelPath: `${base}/cancel` };
+}
+
 // Shapes a payments-service intent for the storefront: launch data as a JSON string, failure folded into one object
-export function toPaymentIntent(intent: PaymentIntentResponseDto): PaymentIntent {
+export function toPaymentIntent(intent: PaymentIntentResponseDto, orgId: string): PaymentIntent {
   return {
     id: intent.id,
     status: intent.status as PaymentIntentStatus,
     amount: intent.amount,
     reference: intent.reference,
     description: intent.description,
-    checkout: toCheckout(intent),
+    checkout: toCheckout(intent, orgId),
     failure:
       intent.failureCode || intent.failureMessage ? { code: intent.failureCode, message: intent.failureMessage } : null,
     paidAt: intent.succeededAt,
@@ -329,13 +409,14 @@ export function toPaymentIntent(intent: PaymentIntentResponseDto): PaymentIntent
   };
 }
 
-function toCheckout(intent: PaymentIntentResponseDto): PaymentIntent['checkout'] {
+function toCheckout(intent: PaymentIntentResponseDto, orgId: string): PaymentIntent['checkout'] {
   if (!intent.checkout) return null;
   const { gateway, ...launch } = intent.checkout;
-  return {
-    gateway: typeof gateway === 'string' ? gateway : intent.gatewayCode,
-    payload: JSON.stringify(launch),
-  };
+  const gatewayCode = typeof gateway === 'string' ? gateway : intent.gatewayCode;
+  // Only an intent the storefront gave somewhere to come back to is sent through core's hosted callback
+  const hosted = (intent.returnUrl || intent.checkoutUrl) && HOSTED_CALLBACK_GATEWAYS.has(gatewayCode);
+  const paths = hosted ? checkoutCallbackPaths(orgId, intent.id) : { callbackPath: null, cancelPath: null };
+  return { gateway: gatewayCode, payload: JSON.stringify(launch), ...paths };
 }
 
 // The shopper's contact details as the payment intent takes them, so the gateway's page comes prefilled. Each value

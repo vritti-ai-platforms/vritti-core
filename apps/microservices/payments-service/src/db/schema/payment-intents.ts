@@ -43,6 +43,9 @@ export const paymentIntents = paymentsSchema.table(
     tax: bigint('tax', { mode: 'bigint' }),
     customer: jsonb('customer').$type<PaymentIntentCustomer>(),
     metadata: jsonb('metadata').$type<Record<string, string>>(),
+    // Where core's hosted checkout callback sends the shopper after a payment, and back to on a failure or cancel
+    returnUrl: varchar('return_url', { length: 2048 }),
+    checkoutUrl: varchar('checkout_url', { length: 2048 }),
     failureCode: varchar('failure_code', { length: 100 }),
     failureMessage: text('failure_message'),
     succeededAt: timestamp('succeeded_at', { withTimezone: true }),

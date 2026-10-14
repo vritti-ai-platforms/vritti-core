@@ -19,28 +19,26 @@ export type StartCheckoutInput = {
    * create two orders. Mint it once per rendered checkout form, not per click.
    */
   idempotencyKey: string;
+  /** Where core sends the party after paying — see `CreatePaymentIntentInput.returnUrl`. */
+  returnUrl?: string;
+  /** Where core sends the party after a decline or a cancel — see `CreatePaymentIntentInput.checkoutUrl`. */
+  checkoutUrl?: string;
 };
 
 /**
  * Checking a basket out: order and payment intent in one call.
  *
  * **Reachable only through `sdk.forContext({ partyId })`**, like the basket it reads. Site-scoped
- * like every payment operation, and priced in the configured `currency` — the same one the basket is
- * read in, so the order total matches what the party just saw.
+ * like every payment operation. Core prices the order in the site's own currency — its legal
+ * entity's — so a storefront needs no `currency` setting to check out. One configured on the SDK is
+ * still sent, and core refuses it if it disagrees with the site.
  */
-export function createCheckoutOperations(client: ApolloClient, context: RequestContext = {}, currency?: string) {
-  // The same two guards as the basket, for the same reasons — see `domains/cart.ts`.
-  const currencyCode = (): string => {
-    if (!currency) {
-      throw new VapError(
-        'VAP is not configured for checkout — pass `currency` (e.g. "INR") to createVapSdk.',
-        'Not Configured',
-        undefined,
-      );
-    }
-    return currency;
-  };
-
+export function createCheckoutOperations(
+  client: ApolloClient,
+  context: RequestContext = {},
+  currency?: string,
+  coreOrigin?: string,
+) {
   const requireParty = (): void => {
     if (!context.partyId) {
       throw new VapError('This needs a signed-in party — use sdk.forContext({ partyId }).', 'No Party', 401);
@@ -64,10 +62,12 @@ export function createCheckoutOperations(client: ApolloClient, context: RequestC
             mutation: START_CHECKOUT_FROM_CART,
             variables: {
               input: {
-                currencyCode: currencyCode(),
+                ...(currency ? { currencyCode: currency } : {}),
                 addressId: input.addressId,
                 notes: input.notes,
                 idempotencyKey: input.idempotencyKey,
+                returnUrl: input.returnUrl,
+                checkoutUrl: input.checkoutUrl,
               },
             },
             context: requestContext,
@@ -80,7 +80,7 @@ export function createCheckoutOperations(client: ApolloClient, context: RequestC
                 orderNumber: order.orderNumber,
                 total: { currency: order.total.currency, value: order.total.value },
               },
-              paymentIntent: toPaymentIntent(paymentIntent),
+              paymentIntent: toPaymentIntent(paymentIntent, coreOrigin),
             };
           }),
       );

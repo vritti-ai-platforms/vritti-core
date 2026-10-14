@@ -60,6 +60,7 @@ import { UserRoleDomainModule } from './modules/domain/user-role/user-role.modul
 import { VerificationDomainModule } from './modules/domain/verification/verification.module';
 import { GiteaGatewayModule } from './modules/gitea-gateway/gitea-gateway.module';
 import { GiteaInternalModule } from './modules/gitea-gateway/internal/gitea-internal.module';
+import { CheckoutCallbackModule } from './modules/payments-gateway/checkout-callback/checkout-callback.module';
 import { PaymentsAppGatewayModule } from './modules/payments-gateway/payments-app-gateway.module';
 import { PaymentWebhookModule } from './modules/payments-gateway/webhooks/payment-webhook.module';
 import { StorageInternalModule } from './modules/storage-internal/storage-internal.module';
@@ -394,6 +395,8 @@ const graphqlBaseOptions = {
     WhatsappEmbeddedSignupBrokerModule,
     // Public payment-provider callbacks — unprefixed so the path matches the URL registered with the provider
     PaymentWebhookModule,
+    // The hosted checkout callback an embedded gateway checkout posts its result to — unprefixed for the same reason
+    CheckoutCallbackModule,
     // Forwards requests to the self-hosted Gitea instance over HTTP
     GiteaGatewayModule,
     // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the

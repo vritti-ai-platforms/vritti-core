@@ -27,6 +27,7 @@ export class AppController {
       name: dto.name,
       type: dto.type,
       permissions: dto.permissions,
+      allowedOrigins: dto.allowedOrigins,
     });
     return new AppResponseDto(app);
   }
@@ -60,6 +61,7 @@ export class AppController {
 
     if (dto.name !== undefined) await this.appService.rename(id, dto.name);
     if (dto.permissions !== undefined) await this.appService.setPermissions(id, dto.permissions);
+    if (dto.allowedOrigins !== undefined) await this.appService.setAllowedOrigins(id, dto.allowedOrigins);
     const app =
       dto.isActive !== undefined ? await this.appService.setActive(id, dto.isActive) : await this.requireApp(id, orgId);
 

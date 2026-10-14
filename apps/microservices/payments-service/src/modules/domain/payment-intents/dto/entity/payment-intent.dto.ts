@@ -26,6 +26,8 @@ export class PaymentIntentDto {
   method: string | null;
   customer: PaymentIntentCustomer | null;
   metadata: Record<string, string> | null;
+  returnUrl: string | null;
+  checkoutUrl: string | null;
   failureCode: string | null;
   failureMessage: string | null;
   succeededAt: Date | null;
@@ -58,6 +60,8 @@ export class PaymentIntentDto {
     dto.method = entity.method ?? null;
     dto.customer = entity.customer ?? null;
     dto.metadata = entity.metadata ?? null;
+    dto.returnUrl = entity.returnUrl ?? null;
+    dto.checkoutUrl = entity.checkoutUrl ?? null;
     dto.failureCode = entity.failureCode ?? null;
     dto.failureMessage = entity.failureMessage ?? null;
     dto.succeededAt = entity.succeededAt ?? null;

@@ -24,7 +24,6 @@ export function nextOtpPorts(): OtpSignInPorts {
     },
     redirect,
     // `x-forwarded-proto` can carry a list; the first hop is the one that matters.
-    isSecure: async () =>
-      ((await headers()).get('x-forwarded-proto') ?? '').split(',')[0]?.trim() === 'https',
+    isSecure: async () => ((await headers()).get('x-forwarded-proto') ?? '').split(',')[0]?.trim() === 'https',
   };
 }

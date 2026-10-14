@@ -466,6 +466,16 @@ type PaymentReference {
 type PaymentCheckout {
   gateway: String!
   payload: String!
+
+  """
+  Path on the core API the gateway's checkout posts its result to. Prefix it with the core origin.
+  """
+  callbackPath: String
+
+  """
+  Path on the core API the gateway's checkout sends a cancelled payment to. Prefix it with the core origin.
+  """
+  cancelPath: String
 }
 
 type PaymentFailure {
@@ -590,6 +600,16 @@ input CreatePaymentIntentInput {
   idempotencyKey: String!
   metadata: [KeyValueInput!]
   channel: PaymentChannel = APP
+
+  """
+  Where the hosted checkout sends the shopper once paid. Its origin must be one of the app's allowed origins.
+  """
+  returnUrl: String
+
+  """
+  Where the hosted checkout sends the shopper back to after a failed or cancelled payment. Its origin must be one of the app's allowed origins.
+  """
+  checkoutUrl: String
 }
 
 input MoneyInput {
@@ -631,10 +651,21 @@ input GatewayResponseInput {
 }
 
 input StartCheckoutInput {
-  currencyCode: String!
+  """Optional. The site's currency is used; a different value is refused."""
+  currencyCode: String
   addressId: ID
   notes: String
   idempotencyKey: String!
+
+  """
+  Where the hosted checkout sends the shopper once paid. Its origin must be one of the app's allowed origins.
+  """
+  returnUrl: String
+
+  """
+  Where the hosted checkout sends the shopper back to after a failed or cancelled payment. Its origin must be one of the app's allowed origins.
+  """
+  checkoutUrl: String
 }
 
 input SendSmsOtpInput {

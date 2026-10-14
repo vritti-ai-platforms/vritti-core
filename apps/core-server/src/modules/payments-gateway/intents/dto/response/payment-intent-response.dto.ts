@@ -40,6 +40,8 @@ export interface PaymentIntentResponseDto {
   method: string | null;
   customer: { name?: string; email?: string; phone?: string } | null;
   metadata: Record<string, string> | null;
+  returnUrl?: string | null;
+  checkoutUrl?: string | null;
   failureCode: string | null;
   failureMessage: string | null;
   succeededAt: string | null;

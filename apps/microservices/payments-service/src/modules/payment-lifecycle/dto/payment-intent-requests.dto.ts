@@ -11,6 +11,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUrl,
   IsUUID,
   Matches,
   Max,
@@ -22,6 +23,9 @@ import { type PaymentChannelType, PaymentChannelTypeValues } from '@/db/schema';
 
 // Money crosses NATS as a string of minor units (paise): JSON has no bigint, and a float would round
 const MINOR_UNITS = /^\d{1,15}$/;
+
+// A storefront page: http(s) only, and localhost allowed so a developer's storefront can be the target
+const CHECKOUT_URL_OPTIONS = { protocols: ['http', 'https'], require_protocol: true, require_tld: false };
 
 export class PaymentIntentCustomerDto {
   @IsOptional()
@@ -126,6 +130,18 @@ export class CreatePaymentIntentDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, string>;
+
+  // Where the hosted checkout callback sends the shopper once paid; core has already checked its origin
+  @IsOptional()
+  @IsUrl(CHECKOUT_URL_OPTIONS)
+  @MaxLength(2048)
+  returnUrl?: string;
+
+  // Where the shopper goes back to on a failed or cancelled payment
+  @IsOptional()
+  @IsUrl(CHECKOUT_URL_OPTIONS)
+  @MaxLength(2048)
+  checkoutUrl?: string;
 
   @IsString()
   @IsNotEmpty()

@@ -38554,6 +38554,17 @@
           "permissions": {
             "type": "object",
             "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"graphql\":[\"view\",\"add\"]}}. Omitted means the credential starts able to do nothing."
+          },
+          "allowedOrigins": {
+            "description": "Storefront origins the hosted checkout may send a shopper back to — scheme, host and optional port only (https, or http on localhost). Replaces the whole list.",
+            "example": [
+              "https://shop.example",
+              "http://localhost:3000"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -38575,6 +38586,17 @@
           "permissions": {
             "type": "object",
             "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"graphql\":[\"view\",\"add\"]}}. Replaces the whole set."
+          },
+          "allowedOrigins": {
+            "description": "Storefront origins the hosted checkout may send a shopper back to — scheme, host and optional port only (https, or http on localhost). Replaces the whole list.",
+            "example": [
+              "https://shop.example",
+              "http://localhost:3000"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

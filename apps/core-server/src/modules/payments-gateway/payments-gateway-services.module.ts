@@ -1,3 +1,4 @@
+import { AppDomainModule } from '@domain/app/app.module';
 import { PaymentGatewayConfigDomainModule } from '@domain/payment-gateway-config/payment-gateway-config.module';
 import { Module } from '@nestjs/common';
 import { PaymentEventsModule } from './events/payment-events.module';
@@ -11,7 +12,7 @@ const services = [PaymentGatewaysGatewayService, PaymentLinkedAccountsGatewaySer
 // structure surface owns the config controllers and needs these for verify and the gateway list, so it
 // imports this module rather than one that would drag controllers along.
 @Module({
-  imports: [PaymentGatewayConfigDomainModule, PaymentEventsModule],
+  imports: [PaymentGatewayConfigDomainModule, PaymentEventsModule, AppDomainModule],
   providers: services,
   exports: services,
 })

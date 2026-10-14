@@ -13,8 +13,7 @@ export type PartyActionState = {
 };
 
 /** One trimmed field. Empty means absent, which every caller below treats as "nothing to do". */
-export const formField = (data: FormData, key: string) =>
-  (data.get(key) ?? '').toString().trim();
+export const formField = (data: FormData, key: string) => (data.get(key) ?? '').toString().trim();
 
 /**
  * Where the party was, so a sign-in redirect can bring them back and the right route revalidates.

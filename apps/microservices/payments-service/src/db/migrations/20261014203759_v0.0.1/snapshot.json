@@ -1,0 +1,1640 @@
+{
+  "version": "8",
+  "dialect": "postgres",
+  "id": "1bf1b8e5-e400-4f5c-ae4e-03c492074793",
+  "prevIds": [
+    "270159fa-028a-497e-a44b-005ece1a0d77"
+  ],
+  "ddl": [
+    {
+      "name": "payments",
+      "entityType": "schemas"
+    },
+    {
+      "values": [
+        "CREATED",
+        "AUTHORIZED",
+        "CAPTURED",
+        "FAILED",
+        "REFUNDED"
+      ],
+      "name": "payment_attempt_status",
+      "entityType": "enums",
+      "schema": "payments"
+    },
+    {
+      "values": [
+        "APP",
+        "POS",
+        "B2B"
+      ],
+      "name": "payment_channel_type",
+      "entityType": "enums",
+      "schema": "payments"
+    },
+    {
+      "values": [
+        "PENDING",
+        "ACKED"
+      ],
+      "name": "payment_event_status",
+      "entityType": "enums",
+      "schema": "payments"
+    },
+    {
+      "values": [
+        "CREATED",
+        "REQUIRES_ACTION",
+        "PROCESSING",
+        "SUCCEEDED",
+        "FAILED",
+        "CANCELED",
+        "EXPIRED"
+      ],
+      "name": "payment_intent_status",
+      "entityType": "enums",
+      "schema": "payments"
+    },
+    {
+      "values": [
+        "CREATED",
+        "PENDING",
+        "PROCESSED",
+        "FAILED",
+        "REVERSED",
+        "PARTIALLY_REVERSED"
+      ],
+      "name": "payment_transfer_status",
+      "entityType": "enums",
+      "schema": "payments"
+    },
+    {
+      "values": [
+        "RECEIVED",
+        "PROCESSED",
+        "IGNORED",
+        "FAILED"
+      ],
+      "name": "webhook_event_status",
+      "entityType": "enums",
+      "schema": "payments"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "payment_attempts",
+      "entityType": "tables",
+      "schema": "payments"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "payment_events",
+      "entityType": "tables",
+      "schema": "payments"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "payment_intents",
+      "entityType": "tables",
+      "schema": "payments"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "payment_transfers",
+      "entityType": "tables",
+      "schema": "payments"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "webhook_events",
+      "entityType": "tables",
+      "schema": "payments"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "intent_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provider_payment_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "payment_attempt_status",
+      "typeSchema": "payments",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'CREATED'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "varchar(30)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "method",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "error_code",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "error_message",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "raw",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "intent_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payload",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "type": "payment_event_status",
+      "typeSchema": "payments",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'PENDING'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "acked_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "legal_entity_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "site_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "app_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "party_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "config_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "gateway_code",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "bank_account_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "payment_channel_type",
+      "typeSchema": "payments",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reference_type",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reference_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(500)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "idempotency_key",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(40)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "receipt",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "amount",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "char(3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "currency",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "payment_intent_status",
+      "typeSchema": "payments",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'CREATED'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provider_order_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provider_payment_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "checkout",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(30)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "method",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "fee",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "tax",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "customer",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "metadata",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(2048)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "return_url",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(2048)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "checkout_url",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "failure_code",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "failure_message",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "succeeded_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "expires_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "intent_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "linked_account_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provider_account_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "amount",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "char(3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "currency",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "on_hold",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "on_hold_until",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "payment_transfer_status",
+      "typeSchema": "payments",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'CREATED'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provider_transfer_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "error_code",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "varchar(1000)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "error_description",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "config_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "gateway_code",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "varchar(150)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "dedupe_key",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "varchar(150)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provider_event_id",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "event_type",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "varchar(64)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payload_hash",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payload",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "webhook_event_status",
+      "typeSchema": "payments",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'RECEIVED'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "error",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "received_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "processed_at",
+      "entityType": "columns",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "intent_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_attempts_intent",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "created_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_events_pending",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "intent_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_events_intent",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_intents_org_status",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "provider_order_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_intents_provider_order",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "config_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_intents_config",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "reference_type",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "reference_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_intents_reference",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "expires_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_intents_expiry",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "intent_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payment_transfers_intent",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "config_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "received_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_webhook_events_config_received",
+      "entityType": "indexes",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "intent_id"
+      ],
+      "schemaTo": "payments",
+      "tableTo": "payment_intents",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "payment_attempts_intent_id_payment_intents_id_fkey",
+      "entityType": "fks",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "intent_id"
+      ],
+      "schemaTo": "payments",
+      "tableTo": "payment_intents",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "payment_events_intent_id_payment_intents_id_fkey",
+      "entityType": "fks",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "intent_id"
+      ],
+      "schemaTo": "payments",
+      "tableTo": "payment_intents",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "payment_transfers_intent_id_payment_intents_id_fkey",
+      "entityType": "fks",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "payment_attempts_pkey",
+      "schema": "payments",
+      "table": "payment_attempts",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "payment_events_pkey",
+      "schema": "payments",
+      "table": "payment_events",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "payment_intents_pkey",
+      "schema": "payments",
+      "table": "payment_intents",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "payment_transfers_pkey",
+      "schema": "payments",
+      "table": "payment_transfers",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "webhook_events_pkey",
+      "schema": "payments",
+      "table": "webhook_events",
+      "entityType": "pks"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "organization_id",
+        "idempotency_key"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_payment_intents_org_idempotency_key",
+      "entityType": "uniques",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "provider_transfer_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_payment_transfers_provider_transfer_id",
+      "entityType": "uniques",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "intent_id",
+        "linked_account_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_payment_transfers_intent_linked_account",
+      "entityType": "uniques",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "organization_id",
+        "gateway_code",
+        "dedupe_key"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_webhook_events_org_gateway_dedupe",
+      "entityType": "uniques",
+      "schema": "payments",
+      "table": "webhook_events"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "payments",
+      "table": "payment_attempts"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "payments",
+      "table": "payment_events"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "payments",
+      "table": "payment_intents"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "payments",
+      "table": "payment_transfers"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "payments",
+      "table": "webhook_events"
+    }
+  ],
+  "renames": []
+}

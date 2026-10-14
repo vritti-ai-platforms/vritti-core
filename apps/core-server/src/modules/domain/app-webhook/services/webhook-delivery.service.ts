@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, InternalServerErrorException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -11,7 +12,7 @@ import {
   WebhookDeliveryDomainRepository,
   type WebhookDeliveryTarget,
 } from '../repositories/webhook-delivery.repository';
-import { findBlockedDestination } from '../webhook-destination';
+import { findBlockedDestination, privateDestinationsAllowed } from '../webhook-destination';
 import { scheduleAfterFailedAttempt } from '../webhook-retry-schedule';
 import { signWebhookPayload } from '../webhook-signature';
 
@@ -60,6 +61,7 @@ export class WebhookDeliveryDomainService {
   constructor(
     private readonly deliveryRepository: WebhookDeliveryDomainRepository,
     private readonly endpointRepository: AppWebhookEndpointDomainRepository,
+    private readonly config: ConfigService,
   ) {}
 
   // Queues an event for the app when it has an active endpoint subscribed to that type; null when nothing was queued
@@ -181,7 +183,9 @@ export class WebhookDeliveryDomainService {
     const { delivery } = target;
     if (!target.appActive) return { ok: false, statusCode: null, error: 'App inactive', terminal: true };
 
-    const blocked = await findBlockedDestination(target.url);
+    const blocked = privateDestinationsAllowed((key) => this.config.get(key))
+      ? null
+      : await findBlockedDestination(target.url);
     if (blocked) {
       this.logger.warn(`Webhook ${delivery.id} not sent — ${blocked}`);
       return { ok: false, statusCode: null, error: 'Blocked destination', terminal: true };

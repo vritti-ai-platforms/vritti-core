@@ -73,9 +73,26 @@ describe('payments', () => {
     expect(intent.checkout).toEqual({
       gateway: 'razorpay',
       options: { key_id: 'rzp_test', order_id: 'order_1', amount: 49900 },
+      callbackUrl: null,
+      cancelUrl: null,
     });
     expect(intent.amount).toEqual({ currency: 'INR', value: '499.00' });
     expect(intent.reference).toEqual({ type: 'booking', id: 'b_1' });
+  });
+
+  it("makes core's callback and cancel paths absolute on the endpoint's origin", () => {
+    const checkout = parseCheckout(
+      {
+        gateway: 'razorpay',
+        payload: '{"key_id":"rzp_test"}',
+        callbackPath: '/payments/checkout/org-1/pi-1/callback',
+        cancelPath: '/payments/checkout/org-1/pi-1/cancel',
+      },
+      'https://core.example',
+    );
+
+    expect(checkout?.callbackUrl).toBe('https://core.example/payments/checkout/org-1/pi-1/callback');
+    expect(checkout?.cancelUrl).toBe('https://core.example/payments/checkout/org-1/pi-1/cancel');
   });
 
   it('rejects with VapError on a checkout payload that is not a JSON object', async () => {
@@ -135,11 +152,16 @@ describe('checkout.startFromCart', () => {
     });
   });
 
-  it('needs the selling currency', async () => {
-    const { client } = fakeClient(session);
-    await expect(
-      createCheckoutOperations(client, { siteId: 'site_1', partyId: 'p_1' }).startFromCart({ idempotencyKey: 'k' }),
-    ).rejects.toMatchObject({ code: 'Not Configured' });
+  it("checks out without a configured currency, leaving core to use the site's", async () => {
+    const { client, mutate } = fakeClient(session);
+    const result = await createCheckoutOperations(client, { siteId: 'site_1', partyId: 'p_1' }).startFromCart({
+      idempotencyKey: 'k',
+    });
+
+    expect(mutate.mock.calls[0]?.[0].variables).toEqual({
+      input: { addressId: undefined, notes: undefined, idempotencyKey: 'k' },
+    });
+    expect(result.order.orderNumber).toBe('SO-1');
   });
 
   it('checks out in the configured currency and parses the intent', async () => {

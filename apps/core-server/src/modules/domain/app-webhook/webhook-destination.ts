@@ -1,6 +1,16 @@
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { BlockList, isIP } from 'node:net';
 
+// The setting that opens webhook delivery to private and local addresses, for local development
+export const ALLOW_PRIVATE_DESTINATIONS_ENV = 'WEBHOOK_ALLOW_PRIVATE_DESTINATIONS';
+
+// True when the setting is on. It switches off the check that keeps a tenant from aiming core's outbound requests at
+// its own network, so it belongs in local environments only — never set it on a deployed core
+export function privateDestinationsAllowed(read: (key: string) => unknown): boolean {
+  const value = read(ALLOW_PRIVATE_DESTINATIONS_ENV);
+  return value === true || value === 'true';
+}
+
 export type HostLookup = (hostname: string) => Promise<{ address: string; family: number }[]>;
 
 const BLOCKED_HOST_SUFFIXES = ['.svc', '.cluster.local', '.internal', '.local', '.localhost'];

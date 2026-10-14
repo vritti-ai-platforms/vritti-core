@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises';
 import { Logger } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
 import { ConflictException, InternalServerErrorException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { generateSigningKeyPair } from '@vritti/api-sdk/signing';
 import type { AppWebhookEndpoint, WebhookDelivery } from '@/db/schema';
@@ -67,6 +68,7 @@ describe('WebhookDeliveryDomainService', () => {
       requeueIfIdle,
     } as unknown as WebhookDeliveryDomainRepository,
     { findByApp } as unknown as AppWebhookEndpointDomainRepository,
+    { get: () => undefined } as unknown as ConfigService,
   );
   const keys = generateSigningKeyPair();
   let fetchMock: jest.SpyInstance;

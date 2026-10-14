@@ -61,6 +61,13 @@ class EnvironmentVariables {
   @Transform(({ value }) => value === 'true')
   MASK_PII: boolean;
 
+  // Local development only: lets an app's webhook URL point at this machine or a private network (and use
+  // http), so a storefront running locally can receive deliveries. Never set it on a deployed core
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true')
+  WEBHOOK_ALLOW_PRIVATE_DESTINATIONS?: boolean;
+
   // Security
   @IsString()
   @MinLength(32)

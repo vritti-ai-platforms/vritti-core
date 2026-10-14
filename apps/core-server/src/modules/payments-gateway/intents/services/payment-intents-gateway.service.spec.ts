@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { AppDomainService } from '@domain/app/services/app.service';
 import type { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -62,12 +63,14 @@ describe('PaymentIntentsGatewayService', () => {
   const getDecryptedCredentials = jest.fn();
   const resolveSite = jest.fn();
   const dispatch = jest.fn();
+  const findInOrg = jest.fn();
 
   const service = new PaymentIntentsGatewayService(
     { send } as unknown as NatsClientService,
     { resolveForContext, getDecryptedCredentials } as unknown as PaymentGatewayConfigDomainService,
     { resolve: resolveSite } as unknown as SiteContextResolverService,
     { dispatch } as unknown as PaymentEventDispatcherService,
+    { findInOrg } as unknown as AppDomainService,
   );
 
   const caller: PaymentCallerContext = { orgId: ORG, appId: APP, partyId: 'party-1', siteId: SITE };
@@ -76,6 +79,7 @@ describe('PaymentIntentsGatewayService', () => {
     jest.resetAllMocks();
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
     resolveSite.mockResolvedValue({ legalEntityId: LE, siteTimezone: 'Asia/Kolkata', siteCurrencyCode: 'INR' });
     resolveForContext.mockResolvedValue(config);
     getDecryptedCredentials.mockResolvedValue({ gatewayCode: 'razorpay', keyId: 'rzp_test_1', credentials });
@@ -349,7 +353,7 @@ describe('PaymentIntentsGatewayService', () => {
   });
 
   describe('startCheckoutFromCart', () => {
-    const input = { currencyCode: 'INR', idempotencyKey: 'chk-1' };
+    const input = { idempotencyKey: 'chk-1' };
     const order = {
       orderId: 'ord-1',
       orderNumber: 'SO-0001',
@@ -358,6 +362,48 @@ describe('PaymentIntentsGatewayService', () => {
       reused: false,
     };
     const rejection = { status: 409, label: 'Amount Mismatch', detail: 'Rejected.', errors: [] };
+
+    it("prices the basket in the site's own currency when the storefront sends none", async () => {
+      send
+        .mockResolvedValueOnce(order)
+        .mockResolvedValueOnce(intentOf({ reference: { type: 'commerce.order', id: 'ord-1' } }));
+
+      await service.startCheckoutFromCart(caller, input);
+
+      expect(send).toHaveBeenNthCalledWith(
+        1,
+        'commerce',
+        'site.orders.createFromCart',
+        expect.objectContaining({ currencyCode: 'INR' }),
+      );
+    });
+
+    it("accepts a currency that agrees with the site's", async () => {
+      send
+        .mockResolvedValueOnce(order)
+        .mockResolvedValueOnce(intentOf({ reference: { type: 'commerce.order', id: 'ord-1' } }));
+
+      await service.startCheckoutFromCart(caller, { ...input, currencyCode: 'INR' });
+
+      expect(send).toHaveBeenCalledTimes(2);
+    });
+
+    it("refuses a currency other than the site's before opening an order", async () => {
+      const error = await service.startCheckoutFromCart(caller, { ...input, currencyCode: 'USD' }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect((error as BadRequestException).getResponse()).toMatchObject({ label: 'Currency Mismatch' });
+      expect(send).not.toHaveBeenCalled();
+    });
+
+    it('refuses a site whose legal entity has no currency', async () => {
+      resolveSite.mockResolvedValue({ legalEntityId: LE, siteTimezone: 'Asia/Kolkata', siteCurrencyCode: undefined });
+
+      const error = await service.startCheckoutFromCart(caller, input).catch((e) => e);
+
+      expect((error as BadRequestException).getResponse()).toMatchObject({ label: 'Currency Not Set' });
+      expect(send).not.toHaveBeenCalled();
+    });
 
     it('prefills the gateway with the shopper, dropping an email that is not one', async () => {
       send
@@ -468,6 +514,166 @@ describe('PaymentIntentsGatewayService', () => {
         service.startCheckoutFromCart({ orgId: ORG, appId: APP, partyId: 'party-1', legalEntityId: LE }, input),
       ).rejects.toBeInstanceOf(BadRequestException);
       expect(send).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('storefront urls', () => {
+    const input = {
+      amount: { currency: 'INR', value: '12.34' },
+      reference: { type: 'booking', id: 'bk-1' },
+      idempotencyKey: 'idem-1',
+    };
+    const allowing = (...allowedOrigins: string[]) => findInOrg.mockResolvedValue({ id: APP, allowedOrigins });
+
+    it('passes urls whose origin the app allows through to payments-service', async () => {
+      allowing('https://shop.example');
+      send.mockResolvedValue(intentOf());
+
+      await service.create(caller, {
+        ...input,
+        returnUrl: 'https://shop.example/thanks?x=1',
+        checkoutUrl: 'https://shop.example/checkout?retry=k1',
+      });
+
+      expect(findInOrg).toHaveBeenCalledWith(APP, ORG);
+      expect(send).toHaveBeenCalledWith(
+        'payments',
+        'payments.intents.create',
+        expect.objectContaining({
+          returnUrl: 'https://shop.example/thanks?x=1',
+          checkoutUrl: 'https://shop.example/checkout?retry=k1',
+        }),
+      );
+    });
+
+    it('allows a plain-http localhost storefront the app lists', async () => {
+      allowing('http://localhost:3000');
+      send.mockResolvedValue(intentOf());
+
+      await service.create(caller, { ...input, returnUrl: 'http://localhost:3000/thanks' });
+
+      expect(send).toHaveBeenCalledWith(
+        'payments',
+        'payments.intents.create',
+        expect.objectContaining({ returnUrl: 'http://localhost:3000/thanks' }),
+      );
+    });
+
+    it('refuses a return url on an origin the app does not allow, naming the origin', async () => {
+      allowing('https://shop.example');
+
+      const error = await service
+        .create(caller, { ...input, returnUrl: 'https://evil.example/steal' })
+        .catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(BadRequestException);
+      const response = (error as BadRequestException).getResponse() as {
+        label: string;
+        detail: string;
+        errors: { field: string }[];
+      };
+      expect(response.label).toBe('Return URL Not Allowed');
+      expect(response.detail).toContain('https://evil.example');
+      expect(response.detail).toContain('Vritti Cloud');
+      expect(response.errors).toEqual([expect.objectContaining({ field: 'returnUrl' })]);
+      expect(send).not.toHaveBeenCalled();
+    });
+
+    it('refuses a checkout url on a different port of an allowed host', async () => {
+      allowing('http://localhost:3000');
+
+      const error = await service
+        .create(caller, { ...input, checkoutUrl: 'http://localhost:4000/checkout' })
+        .catch((caught: unknown) => caught);
+
+      expect((error as BadRequestException).getResponse()).toMatchObject({
+        label: 'Return URL Not Allowed',
+        errors: [expect.objectContaining({ field: 'checkoutUrl' })],
+      });
+    });
+
+    it('refuses plain http on a public host even when its origin is listed', async () => {
+      allowing('http://shop.example');
+
+      await expect(
+        service.create(caller, { ...input, returnUrl: 'http://shop.example/thanks' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('refuses any url when the app allows no origins', async () => {
+      allowing();
+
+      await expect(
+        service.create(caller, { ...input, returnUrl: 'https://shop.example/thanks' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('does not look the app up when no url is sent', async () => {
+      send.mockResolvedValue(intentOf());
+
+      await service.create(caller, input);
+
+      expect(findInOrg).not.toHaveBeenCalled();
+      expect(send.mock.calls[0][2]).not.toHaveProperty('returnUrl');
+    });
+
+    it('checks checkout urls before an order is opened from the cart', async () => {
+      allowing('https://shop.example');
+
+      await expect(
+        service.startCheckoutFromCart(caller, { idempotencyKey: 'chk-1', returnUrl: 'https://evil.example/' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(send).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('checkout callback paths', () => {
+    it('points a razorpay checkout with storefront urls at core', async () => {
+      send.mockResolvedValue(intentOf({ returnUrl: 'https://shop.example/thanks' }));
+
+      const intent = await service.findById(caller, 'pi-1');
+
+      expect(intent.checkout).toMatchObject({
+        gateway: 'razorpay',
+        callbackPath: `/payments/checkout/${ORG}/pi-1/callback`,
+        cancelPath: `/payments/checkout/${ORG}/pi-1/cancel`,
+      });
+    });
+
+    it('points an hdfc-razorpay checkout with only a checkout url at core', async () => {
+      send.mockResolvedValue(
+        intentOf({
+          gatewayCode: 'hdfc-razorpay',
+          checkout: { gateway: 'hdfc-razorpay', order_id: 'order_1' },
+          checkoutUrl: 'https://shop.example/checkout',
+        }),
+      );
+
+      const intent = await service.findById(caller, 'pi-1');
+
+      expect(intent.checkout?.callbackPath).toBe(`/payments/checkout/${ORG}/pi-1/callback`);
+    });
+
+    it('leaves the paths null for an intent with no storefront urls', async () => {
+      send.mockResolvedValue(intentOf());
+
+      const intent = await service.findById(caller, 'pi-1');
+
+      expect(intent.checkout).toMatchObject({ callbackPath: null, cancelPath: null });
+    });
+
+    it('leaves the paths null for a gateway core cannot host the callback for', async () => {
+      send.mockResolvedValue(
+        intentOf({
+          gatewayCode: 'cashfree',
+          checkout: { gateway: 'cashfree' },
+          returnUrl: 'https://shop.example/thanks',
+        }),
+      );
+
+      const intent = await service.findById(caller, 'pi-1');
+
+      expect(intent.checkout).toMatchObject({ callbackPath: null, cancelPath: null });
     });
   });
 });

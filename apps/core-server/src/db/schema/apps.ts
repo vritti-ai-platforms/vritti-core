@@ -45,6 +45,8 @@ export const apps = coreSchema.table(
     permissions: jsonb('permissions').$type<FeatureUnlocks>().notNull().default({}),
     whatsappOtpConfig: jsonb('whatsapp_otp_config').$type<AppWhatsappOtpConfig>(),
     smsOtpConfig: jsonb('sms_otp_config').$type<AppSmsOtpConfig>(),
+    // Storefront origins (scheme + host + port) the hosted checkout may send a shopper back to
+    allowedOrigins: text('allowed_origins').array().notNull().default(sql`'{}'::text[]`),
     // Ed25519 private key, base64 pkcs8 DER. Goes in the client's environment
     signingKey: text('signing_key').notNull(),
     // Ed25519 public key, base64 spki DER. What request signatures verify against

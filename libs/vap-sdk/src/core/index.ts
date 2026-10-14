@@ -1,3 +1,11 @@
+export {
+  type CheckoutAttempt,
+  type CheckoutRetry,
+  checkoutAttemptUrl,
+  checkoutRetryUrl,
+  readCheckoutAttempt,
+  readCheckoutRetry,
+} from './checkout-urls';
 export { resolveConfig, type VapSdkOptions } from './config';
 export {
   type Cart,

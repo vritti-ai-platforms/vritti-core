@@ -13,15 +13,15 @@ export type PartySession = { id: string | number; phone: string; partyId: string
  * route. The collection is checked rather than merely "is somebody signed in" — Payload issues one
  * cookie for the whole app, so a staff `users` session must not read as a shopper.
  */
-export async function getCurrentParty(): Promise<
-  (PartySession & { partyId: string | null }) | null
-> {
+export async function getCurrentParty(): Promise<(PartySession & { partyId: string | null }) | null> {
   try {
     const payload = await resolvePayload();
     const collection = vapNextConfig(payload).collection ?? 'parties';
-    const auth = (payload as unknown as {
-      auth: (args: { headers: Headers }) => Promise<{ user?: { collection?: string } | null }>;
-    }).auth;
+    const auth = (
+      payload as unknown as {
+        auth: (args: { headers: Headers }) => Promise<{ user?: { collection?: string } | null }>;
+      }
+    ).auth;
 
     const { user } = await auth.call(payload, { headers: await nextHeaders() });
     if (!user || user.collection !== collection) return null;

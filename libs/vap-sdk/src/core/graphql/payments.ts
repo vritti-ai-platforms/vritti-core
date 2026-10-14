@@ -5,7 +5,8 @@ import { graphql } from '../gql';
  *
  * `checkout.payload` is a JSON **string** on the wire — the gateway's launch object, opaque to the
  * schema so a second gateway needs no schema change. `domains/payments.ts` parses it once, so no
- * caller ever handles the string.
+ * caller ever handles the string. `callbackPath` and `cancelPath` are core's own addresses for the
+ * embedded page, as paths — the SDK makes them absolute on the endpoint it talks to.
  *
  * Money comes back in major units as a string, like every other priced field — see `MoneyFields`.
  */
@@ -24,6 +25,8 @@ export const PaymentIntentFieldsFragment = graphql(`
     checkout {
       gateway
       payload
+      callbackPath
+      cancelPath
     }
     failure {
       code

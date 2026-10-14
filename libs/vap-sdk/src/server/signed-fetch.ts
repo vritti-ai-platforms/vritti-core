@@ -1,7 +1,6 @@
-import { signRequest, WORKSPACE_HEADER_ORDER } from './signing';
-import type { VapSdkConfig } from '../core/types';
 import { CLIENT_ID_HEADER, PARTY_ID_HEADER } from '../core/transport/headers';
-
+import type { VapSdkConfig } from '../core/types';
+import { signRequest, WORKSPACE_HEADER_ORDER } from './signing';
 
 /**
  * The `fetch` Apollo's HttpLink calls, wrapped to sign what it is about to send.

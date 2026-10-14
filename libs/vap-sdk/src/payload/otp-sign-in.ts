@@ -1,6 +1,6 @@
 import type { OtpFlowData, OtpMessages, OtpStep } from '../core/flows/auth';
 import type { OtpChannel } from '../core/types';
-import { open, seal, type SealedState, sealedExpiry } from '../server/sealed-cookie';
+import { open, type SealedState, seal, sealedExpiry } from '../server/sealed-cookie';
 import { getSdk, type PayloadLike } from './runtime';
 import { issueSessionToken } from './session-token';
 
@@ -113,17 +113,8 @@ const DEFAULT_TTL_MS = 10 * 60 * 1000;
  *
  * Each takes `(previousState, formData)` because that is `useActionState`'s contract.
  */
-export function createOtpSignInActions<L extends LocalParty = LocalParty>(
-  options: OtpSignInOptions<L>,
-) {
-  const {
-    payload,
-    ports,
-    routes,
-    collection = 'parties',
-    cookieName = 'vap-otp',
-    ttlMs = DEFAULT_TTL_MS,
-  } = options;
+export function createOtpSignInActions<L extends LocalParty = LocalParty>(options: OtpSignInOptions<L>) {
+  const { payload, ports, routes, collection = 'parties', cookieName = 'vap-otp', ttlMs = DEFAULT_TTL_MS } = options;
 
   /**
    * The three hooks, defaulted against the collection this package ships.
@@ -155,11 +146,7 @@ export function createOtpSignInActions<L extends LocalParty = LocalParty>(
       });
       return (docs[0] as L | undefined) ?? null;
     },
-    createLocal: async (party: {
-      partyId: string;
-      phone: string;
-      displayName: string | null;
-    }): Promise<L> =>
+    createLocal: async (party: { partyId: string; phone: string; displayName: string | null }): Promise<L> =>
       // The name is core's — its display name for a party the organization already knew, or the one
       // the name step just collected.
       (await payload.create({

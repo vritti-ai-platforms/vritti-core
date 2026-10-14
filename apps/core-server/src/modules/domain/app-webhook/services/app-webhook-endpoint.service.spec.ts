@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises';
 import { Logger } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { AppWebhookEndpointDomainRepository } from '../repositories/app-webhook-endpoint.repository';
 import { AppWebhookEndpointDomainService } from './app-webhook-endpoint.service';
@@ -11,15 +12,18 @@ const lookupMock = lookup as unknown as jest.Mock;
 describe('AppWebhookEndpointDomainService', () => {
   const upsert = jest.fn();
   const deleteByApp = jest.fn();
-  const service = new AppWebhookEndpointDomainService({
-    upsert,
-    deleteByApp,
-  } as unknown as AppWebhookEndpointDomainRepository);
+  const env: Record<string, string | undefined> = {};
+  const service = new AppWebhookEndpointDomainService(
+    { upsert, deleteByApp } as unknown as AppWebhookEndpointDomainRepository,
+    { get: (key: string) => env[key] } as unknown as ConfigService,
+  );
   const events = ['payment_intent.succeeded'];
 
   beforeEach(() => {
     jest.resetAllMocks();
+    for (const key of Object.keys(env)) delete env[key];
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
     lookupMock.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
   });
 
@@ -109,5 +113,43 @@ describe('AppWebhookEndpointDomainService', () => {
     deleteByApp.mockResolvedValue(0);
 
     await expect(service.delete('org-1', 'app-1')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  describe('with WEBHOOK_ALLOW_PRIVATE_DESTINATIONS (local development)', () => {
+    const local = 'http://localhost:3000/api/vap/webhooks';
+
+    function savedRow(url: string) {
+      const now = new Date();
+      return { id: 'ep-1', appId: 'app-1', url, events, isActive: true, createdAt: now, updatedAt: now };
+    }
+
+    it('saves a local http endpoint without resolving it', async () => {
+      env.NODE_ENV = 'development';
+      env.WEBHOOK_ALLOW_PRIVATE_DESTINATIONS = 'true';
+      upsert.mockResolvedValue(savedRow(local));
+
+      const saved = await service.upsert('org-1', 'app-1', { url: local, events, isActive: true });
+
+      expect(saved.url).toBe(local);
+      expect(lookupMock).not.toHaveBeenCalled();
+    });
+
+    it('refuses a private endpoint when the setting is off', async () => {
+      env.NODE_ENV = 'development';
+
+      await expect(service.upsert('org-1', 'app-1', { url: local, events, isActive: true })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      expect(upsert).not.toHaveBeenCalled();
+    });
+
+    it('still refuses a URL that is not http or https', async () => {
+      env.NODE_ENV = 'development';
+      env.WEBHOOK_ALLOW_PRIVATE_DESTINATIONS = 'true';
+
+      await expect(
+        service.upsert('org-1', 'app-1', { url: 'ftp://localhost/hooks', events, isActive: true }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
   });
 });
