@@ -25,7 +25,7 @@ export class SiteCatalogChannelsAppResolver {
   // One page of what this credential's channel sells, at this workspace's price, with delisted rows
   // and channel exclusions already dropped. Always paged — nothing reads the whole range.
   @Query(() => CatalogListings, { name: 'siteCatalogListings' })
-  @RequirePermission(SITE_CATALOG_CHANNELS.app.listings)
+  @RequirePermission(SITE_CATALOG_CHANNELS.view)
   siteCatalogListings(
     @AppId() appId: string,
     @Args({ name: 'filters', type: () => [FilterInput], nullable: true }) filters?: FilterInput[],
@@ -39,7 +39,7 @@ export class SiteCatalogChannelsAppResolver {
 
   // One listing by SKU, with the axes a product page switches flavour and size on.
   @Query(() => CatalogListingDetail, { name: 'siteCatalogListingBySku', nullable: true })
-  @RequirePermission(SITE_CATALOG_CHANNELS.app.listings)
+  @RequirePermission(SITE_CATALOG_CHANNELS.view)
   siteCatalogListingBySku(
     @AppId() appId: string,
     @Args({ name: 'sku', type: () => String }) sku: string,
@@ -50,7 +50,7 @@ export class SiteCatalogChannelsAppResolver {
 
   // The same range narrowed to variants the caller already holds — reconciling a wishlist or a basket
   @Query(() => [CatalogListing], { name: 'siteCatalogListingsFromVariants' })
-  @RequirePermission(SITE_CATALOG_CHANNELS.app.listingsFromVariants)
+  @RequirePermission(SITE_CATALOG_CHANNELS.view)
   siteCatalogListingsFromVariants(
     @AppId() appId: string,
     @Args({ name: 'variantIds', type: () => [ID] }) variantIds: string[],

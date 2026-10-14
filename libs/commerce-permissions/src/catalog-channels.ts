@@ -1,42 +1,30 @@
 // Catalog channel permission codes — MUST match the cloud catalog's authored codes exactly.
 // One object per workspace scope. Every scope sees the same three channel types and may assign a
 // catalog to each; what differs is whose assignment it is, which RLS decides by row ownership.
+//
+// `view` covers reading a channel whoever is asking: a staff member opening the channels screen and a
+// storefront credential reading the resolved catalogue are the same act of reading, so they share the
+// code. What separates them is the platform the permission names — `view` carries WEB and GRAPHQL, and
+// the interceptor resolves a caller against the bucket its credential type implies — plus the guard
+// itself, which admits a session to the controller and a credential to the resolver.
+//
+// An earlier revision had an `app` sub-group (`app.listings`, `app.listings-from-variants`) for the
+// credential-facing reads. It bought nothing: a credential holds one composed permission set, so the
+// split only created ways to grant half of one feature.
 export const ORG_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'org.catalog-channels.view',
   edit: 'org.catalog-channels.edit',
-  // What a storefront credential may read through its own channel. POS and B2B get their own
-  // groups when those surfaces exist.
-  app: {
-    listings: 'org.catalog-channels.app.listings',
-    listing: 'org.catalog-channels.app.listing',
-    listingsFromVariants: 'org.catalog-channels.app.listings-from-variants',
-    // Where a storefront may sell from — the options behind a store switcher. One code per read, as
-    // above. Hung off this feature rather than a new one because a credential that may read the
-    // catalogue already has to know which store it is reading for.
-    sites: 'org.catalog-channels.app.sites',
-    legalEntities: 'org.catalog-channels.app.legal-entities',
-  },
 } as const;
 
 export const LE_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'le.catalog-channels.view',
   edit: 'le.catalog-channels.edit',
-  app: {
-    listings: 'le.catalog-channels.app.listings',
-    listing: 'le.catalog-channels.app.listing',
-    listingsFromVariants: 'le.catalog-channels.app.listings-from-variants',
-  },
 } as const;
 
 export const SITE_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'site.catalog-channels.view',
   edit: 'site.catalog-channels.edit',
-  app: {
-    listings: 'site.catalog-channels.app.listings',
-    listing: 'site.catalog-channels.app.listing',
-    listingsFromVariants: 'site.catalog-channels.app.listings-from-variants',
-  },
 } as const;

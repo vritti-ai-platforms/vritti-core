@@ -20,7 +20,7 @@ export class CatalogChannelsAppResolver {
   // One page of what this credential's channel sells, at this workspace's price, with delisted rows
   // and channel exclusions already dropped. Always paged — nothing reads the whole range.
   @Query(() => CatalogListings, { name: 'catalogListings' })
-  @RequirePermission(ORG_CATALOG_CHANNELS.app.listings)
+  @RequirePermission(ORG_CATALOG_CHANNELS.view)
   catalogListings(
     @AppId() appId: string,
     @Args({ name: 'filters', type: () => [FilterInput], nullable: true }) filters?: FilterInput[],
@@ -40,7 +40,7 @@ export class CatalogChannelsAppResolver {
   // one row, and an app credential carries one composed permission set that a newly authored code
   // does not reach.
   @Query(() => CatalogListingDetail, { name: 'catalogListingBySku', nullable: true })
-  @RequirePermission(ORG_CATALOG_CHANNELS.app.listings)
+  @RequirePermission(ORG_CATALOG_CHANNELS.view)
   catalogListingBySku(
     @AppId() appId: string,
     @Args({ name: 'sku', type: () => String }) sku: string,
@@ -51,7 +51,7 @@ export class CatalogChannelsAppResolver {
 
   // The same range narrowed to variants the caller already holds — a wishlist or a basket
   @Query(() => [CatalogListing], { name: 'catalogListingsFromVariants' })
-  @RequirePermission(ORG_CATALOG_CHANNELS.app.listingsFromVariants)
+  @RequirePermission(ORG_CATALOG_CHANNELS.view)
   catalogListingsFromVariants(
     @AppId() appId: string,
     @Args({ name: 'variantIds', type: () => [ID] }) variantIds: string[],

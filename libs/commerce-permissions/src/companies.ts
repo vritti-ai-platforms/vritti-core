@@ -52,10 +52,4 @@ export const ORG_COMPANIES = {
     edit: 'org.companies.social-profiles.edit',
     delete: 'org.companies.social-profiles.delete',
   },
-  contacts: {
-    view: 'org.companies.contacts.view',
-    add: 'org.companies.contacts.add',
-    edit: 'org.companies.contacts.edit',
-    delete: 'org.companies.contacts.delete',
-  },
 } as const;

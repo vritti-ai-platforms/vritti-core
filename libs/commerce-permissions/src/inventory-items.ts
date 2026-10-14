@@ -20,6 +20,9 @@ export const ORG_INVENTORY_ITEMS = {
   },
 } as const;
 
+// Scope variants that exist for their `featureCode` alone: the SITE and SITE_GROUP inventory screens
+// are feature-gated reads with no per-action codes of their own. `view` is kept so the group matches
+// the shape every other scope has, and so a later add/edit has a `view` to depend on.
 export const SITE_INVENTORY_ITEMS = {
   featureCode: 'inventory-items',
   view: 'site.inventory-items.view',

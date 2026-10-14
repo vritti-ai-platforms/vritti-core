@@ -58,10 +58,4 @@ export const ORG_PEOPLE = {
     add: 'org.people.wishlist.add',
     delete: 'org.people.wishlist.delete',
   },
-  contacts: {
-    view: 'org.people.contacts.view',
-    add: 'org.people.contacts.add',
-    edit: 'org.people.contacts.edit',
-    delete: 'org.people.contacts.delete',
-  },
 } as const;

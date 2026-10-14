@@ -25,7 +25,7 @@ export class LeCatalogChannelsAppResolver {
   // One page of what this credential's channel sells, at this workspace's price, with delisted rows
   // and channel exclusions already dropped. Always paged — nothing reads the whole range.
   @Query(() => CatalogListings, { name: 'leCatalogListings' })
-  @RequirePermission(LE_CATALOG_CHANNELS.app.listings)
+  @RequirePermission(LE_CATALOG_CHANNELS.view)
   leCatalogListings(
     @AppId() appId: string,
     @Args({ name: 'filters', type: () => [FilterInput], nullable: true }) filters?: FilterInput[],
@@ -43,7 +43,7 @@ export class LeCatalogChannelsAppResolver {
   // rather than a permission of its own — the same catalogue read narrowed to one row, and an app
   // credential carries one composed permission set that a newly authored code does not reach.
   @Query(() => CatalogListingDetail, { name: 'leCatalogListingBySku', nullable: true })
-  @RequirePermission(LE_CATALOG_CHANNELS.app.listings)
+  @RequirePermission(LE_CATALOG_CHANNELS.view)
   leCatalogListingBySku(
     @AppId() appId: string,
     @Args({ name: 'sku', type: () => String }) sku: string,
@@ -54,7 +54,7 @@ export class LeCatalogChannelsAppResolver {
 
   // The same range narrowed to variants the caller already holds — reconciling a wishlist or a basket
   @Query(() => [CatalogListing], { name: 'leCatalogListingsFromVariants' })
-  @RequirePermission(LE_CATALOG_CHANNELS.app.listingsFromVariants)
+  @RequirePermission(LE_CATALOG_CHANNELS.view)
   leCatalogListingsFromVariants(
     @AppId() appId: string,
     @Args({ name: 'variantIds', type: () => [ID] }) variantIds: string[],
