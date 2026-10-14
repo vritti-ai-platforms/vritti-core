@@ -49,6 +49,28 @@ export const resolveWorkspace = cache(async (): Promise<Workspace> => {
 });
 
 /**
+ * The SDK bound to this request: the visitor's workspace, and a party when there is one.
+ *
+ * **Use this rather than `getSdk(payload).forContext(...)` by hand.** Every priced read needs the
+ * workspace — a basket line, a wishlist row, a listing — and forgetting it does not fail: `scoped()`
+ * falls back to the configured default, so a visitor who switched store silently sees the default
+ * store's prices. A silent wrong answer is worse than a crash, so there is one way to get a bound SDK
+ * and it cannot be half-done.
+ *
+ * It lives here, in the Next tier, because that is the only tier allowed to read a cookie and the
+ * Payload Local API — `createVapSdk` sits in `server/` and cannot reach either, which is why the
+ * workspace has to be handed down rather than discovered. `resolveWorkspace` is request-cached, so
+ * calling this several times in one request costs one lookup.
+ *
+ * A caller that must act somewhere a visitor is not — a webhook, a cron, an import — should use
+ * `getSdk(payload).forContext({ siteId, legalEntityId, currencyCode })` directly with the workspace it
+ * means, because there is no visitor whose session could answer.
+ */
+export async function vapSdk(payload: PayloadLike, context: { partyId?: string } = {}) {
+  return getSdk(payload).forContext({ ...context, ...(await resolveWorkspace()) });
+}
+
+/**
  * The context a visitor starts in, from what cloud injected.
  *
  * The currency is resolved from the legal entity rather than configured, so this costs one cached core

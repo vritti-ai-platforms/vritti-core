@@ -1,11 +1,10 @@
 'use server';
 
-import { getSdk, type PayloadLike } from '@vritti/vap-sdk/payload';
 import { revalidatePath } from 'next/cache';
 import { requireParty } from './party.js';
 import { resolvePayload } from './payload-adapter.js';
 import { formField, type PartyActionState, returnToFrom, withPartyErrors } from './state.js';
-import { resolveWorkspace } from './visitor-session.js';
+import { vapSdk } from './visitor-session.js';
 
 /**
  * The basket, as server actions a storefront imports directly.
@@ -22,18 +21,6 @@ import { resolveWorkspace } from './visitor-session.js';
 /** The basket's ceiling per line — the bound core's `ck_cart_items_quantity` CHECK enforces. */
 const MAX_QUANTITY = 99;
 
-/**
- * The SDK bound to this party *and* where they are shopping.
- *
- * Both halves are needed: core reads the party from the signature, and a basket or wishlist line is
- * priced — per listing x site x currency — so a call that names only the party has no currency to
- * price in and is refused. Fetched per action rather than passed in, because `resolveWorkspace` is
- * request-cached and an action is one request.
- */
-async function actingFor(payload: PayloadLike, partyId: string) {
-  return getSdk(payload).forContext({ partyId, ...(await resolveWorkspace()) });
-}
-
 export async function addToCartAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
   const returnTo = returnToFrom(formData);
   const party = await requireParty(returnTo);
@@ -44,7 +31,7 @@ export async function addToCartAction(_previous: PartyActionState, formData: For
   const payload = await resolvePayload();
 
   const result = await withPartyErrors(payload, async () =>
-    (await actingFor(payload, party.partyId)).cart.add(variantId, quantity).then(() => ({ ok: true })),
+    (await vapSdk(payload, { partyId: party.partyId })).cart.add(variantId, quantity).then(() => ({ ok: true })),
   );
   // The header's basket count renders on every page, so the route the party is looking at has to be
   // re-rendered for it to change.
@@ -61,7 +48,7 @@ export async function updateCartItemAction(_previous: PartyActionState, formData
 
   const payload = await resolvePayload();
   const result = await withPartyErrors(payload, async () =>
-    (await actingFor(payload, party.partyId)).cart.update(variantId, quantity).then(() => ({ ok: true })),
+    (await vapSdk(payload, { partyId: party.partyId })).cart.update(variantId, quantity).then(() => ({ ok: true })),
   );
   revalidatePath(returnTo);
   return result;
@@ -75,7 +62,7 @@ export async function removeFromCartAction(_previous: PartyActionState, formData
 
   const payload = await resolvePayload();
   const result = await withPartyErrors(payload, async () =>
-    (await actingFor(payload, party.partyId)).cart.remove(variantId).then(() => ({ ok: true })),
+    (await vapSdk(payload, { partyId: party.partyId })).cart.remove(variantId).then(() => ({ ok: true })),
   );
   revalidatePath(returnTo);
   return result;
@@ -105,7 +92,7 @@ export async function setCartQuantityAction(
   if (next > MAX_QUANTITY) return { error: `You can add up to ${MAX_QUANTITY} of one item.` };
 
   const payload = await resolvePayload();
-  const cart = (await actingFor(payload, party.partyId)).cart;
+  const cart = (await vapSdk(payload, { partyId: party.partyId })).cart;
   const result = await withPartyErrors(payload, () =>
     (next < 1 ? cart.remove(variantId) : cart.update(variantId, next)).then(() => ({ ok: true })),
   );

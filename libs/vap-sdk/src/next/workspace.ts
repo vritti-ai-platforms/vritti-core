@@ -18,6 +18,7 @@ export {
   seededWorkspace,
   unlinkVisitorSession,
   type VisitorSessionRow,
+  vapSdk,
   type Workspace,
 } from './visitor-session.js';
 export {
