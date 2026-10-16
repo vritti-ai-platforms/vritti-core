@@ -52,14 +52,6 @@
       },
       "cache": false
     },
-    "db:push": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run db:push",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
     "db:migrate": {
       "executor": "nx:run-commands",
       "options": {
