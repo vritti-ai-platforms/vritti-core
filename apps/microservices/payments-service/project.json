@@ -20,22 +20,6 @@
       },
       "cache": false
     },
-    "dev:dev": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run dev:dev",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
-    "dev:apw1": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run dev:apw1",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
     "start": {
       "executor": "nx:run-commands",
       "options": {
@@ -76,50 +60,10 @@
       },
       "cache": false
     },
-    "db:migrate:dev": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run db:migrate:dev",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
-    "db:migrate:apw1": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run db:migrate:apw1",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
     "db:grant": {
       "executor": "nx:run-commands",
       "options": {
         "command": "pnpm run db:grant",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
-    "db:grant:dev": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run db:grant:dev",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
-    "db:grant:prod": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run db:grant:prod",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
-    "db:deploy": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run db:deploy",
         "cwd": "{projectRoot}"
       },
       "cache": false

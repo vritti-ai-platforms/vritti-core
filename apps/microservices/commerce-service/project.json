@@ -20,14 +20,6 @@
       },
       "cache": false
     },
-    "dev:ssl": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run dev:ssl",
-        "cwd": "{projectRoot}"
-      },
-      "cache": false
-    },
     "start": {
       "executor": "nx:run-commands",
       "options": {
