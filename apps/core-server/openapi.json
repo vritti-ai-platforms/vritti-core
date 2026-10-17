@@ -46467,6 +46467,14 @@
           "variantName": {
             "type": "string"
           },
+          "isVariantActive": {
+            "type": "boolean",
+            "description": "False when the variant is deactivated — no channel can sell it"
+          },
+          "isOfferingActive": {
+            "type": "boolean",
+            "description": "False when the whole offering is deactivated — no channel can sell it"
+          },
           "legalEntityId": {
             "type": "object",
             "nullable": true
@@ -46540,6 +46548,8 @@
           "offeringVariantId",
           "code",
           "variantName",
+          "isVariantActive",
+          "isOfferingActive",
           "ownerScope",
           "ownerName",
           "canEdit",

@@ -24,6 +24,13 @@ export class CatalogListingResponseDto {
   @ApiProperty() offeringVariantId: string;
   @ApiProperty() code: string;
   @ApiProperty() variantName: string;
+
+  @ApiProperty({ description: 'False when the variant is deactivated — no channel can sell it' })
+  isVariantActive: boolean;
+
+  @ApiProperty({ description: 'False when the whole offering is deactivated — no channel can sell it' })
+  isOfferingActive: boolean;
+
   @ApiPropertyOptional({ nullable: true }) legalEntityId: string | null;
   @ApiPropertyOptional({ nullable: true }) siteId: string | null;
 

@@ -10,6 +10,8 @@ export interface CatalogListingRow {
   inventoryItemMrpId: string | null;
   code: string;
   variantName: string;
+  isVariantActive: boolean;
+  isOfferingActive: boolean;
   mrpAmount: bigint | null;
   mrpCurrencyCode: string | null;
   mrpUomSymbol: string | null;
@@ -57,6 +59,8 @@ export class CatalogListingDto {
   offeringVariantId: string;
   code: string;
   variantName: string;
+  isVariantActive: boolean;
+  isOfferingActive: boolean;
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: CatalogListingOwnerScope;
@@ -81,6 +85,8 @@ export class CatalogListingDto {
     dto.offeringVariantId = row.offeringVariantId;
     dto.code = row.code;
     dto.variantName = row.variantName;
+    dto.isVariantActive = row.isVariantActive;
+    dto.isOfferingActive = row.isOfferingActive;
     dto.legalEntityId = row.legalEntityId ?? null;
     dto.siteId = row.siteId ?? null;
     dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';

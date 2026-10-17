@@ -98,9 +98,21 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         header: () => <div className="text-center">Available on</div>,
         cell: ({ row }) => {
           const excluded = row.original.excludedChannelIds.length;
-          // A listing nobody priced is available nowhere, whatever the channels say — the storefront
-          // resolves a price before it returns a row, so counting channels alone overstates it
           const priced = row.original.prices.length > 0;
+          if (!row.original.isOfferingActive) {
+            return (
+              <div className="text-center">
+                <Badge variant="destructive">Offering inactive</Badge>
+              </div>
+            );
+          }
+          if (!row.original.isVariantActive) {
+            return (
+              <div className="text-center">
+                <Badge variant="destructive">Variant inactive</Badge>
+              </div>
+            );
+          }
           return (
             <div className="text-center">
               {channels.length === 0 ? (

@@ -56,7 +56,6 @@ export interface CatalogData {
   isActive: boolean;
   listingCount: number;
   channelCount: number;
-  // False when a wider workspace owns it: this one prices its listings but cannot change the catalog
   canEdit: boolean;
   createdAt: string;
   updatedAt: string;
@@ -68,7 +67,6 @@ export interface CatalogListingPriceData {
   siteId: string | null;
   ownerScope: CatalogOwnerScope;
   ownerName: string;
-  // False when the price comes from a wider workspace: this one may override it, never edit it
   canEdit: boolean;
   price: CurrencyValue;
 }
@@ -79,6 +77,8 @@ export interface CatalogListingData {
   offeringVariantId: string;
   code: string;
   variantName: string;
+  isVariantActive: boolean;
+  isOfferingActive: boolean;
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: CatalogOwnerScope;

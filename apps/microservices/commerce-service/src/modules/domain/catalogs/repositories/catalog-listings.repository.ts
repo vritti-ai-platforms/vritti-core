@@ -35,6 +35,8 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       inventoryItemMrpId: catalogListings.inventoryItemMrpId,
       code: offeringVariants.code,
       variantName: offeringVariants.name,
+      isVariantActive: offeringVariants.isActive,
+      isOfferingActive: offeringVariants.isOfferingActive,
       mrpAmount: inventoryItemMrps.amount,
       mrpCurrencyCode: inventoryItemMrps.currencyCode,
       mrpUomSymbol: uom.symbol,
