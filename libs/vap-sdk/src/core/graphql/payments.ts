@@ -1,4 +1,4 @@
-import { graphql } from '../gql';
+import { graphql } from '../gql/index.js';
 
 /**
  * A payment intent, as every payments operation answers it.

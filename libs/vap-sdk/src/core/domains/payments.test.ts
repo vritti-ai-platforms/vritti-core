@@ -1,8 +1,8 @@
 import type { ApolloClient } from '@apollo/client';
 import { describe, expect, it, jest } from '@jest/globals';
-import { VapError } from '../errors';
-import { createCheckoutOperations } from './checkout';
-import { createPaymentsOperations, parseCheckout, toKeyValues } from './payments';
+import { VapError } from '../errors.js';
+import { createCheckoutOperations } from './checkout.js';
+import { createPaymentsOperations, parseCheckout, toKeyValues } from './payments.js';
 
 /** An intent as core answers it — `__typename`s included, the way Apollo hands them back. */
 function rawIntent(payload = JSON.stringify({ key_id: 'rzp_test', order_id: 'order_1', amount: 49900 })) {

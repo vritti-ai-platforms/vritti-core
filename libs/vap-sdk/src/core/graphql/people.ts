@@ -1,4 +1,4 @@
-import { graphql } from '../gql';
+import { graphql } from '../gql/index.js';
 
 /**
  * The person field set, shared by `createPerson` and anything that returns a party later.

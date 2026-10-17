@@ -1,5 +1,5 @@
-import { VapError } from '../../core/errors';
-import type { CloudAuthCredentials } from './config';
+import { VapError } from '../../core/errors.js';
+import type { CloudAuthCredentials } from './config.js';
 
 export interface CloudUserInfo {
   sub: string;

@@ -1,6 +1,6 @@
 import { createPrivateKey, createPublicKey, type KeyObject, verify } from 'node:crypto';
-import type { PaymentReference } from '../core/domains/payments';
-import type { Money } from '../core/types';
+import type { PaymentReference } from '../core/domains/payments.js';
+import type { Money } from '../core/types.js';
 
 /**
  * Verifying the webhooks core sends a website — payment outcomes, delivered server to server.

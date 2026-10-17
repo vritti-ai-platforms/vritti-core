@@ -1,5 +1,5 @@
-import { VapError } from './errors';
-import type { VapSdkConfig } from './types';
+import { VapError } from './errors.js';
+import type { VapSdkConfig } from './types.js';
 
 /** What a caller may leave out, because it is optional or supplied elsewhere. */
 export type VapSdkOptions = Partial<VapSdkConfig>;

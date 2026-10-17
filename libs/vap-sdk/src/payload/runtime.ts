@@ -1,5 +1,5 @@
-import { VapError } from '../core/errors';
-import type { VapSdk } from '../server/sdk';
+import { VapError } from '../core/errors.js';
+import type { VapSdk } from '../server/sdk.js';
 
 /**
  * What these helpers need from a Payload instance.

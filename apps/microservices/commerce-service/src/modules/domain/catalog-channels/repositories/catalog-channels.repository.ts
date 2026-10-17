@@ -698,6 +698,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     channel: StorefrontChannel,
     codes: string[],
     currencyCode: string,
+    filters: ListingFilterSelection[] = [],
   ): Promise<StorefrontListingRow[]> {
     // `inArray` with an empty list is a SQL error in some dialects and an always-false in others;
     // neither is worth a round trip when the caller already told us it wants nothing.
@@ -714,6 +715,9 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
           eq(catalogListings.catalogId, channel.catalogId),
           this.availableOnChannel(channel.id, currencyCode),
           inArray(offeringVariants.code, codes),
+          // The same predicate the paged read uses, so "high protein" means one thing whether it is
+          // asked of the whole range or of a handful of codes a caller already holds.
+          CatalogChannelsDomainRepository.filtersWhere(filters),
         ) as SQL,
       )
       .orderBy(asc(offeringVariants.code));

@@ -1,5 +1,5 @@
-import { VapError } from './errors';
-import type { ResponseCacheStore } from './transport/response-cache-store';
+import { VapError } from './errors.js';
+import type { ResponseCacheStore } from './transport/response-cache-store.js';
 
 export type VapSdkConfig = {
   /** Where core's GraphQL lives. Absolute — these calls are made server-side. */

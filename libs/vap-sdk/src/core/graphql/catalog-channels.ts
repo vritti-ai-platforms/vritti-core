@@ -1,4 +1,4 @@
-import { graphql } from '../gql';
+import { graphql } from '../gql/index.js';
 
 /**
  * One listing row, shared by every read below.
@@ -99,8 +99,8 @@ export const CATALOG_LISTING_QUERY_BY_CODE = graphql(`
 
 /** The same range narrowed to variants the caller already holds — reconciling a wishlist or a basket. */
 export const CATALOG_LISTINGS_BY_CODES_QUERY = graphql(`
-  query CatalogListingsByCodes($codes: [String!]!, $currencyCode: String!) {
-    catalogListingsByCodes(codes: $codes, currencyCode: $currencyCode) {
+  query CatalogListingsByCodes($codes: [String!]!, $currencyCode: String!, $filters: [FilterInput!]) {
+    catalogListingsByCodes(codes: $codes, currencyCode: $currencyCode, filters: $filters) {
       ...ListingFields
     }
   }
@@ -153,8 +153,8 @@ export const LE_CATALOG_LISTING_QUERY_BY_CODE = graphql(`
 `);
 
 export const LE_CATALOG_LISTINGS_BY_CODES_QUERY = graphql(`
-  query LeCatalogListingsByCodes($codes: [String!]!, $currencyCode: String!) {
-    leCatalogListingsByCodes(codes: $codes, currencyCode: $currencyCode) {
+  query LeCatalogListingsByCodes($codes: [String!]!, $currencyCode: String!, $filters: [FilterInput!]) {
+    leCatalogListingsByCodes(codes: $codes, currencyCode: $currencyCode, filters: $filters) {
       ...ListingFields
     }
   }
@@ -207,8 +207,8 @@ export const SITE_CATALOG_LISTING_QUERY_BY_CODE = graphql(`
 `);
 
 export const SITE_CATALOG_LISTINGS_BY_CODES_QUERY = graphql(`
-  query SiteCatalogListingsByCodes($codes: [String!]!, $currencyCode: String!) {
-    siteCatalogListingsByCodes(codes: $codes, currencyCode: $currencyCode) {
+  query SiteCatalogListingsByCodes($codes: [String!]!, $currencyCode: String!, $filters: [FilterInput!]) {
+    siteCatalogListingsByCodes(codes: $codes, currencyCode: $currencyCode, filters: $filters) {
       ...ListingFields
     }
   }

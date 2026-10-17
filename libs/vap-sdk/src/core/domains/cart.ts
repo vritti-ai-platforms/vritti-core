@@ -1,5 +1,5 @@
 import type { ApolloClient } from '@apollo/client';
-import { VapError } from '../errors';
+import { VapError } from '../errors.js';
 import {
   ADD_TO_CART,
   CART_QUANTITIES_QUERY,
@@ -7,9 +7,9 @@ import {
   CLEAR_CART,
   REMOVE_FROM_CART,
   UPDATE_CART_ITEM,
-} from '../graphql/cart';
-import { requireData, run } from '../transport/errors';
-import type { Money, RequestContext } from '../types';
+} from '../graphql/cart.js';
+import { requireData, run } from '../transport/errors.js';
+import type { Money, RequestContext } from '../types.js';
 
 export type CartItem = {
   id: string;

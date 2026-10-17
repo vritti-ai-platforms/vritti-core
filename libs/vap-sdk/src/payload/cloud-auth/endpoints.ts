@@ -1,7 +1,7 @@
-import { reconcileMirroredUsers, upsertMirroredUser } from './accounts';
-import { buildConsentUrl, exchangeCode, fetchUserInfo } from './client';
-import { resolveCloudAuthCredentials } from './config';
-import { issueSessionCookie } from './session';
+import { reconcileMirroredUsers, upsertMirroredUser } from './accounts.js';
+import { buildConsentUrl, exchangeCode, fetchUserInfo } from './client.js';
+import { resolveCloudAuthCredentials } from './config.js';
+import { issueSessionCookie } from './session.js';
 import {
   createPkce,
   expiredStateCookie,
@@ -11,8 +11,8 @@ import {
   sealState,
   stateCookie,
   stateExpiry,
-} from './state';
-import type { PayloadInstance, VrittiCloudAuthOptions } from './types';
+} from './state.js';
+import type { PayloadInstance, VrittiCloudAuthOptions } from './types.js';
 
 export const LOGIN_PATH = '/vritti-cloud/login';
 export const CALLBACK_PATH = '/vritti-cloud/callback';

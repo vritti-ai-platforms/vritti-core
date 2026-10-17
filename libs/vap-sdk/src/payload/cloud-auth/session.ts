@@ -1,4 +1,4 @@
-import type { MirroredUser, PayloadInstance } from './types';
+import type { MirroredUser, PayloadInstance } from './types.js';
 
 // Mints a Payload session for a user this plugin has already authenticated against Vritti Cloud.
 export async function issueSessionCookie(args: {

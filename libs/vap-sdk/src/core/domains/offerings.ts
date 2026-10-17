@@ -1,7 +1,7 @@
 import type { ApolloClient } from '@apollo/client';
-import { SITE_OFFERING_VARIANTS_QUERY } from '../graphql/offerings';
-import { requireData, run } from '../transport/errors';
-import { contextForScope, type RequestContext } from '../types';
+import { SITE_OFFERING_VARIANTS_QUERY } from '../graphql/offerings.js';
+import { requireData, run } from '../transport/errors.js';
+import { contextForScope, type RequestContext } from '../types.js';
 
 /** One variant a storefront may file a product page against. */
 export type OfferingVariantOption = {

@@ -1,7 +1,7 @@
-import type { CollectionLike, ConfigLike, PayloadPlugin } from '../runtime';
-import { applyCloudAuth } from './collection';
-import { buildEndpoints } from './endpoints';
-import type { VrittiCloudAuthOptions } from './types';
+import type { CollectionLike, ConfigLike, PayloadPlugin } from '../runtime.js';
+import { applyCloudAuth } from './collection.js';
+import { buildEndpoints } from './endpoints.js';
+import type { VrittiCloudAuthOptions } from './types.js';
 
 const LOGIN_BUTTON = '@vritti/vap-sdk/payload/client#VrittiCloudLoginButton';
 const BRAND_LOGO = '@vritti/vap-sdk/payload/client#VrittiAdminLogo';

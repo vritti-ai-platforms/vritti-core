@@ -2,10 +2,10 @@
 // resolution mode to read its `exports` map under. Safe precisely because it is type-only: nothing here
 // imports a runtime value from payload, so there is no CJS/ESM interop at all in the built output.
 import type { CollectionConfig, Field } from 'payload' with { 'resolution-mode': 'import' };
-import type { CollectionLike } from '../runtime';
+import type { CollectionLike } from '../runtime.js';
 
 /** The table name Payload derives from the slug — hyphens become underscores. */
-export { VAP_CACHE_TABLE } from '../../server/cache/postgres';
+export { VAP_CACHE_TABLE } from '../../server/cache/postgres.js';
 
 /**
  * Cached responses from VAP, one row per operation-and-scope.

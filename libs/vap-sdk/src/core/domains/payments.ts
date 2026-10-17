@@ -1,14 +1,14 @@
 import type { ApolloClient } from '@apollo/client';
-import { VapError } from '../errors';
-import type { PaymentIntentFieldsFragment } from '../gql/graphql';
+import { VapError } from '../errors.js';
+import type { PaymentIntentFieldsFragment } from '../gql/graphql.js';
 import {
   CANCEL_PAYMENT_INTENT,
   CONFIRM_PAYMENT,
   CREATE_PAYMENT_INTENT,
   PAYMENT_INTENT_QUERY,
-} from '../graphql/payments';
-import { requireData, run } from '../transport/errors';
-import { contextForScope, type Money, type RequestContext } from '../types';
+} from '../graphql/payments.js';
+import { requireData, run } from '../transport/errors.js';
+import { contextForScope, type Money, type RequestContext } from '../types.js';
 
 export type PaymentIntentStatus =
   | 'CREATED'

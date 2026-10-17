@@ -225,12 +225,19 @@ export class CatalogChannelsDomainService {
     };
   }
 
-  // Prices variants the caller already holds, against the same credential's catalog
-  async appListingsByCodes(appId: string, codes: string[], currencyCode: string): Promise<StorefrontListingDto[]> {
+  // Prices variants the caller already holds, against the same credential's catalog — optionally
+  // narrowed, so a caller can ask "which of these are ready to cook" in one read rather than pricing
+  // all of them and sorting it out itself.
+  async appListingsByCodes(
+    appId: string,
+    codes: string[],
+    currencyCode: string,
+    filters: ListingFilterSelection[] = [],
+  ): Promise<StorefrontListingDto[]> {
     const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return [];
 
-    const rows = await this.repository.findListingsByCodes(channel, codes, currencyCode);
+    const rows = await this.repository.findListingsByCodes(channel, codes, currencyCode, filters);
     return rows.map((row) => StorefrontListingDto.from(row));
   }
 

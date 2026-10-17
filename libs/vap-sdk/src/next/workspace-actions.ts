@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { resolvePayload } from './payload-adapter.js';
 import { formField, type PartyActionState, returnToFrom, withPartyErrors } from './state.js';
-import { pointerSid, VISITOR_COOKIE } from './visitor-pointer.js';
+import { mintPointer, pointerSecret, pointerSid, VISITOR_COOKIE, VISITOR_TTL_SECONDS } from './visitor-pointer.js';
 import {
   defaultCurrency,
   resolveWorkspace,
@@ -140,23 +140,43 @@ export async function switchLegalEntityAction(formData: FormData): Promise<void>
 }
 
 /**
+ * The sid to write against, minting one when the visitor has none.
+ *
+ * Middleware normally gets there first, but a switch must not depend on that: a matcher that excludes
+ * the route, a pointer signed with a key this process no longer agrees with, or a visitor whose very
+ * first interaction is the switch itself would all leave a shopper pressing a control that silently
+ * refuses. A server action is one of the two places a cookie may legally be set — unlike the render
+ * middleware exists to work around — so the write path can simply do it.
+ */
+async function requirePointerSid(): Promise<string> {
+  const secret = pointerSecret();
+  const jar = await cookies();
+  const existing = await pointerSid(jar.get(VISITOR_COOKIE)?.value, secret);
+  if (existing) return existing;
+
+  const pointer = await mintPointer(secret);
+  jar.set(VISITOR_COOKIE, pointer, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: VISITOR_TTL_SECONDS,
+  });
+  // Non-null: it was just minted with this very secret, so it verifies by construction
+  return (await pointerSid(pointer, secret)) as string;
+}
+
+/**
  * Writes the visitor's chosen context onto their session row, creating it on first use.
  *
- * The pointer is already in a cookie by the time anything calls this — middleware put it there — so
- * there is no cookie to set and none of the "cannot set a cookie while rendering" problem. A pointer
- * that names no row yet simply gets one.
+ * The pointer is in a cookie by the time this writes — middleware put it there, or `requirePointerSid`
+ * just did. A pointer that names no row yet simply gets one.
  */
 async function writeWorkspace(
   payload: PayloadLike,
   workspace: { siteId: string | null; legalEntityId: string; currencyCode: string },
 ): Promise<void> {
-  const sid = await pointerSid((await cookies()).get(VISITOR_COOKIE)?.value, payload.secret);
-  // No pointer means middleware did not run for this route — a matcher that excluded it, or an action
-  // posted from somewhere it does not cover. Silently doing nothing would look like a switcher that
-  // forgets, so say what is wrong.
-  if (!sid) {
-    throw new Error('No visitor session cookie — check that vapSessionMiddleware covers this route.');
-  }
+  const sid = await requirePointerSid();
 
   const { docs } = await payload.find({
     collection: 'visitor-sessions',

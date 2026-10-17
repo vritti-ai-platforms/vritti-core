@@ -1,9 +1,9 @@
 import type { ApolloClient } from '@apollo/client';
-import { VapError } from '../errors';
-import { START_CHECKOUT_FROM_CART } from '../graphql/checkout';
-import { requireData, run } from '../transport/errors';
-import { contextForScope, type Money, type RequestContext } from '../types';
-import { type PaymentIntent, toPaymentIntent } from './payments';
+import { VapError } from '../errors.js';
+import { START_CHECKOUT_FROM_CART } from '../graphql/checkout.js';
+import { requireData, run } from '../transport/errors.js';
+import { contextForScope, type Money, type RequestContext } from '../types.js';
+import { type PaymentIntent, toPaymentIntent } from './payments.js';
 
 /** The order a checkout created — what a confirmation page shows. */
 export type CheckoutOrder = { id: string; orderNumber: string; total: Money };

@@ -1,4 +1,4 @@
-import type { PayloadLike } from './runtime';
+import type { PayloadLike } from './runtime.js';
 
 export interface IssuedSession {
   /** The cookie name Payload reads its token from, including this app's prefix. */

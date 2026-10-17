@@ -1,5 +1,5 @@
 import type { Field } from 'payload' with { 'resolution-mode': 'import' };
-import type { CloudAuthCredentialOptions } from './config';
+import type { CloudAuthCredentialOptions } from './config.js';
 
 export interface PayloadInstance {
   secret: string;

@@ -5,15 +5,24 @@ export {
   checkoutRetryUrl,
   readCheckoutAttempt,
   readCheckoutRetry,
-} from './checkout-urls';
-export { resolveConfig, type VapSdkOptions } from './config';
+} from './checkout-urls.js';
+export { resolveConfig, type VapSdkOptions } from './config.js';
+export {
+  formatCurrency,
+  formatCurrencyMajor,
+  formatMoney,
+  majorToMinor,
+  minorToMajor,
+  moneyFromMinor,
+  percentOff,
+} from './money.js';
 export {
   type Cart,
   type CartItem,
   type CartOperations,
   type CartQuantity,
   createCartOperations,
-} from './domains/cart';
+} from './domains/cart.js';
 export {
   type CatalogChannelsOperations,
   type CatalogListing,
@@ -25,20 +34,20 @@ export {
   type ListingFilterSelection,
   type ListingQuery,
   type ListingSort,
-} from './domains/catalog-channels';
+} from './domains/catalog-channels.js';
 export {
   type CheckoutOperations,
   type CheckoutOrder,
   type CheckoutSession,
   createCheckoutOperations,
   type StartCheckoutInput,
-} from './domains/checkout';
+} from './domains/checkout.js';
 export {
   createOfferingsOperations,
   type OfferingsOperations,
   type OfferingVariantOption,
   type OfferingVariantOptions,
-} from './domains/offerings';
+} from './domains/offerings.js';
 export {
   type CreatePaymentIntentInput,
   createPaymentsOperations,
@@ -50,7 +59,7 @@ export {
   type PaymentIntentStatus,
   type PaymentReference,
   type PaymentsOperations,
-} from './domains/payments';
+} from './domains/payments.js';
 export {
   CHANNELS,
   type Channel,
@@ -65,13 +74,13 @@ export {
   type PersonCommunication,
   type WishlistAddResult,
   type WishlistItem,
-} from './domains/people';
-export { createSmsOtpOperations, type SmsOtpOperations } from './domains/sms-otp';
+} from './domains/people.js';
+export { createSmsOtpOperations, type SmsOtpOperations } from './domains/sms-otp.js';
 export {
   createWhatsappOtpOperations,
   type WhatsappOtpOperations,
-} from './domains/whatsapp-otp';
-export { PartyRollbackError, VapError } from './errors';
+} from './domains/whatsapp-otp.js';
+export { PartyRollbackError, VapError } from './errors.js';
 export {
   type AuthFlows,
   createAuthFlows,
@@ -85,7 +94,7 @@ export {
   type RegisterPersonResult,
   safeReturnTo,
   stepFromFlow,
-} from './flows/auth';
+} from './flows/auth.js';
 export {
   type CountryCode,
   countryFlag,
@@ -97,14 +106,14 @@ export {
   normalizePhone,
   splitPhone,
   toE164,
-} from './phone';
-export { createVapClient, type VapClientOptions } from './transport/client';
-export { requireData, run } from './transport/errors';
-export { CLIENT_ID_HEADER, PARTY_ID_HEADER } from './transport/headers';
+} from './phone.js';
+export { createVapClient, type VapClientOptions } from './transport/client.js';
+export { requireData, run } from './transport/errors.js';
+export { CLIENT_ID_HEADER, PARTY_ID_HEADER } from './transport/headers.js';
 export type {
   ResponseCacheContext,
   ResponseCacheStore,
-} from './transport/response-cache-store';
+} from './transport/response-cache-store.js';
 export type {
   Money,
   OtpChannel,
@@ -112,5 +121,5 @@ export type {
   SendOtpResult,
   VapSdkConfig,
   WorkspaceScope,
-} from './types';
-export { OTP_CHANNELS } from './types';
+} from './types.js';
+export { OTP_CHANNELS } from './types.js';

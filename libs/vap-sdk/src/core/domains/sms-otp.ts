@@ -1,7 +1,7 @@
 import type { ApolloClient } from '@apollo/client';
-import { SEND_SMS_OTP, VERIFY_SMS_OTP } from '../graphql/otp';
-import { requireData, run } from '../transport/errors';
-import type { RequestContext, SendOtpResult } from '../types';
+import { SEND_SMS_OTP, VERIFY_SMS_OTP } from '../graphql/otp.js';
+import { requireData, run } from '../transport/errors.js';
+import type { RequestContext, SendOtpResult } from '../types.js';
 
 /**
  * Codes over SMS — core's `sms-otps` domain, and nothing else.

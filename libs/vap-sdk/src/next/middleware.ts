@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { mintPointer, pointerSid, VISITOR_COOKIE, VISITOR_TTL_SECONDS } from './visitor-pointer.js';
+import { mintPointer, pointerSecret, pointerSid, VISITOR_COOKIE, VISITOR_TTL_SECONDS } from './visitor-pointer.js';
 
 /**
  * Gives every visitor a session pointer on their first request.
@@ -24,7 +24,7 @@ import { mintPointer, pointerSid, VISITOR_COOKIE, VISITOR_TTL_SECONDS } from './
  * ```
  */
 export async function vapSessionMiddleware(request: NextRequest): Promise<NextResponse> {
-  const secret = process.env.PAYLOAD_SECRET;
+  const secret = pointerSecret();
   // The host owns its environment, so this reads the one variable Payload itself requires rather than
   // inventing a name. Without it there is nothing to sign with: pass the request through untouched
   // instead of handing out pointers nothing will accept.

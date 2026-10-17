@@ -1,4 +1,4 @@
-import { graphql } from '../gql';
+import { graphql } from '../gql/index.js';
 
 /**
  * Turns the signed-in party's basket into an order and opens its payment in one round trip.

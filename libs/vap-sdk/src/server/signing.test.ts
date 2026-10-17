@@ -1,6 +1,6 @@
 import { generateKeyPairSync, verify } from 'node:crypto';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { buildCanonical, signRequest, WORKSPACE_HEADER_ORDER } from './signing';
+import { buildCanonical, signRequest, WORKSPACE_HEADER_ORDER } from './signing.js';
 
 /**
  * The request canonical is a wire format shared with core's verifier. The authority is

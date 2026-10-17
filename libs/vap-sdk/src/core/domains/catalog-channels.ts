@@ -1,5 +1,5 @@
 import type { ApolloClient } from '@apollo/client';
-import { VapError } from '../errors';
+import { VapError } from '../errors.js';
 import {
   CATALOG_CURRENCIES_QUERY,
   CATALOG_LISTING_QUERY_BY_CODE,
@@ -13,10 +13,10 @@ import {
   SITE_CATALOG_LISTING_QUERY_BY_CODE,
   SITE_CATALOG_LISTINGS_BY_CODES_QUERY,
   SITE_CATALOG_LISTINGS_QUERY,
-} from '../graphql/catalog-channels';
-import { requireData, run } from '../transport/errors';
-import type { Money } from '../types';
-import { contextForScope, type RequestContext, type WorkspaceScope } from '../types';
+} from '../graphql/catalog-channels.js';
+import { requireData, run } from '../transport/errors.js';
+import type { Money } from '../types.js';
+import { contextForScope, type RequestContext, type WorkspaceScope } from '../types.js';
 
 /** Which junction a filter group came from. Presentation only — both kinds filter identically. */
 export type FilterKind = 'DIMENSION' | 'ATTRIBUTE';
@@ -244,10 +244,16 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
      * For pricing rows a site stores itself — its own product pages, a saved basket — without pulling
      * the whole catalogue to price a handful of items. Anything the storefront may not sell is simply
      * absent from the result rather than erroring, so a stale local row resolves to "no longer sold".
+     *
+     * `filters` narrows that set further, with the same selections `listings` takes and the same
+     * predicate behind them on core. It is what a band of filter tabs over a *curated* list needs —
+     * "which of these bestsellers are ready to cook" — and the only way to ask it: filtering the
+     * answer here instead would mean deciding what a dimension or an attribute means in a
+     * storefront, which is core's to know.
      */
     async listingsByCodes(
       codes: string[],
-      options: { scope?: WorkspaceScope; cacheSeconds?: number } = {},
+      options: { scope?: WorkspaceScope; cacheSeconds?: number; filters?: ListingFilterSelection[] } = {},
     ): Promise<CatalogListing[]> {
       if (codes.length === 0) return [];
       const scope = options.scope ?? 'org';
@@ -256,7 +262,7 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
         requestContext: contextForScope(context, scope),
         ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
       };
-      const variables = { codes, currencyCode: currencyCode() };
+      const variables = { codes, currencyCode: currencyCode(), filters: options.filters };
       return run(async () => {
         if (scope === 'site') {
           const r = await client.query({

@@ -1,5 +1,5 @@
 import { CombinedGraphQLErrors, ServerError } from '@apollo/client/errors';
-import { VapError } from '../errors';
+import { VapError } from '../errors.js';
 
 /**
  * Runs an Apollo operation and rethrows its failures as `VapError`.

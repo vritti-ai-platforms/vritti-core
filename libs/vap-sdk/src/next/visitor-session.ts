@@ -3,7 +3,7 @@ import { getSdk, type PayloadLike } from '@vritti/vap-sdk/payload';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 import { resolvePayload } from './payload-adapter.js';
-import { pointerSid, VISITOR_COOKIE, VISITOR_TTL_SECONDS } from './visitor-pointer.js';
+import { pointerSecret, pointerSid, VISITOR_COOKIE, VISITOR_TTL_SECONDS } from './visitor-pointer.js';
 
 /** Where a visitor is shopping. Every core read that prices anything is made in one of these. */
 export type Workspace = {
@@ -35,7 +35,7 @@ export function scopeOf(workspace: Pick<Workspace, 'siteId'>): 'site' | 'le' {
  */
 export const resolveWorkspace = cache(async (): Promise<Workspace> => {
   const payload = await resolvePayload();
-  const sid = await pointerSid((await cookies()).get(VISITOR_COOKIE)?.value, payload.secret);
+  const sid = await pointerSid((await cookies()).get(VISITOR_COOKIE)?.value, pointerSecret());
   if (!sid) return seededWorkspace(payload);
 
   const { docs } = await payload.find({
@@ -175,7 +175,7 @@ export function visitorSessionExpiry(): string {
 export async function linkVisitorSession(payload: PayloadLike, partyId: string | null): Promise<void> {
   if (!partyId) return;
 
-  const sid = await pointerSid((await cookies()).get(VISITOR_COOKIE)?.value, payload.secret);
+  const sid = await pointerSid((await cookies()).get(VISITOR_COOKIE)?.value, pointerSecret());
   if (!sid) return;
 
   const { docs } = await payload.find({
@@ -204,7 +204,7 @@ export async function linkVisitorSession(payload: PayloadLike, partyId: string |
  * a shared browser is a claim about somebody who has left.
  */
 export async function unlinkVisitorSession(payload: PayloadLike): Promise<void> {
-  const sid = await pointerSid((await cookies()).get(VISITOR_COOKIE)?.value, payload.secret);
+  const sid = await pointerSid((await cookies()).get(VISITOR_COOKIE)?.value, pointerSecret());
   if (!sid) return;
 
   const { docs } = await payload.find({

@@ -1,7 +1,7 @@
 import type { ApolloClient } from '@apollo/client';
-import { APP_LEGAL_ENTITIES_QUERY, APP_SITES_QUERY } from '../graphql/structure';
-import { requireData, run } from '../transport/errors';
-import { type RequestContext, withoutWorkspace } from '../types';
+import { APP_LEGAL_ENTITIES_QUERY, APP_SITES_QUERY } from '../graphql/structure.js';
+import { requireData, run } from '../transport/errors.js';
+import { type RequestContext, withoutWorkspace } from '../types.js';
 
 /** How long a store list stays good for. Staff add outlets rarely; a stale minute costs nothing. */
 const DEFAULT_STRUCTURE_CACHE_SECONDS = 300;

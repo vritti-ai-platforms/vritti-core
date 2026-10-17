@@ -1,8 +1,8 @@
 import { ApolloClient, ApolloLink, InMemoryCache } from '@apollo/client';
 import { SetContextLink } from '@apollo/client/link/context';
 import { HttpLink } from '@apollo/client/link/http';
-import type { RequestContext } from '../types';
-import { LEGAL_ENTITY_ID_HEADER, PARTY_ID_HEADER, SITE_ID_HEADER } from './headers';
+import type { RequestContext } from '../types.js';
+import { LEGAL_ENTITY_ID_HEADER, PARTY_ID_HEADER, SITE_ID_HEADER } from './headers.js';
 
 export interface VapClientOptions {
   endpoint: string;

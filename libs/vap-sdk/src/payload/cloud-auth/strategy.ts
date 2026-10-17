@@ -1,6 +1,6 @@
-import { fetchMemberStatus } from './client';
-import { resolveCloudAuthCredentials } from './config';
-import type { MirroredUser, PayloadInstance, VrittiCloudAuthOptions } from './types';
+import { fetchMemberStatus } from './client.js';
+import { resolveCloudAuthCredentials } from './config.js';
+import type { MirroredUser, PayloadInstance, VrittiCloudAuthOptions } from './types.js';
 
 // The strategy that authenticates every admin request — and the point where a revoked membership takes effect.
 export function buildAuthStrategy(options: VrittiCloudAuthOptions, collection: string) {

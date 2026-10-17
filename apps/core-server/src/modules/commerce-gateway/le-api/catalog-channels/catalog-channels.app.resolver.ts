@@ -66,8 +66,11 @@ export class LeCatalogChannelsAppResolver {
     @AppId() appId: string,
     @Args({ name: 'codes', type: () => [String] }) codes: string[],
     @Args({ name: 'currencyCode', type: () => String }) currencyCode: string,
+    // The same selections `catalogListings` takes, so a caller can ask which of the codes it holds
+    // carry a value — a bestsellers band with filter tabs is exactly that question.
+    @Args({ name: 'filters', type: () => [FilterInput], nullable: true }) filters?: FilterInput[],
   ): Promise<CatalogListing[]> {
     this.logger.log(`QUERY leCatalogListingsByCodes — ${codes.length} codes`);
-    return this.service.appListingsByCodes(appId, codes, currencyCode);
+    return this.service.appListingsByCodes(appId, codes, currencyCode, filters ?? []);
   }
 }

@@ -1,6 +1,6 @@
 import { generateKeyPairSync, type KeyObject, sign } from 'node:crypto';
 import { describe, expect, it } from '@jest/globals';
-import { VapWebhookError, type VapWebhookErrorReason, verifyVapWebhook } from './webhooks';
+import { VapWebhookError, type VapWebhookErrorReason, verifyVapWebhook } from './webhooks.js';
 
 function keyPair() {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');

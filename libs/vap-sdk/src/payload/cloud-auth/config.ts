@@ -1,4 +1,4 @@
-import { VapError } from '../../core/errors';
+import { VapError } from '../../core/errors.js';
 
 /**
  * The variable names a host conventionally reads these from — cloud seals exactly this set into a

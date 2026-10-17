@@ -1,8 +1,8 @@
-import type { OtpFlowData, OtpMessages, OtpStep } from '../core/flows/auth';
-import type { OtpChannel } from '../core/types';
-import { open, type SealedState, seal, sealedExpiry } from '../server/sealed-cookie';
-import { getSdk, type PayloadLike } from './runtime';
-import { issueSessionToken } from './session-token';
+import type { OtpFlowData, OtpMessages, OtpStep } from '../core/flows/auth.js';
+import type { OtpChannel } from '../core/types.js';
+import { open, type SealedState, seal, sealedExpiry } from '../server/sealed-cookie.js';
+import { getSdk, type PayloadLike } from './runtime.js';
+import { issueSessionToken } from './session-token.js';
 
 /** The flow state as it is parked: the shape from `core/flows/auth` plus its own expiry. */
 export interface SealedOtpFlow extends OtpFlowData, SealedState {}

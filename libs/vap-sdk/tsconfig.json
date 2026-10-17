@@ -3,11 +3,11 @@
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
     "types": ["node"],
-    // Node16 rather than the classic "Node" resolution commerce-permissions
-    // uses: this package imports `@vritti/api-sdk/signing`, and only the newer
-    // algorithms read a package's `exports` map. With no "type": "module" in
-    // package.json the emit is still CommonJS, and api-sdk publishes a
-    // `require` condition for every subpath.
+    // Node16 rather than the classic "Node" resolution: this package imports
+    // `@vritti/api-sdk/signing`, and only the newer algorithms read a package's
+    // `exports` map. With "type": "module" in package.json the emit is ESM,
+    // which is why every relative import here carries a `.js` specifier — that
+    // is what ESM resolves, even though the file beside it is `.ts`.
     "module": "Node16",
     "moduleResolution": "Node16",
     "ignoreDeprecations": "6.0",

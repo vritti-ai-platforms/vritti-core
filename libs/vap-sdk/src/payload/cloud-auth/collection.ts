@@ -1,8 +1,8 @@
 // Reads payload types under ESM resolution, since this package emits CommonJS.
 import type { Field } from 'payload' with { 'resolution-mode': 'import' };
-import type { CollectionLike } from '../runtime';
-import { buildAuthStrategy } from './strategy';
-import type { VrittiCloudAuthOptions } from './types';
+import type { CollectionLike } from '../runtime.js';
+import { buildAuthStrategy } from './strategy.js';
+import type { VrittiCloudAuthOptions } from './types.js';
 
 // The columns that make the admin collection a mirror of cloud's membership.
 export function cloudAuthFields(): Field[] {

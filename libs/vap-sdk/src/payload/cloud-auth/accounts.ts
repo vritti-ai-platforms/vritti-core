@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto';
-import type { CloudUserInfo } from './client';
-import { fetchMemberStatus } from './client';
-import type { CloudAuthCredentials } from './config';
-import type { MirroredUser, PayloadInstance } from './types';
+import type { CloudUserInfo } from './client.js';
+import { fetchMemberStatus } from './client.js';
+import type { CloudAuthCredentials } from './config.js';
+import type { MirroredUser, PayloadInstance } from './types.js';
 
 const MEMBER_STATUS_BATCH = 500;
 

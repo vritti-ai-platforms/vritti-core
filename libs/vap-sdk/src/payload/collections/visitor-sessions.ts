@@ -2,7 +2,7 @@
 // resolution mode to read its `exports` map under. Safe precisely because it is type-only: nothing here
 // imports a runtime value from payload, so there is no CJS/ESM interop at all in the built output.
 import type { CollectionConfig, Field } from 'payload' with { 'resolution-mode': 'import' };
-import type { CollectionLike } from '../runtime';
+import type { CollectionLike } from '../runtime.js';
 
 /** The table Payload derives from the slug — hyphens become underscores. */
 export const VISITOR_SESSIONS_SLUG = 'visitor-sessions';

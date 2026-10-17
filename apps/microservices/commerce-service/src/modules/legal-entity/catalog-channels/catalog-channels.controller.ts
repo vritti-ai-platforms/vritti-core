@@ -9,7 +9,10 @@ import type {
   StorefrontListingsDto,
 } from '@domain/catalog-channels/dto/entity/storefront-listing.dto';
 import type { CatalogListingDetailDto } from '@domain/catalog-channels/dto/entity/variant-axis.dto';
-import type { ListingQueryDto } from '@domain/catalog-channels/dto/request/listing-query.dto';
+import type {
+  ListingFilterSelectionDto,
+  ListingQueryDto,
+} from '@domain/catalog-channels/dto/request/listing-query.dto';
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -67,10 +70,10 @@ export class LeCatalogChannelsController {
   // The same range narrowed to variants the caller already holds — a wishlist or a basket
   @MessagePattern({ cmd: 'le.catalogChannels.app.listingsByCodes' })
   appListingsByCodes(
-    @Payload() data: { appId: string; codes: string[]; currencyCode: string },
+    @Payload() data: { appId: string; codes: string[]; currencyCode: string; filters?: ListingFilterSelectionDto[] },
   ): Promise<StorefrontListingDto[]> {
     this.logger.log(`catalogChannels.app.listingsByCodes — appId: ${data.appId}`);
-    return this.service.appListingsByCodes(data.appId, data.codes, data.currencyCode);
+    return this.service.appListingsByCodes(data.appId, data.codes, data.currencyCode, data.filters ?? []);
   }
 
   @MessagePattern({ cmd: 'le.catalogChannels.delete' })

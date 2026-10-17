@@ -20,6 +20,20 @@ export const VISITOR_COOKIE = 'vap-visitor';
 /** 180 days. Long enough that a returning shopper keeps their store, short enough to lapse. */
 export const VISITOR_TTL_SECONDS = 180 * 24 * 60 * 60;
 
+/**
+ * The key the pointer is signed with: `PAYLOAD_SECRET`, raw.
+ *
+ * **Not `payload.secret`.** Payload derives that one —
+ * `createHash('sha256').update(config.secret).digest('hex').slice(0, 32)` — so a Node caller reaching
+ * for it signs with a different key than middleware, which cannot construct a Payload instance and
+ * reads the environment directly. The two then never agree: every pointer middleware mints is
+ * rejected on the server, reads fall back to the configured default without complaint, and only the
+ * first write says so. One source for both sides is what stops that.
+ */
+export function pointerSecret(): string {
+  return process.env.PAYLOAD_SECRET ?? '';
+}
+
 const encoder = new TextEncoder();
 
 function base64url(bytes: ArrayBuffer | Uint8Array): string {

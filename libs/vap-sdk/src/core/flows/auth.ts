@@ -1,10 +1,10 @@
-import type { Channel, PeopleOperations, Person } from '../domains/people';
-import { CHANNELS } from '../domains/people';
-import type { SmsOtpOperations } from '../domains/sms-otp';
-import type { WhatsappOtpOperations } from '../domains/whatsapp-otp';
-import { PartyRollbackError, VapError } from '../errors';
-import { isValidPhone, normalizePhone, toE164 } from '../phone';
-import { OTP_CHANNELS, type OtpChannel, type SendOtpResult } from '../types';
+import type { Channel, PeopleOperations, Person } from '../domains/people.js';
+import { CHANNELS } from '../domains/people.js';
+import type { SmsOtpOperations } from '../domains/sms-otp.js';
+import type { WhatsappOtpOperations } from '../domains/whatsapp-otp.js';
+import { PartyRollbackError, VapError } from '../errors.js';
+import { isValidPhone, normalizePhone, toE164 } from '../phone.js';
+import { OTP_CHANNELS, type OtpChannel, type SendOtpResult } from '../types.js';
 
 /**
  * What a signup form collects.

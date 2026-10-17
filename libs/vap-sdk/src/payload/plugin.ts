@@ -2,15 +2,15 @@
 // resolution mode to read its `exports` map under. Safe precisely because it is type-only: nothing here
 // imports a runtime value from payload, so there is no CJS/ESM interop at all in the built output.
 import type { Field } from 'payload' with { 'resolution-mode': 'import' };
-import type { VapSdkOptions } from '../core/config';
-import { createPostgresResponseCache } from '../server/cache/postgres';
-import { createVapSdk } from '../server/sdk';
-import { partyCollection } from './collections/parties';
-import { vapCacheCollection } from './collections/vap-cache';
-import { visitorSessionCollection } from './collections/visitor-sessions';
-import { VAP_NEXT_KEY, VapNextConfig } from './next-config';
-import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime';
-import { type PaymentEventHandler, paymentWebhookEndpoint } from './webhooks';
+import type { VapSdkOptions } from '../core/config.js';
+import { createPostgresResponseCache } from '../server/cache/postgres.js';
+import { createVapSdk } from '../server/sdk.js';
+import { partyCollection } from './collections/parties.js';
+import { vapCacheCollection } from './collections/vap-cache.js';
+import { visitorSessionCollection } from './collections/visitor-sessions.js';
+import { VAP_NEXT_KEY, VapNextConfig } from './next-config.js';
+import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime.js';
+import { type PaymentEventHandler, paymentWebhookEndpoint } from './webhooks.js';
 
 export interface VapOptions extends VapSdkOptions {
   /** Mirrors `s3Storage` — off leaves the config untouched, so a branch can disable it without edits. */

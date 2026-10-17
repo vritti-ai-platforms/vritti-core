@@ -2,7 +2,7 @@
 // resolution mode to read its `exports` map under. Safe precisely because it is type-only: nothing here
 // imports a runtime value from payload, so there is no CJS/ESM interop at all in the built output.
 import type { CollectionConfig, Field } from 'payload' with { 'resolution-mode': 'import' };
-import type { CollectionLike } from '../runtime';
+import type { CollectionLike } from '../runtime.js';
 
 /** True for a staff account, false for a party or an anonymous request. */
 function isStaff(user: { collection?: string } | null | undefined): boolean {

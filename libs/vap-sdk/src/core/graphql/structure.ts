@@ -1,4 +1,4 @@
-import { graphql } from '../gql';
+import { graphql } from '../gql/index.js';
 
 /**
  * The stores this storefront may sell from — the options behind a store switcher.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { CheckoutError, embeddedCheckout, RAZORPAY_EMBEDDED_CHECKOUT_URL } from './checkout';
+import { CheckoutError, embeddedCheckout, RAZORPAY_EMBEDDED_CHECKOUT_URL } from './checkout.js';
 
 const checkout = {
   gateway: 'hdfc-razorpay',

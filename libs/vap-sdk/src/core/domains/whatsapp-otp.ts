@@ -1,7 +1,7 @@
 import type { ApolloClient } from '@apollo/client';
-import { SEND_WHATSAPP_OTP, VERIFY_WHATSAPP_OTP } from '../graphql/otp';
-import { requireData, run } from '../transport/errors';
-import type { RequestContext, SendOtpResult } from '../types';
+import { SEND_WHATSAPP_OTP, VERIFY_WHATSAPP_OTP } from '../graphql/otp.js';
+import { requireData, run } from '../transport/errors.js';
+import type { RequestContext, SendOtpResult } from '../types.js';
 
 /**
  * Codes over WhatsApp — core's `whatsapp-otps` domain, and nothing else.

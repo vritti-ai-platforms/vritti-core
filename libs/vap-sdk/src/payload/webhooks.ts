@@ -1,5 +1,5 @@
 import type { Payload } from 'payload' with { 'resolution-mode': 'import' };
-import { VapWebhookError, type VapWebhookEvent, verifyVapWebhook } from '../server/webhooks';
+import { VapWebhookError, type VapWebhookEvent, verifyVapWebhook } from '../server/webhooks.js';
 
 /** Under Payload's API route — so `/api/vap/webhooks` with the default `routes.api`. */
 export const VAP_WEBHOOK_PATH = '/vap/webhooks';

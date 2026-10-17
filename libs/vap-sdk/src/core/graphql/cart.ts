@@ -1,4 +1,4 @@
-import { graphql } from '../gql';
+import { graphql } from '../gql/index.js';
 
 /**
  * The money shape every priced field uses — a currency and a major-unit **string**.

@@ -9,11 +9,17 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
  * build instead of shipping and failing inside a signup.
  *
  * `fragmentMasking` is off, matching commerce-ma — typed documents without the unmask ceremony.
+ *
+ * `emitLegacyCommonJSImports: false` makes the generated files import each other with `.js`
+ * specifiers. This package is ESM, so an extensionless `./gql` does not resolve — and these files are
+ * regenerated on every build, which means the extension has to come from here rather than from a fix
+ * applied to the output.
  */
 const config: CodegenConfig = {
   schema: '../../apps/core-server/src/schema.app.gql',
   documents: ['src/**/*.ts', '!src/core/gql/**'],
   ignoreNoDocuments: true,
+  emitLegacyCommonJSImports: false,
   generates: {
     'src/core/gql/': {
       preset: 'client',

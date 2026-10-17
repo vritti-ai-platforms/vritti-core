@@ -1,18 +1,18 @@
-import { resolveConfig, type VapSdkOptions } from '../core/config';
-import { createCartOperations } from '../core/domains/cart';
-import { createCatalogChannelsOperations } from '../core/domains/catalog-channels';
-import { createCheckoutOperations } from '../core/domains/checkout';
-import { createOfferingsOperations } from '../core/domains/offerings';
-import { createPaymentsOperations } from '../core/domains/payments';
-import { createPeopleOperations } from '../core/domains/people';
-import { createSmsOtpOperations } from '../core/domains/sms-otp';
-import { createStructureOperations } from '../core/domains/structure';
-import { createWhatsappOtpOperations } from '../core/domains/whatsapp-otp';
-import { createAuthFlows } from '../core/flows/auth';
-import { createVapClient } from '../core/transport/client';
-import { type SdkContext, withoutWorkspace } from '../core/types';
-import { createResponseCacheLink } from './cache/response-cache';
-import { createSignedFetch } from './signed-fetch';
+import { resolveConfig, type VapSdkOptions } from '../core/config.js';
+import { createCartOperations } from '../core/domains/cart.js';
+import { createCatalogChannelsOperations } from '../core/domains/catalog-channels.js';
+import { createCheckoutOperations } from '../core/domains/checkout.js';
+import { createOfferingsOperations } from '../core/domains/offerings.js';
+import { createPaymentsOperations } from '../core/domains/payments.js';
+import { createPeopleOperations } from '../core/domains/people.js';
+import { createSmsOtpOperations } from '../core/domains/sms-otp.js';
+import { createStructureOperations } from '../core/domains/structure.js';
+import { createWhatsappOtpOperations } from '../core/domains/whatsapp-otp.js';
+import { createAuthFlows } from '../core/flows/auth.js';
+import { createVapClient } from '../core/transport/client.js';
+import { type SdkContext, withoutWorkspace } from '../core/types.js';
+import { createResponseCacheLink } from './cache/response-cache.js';
+import { createSignedFetch } from './signed-fetch.js';
 
 /**
  * A client for the VAP API, authenticated with an app credential.

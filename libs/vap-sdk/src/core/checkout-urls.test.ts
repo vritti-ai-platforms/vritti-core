@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { checkoutAttemptUrl, checkoutRetryUrl, readCheckoutAttempt, readCheckoutRetry } from './checkout-urls';
+import { checkoutAttemptUrl, checkoutRetryUrl, readCheckoutAttempt, readCheckoutRetry } from './checkout-urls.js';
 
 const INTENT = '0199aa00-0000-7000-8000-000000000001';
 const KEY = '0199aa00-0000-7000-8000-0000000000ff';

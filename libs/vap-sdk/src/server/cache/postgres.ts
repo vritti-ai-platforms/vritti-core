@@ -1,4 +1,4 @@
-import type { ResponseCacheStore } from '../../core/transport/response-cache-store';
+import type { ResponseCacheStore } from '../../core/transport/response-cache-store.js';
 
 /** The table both this store and the Payload collection that declares it address. */
 export const VAP_CACHE_TABLE = 'vap_cache';

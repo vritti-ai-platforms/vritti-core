@@ -110,9 +110,19 @@ export class LeCatalogChannelsGatewayService {
     return this.nats.send('commerce', 'le.catalogChannels.app.currencies', { appId });
   }
 
-  async appListingsByCodes(appId: string, codes: string[], currencyCode: string): Promise<CatalogListing[]> {
+  async appListingsByCodes(
+    appId: string,
+    codes: string[],
+    currencyCode: string,
+    filters: FilterInput[] = [],
+  ): Promise<CatalogListing[]> {
     this.logger.log(`le.catalogChannels.app.listingsByCodes — ${codes.length} codes`);
-    return this.nats.send('commerce', 'le.catalogChannels.app.listingsByCodes', { appId, codes, currencyCode });
+    return this.nats.send('commerce', 'le.catalogChannels.app.listingsByCodes', {
+      appId,
+      codes,
+      currencyCode,
+      filters,
+    });
   }
 
   async upsertApp(dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {

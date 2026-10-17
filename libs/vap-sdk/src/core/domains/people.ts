@@ -1,5 +1,5 @@
 import type { ApolloClient } from '@apollo/client';
-import { VapError } from '../errors';
+import { VapError } from '../errors.js';
 import {
   ADD_PARTY_ADDRESS,
   ADD_PERSON_COMMUNICATION,
@@ -14,9 +14,9 @@ import {
   UPDATE_PARTY_PROFILE,
   WISHLIST_CODES_QUERY,
   WISHLIST_QUERY,
-} from '../graphql/people';
-import { requireData, run } from '../transport/errors';
-import { type Money, type RequestContext, withoutWorkspace } from '../types';
+} from '../graphql/people.js';
+import { requireData, run } from '../transport/errors.js';
+import { type Money, type RequestContext, withoutWorkspace } from '../types.js';
 
 /** The channels core recognises. `WEB_APP` is a reference, not a contact method. */
 export const CHANNELS = {
