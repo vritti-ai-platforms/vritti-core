@@ -89,6 +89,17 @@ jobs:
       package_json_path: apps/microservices/communications-service/package.json
     secrets: inherit
 
+  payments-service:
+    needs: affected
+    if: contains(fromJSON(needs.affected.outputs.projects), 'payments-service')
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-backend-image.yml@main
+    with:
+      service_name: payments-service
+      dockerfile_path: apps/microservices/payments-service/Dockerfile
+      build_context: .
+      package_json_path: apps/microservices/payments-service/package.json
+    secrets: inherit
+
   core-web:
     needs: affected
     if: contains(fromJSON(needs.affected.outputs.projects), 'vritti-core-web')
