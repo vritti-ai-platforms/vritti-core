@@ -17,25 +17,25 @@ export class WishlistController {
   @MessagePattern({ cmd: 'org.wishlist.list' })
   list(@Payload() dto: WishlistScopeDto): Promise<WishlistItemDto[]> {
     this.logger.log(`wishlist.list — party: ${dto.partyId}`);
-    return this.service.list(dto.appId, dto.partyId, dto.currencyCode, dto.siteId);
+    return this.service.list(dto.appId, dto.partyId, dto.currencyCode);
   }
 
-  // Which products the shopper has saved — ids only, for a product page's Saved state
-  @MessagePattern({ cmd: 'org.wishlist.variantIds' })
-  variantIds(@Payload() data: { appId: string; partyId: string }): Promise<string[]> {
-    this.logger.log(`org.wishlist.variantIds — party: ${data.partyId}`);
-    return this.service.findVariantIds(data.appId, data.partyId);
+  // Which products the shopper has saved — codes only, for a product page's Saved state
+  @MessagePattern({ cmd: 'org.wishlist.codes' })
+  codes(@Payload() data: { appId: string; partyId: string }): Promise<string[]> {
+    this.logger.log(`org.wishlist.codes — party: ${data.partyId}`);
+    return this.service.findCodes(data.appId, data.partyId);
   }
 
   @MessagePattern({ cmd: 'org.wishlist.add' })
   add(@Payload() dto: AddWishlistItemDto): Promise<WishlistAddResultDto> {
-    this.logger.log(`wishlist.add — party: ${dto.partyId}, variant: ${dto.offeringVariantId}`);
+    this.logger.log(`wishlist.add — party: ${dto.partyId}, code: ${dto.code}`);
     return this.service.add(dto);
   }
 
   @MessagePattern({ cmd: 'org.wishlist.remove' })
   remove(@Payload() dto: RemoveWishlistItemDto): Promise<WishlistItemDto[]> {
-    this.logger.log(`wishlist.remove — party: ${dto.partyId}, variant: ${dto.offeringVariantId}`);
-    return this.service.remove(dto.appId, dto.partyId, dto.offeringVariantId, dto.currencyCode, dto.siteId);
+    this.logger.log(`wishlist.remove — party: ${dto.partyId}, code: ${dto.code}`);
+    return this.service.remove(dto.appId, dto.partyId, dto.code, dto.currencyCode);
   }
 }

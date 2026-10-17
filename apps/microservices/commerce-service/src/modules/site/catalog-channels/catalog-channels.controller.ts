@@ -1,4 +1,8 @@
-import type { ChannelItemDto, ResolvedChannelsDto } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
+import type {
+  ChannelItemDto,
+  ChannelPriceDto,
+  ResolvedChannelsDto,
+} from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
 import type { ListingFilterDto } from '@domain/catalog-channels/dto/entity/listing-filter.dto';
 import type {
   StorefrontListingDto,
@@ -24,20 +28,31 @@ export class SiteCatalogChannelsController {
     return this.service.list();
   }
 
-  // One page of what a storefront sells — the channel is resolved from the credential, not named by
+  // One page of what a storefront makes available — the channel is resolved from the credential, not named by
   // the caller. Always paged: nothing reads the whole range any more.
-  @MessagePattern({ cmd: 'site.catalogChannels.app.listings' })
-  appCatalogChannelListings(@Payload() data: { appId: string } & ListingQueryDto): Promise<StorefrontListingsDto> {
-    const { appId, ...query } = data;
-    this.logger.log(`catalogChannels.app.listings — appId: ${appId}, page: ${query.page ?? 1}`);
-    return this.service.appCatalogChannelListings(appId, query);
+  // What this storefront can price in — the switcher's options
+  @MessagePattern({ cmd: 'site.catalogChannels.app.currencies' })
+  appCurrencies(@Payload() data: { appId: string }): Promise<string[]> {
+    this.logger.log(`catalogChannels.app.currencies — appId: ${data.appId}`);
+    return this.service.appCurrencies(data.appId);
   }
 
-  // One listing by SKU, with the axes a product page switches flavour and size on
-  @MessagePattern({ cmd: 'site.catalogChannels.app.listingBySku' })
-  appListingBySku(@Payload() data: { appId: string; sku: string }): Promise<CatalogListingDetailDto | null> {
-    this.logger.log(`catalogChannels.app.listingBySku — sku: ${data.sku}`);
-    return this.service.appListingBySku(data.appId, data.sku);
+  @MessagePattern({ cmd: 'site.catalogChannels.app.listings' })
+  appCatalogChannelListings(
+    @Payload() data: { appId: string; currencyCode: string } & ListingQueryDto,
+  ): Promise<StorefrontListingsDto> {
+    const { appId, currencyCode, ...query } = data;
+    this.logger.log(`catalogChannels.app.listings — appId: ${appId}, page: ${query.page ?? 1}`);
+    return this.service.appCatalogChannelListings(appId, query, currencyCode);
+  }
+
+  // One listing by code, with the axes a product page switches flavour and size on
+  @MessagePattern({ cmd: 'site.catalogChannels.app.listingByCode' })
+  appListingByCode(
+    @Payload() data: { appId: string; code: string; currencyCode: string },
+  ): Promise<CatalogListingDetailDto | null> {
+    this.logger.log(`catalogChannels.app.listingByCode — code: ${data.code}`);
+    return this.service.appListingByCode(data.appId, data.code, data.currencyCode);
   }
 
   // The filter rail for the same resolved catalog, counted per the catalog's own filter mode
@@ -50,10 +65,12 @@ export class SiteCatalogChannelsController {
   }
 
   // The same range narrowed to variants the caller already holds — a wishlist or a basket
-  @MessagePattern({ cmd: 'site.catalogChannels.app.listingsFromVariants' })
-  appListingsFromVariants(@Payload() data: { appId: string; variantIds: string[] }): Promise<StorefrontListingDto[]> {
-    this.logger.log(`catalogChannels.app.listingsFromVariants — appId: ${data.appId}`);
-    return this.service.appListingsFromVariants(data.appId, data.variantIds);
+  @MessagePattern({ cmd: 'site.catalogChannels.app.listingsByCodes' })
+  appListingsByCodes(
+    @Payload() data: { appId: string; codes: string[]; currencyCode: string },
+  ): Promise<StorefrontListingDto[]> {
+    this.logger.log(`catalogChannels.app.listingsByCodes — appId: ${data.appId}`);
+    return this.service.appListingsByCodes(data.appId, data.codes, data.currencyCode);
   }
 
   @MessagePattern({ cmd: 'site.catalogChannels.delete' })
@@ -62,7 +79,7 @@ export class SiteCatalogChannelsController {
     return this.service.delete(data.channelId);
   }
 
-  // One channel's items, each flagged with whether that channel sells it
+  // One channel's items, each flagged with whether that channel makes it available
   @MessagePattern({ cmd: 'site.catalogChannels.items' })
   findItemsForTable(
     @Payload() data: { channelId: string; state: TableViewState },
@@ -71,11 +88,32 @@ export class SiteCatalogChannelsController {
     return this.service.findItemsForTable(data.channelId, data.state);
   }
 
+  // One channel's prices in one currency, each flagged with whether it is available there
+  @MessagePattern({ cmd: 'site.catalogChannels.prices' })
+  findPricesForTable(
+    @Payload() data: { channelId: string; currencyCode: string; state: TableViewState },
+  ): Promise<{ result: ChannelPriceDto[]; count: number }> {
+    this.logger.log(`catalogChannels.prices — channelId: ${data.channelId}, currency: ${data.currencyCode}`);
+    return this.service.findPricesForTable(data.channelId, data.currencyCode, data.state);
+  }
+
+  // The currencies this channel's catalog is priced in
+  @MessagePattern({ cmd: 'site.catalogChannels.currencies' })
+  findCurrencies(@Payload() data: { channelId: string }): Promise<string[]> {
+    this.logger.log(`catalogChannels.currencies — channelId: ${data.channelId}`);
+    return this.service.findCurrencies(data.channelId);
+  }
+
+  // A null currency withdraws the item from the channel outright; a code withdraws it from that
+  // currency only, leaving the others available
   @MessagePattern({ cmd: 'site.catalogChannels.setItemVisibility' })
   setItemVisibility(
-    @Payload() data: { channelId: string; listingId: string; sellsHere: boolean },
+    @Payload()
+    data: { channelId: string; listingId: string; availableHere: boolean; currencyCode?: string | null },
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`catalogChannels.setItemVisibility — listingId: ${data.listingId}`);
-    return this.service.setItemVisibility(data.channelId, data.listingId, data.sellsHere);
+    this.logger.log(
+      `catalogChannels.setItemVisibility — listingId: ${data.listingId}, currency: ${data.currencyCode ?? 'all'}`,
+    );
+    return this.service.setItemVisibility(data.channelId, data.listingId, data.availableHere, data.currencyCode);
   }
 }

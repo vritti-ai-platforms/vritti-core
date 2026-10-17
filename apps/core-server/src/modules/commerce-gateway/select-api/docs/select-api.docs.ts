@@ -144,7 +144,7 @@ export function ApiOfferingVariantsSelect() {
     ApiOperation({
       summary: 'Offering variant options',
       description:
-        'Variants of one offering, keyed by SKU. Scoped by offeringId — a SKU only means anything next to its siblings.',
+        'Variants of one offering, keyed by code. Scoped by offeringId — a code only means anything next to its siblings.',
     }),
     ApiResponse({ status: 200, description: 'Variant options.' }),
   );

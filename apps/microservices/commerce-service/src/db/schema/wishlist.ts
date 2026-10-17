@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { foreignKey, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { offeringVariants } from './offering-variants';
 import { parties } from './parties';
@@ -14,20 +14,20 @@ export const wishlistItems = commerceSchema.table(
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
-    offeringVariantId: uuid('offering_variant_id')
-      .notNull()
-      .references(() => offeringVariants.id, { onDelete: 'cascade' }),
+    // The variant by its code — see the composite key below
+    code: varchar('code', { length: 200 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     // Saving twice saves the same thing. The insert takes this as its idempotency key rather
     // than reading first, so two taps in quick succession cannot make two rows.
-    unique('uq_wishlist_items_party_variant').on(
-      table.organizationId,
-      table.appId,
-      table.partyId,
-      table.offeringVariantId,
-    ),
+    unique('uq_wishlist_items_party_variant').on(table.organizationId, table.appId, table.partyId, table.code),
+    // A code is unique per organization, never globally, so the reference carries both columns
+    foreignKey({
+      columns: [table.organizationId, table.code],
+      foreignColumns: [offeringVariants.organizationId, offeringVariants.code],
+      name: 'fk_wishlist_items_variant_code',
+    }).onDelete('cascade'),
     // The list query: one shopper's wishlist in one storefront, newest first.
     index('idx_wishlist_items_party').on(table.organizationId, table.appId, table.partyId, table.createdAt),
     pgPolicy('org_isolation', {

@@ -18,6 +18,8 @@ import {
 import type {
   ChannelItemResponseDto,
   ChannelItemTableResponseDto,
+  ChannelPriceResponseDto,
+  ChannelPriceTableResponseDto,
 } from '@commerce/catalog-channels/dto/response/channel-item-response.dto';
 import { AppDomainRepository } from '@domain/app/repositories/app.repository';
 import { Injectable, Logger } from '@nestjs/common';
@@ -35,6 +37,7 @@ import type {
 } from '../../../org-api/catalog-channels/graphql/catalog-listings.type';
 
 const ITEMS_TABLE_SLUG = (channelId: string) => `commerce-le-channel-${channelId}-items`;
+const PRICES_TABLE_SLUG = (channelId: string) => `commerce-le-channel-${channelId}-prices`;
 
 @Injectable()
 export class LeCatalogChannelsGatewayService {
@@ -78,20 +81,20 @@ export class LeCatalogChannelsGatewayService {
 
   // The storefront's range — one call, because commerce resolves the channel and joins the prices
   // The page plus what the lazy `filters` field will need, so the channel resolves once per request
-  async appCatalogChannelListings(appId: string, query: ListingQuery): Promise<CatalogListings> {
+  async appCatalogChannelListings(appId: string, query: ListingQuery, currencyCode: string): Promise<CatalogListings> {
     this.logger.log(`le.catalogChannels.app.listings — page: ${query.page ?? 1}`);
     const page = await this.nats.send<Omit<CatalogListings, 'filters' | 'appId' | 'selected' | 'scope'>>(
       'commerce',
       'le.catalogChannels.app.listings',
-      { appId, ...query },
+      { appId, currencyCode, ...query },
     );
     return { ...page, filters: [], appId, selected: query.filters ?? [], scope: 'le' };
   }
 
-  // One listing by SKU, with the variant axes a product page switches on
-  async appListingBySku(appId: string, sku: string): Promise<CatalogListingDetail | null> {
-    this.logger.log(`le.catalogChannels.app.listingBySku — sku: ${sku}`);
-    return this.nats.send('commerce', 'le.catalogChannels.app.listingBySku', { appId, sku });
+  // One listing by code, with the variant axes a product page switches on
+  async appListingByCode(appId: string, code: string, currencyCode: string): Promise<CatalogListingDetail | null> {
+    this.logger.log(`le.catalogChannels.app.listingByCode — code: ${code}`);
+    return this.nats.send('commerce', 'le.catalogChannels.app.listingByCode', { appId, code, currencyCode });
   }
 
   // Only sent when the client selected the `filters` field — see CatalogListingsFieldsResolver
@@ -101,9 +104,15 @@ export class LeCatalogChannelsGatewayService {
   }
 
   // Prices variants the caller already holds — a wishlist or a basket
-  async appListingsFromVariants(appId: string, variantIds: string[]): Promise<CatalogListing[]> {
-    this.logger.log(`le.catalogChannels.app.listingsFromVariants — ${variantIds.length} variants`);
-    return this.nats.send('commerce', 'le.catalogChannels.app.listingsFromVariants', { appId, variantIds });
+  // The currencies this storefront's catalog carries — what its switcher may offer
+  async appCurrencies(appId: string): Promise<string[]> {
+    this.logger.log(`le.catalogChannels.app.currencies — appId: ${appId}`);
+    return this.nats.send('commerce', 'le.catalogChannels.app.currencies', { appId });
+  }
+
+  async appListingsByCodes(appId: string, codes: string[], currencyCode: string): Promise<CatalogListing[]> {
+    this.logger.log(`le.catalogChannels.app.listingsByCodes — ${codes.length} codes`);
+    return this.nats.send('commerce', 'le.catalogChannels.app.listingsByCodes', { appId, codes, currencyCode });
   }
 
   async upsertApp(dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
@@ -141,16 +150,68 @@ export class LeCatalogChannelsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  async setItemVisibility(channelId: string, listingId: string, sellsHere: boolean): Promise<SuccessResponseDto> {
-    this.logger.log(`le.catalogChannels.setItemVisibility — listingId: ${listingId}`);
+  async findCurrencies(channelId: string): Promise<string[]> {
+    this.logger.log(`le.catalogChannels.currencies — channelId: ${channelId}`);
+    return this.nats.send('commerce', 'le.catalogChannels.currencies', { channelId });
+  }
+
+  // One currency's prices for this channel. Shares one saved view across currencies — same columns.
+  async findPricesForTable(
+    orgId: string,
+    userId: string,
+    channelId: string,
+    currencyCode: string,
+  ): Promise<ChannelPriceTableResponseDto> {
+    this.logger.log(`le.catalogChannels.prices — channelId: ${channelId}, currency: ${currencyCode}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      PRICES_TABLE_SLUG(channelId),
+    );
+    const { result, count } = await this.nats.send<{ result: ChannelPriceResponseDto[]; count: number }>(
+      'commerce',
+      'le.catalogChannels.prices',
+      { channelId, currencyCode, state },
+    );
+    // commerce stores only the owning ids; the names live in core
+    return { result: await this.namePriceOwners(orgId, result), count, state, activeViewId };
+  }
+
+  async setItemVisibility(
+    channelId: string,
+    listingId: string,
+    availableHere: boolean,
+    currencyCode?: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `le.catalogChannels.setItemVisibility — listingId: ${listingId}, currency: ${currencyCode ?? 'all'}`,
+    );
     return this.nats.send('commerce', 'le.catalogChannels.setItemVisibility', {
       channelId,
       listingId,
-      sellsHere,
+      availableHere,
+      currencyCode: currencyCode ?? null,
     });
   }
 
-  // Every app or terminal that exists, each carrying what it will sell
+  // A price carries the workspace that set it, so an inherited one can say whose it is
+  private async namePriceOwners(orgId: string, rows: ChannelPriceResponseDto[]): Promise<ChannelPriceResponseDto[]> {
+    const priced = rows.filter((row) => row.priceOwnerScope !== null);
+    if (priced.length === 0) return rows.map((row) => ({ ...row, priceOwnerName: null }));
+
+    const named = await this.ownerNames.resolve(
+      orgId,
+      priced.map((row) => ({
+        ownerScope: row.priceOwnerScope as string,
+        legalEntityId: row.priceLegalEntityId,
+        siteId: row.priceSiteId,
+        listingId: row.listingId,
+      })),
+    );
+    const byListing = new Map(named.map((row) => [row.listingId, row.ownerName]));
+    return rows.map((row) => ({ ...row, priceOwnerName: byListing.get(row.listingId) ?? null }));
+  }
+
+  // Every app or terminal that exists, each carrying what it will offer
   private buildTargets(
     slots: Record<string, ChannelCatalogResponseDto>,
     defaultCatalog: ChannelCatalogResponseDto | null,

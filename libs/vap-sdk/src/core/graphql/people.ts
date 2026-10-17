@@ -69,9 +69,8 @@ export const WishlistItemFieldsFragment = graphql(`
   fragment WishlistItemFields on WishlistItem {
     id
     catalogListingId
-    offeringVariantId
     name
-    sku
+    code
     isAvailable
     createdAt
     price {
@@ -114,9 +113,9 @@ export const REMOVE_FROM_WISHLIST = graphql(`
 `);
 
 /** Which products the party has saved — ids only, for a product page's "Saved" state. */
-export const WISHLIST_VARIANT_IDS_QUERY = graphql(`
-  query WishlistVariantIds {
-    wishlistVariantIds
+export const WISHLIST_CODES_QUERY = graphql(`
+  query WishlistCodes {
+    wishlistCodes
   }
 `);
 

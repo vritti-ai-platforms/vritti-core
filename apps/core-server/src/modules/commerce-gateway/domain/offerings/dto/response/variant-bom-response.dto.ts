@@ -12,7 +12,7 @@ export class VariantBomResponseDto {
   @ApiPropertyOptional({
     type: VariantBomSuggestionResponseDto,
     nullable: true,
-    description: 'The inventory item already carrying this variant SKU, if one exists',
+    description: 'The inventory item already carrying this variant Code, if one exists',
   })
   suggestion: VariantBomSuggestionResponseDto | null;
 }

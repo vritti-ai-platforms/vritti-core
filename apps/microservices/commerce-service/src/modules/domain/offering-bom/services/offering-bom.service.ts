@@ -18,19 +18,19 @@ import { type BomVariantRef, OfferingBomDomainRepository } from '../repositories
 export class OfferingBomDomainService {
   constructor(private readonly repository: OfferingBomDomainRepository) {}
 
-  // A variant's components plus the inventory item already carrying its SKU. Both only matter to the
+  // A variant's components plus the inventory item already carrying its code. Both only matter to the
   // bill-of-materials view, so neither rides on the variant read.
   async findByVariant(variantId: string): Promise<VariantBomDto> {
     const variant = await this.requireReachableVariant(variantId);
     const [lines, suggestion] = await Promise.all([
       this.repository.findLines([variantId]) as Promise<OfferingBomLineDto[]>,
-      this.repository.findInventoryItemBySku(variant.sku),
+      this.repository.findInventoryItemBySku(variant.code),
     ]);
     return VariantBomDto.from(lines, suggestion ?? null);
   }
 
-  // Whether an inventory item already carries this SKU. The create-item path asks before minting one,
-  // because the SKU is the only thing linking a variant to its stocked counterpart.
+  // Whether an inventory item already carries this code. The create-item path asks before minting one,
+  // because the code is the only thing linking a variant to its stocked counterpart.
   async findItemBySku(sku: string): Promise<{ id: string; name: string } | null> {
     const item = await this.repository.findInventoryItemBySku(sku);
     return item ? { id: item.id, name: item.name } : null;
@@ -44,19 +44,19 @@ export class OfferingBomDomainService {
     if ((await this.repository.countLines(data.variantId)) >= rule.max) {
       throw new ConflictException({
         label: 'Too Many Components',
-        detail: `"${variant.sku}" already holds ${pluralize('component', rule.max, true)}, which is all its fulfilment type allows. Edit or remove one instead.`,
+        detail: `"${variant.code}" already holds ${pluralize('component', rule.max, true)}, which is all its fulfilment type allows. Edit or remove one instead.`,
       });
     }
 
-    await this.insertLineOrConflict(data, variant.sku);
-    return { success: true, message: `Component added to "${variant.sku}".` };
+    await this.insertLineOrConflict(data, variant.code);
+    return { success: true, message: `Component added to "${variant.code}".` };
   }
 
   // Re-quantifies a line, or moves it to a different unit of the same item
   async updateLine(data: UpdateBomLineDto): Promise<SuccessResponseDto> {
     const { line, variant } = await this.requireOwnedLine(data.id);
     await this.repository.updateLine(line.id, { quantity: data.quantity, uomId: data.uomId });
-    return { success: true, message: `Component updated on "${variant.sku}".` };
+    return { success: true, message: `Component updated on "${variant.code}".` };
   }
 
   // Removes one component, deactivating the variant if that drops it below its type's minimum
@@ -74,7 +74,7 @@ export class OfferingBomDomainService {
 
     return {
       success: true,
-      message: `Component removed from "${variant.sku}".${willDeactivate ? ' It was deactivated because it no longer has enough to sell.' : ''}`,
+      message: `Component removed from "${variant.code}".${willDeactivate ? ' It was deactivated because it no longer has enough behind it.' : ''}`,
     };
   }
 
@@ -105,27 +105,27 @@ export class OfferingBomDomainService {
           sortOrder: index,
         })),
       );
-      // A variant that no longer meets its type's rule cannot stay sellable
+      // A variant that no longer meets its type's rule cannot stay available
       if (deactivated) await this.repository.setVariantInactive(data.variantId);
     });
 
     return {
       success: true,
-      message: `"${variant.sku}" now has ${pluralize('component', deduped.size, true)}.${deactivated ? ' It was deactivated because it no longer has enough to sell.' : ''}`,
+      message: `"${variant.code}" now has ${pluralize('component', deduped.size, true)}.${deactivated ? ' It was deactivated because it no longer has enough behind it.' : ''}`,
     };
   }
 
-  // Links the inventory item already carrying this variant's SKU, at quantity 1 in that item's own
+  // Links the inventory item already carrying this variant's code, at quantity 1 in that item's own
   // stocking unit. The suggestion is resolved server-side, so the caller names no item and cannot
   // pass this off as a way to link something arbitrary under a narrower grant.
   async addSuggested(variantId: string): Promise<SuccessResponseDto> {
     const variant = await this.requireOwnedVariant(variantId);
 
-    const suggestion = await this.repository.findInventoryItemBySku(variant.sku);
+    const suggestion = await this.repository.findInventoryItemBySku(variant.code);
     if (!suggestion) {
       throw new ConflictException({
         label: 'No Suggestion',
-        detail: `No inventory item carries the SKU "${variant.sku}", so there is nothing to link.`,
+        detail: `No inventory item carries the code "${variant.code}", so there is nothing to link.`,
       });
     }
 
@@ -133,7 +133,7 @@ export class OfferingBomDomainService {
     if (lines.some((line) => line.inventoryItemId === suggestion.id)) {
       throw new ConflictException({
         label: 'Already Linked',
-        detail: `"${suggestion.name}" is already a component of "${variant.sku}".`,
+        detail: `"${suggestion.name}" is already a component of "${variant.code}".`,
       });
     }
 
@@ -151,7 +151,7 @@ export class OfferingBomDomainService {
   }
 
   // (item, uom) is unique per variant, so the same item may appear twice only in different units
-  private async insertLineOrConflict(data: AddBomLineDto, sku: string): Promise<void> {
+  private async insertLineOrConflict(data: AddBomLineDto, code: string): Promise<void> {
     try {
       await this.repository.insertLine({
         variantId: data.variantId,
@@ -165,7 +165,7 @@ export class OfferingBomDomainService {
       if (candidate?.code === '23505') {
         throw new ConflictException({
           label: 'Already A Component',
-          detail: `"${sku}" already draws on that item in that unit. Edit the existing line instead.`,
+          detail: `"${code}" already draws on that item in that unit. Edit the existing line instead.`,
         });
       }
       throw error;

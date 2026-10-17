@@ -10,6 +10,7 @@ import {
   type CatalogChannelRow,
   ChannelCatalogDto,
   ChannelItemDto,
+  ChannelPriceDto,
   DEFAULT_SLOT,
   type ResolvedChannelsDto,
 } from '../dto/entity/catalog-channel.dto';
@@ -34,13 +35,13 @@ export class CatalogChannelsDomainService {
   private readonly logger = new Logger(CatalogChannelsDomainService.name);
 
   private static readonly ITEM_FIELD_MAP: FieldMap = {
-    sku: { column: offeringVariants.sku, type: 'string' },
+    code: { column: offeringVariants.code, type: 'string' },
     variantName: { column: offeringVariants.name, type: 'string' },
   };
 
   constructor(private readonly repository: CatalogChannelsDomainRepository) {}
 
-  // Returns paginated items of one channel, each flagged with whether that channel sells it
+  // Returns paginated items of one channel, each flagged with whether that channel makes it available
   async findItemsForTable(
     channelId: string,
     state: TableViewState,
@@ -55,11 +56,40 @@ export class CatalogChannelsDomainService {
 
     const { result, count } = await this.repository.findItemsForChannel(channel.catalogId, channelId, {
       where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.sku)],
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
       limit,
       offset,
     });
     return { result: result.map((row) => ChannelItemDto.from(row)), count };
+  }
+
+  // What this channel charges in one currency, and whether it is available there
+  async findPricesForTable(
+    channelId: string,
+    currencyCode: string,
+    state: TableViewState,
+  ): Promise<{ result: ChannelPriceDto[]; count: number }> {
+    const channel = await this.requireChannel(channelId);
+    const where = and(
+      FilterProcessor.buildWhere(state.filters, CatalogChannelsDomainService.ITEM_FIELD_MAP),
+      FilterProcessor.buildSearch(state.search, CatalogChannelsDomainService.ITEM_FIELD_MAP),
+    );
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, CatalogChannelsDomainService.ITEM_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findPricesForChannel(channel.catalogId, channelId, currencyCode, {
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => ChannelPriceDto.from(row)), count };
+  }
+
+  // The currencies this channel's catalog is priced in — the tabs the Prices view offers
+  async findCurrencies(channelId: string): Promise<string[]> {
+    const channel = await this.requireChannel(channelId);
+    return this.repository.findCatalogCurrencies(channel.catalogId);
   }
 
   // Which catalog every configured slot resolves to, keyed for lookup
@@ -77,7 +107,7 @@ export class CatalogChannelsDomainService {
       .value();
   }
 
-  // Sells a catalog through an app, or through every unnamed caller when appId is absent
+  // Makes a catalog available through an app, or through every unnamed caller when appId is absent
   upsertApp(data: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
     return this.upsertChannel({
       type: CatalogChannelTypeValues.APP,
@@ -87,7 +117,7 @@ export class CatalogChannelsDomainService {
     });
   }
 
-  // Sells a catalog at one terminal, or at every terminal in reach when terminalId is absent
+  // Makes a catalog available at one terminal, or at every terminal in reach when terminalId is absent
   upsertPos(data: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
     return this.upsertChannel({
       type: CatalogChannelTypeValues.POS,
@@ -97,7 +127,7 @@ export class CatalogChannelsDomainService {
     });
   }
 
-  // Sells a catalog to wholesale buyers — through one wholesale site, or every unnamed caller
+  // Makes a catalog available to wholesale buyers — through one wholesale site, or every unnamed caller
   upsertB2b(data: UpsertB2bChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
     return this.upsertChannel({
       type: CatalogChannelTypeValues.B2B,
@@ -112,57 +142,83 @@ export class CatalogChannelsDomainService {
     const channel = await this.requireChannel(id, { owned: true });
     await this.repository.delete(id);
     this.logger.log(`Deleted ${channel.type} channel ${id}`);
-    return { success: true, message: 'Channel removed.' };
+    return { success: true, message: `${channel.type} channel removed from "${channel.catalogName}".` };
   }
 
-  // Excludes or re-includes one item on one channel
-  async setItemVisibility(channelId: string, listingId: string, sellsHere: boolean): Promise<SuccessResponseDto> {
+  // Excludes or re-includes one item on one channel, either outright or in one currency only
+  async setItemVisibility(
+    channelId: string,
+    listingId: string,
+    availableHere: boolean,
+    currencyCode?: string | null,
+  ): Promise<SuccessResponseDto> {
     const channel = await this.requireChannel(channelId, { owned: true });
     const listing = await this.repository.findListingInCatalog(listingId, channel.catalogId);
     if (!listing) throw new NotFoundException('That item is not in this channel’s catalog.');
 
-    if (sellsHere) {
-      await this.repository.removeExclusion(listingId, channelId);
+    const currency = currencyCode ?? null;
+    if (availableHere) {
+      await this.repository.removeExclusion(listingId, channelId, currency);
     } else {
-      await this.repository.addExclusion(listingId, channelId);
+      await this.repository.addExclusion(listingId, channelId, currency);
     }
+
+    const where = currency ? ` in ${currency}` : '';
     return {
       success: true,
-      message: sellsHere ? 'Item now sells on this channel.' : 'Item excluded from this channel.',
+      message: availableHere
+        ? `"${listing.code}" is now available on this channel${where}.`
+        : `"${listing.code}" is now excluded from this channel${where}.`,
     };
   }
 
-  // One page of what a storefront sells, through the APP channel its credential resolves to
-  async appCatalogChannelListings(appId: string, query: ListingQueryDto): Promise<StorefrontListingsDto> {
+  // What this storefront can switch between: the currencies its resolved catalog carries. Empty when
+  // the credential resolves to no channel, which a switcher renders as "no choice" rather than an error.
+  async appCurrencies(appId: string): Promise<string[]> {
+    const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
+    if (!channel) return [];
+    return this.repository.findCatalogCurrencies(channel.catalogId);
+  }
+
+  // One page of what a storefront makes available, through the APP channel its credential resolves to
+  async appCatalogChannelListings(
+    appId: string,
+    query: ListingQueryDto,
+    currencyCode: string,
+  ): Promise<StorefrontListingsDto> {
     const page = query.page ?? 1;
     const perPage = query.perPage ?? LISTINGS_PER_PAGE;
 
     const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return { items: [], total: 0, page, perPage };
 
-    const { rows, total } = await this.repository.findListings(channel, {
-      filters: query.filters ?? [],
-      page,
-      perPage,
-      sort: query.sort ?? ListingSortValues.FEATURED,
-    });
+    const { rows, total } = await this.repository.findListings(
+      channel,
+      {
+        filters: query.filters ?? [],
+        page,
+        perPage,
+        sort: query.sort ?? ListingSortValues.FEATURED,
+      },
+      currencyCode,
+    );
     return { items: rows.map((row) => StorefrontListingDto.from(row)), total, page, perPage };
   }
 
-  // One listing by SKU, with the axes a product page switches on.
+  // One listing by code, with the axes a product page switches on.
   //
-  // By SKU because that is what a storefront puts in its address bar: the SKU already names the
+  // By code because that is what a storefront puts in its address bar: the code already names the
   // offering and one value per dimension, so the URL says what the page is and needs no second
-  // lookup to be readable. Null when this shop does not sell it, which a page renders as "not
+  // lookup to be readable. Null when this shop does not offer it, which a page renders as "not
   // found" rather than guessing.
-  async appListingBySku(appId: string, sku: string): Promise<CatalogListingDetailDto | null> {
+  async appListingByCode(appId: string, code: string, currencyCode: string): Promise<CatalogListingDetailDto | null> {
     const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return null;
 
-    const row = await this.repository.findListingBySku(channel, sku);
+    const row = await this.repository.findListingByCode(channel, code, currencyCode);
     if (!row) return null;
 
-    const siblings = await this.repository.findSellableSiblings(channel, row.offeringId);
+    const siblings = await this.repository.findAvailableSiblings(channel, row.offeringId, currencyCode);
     return {
       listing: StorefrontListingDto.from(row),
       axes: buildVariantAxes(siblings, row.offeringVariantId),
@@ -170,11 +226,11 @@ export class CatalogChannelsDomainService {
   }
 
   // Prices variants the caller already holds, against the same credential's catalog
-  async appListingsFromVariants(appId: string, variantIds: string[]): Promise<StorefrontListingDto[]> {
+  async appListingsByCodes(appId: string, codes: string[], currencyCode: string): Promise<StorefrontListingDto[]> {
     const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return [];
 
-    const rows = await this.repository.findListingsByVariants(channel, variantIds);
+    const rows = await this.repository.findListingsByCodes(channel, codes, currencyCode);
     return rows.map((row) => StorefrontListingDto.from(row));
   }
 
@@ -272,7 +328,7 @@ export class CatalogChannelsDomainService {
     this.logger.log(`${owned ? 'Repointed' : 'Created'} ${target.type} channel ${entity.id}`);
     return {
       success: true,
-      message: `Now selling "${catalog.name}".`,
+      message: `Now carrying "${catalog.name}".`,
       data: CatalogChannelDto.from(await this.requireChannel(entity.id)),
     };
   }
@@ -289,13 +345,13 @@ export class CatalogChannelsDomainService {
     const subject = target.appId || target.terminalId ? 'This target' : 'This level';
     throw new ConflictException({
       label: 'Already Using This Catalog',
-      detail: `${subject} already sells "${current.catalogName}". Pick a different catalog, or leave it as it is.`,
+      detail: `${subject} already carries "${current.catalogName}". Pick a different catalog, or leave it as it is.`,
       errors: [{ field: 'catalogId', message: 'Already in use here' }],
     });
   }
 
   // A named app or terminal is an exception to a default, so there has to be a default to except
-  // from. Without this a workspace could name one app and leave every other caller selling nothing.
+  // from. Without this a workspace could name one app and leave every other caller with nothing.
   private async assertDefaultExists(target: ChannelTarget): Promise<void> {
     if (!target.appId && !target.terminalId) return;
     if (await this.repository.hasDefaultInReach(target.type)) return;

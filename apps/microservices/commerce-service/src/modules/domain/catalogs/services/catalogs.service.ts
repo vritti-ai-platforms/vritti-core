@@ -8,8 +8,10 @@ import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/s
 import { catalogs } from '@/db/schema';
 import { CatalogDto } from '../dto/entity/catalog.dto';
 import { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
+import { CatalogCurrencyDto } from '../dto/entity/catalog-currency.dto';
 import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
 import type { UpdateCatalogDto } from '../dto/request/update-catalog.dto';
+import { CatalogCurrenciesDomainRepository } from '../repositories/catalog-currencies.repository';
 import { CatalogsDomainRepository } from '../repositories/catalogs.repository';
 
 @Injectable()
@@ -24,7 +26,10 @@ export class CatalogsDomainService {
     taxInclusive: { column: catalogs.taxInclusive, type: 'boolean' },
   };
 
-  constructor(private readonly repository: CatalogsDomainRepository) {}
+  constructor(
+    private readonly repository: CatalogsDomainRepository,
+    private readonly currencies: CatalogCurrenciesDomainRepository,
+  ) {}
 
   // Returns paginated, filtered and sorted catalogs for the data table
   async findForTable(state: TableViewState): Promise<{ result: CatalogDto[]; count: number }> {
@@ -64,7 +69,7 @@ export class CatalogsDomainService {
     });
   }
 
-  // Every channel selling this catalog — the read-only tab on the catalog detail
+  // Every channel carrying this catalog — the read-only tab on the catalog detail
   async findChannels(catalogId: string): Promise<CatalogChannelDto[]> {
     const rows = await this.repository.findChannels(catalogId);
     return rows.map((row) => CatalogChannelDto.from(row));
@@ -72,7 +77,7 @@ export class CatalogsDomainService {
 
   async findById(id: string): Promise<CatalogDto> {
     const row = await this.requireCatalog(id);
-    return CatalogDto.from(row, row);
+    return CatalogDto.from(row, row, await this.findCurrencies(id));
   }
 
   async create(data: CreateCatalogDto): Promise<CreateResponseDto<CatalogDto>> {
@@ -82,14 +87,19 @@ export class CatalogsDomainService {
       taxInclusive: data.taxInclusive ?? false,
     });
     this.logger.log(`Created catalog ${created.name} (${created.id})`);
-    return { success: true, message: `"${created.name}" created.`, data: CatalogDto.from(created) };
+    // Created here, so this workspace owns it — no need to read the ownership test back
+    return {
+      success: true,
+      message: `"${created.name}" created.`,
+      data: CatalogDto.from(created, { isOwned: true }),
+    };
   }
 
   async update(id: string, data: Omit<UpdateCatalogDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.requireCatalog(id);
     if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) await this.assertNameFree(data.name);
     // isActive only hides a catalog from selectors, so retiring one that still lists items would leave
-    // those listings selling with no way to reach the catalog again
+    // those listings reachable with no way to reach the catalog again
     if (data.isActive === false && existing.items > 0) {
       throw new ConflictException({
         label: 'Catalog In Use',
@@ -111,6 +121,44 @@ export class CatalogsDomainService {
     }
     await this.repository.deleteById(id);
     return { success: true, message: `"${existing.name}" deleted.` };
+  }
+
+  // Which currencies this catalog may be priced in, in the order they are offered
+  async findCurrencies(catalogId: string): Promise<string[]> {
+    const rows = await this.currencies.findForCatalog(catalogId);
+    return rows.map((row) => row.currencyCode);
+  }
+
+  // The cards on the Prices tab: each declared currency and how much of the catalog it actually covers
+  async findCurrencyCoverage(catalogId: string): Promise<CatalogCurrencyDto[]> {
+    const catalog = await this.requireCatalog(catalogId);
+    const rows = await this.currencies.findCoverage(catalogId);
+    return rows.map((row) => CatalogCurrencyDto.from(row, catalog.items));
+  }
+
+  // Offers a currency on this price list. Nothing is priced by it yet — the Prices tab fills that in.
+  async addCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
+    const catalog = await this.requireCatalog(catalogId);
+    await this.currencies.addForCatalog(catalogId, currencyCode);
+    this.logger.log(`Catalog ${catalog.name} now prices in ${currencyCode}`);
+    return { success: true, message: `"${catalog.name}" can now be priced in ${currencyCode}.` };
+  }
+
+  // Withdrawing a currency makes its prices unreachable, so it is refused while any exist rather
+  // than cascading — a price list is too expensive to lose to a mis-click.
+  async removeCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
+    const catalog = await this.requireCatalog(catalogId);
+    const [priced] = await this.currencies.countPrices(catalogId, [currencyCode]);
+    if (priced && priced.count > 0) {
+      throw new ConflictException({
+        label: 'Currency In Use',
+        detail: `${currencyCode} still prices ${pluralize('listing', priced.count, true)} in "${catalog.name}". Clear those prices before removing it.`,
+      });
+    }
+
+    const removed = await this.currencies.removeForCatalog(catalogId, currencyCode);
+    if (removed === 0) throw new NotFoundException(`"${catalog.name}" does not price in ${currencyCode}.`);
+    return { success: true, message: `${currencyCode} removed from "${catalog.name}".` };
   }
 
   private async assertNameFree(name: string): Promise<void> {

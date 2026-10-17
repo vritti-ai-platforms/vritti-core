@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 
 export class TemplateValueInput {
-  // Copied onto an offering dimension value, where it becomes a segment of the derived SKU
+  // Copied onto an offering dimension value, where it becomes a segment of the derived Code
   @Trim({ nullify: false })
   @IsString()
   @IsNotEmpty()

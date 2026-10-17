@@ -4,7 +4,9 @@ import {
   ApiUpsertPosChannel,
 } from '@commerce/catalog-channels/docs/app-catalog-channel-gateway.docs';
 import {
+  ApiChannelCurrencies,
   ApiChannelItems,
+  ApiChannelPrices,
   ApiDeleteChannel,
   ApiListCatalogChannels,
   ApiSetChannelItemVisibility,
@@ -19,7 +21,10 @@ import type {
   CatalogChannelResponseDto,
   ChannelEntryResponseDto,
 } from '@commerce/catalog-channels/dto/response/catalog-channel-response.dto';
-import type { ChannelItemTableResponseDto } from '@commerce/catalog-channels/dto/response/channel-item-response.dto';
+import type {
+  ChannelItemTableResponseDto,
+  ChannelPriceTableResponseDto,
+} from '@commerce/catalog-channels/dto/response/channel-item-response.dto';
 import { Body, Controller, Delete, Get, Logger, Param, Patch, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
@@ -74,31 +79,53 @@ export class LeCatalogChannelsGatewayController {
     return this.service.upsertB2b(dto);
   }
 
-  @Get(':channelId/items/table')
-  @RequirePermission(LE_CATALOG_CHANNELS.view)
+  @Get(':channelId/listings/table')
+  @RequirePermission(LE_CATALOG_CHANNELS.listings)
   @ApiChannelItems()
   findItemsForTable(
     @UserId() userId: string,
     @Param('channelId') channelId: string,
   ): Promise<ChannelItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/items/table`);
+    this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/listings/table`);
     return this.service.findItemsForTable(userId, channelId);
   }
 
-  @Patch(':channelId/items/:listingId')
-  @RequirePermission(LE_CATALOG_CHANNELS.edit)
+  // The currencies this channel's catalog is priced in — the cards on its Prices tab
+  @Get(':channelId/currencies')
+  @RequirePermission(LE_CATALOG_CHANNELS.prices)
+  @ApiChannelCurrencies()
+  findCurrencies(@Param('channelId') channelId: string): Promise<string[]> {
+    this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/currencies`);
+    return this.service.findCurrencies(channelId);
+  }
+
+  @Get(':channelId/currencies/:currencyCode/prices/table')
+  @RequirePermission(LE_CATALOG_CHANNELS.prices)
+  @ApiChannelPrices()
+  findPricesForTable(
+    @OrgId() orgId: string,
+    @UserId() userId: string,
+    @Param('channelId') channelId: string,
+    @Param('currencyCode') currencyCode: string,
+  ): Promise<ChannelPriceTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/currencies/${currencyCode}/prices/table`);
+    return this.service.findPricesForTable(orgId, userId, channelId, currencyCode);
+  }
+
+  @Patch(':channelId/listings/:listingId')
+  @RequirePermission(LE_CATALOG_CHANNELS.visibility)
   @ApiSetChannelItemVisibility()
   setItemVisibility(
     @Param('channelId') channelId: string,
     @Param('listingId') listingId: string,
     @Body() dto: SetItemVisibilityDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/catalog-channels/${channelId}/items/${listingId}`);
-    return this.service.setItemVisibility(channelId, listingId, dto.sellsHere);
+    this.logger.log(`PATCH /commerce-api/le/catalog-channels/${channelId}/listings/${listingId}`);
+    return this.service.setItemVisibility(channelId, listingId, dto.availableHere, dto.currencyCode);
   }
 
   @Delete(':channelId')
-  @RequirePermission(LE_CATALOG_CHANNELS.edit)
+  @RequirePermission(LE_CATALOG_CHANNELS.delete)
   @ApiDeleteChannel()
   remove(@Param('channelId') channelId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/catalog-channels/${channelId}`);

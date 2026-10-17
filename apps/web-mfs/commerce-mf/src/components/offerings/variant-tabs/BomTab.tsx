@@ -62,7 +62,7 @@ export const BomTab: React.FC<BomTabProps> = ({
         title: `Remove "${line.inventoryItemName}"?`,
         description:
           lines.length <= meta.minBomLines
-            ? `A ${meta.label.toLowerCase()} variant needs ${pluralize('component', meta.minBomLines, true)}, so this variant will stop being sellable.`
+            ? `A ${meta.label.toLowerCase()} variant needs ${pluralize('component', meta.minBomLines, true)}, so this variant will stop being available.`
             : 'The component will be removed from this bill of materials.',
         confirmLabel: 'Remove',
         variant: 'destructive',
@@ -78,7 +78,7 @@ export const BomTab: React.FC<BomTabProps> = ({
   const linked = !!suggestion && lines.some((line) => line.inventoryItemId === suggestion?.id);
 
   const suggestionTip = !suggestion
-    ? `No inventory item carries the SKU ${variant.sku} yet.`
+    ? `No inventory item carries the SKU ${variant.code} yet.`
     : linked
       ? `"${suggestion.name}" is already a component.`
       : atMax
@@ -137,7 +137,7 @@ export const BomTab: React.FC<BomTabProps> = ({
           icon={Boxes}
           className="max-w-3xl"
           title="Create Inventory Item"
-          description={`Inventory counterpart for ${variant.sku}`}
+          description={`Inventory counterpart for ${variant.code}`}
           content={(close) => (
             <CreateVariantInventoryItemDialog
               useCreate={useCreateVariantInventoryItem}
@@ -152,7 +152,7 @@ export const BomTab: React.FC<BomTabProps> = ({
         handle={addDialog}
         icon={Wrench}
         title="Add Component"
-        description={variant.sku}
+        description={variant.code}
         content={(close) => <AddBomLineDialog variant={variant} useAdd={useAdd} onSuccess={close} onCancel={close} />}
       />
     </>
@@ -184,8 +184,8 @@ export const BomTab: React.FC<BomTabProps> = ({
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-4">
         <p className="max-w-xl text-muted-foreground text-sm">
-          What one of this variant draws on when it sells. Quantities are in each line's own unit, converted to the
-          item's stocking unit at fulfilment.
+          What one of this variant draws on when it is fulfilled. Quantities are in each line's own unit, converted to
+          the item's stocking unit at fulfilment.
         </p>
         <div className="flex-none">{actions}</div>
       </div>
@@ -206,7 +206,7 @@ export const BomTab: React.FC<BomTabProps> = ({
       {lines.length < meta.minBomLines && (
         <Alert
           variant="warning"
-          title="Not sellable yet"
+          title="Not available yet"
           description={`A ${meta.label.toLowerCase()} variant needs ${pluralize('component', meta.minBomLines, true)}.`}
         />
       )}

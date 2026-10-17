@@ -63,7 +63,7 @@ export interface VariantAttributeValueRef {
 export type VariantWithBomCount = OfferingVariant & { bomLineCount: number };
 
 export interface ExportVariantRow {
-  sku: string;
+  code: string;
   externalSku: string | null;
   name: string;
   values: VariantValueRef[];
@@ -191,7 +191,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   async findByIdWithNames(id: string): Promise<OfferingVariantTableRow | undefined> {
     const { result } = await this.findAllAndCount<OfferingVariantTableRow>({
       select: this.tableSelection(),
-      leftJoins: this.tableJoins(),
+      innerJoins: this.tableJoins(),
       where: eq(offeringVariants.id, id),
       limit: 1,
       offset: 0,
@@ -208,7 +208,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   }): Promise<{ result: OfferingVariantTableRow[]; count: number }> {
     return this.findAllAndCount<OfferingVariantTableRow>({
       select: this.tableSelection(),
-      leftJoins: this.tableJoins(),
+      innerJoins: this.tableJoins(),
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
@@ -216,7 +216,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     });
   }
 
-  // Every dimension value of an offering, ordered so a SKU can be assembled straight from it
+  // Every dimension value of an offering, ordered so a code can be assembled straight from it
   async findDimensionValues(offeringId: string): Promise<DimensionValueRow[]> {
     return this.db
       .select({
@@ -271,18 +271,18 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     excludeIds?: string[];
     limit: number;
     offset: number;
-  }): Promise<{ items: { id: string; sku: string; name: string }[]; total: number }> {
+  }): Promise<{ items: { id: string; code: string; name: string }[]; total: number }> {
     const search = options.search?.trim();
     const where = and(
-      search ? or(ilike(offeringVariants.sku, `%${search}%`), ilike(offeringVariants.name, `%${search}%`)) : undefined,
+      search ? or(ilike(offeringVariants.code, `%${search}%`), ilike(offeringVariants.name, `%${search}%`)) : undefined,
       options.excludeIds?.length ? notInArray(offeringVariants.id, options.excludeIds) : undefined,
     );
 
     const items = this.db
-      .select({ id: offeringVariants.id, sku: offeringVariants.sku, name: offeringVariants.name })
+      .select({ id: offeringVariants.id, code: offeringVariants.code, name: offeringVariants.name })
       .from(offeringVariants)
       .where(where)
-      .orderBy(asc(offeringVariants.sku))
+      .orderBy(asc(offeringVariants.code))
       .limit(options.limit)
       .offset(options.offset);
 
@@ -293,13 +293,13 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   }
 
   // Which of these SKUs are already taken. Org-wide, matching the constraint — RLS scopes it.
-  async findTakenSkus(skus: string[]): Promise<string[]> {
-    if (skus.length === 0) return [];
+  async findTakenCodes(codes: string[]): Promise<string[]> {
+    if (codes.length === 0) return [];
     const rows = await this.db
-      .select({ sku: offeringVariants.sku })
+      .select({ code: offeringVariants.code })
       .from(offeringVariants)
-      .where(inArray(offeringVariants.sku, skus));
-    return rows.map((row) => row.sku);
+      .where(inArray(offeringVariants.code, codes));
+    return rows.map((row) => row.code);
   }
 
   // The combination keys already taken on this offering, so those combinations can be skipped
@@ -328,7 +328,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   async findForExport(offeringId: string, page: { limit: number; offset: number }): Promise<ExportVariantRow[]> {
     return this.db
       .select({
-        sku: offeringVariants.sku,
+        code: offeringVariants.code,
         externalSku: offeringVariants.externalSku,
         name: offeringVariants.name,
         values: sql<VariantValueRef[]>`(${this.valuesJson()})`,
@@ -342,10 +342,10 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
         isOfferingActive: offeringVariants.isOfferingActive,
       })
       .from(offeringVariants)
-      .leftJoin(uom, eq(uom.id, offeringVariants.salesUomId))
-      .leftJoin(taxClasses, eq(taxClasses.id, offeringVariants.taxClassId))
+      .innerJoin(uom, eq(uom.id, offeringVariants.salesUomId))
+      .innerJoin(taxClasses, eq(taxClasses.id, offeringVariants.taxClassId))
       .where(eq(offeringVariants.offeringId, offeringId))
-      .orderBy(asc(offeringVariants.sku))
+      .orderBy(asc(offeringVariants.code))
       .limit(page.limit)
       .offset(page.offset);
   }

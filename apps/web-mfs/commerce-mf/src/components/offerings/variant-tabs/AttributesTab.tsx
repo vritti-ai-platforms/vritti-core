@@ -49,7 +49,7 @@ export const AttributesTab: React.FC<AttributesTabProps> = ({
     <div className="flex items-start justify-between gap-4">
       <p className="max-w-xl text-muted-foreground text-sm">
         Which of this product's attributes this variant carries. Any number of values applies at once, and none of them
-        reach the SKU — a storefront turns them into filters.
+        reach the Code — a storefront turns them into filters.
       </p>
       <div className="flex flex-none gap-2">
         <Button variant="outline" onClick={() => setSelected(saved)} disabled={!isDirty || setMutation.isPending}>

@@ -51,7 +51,7 @@ import {
 
 export const binding: OfferingsBinding = {
   permissions: LE_OFFERINGS,
-  listDescription: 'Sellable products and their variants for this company',
+  listDescription: 'Products and services, and their variants, for this company',
   tableKey: LE_OFFERINGS_TABLE_KEY,
   tableSlug: 'commerce-le-offerings',
   variantsTableKey: LE_OFFERING_VARIANTS_TABLE_KEY,

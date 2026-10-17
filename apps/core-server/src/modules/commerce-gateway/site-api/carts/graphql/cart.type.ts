@@ -10,18 +10,14 @@ export class CartItem {
   @Field(() => ID, { nullable: true })
   catalogListingId: string | null;
 
-  // What a storefront joins its own product page on
-  @Field(() => ID)
-  offeringVariantId: string;
-
   @Field(() => Int)
   quantity: number;
 
   @Field(() => String)
   name: string;
 
-  @Field(() => String, { nullable: true })
-  sku?: string | null;
+  @Field(() => String)
+  code: string;
 
   @Field(() => Money, { nullable: true })
   unitPrice?: Money | null;
@@ -54,8 +50,9 @@ export class Cart {
 
 @ObjectType()
 export class CartQuantity {
-  @Field(() => ID)
-  offeringVariantId: string;
+  // What a storefront joins its own product page on
+  @Field(() => String)
+  code: string;
 
   @Field(() => Int)
   quantity: number;

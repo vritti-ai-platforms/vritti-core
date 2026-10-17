@@ -20,7 +20,7 @@ export class SiteOfferingsAppResolver {
   // anywhere. `excludeIds` is applied in SQL so the caller can page it — filtering the page itself
   // after it arrives can empty a page while matches sit on the next one.
   @Query(() => OfferingVariantOptions, { name: 'siteOfferingVariants' })
-  @RequirePermission(SITE_OFFERINGS.app.variants)
+  @RequirePermission(SITE_OFFERINGS.variantOptions)
   siteOfferingVariants(
     @Args({ name: 'search', type: () => String, nullable: true }) search?: string,
     @Args({ name: 'excludeIds', type: () => [ID], nullable: true }) excludeIds?: string[],

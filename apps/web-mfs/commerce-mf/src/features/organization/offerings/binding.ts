@@ -52,7 +52,7 @@ import {
 
 export const binding: OfferingsBinding = {
   permissions: ORG_OFFERINGS,
-  listDescription: 'Sellable products and their variants',
+  listDescription: 'Products and services, and their variants',
   tableKey: ORG_OFFERINGS_TABLE_KEY,
   tableSlug: 'commerce-org-offerings',
   variantsTableKey: ORG_OFFERING_VARIANTS_TABLE_KEY,

@@ -20,7 +20,7 @@ export interface BomOfferingRef {
 export interface BomVariantRef {
   id: string;
   offeringId: string;
-  sku: string;
+  code: string;
   fulfilmentType: FulfilmentType;
 }
 
@@ -37,7 +37,7 @@ export class OfferingBomDomainRepository extends PrimaryBaseRepository<typeof of
       .select({
         id: offeringVariants.id,
         offeringId: offeringVariants.offeringId,
-        sku: offeringVariants.sku,
+        code: offeringVariants.code,
         fulfilmentType: offeringVariants.fulfilmentType,
       })
       .from(offeringVariants)
@@ -65,7 +65,7 @@ export class OfferingBomDomainRepository extends PrimaryBaseRepository<typeof of
     return row?.isActive ?? false;
   }
 
-  // A variant that no longer satisfies its fulfilment type cannot stay sellable
+  // A variant that no longer satisfies its fulfilment type cannot stay available
   async setVariantInactive(variantId: string): Promise<void> {
     await this.db.update(offeringVariants).set({ isActive: false }).where(eq(offeringVariants.id, variantId));
   }
@@ -92,7 +92,7 @@ export class OfferingBomDomainRepository extends PrimaryBaseRepository<typeof of
       .orderBy(asc(offeringBom.sortOrder));
   }
 
-  // The inventory item already carrying a variant's SKU — the suggestion the BOM view offers
+  // The inventory item already carrying a variant's code — the suggestion the BOM view offers
   async findInventoryItemBySku(sku: string): Promise<{ id: string; name: string; uomId: string } | undefined> {
     const [row] = await this.db
       .select({ id: inventoryItems.id, name: inventoryItems.name, uomId: inventoryItems.uomId })

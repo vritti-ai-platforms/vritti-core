@@ -63,7 +63,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ cart, lines, scopeNoun
         </Card>
         <Card>
           <CardContent className="py-4">
-            <div className="text-muted-foreground text-xs">Not sellable</div>
+            <div className="text-muted-foreground text-xs">Not available</div>
             <div className="font-mono font-semibold text-2xl">{unavailable}</div>
             <div className="text-muted-foreground text-xs">
               {unavailable === 0

@@ -92,7 +92,7 @@ export class OfferingDimensionsDomainService {
   }
 
   // Replaces the dimension's value set. Values a variant already carries cannot be dropped — the
-  // variant holds a foreign key to them, and their codes are baked into that variant's stored SKU.
+  // variant holds a foreign key to them, and their codes are baked into that variant's stored Code.
   async upsertValues(data: UpsertOfferingDimensionValuesDto): Promise<SuccessResponseDto> {
     const dimension = await this.requireOwnedDimension(data.dimensionId);
     this.assertDistinctValueCodes(data.values);
@@ -104,7 +104,7 @@ export class OfferingDimensionsDomainService {
     const submittedCodes = new Set(data.values.map((input) => input.code));
 
     // A row keeps its id across an edit, so a changed code is a rename of that very value — and the
-    // code is a SKU segment of every variant already built on it.
+    // code is a Code segment of every variant already built on it.
     const renamed = data.values
       .map((input, index) => ({ input, index }))
       .filter(({ input }) => input.id && inUse.some((value) => value.id === input.id))
@@ -112,8 +112,8 @@ export class OfferingDimensionsDomainService {
     if (renamed.length > 0) {
       throw new ConflictException({
         label: 'Code In Use',
-        detail: `${pluralize('code', renamed.length, true)} ${renamed.length === 1 ? 'is' : 'are'} already part of a variant SKU and cannot change. Rename the label instead, or add a new value.`,
-        errors: renamed.map(({ index }) => ({ field: `values.${index}.code`, message: 'Part of a variant SKU' })),
+        detail: `${pluralize('code', renamed.length, true)} ${renamed.length === 1 ? 'is' : 'are'} already part of a variant Code and cannot change. Rename the label instead, or add a new value.`,
+        errors: renamed.map(({ index }) => ({ field: `values.${index}.code`, message: 'Part of a variant Code' })),
       });
     }
 
@@ -191,7 +191,7 @@ export class OfferingDimensionsDomainService {
     return { success: true, message: 'Dimension order updated.' };
   }
 
-  // Renames the axis. The code is left alone — it is a segment of every SKU derived from this
+  // Renames the axis. The code is left alone — it is a segment of every Code derived from this
   // dimension, so only the label a person reads is editable.
   async update(id: string, data: Omit<UpdateOfferingDimensionDto, 'id'>): Promise<SuccessResponseDto> {
     await this.requireOwnedDimension(id);
@@ -220,7 +220,7 @@ export class OfferingDimensionsDomainService {
       if (codes.has(entry.code)) {
         throw new BadRequestException({
           label: 'Duplicate Value Code',
-          detail: `The code "${entry.code}" appears twice. Each value needs its own code because it becomes a SKU segment.`,
+          detail: `The code "${entry.code}" appears twice. Each value needs its own code because it becomes a Code segment.`,
           errors: [{ field: `values.${index}.code`, message: 'Duplicate code' }],
         });
       }

@@ -7,9 +7,9 @@ import { Plus, SwatchBook } from 'lucide-react';
 import type React from 'react';
 import { useCallback } from 'react';
 import type { OfferingData, OfferingDimensionData } from '@/schemas/offerings';
+import { CodeOrderStrip } from '../components/CodeOrderStrip';
 import { DimensionCard } from '../components/DimensionCard';
 import { DimensionsSkeleton } from '../components/DimensionsSkeleton';
-import { SkuOrderStrip } from '../components/SkuOrderStrip';
 import { AddDimensionDialog } from '../forms/AddDimensionDialog';
 import { AddDimensionFromTemplateDialog } from '../forms/AddDimensionFromTemplateDialog';
 import type {
@@ -153,7 +153,7 @@ export const DimensionsTab: React.FC<DimensionsTabProps> = ({
     <div className="flex flex-col gap-4">
       {header}
 
-      <SkuOrderStrip offering={offering} dimensions={dimensions} />
+      <CodeOrderStrip offering={offering} dimensions={dimensions} />
 
       <SortableList
         items={dimensions}

@@ -28,7 +28,7 @@ export interface CartLineRow {
   offeringVariantId: string;
   quantity: number;
   name: string;
-  sku: string | null;
+  code: string;
   unitPrice: { currency: string; value: string } | null;
   lineTotal: { currency: string; value: string } | null;
   isAvailable: boolean;

@@ -8,7 +8,7 @@ export class VariantOptionDto {
   // The sibling this option leads to, holding every other axis where it is. Null when that
   // combination is not sold here — the option still renders, disabled, because a switcher that
   // hides unavailable sizes makes the range look smaller than it is.
-  sku: string | null;
+  variantCode: string | null;
 }
 
 export class VariantAxisDto {
@@ -23,7 +23,7 @@ export class CatalogListingDetailDto {
   axes: VariantAxisDto[];
 }
 
-type Sibling = { sku: string; values: Map<string, string> };
+type Sibling = { variantCode: string; values: Map<string, string> };
 
 /**
  * Turns the flat (variant, dimension) rows into the axes a product page switches on.
@@ -33,7 +33,7 @@ type Sibling = { sku: string; values: Map<string, string> };
  * happens to exist. That is the whole reason this cannot be built from a list of SKUs: the answer
  * depends on where the shopper is standing.
  *
- * Only values carried by a sellable sibling appear at all. A flavour the shop does not stock is not
+ * Only values carried by an available sibling appear at all. A flavour the shop does not stock is not
  * a disabled option, it is not an option — the same rule the filter rail follows.
  */
 export function buildVariantAxes(rows: VariantSiblingRow[], currentVariantId: string): VariantAxisDto[] {
@@ -43,7 +43,7 @@ export function buildVariantAxes(rows: VariantSiblingRow[], currentVariantId: st
   for (const row of rows) {
     let sibling = siblings.get(row.variantId);
     if (!sibling) {
-      sibling = { sku: row.sku, values: new Map() };
+      sibling = { variantCode: row.code, values: new Map() };
       siblings.set(row.variantId, sibling);
     }
     sibling.values.set(row.dimensionCode, row.valueCode);
@@ -85,7 +85,7 @@ export function buildVariantAxes(rows: VariantSiblingRow[], currentVariantId: st
             code: valueCode,
             name: value.name,
             selected: current.values.get(axis.code) === valueCode,
-            sku: target?.sku ?? null,
+            variantCode: target?.variantCode ?? null,
           };
         }),
     }));

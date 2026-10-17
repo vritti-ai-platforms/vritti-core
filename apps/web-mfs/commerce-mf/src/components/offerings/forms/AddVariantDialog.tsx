@@ -8,7 +8,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { buildAddVariantSchema, deriveSku, type OfferingData, type OfferingDimensionData } from '@/schemas/offerings';
+import { buildAddVariantSchema, deriveCode, type OfferingData, type OfferingDimensionData } from '@/schemas/offerings';
 import type { UseCreateVariant } from '../types';
 
 interface AddVariantDialogProps {
@@ -20,7 +20,7 @@ interface AddVariantDialogProps {
 }
 
 // The matrix wizard covers batches; this is the one-off — a single combination picked by hand. The
-// SKU is still derived, never typed, so a hand-added variant is indistinguishable from a generated one.
+// Code is still derived, never typed, so a hand-added variant is indistinguishable from a generated one.
 export const AddVariantDialog: React.FC<AddVariantDialogProps> = ({
   offering,
   dimensions,
@@ -41,10 +41,10 @@ export const AddVariantDialog: React.FC<AddVariantDialogProps> = ({
   const values = useWatch({ control: form.control });
   const createMutation = useCreate({ onSuccess });
 
-  // Mirrors what the server will derive, so the SKU is visible before committing to it
-  const skuPreview = useMemo(() => {
+  // Mirrors what the server will derive, so the Code is visible before committing to it
+  const codePreview = useMemo(() => {
     const valueIds = dimensions.map((dimension) => (values as Record<string, string>)[dimension.id]);
-    return valueIds.every(Boolean) ? deriveSku(offering.code, dimensions, valueIds) : null;
+    return valueIds.every(Boolean) ? deriveCode(offering.code, dimensions, valueIds) : null;
   }, [dimensions, values, offering.code]);
 
   return (
@@ -83,12 +83,12 @@ export const AddVariantDialog: React.FC<AddVariantDialogProps> = ({
 
         <TextField
           name="externalSku"
-          label="External SKU"
+          label="External Code"
           placeholder="Optional"
-          description="A marketplace or barcode reference. The internal SKU is always derived."
+          description="A marketplace or barcode reference. The internal Code is always derived."
         />
 
-        {skuPreview && <Alert variant="default" title="SKU" description={skuPreview} />}
+        {codePreview && <Alert variant="default" title="Code" description={codePreview} />}
       </div>
 
       <DialogActions>

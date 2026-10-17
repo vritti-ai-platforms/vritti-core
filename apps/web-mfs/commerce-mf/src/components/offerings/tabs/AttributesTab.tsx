@@ -116,7 +116,7 @@ export const AttributesTab: React.FC<AttributesTabProps> = ({
   const header = (
     <div className="flex items-start justify-between gap-4">
       <p className="max-w-xl text-muted-foreground text-sm">
-        Facts about this product that are not part of its SKU — High Protein, High Fibre. A variant carries any number
+        Facts about this product that are not part of its Code — High Protein, High Fibre. A variant carries any number
         of them, and a storefront turns them into filters.
       </p>
       <div className="flex flex-none gap-2">{addButtons}</div>

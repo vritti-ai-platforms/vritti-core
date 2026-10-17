@@ -3,27 +3,28 @@ import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 export interface StorefrontListingRow {
   id: string;
   offeringVariantId: string;
-  sku: string | null;
-  name: string | null;
-  priceCurrency: string | null;
-  priceAmount: string | null;
+  code: string;
+  name: string;
+  // The price lateral is an INNER join, so a row exists only because a price does — and the lateral
+  // selects the column itself, so the driver's bigint decoder runs and no manual BigInt() is needed.
+  priceCurrency: string;
+  priceAmount: bigint;
 }
 
 export class StorefrontListingDto {
   id: string;
   offeringVariantId: string;
-  sku: string | null;
-  name: string | null;
-  price: CurrencyAmountDto | null;
+  code: string;
+  name: string;
+  price: CurrencyAmountDto;
 
   static from(row: StorefrontListingRow): StorefrontListingDto {
     const dto = new StorefrontListingDto();
     dto.id = row.id;
     dto.offeringVariantId = row.offeringVariantId;
-    dto.sku = row.sku ?? null;
-    dto.name = row.name ?? null;
-    dto.price =
-      row.priceCurrency && row.priceAmount ? CurrencyAmountDto.from(BigInt(row.priceAmount), row.priceCurrency) : null;
+    dto.code = row.code;
+    dto.name = row.name;
+    dto.price = CurrencyAmountDto.from(row.priceAmount, row.priceCurrency);
     return dto;
   }
 }

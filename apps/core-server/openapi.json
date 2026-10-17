@@ -8191,7 +8191,7 @@
     },
     "/commerce-api/org/offerings/{id}/dimensions": {
       "get": {
-        "description": "Dimensions with their values, in the order their codes appear in a derived SKU.",
+        "description": "Dimensions with their values, in the order their codes appear in a derived variant code.",
         "operationId": "OrgOfferingsGatewayController_listDimensions",
         "parameters": [
           {
@@ -8341,7 +8341,7 @@
     },
     "/commerce-api/org/offerings/dimensions/{dimensionId}/values": {
       "put": {
-        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them and their codes are part of its stored SKU.",
+        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them and their codes are part of its stored code.",
         "operationId": "OrgOfferingsGatewayController_upsertDimensionValues",
         "parameters": [
           {
@@ -8391,7 +8391,7 @@
     },
     "/commerce-api/org/offerings/{id}/dimensions/order": {
       "put": {
-        "description": "Sets the axis order, which is the order their codes appear in a derived SKU. Refused once the offering has variants — their SKUs are built from the current order, so changing it would rewrite identifiers already in use.",
+        "description": "Sets the axis order, which is the order their codes appear in a derived variant code. Refused once the offering has variants — their codes are built from the current order, so changing it would rewrite identifiers already in use.",
         "operationId": "OrgOfferingsGatewayController_reorderDimensions",
         "parameters": [
           {
@@ -8441,7 +8441,7 @@
     },
     "/commerce-api/org/offerings/dimensions/{dimensionId}": {
       "patch": {
-        "description": "Changes the label only. The code is fixed once the dimension exists, because it is a segment of every SKU derived from it.",
+        "description": "Changes the label only. The code is fixed once the dimension exists, because it is a segment of every code derived from it.",
         "operationId": "OrgOfferingsGatewayController_updateDimension",
         "parameters": [
           {
@@ -8884,7 +8884,7 @@
     },
     "/commerce-api/org/offerings/{id}/variants/combinations": {
       "post": {
-        "description": "Returns every combination the selected values produce, each with the SKU and name it would be created under, and a flag for the ones a variant already carries. Read-only — nothing is created.",
+        "description": "Returns every combination the selected values produce, each with the code and name it would be created under, and a flag for the ones a variant already carries. Read-only — nothing is created.",
         "operationId": "OrgOfferingsGatewayController_previewVariantCombinations",
         "parameters": [
           {
@@ -8935,7 +8935,7 @@
     },
     "/commerce-api/org/offerings/{id}/variants/generate": {
       "post": {
-        "description": "Creates every selected combination that does not already exist. Additive — a combination left out is never deleted. Each variant’s SKU is derived from the offering code plus one value code per dimension, so it is unique by construction.",
+        "description": "Creates every selected combination that does not already exist. Additive — a combination left out is never deleted. Each variant’s code is derived from the offering code plus one value code per dimension, so it is unique by construction.",
         "operationId": "OrgOfferingsGatewayController_generateVariants",
         "parameters": [
           {
@@ -9147,7 +9147,7 @@
     },
     "/commerce-api/org/offerings/variants/{variantId}/bom/inventory-item": {
       "post": {
-        "description": "Creates an inventory item carrying this variant's SKU and links it as the variant's single bill-of-materials line. STOCK offerings only — every other fulfilment type resolves to components that are stocked in their own right, so there is nothing to create.",
+        "description": "Creates an inventory item carrying this variant's code and links it as the variant's single bill-of-materials line. STOCK offerings only — every other fulfilment type resolves to components that are stocked in their own right, so there is nothing to create.",
         "operationId": "OrgOfferingsGatewayController_createInventoryItem",
         "parameters": [
           {
@@ -9185,7 +9185,7 @@
             "description": "Not found or out of reach."
           },
           "409": {
-            "description": "An item already carries this SKU, or the offering is not STOCK."
+            "description": "An inventory item already carries that SKU, or the offering is not STOCK."
           }
         },
         "security": [
@@ -9374,7 +9374,7 @@
     },
     "/commerce-api/org/offerings/variants/{variantId}/attributes": {
       "put": {
-        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the SKU and the variant matrix are untouched. An empty list clears them.",
+        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the The code and the variant matrix are untouched. An empty list clears them.",
         "operationId": "OrgOfferingsGatewayController_setVariantAttributes",
         "parameters": [
           {
@@ -9494,7 +9494,7 @@
     },
     "/commerce-api/org/offerings/variants/{variantId}/bom/lines": {
       "get": {
-        "description": "The components, plus the inventory item already carrying this variant SKU when one exists. Read on its own because only the bill-of-materials view needs either.",
+        "description": "The components, plus the inventory item already carrying this variant's code when one exists. Read on its own because only the bill-of-materials view needs either.",
         "operationId": "OrgOfferingsGatewayController_findVariantBom",
         "parameters": [
           {
@@ -9619,7 +9619,7 @@
         ]
       },
       "delete": {
-        "description": "Removes one line. If that drops the variant below its fulfilment type's minimum it is deactivated rather than left sellable with nothing to sell.",
+        "description": "Removes one line. If that drops the variant below its fulfilment type's minimum it is deactivated rather than left available with nothing behind it.",
         "operationId": "OrgOfferingsGatewayController_deleteBomLine",
         "parameters": [
           {
@@ -9653,7 +9653,7 @@
     },
     "/commerce-api/org/offerings/variants/{variantId}/bom/suggested": {
       "post": {
-        "description": "Adds the inventory item whose SKU equals this variant's, at quantity 1 in that item's own stocking unit. The item is resolved server-side from the SKU, so the request names none — this cannot be used to link an arbitrary item under a narrower grant than editing the bill of materials.",
+        "description": "Adds the inventory item whose SKU equals this variant's code, at quantity 1 in that item's own stocking unit. The item is resolved server-side from that code, so the request names none — this cannot be used to link an arbitrary item under a narrower grant than editing the bill of materials.",
         "operationId": "OrgOfferingsGatewayController_addSuggestedComponent",
         "parameters": [
           {
@@ -9674,7 +9674,7 @@
             "description": "Not found or out of reach."
           },
           "409": {
-            "description": "No item carries this SKU, or it is already a component."
+            "description": "No inventory item carries that SKU, or it is already a component."
           }
         },
         "security": [
@@ -9682,7 +9682,7 @@
             "bearer": []
           }
         ],
-        "summary": "Link the item carrying this variant's SKU",
+        "summary": "Link the item carrying this variant's code",
         "tags": [
           "Commerce - Offerings (Org)"
         ]
@@ -10231,7 +10231,7 @@
     },
     "/commerce-api/le/offerings/{id}/dimensions": {
       "get": {
-        "description": "Dimensions with their values, in the order their codes appear in a derived SKU.",
+        "description": "Dimensions with their values, in the order their codes appear in a derived variant code.",
         "operationId": "LeOfferingsGatewayController_listDimensions",
         "parameters": [
           {
@@ -10381,7 +10381,7 @@
     },
     "/commerce-api/le/offerings/dimensions/{dimensionId}/values": {
       "put": {
-        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them and their codes are part of its stored SKU.",
+        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them and their codes are part of its stored code.",
         "operationId": "LeOfferingsGatewayController_upsertDimensionValues",
         "parameters": [
           {
@@ -10431,7 +10431,7 @@
     },
     "/commerce-api/le/offerings/{id}/dimensions/order": {
       "put": {
-        "description": "Sets the axis order, which is the order their codes appear in a derived SKU. Refused once the offering has variants — their SKUs are built from the current order, so changing it would rewrite identifiers already in use.",
+        "description": "Sets the axis order, which is the order their codes appear in a derived variant code. Refused once the offering has variants — their codes are built from the current order, so changing it would rewrite identifiers already in use.",
         "operationId": "LeOfferingsGatewayController_reorderDimensions",
         "parameters": [
           {
@@ -10481,7 +10481,7 @@
     },
     "/commerce-api/le/offerings/dimensions/{dimensionId}": {
       "patch": {
-        "description": "Changes the label only. The code is fixed once the dimension exists, because it is a segment of every SKU derived from it.",
+        "description": "Changes the label only. The code is fixed once the dimension exists, because it is a segment of every code derived from it.",
         "operationId": "LeOfferingsGatewayController_updateDimension",
         "parameters": [
           {
@@ -10924,7 +10924,7 @@
     },
     "/commerce-api/le/offerings/{id}/variants/combinations": {
       "post": {
-        "description": "Returns every combination the selected values produce, each with the SKU and name it would be created under, and a flag for the ones a variant already carries. Read-only — nothing is created.",
+        "description": "Returns every combination the selected values produce, each with the code and name it would be created under, and a flag for the ones a variant already carries. Read-only — nothing is created.",
         "operationId": "LeOfferingsGatewayController_previewVariantCombinations",
         "parameters": [
           {
@@ -10975,7 +10975,7 @@
     },
     "/commerce-api/le/offerings/{id}/variants/generate": {
       "post": {
-        "description": "Creates every selected combination that does not already exist. Additive — a combination left out is never deleted. Each variant’s SKU is derived from the offering code plus one value code per dimension, so it is unique by construction.",
+        "description": "Creates every selected combination that does not already exist. Additive — a combination left out is never deleted. Each variant’s code is derived from the offering code plus one value code per dimension, so it is unique by construction.",
         "operationId": "LeOfferingsGatewayController_generateVariants",
         "parameters": [
           {
@@ -11360,7 +11360,7 @@
     },
     "/commerce-api/le/offerings/variants/{variantId}/attributes": {
       "put": {
-        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the SKU and the variant matrix are untouched. An empty list clears them.",
+        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the The code and the variant matrix are untouched. An empty list clears them.",
         "operationId": "LeOfferingsGatewayController_setVariantAttributes",
         "parameters": [
           {
@@ -11480,7 +11480,7 @@
     },
     "/commerce-api/le/offerings/variants/{variantId}/bom/lines": {
       "get": {
-        "description": "The components, plus the inventory item already carrying this variant SKU when one exists. Read on its own because only the bill-of-materials view needs either.",
+        "description": "The components, plus the inventory item already carrying this variant's code when one exists. Read on its own because only the bill-of-materials view needs either.",
         "operationId": "LeOfferingsGatewayController_findVariantBom",
         "parameters": [
           {
@@ -11605,7 +11605,7 @@
         ]
       },
       "delete": {
-        "description": "Removes one line. If that drops the variant below its fulfilment type's minimum it is deactivated rather than left sellable with nothing to sell.",
+        "description": "Removes one line. If that drops the variant below its fulfilment type's minimum it is deactivated rather than left available with nothing behind it.",
         "operationId": "LeOfferingsGatewayController_deleteBomLine",
         "parameters": [
           {
@@ -11639,7 +11639,7 @@
     },
     "/commerce-api/le/offerings/variants/{variantId}/bom/suggested": {
       "post": {
-        "description": "Adds the inventory item whose SKU equals this variant's, at quantity 1 in that item's own stocking unit. The item is resolved server-side from the SKU, so the request names none — this cannot be used to link an arbitrary item under a narrower grant than editing the bill of materials.",
+        "description": "Adds the inventory item whose SKU equals this variant's code, at quantity 1 in that item's own stocking unit. The item is resolved server-side from that code, so the request names none — this cannot be used to link an arbitrary item under a narrower grant than editing the bill of materials.",
         "operationId": "LeOfferingsGatewayController_addSuggestedComponent",
         "parameters": [
           {
@@ -11660,7 +11660,7 @@
             "description": "Not found or out of reach."
           },
           "409": {
-            "description": "No item carries this SKU, or it is already a component."
+            "description": "No inventory item carries that SKU, or it is already a component."
           }
         },
         "security": [
@@ -11668,7 +11668,7 @@
             "bearer": []
           }
         ],
-        "summary": "Link the item carrying this variant's SKU",
+        "summary": "Link the item carrying this variant's code",
         "tags": [
           "Commerce - Offerings (LE)"
         ]
@@ -12217,7 +12217,7 @@
     },
     "/commerce-api/site/offerings/{id}/dimensions": {
       "get": {
-        "description": "Dimensions with their values, in the order their codes appear in a derived SKU.",
+        "description": "Dimensions with their values, in the order their codes appear in a derived variant code.",
         "operationId": "SiteOfferingsGatewayController_listDimensions",
         "parameters": [
           {
@@ -12367,7 +12367,7 @@
     },
     "/commerce-api/site/offerings/dimensions/{dimensionId}/values": {
       "put": {
-        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them and their codes are part of its stored SKU.",
+        "description": "Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them and their codes are part of its stored code.",
         "operationId": "SiteOfferingsGatewayController_upsertDimensionValues",
         "parameters": [
           {
@@ -12417,7 +12417,7 @@
     },
     "/commerce-api/site/offerings/{id}/dimensions/order": {
       "put": {
-        "description": "Sets the axis order, which is the order their codes appear in a derived SKU. Refused once the offering has variants — their SKUs are built from the current order, so changing it would rewrite identifiers already in use.",
+        "description": "Sets the axis order, which is the order their codes appear in a derived variant code. Refused once the offering has variants — their codes are built from the current order, so changing it would rewrite identifiers already in use.",
         "operationId": "SiteOfferingsGatewayController_reorderDimensions",
         "parameters": [
           {
@@ -12467,7 +12467,7 @@
     },
     "/commerce-api/site/offerings/dimensions/{dimensionId}": {
       "patch": {
-        "description": "Changes the label only. The code is fixed once the dimension exists, because it is a segment of every SKU derived from it.",
+        "description": "Changes the label only. The code is fixed once the dimension exists, because it is a segment of every code derived from it.",
         "operationId": "SiteOfferingsGatewayController_updateDimension",
         "parameters": [
           {
@@ -12910,7 +12910,7 @@
     },
     "/commerce-api/site/offerings/{id}/variants/combinations": {
       "post": {
-        "description": "Returns every combination the selected values produce, each with the SKU and name it would be created under, and a flag for the ones a variant already carries. Read-only — nothing is created.",
+        "description": "Returns every combination the selected values produce, each with the code and name it would be created under, and a flag for the ones a variant already carries. Read-only — nothing is created.",
         "operationId": "SiteOfferingsGatewayController_previewVariantCombinations",
         "parameters": [
           {
@@ -12961,7 +12961,7 @@
     },
     "/commerce-api/site/offerings/{id}/variants/generate": {
       "post": {
-        "description": "Creates every selected combination that does not already exist. Additive — a combination left out is never deleted. Each variant’s SKU is derived from the offering code plus one value code per dimension, so it is unique by construction.",
+        "description": "Creates every selected combination that does not already exist. Additive — a combination left out is never deleted. Each variant’s code is derived from the offering code plus one value code per dimension, so it is unique by construction.",
         "operationId": "SiteOfferingsGatewayController_generateVariants",
         "parameters": [
           {
@@ -13346,7 +13346,7 @@
     },
     "/commerce-api/site/offerings/variants/{variantId}/attributes": {
       "put": {
-        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the SKU and the variant matrix are untouched. An empty list clears them.",
+        "description": "Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the The code and the variant matrix are untouched. An empty list clears them.",
         "operationId": "SiteOfferingsGatewayController_setVariantAttributes",
         "parameters": [
           {
@@ -13466,7 +13466,7 @@
     },
     "/commerce-api/site/offerings/variants/{variantId}/bom/lines": {
       "get": {
-        "description": "The components, plus the inventory item already carrying this variant SKU when one exists. Read on its own because only the bill-of-materials view needs either.",
+        "description": "The components, plus the inventory item already carrying this variant's code when one exists. Read on its own because only the bill-of-materials view needs either.",
         "operationId": "SiteOfferingsGatewayController_findVariantBom",
         "parameters": [
           {
@@ -13591,7 +13591,7 @@
         ]
       },
       "delete": {
-        "description": "Removes one line. If that drops the variant below its fulfilment type's minimum it is deactivated rather than left sellable with nothing to sell.",
+        "description": "Removes one line. If that drops the variant below its fulfilment type's minimum it is deactivated rather than left available with nothing behind it.",
         "operationId": "SiteOfferingsGatewayController_deleteBomLine",
         "parameters": [
           {
@@ -13625,7 +13625,7 @@
     },
     "/commerce-api/site/offerings/variants/{variantId}/bom/suggested": {
       "post": {
-        "description": "Adds the inventory item whose SKU equals this variant's, at quantity 1 in that item's own stocking unit. The item is resolved server-side from the SKU, so the request names none — this cannot be used to link an arbitrary item under a narrower grant than editing the bill of materials.",
+        "description": "Adds the inventory item whose SKU equals this variant's code, at quantity 1 in that item's own stocking unit. The item is resolved server-side from that code, so the request names none — this cannot be used to link an arbitrary item under a narrower grant than editing the bill of materials.",
         "operationId": "SiteOfferingsGatewayController_addSuggestedComponent",
         "parameters": [
           {
@@ -13646,7 +13646,7 @@
             "description": "Not found or out of reach."
           },
           "409": {
-            "description": "No item carries this SKU, or it is already a component."
+            "description": "No inventory item carries that SKU, or it is already a component."
           }
         },
         "security": [
@@ -13654,7 +13654,7 @@
             "bearer": []
           }
         ],
-        "summary": "Link the item carrying this variant's SKU",
+        "summary": "Link the item carrying this variant's code",
         "tags": [
           "Commerce - Offerings (Site)"
         ]
@@ -17540,7 +17540,7 @@
             "bearer": []
           }
         ],
-        "summary": "What every selling surface of this workspace sells",
+        "summary": "What every sales surface of this workspace carries",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -17573,7 +17573,7 @@
             }
           },
           "409": {
-            "description": "That target already sells this catalog."
+            "description": "That target already carries this catalog."
           }
         },
         "security": [
@@ -17589,7 +17589,7 @@
     },
     "/commerce-api/org/catalog-channels/pos": {
       "put": {
-        "description": "Omit terminalId to sell this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
+        "description": "Omit terminalId to carry this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
         "operationId": "CatalogChannelsGatewayController_upsertPos",
         "parameters": [],
         "requestBody": {
@@ -17614,7 +17614,7 @@
             }
           },
           "409": {
-            "description": "That target already sells this catalog."
+            "description": "That target already carries this catalog."
           }
         },
         "security": [
@@ -17655,7 +17655,7 @@
             }
           },
           "409": {
-            "description": "B2B already sells this catalog at this scope."
+            "description": "B2B already carries this catalog at this scope."
           }
         },
         "security": [
@@ -17669,9 +17669,9 @@
         ]
       }
     },
-    "/commerce-api/org/catalog-channels/{channelId}/items/table": {
+    "/commerce-api/org/catalog-channels/{channelId}/listings/table": {
       "get": {
-        "description": "Every active item in the channel’s catalog, each flagged with whether this channel sells it.",
+        "description": "Every active item in the channel’s catalog, each flagged with whether this channel carries it.",
         "operationId": "CatalogChannelsGatewayController_findItemsForTable",
         "parameters": [
           {
@@ -17703,15 +17703,100 @@
             "bearer": []
           }
         ],
-        "summary": "What one channel sells",
+        "summary": "What one channel carries",
         "tags": [
           "Commerce - Catalog Channels"
         ]
       }
     },
-    "/commerce-api/org/catalog-channels/{channelId}/items/{listingId}": {
+    "/commerce-api/org/catalog-channels/{channelId}/currencies": {
+      "get": {
+        "description": "The currencies its catalog is priced in, in the order the catalog offers them.",
+        "operationId": "CatalogChannelsGatewayController_findCurrencies",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Currencies this channel can quote in",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/org/catalog-channels/{channelId}/currencies/{currencyCode}/prices/table": {
+      "get": {
+        "description": "Every active item in the channel’s catalog with the price this workspace quotes it at, and whether it is available in that currency.",
+        "operationId": "CatalogChannelsGatewayController_findPricesForTable",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelPriceTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What one channel charges in one currency",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/org/catalog-channels/{channelId}/listings/{listingId}": {
       "patch": {
-        "description": "Exclusions belong to the channel, so this is refused unless this workspace owns it — override the channel first to choose what it sells.",
+        "description": "Naming a currency excludes the item from callers asking in it while the others stay available; omitting one excludes it outright. Exclusions belong to the channel, so this is refused unless this workspace owns it — override the channel first to choose what it carries.",
         "operationId": "CatalogChannelsGatewayController_setItemVisibility",
         "parameters": [
           {
@@ -17818,7 +17903,7 @@
             "bearer": []
           }
         ],
-        "summary": "What every selling surface of this workspace sells",
+        "summary": "What every sales surface of this workspace carries",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -17851,7 +17936,7 @@
             }
           },
           "409": {
-            "description": "That target already sells this catalog."
+            "description": "That target already carries this catalog."
           }
         },
         "security": [
@@ -17867,7 +17952,7 @@
     },
     "/commerce-api/le/catalog-channels/pos": {
       "put": {
-        "description": "Omit terminalId to sell this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
+        "description": "Omit terminalId to carry this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
         "operationId": "LeCatalogChannelsGatewayController_upsertPos",
         "parameters": [],
         "requestBody": {
@@ -17892,7 +17977,7 @@
             }
           },
           "409": {
-            "description": "That target already sells this catalog."
+            "description": "That target already carries this catalog."
           }
         },
         "security": [
@@ -17933,7 +18018,7 @@
             }
           },
           "409": {
-            "description": "B2B already sells this catalog at this scope."
+            "description": "B2B already carries this catalog at this scope."
           }
         },
         "security": [
@@ -17947,9 +18032,9 @@
         ]
       }
     },
-    "/commerce-api/le/catalog-channels/{channelId}/items/table": {
+    "/commerce-api/le/catalog-channels/{channelId}/listings/table": {
       "get": {
-        "description": "Every active item in the channel’s catalog, each flagged with whether this channel sells it.",
+        "description": "Every active item in the channel’s catalog, each flagged with whether this channel carries it.",
         "operationId": "LeCatalogChannelsGatewayController_findItemsForTable",
         "parameters": [
           {
@@ -17981,15 +18066,100 @@
             "bearer": []
           }
         ],
-        "summary": "What one channel sells",
+        "summary": "What one channel carries",
         "tags": [
           "Commerce - Catalog Channels"
         ]
       }
     },
-    "/commerce-api/le/catalog-channels/{channelId}/items/{listingId}": {
+    "/commerce-api/le/catalog-channels/{channelId}/currencies": {
+      "get": {
+        "description": "The currencies its catalog is priced in, in the order the catalog offers them.",
+        "operationId": "LeCatalogChannelsGatewayController_findCurrencies",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Currencies this channel can quote in",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels/{channelId}/currencies/{currencyCode}/prices/table": {
+      "get": {
+        "description": "Every active item in the channel’s catalog with the price this workspace quotes it at, and whether it is available in that currency.",
+        "operationId": "LeCatalogChannelsGatewayController_findPricesForTable",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelPriceTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What one channel charges in one currency",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/le/catalog-channels/{channelId}/listings/{listingId}": {
       "patch": {
-        "description": "Exclusions belong to the channel, so this is refused unless this workspace owns it — override the channel first to choose what it sells.",
+        "description": "Naming a currency excludes the item from callers asking in it while the others stay available; omitting one excludes it outright. Exclusions belong to the channel, so this is refused unless this workspace owns it — override the channel first to choose what it carries.",
         "operationId": "LeCatalogChannelsGatewayController_setItemVisibility",
         "parameters": [
           {
@@ -18096,7 +18266,7 @@
             "bearer": []
           }
         ],
-        "summary": "What every selling surface of this workspace sells",
+        "summary": "What every sales surface of this workspace carries",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -18129,7 +18299,7 @@
             }
           },
           "409": {
-            "description": "That target already sells this catalog."
+            "description": "That target already carries this catalog."
           }
         },
         "security": [
@@ -18145,7 +18315,7 @@
     },
     "/commerce-api/site/catalog-channels/pos": {
       "put": {
-        "description": "Omit terminalId to sell this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
+        "description": "Omit terminalId to carry this catalog at every terminal the workspace covers — an organization assignment is the fallback for every terminal, a company one for the terminals under it, an outlet one for its own. Supply a terminalId to give a single terminal its own catalog. The scope comes from the workspace.",
         "operationId": "SiteCatalogChannelsGatewayController_upsertPos",
         "parameters": [],
         "requestBody": {
@@ -18170,7 +18340,7 @@
             }
           },
           "409": {
-            "description": "That target already sells this catalog."
+            "description": "That target already carries this catalog."
           }
         },
         "security": [
@@ -18211,7 +18381,7 @@
             }
           },
           "409": {
-            "description": "B2B already sells this catalog at this scope."
+            "description": "B2B already carries this catalog at this scope."
           }
         },
         "security": [
@@ -18225,9 +18395,9 @@
         ]
       }
     },
-    "/commerce-api/site/catalog-channels/{channelId}/items/table": {
+    "/commerce-api/site/catalog-channels/{channelId}/listings/table": {
       "get": {
-        "description": "Every active item in the channel’s catalog, each flagged with whether this channel sells it.",
+        "description": "Every active item in the channel’s catalog, each flagged with whether this channel carries it.",
         "operationId": "SiteCatalogChannelsGatewayController_findItemsForTable",
         "parameters": [
           {
@@ -18259,15 +18429,100 @@
             "bearer": []
           }
         ],
-        "summary": "What one channel sells",
+        "summary": "What one channel carries",
         "tags": [
           "Commerce - Catalog Channels"
         ]
       }
     },
-    "/commerce-api/site/catalog-channels/{channelId}/items/{listingId}": {
+    "/commerce-api/site/catalog-channels/{channelId}/currencies": {
+      "get": {
+        "description": "The currencies its catalog is priced in, in the order the catalog offers them.",
+        "operationId": "SiteCatalogChannelsGatewayController_findCurrencies",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Currencies this channel can quote in",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/{channelId}/currencies/{currencyCode}/prices/table": {
+      "get": {
+        "description": "Every active item in the channel’s catalog with the price this workspace quotes it at, and whether it is available in that currency.",
+        "operationId": "SiteCatalogChannelsGatewayController_findPricesForTable",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelPriceTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "What one channel charges in one currency",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/{channelId}/listings/{listingId}": {
       "patch": {
-        "description": "Exclusions belong to the channel, so this is refused unless this workspace owns it — override the channel first to choose what it sells.",
+        "description": "Naming a currency excludes the item from callers asking in it while the others stay available; omitting one excludes it outright. Exclusions belong to the channel, so this is refused unless this workspace owns it — override the channel first to choose what it carries.",
         "operationId": "SiteCatalogChannelsGatewayController_setItemVisibility",
         "parameters": [
           {
@@ -18605,6 +18860,56 @@
         "tags": [
           "Commerce - Catalogs"
         ]
+      },
+      "delete": {
+        "description": "Clears the price this workspace set, leaving any wider workspace’s price to apply again.",
+        "operationId": "CatalogsGatewayController_clearListingPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "listingId",
+            "required": true,
+            "in": "path",
+            "description": "Listing identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "INR",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price cleared."
+          },
+          "404": {
+            "description": "No price in that currency."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear a listing’s price",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
       }
     },
     "/commerce-api/org/catalogs/{id}/channels": {
@@ -18624,7 +18929,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Channels selling this catalog."
+            "description": "Channels carrying this catalog."
           }
         },
         "security": [
@@ -18632,7 +18937,7 @@
             "bearer": []
           }
         ],
-        "summary": "Channels selling this catalog",
+        "summary": "Channels carrying this catalog",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -18731,6 +19036,182 @@
           }
         ],
         "summary": "Remove a listing from a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/org/catalogs/{id}/currencies": {
+      "get": {
+        "description": "Each declared currency with how much of the catalog it covers.",
+        "operationId": "CatalogsGatewayController_getCurrencies",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogCurrencyResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Currencies this catalog prices in",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "post": {
+        "description": "Nothing is priced in it yet; prices are set per listing afterwards.",
+        "operationId": "CatalogsGatewayController_addCurrency",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCatalogCurrencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Currency added."
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Offer a currency on this catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/org/catalogs/{id}/currencies/{currencyCode}": {
+      "delete": {
+        "description": "Refused while it still prices any listing.",
+        "operationId": "CatalogsGatewayController_removeCurrency",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "description": "ISO 4217 currency code",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Currency removed."
+          },
+          "409": {
+            "description": "Currency still prices listings."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Withdraw a currency from this catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/org/catalogs/{id}/currencies/{currencyCode}/listings/table": {
+      "get": {
+        "description": "Same rows as the listings table, with prices narrowed to the currency named in the path.",
+        "operationId": "CatalogsGatewayController_getCurrencyListingsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "description": "ISO 4217 currency code",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogListingTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A catalog’s listings priced in one currency",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -19105,6 +19586,56 @@
         "tags": [
           "Commerce - Catalogs"
         ]
+      },
+      "delete": {
+        "description": "Clears the price this workspace set, leaving any wider workspace’s price to apply again.",
+        "operationId": "LeCatalogsGatewayController_clearListingPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "listingId",
+            "required": true,
+            "in": "path",
+            "description": "Listing identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "INR",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price cleared."
+          },
+          "404": {
+            "description": "No price in that currency."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear a listing’s price",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
       }
     },
     "/commerce-api/le/catalogs/{id}/channels": {
@@ -19124,7 +19655,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Channels selling this catalog."
+            "description": "Channels carrying this catalog."
           }
         },
         "security": [
@@ -19132,7 +19663,7 @@
             "bearer": []
           }
         ],
-        "summary": "Channels selling this catalog",
+        "summary": "Channels carrying this catalog",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -19231,6 +19762,182 @@
           }
         ],
         "summary": "Remove a listing from a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/le/catalogs/{id}/currencies": {
+      "get": {
+        "description": "Each declared currency with how much of the catalog it covers.",
+        "operationId": "LeCatalogsGatewayController_getCurrencies",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogCurrencyResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Currencies this catalog prices in",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "post": {
+        "description": "Nothing is priced in it yet; prices are set per listing afterwards.",
+        "operationId": "LeCatalogsGatewayController_addCurrency",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCatalogCurrencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Currency added."
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Offer a currency on this catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/le/catalogs/{id}/currencies/{currencyCode}": {
+      "delete": {
+        "description": "Refused while it still prices any listing.",
+        "operationId": "LeCatalogsGatewayController_removeCurrency",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "description": "ISO 4217 currency code",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Currency removed."
+          },
+          "409": {
+            "description": "Currency still prices listings."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Withdraw a currency from this catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/le/catalogs/{id}/currencies/{currencyCode}/listings/table": {
+      "get": {
+        "description": "Same rows as the listings table, with prices narrowed to the currency named in the path.",
+        "operationId": "LeCatalogsGatewayController_getCurrencyListingsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "description": "ISO 4217 currency code",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogListingTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A catalog’s listings priced in one currency",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -19605,6 +20312,56 @@
         "tags": [
           "Commerce - Catalogs"
         ]
+      },
+      "delete": {
+        "description": "Clears the price this workspace set, leaving any wider workspace’s price to apply again.",
+        "operationId": "SiteCatalogsGatewayController_clearListingPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "listingId",
+            "required": true,
+            "in": "path",
+            "description": "Listing identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "INR",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price cleared."
+          },
+          "404": {
+            "description": "No price in that currency."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear a listing’s price",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
       }
     },
     "/commerce-api/site/catalogs/{id}/channels": {
@@ -19624,7 +20381,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Channels selling this catalog."
+            "description": "Channels carrying this catalog."
           }
         },
         "security": [
@@ -19632,7 +20389,7 @@
             "bearer": []
           }
         ],
-        "summary": "Channels selling this catalog",
+        "summary": "Channels carrying this catalog",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -19731,6 +20488,182 @@
           }
         ],
         "summary": "Remove a listing from a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/site/catalogs/{id}/currencies": {
+      "get": {
+        "description": "Each declared currency with how much of the catalog it covers.",
+        "operationId": "SiteCatalogsGatewayController_getCurrencies",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogCurrencyResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Currencies this catalog prices in",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "post": {
+        "description": "Nothing is priced in it yet; prices are set per listing afterwards.",
+        "operationId": "SiteCatalogsGatewayController_addCurrency",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCatalogCurrencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Currency added."
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Offer a currency on this catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/site/catalogs/{id}/currencies/{currencyCode}": {
+      "delete": {
+        "description": "Refused while it still prices any listing.",
+        "operationId": "SiteCatalogsGatewayController_removeCurrency",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "description": "ISO 4217 currency code",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Currency removed."
+          },
+          "409": {
+            "description": "Currency still prices listings."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Withdraw a currency from this catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/site/catalogs/{id}/currencies/{currencyCode}/listings/table": {
+      "get": {
+        "description": "Same rows as the listings table, with prices narrowed to the currency named in the path.",
+        "operationId": "SiteCatalogsGatewayController_getCurrencyListingsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currencyCode",
+            "required": true,
+            "in": "path",
+            "description": "ISO 4217 currency code",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogListingTableResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A catalog’s listings priced in one currency",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -30935,7 +31868,7 @@
     },
     "/commerce-api/select-api/offering-variants": {
       "get": {
-        "description": "Variants of one offering, keyed by SKU. Scoped by offeringId — a SKU only means anything next to its siblings.",
+        "description": "Variants of one offering, keyed by code. Scoped by offeringId — a code only means anything next to its siblings.",
         "operationId": "SelectApiController_selectOfferingVariants",
         "parameters": [
           {
@@ -42202,7 +43135,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Feeds every variant SKU",
+            "description": "Feeds every variant Code",
             "example": "tshirt-classic"
           },
           "name": {
@@ -42327,7 +43260,7 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Stable identifier; every variant SKU is built from it",
+            "description": "Stable identifier; every variant Code is built from it",
             "example": "tshirt-classic"
           },
           "name": {
@@ -42372,7 +43305,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Feeds every variant SKU",
+            "description": "Feeds every variant Code",
             "example": "tshirt-classic"
           },
           "name": {
@@ -42486,7 +43419,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Segment this value contributes to a derived SKU",
+            "description": "Segment this value contributes to a derived Code",
             "example": "m"
           },
           "value": {
@@ -42497,7 +43430,7 @@
           },
           "canDelete": {
             "type": "boolean",
-            "description": "False once a variant carries this value — its code is part of that SKU"
+            "description": "False once a variant carries this value — its code is part of that Code"
           }
         },
         "required": [
@@ -42530,7 +43463,7 @@
           },
           "sortOrder": {
             "type": "number",
-            "description": "Position of this segment in the derived SKU"
+            "description": "Position of this segment in the derived Code"
           },
           "values": {
             "type": "array",
@@ -42672,7 +43605,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "New label; the code is fixed because every derived SKU carries it"
+            "description": "New label; the code is fixed because every derived Code carries it"
           },
           "description": {
             "type": "object",
@@ -42956,7 +43889,7 @@
           "offeringId": {
             "type": "string"
           },
-          "sku": {
+          "code": {
             "type": "string",
             "description": "Derived from the offering code and value codes; never edited",
             "example": "tshirt-classic-m-red"
@@ -43042,7 +43975,7 @@
         "required": [
           "id",
           "offeringId",
-          "sku",
+          "code",
           "name",
           "salesUomId",
           "isActive",
@@ -43130,7 +44063,7 @@
               "type": "string"
             }
           },
-          "sku": {
+          "code": {
             "type": "string",
             "description": "Derived from the offering code plus one value code per dimension"
           },
@@ -43148,7 +44081,7 @@
         },
         "required": [
           "valueIds",
-          "sku",
+          "code",
           "name",
           "labels",
           "exists"
@@ -43246,7 +44179,7 @@
           "offeringId": {
             "type": "string"
           },
-          "sku": {
+          "code": {
             "type": "string",
             "description": "Derived from the offering code and value codes; never edited",
             "example": "tshirt-classic-m-red"
@@ -43332,7 +44265,7 @@
         "required": [
           "id",
           "offeringId",
-          "sku",
+          "code",
           "name",
           "salesUomId",
           "isActive",
@@ -43549,7 +44482,7 @@
           },
           "suggestion": {
             "nullable": true,
-            "description": "The inventory item already carrying this variant SKU, if one exists",
+            "description": "The inventory item already carrying this variant Code, if one exists",
             "type": "object",
             "allOf": [
               {
@@ -43705,7 +44638,7 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Prefix of every SKU derived from here on",
+            "description": "Prefix of every Code derived from here on",
             "example": "hf-kichidi"
           },
           "name": {
@@ -43746,7 +44679,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Item code / SKU"
+            "description": "Item code / Code"
           },
           "type": {
             "type": "string",
@@ -45026,7 +45959,7 @@
           "itemsTotal": {
             "type": "number"
           },
-          "itemsSelling": {
+          "itemsAvailable": {
             "type": "number"
           }
         },
@@ -45039,7 +45972,7 @@
           "ownerName",
           "isOwn",
           "itemsTotal",
-          "itemsSelling"
+          "itemsAvailable"
         ]
       },
       "ChannelTargetResponseDto": {
@@ -45053,7 +45986,7 @@
             "type": "string"
           },
           "catalog": {
-            "description": "What this target sells. Never null — a target with no row of its own carries the channel default.",
+            "description": "What this target carries. Never null — a target with no row of its own carries the channel default.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ChannelCatalogResponseDto"
@@ -45110,7 +46043,7 @@
         "properties": {
           "catalogId": {
             "type": "string",
-            "description": "Catalog this channel sells"
+            "description": "Catalog this channel carries"
           },
           "appId": {
             "type": "string",
@@ -45173,11 +46106,11 @@
         "properties": {
           "catalogId": {
             "type": "string",
-            "description": "Catalog this channel sells"
+            "description": "Catalog this channel carries"
           },
           "terminalId": {
             "type": "string",
-            "description": "Named POS terminal. Omit to sell this catalog at every terminal this workspace covers."
+            "description": "Named POS terminal. Omit to carry this catalog at every terminal this workspace covers."
           }
         },
         "required": [
@@ -45189,7 +46122,7 @@
         "properties": {
           "catalogId": {
             "type": "string",
-            "description": "Catalog this channel sells"
+            "description": "Catalog this channel carries"
           },
           "appId": {
             "type": "string",
@@ -45209,13 +46142,56 @@
           "offeringVariantId": {
             "type": "string"
           },
-          "sku": {
-            "type": "object",
-            "nullable": true
+          "code": {
+            "type": "string"
           },
           "variantName": {
+            "type": "string"
+          },
+          "mrp": {
+            "nullable": true,
             "type": "object",
-            "nullable": true
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "availableHere": {
+            "type": "boolean",
+            "description": "False when this channel does not carry the item at all"
+          },
+          "availableCurrencyCodes": {
+            "description": "Currencies a shopper can buy it in here — declared by the catalog, priced, and withheld from none",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "listingId",
+          "offeringVariantId",
+          "code",
+          "variantName",
+          "availableHere",
+          "availableCurrencyCodes"
+        ]
+      },
+      "ChannelPriceResponseDto": {
+        "type": "object",
+        "properties": {
+          "listingId": {
+            "type": "string"
+          },
+          "offeringVariantId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "variantName": {
+            "type": "string"
           },
           "mrp": {
             "nullable": true,
@@ -45228,6 +46204,7 @@
           },
           "price": {
             "nullable": true,
+            "description": "Null when nobody priced it in this currency, which is why it is unavailable here",
             "type": "object",
             "allOf": [
               {
@@ -45235,27 +46212,88 @@
               }
             ]
           },
-          "sellsHere": {
+          "priceOwnerScope": {
+            "type": "string",
+            "enum": [
+              "ORG",
+              "LE",
+              "SITE"
+            ],
+            "nullable": true,
+            "description": "Workspace that set the price"
+          },
+          "priceLegalEntityId": {
+            "type": "object",
+            "nullable": true
+          },
+          "priceSiteId": {
+            "type": "object",
+            "nullable": true
+          },
+          "priceOwnerName": {
+            "type": "object",
+            "description": "Name of the workspace that set the price, resolved from core"
+          },
+          "availableHere": {
             "type": "boolean",
-            "description": "False when this channel excludes the item"
+            "description": "False when the item is excluded from this channel in this currency"
+          },
+          "excludedOutright": {
+            "type": "boolean",
+            "description": "True when excluded from the channel outright, so this currency cannot be quoted either"
           }
         },
         "required": [
           "listingId",
           "offeringVariantId",
-          "sellsHere"
+          "code",
+          "variantName",
+          "priceOwnerName",
+          "availableHere",
+          "excludedOutright"
+        ]
+      },
+      "ChannelPriceTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChannelPriceResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
         ]
       },
       "SetItemVisibilityDto": {
         "type": "object",
         "properties": {
-          "sellsHere": {
+          "availableHere": {
             "type": "boolean",
             "description": "False excludes the item from this channel"
+          },
+          "currencyCode": {
+            "type": "string",
+            "example": "USD",
+            "description": "Excludes it from callers asking in this currency only; omit to exclude it outright"
           }
         },
         "required": [
-          "sellsHere"
+          "availableHere"
         ]
       },
       "CatalogResponseDto": {
@@ -45300,6 +46338,10 @@
           "channelCount": {
             "type": "number"
           },
+          "canEdit": {
+            "type": "boolean",
+            "description": "False when the catalog belongs to a wider workspace, which prices it but cannot change it"
+          },
           "createdAt": {
             "type": "string"
           },
@@ -45316,6 +46358,7 @@
           "isActive",
           "listingCount",
           "channelCount",
+          "canEdit",
           "createdAt",
           "updatedAt"
         ]
@@ -45369,9 +46412,30 @@
           "id": {
             "type": "string"
           },
+          "legalEntityId": {
+            "type": "object",
+            "nullable": true
+          },
           "siteId": {
             "type": "object",
             "nullable": true
+          },
+          "ownerScope": {
+            "type": "string",
+            "enum": [
+              "ORG",
+              "LE",
+              "SITE"
+            ],
+            "description": "Workspace that set this price"
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "Name of that workspace, resolved from core"
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "False when inherited from a wider workspace, which may be overridden but not edited"
           },
           "price": {
             "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -45379,6 +46443,9 @@
         },
         "required": [
           "id",
+          "ownerScope",
+          "ownerName",
+          "canEdit",
           "price"
         ]
       },
@@ -45394,13 +46461,11 @@
           "offeringVariantId": {
             "type": "string"
           },
-          "sku": {
-            "type": "object",
-            "nullable": true
+          "code": {
+            "type": "string"
           },
           "variantName": {
-            "type": "object",
-            "nullable": true
+            "type": "string"
           },
           "legalEntityId": {
             "type": "object",
@@ -45434,7 +46499,7 @@
           "inventoryItemMrpId": {
             "type": "object",
             "nullable": true,
-            "description": "MRP slice this listing sells"
+            "description": "MRP slice this listing covers"
           },
           "mrp": {
             "nullable": true,
@@ -45448,6 +46513,13 @@
           "mrpUomSymbol": {
             "type": "object",
             "nullable": true
+          },
+          "excludedChannelIds": {
+            "description": "Channels this listing is excluded from; absent means available everywhere the catalog reaches",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "prices": {
             "type": "array",
@@ -45466,10 +46538,13 @@
           "id",
           "catalogId",
           "offeringVariantId",
+          "code",
+          "variantName",
           "ownerScope",
           "ownerName",
           "canEdit",
           "canDelete",
+          "excludedChannelIds",
           "prices",
           "createdAt",
           "updatedAt"
@@ -45540,7 +46615,7 @@
           "inventoryItemMrpId": {
             "type": "object",
             "nullable": true,
-            "description": "MRP slice this listing sells; null lists any batch"
+            "description": "MRP slice this listing covers; null lists any batch"
           },
           "price": {
             "example": {
@@ -45552,11 +46627,6 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
-          },
-          "siteId": {
-            "type": "object",
-            "nullable": true,
-            "description": "Per-outlet price; null applies catalog-wide"
           }
         },
         "required": [
@@ -45576,10 +46646,6 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
-          },
-          "siteId": {
-            "type": "object",
-            "nullable": true
           }
         },
         "required": [
@@ -45596,6 +46662,40 @@
         },
         "required": [
           "visible"
+        ]
+      },
+      "CatalogCurrencyResponseDto": {
+        "type": "object",
+        "properties": {
+          "currencyCode": {
+            "type": "string",
+            "example": "INR"
+          },
+          "pricedCount": {
+            "type": "number",
+            "description": "Listings this workspace can quote in this currency, its own prices and inherited ones"
+          },
+          "listingCount": {
+            "type": "number",
+            "description": "Listings in the catalog, priced or not"
+          }
+        },
+        "required": [
+          "currencyCode",
+          "pricedCount",
+          "listingCount"
+        ]
+      },
+      "AddCatalogCurrencyDto": {
+        "type": "object",
+        "properties": {
+          "currencyCode": {
+            "type": "string",
+            "example": "USD"
+          }
+        },
+        "required": [
+          "currencyCode"
         ]
       },
       "UpdateCatalogDto": {
@@ -45783,7 +46883,7 @@
           },
           "catalogId": {
             "type": "object",
-            "description": "Catalog this terminal sells from",
+            "description": "Catalog this terminal quotes from",
             "nullable": true
           },
           "description": {
@@ -45862,7 +46962,7 @@
           },
           "catalogId": {
             "type": "string",
-            "description": "Catalog this terminal sells from"
+            "description": "Catalog this terminal quotes from"
           },
           "description": {
             "type": "object",
@@ -45900,7 +47000,7 @@
           },
           "catalogId": {
             "type": "string",
-            "description": "Catalog this terminal sells from"
+            "description": "Catalog this terminal quotes from"
           },
           "description": {
             "type": "object",
@@ -48840,7 +49940,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Segment this value contributes to a derived SKU",
+            "description": "Segment this value contributes to a derived Code",
             "example": "m"
           },
           "value": {

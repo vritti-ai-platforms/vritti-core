@@ -1,24 +1,32 @@
 import type { CatalogChannelResponseDto } from '@commerce/catalog-channels/dto/response/catalog-channel-response.dto';
 import {
+  ApiAddCatalogCurrency,
   ApiAddCatalogListing,
   ApiCatalogChannels,
+  ApiCatalogCurrencies,
+  ApiCatalogCurrencyListingsTable,
   ApiCatalogListingMrpOptions,
   ApiCatalogListingsTable,
   ApiCatalogsTable,
+  ApiClearCatalogListingPrice,
   ApiCreateCatalog,
   ApiDeleteCatalog,
   ApiDeleteCatalogListing,
   ApiGetCatalog,
+  ApiRemoveCatalogCurrency,
   ApiSetCatalogListingChannelVisibility,
   ApiSetCatalogListingPrice,
   ApiUpdateCatalog,
 } from '@commerce/catalogs/docs/catalogs-gateway.docs';
+import { AddCatalogCurrencyDto } from '@commerce/catalogs/dto/request/add-catalog-currency.dto';
 import { AddCatalogListingDto } from '@commerce/catalogs/dto/request/add-catalog-listing.dto';
 import { CatalogListingMrpOptionsQueryDto } from '@commerce/catalogs/dto/request/catalog-listing-mrp-options-query.dto';
+import { ClearCatalogListingPriceQueryDto } from '@commerce/catalogs/dto/request/clear-catalog-listing-price-query.dto';
 import { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
 import { SetCatalogListingPriceDto } from '@commerce/catalogs/dto/request/set-catalog-listing-price.dto';
 import { SetCatalogListingVisibilityDto } from '@commerce/catalogs/dto/request/set-catalog-listing-visibility.dto';
 import { UpdateCatalogDto } from '@commerce/catalogs/dto/request/update-catalog.dto';
+import type { CatalogCurrencyResponseDto } from '@commerce/catalogs/dto/response/catalog-currency-response.dto';
 import type {
   CatalogListingMrpOptionResponseDto,
   CatalogListingResponseDto,
@@ -100,7 +108,7 @@ export class LeCatalogsGatewayController {
 
   // Sets a listing's price; refused above the MRP it is keyed to
   @Patch(':id/listings/:listingId/price')
-  @RequirePermission(LE_CATALOGS.listings.edit)
+  @RequirePermission(LE_CATALOGS.prices.set)
   @ApiSetCatalogListingPrice()
   setListingPrice(
     @Param('id') id: string,
@@ -111,7 +119,20 @@ export class LeCatalogsGatewayController {
     return this.service.setListingPrice(listingId, dto);
   }
 
-  // Every channel selling this catalog — managed on the Catalog Channels page, read-only here
+  // Clears this workspace's own price, so a wider workspace's price applies again
+  @Delete(':id/listings/:listingId/price')
+  @RequirePermission(LE_CATALOGS.prices.clear)
+  @ApiClearCatalogListingPrice()
+  clearListingPrice(
+    @Param('id') id: string,
+    @Param('listingId') listingId: string,
+    @Query() query: ClearCatalogListingPriceQueryDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/catalogs/${id}/listings/${listingId}/price`);
+    return this.service.clearListingPrice(listingId, query.currencyCode);
+  }
+
+  // Every channel carrying this catalog — managed on the Catalog Channels page, read-only here
   @Get(':id/channels')
   @RequirePermission(LE_CATALOGS.view)
   @ApiCatalogChannels()
@@ -140,6 +161,45 @@ export class LeCatalogsGatewayController {
   deleteListing(@Param('id') id: string, @Param('listingId') listingId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/catalogs/${id}/listings/${listingId}`);
     return this.service.deleteListing(listingId);
+  }
+
+  // Currencies this catalog may be priced in, each with the coverage it has
+  @Get(':id/currencies')
+  @RequirePermission(LE_CATALOGS.currencies.view)
+  @ApiCatalogCurrencies()
+  getCurrencies(@Param('id') id: string): Promise<CatalogCurrencyResponseDto[]> {
+    this.logger.log(`GET /commerce-api/le/catalogs/${id}/currencies`);
+    return this.service.findCurrencies(id);
+  }
+
+  @Post(':id/currencies')
+  @RequirePermission(LE_CATALOGS.currencies.add)
+  @ApiAddCatalogCurrency()
+  addCurrency(@Param('id') id: string, @Body() dto: AddCatalogCurrencyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/le/catalogs/${id}/currencies`);
+    return this.service.addCurrency(id, dto.currencyCode);
+  }
+
+  @Delete(':id/currencies/:currencyCode')
+  @RequirePermission(LE_CATALOGS.currencies.delete)
+  @ApiRemoveCatalogCurrency()
+  removeCurrency(@Param('id') id: string, @Param('currencyCode') currencyCode: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/catalogs/${id}/currencies/${currencyCode}`);
+    return this.service.removeCurrency(id, currencyCode);
+  }
+
+  // One page of this catalog's listings priced in one currency — the Prices tab's drill-in
+  @Get(':id/currencies/:currencyCode/listings/table')
+  @RequirePermission(LE_CATALOGS.prices.view)
+  @ApiCatalogCurrencyListingsTable()
+  getCurrencyListingsTable(
+    @OrgId() orgId: string,
+    @Param('id') id: string,
+    @Param('currencyCode') currencyCode: string,
+    @UserId() userId: string,
+  ): Promise<CatalogListingTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/catalogs/${id}/currencies/${currencyCode}/listings/table`);
+    return this.service.findListingsForTable(orgId, id, userId, currencyCode);
   }
 
   @Get(':id')

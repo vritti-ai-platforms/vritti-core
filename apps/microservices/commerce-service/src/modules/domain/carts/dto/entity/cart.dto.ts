@@ -23,8 +23,8 @@ export interface CartItemRow {
   // Null when the catalogue holds no price for the basket's currency — see `CartItemDto.from`
   amount: bigint | null;
   currencyCode: string | null;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
   offeringName: string | null;
   listingActive: boolean;
   variantActive: boolean;
@@ -40,7 +40,7 @@ export class CartItemDto {
   offeringVariantId: string;
   quantity: number;
   name: string;
-  sku: string | null;
+  code: string;
   // Null when nothing in the catalogue prices this listing in the basket's currency
   unitPrice: CurrencyAmountDto | null;
   lineTotal: CurrencyAmountDto | null;
@@ -53,8 +53,8 @@ export class CartItemDto {
     dto.catalogListingId = row.catalogListingId;
     dto.offeringVariantId = row.offeringVariantId;
     dto.quantity = row.quantity;
-    dto.name = row.variantName ?? row.offeringName ?? '';
-    dto.sku = row.sku ?? null;
+    dto.name = row.variantName;
+    dto.code = row.code;
 
     const priced = row.amount != null && row.currencyCode != null;
     dto.unitPrice = priced ? CurrencyAmountDto.from(row.amount as bigint, row.currencyCode as string) : null;
@@ -66,7 +66,7 @@ export class CartItemDto {
   }
 }
 
-// Whether a line is sellable — the same rule `CartItemDto` reports as `isAvailable`
+// Whether a line can be bought — the same rule `CartItemDto` reports as `isAvailable`
 function isAvailable(row: CartItemRow): boolean {
   return row.listingActive && row.variantActive && row.offeringActive && row.amount != null;
 }

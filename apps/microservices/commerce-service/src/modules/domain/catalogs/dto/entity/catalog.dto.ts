@@ -12,10 +12,19 @@ export class CatalogDto {
   isActive: boolean;
   listingCount: number;
   channelCount: number;
+  // False when the catalog belongs to a wider workspace: this one prices its listings but cannot
+  // rename it, retire it, or change which currencies it offers
+  canEdit: boolean;
+  // The currencies this price list may be priced in, in the order they are offered
+  currencyCodes: string[];
   createdAt: string;
   updatedAt: string;
 
-  static from(entity: Catalog, counts?: { items?: number; channels?: number }): CatalogDto {
+  static from(
+    entity: Catalog,
+    counts?: { items?: number; channels?: number; isOwned?: boolean },
+    currencyCodes: string[] = [],
+  ): CatalogDto {
     const dto = new CatalogDto();
     dto.id = entity.id;
     dto.name = entity.name;
@@ -26,6 +35,8 @@ export class CatalogDto {
     dto.isActive = entity.isActive;
     dto.listingCount = counts?.items ?? 0;
     dto.channelCount = counts?.channels ?? 0;
+    dto.canEdit = counts?.isOwned ?? false;
+    dto.currencyCodes = currencyCodes;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

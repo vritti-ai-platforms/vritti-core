@@ -80,7 +80,7 @@ export const AddListingDialog: React.FC<AddListingDialogProps> = ({ binding, cat
             placeholder={mrpChoices.length > 0 ? 'Any printed price' : 'No MRPs recorded for this variant'}
             options={mrpChoices}
             disabled={mrpsLoading || mrpChoices.length === 0}
-            description="Leave empty to sell any batch. Pick one to list this variant at a single printed price — the same variant can be listed once per MRP."
+            description="Leave empty to cover any batch. Pick one to list this variant at a single printed price — the same variant can be listed once per MRP."
           />
         ) : null}
         <CurrencyField

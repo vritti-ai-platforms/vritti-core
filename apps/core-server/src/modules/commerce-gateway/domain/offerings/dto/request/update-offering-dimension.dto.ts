@@ -4,7 +4,7 @@ import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateOfferingDimensionDto {
   @Trim({ nullify: false })
-  @ApiProperty({ description: 'New label; the code is fixed because every derived SKU carries it' })
+  @ApiProperty({ description: 'New label; the code is fixed because every derived Code carries it' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)

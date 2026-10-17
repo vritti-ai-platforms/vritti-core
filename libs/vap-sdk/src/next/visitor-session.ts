@@ -10,9 +10,18 @@ export type Workspace = {
   /** The store whose prices and stock answer. Null means acting at the legal entity's level. */
   siteId: string | null;
   legalEntityId: string;
-  /** From the legal entity, never configured. */
+  /**
+   * What the visitor is quoted in. One of the currencies the resolved catalogue declares — never
+   * configured, and no longer taken from the legal entity: an Indian company may price in dollars,
+   * and a currency the catalogue has no prices in reads as an empty shop rather than as an error.
+   */
   currencyCode: string;
 };
+
+/** The scope a workspace reads at: its own store when it has one, otherwise its legal entity. */
+export function scopeOf(workspace: Pick<Workspace, 'siteId'>): 'site' | 'le' {
+  return workspace.siteId ? 'site' : 'le';
+}
 
 /**
  * Reading the visitor's selling context, for a page that renders prices.
@@ -73,9 +82,13 @@ export async function vapSdk(payload: PayloadLike, context: { partyId?: string }
 /**
  * The context a visitor starts in, from what cloud injected.
  *
- * The currency is resolved from the legal entity rather than configured, so this costs one cached core
- * read on a cold visit and nothing after. Throws when no legal entity was injected at all: that is a
- * deploy which never chose where it sells, and failing loudly beats pricing everything at nothing.
+ * The currency is the first one the resolved catalogue declares, which is why this costs one cached
+ * core read on a cold visit and nothing after. It is deliberately not the legal entity's currency:
+ * what a shop can quote is a property of its price list, and seeding from the entity would hand a
+ * visitor a currency nothing is priced in — a shop that renders empty with no error to explain it.
+ *
+ * Throws when no legal entity was injected at all, or when the catalogue declares no currency:
+ * both are deploys that cannot price anything, and failing loudly beats pricing everything at zero.
  */
 export const seededWorkspace = cache(async (payload: PayloadLike): Promise<Workspace> => {
   const sdk = getSdk(payload);
@@ -89,17 +102,47 @@ export const seededWorkspace = cache(async (payload: PayloadLike): Promise<Works
     );
   }
 
-  const entity = await sdk.structure.findLegalEntity(legalEntityId);
-  if (!entity) {
+  const currencyCode = await defaultCurrency(payload, { siteId, legalEntityId });
+  return { siteId, legalEntityId, currencyCode };
+});
+
+/**
+ * The currencies the catalogue resolved for this context declares, in the order it offers them.
+ *
+ * Asked at the workspace's own scope, so a store reading its outlet's catalogue is offered that
+ * catalogue's currencies rather than the company's.
+ */
+export async function workspaceCurrencies(
+  payload: PayloadLike,
+  workspace: { siteId: string | null; legalEntityId: string },
+): Promise<string[]> {
+  const sdk = getSdk(payload).forContext(workspace);
+  return sdk.catalogChannels.currencies({ scope: scopeOf(workspace) });
+}
+
+/**
+ * The currency a context falls back to: `preferred` when the catalogue still declares it, else the
+ * first one it does. Used when seeding a session and when a switch of store changes which catalogue
+ * answers — keeping a currency the new catalogue cannot price would empty the shop silently.
+ */
+export async function defaultCurrency(
+  payload: PayloadLike,
+  workspace: { siteId: string | null; legalEntityId: string },
+  preferred?: string,
+): Promise<string> {
+  const currencies = await workspaceCurrencies(payload, workspace);
+  if (preferred && currencies.includes(preferred)) return preferred;
+
+  const [first] = currencies;
+  if (!first) {
     throw new VapError(
-      `The configured legal entity ${legalEntityId} is not one this credential may sell as.`,
+      'The catalogue this storefront resolves to prices in no currency — add one on its Prices tab in Vritti.',
       'Not Configured',
       undefined,
     );
   }
-
-  return { siteId, legalEntityId, currencyCode: entity.currencyCode };
-});
+  return first;
+}
 
 /** The row shape, as the Local API hands it back. */
 export type VisitorSessionRow = {

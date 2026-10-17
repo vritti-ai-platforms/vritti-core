@@ -98,13 +98,14 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({ binding, entry }) => {
           label={meta.slotLabel}
           assignment={entry.defaultCatalog}
           permission={binding.permissions.edit}
-          viewPermission={binding.permissions.view}
+          viewPermission={binding.permissions.listings}
+          removePermission={binding.permissions.delete}
           onAssign={dialog.open}
           onChange={dialog.open}
           onRemove={() =>
             remove(
               `Remove the ${meta.slotLabel.toLowerCase()}?`,
-              'The catalog itself is untouched. This channel falls back to a wider level, or stops selling if nothing is assigned above.',
+              'The catalog itself is untouched. This channel falls back to a wider level, or carries nothing if nothing is assigned above.',
             )
           }
           onOpenItems={() => {
@@ -120,7 +121,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({ binding, entry }) => {
         handle={dialog}
         icon={Route}
         title="Catalog for this channel"
-        description="Pick the catalog this surface should sell from. Anything left alone uses the level above."
+        description="Pick the catalog this surface should quote from. Anything left alone uses the level above."
         content={() => (
           <AssignCatalogDialog
             excludeCatalogIds={[entry.defaultCatalog?.catalogId]}

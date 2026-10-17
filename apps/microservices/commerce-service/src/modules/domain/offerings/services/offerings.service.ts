@@ -110,7 +110,7 @@ export class OfferingsDomainService {
     if (codeTaken) {
       throw new ConflictException({
         label: 'Duplicate Code',
-        detail: `The code "${data.code}" is already in use in this organization. Codes must be unique because every variant SKU is built from them.`,
+        detail: `The code "${data.code}" is already in use in this organization. Codes must be unique because every variant Code is built from them.`,
         errors: [{ field: 'code', message: 'Code already in use' }],
       });
     }
@@ -188,7 +188,7 @@ export class OfferingsDomainService {
     if (breaching.length > 0) {
       throw new ConflictException({
         label: 'Variants Do Not Fit',
-        detail: `${pluralize('variant', breaching.length, true)} cannot be ${next.toLowerCase()} as they stand: ${breaching.map((sku) => `"${sku}"`).join(', ')}. Adjust their components, or pin their own fulfilment type first.`,
+        detail: `${pluralize('variant', breaching.length, true)} cannot be ${next.toLowerCase()} as they stand: ${breaching.map((code) => `"${code}"`).join(', ')}. Adjust their components, or pin their own fulfilment type first.`,
       });
     }
 
@@ -207,7 +207,7 @@ export class OfferingsDomainService {
     };
   }
 
-  // An offering with no variants would be sellable with nothing to sell, so activation is gated on one
+  // An offering with no variants would be available with nothing behind it, so activation is gated on one
   async setStatus(id: string, data: SetOfferingStatusDto): Promise<SuccessResponseDto> {
     const existing = await this.requireOwned(id);
     if (data.isActive) {
@@ -274,7 +274,7 @@ export class OfferingsDomainService {
     return { success: true, message: `"${existing.name}" deleted.` };
   }
 
-  // The code is the first segment of every SKU derived from it. Stored SKUs are never recomputed, so
+  // The code is the first segment of every Code derived from it. Stored SKUs are never recomputed, so
   // changing it once variants exist would leave them carrying a prefix the offering no longer has —
   // recognisable to nobody. Free to change until the first variant.
   private assertCodeChangeable(existing: OfferingWithOwnership): void {

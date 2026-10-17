@@ -1,13 +1,18 @@
 import type {
   CatalogPermissions,
+  UseAddCatalogCurrency,
   UseAddCatalogListing,
   UseCatalogChannelsForCatalog,
+  UseCatalogCurrencies,
+  UseCatalogCurrencyListingsTable,
   UseCatalogListingMrpOptions,
   UseCatalogListingsTable,
   UseCatalogsTable,
+  UseClearCatalogListingPrice,
   UseCreateCatalog,
   UseDeleteCatalog,
   UseDeleteCatalogListing,
+  UseRemoveCatalogCurrency,
   UseSetCatalogListingChannelVisibility,
   UseSetCatalogListingPrice,
   UseSuspenseCatalog,
@@ -23,10 +28,13 @@ export interface CatalogsBinding {
   listDescription: string;
   tableKey: readonly unknown[];
   listingsTableKey: (catalogId: string) => readonly unknown[];
+  currencyListingsTableKey: (catalogId: string, currencyCode: string) => readonly unknown[];
   // Must byte-match the gateway's getCurrentState key or the user's saved view silently resets —
   // and a scope that reuses another's slug overwrites that scope's view
   tableSlug: string;
   listingsTableSlug: (catalogId: string) => string;
+  // The Prices drill-in shares one saved view across currencies — the columns never differ
+  pricesTableSlug: (catalogId: string) => string;
 
   useCatalogsTable: UseCatalogsTable;
   useCatalog: UseSuspenseCatalog;
@@ -40,6 +48,12 @@ export interface CatalogsBinding {
   useDeleteListing: UseDeleteCatalogListing;
   useSetListingPrice: UseSetCatalogListingPrice;
   useSetListingChannelVisibility: UseSetCatalogListingChannelVisibility;
+  useClearListingPrice: UseClearCatalogListingPrice;
+
+  useCurrencies: UseCatalogCurrencies;
+  useCurrencyListingsTable: UseCatalogCurrencyListingsTable;
+  useAddCurrency: UseAddCatalogCurrency;
+  useRemoveCurrency: UseRemoveCatalogCurrency;
 
   useChannelsForCatalog: UseCatalogChannelsForCatalog;
 }

@@ -31,7 +31,7 @@ export const ChannelsTab: React.FC<ChannelsTabProps> = ({ binding, catalogId }) 
       <Empty
         icon={<Route className="size-5" />}
         title="Not reachable"
-        description="No channel sells this catalog yet, so nothing in it can be bought. Bind one on the Catalog Channels page."
+        description="No channel carries this catalog yet, so nothing in it can be bought. Bind one on the Catalog Channels page."
       />
     );
   }

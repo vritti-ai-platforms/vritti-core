@@ -68,7 +68,7 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
               onClick={taxClassDialog.open}
               disabled={!offering.canEdit}
               disabledTip="This offering belongs to a wider scope."
-              permission={PERMISSIONS.edit}
+              permission={PERMISSIONS.setTaxClass}
             >
               Change Tax Class
             </Button>

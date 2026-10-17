@@ -68,7 +68,7 @@ export class ChannelCatalogResponseDto {
   isOwn: boolean;
 
   @ApiProperty() itemsTotal: number;
-  @ApiProperty() itemsSelling: number;
+  @ApiProperty() itemsAvailable: number;
 }
 
 export class ChannelTargetResponseDto {
@@ -77,7 +77,7 @@ export class ChannelTargetResponseDto {
 
   @ApiProperty({
     type: ChannelCatalogResponseDto,
-    description: 'What this target sells. Never null — a target with no row of its own carries the channel default.',
+    description: 'What this target carries. Never null — a target with no row of its own carries the channel default.',
   })
   catalog: ChannelCatalogResponseDto;
 

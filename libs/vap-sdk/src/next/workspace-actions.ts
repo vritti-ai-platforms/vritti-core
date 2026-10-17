@@ -6,7 +6,13 @@ import { cookies } from 'next/headers';
 import { resolvePayload } from './payload-adapter.js';
 import { formField, type PartyActionState, returnToFrom, withPartyErrors } from './state.js';
 import { pointerSid, VISITOR_COOKIE } from './visitor-pointer.js';
-import { type VisitorSessionRow, visitorSessionExpiry } from './visitor-session.js';
+import {
+  defaultCurrency,
+  resolveWorkspace,
+  type VisitorSessionRow,
+  visitorSessionExpiry,
+  workspaceCurrencies,
+} from './visitor-session.js';
 
 /**
  * Changing where a visitor is shopping, as server actions a storefront imports directly.
@@ -32,10 +38,14 @@ export async function setWorkspaceAction(_previous: PartyActionState, formData: 
     const site = await getSdk(payload).structure.findSite(siteId);
     if (!site) return { error: 'That store is not available.', field: 'siteId' };
 
+    // The store decides which catalogue answers, and that catalogue declares its own currencies.
+    // Keeping the visitor's choice when the new one still offers it, and falling back to its first
+    // otherwise, is what stops a switch of store emptying the shop.
+    const current = await resolveWorkspace();
+    const workspace = { siteId: site.id, legalEntityId: site.legalEntityId };
     await writeWorkspace(payload, {
-      siteId: site.id,
-      legalEntityId: site.legalEntityId,
-      currencyCode: site.currencyCode,
+      ...workspace,
+      currencyCode: await defaultCurrency(payload, workspace, current.currencyCode),
     });
     return { ok: true };
   });
@@ -63,11 +73,40 @@ export async function setLegalEntityWorkspaceAction(
     const entity = await getSdk(payload).structure.findLegalEntity(legalEntityId);
     if (!entity) return { error: 'That is not available.', field: 'legalEntityId' };
 
+    const current = await resolveWorkspace();
+    const workspace = { siteId: null, legalEntityId: entity.id };
     await writeWorkspace(payload, {
-      siteId: null,
-      legalEntityId: entity.id,
-      currencyCode: entity.currencyCode,
+      ...workspace,
+      currencyCode: await defaultCurrency(payload, workspace, current.currencyCode),
     });
+    return { ok: true };
+  });
+
+  revalidatePath(returnTo);
+  return result;
+}
+
+/**
+ * Switches what the visitor is quoted in, leaving the store alone.
+ *
+ * Nothing here trusts the form either: the posted code has to be one the resolved catalogue declares.
+ * Without that check a visitor could name any currency and get a shop with no prices in it, which
+ * renders as "nothing for sale" rather than as the mistake it is.
+ */
+export async function setCurrencyAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
+  const returnTo = returnToFrom(formData);
+  const payload = await resolvePayload();
+  const currencyCode = formField(formData, 'currencyCode');
+  if (!currencyCode) return { error: 'No currency was chosen.' };
+
+  const result = await withPartyErrors(payload, async () => {
+    const workspace = await resolveWorkspace();
+    const offered = await workspaceCurrencies(payload, workspace);
+    if (!offered.includes(currencyCode)) {
+      return { error: 'This shop does not price in that currency.', field: 'currencyCode' };
+    }
+
+    await writeWorkspace(payload, { ...workspace, currencyCode });
     return { ok: true };
   });
 
@@ -88,6 +127,11 @@ export async function setLegalEntityWorkspaceAction(
  */
 export async function switchStoreAction(formData: FormData): Promise<void> {
   await setWorkspaceAction({}, formData);
+}
+
+/** The plain-form shape for the currency switch. See `switchStoreAction`. */
+export async function switchCurrencyAction(formData: FormData): Promise<void> {
+  await setCurrencyAction({}, formData);
 }
 
 /** The plain-form shape for selling at a legal entity's level. See `switchStoreAction`. */

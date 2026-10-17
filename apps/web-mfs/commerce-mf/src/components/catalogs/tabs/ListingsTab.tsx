@@ -12,13 +12,12 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { Boxes, IndianRupee, Plus, Radio, Trash2 } from 'lucide-react';
+import { Boxes, Plus, Radio, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import type { CatalogListingData } from '@/schemas/catalogs';
 import type { CatalogsBinding } from '../bindings';
 import { AddListingDialog } from '../forms/AddListingDialog';
 import { ManageVisibilityDialog } from '../forms/ManageVisibilityDialog';
-import { SetListingPriceDialog } from '../forms/SetListingPriceDialog';
 
 interface ListingsTabProps {
   binding: CatalogsBinding;
@@ -29,6 +28,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
   const queryClient = useQueryClient();
   const { data: response, isLoading } = binding.useListingsTable(catalogId);
   const { data: channels = [] } = binding.useChannelsForCatalog(catalogId);
+  const { data: currencies = [] } = binding.useCurrencies(catalogId);
   const addDialog = useDialog();
   const confirm = useConfirm();
   const deleteMutation = binding.useDeleteListing();
@@ -36,7 +36,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
   const handleDelete = useCallback(
     async (row: CatalogListingData) => {
       const ok = await confirm({
-        title: `Remove "${row.sku ?? 'this listing'}"?`,
+        title: `Remove "${row.code}"?`,
         description: 'The listing and its prices are removed from this catalog. The variant itself is untouched.',
         confirmLabel: 'Remove',
         variant: 'destructive',
@@ -46,12 +46,13 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
     [catalogId, confirm, deleteMutation],
   );
 
+  const currencyCount = currencies.length;
   const columns = useMemo<ColumnDef<CatalogListingData>[]>(
     () => [
       {
-        accessorKey: 'sku',
-        header: 'SKU',
-        cell: ({ row }) => <StringCell value={row.original.sku} mono />,
+        accessorKey: 'code',
+        header: 'Code',
+        cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
       { accessorKey: 'variantName', header: 'Variant', enableSorting: false },
@@ -72,13 +73,21 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         enableSorting: false,
       },
       {
-        id: 'price',
-        header: () => <div className="text-center">Price</div>,
+        id: 'priced',
+        header: () => <div className="text-center">Priced</div>,
         cell: ({ row }) => {
-          const price = row.original.prices.find((entry) => entry.siteId === null) ?? row.original.prices[0];
+          // Prices themselves live on the Prices tab; this only says whether every currency has one.
+          // The backend already resolved one price per currency — its own or an inherited one — so
+          // counting the rows is counting the currencies this workspace can actually quote in.
+          const priced = row.original.prices.length;
+          if (currencyCount === 0) return <div className="text-center">—</div>;
           return (
             <div className="flex justify-center">
-              {price ? <CurrencyCell value={price.price} /> : <Badge variant="warning">Not priced</Badge>}
+              {priced === currencyCount ? (
+                <span className="text-sm">{`${priced} of ${currencyCount}`}</span>
+              ) : (
+                <Badge variant="warning">{`${priced} of ${currencyCount}`}</Badge>
+              )}
             </div>
           );
         },
@@ -86,15 +95,20 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
       },
       {
         id: 'channels',
-        header: () => <div className="text-center">Sells on</div>,
+        header: () => <div className="text-center">Available on</div>,
         cell: ({ row }) => {
-          const hidden = row.original.hiddenChannelIds.length;
+          const excluded = row.original.excludedChannelIds.length;
+          // A listing nobody priced is available nowhere, whatever the channels say — the storefront
+          // resolves a price before it returns a row, so counting channels alone overstates it
+          const priced = row.original.prices.length > 0;
           return (
             <div className="text-center">
               {channels.length === 0 ? (
                 <Badge variant="warning">No channels</Badge>
+              ) : priced ? (
+                <span className="text-sm">{`${channels.length - excluded} of ${channels.length}`}</span>
               ) : (
-                <span className="text-sm">{`${channels.length - hidden} of ${channels.length}`}</span>
+                <Badge variant="warning">Not priced</Badge>
               )}
             </div>
           );
@@ -108,36 +122,13 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
           const r = row.original;
           const actions: RowAction[] = [
             {
-              id: 'price',
-              icon: IndianRupee,
-              label: 'Set Price',
-              permission: binding.permissions.listings.edit,
-              // Reach lets this workspace see a wider scope's listing; only its owner may price it
-              disabled: !r.canEdit,
-              dialog: {
-                title: 'Set Price',
-                description: r.mrp
-                  ? 'This listing is keyed to a printed MRP and cannot be priced above it.'
-                  : 'This listing sells any batch, so billing caps the price at each pack’s printed MRP.',
-                content: (close) => (
-                  <SetListingPriceDialog
-                    binding={binding}
-                    catalogId={catalogId}
-                    listing={r}
-                    onSuccess={close}
-                    onCancel={close}
-                  />
-                ),
-              },
-            },
-            {
               id: 'visibility',
               icon: Radio,
-              label: 'Manage Visibility',
+              label: 'Manage Availability',
               permission: binding.permissions.listings.edit,
               dialog: {
-                title: 'Manage Visibility',
-                description: `Which channels sell "${r.variantName ?? r.sku ?? 'this listing'}". It sells everywhere this catalog reaches unless switched off.`,
+                title: 'Manage Availability',
+                description: `Where "${r.variantName}" is available. It is available on every channel this catalog reaches unless excluded here.`,
                 content: (close) => (
                   <ManageVisibilityDialog
                     binding={binding}
@@ -165,7 +156,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         enableHiding: false,
       },
     ],
-    [catalogId, channels, handleDelete, binding],
+    [catalogId, channels, currencyCount, handleDelete, binding],
   );
 
   const { table } = useDataTable({
@@ -186,7 +177,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         mode="tab"
         isLoading={isLoading}
         permission={binding.permissions.listings.view}
-        searchConfig={{ columns: [{ id: 'sku', label: 'SKU' }], searchAll: true }}
+        searchConfig={{ columns: [{ id: 'code', label: 'Code' }], searchAll: true }}
         toolbarActions={{
           actions: (
             <Button
@@ -210,7 +201,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         handle={addDialog}
         icon={Boxes}
         title="Add Listing"
-        description="Pick a variant. Leave MRP empty to sell any batch, or choose one to list this variant at a single printed price."
+        description="Pick a variant. Leave MRP empty to cover any batch, or choose one to list this variant at a single printed price."
         content={(close) => (
           <AddListingDialog binding={binding} catalogId={catalogId} onSuccess={close} onCancel={close} />
         )}

@@ -53,7 +53,7 @@ export const AddBomLineDialog: React.FC<AddBomLineDialogProps> = ({ useAdd, vari
           optionsEndpoint="commerce-api/select-api/inventory-items"
           fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'sku' }}
           searchable
-          description={`This variant's SKU is ${variant.sku} — an item with that code is the usual match.`}
+          description={`This variant's code is ${variant.code} — an inventory item with that SKU is the usual match.`}
         />
         <div className="flex gap-3">
           <div className="w-32">

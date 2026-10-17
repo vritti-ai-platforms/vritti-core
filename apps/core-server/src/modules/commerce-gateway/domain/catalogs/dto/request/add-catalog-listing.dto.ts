@@ -12,7 +12,7 @@ export class AddCatalogListingDto {
   @IsUUID('7')
   legalEntityId?: string | null;
 
-  @ApiPropertyOptional({ nullable: true, description: 'MRP slice this listing sells; null lists any batch' })
+  @ApiPropertyOptional({ nullable: true, description: 'MRP slice this listing covers; null lists any batch' })
   @IsOptional()
   @IsUUID('7')
   inventoryItemMrpId?: string | null;
@@ -21,9 +21,4 @@ export class AddCatalogListingDto {
   @IsOptional()
   @IsCurrency()
   price?: CurrencyAmountDto;
-
-  @ApiPropertyOptional({ nullable: true, description: 'Per-outlet price; null applies catalog-wide' })
-  @IsOptional()
-  @IsUUID('7')
-  siteId?: string | null;
 }

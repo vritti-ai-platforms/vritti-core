@@ -3,3 +3,6 @@ export const CATALOGS_TABLE_KEY = [...CATALOGS_KEY, 'table'] as const;
 export const CATALOG_KEY = (id: string) => [...CATALOGS_KEY, id] as const;
 export const CATALOG_LISTINGS_TABLE_KEY = (catalogId: string) =>
   [...CATALOGS_KEY, catalogId, 'listings', 'table'] as const;
+export const CATALOG_CURRENCIES_KEY = (catalogId: string) => [...CATALOGS_KEY, catalogId, 'currencies'] as const;
+export const CATALOG_CURRENCY_LISTINGS_TABLE_KEY = (catalogId: string, currencyCode: string) =>
+  [...CATALOG_CURRENCIES_KEY(catalogId), currencyCode, 'listings', 'table'] as const;

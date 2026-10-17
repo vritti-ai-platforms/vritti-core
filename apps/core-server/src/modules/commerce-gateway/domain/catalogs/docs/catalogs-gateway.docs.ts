@@ -1,5 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { CatalogCurrencyResponseDto } from '../dto/response/catalog-currency-response.dto';
 import {
   CatalogListingMrpOptionResponseDto,
   CatalogListingResponseDto,
@@ -10,6 +11,7 @@ import { CatalogTableResponseDto } from '../dto/response/catalog-table-response.
 
 const ID = { name: 'id', description: 'Catalog identifier' };
 const LISTING_ID = { name: 'listingId', description: 'Listing identifier' };
+const CURRENCY_CODE = { name: 'currencyCode', description: 'ISO 4217 currency code' };
 const NOT_FOUND = { status: 404, description: 'Catalog not found.' };
 
 export function ApiCatalogsTable() {
@@ -54,6 +56,43 @@ export function ApiDeleteCatalog() {
   );
 }
 
+export function ApiCatalogCurrencies() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Currencies this catalog prices in',
+      description: 'Each declared currency with how much of the catalog it covers.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, type: [CatalogCurrencyResponseDto] }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiAddCatalogCurrency() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Offer a currency on this catalog',
+      description: 'Nothing is priced in it yet; prices are set per listing afterwards.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, description: 'Currency added.' }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiRemoveCatalogCurrency() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Withdraw a currency from this catalog',
+      description: 'Refused while it still prices any listing.',
+    }),
+    ApiParam(ID),
+    ApiParam(CURRENCY_CODE),
+    ApiResponse({ status: 200, description: 'Currency removed.' }),
+    ApiResponse({ status: 409, description: 'Currency still prices listings.' }),
+  );
+}
+
 export function ApiCatalogListingsTable() {
   return applyDecorators(
     ApiOperation({
@@ -61,6 +100,18 @@ export function ApiCatalogListingsTable() {
       description: 'One row per listing. The same variant appears once per MRP slice it is listed at.',
     }),
     ApiParam(ID),
+    ApiResponse({ status: 200, type: CatalogListingTableResponseDto }),
+  );
+}
+
+export function ApiCatalogCurrencyListingsTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'A catalog’s listings priced in one currency',
+      description: 'Same rows as the listings table, with prices narrowed to the currency named in the path.',
+    }),
+    ApiParam(ID),
+    ApiParam(CURRENCY_CODE),
     ApiResponse({ status: 200, type: CatalogListingTableResponseDto }),
   );
 }
@@ -76,14 +127,27 @@ export function ApiCatalogListingMrpOptions() {
   );
 }
 
+export function ApiClearCatalogListingPrice() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Clear a listing’s price',
+      description: 'Clears the price this workspace set, leaving any wider workspace’s price to apply again.',
+    }),
+    ApiParam(ID),
+    ApiParam(LISTING_ID),
+    ApiResponse({ status: 200, description: 'Price cleared.' }),
+    ApiResponse({ status: 404, description: 'No price in that currency.' }),
+  );
+}
+
 export function ApiCatalogChannels() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Channels selling this catalog',
+      summary: 'Channels carrying this catalog',
       description: 'Read-only — bindings are managed on the Catalog Channels page.',
     }),
     ApiParam(ID),
-    ApiResponse({ status: 200, description: 'Channels selling this catalog.' }),
+    ApiResponse({ status: 200, description: 'Channels carrying this catalog.' }),
   );
 }
 

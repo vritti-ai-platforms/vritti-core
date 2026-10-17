@@ -3,6 +3,7 @@ import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   AddCatalogListingFormData,
+  CatalogCurrencyData,
   CatalogData,
   CatalogListingData,
   CatalogListingsTableResponse,
@@ -65,6 +66,61 @@ export function setCatalogListingPrice({
 }: SetCatalogListingPriceFormData & { catalogId: string; listingId: string }): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`${BASE}/${catalogId}/listings/${listingId}/price`, { price })
+    .then((r) => r.data);
+}
+
+export function clearCatalogListingPrice({
+  catalogId,
+  listingId,
+  currencyCode,
+}: {
+  catalogId: string;
+  listingId: string;
+  currencyCode: string;
+}): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`${BASE}/${catalogId}/listings/${listingId}/price`, { params: { currencyCode } })
+    .then((r) => r.data);
+}
+
+export function getCatalogCurrencies(catalogId: string): Promise<CatalogCurrencyData[]> {
+  return axios
+    .get<CatalogCurrencyData[]>(`${BASE}/${catalogId}/currencies`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function addCatalogCurrency({
+  catalogId,
+  currencyCode,
+}: {
+  catalogId: string;
+  currencyCode: string;
+}): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${catalogId}/currencies`, { currencyCode }).then((r) => r.data);
+}
+
+export function removeCatalogCurrency({
+  catalogId,
+  currencyCode,
+}: {
+  catalogId: string;
+  currencyCode: string;
+}): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${catalogId}/currencies/${currencyCode}`).then((r) => r.data);
+}
+
+// The listings table narrowed to one currency — the Prices tab's drill-in
+export function getCatalogCurrencyListingsTable({
+  catalogId,
+  currencyCode,
+}: {
+  catalogId: string;
+  currencyCode: string;
+}): Promise<CatalogListingsTableResponse> {
+  return axios
+    .get<CatalogListingsTableResponse>(`${BASE}/${catalogId}/currencies/${currencyCode}/listings/table`, {
+      showSuccessToast: false,
+    })
     .then((r) => r.data);
 }
 

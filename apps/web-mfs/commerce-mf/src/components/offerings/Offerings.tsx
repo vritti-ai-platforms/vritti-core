@@ -228,7 +228,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
         handle={addDialog}
         icon={ShoppingBag}
         title="Add Offering"
-        description="Its code becomes the prefix of every variant SKU, so it cannot be changed later."
+        description="Its code becomes the prefix of every variant Code, so it cannot be changed later."
         content={(close) => (
           <AddOfferingDialog useCreate={binding.useCreateOffering} onSuccess={close} onCancel={close} />
         )}

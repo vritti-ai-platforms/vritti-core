@@ -11,7 +11,7 @@ import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import type { OfferingData, OfferingDimensionData, VariantCombinationData } from '@/schemas/offerings';
-import { SkuOrderStrip } from '../components/SkuOrderStrip';
+import { CodeOrderStrip } from '../components/CodeOrderStrip';
 import type { UseGenerateVariants, UsePreviewVariantCombinations } from '../types';
 import { stepNumber, toStepDefs, VARIANT_WIZARD_STEPS, type VariantWizardStep } from './wizardSteps';
 
@@ -167,7 +167,7 @@ export const GenerateVariantsWizard: React.FC<GenerateVariantsWizardProps> = ({
               );
             })}
 
-            {activeDimensions.length > 0 && <SkuOrderStrip offering={offering} dimensions={activeDimensions} />}
+            {activeDimensions.length > 0 && <CodeOrderStrip offering={offering} dimensions={activeDimensions} />}
 
             <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm">
               {activeDimensions.map((d) => `${d.name} ${selected[d.id]?.size}`).join('  ×  ') ||
@@ -185,7 +185,7 @@ export const GenerateVariantsWizard: React.FC<GenerateVariantsWizardProps> = ({
                 <thead className="sticky top-0 bg-muted/60">
                   <tr>
                     <th className="w-10 p-2" />
-                    <th className="p-2 text-left font-medium">SKU</th>
+                    <th className="p-2 text-left font-medium">Code</th>
                     <th className="p-2 text-left font-medium">Combination</th>
                     <th className="p-2 text-left font-medium">Status</th>
                   </tr>
@@ -206,7 +206,7 @@ export const GenerateVariantsWizard: React.FC<GenerateVariantsWizardProps> = ({
                           }
                         />
                       </td>
-                      <td className="p-2 font-mono text-xs">{row.sku}</td>
+                      <td className="p-2 font-mono text-xs">{row.code}</td>
                       <td className="p-2 text-muted-foreground">{row.labels}</td>
                       <td className="p-2">
                         <Badge variant={row.exists ? 'success' : row.excluded ? 'secondary' : 'outline'}>

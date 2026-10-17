@@ -5,7 +5,7 @@ export interface AwaitingPaymentOrderLine {
   offeringVariantId: string;
   itemName: string;
   variantName: string | null;
-  sku: string | null;
+  code: string | null;
   quantity: number;
   unitPrice: bigint;
 }

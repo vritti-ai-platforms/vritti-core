@@ -29,10 +29,9 @@ export const CartFieldsFragment = graphql(`
     items {
       id
       catalogListingId
-      offeringVariantId
       quantity
       name
-      sku
+      code
       isAvailable
       unitPrice {
         ...MoneyFields
@@ -99,7 +98,7 @@ export const CLEAR_CART = graphql(`
 export const CART_QUANTITIES_QUERY = graphql(`
   query CartQuantities {
     cartQuantities {
-      offeringVariantId
+      code
       quantity
     }
   }

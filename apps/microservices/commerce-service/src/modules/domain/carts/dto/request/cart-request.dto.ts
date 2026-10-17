@@ -1,3 +1,4 @@
+import { IsCode } from '@vritti/api-sdk/decorators';
 import { IsInt, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-validator';
 
 export class CartScopeDto {
@@ -9,21 +10,16 @@ export class CartScopeDto {
   @Length(3, 3)
   currencyCode: string;
 
-  // The catalogue the reader sells from, when they have one
+  // The catalogue the reader reads prices from, when they have one
   @IsOptional()
   @IsUUID('7')
   appId?: string;
-
-  // The outlet whose price wins, falling back to the organization-wide row when it has none
-  @IsOptional()
-  @IsUUID('7')
-  siteId?: string;
 }
 
 export class AddCartItemDto extends CartScopeDto {
-  // The product. Which catalogue offers it is resolved per read, never stored
-  @IsUUID('7')
-  offeringVariantId: string;
+  // The product, by its code. Which catalogue offers it is resolved per read, never stored
+  @IsCode()
+  code: string;
 
   // Bounded here as well as by the CHECK, so an out-of-range quantity is a readable refusal rather
   // than a constraint violation surfacing as a server error.
@@ -34,8 +30,8 @@ export class AddCartItemDto extends CartScopeDto {
 }
 
 export class UpdateCartItemDto extends CartScopeDto {
-  @IsUUID('7')
-  offeringVariantId: string;
+  @IsCode()
+  code: string;
 
   @IsInt()
   @Min(1)
@@ -44,8 +40,8 @@ export class UpdateCartItemDto extends CartScopeDto {
 }
 
 export class RemoveCartItemDto extends CartScopeDto {
-  @IsUUID('7')
-  offeringVariantId: string;
+  @IsCode()
+  code: string;
 }
 
 export class ClearCartDto {

@@ -4,7 +4,7 @@ export class OrderItemDto {
   id: string;
   itemName: string;
   variantName: string | null;
-  sku: string | null;
+  code: string | null;
   quantity: number;
   unitPrice: string;
   taxRate: number;
@@ -18,7 +18,7 @@ export class OrderItemDto {
     dto.id = entity.id;
     dto.itemName = entity.itemName;
     dto.variantName = entity.variantName ?? null;
-    dto.sku = entity.sku ?? null;
+    dto.code = entity.code ?? null;
     dto.quantity = entity.quantity;
     dto.unitPrice = entity.unitPrice.toString();
     dto.taxRate = entity.taxRate;

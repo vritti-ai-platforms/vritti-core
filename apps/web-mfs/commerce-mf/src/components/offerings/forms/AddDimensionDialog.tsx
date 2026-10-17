@@ -29,7 +29,7 @@ export const AddDimensionDialog: React.FC<AddDimensionDialogProps> = ({
 
   const name = useWatch({ control: form.control, name: 'name' });
 
-  // The code prefixes a SKU segment, so derive it from the name until it is edited by hand
+  // The code prefixes a Code segment, so derive it from the name until it is edited by hand
   useEffect(() => {
     if (!form.formState.dirtyFields.code) form.setValue('code', toCode(name ?? ''));
   }, [name, form]);
@@ -49,7 +49,7 @@ export const AddDimensionDialog: React.FC<AddDimensionDialogProps> = ({
         <TextField
           name="code"
           label="Code"
-          description="Becomes a segment of every SKU on this offering. Fixed once variants exist."
+          description="Becomes a segment of every Code on this offering. Fixed once variants exist."
         />
         <TextField name="description" label="Description" placeholder="e.g. Pack sizes offered on this line" />
       </div>

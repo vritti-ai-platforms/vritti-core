@@ -101,7 +101,7 @@ export function ApiListOfferingDimensions() {
   return applyDecorators(
     ApiOperation({
       summary: 'List an offering’s dimensions',
-      description: 'Dimensions with their values, in the order their codes appear in a derived SKU.',
+      description: 'Dimensions with their values, in the order their codes appear in a derived variant code.',
     }),
     ApiParam(ID),
     ApiResponse({ status: 200, type: [OfferingDimensionResponseDto], description: 'Dimensions retrieved.' }),
@@ -142,7 +142,7 @@ export function ApiUpsertOfferingDimensionValues() {
     ApiOperation({
       summary: "Set a dimension's values",
       description:
-        'Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them and their codes are part of its stored SKU.',
+        'Replaces the value set. Values already carried by a variant cannot be dropped — the variant holds a foreign key to them and their codes are part of its stored code.',
     }),
     ApiParam({ name: 'dimensionId', description: 'Dimension identifier' }),
     ApiResponse({ status: 200, description: 'Values saved.' }),
@@ -157,7 +157,7 @@ export function ApiReorderOfferingDimensions() {
     ApiOperation({
       summary: 'Reorder dimensions',
       description:
-        'Sets the axis order, which is the order their codes appear in a derived SKU. Refused once the offering has variants — their SKUs are built from the current order, so changing it would rewrite identifiers already in use.',
+        'Sets the axis order, which is the order their codes appear in a derived variant code. Refused once the offering has variants — their codes are built from the current order, so changing it would rewrite identifiers already in use.',
     }),
     ApiParam(ID),
     ApiResponse({ status: 200, description: 'Order updated.' }),
@@ -278,7 +278,7 @@ export function ApiPreviewOfferingVariantCombinations() {
     ApiOperation({
       summary: 'Preview variant combinations',
       description:
-        'Returns every combination the selected values produce, each with the SKU and name it would be created under, and a flag for the ones a variant already carries. Read-only — nothing is created.',
+        'Returns every combination the selected values produce, each with the code and name it would be created under, and a flag for the ones a variant already carries. Read-only — nothing is created.',
     }),
     ApiParam(ID),
     ApiResponse({ status: 200, description: 'Combinations resolved.', type: VariantCombinationsResponseDto }),
@@ -291,7 +291,7 @@ export function ApiGenerateOfferingVariants() {
     ApiOperation({
       summary: 'Generate variants',
       description:
-        'Creates every selected combination that does not already exist. Additive — a combination left out is never deleted. Each variant’s SKU is derived from the offering code plus one value code per dimension, so it is unique by construction.',
+        'Creates every selected combination that does not already exist. Additive — a combination left out is never deleted. Each variant’s code is derived from the offering code plus one value code per dimension, so it is unique by construction.',
     }),
     ApiParam(ID),
     ApiResponse({ status: 200, description: 'Variants generated.' }),
@@ -402,11 +402,14 @@ export function ApiCreateVariantInventoryItem() {
     ApiOperation({
       summary: 'Create the inventory item a variant resolves to',
       description:
-        "Creates an inventory item carrying this variant's SKU and links it as the variant's single bill-of-materials line. STOCK offerings only — every other fulfilment type resolves to components that are stocked in their own right, so there is nothing to create.",
+        "Creates an inventory item carrying this variant's code and links it as the variant's single bill-of-materials line. STOCK offerings only — every other fulfilment type resolves to components that are stocked in their own right, so there is nothing to create.",
     }),
     ApiParam({ name: 'variantId', description: 'Variant identifier' }),
     ApiResponse({ status: 201, type: OfferingVariantResponseDto, description: 'Item created and linked.' }),
-    ApiResponse({ status: 409, description: 'An item already carries this SKU, or the offering is not STOCK.' }),
+    ApiResponse({
+      status: 409,
+      description: 'An inventory item already carries that SKU, or the offering is not STOCK.',
+    }),
     ApiResponse(NOT_FOUND),
   );
 }
@@ -414,13 +417,13 @@ export function ApiCreateVariantInventoryItem() {
 export function ApiAddSuggestedComponent() {
   return applyDecorators(
     ApiOperation({
-      summary: "Link the item carrying this variant's SKU",
+      summary: "Link the item carrying this variant's code",
       description:
-        "Adds the inventory item whose SKU equals this variant's, at quantity 1 in that item's own stocking unit. The item is resolved server-side from the SKU, so the request names none — this cannot be used to link an arbitrary item under a narrower grant than editing the bill of materials.",
+        "Adds the inventory item whose SKU equals this variant's code, at quantity 1 in that item's own stocking unit. The item is resolved server-side from that code, so the request names none — this cannot be used to link an arbitrary item under a narrower grant than editing the bill of materials.",
     }),
     ApiParam({ name: 'variantId', description: 'Variant identifier' }),
     ApiResponse({ status: 200, description: 'Component linked.' }),
-    ApiResponse({ status: 409, description: 'No item carries this SKU, or it is already a component.' }),
+    ApiResponse({ status: 409, description: 'No inventory item carries that SKU, or it is already a component.' }),
     ApiResponse(NOT_FOUND),
   );
 }
@@ -430,7 +433,7 @@ export function ApiVariantBom() {
     ApiOperation({
       summary: "A variant's bill of materials",
       description:
-        'The components, plus the inventory item already carrying this variant SKU when one exists. Read on its own because only the bill-of-materials view needs either.',
+        "The components, plus the inventory item already carrying this variant's code when one exists. Read on its own because only the bill-of-materials view needs either.",
     }),
     ApiParam({ name: 'variantId', description: 'Variant ID' }),
     ApiResponse({ status: 200, description: 'Components and suggestion', type: VariantBomResponseDto }),
@@ -465,7 +468,7 @@ export function ApiDeleteBomLine() {
     ApiOperation({
       summary: 'Remove a component',
       description:
-        "Removes one line. If that drops the variant below its fulfilment type's minimum it is deactivated rather than left sellable with nothing to sell.",
+        "Removes one line. If that drops the variant below its fulfilment type's minimum it is deactivated rather than left available with nothing behind it.",
     }),
     ApiParam({ name: 'lineId', description: 'Bill-of-materials line identifier' }),
     ApiResponse({ status: 200, description: 'Component removed.' }),
@@ -506,7 +509,7 @@ export function ApiSetVariantAttributes() {
       summary: "Set a variant's attributes",
       description:
         'Replaces every attribute value this variant carries. Attributes sit outside the combination matrix, so the ' +
-        'SKU and the variant matrix are untouched. An empty list clears them.',
+        'The code and the variant matrix are untouched. An empty list clears them.',
     }),
     ApiParam({ name: 'variantId', description: 'Variant identifier' }),
     ApiResponse({ status: 200, description: 'Attributes set.' }),
@@ -584,7 +587,7 @@ export function ApiUpdateOfferingDimension() {
     ApiOperation({
       summary: 'Rename a dimension',
       description:
-        'Changes the label only. The code is fixed once the dimension exists, because it is a segment of every SKU derived from it.',
+        'Changes the label only. The code is fixed once the dimension exists, because it is a segment of every code derived from it.',
     }),
     ApiParam({ name: 'dimensionId', description: 'Dimension identifier' }),
     ApiResponse({ status: 200, description: 'Dimension renamed.' }),

@@ -22,28 +22,28 @@ export class CartsController {
   @MessagePattern({ cmd: 'site.carts.get' })
   get(@Payload() dto: CartScopeDto): Promise<CartDto> {
     this.logger.log(`site.carts.get — party: ${dto.partyId}`);
-    return this.service.find(dto.partyId, dto.currencyCode, dto.appId, dto.siteId);
+    return this.service.find(dto.partyId, dto.currencyCode, dto.appId);
   }
 
   // Adds a listing, opening a basket if this is the first line
   @MessagePattern({ cmd: 'site.carts.items.add' })
   addItem(@Payload() dto: AddCartItemDto): Promise<CartDto> {
-    this.logger.log(`site.carts.items.add — party: ${dto.partyId}, variant: ${dto.offeringVariantId}`);
+    this.logger.log(`site.carts.items.add — party: ${dto.partyId}, code: ${dto.code}`);
     return this.service.addItem(dto);
   }
 
   // Sets a line to an exact quantity
   @MessagePattern({ cmd: 'site.carts.items.update' })
   updateItem(@Payload() dto: UpdateCartItemDto): Promise<CartDto> {
-    this.logger.log(`site.carts.items.update — party: ${dto.partyId}, variant: ${dto.offeringVariantId}`);
+    this.logger.log(`site.carts.items.update — party: ${dto.partyId}, code: ${dto.code}`);
     return this.service.updateItem(dto);
   }
 
   // Removes a line
   @MessagePattern({ cmd: 'site.carts.items.remove' })
   removeItem(@Payload() dto: RemoveCartItemDto): Promise<CartDto> {
-    this.logger.log(`site.carts.items.remove — party: ${dto.partyId}, variant: ${dto.offeringVariantId}`);
-    return this.service.removeItem(dto.partyId, dto.offeringVariantId, dto.currencyCode, dto.appId, dto.siteId);
+    this.logger.log(`site.carts.items.remove — party: ${dto.partyId}, code: ${dto.code}`);
+    return this.service.removeItem(dto.partyId, dto.code, dto.currencyCode, dto.appId);
   }
 
   // Returns paginated baskets open at this workspace, for the data table
@@ -63,7 +63,7 @@ export class CartsController {
   // Returns one basket's lines, priced by the caller's catalogue
   // How many of each product the shopper holds here — a product page's stepper, without pricing
   @MessagePattern({ cmd: 'site.carts.quantities' })
-  quantities(@Payload() data: { partyId: string }): Promise<{ offeringVariantId: string; quantity: number }[]> {
+  quantities(@Payload() data: { partyId: string }): Promise<{ code: string; quantity: number }[]> {
     this.logger.log(`site.carts.quantities — party: ${data.partyId}`);
     return this.service.findQuantities(data.partyId);
   }
@@ -72,19 +72,17 @@ export class CartsController {
   @MessagePattern({ cmd: 'site.carts.items.table' })
   itemsTable(
     @Payload()
-    payload: { cartId: string; currencyCode: string; appId?: string | null; siteId?: string } & TableViewState,
+    payload: { cartId: string; currencyCode: string; appId?: string | null } & TableViewState,
   ): Promise<{ result: CartItemDto[]; count: number }> {
-    const { cartId, currencyCode, appId, siteId, ...state } = payload;
+    const { cartId, currencyCode, appId, ...state } = payload;
     this.logger.log(`site.carts.items.table — cart: ${cartId}`);
-    return this.service.findItemsForTable(cartId, state, currencyCode, appId, siteId);
+    return this.service.findItemsForTable(cartId, state, currencyCode, appId);
   }
 
   @MessagePattern({ cmd: 'site.carts.findItemsById' })
-  findItemsById(
-    @Payload() data: { id: string; currencyCode: string; appId?: string | null; siteId?: string },
-  ): Promise<CartDto> {
+  findItemsById(@Payload() data: { id: string; currencyCode: string; appId?: string | null }): Promise<CartDto> {
     this.logger.log(`site.carts.findItemsById — id: ${data.id}`);
-    return this.service.findItemsById(data.id, data.currencyCode, data.appId, data.siteId);
+    return this.service.findItemsById(data.id, data.currencyCode, data.appId);
   }
 
   // Opens a basket for a shopper, or hands back the one they already have here

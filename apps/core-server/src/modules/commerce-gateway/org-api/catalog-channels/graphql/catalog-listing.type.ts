@@ -14,15 +14,13 @@ export class CatalogListing {
   @Field(() => ID)
   id: string;
 
-  @Field(() => ID)
-  offeringVariantId: string;
+  // What a site keys its own product record on — the variant's code, stable across sites
+  @Field(() => String)
+  code: string;
 
-  @Field(() => String, { nullable: true })
-  sku?: string | null;
+  @Field(() => String)
+  name: string;
 
-  @Field(() => String, { nullable: true })
-  name?: string | null;
-
-  @Field(() => Money, { nullable: true })
-  price?: Money | null;
+  @Field(() => Money)
+  price: Money;
 }

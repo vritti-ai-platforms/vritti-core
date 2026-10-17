@@ -60,7 +60,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ offering }) => {
         </Card>
         <Card>
           <CardContent className="py-4">
-            <div className="text-muted-foreground text-xs">Not sellable yet</div>
+            <div className="text-muted-foreground text-xs">Not available yet</div>
             <div className="font-mono font-semibold text-2xl">{missingBom}</div>
             <div className="text-muted-foreground text-xs">
               {missingBom === 0 ? 'every variant has what it needs' : 'waiting on a bill of materials'}

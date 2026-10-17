@@ -6,9 +6,9 @@ export interface OfferingVariantSelectorProps extends SelectProps {
   offeringId: string;
 }
 
-const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'sku', descriptionKey: 'name' } as const;
+const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'code', descriptionKey: 'name' } as const;
 
-// Pre-configured Select for the variants of one offering, keyed by SKU
+// Pre-configured Select for the variants of one offering, keyed by its code
 export const OfferingVariantSelector = forwardRef<HTMLButtonElement, OfferingVariantSelectorProps>(
   ({ offeringId, fieldKeys, params, ...props }, ref) => (
     <Select

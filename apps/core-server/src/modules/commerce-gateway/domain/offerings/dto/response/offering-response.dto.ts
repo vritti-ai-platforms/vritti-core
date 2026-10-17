@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class OfferingResponseDto {
   @ApiProperty() id: string;
-  @ApiProperty({ description: 'Feeds every variant SKU', example: 'tshirt-classic' }) code: string;
+  @ApiProperty({ description: 'Feeds every variant Code', example: 'tshirt-classic' }) code: string;
   @ApiProperty() name: string;
   @ApiPropertyOptional({ nullable: true }) description: string | null;
   @ApiPropertyOptional({ nullable: true }) categoryId: string | null;

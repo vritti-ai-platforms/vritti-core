@@ -110,7 +110,7 @@ export const orderItems = commerceSchema.table(
       .references(() => offeringVariants.id),
     itemName: varchar('item_name', { length: 255 }).notNull(),
     variantName: varchar('variant_name', { length: 255 }),
-    sku: varchar('sku', { length: 200 }),
+    code: varchar('code', { length: 200 }),
     quantity: integer('quantity').notNull().default(1),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     taxRate: decimal('tax_rate', { precision: 5, scale: 2, mode: 'number' }).notNull(),

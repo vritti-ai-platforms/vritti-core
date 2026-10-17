@@ -134,7 +134,7 @@ export class SiteOfferingsGatewayController {
     return this.service.create(dto);
   }
 
-  // Returns an offering's dimensions, in SKU segment order
+  // Returns an offering's dimensions, in Code segment order
   @Get(':id/dimensions')
   @RequirePermission(SITE_OFFERINGS.dimensions.view)
   @ApiListOfferingDimensions()
@@ -190,7 +190,7 @@ export class SiteOfferingsGatewayController {
   }
 
   // Removes a dimension; refused while variants use its values
-  // Renames a dimension; its code is fixed because every derived SKU carries it
+  // Renames a dimension; its code is fixed because every derived Code carries it
   @Patch('dimensions/:dimensionId')
   @RequirePermission(SITE_OFFERINGS.dimensions.edit)
   @ApiUpdateOfferingDimension()
@@ -309,7 +309,7 @@ export class SiteOfferingsGatewayController {
 
   // Creates every selected combination that does not exist yet
   @Post(':id/variants/generate')
-  @RequirePermission(SITE_OFFERINGS.variants.add)
+  @RequirePermission(SITE_OFFERINGS.variants.generate)
   @ApiGenerateOfferingVariants()
   generateVariants(@Param('id') id: string, @Body() dto: GenerateVariantsDto): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/site/offerings/${id}/variants/generate`);
@@ -351,7 +351,7 @@ export class SiteOfferingsGatewayController {
   // Its own route rather than a field on update: setting it cascades to every variant that has not
   // pinned its own, and the response reports how many kept an override
   @Patch(':id/fulfilment')
-  @RequirePermission(SITE_OFFERINGS.edit)
+  @RequirePermission(SITE_OFFERINGS.setFulfilment)
   @ApiSetOfferingFulfilment()
   setFulfilment(@Param('id') id: string, @Body() dto: SetFulfilmentDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/offerings/${id}/fulfilment`);
@@ -378,7 +378,7 @@ export class SiteOfferingsGatewayController {
   }
 
   @Patch(':id/tax-class')
-  @RequirePermission(SITE_OFFERINGS.edit)
+  @RequirePermission(SITE_OFFERINGS.setTaxClass)
   @ApiSetOfferingTaxClass()
   setTaxClass(@Param('id') id: string, @Body() dto: SetTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/offerings/${id}/tax-class`);
@@ -397,7 +397,7 @@ export class SiteOfferingsGatewayController {
   }
 
   @Patch('variants/:variantId/tax-class')
-  @RequirePermission(SITE_OFFERINGS.variants.edit)
+  @RequirePermission(SITE_OFFERINGS.variants.setTaxClass)
   @ApiSetVariantTaxClass()
   setVariantTaxClass(@Param('variantId') variantId: string, @Body() dto: SetTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/offerings/variants/${variantId}/tax-class`);
@@ -405,7 +405,7 @@ export class SiteOfferingsGatewayController {
   }
 
   @Delete('variants/:variantId/tax-class')
-  @RequirePermission(SITE_OFFERINGS.variants.edit)
+  @RequirePermission(SITE_OFFERINGS.variants.setTaxClass)
   @ApiClearVariantTaxClass()
   clearVariantTaxClass(@Param('variantId') variantId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/site/offerings/variants/${variantId}/tax-class`);
@@ -499,7 +499,7 @@ export class SiteOfferingsGatewayController {
 
   // Drops the tax class override on many variants of one offering
   @Delete(':id/variants/tax-class')
-  @RequirePermission(SITE_OFFERINGS.variants.edit)
+  @RequirePermission(SITE_OFFERINGS.variants.setTaxClass)
   @ApiBulkClearVariantsTaxClass()
   bulkClearVariantsTaxClass(
     @Param('id') id: string,
@@ -511,7 +511,7 @@ export class SiteOfferingsGatewayController {
 
   // Overrides the tax class on many variants of one offering
   @Patch(':id/variants/tax-class')
-  @RequirePermission(SITE_OFFERINGS.variants.edit)
+  @RequirePermission(SITE_OFFERINGS.variants.setTaxClass)
   @ApiBulkSetVariantsTaxClass()
   bulkSetVariantsTaxClass(
     @Param('id') id: string,

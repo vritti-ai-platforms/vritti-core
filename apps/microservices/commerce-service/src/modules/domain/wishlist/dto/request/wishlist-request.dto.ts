@@ -1,4 +1,5 @@
-import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
+import { IsCode } from '@vritti/api-sdk/decorators';
+import { IsString, IsUUID, Length } from 'class-validator';
 
 export class WishlistScopeDto {
   @IsUUID('7')
@@ -11,20 +12,15 @@ export class WishlistScopeDto {
   @IsString()
   @Length(3, 3)
   currencyCode: string;
-
-  // The outlet whose price wins, falling back to the organization-wide row when it has none
-  @IsOptional()
-  @IsUUID('7')
-  siteId?: string;
 }
 
 export class AddWishlistItemDto extends WishlistScopeDto {
-  // The product. Which catalogue offers it is resolved per read, never stored
-  @IsUUID('7')
-  offeringVariantId: string;
+  // The product, by its code. Which catalogue offers it is resolved per read, never stored
+  @IsCode()
+  code: string;
 }
 
 export class RemoveWishlistItemDto extends WishlistScopeDto {
-  @IsUUID('7')
-  offeringVariantId: string;
+  @IsCode()
+  code: string;
 }

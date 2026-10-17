@@ -33,7 +33,7 @@ export const VariantHeaderActions: React.FC<VariantHeaderActionsProps> = ({
         permission: permissions.variants.setTaxClass,
         dialog: {
           title: 'Override Tax Class',
-          description: `Pins a tax class to ${variant.sku}, exempting it from the offering's cascade`,
+          description: `Pins a tax class to ${variant.code}, exempting it from the offering's cascade`,
           content: (close) => (
             <SetVariantTaxClassDialog useSet={useSetTaxClass} variant={variant} onSuccess={close} onCancel={close} />
           ),

@@ -23,15 +23,15 @@ export class OrgOfferingBomService {
     private readonly inventoryItems: InventoryItemsDomainService,
   ) {}
 
-  // Creates the inventory item a STOCK variant resolves to, taking its SKU from the variant, and links it
+  // Creates the inventory item a STOCK variant resolves to, taking its SKU from the variant's code, and links it
   // as that variant's single bill-of-materials line.
   async createInventoryItem(data: CreateVariantInventoryItemDto): Promise<CreateResponseDto<OfferingVariantDto>> {
     const variant = await this.variants.findById(data.variantId);
 
-    if (await this.bom.findItemBySku(variant.sku)) {
+    if (await this.bom.findItemBySku(variant.code)) {
       throw new ConflictException({
         label: 'Item Already Exists',
-        detail: `An inventory item already carries the SKU "${variant.sku}". Add it to the bill of materials instead.`,
+        detail: `An inventory item already carries the SKU "${variant.code}". Add it to the bill of materials instead.`,
       });
     }
 
@@ -45,7 +45,7 @@ export class OrgOfferingBomService {
 
     const created = await this.inventoryItems.create({
       name: data.name,
-      sku: variant.sku,
+      sku: variant.code,
       type: data.type,
       tracking: data.tracking,
       pickStrategy: data.pickStrategy,
@@ -60,10 +60,10 @@ export class OrgOfferingBomService {
       lines: [{ inventoryItemId: created.data.id, quantity: 1, uomId: data.uomId }],
     });
 
-    this.logger.log(`Created inventory item ${variant.sku} for variant ${variant.id}`);
+    this.logger.log(`Created inventory item ${variant.code} for variant ${variant.id}`);
     return {
       success: true,
-      message: `"${variant.sku}" created and linked as this variant's component.`,
+      message: `"${variant.code}" created and linked as this variant's component.`,
       data: await this.variants.findById(variant.id),
     };
   }

@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class VariantCombinationResponseDto {
   @ApiProperty({ type: [String] }) valueIds: string[];
-  @ApiProperty({ description: 'Derived from the offering code plus one value code per dimension' }) sku: string;
+  @ApiProperty({ description: 'Derived from the offering code plus one value code per dimension' }) code: string;
   @ApiProperty() name: string;
   @ApiProperty({ description: 'Value names in dimension order' }) labels: string;
   @ApiProperty({ description: 'True when a variant already carries this exact combination' }) exists: boolean;

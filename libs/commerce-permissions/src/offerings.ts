@@ -17,6 +17,9 @@ export const ORG_OFFERINGS = {
   edit: 'org.offerings.edit',
   delete: 'org.offerings.delete',
   setTaxClass: 'org.offerings.set-tax-class',
+  // Changing fulfilment type deactivates every variant that no longer satisfies the new rule, so it
+  // is not ordinary editing — the same reasoning that gives set-tax-class its own code.
+  setFulfilment: 'org.offerings.set-fulfilment',
   toggle: 'org.offerings.toggle',
   export: 'org.offerings.export',
   dimensions: {
@@ -36,6 +39,9 @@ export const ORG_OFFERINGS = {
   variants: {
     view: 'org.offerings.variants.view',
     add: 'org.offerings.variants.add',
+    // Creates the whole combination matrix in one act — tens of variants from one press, which is a
+    // different thing to grant than adding one by hand.
+    generate: 'org.offerings.variants.generate',
     edit: 'org.offerings.variants.edit',
     delete: 'org.offerings.variants.delete',
     setTaxClass: 'org.offerings.variants.set-tax-class',
@@ -64,6 +70,9 @@ export const LE_OFFERINGS = {
   edit: 'le.offerings.edit',
   delete: 'le.offerings.delete',
   setTaxClass: 'le.offerings.set-tax-class',
+  // Changing fulfilment type deactivates every variant that no longer satisfies the new rule, so it
+  // is not ordinary editing — the same reasoning that gives set-tax-class its own code.
+  setFulfilment: 'le.offerings.set-fulfilment',
   toggle: 'le.offerings.toggle',
   export: 'le.offerings.export',
   dimensions: {
@@ -83,6 +92,9 @@ export const LE_OFFERINGS = {
   variants: {
     view: 'le.offerings.variants.view',
     add: 'le.offerings.variants.add',
+    // Creates the whole combination matrix in one act — tens of variants from one press, which is a
+    // different thing to grant than adding one by hand.
+    generate: 'le.offerings.variants.generate',
     edit: 'le.offerings.variants.edit',
     delete: 'le.offerings.variants.delete',
     setTaxClass: 'le.offerings.variants.set-tax-class',
@@ -108,6 +120,9 @@ export const SITE_OFFERINGS = {
   edit: 'site.offerings.edit',
   delete: 'site.offerings.delete',
   setTaxClass: 'site.offerings.set-tax-class',
+  // Changing fulfilment type deactivates every variant that no longer satisfies the new rule, so it
+  // is not ordinary editing — the same reasoning that gives set-tax-class its own code.
+  setFulfilment: 'site.offerings.set-fulfilment',
   toggle: 'site.offerings.toggle',
   export: 'site.offerings.export',
   dimensions: {
@@ -126,12 +141,15 @@ export const SITE_OFFERINGS = {
   },
   // What a storefront credential may read. Site scope only: the picker that uses it is one outlet's
   // website choosing which variant a page is about.
-  app: {
-    variants: 'site.offerings.app.variants',
-  },
+  // The storefront's variant lookup. Flat and prerequisite-free on purpose: a credential needs it alone, and
+  // nesting it under `variants` would drag the staff `view` chain into the GraphQL surface, where no query answers it.
+  variantOptions: 'site.offerings.variant-options',
   variants: {
     view: 'site.offerings.variants.view',
     add: 'site.offerings.variants.add',
+    // Creates the whole combination matrix in one act — tens of variants from one press, which is a
+    // different thing to grant than adding one by hand.
+    generate: 'site.offerings.variants.generate',
     edit: 'site.offerings.variants.edit',
     delete: 'site.offerings.variants.delete',
     setTaxClass: 'site.offerings.variants.set-tax-class',

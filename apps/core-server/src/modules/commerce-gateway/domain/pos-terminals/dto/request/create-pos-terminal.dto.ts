@@ -22,7 +22,7 @@ export class CreatePosTerminalDto {
   @IsUUID('7')
   locationId: string;
 
-  @ApiPropertyOptional({ description: 'Catalog this terminal sells from' })
+  @ApiPropertyOptional({ description: 'Catalog this terminal quotes from' })
   @IsOptional()
   @IsUUID('7')
   catalogId?: string;

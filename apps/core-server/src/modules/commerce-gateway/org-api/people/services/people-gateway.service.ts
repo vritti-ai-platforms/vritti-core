@@ -43,7 +43,7 @@ export interface StaffShopperRow {
   appId: string;
   catalogListingId: string | null;
   name: string;
-  sku: string | null;
+  code: string;
   isAvailable: boolean;
 }
 
@@ -66,7 +66,7 @@ export interface WishlistItemPayload {
   catalogListingId: string | null;
   offeringVariantId: string;
   name: string;
-  sku: string | null;
+  code: string;
   price: { currency: string; value: string } | null;
   isAvailable: boolean;
   createdAt: string;
@@ -465,31 +465,25 @@ export class PeopleGatewayService {
 
   // ── The party's own wishlist, for a storefront acting for one signed-in party ──
 
-  // Which products the party has saved — ids only, with no catalogue to resolve
-  listShopperWishlistVariantIds(appId: string, partyId: string): Promise<string[]> {
-    this.logger.log(`org.wishlist.variantIds — party: ${partyId}`);
-    return this.nats.send('commerce', 'org.wishlist.variantIds', { appId, partyId });
+  // Which products the party has saved — codes only, with no catalogue to resolve
+  listShopperWishlistCodes(appId: string, partyId: string): Promise<string[]> {
+    this.logger.log(`org.wishlist.codes — party: ${partyId}`);
+    return this.nats.send('commerce', 'org.wishlist.codes', { appId, partyId });
   }
 
-  async listShopperWishlist(
-    appId: string,
-    partyId: string,
-    currencyCode: string,
-    siteId?: string,
-  ): Promise<WishlistItemPayload[]> {
+  async listShopperWishlist(appId: string, partyId: string, currencyCode: string): Promise<WishlistItemPayload[]> {
     this.logger.log(`org.wishlist.list — party: ${partyId}`);
     // No catalogue resolved here — commerce prices a saved row inside the query that reads it
-    return this.nats.send('commerce', 'org.wishlist.list', { appId, partyId, currencyCode, siteId });
+    return this.nats.send('commerce', 'org.wishlist.list', { appId, partyId, currencyCode });
   }
 
   async addToShopperWishlist(input: {
     appId: string;
     partyId: string;
-    offeringVariantId: string;
+    code: string;
     currencyCode: string;
-    siteId?: string;
   }): Promise<WishlistAddPayload> {
-    this.logger.log(`org.wishlist.add — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    this.logger.log(`org.wishlist.add — party: ${input.partyId}, code: ${input.code}`);
 
     // Renamed on the way through, deliberately rather than by assertion. The microservice answers
     // `wishlistItems` and the schema field is `wishlist`; `nats.send<T>` only *claims* a shape, so
@@ -506,11 +500,10 @@ export class PeopleGatewayService {
   async removeFromShopperWishlist(input: {
     appId: string;
     partyId: string;
-    offeringVariantId: string;
+    code: string;
     currencyCode: string;
-    siteId?: string;
   }): Promise<WishlistItemPayload[]> {
-    this.logger.log(`org.wishlist.remove — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    this.logger.log(`org.wishlist.remove — party: ${input.partyId}, code: ${input.code}`);
     return this.nats.send('commerce', 'org.wishlist.remove', input);
   }
 }

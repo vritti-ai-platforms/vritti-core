@@ -6,8 +6,8 @@ export interface WishlistItemRow {
   offeringVariantId: string;
   amount: bigint | null;
   currencyCode: string | null;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
   offeringName: string | null;
   listingActive: boolean;
   variantActive: boolean;
@@ -21,7 +21,7 @@ export class WishlistItemDto {
   // What a storefront joins its own product page on — see `CartItemDto` for why the variant
   offeringVariantId: string;
   name: string;
-  sku: string | null;
+  code: string;
   price: CurrencyAmountDto | null;
   // Whether it can still be bought
   isAvailable: boolean;
@@ -32,8 +32,8 @@ export class WishlistItemDto {
     dto.id = row.id;
     dto.catalogListingId = row.catalogListingId;
     dto.offeringVariantId = row.offeringVariantId;
-    dto.name = row.variantName ?? row.offeringName ?? '';
-    dto.sku = row.sku ?? null;
+    dto.name = row.variantName;
+    dto.code = row.code;
     dto.price = CurrencyAmountDto.from(row.amount, row.currencyCode ?? '');
     dto.isAvailable = row.listingActive && row.variantActive && row.offeringActive && row.amount != null;
     dto.createdAt = row.createdAt.toISOString();

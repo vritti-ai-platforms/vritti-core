@@ -12,7 +12,7 @@ import {
 
 import type { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
 
-export type CatalogWithCounts = Catalog & { items: number; channels: number };
+export type CatalogWithCounts = Catalog & { items: number; channels: number; isOwned: boolean };
 
 @Injectable()
 export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catalogs> {
@@ -26,11 +26,12 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
       ...getColumns(catalogs),
       items: this.db.$count(catalogListings, eq(catalogListings.catalogId, catalogs.id)),
       channels: this.db.$count(catalogChannels, eq(catalogChannels.catalogId, catalogs.id)),
+      isOwned: ownedByWorkspaceExpression(),
     };
   }
 
-  // Every channel selling one catalog. Read here rather than from the channels domain: a catalog
-  // answering "who sells me" is its own question, and RLS bounds the rows either way.
+  // Every channel carrying one catalog. Read here rather than from the channels domain: a catalog
+  // answering "who carries me" is its own question, and RLS bounds the rows either way.
   async findChannels(catalogId: string): Promise<CatalogChannelDto[]> {
     return this.db
       .select({

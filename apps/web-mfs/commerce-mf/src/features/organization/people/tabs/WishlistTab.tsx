@@ -30,9 +30,9 @@ export const WishlistTab: React.FC<WishlistTabProps> = ({ partyId }) => {
         cell: ({ row }) => <StringCell value={row.original.name} />,
       },
       {
-        accessorKey: 'sku',
-        header: 'SKU',
-        cell: ({ row }) => <StringCell value={row.original.sku} mono />,
+        accessorKey: 'code',
+        header: 'Code',
+        cell: ({ row }) => <StringCell value={row.original.code} mono />,
       },
       {
         accessorKey: 'price',

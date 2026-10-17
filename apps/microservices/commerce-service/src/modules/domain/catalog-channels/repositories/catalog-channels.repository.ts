@@ -7,12 +7,14 @@ import {
   type CatalogChannelType,
   type CatalogFilterMode,
   catalogChannels,
+  catalogCurrencies,
   catalogListingChannelExclusions,
   catalogListingPrices,
   catalogListings,
   catalogs,
   channelSpecificity,
   inventoryItemMrps,
+  listingPriceSpecificity,
   offeringAttributes,
   offeringAttributeValues,
   offeringDimensions,
@@ -22,10 +24,14 @@ import {
   offeringVariantValues,
   ownedByWorkspaceExpression,
   posTerminals,
-  SITE_GUC,
   uom,
 } from '@/db/schema';
-import type { CatalogChannelRow, ChannelItemRow, ChannelListRow } from '../dto/entity/catalog-channel.dto';
+import type {
+  CatalogChannelRow,
+  ChannelItemRow,
+  ChannelListRow,
+  ChannelPriceRow,
+} from '../dto/entity/catalog-channel.dto';
 import type { ListingFilterRow } from '../dto/entity/listing-filter.dto';
 import type { StorefrontListingRow } from '../dto/entity/storefront-listing.dto';
 import { type ListingSort, ListingSortValues } from '../dto/request/listing-query.dto';
@@ -50,11 +56,11 @@ export interface StorefrontChannel {
   catalogFilterMode: CatalogFilterMode;
 }
 
-// One (variant, dimension) pair of a sellable sibling — the rows the variant switcher is pivoted
+// One (variant, dimension) pair of an available sibling — the rows the variant switcher is pivoted
 // from. Flat rather than nested because it is one join; the service turns it into axes.
 export interface VariantSiblingRow {
   variantId: string;
-  sku: string;
+  code: string;
   dimensionCode: string;
   dimensionName: string;
   dimensionSortOrder: number;
@@ -109,7 +115,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         where ${catalogListings.catalogId} = ${catalogChannels.catalogId}
           and ${offeringVariants.isActive} and ${offeringVariants.isOfferingActive}
       )`,
-      itemsSelling: sql<number>`(
+      itemsAvailable: sql<number>`(
         select count(*)::int from ${catalogListings}
         join ${offeringVariants} on ${offeringVariants.id} = ${catalogListings.offeringVariantId}
         where ${catalogListings.catalogId} = ${catalogChannels.catalogId}
@@ -118,6 +124,9 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
             select 1 from ${catalogListingChannelExclusions}
             where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
               and ${catalogListingChannelExclusions.catalogChannelId} = ${catalogChannels.id}
+              -- Excluded outright. One excluded from a single currency is still available in the others,
+              -- so it counts here — the card says what the channel carries, not what it quotes
+              and ${catalogListingChannelExclusions.currencyCode} is null
           )
       )`,
     };
@@ -213,9 +222,9 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return row as CatalogChannelRow | undefined;
   }
 
-  // Returns the catalog's active listings, each flagged with whether this channel excludes it.
-  // Reads from catalog_listings, so it is built on the query builder rather than findAllAndCount,
-  // which is bound to catalog_channels.
+  // Returns the catalog's active listings, each flagged with whether this channel carries it at all.
+  // Prices are per currency and live on the Prices read below, so none is resolved here — a channel
+  // item is a thing the channel stocks, which is a question no currency changes.
   async findItemsForChannel(
     catalogId: string,
     channelId: string,
@@ -232,29 +241,43 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .select({
         listingId: catalogListings.id,
         offeringVariantId: catalogListings.offeringVariantId,
-        sku: offeringVariants.sku,
+        code: offeringVariants.code,
         variantName: offeringVariants.name,
         mrpAmount: inventoryItemMrps.amount,
         mrpCurrencyCode: inventoryItemMrps.currencyCode,
-        priceAmount: catalogListingPrices.amount,
-        priceCurrencyCode: catalogListingPrices.currencyCode,
-        sellsHere: sql<boolean>`${catalogListingChannelExclusions.id} is null`,
+        // Only an outright exclusion answers this; one naming a currency is shown on the Prices tab
+        availableHere: sql<boolean>`not exists (
+          select 1 from ${catalogListingChannelExclusions}
+          where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
+            and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+            and ${catalogListingChannelExclusions.currencyCode} is null
+        )`,
+        // The currencies a shopper can actually buy this in here: declared by the catalog, priced for
+        // this workspace, and withheld by neither kind of exclusion. The same three conditions the
+        // storefront read applies, so this column answers "where does this sell" rather than making
+        // the reader subtract exclusions from currencies in their head.
+        availableCurrencyCodes: sql<string[]>`coalesce((
+          select array_agg(${catalogCurrencies.currencyCode} order by ${catalogCurrencies.sortOrder}, ${catalogCurrencies.currencyCode})
+          from ${catalogCurrencies}
+          where ${catalogCurrencies.catalogId} = ${catalogId}
+            and exists (
+              select 1 from ${catalogListingPrices}
+              where ${catalogListingPrices.catalogListingId} = ${catalogListings.id}
+                and ${catalogListingPrices.currencyCode} = ${catalogCurrencies.currencyCode}
+            )
+            and not exists (
+              select 1 from ${catalogListingChannelExclusions}
+              where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
+                and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+                and (${catalogListingChannelExclusions.currencyCode} is null
+                     or ${catalogListingChannelExclusions.currencyCode} = ${catalogCurrencies.currencyCode})
+            )
+        ), '{}')`,
       })
       .from(catalogListings)
-      .leftJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
       .leftJoin(inventoryItemMrps, eq(inventoryItemMrps.id, catalogListings.inventoryItemMrpId))
       .leftJoin(uom, eq(uom.id, inventoryItemMrps.uomId))
-      .leftJoin(
-        catalogListingPrices,
-        and(eq(catalogListingPrices.catalogListingId, catalogListings.id), isNull(catalogListingPrices.siteId)),
-      )
-      .leftJoin(
-        catalogListingChannelExclusions,
-        and(
-          eq(catalogListingChannelExclusions.catalogListingId, catalogListings.id),
-          eq(catalogListingChannelExclusions.catalogChannelId, channelId),
-        ),
-      )
       .where(where)
       .orderBy(...options.orderBy)
       .limit(options.limit)
@@ -265,43 +288,132 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     const total = this.db
       .select({ count: sql<number>`count(*)::int` })
       .from(catalogListings)
-      .leftJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
       .where(where);
 
     const [result, [{ count }]] = await Promise.all([rows, total]);
     return { result: result as ChannelItemRow[], count };
   }
 
-  // Returns the listing if it belongs to the given catalog
+  // What this channel charges in one currency, and whether it is available there at that price. Left-joined
+  // on the price, so an item nobody priced in this currency still shows — unpriced is exactly what
+  // this page exists to surface, and it cannot be bought until someone fixes it.
+  async findPricesForChannel(
+    catalogId: string,
+    channelId: string,
+    currencyCode: string,
+    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: ChannelPriceRow[]; count: number }> {
+    const where = and(
+      eq(catalogListings.catalogId, catalogId),
+      eq(offeringVariants.isActive, true),
+      eq(offeringVariants.isOfferingActive, true),
+      options.where,
+    ) as SQL;
+    const price = this.priceLateral(currencyCode);
+
+    const rows = this.db
+      .select({
+        listingId: catalogListings.id,
+        offeringVariantId: catalogListings.offeringVariantId,
+        code: offeringVariants.code,
+        variantName: offeringVariants.name,
+        mrpAmount: inventoryItemMrps.amount,
+        mrpCurrencyCode: inventoryItemMrps.currencyCode,
+        priceAmount: price.amount,
+        priceCurrencyCode: price.currencyCode,
+        priceLegalEntityId: price.legalEntityId,
+        priceSiteId: price.siteId,
+        // Both exclusions bite here: excluded outright, or excluded from this currency
+        availableHere: sql<boolean>`not exists (
+          select 1 from ${catalogListingChannelExclusions}
+          where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
+            and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+            and (${catalogListingChannelExclusions.currencyCode} is null
+                 or ${catalogListingChannelExclusions.currencyCode} = ${currencyCode})
+        )`,
+        // Apart so the switch can say WHY it is off, and refuse to be flipped on where it would not help
+        excludedOutright: sql<boolean>`exists (
+          select 1 from ${catalogListingChannelExclusions}
+          where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
+            and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+            and ${catalogListingChannelExclusions.currencyCode} is null
+        )`,
+      })
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .leftJoin(inventoryItemMrps, eq(inventoryItemMrps.id, catalogListings.inventoryItemMrpId))
+      .leftJoin(uom, eq(uom.id, inventoryItemMrps.uomId))
+      .leftJoinLateral(price, sql`true`)
+      .where(where)
+      .orderBy(...options.orderBy)
+      .limit(options.limit)
+      .offset(options.offset);
+
+    const total = this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(where);
+
+    const [result, [{ count }]] = await Promise.all([rows, total]);
+    return { result: result as ChannelPriceRow[], count };
+  }
+
   async findListingInCatalog(listingId: string, catalogId: string) {
     const [row] = await this.db
-      .select({ id: catalogListings.id })
+      .select({ id: catalogListings.id, code: offeringVariants.code })
       .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
       .where(and(eq(catalogListings.id, listingId), eq(catalogListings.catalogId, catalogId)))
       .limit(1);
     return row;
   }
 
-  async addExclusion(catalogListingId: string, catalogChannelId: string): Promise<void> {
+  // A null currency excludes the listing outright, a code excludes it from that currency only.
+  // Idempotent, so a double-submit adds nothing.
+  async addExclusion(catalogListingId: string, catalogChannelId: string, currencyCode: string | null): Promise<void> {
     await this.db
       .insert(catalogListingChannelExclusions)
-      .values({ catalogListingId, catalogChannelId })
-      .onConflictDoNothing();
+      .values({ catalogListingId, catalogChannelId, currencyCode })
+      .onConflictDoNothing({
+        target: [
+          catalogListingChannelExclusions.catalogListingId,
+          catalogListingChannelExclusions.catalogChannelId,
+          catalogListingChannelExclusions.currencyCode,
+        ],
+      });
   }
 
-  async removeExclusion(catalogListingId: string, catalogChannelId: string): Promise<void> {
+  // Lifting one currency's exclusion leaves an outright one in place, and lifting the outright one
+  // leaves the per-currency ones — each switch owns exactly its own row.
+  async removeExclusion(
+    catalogListingId: string,
+    catalogChannelId: string,
+    currencyCode: string | null,
+  ): Promise<void> {
     await this.db
       .delete(catalogListingChannelExclusions)
       .where(
         and(
           eq(catalogListingChannelExclusions.catalogListingId, catalogListingId),
           eq(catalogListingChannelExclusions.catalogChannelId, catalogChannelId),
+          currencyCode
+            ? eq(catalogListingChannelExclusions.currencyCode, currencyCode)
+            : isNull(catalogListingChannelExclusions.currencyCode),
         ),
       );
   }
 
-  // Limits a read to a live variant on a live offering that this channel does not exclude
-  private sellable(channelId: string): SQL {
+  // Limits a read to a live variant on a live offering that this channel does not exclude. An
+  // exclusion with no currency excludes the listing outright; one naming a currency excludes it
+  // only from callers asking in that currency. A read with no currency — the filter rail — sees the
+  // outright ones only, so the rail counts what the channel carries rather than what it quotes.
+  private availableOnChannel(channelId: string, currencyCode?: string): SQL {
+    const inThisCurrency = currencyCode
+      ? sql`and (${catalogListingChannelExclusions.currencyCode} is null
+                 or ${catalogListingChannelExclusions.currencyCode} = ${currencyCode})`
+      : sql`and ${catalogListingChannelExclusions.currencyCode} is null`;
     return and(
       eq(offeringVariants.isActive, true),
       eq(offeringVariants.isOfferingActive, true),
@@ -309,29 +421,53 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         select 1 from ${catalogListingChannelExclusions}
         where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
           and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+          ${inThisCurrency}
       )`,
     ) as SQL;
   }
 
   // Returns a site's own price, falling back to the organization-wide row
-  private static priceColumn(column: AnyPgColumn) {
-    return sql<string | null>`(
-      select ${column} from ${catalogListingPrices}
-      where ${catalogListingPrices.catalogListingId} = ${catalogListings.id}
-        and (${catalogListingPrices.siteId} = ${sql.raw(SITE_GUC)} or ${catalogListingPrices.siteId} is null)
-      order by ${catalogListingPrices.siteId} asc nulls last, ${catalogListingPrices.currencyCode} asc
-      limit 1
-    )`;
+  // The price this caller pays, as a relation rather than a subselect. Joined with INNER LATERAL, so a
+  // listing nobody has priced in this currency simply is not in the result — which is what makes the
+  // price non-null, keeps the pager's count honest, and prices the row in the currency that was asked
+  // for rather than whichever one sorted first.
+  private priceLateral(currencyCode: string) {
+    return (
+      this.db
+        .select({
+          amount: catalogListingPrices.amount,
+          currencyCode: catalogListingPrices.currencyCode,
+          // Carried for the staff Prices read, which names the workspace a price came from. A
+          // storefront selects only the amount and currency, so these cost it nothing.
+          legalEntityId: catalogListingPrices.legalEntityId,
+          siteId: catalogListingPrices.siteId,
+        })
+        .from(catalogListingPrices)
+        .where(
+          and(
+            eq(catalogListingPrices.catalogListingId, catalogListings.id),
+            eq(catalogListingPrices.currencyCode, currencyCode),
+          ),
+        )
+        // Reach has already narrowed this to the prices this workspace inherits, so the narrowest of
+        // them is the one that applies — site over company over organization, as a channel resolves
+        .orderBy(desc(listingPriceSpecificity))
+        .limit(1)
+        .as('price')
+    );
   }
 
-  private static listingSelection() {
+  private static listingPriceColumns(price: ReturnType<CatalogChannelsDomainRepository['priceLateral']>) {
+    return { priceCurrency: price.currencyCode, priceAmount: price.amount };
+  }
+
+  private static listingSelection(price: ReturnType<CatalogChannelsDomainRepository['priceLateral']>) {
     return {
       id: catalogListings.id,
       offeringVariantId: catalogListings.offeringVariantId,
-      sku: offeringVariants.sku,
+      code: offeringVariants.code,
       name: offeringVariants.name,
-      priceCurrency: CatalogChannelsDomainRepository.priceColumn(catalogListingPrices.currencyCode),
-      priceAmount: CatalogChannelsDomainRepository.priceColumn(catalogListingPrices.amount),
+      ...CatalogChannelsDomainRepository.listingPriceColumns(price),
     };
   }
 
@@ -376,11 +512,13 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return predicates.length ? (and(...predicates) as SQL) : undefined;
   }
 
-  // Price is a correlated subquery, so it cannot be named in ORDER BY — it is spelled out again here.
   // Every branch ends in `id asc`: without a unique tiebreak two rows that tie can swap between pages
   // and a shopper sees one product twice and another never.
-  private static orderBy(sort: ListingSort): SQL[] {
-    const price = CatalogChannelsDomainRepository.priceColumn(catalogListingPrices.amount);
+  private static orderBy(
+    sort: ListingSort,
+    priceAlias: ReturnType<CatalogChannelsDomainRepository['priceLateral']>,
+  ): SQL[] {
+    const price = priceAlias.amount;
     switch (sort) {
       case ListingSortValues.PRICE_ASC:
         return [sql`${price} asc nulls last`, asc(catalogListings.id)];
@@ -389,74 +527,86 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       case ListingSortValues.NEWEST:
         return [desc(catalogListings.createdAt), asc(catalogListings.id)];
       default:
-        return [asc(offeringVariants.sku), asc(catalogListings.id)];
+        return [asc(offeringVariants.code), asc(catalogListings.id)];
     }
   }
 
-  // One page of what the resolved channel's catalog sells, at this workspace's price, plus the
+  // One page of what the resolved channel's catalog malls, at this workspace's price, plus the
   // unfiltered-by-page total the pager needs
   async findListings(
     channel: StorefrontChannel,
     query: { filters: ListingFilterSelection[]; page: number; perPage: number; sort: ListingSort },
+    currencyCode: string,
   ): Promise<{ rows: StorefrontListingRow[]; total: number }> {
     const where = and(
       eq(catalogListings.catalogId, channel.catalogId),
-      this.sellable(channel.id),
+      this.availableOnChannel(channel.id, currencyCode),
       CatalogChannelsDomainRepository.filtersWhere(query.filters),
     ) as SQL;
+    const price = this.priceLateral(currencyCode);
 
     const rows = this.db
-      .select(CatalogChannelsDomainRepository.listingSelection())
+      .select(CatalogChannelsDomainRepository.listingSelection(price))
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoinLateral(price, sql`true`)
       .where(where)
-      .orderBy(...CatalogChannelsDomainRepository.orderBy(query.sort))
+      .orderBy(...CatalogChannelsDomainRepository.orderBy(query.sort, price))
       .limit(query.perPage)
       .offset((query.page - 1) * query.perPage);
 
-    // Shares `where` with the rows query, so it needs the same variant join — the active flags the
-    // sellable predicate reads live on offering_variants, not on catalog_listings
+    // Shares `where` AND the price lateral with the rows query. The variant join is needed because
+    // the availability predicate reads active flags off offering_variants; the lateral is needed because
+    // an unpriced listing is not a row the page can contain, so counting it would overstate the pager.
     const count = this.db
       .select({ count: sql<number>`count(*)::int` })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoinLateral(price, sql`true`)
       .where(where);
 
     const [result, [{ count: total }]] = await Promise.all([rows, count]);
     return { rows: result, total };
   }
 
-  // One listing by SKU, which is what a storefront puts in its own address bar. The SKU is unique
-  // org-wide, and the catalog + sellable predicate keeps the answer to what THIS shop sells.
-  async findListingBySku(
+  // One listing by code, which is what a storefront puts in its own address bar. The code is unique
+  // org-wide, and the catalog + availability predicate keeps the answer to what THIS shop offers.
+  async findListingByCode(
     channel: StorefrontChannel,
-    sku: string,
+    code: string,
+    currencyCode: string,
   ): Promise<(StorefrontListingRow & { offeringId: string }) | undefined> {
+    const price = this.priceLateral(currencyCode);
     const [row] = await this.db
-      .select({ ...CatalogChannelsDomainRepository.listingSelection(), offeringId: offeringVariants.offeringId })
+      .select({ ...CatalogChannelsDomainRepository.listingSelection(price), offeringId: offeringVariants.offeringId })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoinLateral(price, sql`true`)
       .where(
         and(
           eq(catalogListings.catalogId, channel.catalogId),
-          this.sellable(channel.id),
-          eq(offeringVariants.sku, sku),
+          this.availableOnChannel(channel.id, currencyCode),
+          eq(offeringVariants.code, code),
         ) as SQL,
       )
       .limit(1);
     return row;
   }
 
-  // Every variant of one offering this channel actually sells, each with the value it carries on
+  // Every variant of one offering this channel actually offers, each with the value it carries on
   // each axis. One row per (variant, dimension); the service pivots them into axes.
   //
-  // Walked from the sellable listings rather than from the offering's declared combinations, so an
-  // option the shop cannot sell is never offered — the same rule the filter rail follows.
-  findSellableSiblings(channel: StorefrontChannel, offeringId: string): Promise<VariantSiblingRow[]> {
+  // Walked from the available listings rather than from the offering's declared combinations, so an
+  // option the shop cannot fulfil is never offered — the same rule the filter rail follows.
+  findAvailableSiblings(
+    channel: StorefrontChannel,
+    offeringId: string,
+    currencyCode: string,
+  ): Promise<VariantSiblingRow[]> {
     return this.db
       .select({
         variantId: offeringVariants.id,
-        sku: offeringVariants.sku,
+        code: offeringVariants.code,
         dimensionCode: offeringDimensions.code,
         dimensionName: offeringDimensions.name,
         dimensionSortOrder: offeringDimensions.sortOrder,
@@ -472,14 +622,14 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .where(
         and(
           eq(catalogListings.catalogId, channel.catalogId),
-          this.sellable(channel.id),
+          this.availableOnChannel(channel.id, currencyCode),
           eq(offeringVariants.offeringId, offeringId),
         ) as SQL,
       )
       .orderBy(asc(offeringDimensions.sortOrder), asc(offeringDimensionValues.sortOrder));
   }
 
-  // The dimension groups present on the listings this channel sells, with a count per value.
+  // The dimension groups present on the listings this channel offers, with a count per value.
   //
   // Walked from the variants in the catalog rather than from the offerings' declared dimensions: an
   // offering may declare six flavours while only two are on variants that reach here, and offering
@@ -505,7 +655,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .innerJoin(offeringVariantValues, eq(offeringVariantValues.variantId, offeringVariants.id))
       .innerJoin(offeringDimensions, eq(offeringDimensions.id, offeringVariantValues.dimensionId))
       .innerJoin(offeringDimensionValues, eq(offeringDimensionValues.id, offeringVariantValues.valueId))
-      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.sellable(channel.id), where) as SQL)
+      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.availableOnChannel(channel.id), where) as SQL)
       .groupBy(offeringDimensions.code, offeringDimensionValues.code)
       .orderBy(
         sql`min(${offeringDimensions.sortOrder})`,
@@ -533,7 +683,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .innerJoin(offeringVariantAttributeValues, eq(offeringVariantAttributeValues.variantId, offeringVariants.id))
       .innerJoin(offeringAttributes, eq(offeringAttributes.id, offeringVariantAttributeValues.attributeId))
       .innerJoin(offeringAttributeValues, eq(offeringAttributeValues.id, offeringVariantAttributeValues.valueId))
-      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.sellable(channel.id), where) as SQL)
+      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.availableOnChannel(channel.id), where) as SQL)
       .groupBy(offeringAttributes.code, offeringAttributeValues.code)
       .orderBy(
         sql`min(${offeringAttributes.sortOrder})`,
@@ -544,23 +694,41 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
   }
 
   // Prices variants the caller already holds — a basket or wishlist reconciling stored rows
-  async findListingsByVariants(channel: StorefrontChannel, variantIds: string[]): Promise<StorefrontListingRow[]> {
+  async findListingsByCodes(
+    channel: StorefrontChannel,
+    codes: string[],
+    currencyCode: string,
+  ): Promise<StorefrontListingRow[]> {
     // `inArray` with an empty list is a SQL error in some dialects and an always-false in others;
     // neither is worth a round trip when the caller already told us it wants nothing.
-    if (!variantIds.length) return [];
+    if (!codes.length) return [];
 
+    const price = this.priceLateral(currencyCode);
     return this.db
-      .select(CatalogChannelsDomainRepository.listingSelection())
+      .select(CatalogChannelsDomainRepository.listingSelection(price))
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoinLateral(price, sql`true`)
       .where(
         and(
           eq(catalogListings.catalogId, channel.catalogId),
-          this.sellable(channel.id),
-          inArray(catalogListings.offeringVariantId, variantIds),
+          this.availableOnChannel(channel.id, currencyCode),
+          inArray(offeringVariants.code, codes),
         ) as SQL,
       )
-      .orderBy(asc(offeringVariants.sku));
+      .orderBy(asc(offeringVariants.code));
+  }
+
+  // The currencies the resolved catalog carries, which is what a storefront may switch between.
+  // Read here rather than through the catalogs domain: a domain owns every table its own queries
+  // touch, and reaching into another domain's repository couples the two.
+  async findCatalogCurrencies(catalogId: string): Promise<string[]> {
+    const rows = (await this.db
+      .select({ currencyCode: catalogCurrencies.currencyCode })
+      .from(catalogCurrencies)
+      .where(eq(catalogCurrencies.catalogId, catalogId))
+      .orderBy(asc(catalogCurrencies.sortOrder), asc(catalogCurrencies.currencyCode))) as { currencyCode: string }[];
+    return rows.map((row) => row.currencyCode);
   }
 
   // Returns the catalog a channel points at, for the resolve response

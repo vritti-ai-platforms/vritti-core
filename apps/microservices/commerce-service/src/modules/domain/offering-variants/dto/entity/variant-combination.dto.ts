@@ -1,6 +1,6 @@
 export class VariantCombinationDto {
   valueIds: string[];
-  sku: string;
+  code: string;
   name: string;
   labels: string;
   exists: boolean;

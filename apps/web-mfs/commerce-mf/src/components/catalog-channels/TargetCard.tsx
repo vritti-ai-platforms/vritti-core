@@ -16,7 +16,7 @@ interface TargetCardProps {
   target: ChannelTargetData;
 }
 
-// One app or terminal, showing what it will actually sell
+// One app or terminal, showing what it will actually offer
 export const TargetCard: React.FC<TargetCardProps> = ({ binding, type, target }) => {
   const { catalog, isAssigned } = target;
   // Owned means this workspace may edit the row itself; a target named by a wider level is assigned
@@ -38,7 +38,7 @@ export const TargetCard: React.FC<TargetCardProps> = ({ binding, type, target })
         'hover:shadow-md',
       )}
     >
-      {/* The target and what it sells read as one sentence; the badge says which level decided */}
+      {/* The target and what it carries read as one sentence; the badge says which level decided */}
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2 text-sm">
         <span className="font-semibold">{target.name}</span>
         <span className={isAssigned ? '' : 'text-muted-foreground'}>
@@ -48,11 +48,11 @@ export const TargetCard: React.FC<TargetCardProps> = ({ binding, type, target })
         {isAssigned ? <ScopeBadge assignment={catalog} /> : null}
       </div>
 
-      <div className="text-muted-foreground text-xs">{`${catalog.itemsSelling} of ${catalog.itemsTotal} items`}</div>
+      <div className="text-muted-foreground text-xs">{`${catalog.itemsAvailable} of ${catalog.itemsTotal} items`}</div>
 
       {/* Three actions do not fit a card on one line, so they wrap rather than squash */}
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
-        <Button size="xs" onClick={() => openItems(catalog)} permission={binding.permissions.view}>
+        <Button size="xs" onClick={() => openItems(catalog)} permission={binding.permissions.listings}>
           View Items
         </Button>
         <Button size="xs" variant="outline" onClick={dialog.open} permission={binding.permissions.edit}>
@@ -63,7 +63,7 @@ export const TargetCard: React.FC<TargetCardProps> = ({ binding, type, target })
           <Button
             size="xs"
             variant="destructive"
-            permission={binding.permissions.edit}
+            permission={binding.permissions.delete}
             isLoading={isRemoving}
             onClick={() =>
               remove(
@@ -81,7 +81,7 @@ export const TargetCard: React.FC<TargetCardProps> = ({ binding, type, target })
         handle={dialog}
         icon={Route}
         title={`Catalog for ${target.name}`}
-        description="Pick the catalog this surface should sell from. Anything left alone uses the level above."
+        description="Pick the catalog this surface should quote from. Anything left alone uses the level above."
         content={() => (
           <AssignCatalogDialog
             excludeCatalogIds={[catalog.catalogId]}

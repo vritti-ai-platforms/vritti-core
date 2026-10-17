@@ -119,7 +119,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
         currencyCode: suppliers.currencyCode,
         purchasingBlocked: suppliers.purchasingBlocked,
       },
-      leftJoins: [
+      innerJoins: [
         { table: suppliers, on: eq(suppliers.id, supplierSites.supplierId) },
         { table: parties, on: eq(parties.id, suppliers.partyId) },
       ],
@@ -169,7 +169,7 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     const [row] = await this.db
       .select({ ...getColumns(supplierSites), partyId: suppliers.partyId })
       .from(supplierSites)
-      .leftJoin(suppliers, eq(suppliers.id, supplierSites.supplierId))
+      .innerJoin(suppliers, eq(suppliers.id, supplierSites.supplierId))
       .where(eq(supplierSites.id, id))
       .limit(1);
     return row as (SupplierSite & { partyId: string | null }) | undefined;
@@ -186,8 +186,8 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
         purchasingBlocked: suppliers.purchasingBlocked,
       })
       .from(supplierSites)
-      .leftJoin(suppliers, eq(suppliers.id, supplierSites.supplierId))
-      .leftJoin(parties, eq(parties.id, suppliers.partyId))
+      .innerJoin(suppliers, eq(suppliers.id, supplierSites.supplierId))
+      .innerJoin(parties, eq(parties.id, suppliers.partyId))
       .where(and(eq(supplierSites.supplierId, supplierId), eq(supplierSites.siteId, siteId)))
       .limit(1);
     return row as SiteSupplierRow | undefined;

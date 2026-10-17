@@ -3,6 +3,7 @@ import type { AddCatalogListingDto } from '@commerce/catalogs/dto/request/add-ca
 import type { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
 import type { SetCatalogListingPriceDto } from '@commerce/catalogs/dto/request/set-catalog-listing-price.dto';
 import type { UpdateCatalogDto } from '@commerce/catalogs/dto/request/update-catalog.dto';
+import type { CatalogCurrencyResponseDto } from '@commerce/catalogs/dto/response/catalog-currency-response.dto';
 import type {
   CatalogListingMrpOptionResponseDto,
   CatalogListingResponseDto,
@@ -18,12 +19,13 @@ import { OwnerNameService } from '@/owner-names/owner-name.service';
 
 const CATALOGS_TABLE_SLUG = 'commerce-org-catalogs';
 const CATALOG_LISTINGS_TABLE_SLUG = (catalogId: string) => `commerce-org-catalog-${catalogId}-items`;
+const CATALOG_PRICES_TABLE_SLUG = (catalogId: string) => `commerce-org-catalog-${catalogId}-prices`;
 
 export interface CatalogListingPayload {
   id: string;
   offeringVariantId: string;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
   isActive: boolean;
   prices: { price: { currency: string; value: string } }[];
 }
@@ -31,8 +33,8 @@ export interface CatalogListingPayload {
 export interface StorefrontListing {
   id: string;
   offeringVariantId: string;
-  sku: string | null;
-  name: string | null;
+  code: string;
+  name: string;
   price: { currency: string; value: string } | null;
 }
 
@@ -81,24 +83,43 @@ export class CatalogsGatewayService {
     return this.nats.send('commerce', 'org.catalogs.delete', { id });
   }
 
-  // Returns paginated listings of one catalog, each with its prices
+  // The currencies this catalog prices in, each with how much of it it covers
+  async findCurrencies(catalogId: string): Promise<CatalogCurrencyResponseDto[]> {
+    this.logger.log(`org.catalogs.currencies — catalogId: ${catalogId}`);
+    return this.nats.send('commerce', 'org.catalogs.currencies', { catalogId });
+  }
+
+  async addCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.catalogs.currencies.add — catalogId: ${catalogId}, currency: ${currencyCode}`);
+    return this.nats.send('commerce', 'org.catalogs.currencies.add', { catalogId, currencyCode });
+  }
+
+  async removeCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.catalogs.currencies.remove — catalogId: ${catalogId}, currency: ${currencyCode}`);
+    return this.nats.send('commerce', 'org.catalogs.currencies.remove', { catalogId, currencyCode });
+  }
+
+  // Returns paginated listings of one catalog, each with its prices. A currency narrows those prices
+  // to one, and the drill-in shares a single saved view across currencies — the columns never differ.
   async findListingsForTable(
     orgId: string,
     catalogId: string,
     userId: string,
+    currencyCode?: string,
   ): Promise<CatalogListingTableResponseDto> {
-    this.logger.log(`org.catalogs.listings.table — catalogId: ${catalogId}`);
+    this.logger.log(`org.catalogs.listings.table — catalogId: ${catalogId}, currency: ${currencyCode ?? 'all'}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      CATALOG_LISTINGS_TABLE_SLUG(catalogId),
+      currencyCode ? CATALOG_PRICES_TABLE_SLUG(catalogId) : CATALOG_LISTINGS_TABLE_SLUG(catalogId),
     );
     const { result, count } = await this.nats.send<{ result: CatalogListingResponseDto[]; count: number }>(
       'commerce',
       'org.catalogs.listings.table',
-      { catalogId, state },
+      { catalogId, state, currencyCode },
     );
     // commerce stores only the owning ids; the names live in core
-    return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
+    const rows = await this.ownerNames.resolve(orgId, result);
+    return { result: await this.namePriceOwners(orgId, rows), count, state, activeViewId };
   }
 
   // The MRP slices a variant can be listed at, for the add-listing picker
@@ -120,7 +141,15 @@ export class CatalogsGatewayService {
     return this.nats.send('commerce', 'org.catalogs.listings.setPrice', { catalogListingId: listingId, ...dto });
   }
 
-  // Every channel selling this catalog — read-only on the catalog detail
+  async clearListingPrice(listingId: string, currencyCode: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.catalogs.listings.clearPrice — listingId: ${listingId}, currency: ${currencyCode}`);
+    return this.nats.send('commerce', 'org.catalogs.listings.clearPrice', {
+      catalogListingId: listingId,
+      currencyCode,
+    });
+  }
+
+  // Every channel carrying this catalog — read-only on the catalog detail
   async findChannels(catalogId: string): Promise<CatalogChannelResponseDto[]> {
     this.logger.log(`org.catalogs.channels — catalogId: ${catalogId}`);
     return this.nats.send('commerce', 'org.catalogs.channels', { catalogId });
@@ -142,5 +171,21 @@ export class CatalogsGatewayService {
   async deleteListing(listingId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.catalogs.listings.delete — listingId: ${listingId}`);
     return this.nats.send('commerce', 'org.catalogs.listings.delete', { id: listingId });
+  }
+
+  // A price carries the workspace that set it, so an inherited one can say whose it is
+  private async namePriceOwners(
+    orgId: string,
+    rows: CatalogListingResponseDto[],
+  ): Promise<CatalogListingResponseDto[]> {
+    const prices = rows.flatMap((row) => row.prices);
+    if (prices.length === 0) return rows;
+
+    const named = await this.ownerNames.resolve(orgId, prices);
+    const byId = new Map(named.map((price) => [price.id, price.ownerName]));
+    return rows.map((row) => ({
+      ...row,
+      prices: row.prices.map((price) => ({ ...price, ownerName: byId.get(price.id) ?? 'Organization' })),
+    }));
   }
 }

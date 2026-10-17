@@ -37,7 +37,7 @@ export const CHANNEL_TYPE_META: Record<
     description: 'Wholesale sites, for buyers that are companies',
     slotLabel: 'Default for all wholesale sites',
     gridLabel: 'Sites',
-    emptyNote: 'No apps are registered yet. Every app you add sells this to company buyers.',
+    emptyNote: 'No apps are registered yet. Every app you add offers this to company buyers.',
   },
 };
 
@@ -67,7 +67,7 @@ export interface ChannelCatalogData {
   ownerName: string;
   isOwn: boolean;
   itemsTotal: number;
-  itemsSelling: number;
+  itemsAvailable: number;
 }
 
 // One app or terminal. `catalog` is never null — a target with no row of its own carries the channel
@@ -86,7 +86,7 @@ export interface ChannelEntryData {
   targets: ChannelTargetData[] | null;
 }
 
-// One channel selling a catalog, as the catalog detail reads it — enough to name the channel, say
+// One channel carrying a catalog, as the catalog detail reads it — enough to name the channel, say
 // which level set it, and decide whether this workspace may toggle a listing's visibility on it
 export interface CatalogChannelData {
   id: string;
@@ -99,14 +99,34 @@ export interface CatalogChannelData {
   isOwn: boolean;
 }
 
+export type CatalogChannelOwnerScope = 'ORG' | 'LE' | 'SITE';
+
 export interface ChannelItemData {
   listingId: string;
   offeringVariantId: string;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
   mrp: CurrencyValue | null;
+  // Whether the channel carries it at all; per-currency withdrawals are on the Prices tab
+  availableHere: boolean;
+  // The currencies a shopper can buy it in here — priced, declared, and withheld from none
+  availableCurrencyCodes: string[];
+}
+
+export interface ChannelPriceData {
+  listingId: string;
+  offeringVariantId: string;
+  code: string;
+  variantName: string;
+  mrp: CurrencyValue | null;
+  // Null when nobody priced it in this currency, which is why it is unavailable here
   price: CurrencyValue | null;
-  sellsHere: boolean;
+  priceOwnerScope: CatalogChannelOwnerScope | null;
+  priceOwnerName: string | null;
+  availableHere: boolean;
+  // Withdrawn from the channel outright, so this currency's switch cannot help
+  excludedOutright: boolean;
 }
 
 export type ChannelItemsTableResponse = TableResponse<ChannelItemData>;
+export type ChannelPricesTableResponse = TableResponse<ChannelPriceData>;

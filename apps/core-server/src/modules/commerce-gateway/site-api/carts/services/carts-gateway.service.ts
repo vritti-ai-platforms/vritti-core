@@ -28,7 +28,7 @@ export interface CartLineRow {
   offeringVariantId: string;
   quantity: number;
   name: string;
-  sku: string | null;
+  code: string;
   unitPrice: { currency: string; value: string } | null;
   lineTotal: { currency: string; value: string } | null;
   isAvailable: boolean;
@@ -54,7 +54,7 @@ export interface CartItemPayload {
   offeringVariantId: string;
   quantity: number;
   name: string;
-  sku: string | null;
+  code: string;
   unitPrice: { currency: string; value: string } | null;
   lineTotal: { currency: string; value: string } | null;
   isAvailable: boolean;
@@ -97,18 +97,13 @@ export class CartsGatewayService {
   }
 
   // Returns a basket's lines, priced through this site's channel
-  async findItems(id: string, currencyCode: string, siteId?: string): Promise<CartLinesResponse> {
+  async findItems(id: string, currencyCode: string): Promise<CartLinesResponse> {
     this.logger.log(`site.carts.findItemsById — id: ${id}`);
-    return this.nats.send('commerce', 'site.carts.findItemsById', { id, currencyCode, appId: null, siteId });
+    return this.nats.send('commerce', 'site.carts.findItemsById', { id, currencyCode, appId: null });
   }
 
   // Returns paginated, filtered and sorted items of one basket for the data table
-  async findItemsForTable(
-    cartId: string,
-    userId: string,
-    currencyCode: string,
-    siteId?: string,
-  ): Promise<CartItemsTableResponse> {
+  async findItemsForTable(cartId: string, userId: string, currencyCode: string): Promise<CartItemsTableResponse> {
     this.logger.log(`site.carts.items.table — cart: ${cartId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
@@ -118,7 +113,7 @@ export class CartsGatewayService {
     const { result, count } = await this.nats.send<{ result: CartLineRow[]; count: number }>(
       'commerce',
       'site.carts.items.table',
-      { cartId, currencyCode, appId: null, siteId, ...(state as object) },
+      { cartId, currencyCode, appId: null, ...(state as object) },
     );
 
     return { result, count, state, activeViewId };
@@ -143,85 +138,81 @@ export class CartsGatewayService {
       offeringVariantId: string;
       quantity: number;
       currencyCode: string;
-      siteId?: string;
     },
   ): Promise<CartLinesResponse> {
     this.logger.log(`site.carts.items.addForCart — cart: ${cartId}, variant: ${input.offeringVariantId}`);
     await this.nats.send('commerce', 'site.carts.items.addForCart', { cartId, appId: null, ...input });
-    return this.findItems(cartId, input.currencyCode, input.siteId);
+    return this.findItems(cartId, input.currencyCode);
   }
 
   async updateItem(
     cartId: string,
     offeringVariantId: string,
-    input: { partyId: string; quantity: number; currencyCode: string; siteId?: string },
+    input: { partyId: string; quantity: number; currencyCode: string },
   ): Promise<CartLinesResponse> {
     this.logger.log(`site.carts.items.updateForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
     await this.nats.send('commerce', 'site.carts.items.updateForCart', { cartId, offeringVariantId, ...input });
-    return this.findItems(cartId, input.currencyCode, input.siteId);
+    return this.findItems(cartId, input.currencyCode);
   }
 
   async removeItem(
     cartId: string,
     offeringVariantId: string,
-    input: { partyId: string; currencyCode: string; siteId?: string },
+    input: { partyId: string; currencyCode: string },
   ): Promise<CartLinesResponse> {
     this.logger.log(`site.carts.items.removeForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
     await this.nats.send('commerce', 'site.carts.items.removeForCart', { cartId, offeringVariantId, ...input });
-    return this.findItems(cartId, input.currencyCode, input.siteId);
+    return this.findItems(cartId, input.currencyCode);
   }
 
   // ── The party's own basket, for a storefront acting for one signed-in party ──
   //
   // The catalogue comes from the calling credential's APP channel, never from the caller, so a
-  // storefront cannot reach a catalogue it does not sell even knowing a listing id. `appId` and
+  // storefront cannot reach a catalogue it does not carry even knowing a listing id. `appId` and
   // `partyId` arrive from `auth`, which the signature covers.
 
-  async findPartyCart(appId: string, partyId: string, currencyCode: string, siteId?: string): Promise<CartPayload> {
+  async findPartyCart(appId: string, partyId: string, currencyCode: string): Promise<CartPayload> {
     this.logger.log(`site.carts.get — party: ${partyId}`);
-    return this.nats.send('commerce', 'site.carts.get', { partyId, currencyCode, appId, siteId });
+    return this.nats.send('commerce', 'site.carts.get', { partyId, currencyCode, appId });
   }
 
   async addShopperItem(input: {
     appId: string;
     partyId: string;
-    offeringVariantId: string;
+    code: string;
     quantity: number;
     currencyCode: string;
-    siteId?: string;
   }): Promise<CartPayload> {
     const { appId, ...cart } = input;
-    this.logger.log(`site.carts.items.add — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    this.logger.log(`site.carts.items.add — party: ${input.partyId}, code: ${input.code}`);
     return this.nats.send('commerce', 'site.carts.items.add', { ...cart, appId });
   }
 
   async updateShopperItem(input: {
     appId: string;
     partyId: string;
-    offeringVariantId: string;
+    code: string;
     quantity: number;
     currencyCode: string;
-    siteId?: string;
   }): Promise<CartPayload> {
     const { appId, ...cart } = input;
-    this.logger.log(`site.carts.items.update — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    this.logger.log(`site.carts.items.update — party: ${input.partyId}, code: ${input.code}`);
     return this.nats.send('commerce', 'site.carts.items.update', { ...cart, appId });
   }
 
   async removeShopperItem(input: {
     appId: string;
     partyId: string;
-    offeringVariantId: string;
+    code: string;
     currencyCode: string;
-    siteId?: string;
   }): Promise<CartPayload> {
     const { appId, ...cart } = input;
-    this.logger.log(`site.carts.items.remove — party: ${input.partyId}, variant: ${input.offeringVariantId}`);
+    this.logger.log(`site.carts.items.remove — party: ${input.partyId}, code: ${input.code}`);
     return this.nats.send('commerce', 'site.carts.items.remove', { ...cart, appId });
   }
 
   // How many of each product the party holds in their basket here — a count, no catalogue, no price
-  findShopperQuantities(partyId: string): Promise<{ offeringVariantId: string; quantity: number }[]> {
+  findShopperQuantities(partyId: string): Promise<{ code: string; quantity: number }[]> {
     this.logger.log(`site.carts.quantities — party: ${partyId}`);
     return this.nats.send('commerce', 'site.carts.quantities', { partyId });
   }

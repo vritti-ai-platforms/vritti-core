@@ -19,8 +19,4 @@ export class AddCatalogListingDto {
   @IsOptional()
   @IsCurrency()
   price?: CurrencyAmountDto;
-
-  @IsOptional()
-  @IsUUID('7')
-  siteId?: string | null;
 }

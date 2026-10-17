@@ -2,6 +2,7 @@ export * from './attribute-templates';
 export * from './cart-items';
 export * from './carts';
 export * from './catalog-channels';
+export * from './catalog-currencies';
 export * from './catalog-listing-channel-exclusions';
 export * from './catalog-listing-prices';
 export * from './catalog-listings';

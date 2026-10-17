@@ -1,6 +1,11 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
-import type { CatalogChannelType, ChannelEntryData, ChannelItemsTableResponse } from '@/schemas/catalog-channels';
+import type {
+  CatalogChannelType,
+  ChannelEntryData,
+  ChannelItemsTableResponse,
+  ChannelPricesTableResponse,
+} from '@/schemas/catalog-channels';
 import { CatalogChannelTypeValues } from '@/schemas/catalog-channels';
 
 const BASE = 'commerce-api/le/catalog-channels';
@@ -40,18 +45,41 @@ export function deleteChannel(channelId: string): Promise<SuccessResponse> {
 
 export function getChannelItems(channelId: string): Promise<ChannelItemsTableResponse> {
   return axios
-    .get<ChannelItemsTableResponse>(`${BASE}/${channelId}/items/table`, { showSuccessToast: false })
+    .get<ChannelItemsTableResponse>(`${BASE}/${channelId}/listings/table`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function getChannelCurrencies(channelId: string): Promise<string[]> {
+  return axios.get<string[]>(`${BASE}/${channelId}/currencies`, { showSuccessToast: false }).then((r) => r.data);
+}
+
+export function getChannelPrices({
+  channelId,
+  currencyCode,
+}: {
+  channelId: string;
+  currencyCode: string;
+}): Promise<ChannelPricesTableResponse> {
+  return axios
+    .get<ChannelPricesTableResponse>(`${BASE}/${channelId}/currencies/${currencyCode}/prices/table`, {
+      showSuccessToast: false,
+    })
     .then((r) => r.data);
 }
 
 export function setChannelItemVisibility({
   channelId,
   listingId,
-  sellsHere,
+  availableHere,
+  currencyCode,
 }: {
   channelId: string;
   listingId: string;
-  sellsHere: boolean;
+  availableHere: boolean;
+  // Omitted withdraws the item outright; a code withdraws it from that currency only
+  currencyCode?: string;
 }): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`${BASE}/${channelId}/items/${listingId}`, { sellsHere }).then((r) => r.data);
+  return axios
+    .patch<SuccessResponse>(`${BASE}/${channelId}/listings/${listingId}`, { availableHere, currencyCode })
+    .then((r) => r.data);
 }

@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import type { CatalogsBinding } from './bindings';
 import { EditCatalogDialog } from './forms/EditCatalogDialog';
 import { ChannelsTab } from './tabs/ChannelsTab';
+import { CurrenciesTab } from './tabs/CurrenciesTab';
 import { ListingsTab } from './tabs/ListingsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 
@@ -52,6 +53,8 @@ export const CatalogDetailPage: React.FC<CatalogDetailPageProps> = ({ binding })
             startAdornment={<Pencil className="size-4" />}
             onClick={editDialog.open}
             permission={binding.permissions.edit}
+            disabled={!catalog.canEdit}
+            disabledTip="This catalog belongs to a wider workspace. Switch to the workspace that owns it to change it."
           >
             Edit
           </Button>
@@ -77,6 +80,12 @@ export const CatalogDetailPage: React.FC<CatalogDetailPageProps> = ({ binding })
             permission: binding.permissions.listings.view,
             content: <ListingsTab binding={binding} catalogId={catalog.id} />,
           },
+          {
+            value: 'currencies',
+            label: 'Currencies',
+            permission: binding.permissions.currencies.view,
+            content: <CurrenciesTab binding={binding} catalog={catalog} />,
+          },
         ]}
       />
 
@@ -86,9 +95,13 @@ export const CatalogDetailPage: React.FC<CatalogDetailPageProps> = ({ binding })
         buttonText="Delete Catalog"
         permission={binding.permissions.delete}
         onClick={handleDelete}
-        disabled={catalog.listingCount > 0}
-        warning={`This catalog still holds ${pluralize('listing', catalog.listingCount, true)}. Remove them first.`}
-        showWarning={catalog.listingCount > 0}
+        disabled={!catalog.canEdit || catalog.listingCount > 0}
+        warning={
+          catalog.canEdit
+            ? `This catalog still holds ${pluralize('listing', catalog.listingCount, true)}. Remove them first.`
+            : 'This catalog belongs to a wider workspace. Switch to the workspace that owns it to delete it.'
+        }
+        showWarning={!catalog.canEdit || catalog.listingCount > 0}
       />
 
       <Dialog

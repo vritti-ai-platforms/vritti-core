@@ -107,7 +107,7 @@ export const CatalogsPage: React.FC<CatalogsPageProps> = ({ binding }) => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Catalogs"
-        description="Price lists that decide what each sales channel sells, and for how much."
+        description="Price lists that decide what each sales channel carries, and for how much."
       />
 
       <DataTable
@@ -150,7 +150,7 @@ export const CatalogsPage: React.FC<CatalogsPageProps> = ({ binding }) => {
         emptyStateConfig={{
           icon: BookOpen,
           title: 'No catalogs yet',
-          description: `A catalog holds the ${pluralize('listing', 2)} a channel sells. Create one, then add variants to it.`,
+          description: `A catalog holds the ${pluralize('listing', 2)} a channel carries. Create one, then add variants to it.`,
           action: (
             <Button
               startAdornment={<Plus className="size-4" />}
@@ -167,7 +167,7 @@ export const CatalogsPage: React.FC<CatalogsPageProps> = ({ binding }) => {
         handle={addDialog}
         icon={BookOpen}
         title="Add Catalog"
-        description="Tax treatment is set per catalog — retail sells inclusive of tax, wholesale exclusive."
+        description="Tax treatment is set per catalog — retail quotes inclusive of tax, wholesale exclusive."
         content={(close) => <AddCatalogDialog binding={binding} onSuccess={close} onCancel={close} />}
       />
     </div>

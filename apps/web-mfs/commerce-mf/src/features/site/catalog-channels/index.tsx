@@ -3,7 +3,8 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { ChannelItemsPage } from '@/components/catalog-channels/ChannelItemsPage';
+import { ChannelDetailPage } from '@/components/catalog-channels/ChannelDetailPage';
+import { ChannelPricesPage } from '@/components/catalog-channels/ChannelPricesPage';
 import { ChannelsPage } from '@/components/catalog-channels/ChannelsPage';
 import { ChannelsPageSkeleton } from '@/components/catalog-channels/ChannelsPageSkeleton';
 import { siteCatalogChannelsBinding } from './binding';
@@ -23,9 +24,15 @@ const gated = (element: React.ReactNode, fallback: React.ReactNode) => (
 
 const routes: RouteObject[] = [
   { index: true, element: gated(<ChannelsPage binding={siteCatalogChannelsBinding} />, <ChannelsPageSkeleton />) },
+  // `:tab?` lets Tabs own the active tab in the URL — deep links and back/forward work
   {
-    path: ':slug',
-    element: gated(<ChannelItemsPage binding={siteCatalogChannelsBinding} />, <ChannelsPageSkeleton />),
+    path: ':slug/:tab?',
+    element: gated(<ChannelDetailPage binding={siteCatalogChannelsBinding} />, <ChannelsPageSkeleton />),
+  },
+  // Three segments, so it never collides with the two-segment tab route above
+  {
+    path: ':slug/currencies/:currencyCode',
+    element: gated(<ChannelPricesPage binding={siteCatalogChannelsBinding} />, <ChannelsPageSkeleton />),
   },
 ];
 

@@ -22,22 +22,20 @@ import { vapSdk } from './visitor-session.js';
 export async function toggleWishlistAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
   const returnTo = returnToFrom(formData);
   const party = await requireParty(returnTo);
-  const variantId = formField(formData, 'offeringVariantId');
-  if (!variantId) return { error: 'Nothing to save.' };
+  const code = formField(formData, 'code');
+  if (!code) return { error: 'Nothing to save.' };
 
   const payload = await resolvePayload();
   const people = (await vapSdk(payload, { partyId: party.partyId })).people;
 
   if (formField(formData, 'intent') === 'remove') {
-    const removed = await withPartyErrors(payload, () =>
-      people.removeFromWishlist(variantId).then(() => ({ ok: true })),
-    );
+    const removed = await withPartyErrors(payload, () => people.removeFromWishlist(code).then(() => ({ ok: true })));
     revalidatePath(returnTo);
     return removed;
   }
 
   const result = await withPartyErrors(payload, async () => {
-    const { alreadyExists } = await people.addToWishlist(variantId);
+    const { alreadyExists } = await people.addToWishlist(code);
     return alreadyExists
       ? { message: 'This is already in your wishlist.' }
       : { ok: true, message: 'Saved to your wishlist.' };
@@ -53,12 +51,12 @@ export async function removeFromWishlistAction(
 ): Promise<PartyActionState> {
   const returnTo = returnToFrom(formData);
   const party = await requireParty(returnTo);
-  const variantId = formField(formData, 'offeringVariantId');
-  if (!variantId) return { error: 'Nothing to remove.' };
+  const code = formField(formData, 'code');
+  if (!code) return { error: 'Nothing to remove.' };
 
   const payload = await resolvePayload();
   const result = await withPartyErrors(payload, async () =>
-    (await vapSdk(payload, { partyId: party.partyId })).people.removeFromWishlist(variantId).then(() => ({ ok: true })),
+    (await vapSdk(payload, { partyId: party.partyId })).people.removeFromWishlist(code).then(() => ({ ok: true })),
   );
   revalidatePath(returnTo);
   return result;

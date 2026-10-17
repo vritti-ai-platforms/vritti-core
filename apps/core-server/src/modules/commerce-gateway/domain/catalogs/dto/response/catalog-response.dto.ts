@@ -15,6 +15,11 @@ export class CatalogResponseDto {
   @ApiProperty() isActive: boolean;
   @ApiProperty() listingCount: number;
   @ApiProperty() channelCount: number;
+
+  @ApiProperty({
+    description: 'False when the catalog belongs to a wider workspace, which prices it but cannot change it',
+  })
+  canEdit: boolean;
   @ApiProperty() createdAt: string;
   @ApiProperty() updatedAt: string;
 }

@@ -92,7 +92,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
           searchable
           optionsEndpoint="commerce-api/catalogs/select"
           fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
-          description="The catalog this terminal sells from — drives the offerings and pricing shown at the register."
+          description="The catalog this terminal quotes from — drives the offerings and pricing shown at the register."
         />
 
         <TextArea name="description" label="Description" placeholder="Optional notes about this terminal" rows={3} />

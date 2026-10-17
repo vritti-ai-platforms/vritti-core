@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { CatalogDetailPage } from '@/components/catalogs/CatalogDetailPage';
 import { CatalogDetailPageSkeleton } from '@/components/catalogs/CatalogDetailPageSkeleton';
+import { CatalogPricesPage } from '@/components/catalogs/CatalogPricesPage';
 import { CatalogsPage } from '@/components/catalogs/CatalogsPage';
 import { orgCatalogsBinding } from './binding';
 
@@ -24,6 +25,11 @@ const gated = (permission: string, element: React.ReactNode) => (
 const routes: RouteObject[] = [
   { index: true, element: <CatalogsPage binding={orgCatalogsBinding} /> },
   { path: ':slug/:tab?', element: gated(ORG_CATALOGS.view, <CatalogDetailPage binding={orgCatalogsBinding} />) },
+  // Three segments, so it never collides with the two-segment tab route above
+  {
+    path: ':slug/currencies/:currencyCode',
+    element: gated(ORG_CATALOGS.view, <CatalogPricesPage binding={orgCatalogsBinding} />),
+  },
 ];
 
 export default routes;

@@ -183,7 +183,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
   async findVariantsBreachingBomRule(offeringId: string, max: number, min: number): Promise<string[]> {
     const lineCount = this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id));
     const rows = await this.db
-      .select({ sku: offeringVariants.sku })
+      .select({ code: offeringVariants.code })
       .from(offeringVariants)
       .where(
         and(
@@ -192,7 +192,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
           sql`(${lineCount} > ${max} or (${offeringVariants.isActive} and ${lineCount} < ${min}))`,
         ),
       );
-    return rows.map((row) => row.sku);
+    return rows.map((row) => row.code);
   }
 
   // Applies a fulfilment type to every variant of an offering except those carrying their own override

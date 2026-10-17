@@ -7,7 +7,7 @@ export class DimensionTemplateValueResponseDto {
   @ApiProperty({ description: 'Template this value belongs to' })
   templateId: string;
 
-  @ApiProperty({ description: 'Segment this value contributes to a derived SKU', example: 'm' })
+  @ApiProperty({ description: 'Segment this value contributes to a derived Code', example: 'm' })
   code: string;
 
   @ApiProperty({ description: 'The value itself', example: 'M' })

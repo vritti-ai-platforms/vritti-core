@@ -53,7 +53,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
   }> {
     return this.findAllAndCount<Supplier & { partyName: string | null }>({
       select: { ...getColumns(suppliers), partyName: parties.displayName },
-      leftJoins: [{ table: parties, on: eq(parties.id, suppliers.partyId) }],
+      innerJoins: [{ table: parties, on: eq(parties.id, suppliers.partyId) }],
       where: options?.where,
       orderBy: options?.orderBy,
       limit: options?.limit,
@@ -89,7 +89,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
         )`.mapWith(Number),
       })
       .from(suppliers)
-      .leftJoin(parties, eq(parties.id, suppliers.partyId))
+      .innerJoin(parties, eq(parties.id, suppliers.partyId))
       .where(eq(suppliers.id, id))
       .limit(1);
     if (!row) return undefined;

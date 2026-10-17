@@ -4,7 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class CategoryItemResponseDto {
   @ApiProperty({ description: 'Inventory item ID' }) id: string;
   @ApiProperty({ description: 'Item name' }) name: string;
-  @ApiProperty({ description: 'Item code / SKU' }) code: string;
+  @ApiProperty({ description: 'Item code / Code' }) code: string;
   @ApiProperty({ description: 'Inventory item type' }) type: string;
   @ApiProperty({ description: 'Tracking mode (lot / serial / quantity / lot_serial)' }) tracking: string;
   @ApiPropertyOptional({ description: 'Unit of measure symbol', nullable: true }) uomSymbol: string | null;

@@ -16,6 +16,7 @@ interface AssignmentSlotProps {
   assignment: ChannelCatalogData | null;
   permission: string;
   viewPermission: string;
+  removePermission: string;
   onAssign: () => void;
   onChange: () => void;
   onRemove: () => void;
@@ -30,6 +31,7 @@ export const AssignmentSlot: React.FC<AssignmentSlotProps> = ({
   assignment,
   permission,
   viewPermission,
+  removePermission,
   onAssign,
   onChange,
   onRemove,
@@ -43,7 +45,7 @@ export const AssignmentSlot: React.FC<AssignmentSlotProps> = ({
           <div className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">{label}</div>
           <div className="mt-1 font-semibold text-destructive text-lg">No catalog added</div>
           <div className="mt-0.5 text-destructive text-sm">
-            Nothing is set at this level or any above it, so this channel has nothing to sell
+            Nothing is set at this level or any above it, so this channel has nothing to offer
           </div>
         </div>
         <Button size="sm" onClick={onAssign} permission={permission}>
@@ -73,7 +75,7 @@ export const AssignmentSlot: React.FC<AssignmentSlotProps> = ({
         <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-muted-foreground text-sm">
           <span>{assignment.isOwn ? 'Assigned here' : `Inherited from ${assignment.ownerName}`}</span>
           <span aria-hidden>·</span>
-          <span>{`${assignment.itemsSelling} of ${assignment.itemsTotal} items`}</span>
+          <span>{`${assignment.itemsAvailable} of ${assignment.itemsTotal} items`}</span>
         </div>
       </div>
 
@@ -86,7 +88,13 @@ export const AssignmentSlot: React.FC<AssignmentSlotProps> = ({
             <Button size="sm" variant="outline" onClick={onChange} permission={permission}>
               Change
             </Button>
-            <Button size="sm" variant="destructive" onClick={onRemove} permission={permission} isLoading={isRemoving}>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={onRemove}
+              permission={removePermission}
+              isLoading={isRemoving}
+            >
               Remove
             </Button>
           </>

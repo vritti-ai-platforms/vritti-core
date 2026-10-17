@@ -1,12 +1,12 @@
 import { Logger } from '@nestjs/common';
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { AppTypeValues } from '@/db/schema';
 import { PARTY_FUNCTION_TYPES } from '@/modules/commerce-gateway/_shared/dto/party-function-assignment.dto';
 import type { PartyAddressResponseDto } from '@/modules/commerce-gateway/domain/party-addresses/dto/response/party-address-response.dto';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { AppId, PartyId, SiteId } from '@/security/decorators';
+import { AppId, PartyId } from '@/security/decorators';
 import { PartyAddress, PartyAddressInput, PartyAddressRefInput, UpdatePartyAddressInput } from './graphql/address.type';
 import { Person } from './graphql/person.type';
 import { PersonCommunication } from './graphql/person-communication.type';
@@ -123,21 +123,18 @@ export class PeopleAppResolver {
   wishlist(
     @AppId() appId: string,
     @PartyId() partyId: string,
-    @SiteId() siteId: string | undefined,
     @Args('input') input: WishlistQueryInput,
   ): Promise<WishlistItem[]> {
     this.logger.log('QUERY wishlist');
-    return this.peopleGatewayService.listShopperWishlist(appId, partyId, input.currencyCode, siteId) as Promise<
-      WishlistItem[]
-    >;
+    return this.peopleGatewayService.listShopperWishlist(appId, partyId, input.currencyCode) as Promise<WishlistItem[]>;
   }
 
   // Which products the party has saved — a product page draws its Saved state from this
-  @Query(() => [ID], { name: 'wishlistVariantIds' })
+  @Query(() => [String], { name: 'wishlistCodes' })
   @RequirePermission(ORG_PEOPLE.wishlist.view)
-  wishlistVariantIds(@AppId() appId: string, @PartyId() partyId: string): Promise<string[]> {
-    this.logger.log('QUERY wishlistVariantIds');
-    return this.peopleGatewayService.listShopperWishlistVariantIds(appId, partyId);
+  wishlistCodes(@AppId() appId: string, @PartyId() partyId: string): Promise<string[]> {
+    this.logger.log('QUERY wishlistCodes');
+    return this.peopleGatewayService.listShopperWishlistCodes(appId, partyId);
   }
 
   // Saving something already saved is the same row, not an error
@@ -146,14 +143,12 @@ export class PeopleAppResolver {
   addToWishlist(
     @AppId() appId: string,
     @PartyId() partyId: string,
-    @SiteId() siteId: string | undefined,
     @Args('input') input: WishlistRefInput,
   ): Promise<WishlistAddResult> {
     this.logger.log('MUTATION addToWishlist');
     return this.peopleGatewayService.addToShopperWishlist({
       appId,
       partyId,
-      siteId,
       ...input,
     });
   }
@@ -164,14 +159,12 @@ export class PeopleAppResolver {
   removeFromWishlist(
     @AppId() appId: string,
     @PartyId() partyId: string,
-    @SiteId() siteId: string | undefined,
     @Args('input') input: WishlistRefInput,
   ): Promise<WishlistItem[]> {
     this.logger.log('MUTATION removeFromWishlist');
     return this.peopleGatewayService.removeFromShopperWishlist({
       appId,
       partyId,
-      siteId,
       ...input,
     }) as Promise<WishlistItem[]>;
   }

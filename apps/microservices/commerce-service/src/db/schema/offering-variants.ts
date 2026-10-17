@@ -1,6 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   boolean,
+  codeCheck,
   decimal,
   index,
   integer,
@@ -29,7 +30,7 @@ export const offeringVariants = commerceSchema.table(
     offeringId: uuid('offering_id')
       .notNull()
       .references(() => offerings.id, { onDelete: 'cascade' }),
-    sku: varchar('sku', { length: 200 }).notNull(),
+    code: varchar('code', { length: 200 }).notNull(),
     externalSku: varchar('external_sku', { length: 100 }),
     name: varchar('name', { length: 255 }).notNull(),
     salesUomId: uuid('sales_uom_id')
@@ -51,10 +52,11 @@ export const offeringVariants = commerceSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_offering_variants_org_sku').on(table.organizationId, table.sku),
+    unique('uq_offering_variants_org_code').on(table.organizationId, table.code),
+    codeCheck('offering_variants_code_chk', table.code),
     unique('uq_offering_variants_offering_combination').on(table.offeringId, table.combinationKey),
     unique('uq_offering_variants_org_external_sku').on(table.organizationId, table.externalSku),
-    index('idx_offering_variants_offering').on(table.offeringId, table.sku),
+    index('idx_offering_variants_offering').on(table.offeringId, table.code),
     ...scopeFromOwnerPolicies({ owner: offerings, fk: table.offeringId }),
   ],
 );

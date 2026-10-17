@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { ORG_CATALOG_CHANNELS } from '@vritti/commerce-permissions/catalog-channels';
 import { AppTypeValues } from '@/db/schema';
@@ -17,46 +17,52 @@ export class CatalogChannelsAppResolver {
 
   constructor(private readonly service: CatalogChannelsGatewayService) {}
 
-  // One page of what this credential's channel sells, at this workspace's price, with delisted rows
+  // What this storefront may price in. A switcher reads this to know which currencies exist before
+  // offering one — the session then carries the choice, and every priced read is made in it.
+  @Query(() => [String], { name: 'catalogCurrencies' })
+  @RequirePermission(ORG_CATALOG_CHANNELS.listings)
+  catalogCurrencies(@AppId() appId: string): Promise<string[]> {
+    this.logger.log('QUERY catalogCurrencies');
+    return this.service.appCurrencies(appId);
+  }
+
+  // One page of what this credential's channel offers, at this workspace's price, with delisted rows
   // and channel exclusions already dropped. Always paged — nothing reads the whole range.
   @Query(() => CatalogListings, { name: 'catalogListings' })
-  @RequirePermission(ORG_CATALOG_CHANNELS.view)
+  @RequirePermission(ORG_CATALOG_CHANNELS.listings)
   catalogListings(
     @AppId() appId: string,
+    @Args({ name: 'currencyCode', type: () => String }) currencyCode: string,
     @Args({ name: 'filters', type: () => [FilterInput], nullable: true }) filters?: FilterInput[],
     @Args({ name: 'page', type: () => Int, nullable: true }) page?: number,
     @Args({ name: 'perPage', type: () => Int, nullable: true }) perPage?: number,
     @Args({ name: 'sort', type: () => ListingSort, nullable: true }) sort?: ListingSort,
   ): Promise<CatalogListings> {
     this.logger.log(`QUERY catalogListings — page: ${page ?? 1}, filters: ${filters?.length ?? 0}`);
-    return this.service.appCatalogChannelListings(appId, { filters, page, perPage, sort });
+    return this.service.appCatalogChannelListings(appId, { filters, page, perPage, sort }, currencyCode);
   }
 
-  // One listing by SKU, with the axes a product page switches flavour and size on.
-  //
-  // By SKU because that is what the storefront puts in its address bar: it already names the
-  // offering and one value per dimension, so the URL says what the page is. Guarded by
-  // `app.listings` rather than a permission of its own — it is the same catalogue read narrowed to
-  // one row, and an app credential carries one composed permission set that a newly authored code
-  // does not reach.
-  @Query(() => CatalogListingDetail, { name: 'catalogListingBySku', nullable: true })
-  @RequirePermission(ORG_CATALOG_CHANNELS.view)
-  catalogListingBySku(
+  // One listing by code, with the axes a product page switches flavour and size on.
+  @Query(() => CatalogListingDetail, { name: 'catalogListingByCode', nullable: true })
+  @RequirePermission(ORG_CATALOG_CHANNELS.listings)
+  catalogListingByCode(
     @AppId() appId: string,
-    @Args({ name: 'sku', type: () => String }) sku: string,
+    @Args({ name: 'code', type: () => String }) code: string,
+    @Args({ name: 'currencyCode', type: () => String }) currencyCode: string,
   ): Promise<CatalogListingDetail | null> {
-    this.logger.log(`QUERY catalogListingBySku — sku: ${sku}`);
-    return this.service.appListingBySku(appId, sku);
+    this.logger.log(`QUERY catalogListingByCode — code: ${code}`);
+    return this.service.appListingByCode(appId, code, currencyCode);
   }
 
   // The same range narrowed to variants the caller already holds — a wishlist or a basket
-  @Query(() => [CatalogListing], { name: 'catalogListingsFromVariants' })
-  @RequirePermission(ORG_CATALOG_CHANNELS.view)
-  catalogListingsFromVariants(
+  @Query(() => [CatalogListing], { name: 'catalogListingsByCodes' })
+  @RequirePermission(ORG_CATALOG_CHANNELS.listings)
+  catalogListingsByCodes(
     @AppId() appId: string,
-    @Args({ name: 'variantIds', type: () => [ID] }) variantIds: string[],
+    @Args({ name: 'codes', type: () => [String] }) codes: string[],
+    @Args({ name: 'currencyCode', type: () => String }) currencyCode: string,
   ): Promise<CatalogListing[]> {
-    this.logger.log(`QUERY catalogListingsFromVariants — ${variantIds.length} variants`);
-    return this.service.appListingsFromVariants(appId, variantIds);
+    this.logger.log(`QUERY catalogListingsByCodes — ${codes.length} codes`);
+    return this.service.appListingsByCodes(appId, codes, currencyCode);
   }
 }

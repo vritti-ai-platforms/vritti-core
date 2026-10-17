@@ -6,9 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { OfferingVariantSelector } from '@/selectors/offering-variant';
 
 interface VariantSwitcherProps {
-  // The raw `sku~uuid` breadcrumb segment
+  // The raw `code~uuid` breadcrumb segment
   segment: string;
-  // The parent offering, which scopes the options — a SKU only means anything beside its siblings
+  // The parent offering, which scopes the options — a code only means anything beside its siblings
   offeringId: string;
   // The variants root, e.g. `/<workspaceSlug>/offerings/<offeringSlug>/variants`
   basePath: string;

@@ -1,5 +1,6 @@
-import { Field, ID, InputType, Int } from '@nestjs/graphql';
-import { IsInt, IsString, IsUUID, Length, Max, Min } from 'class-validator';
+import { Field, InputType, Int } from '@nestjs/graphql';
+import { IsCode } from '@vritti/api-sdk/decorators';
+import { IsInt, IsString, Length, Max, Min } from 'class-validator';
 
 @InputType()
 export class CartScopeInput {
@@ -11,10 +12,10 @@ export class CartScopeInput {
 
 @InputType()
 export class AddCartItemInput extends CartScopeInput {
-  // The product, not the listing — the catalogue offer of it is resolved server-side, per site
-  @Field(() => ID)
-  @IsUUID('7')
-  offeringVariantId: string;
+  // The product by its code, not the listing — the catalogue offer of it is resolved server-side, per site
+  @Field(() => String)
+  @IsCode()
+  code: string;
 
   @Field(() => Int, { defaultValue: 1 })
   @IsInt()
@@ -25,10 +26,10 @@ export class AddCartItemInput extends CartScopeInput {
 
 @InputType()
 export class UpdateCartItemInput extends CartScopeInput {
-  // The product, not the listing — the catalogue offer of it is resolved server-side, per site
-  @Field(() => ID)
-  @IsUUID('7')
-  offeringVariantId: string;
+  // The product by its code, not the listing — the catalogue offer of it is resolved server-side, per site
+  @Field(() => String)
+  @IsCode()
+  code: string;
 
   // An exact quantity, not a delta. Removing is its own mutation
   @Field(() => Int)
@@ -40,8 +41,8 @@ export class UpdateCartItemInput extends CartScopeInput {
 
 @InputType()
 export class CartItemRefInput extends CartScopeInput {
-  // The product, not the listing — the catalogue offer of it is resolved server-side, per site
-  @Field(() => ID)
-  @IsUUID('7')
-  offeringVariantId: string;
+  // The product by its code, not the listing — the catalogue offer of it is resolved server-side, per site
+  @Field(() => String)
+  @IsCode()
+  code: string;
 }

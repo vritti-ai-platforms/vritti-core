@@ -92,7 +92,7 @@ export const TemplateValuesDialog: React.FC<TemplateValuesDialogProps> = ({
               Name
             </Typography>
             <Typography variant="caption" intent="muted" className="w-44">
-              Code — becomes a SKU segment
+              Code — becomes a Code segment
             </Typography>
             <div className="w-8" />
           </div>

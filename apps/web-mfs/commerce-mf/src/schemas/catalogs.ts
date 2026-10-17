@@ -37,6 +37,12 @@ export const setCatalogListingPriceSchema = z.object({
 
 export type SetCatalogListingPriceFormData = z.infer<typeof setCatalogListingPriceSchema>;
 
+export const addCatalogCurrencySchema = z.object({
+  currencyCode: z.string().min(1, 'Currency is required'),
+});
+
+export type AddCatalogCurrencyFormData = z.infer<typeof addCatalogCurrencySchema>;
+
 export type CatalogOwnerScope = 'ORG' | 'LE' | 'SITE';
 
 export interface CatalogData {
@@ -50,13 +56,20 @@ export interface CatalogData {
   isActive: boolean;
   listingCount: number;
   channelCount: number;
+  // False when a wider workspace owns it: this one prices its listings but cannot change the catalog
+  canEdit: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CatalogListingPriceData {
   id: string;
+  legalEntityId: string | null;
   siteId: string | null;
+  ownerScope: CatalogOwnerScope;
+  ownerName: string;
+  // False when the price comes from a wider workspace: this one may override it, never edit it
+  canEdit: boolean;
   price: CurrencyValue;
 }
 
@@ -64,8 +77,8 @@ export interface CatalogListingData {
   id: string;
   catalogId: string;
   offeringVariantId: string;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: CatalogOwnerScope;
@@ -75,10 +88,16 @@ export interface CatalogListingData {
   inventoryItemMrpId: string | null;
   mrp: CurrencyValue | null;
   mrpUomSymbol: string | null;
-  hiddenChannelIds: string[];
+  excludedChannelIds: string[];
   prices: CatalogListingPriceData[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CatalogCurrencyData {
+  currencyCode: string;
+  pricedCount: number;
+  listingCount: number;
 }
 
 export type CatalogsTableResponse = TableResponse<CatalogData>;

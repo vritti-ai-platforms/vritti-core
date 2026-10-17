@@ -28,7 +28,7 @@ export interface CatalogChannelRow {
 // is the only one that selects them
 export interface ChannelListRow extends CatalogChannelRow {
   itemsTotal: number;
-  itemsSelling: number;
+  itemsAvailable: number;
 }
 
 // One catalog as a channel serves it: a channel's default, or one app's or terminal's exception.
@@ -43,7 +43,7 @@ export class ChannelCatalogDto {
   ownerScope: 'ORG' | 'LE' | 'SITE';
   isOwn: boolean;
   itemsTotal: number;
-  itemsSelling: number;
+  itemsAvailable: number;
 
   static from(row: ChannelListRow): ChannelCatalogDto {
     const dto = new ChannelCatalogDto();
@@ -56,7 +56,7 @@ export class ChannelCatalogDto {
     dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
     dto.isOwn = row.isOwn;
     dto.itemsTotal = row.itemsTotal;
-    dto.itemsSelling = row.itemsSelling;
+    dto.itemsAvailable = row.itemsAvailable;
     return dto;
   }
 }
@@ -106,37 +106,89 @@ export class CatalogChannelDto {
 export interface ChannelItemRow {
   listingId: string;
   offeringVariantId: string;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
+  mrpAmount: bigint | null;
+  mrpCurrencyCode: string | null;
+  availableHere: boolean;
+  availableCurrencyCodes: string[];
+}
+
+export interface ChannelPriceRow {
+  listingId: string;
+  offeringVariantId: string;
+  code: string;
+  variantName: string;
   mrpAmount: bigint | null;
   mrpCurrencyCode: string | null;
   priceAmount: bigint | null;
   priceCurrencyCode: string | null;
-  sellsHere: boolean;
+  priceLegalEntityId: string | null;
+  priceSiteId: string | null;
+  availableHere: boolean;
+  excludedOutright: boolean;
 }
 
 export class ChannelItemDto {
   listingId: string;
   offeringVariantId: string;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
   mrp: CurrencyAmountDto | null;
-  price: CurrencyAmountDto | null;
-  sellsHere: boolean;
+  // Whether the channel carries it at all. Prices and per-currency exclusions are the Prices tab.
+  availableHere: boolean;
+  // The currencies a shopper can buy it in here — priced, declared, and withheld from none
+  availableCurrencyCodes: string[];
 
   static from(row: ChannelItemRow): ChannelItemDto {
     const dto = new ChannelItemDto();
     dto.listingId = row.listingId;
     dto.offeringVariantId = row.offeringVariantId;
-    dto.sku = row.sku ?? null;
-    dto.variantName = row.variantName ?? null;
+    dto.code = row.code;
+    dto.variantName = row.variantName;
+    dto.mrp =
+      row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;
+    dto.availableHere = row.availableHere;
+    dto.availableCurrencyCodes = row.availableCurrencyCodes;
+    return dto;
+  }
+}
+
+export type ChannelPriceOwnerScope = 'ORG' | 'LE' | 'SITE';
+
+export class ChannelPriceDto {
+  listingId: string;
+  offeringVariantId: string;
+  code: string;
+  variantName: string;
+  mrp: CurrencyAmountDto | null;
+  // Null when nobody priced it in this currency, which is why it is unavailable here
+  price: CurrencyAmountDto | null;
+  priceOwnerScope: ChannelPriceOwnerScope | null;
+  priceLegalEntityId: string | null;
+  priceSiteId: string | null;
+  availableHere: boolean;
+  // True when the listing is excluded from the channel outright, so this currency's switch is moot
+  excludedOutright: boolean;
+
+  static from(row: ChannelPriceRow): ChannelPriceDto {
+    const dto = new ChannelPriceDto();
+    dto.listingId = row.listingId;
+    dto.offeringVariantId = row.offeringVariantId;
+    dto.code = row.code;
+    dto.variantName = row.variantName;
     dto.mrp =
       row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;
     dto.price =
       row.priceAmount != null && row.priceCurrencyCode
         ? CurrencyAmountDto.from(row.priceAmount, row.priceCurrencyCode)
         : null;
-    dto.sellsHere = row.sellsHere;
+    dto.priceOwnerScope =
+      row.priceAmount == null ? null : row.priceSiteId ? 'SITE' : row.priceLegalEntityId ? 'LE' : 'ORG';
+    dto.priceLegalEntityId = row.priceLegalEntityId ?? null;
+    dto.priceSiteId = row.priceSiteId ?? null;
+    dto.availableHere = row.availableHere;
+    dto.excludedOutright = row.excludedOutright;
     return dto;
   }
 }

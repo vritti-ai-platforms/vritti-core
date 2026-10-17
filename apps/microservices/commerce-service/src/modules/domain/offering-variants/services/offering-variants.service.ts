@@ -42,7 +42,7 @@ export class OfferingVariantsDomainService {
   private readonly logger = new Logger(OfferingVariantsDomainService.name);
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
-    sku: { column: offeringVariants.sku, type: 'string' },
+    code: { column: offeringVariants.code, type: 'string' },
     externalSku: { column: offeringVariants.externalSku, type: 'string' },
   };
   private static readonly FILTER_FIELD_MAP: FieldMap = {
@@ -74,7 +74,7 @@ export class OfferingVariantsDomainService {
 
     const { result: rows, count } = await this.repository.findForTable({
       where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.sku)],
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
       limit,
       offset,
     });
@@ -89,7 +89,7 @@ export class OfferingVariantsDomainService {
     excludeIds?: string[];
     limit?: number;
     offset?: number;
-  }): Promise<{ items: { id: string; sku: string; name: string }[]; total: number }> {
+  }): Promise<{ items: { id: string; code: string; name: string }[]; total: number }> {
     return this.repository.findOptions({
       search: query.search,
       excludeIds: query.excludeIds,
@@ -98,13 +98,13 @@ export class OfferingVariantsDomainService {
     });
   }
 
-  // Options for the breadcrumb switcher: this offering's variants, keyed by SKU
+  // Options for the breadcrumb switcher: this offering's variants, keyed by Code
   async findForSelect(offeringId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     await this.requireReachableOffering(offeringId);
     return this.repository.findForSelectInOffering(
       {
         value: query.valueKey || 'id',
-        label: query.labelKey || 'sku',
+        label: query.labelKey || 'code',
         description: query.descriptionKey,
         additionalKeys: query.additionalKeys,
         search: query.search,
@@ -112,7 +112,7 @@ export class OfferingVariantsDomainService {
         offset: query.offset,
         values: query.values,
         excludeIds: query.excludeIds,
-        orderByKey: query.orderByKey || 'sku',
+        orderByKey: query.orderByKey || 'code',
         orderDirection: query.orderDirection || 'asc',
       },
       offeringId,
@@ -125,8 +125,8 @@ export class OfferingVariantsDomainService {
     await this.requireReachableOffering(offeringId);
     const rows = await this.repository.findForExport(offeringId, page);
     return rows.map((row) => ({
-      SKU: row.sku,
-      'External SKU': row.externalSku ?? '',
+      Code: row.code,
+      'External Code': row.externalSku ?? '',
       Name: row.name,
       Combination: row.values.map((value) => value.value).join(' \u00b7 '),
       'Sold in': row.salesUomName ?? '',
@@ -166,7 +166,7 @@ export class OfferingVariantsDomainService {
     const existing = await this.existingCombinationKeys(data.offeringId);
     const combinations = product.map((ordered) => ({
       valueIds: ordered.map((row) => row.valueId),
-      sku: this.deriveSku(offering.code, ordered),
+      code: this.deriveCode(offering.code, ordered),
       name: this.deriveName(offering.name, ordered),
       labels: ordered.map((row) => row.value).join(' \u00b7 '),
       exists: existing.has(this.combinationKey(ordered.map((row) => row.valueId))),
@@ -202,7 +202,7 @@ export class OfferingVariantsDomainService {
     const byValueId = new Map(valueRows.map((row) => [row.valueId, row]));
     const existing = await this.existingCombinationKeys(data.offeringId);
 
-    const planned: { valueIds: string[]; ordered: DimensionValueRow[]; sku: string; key: string }[] = [];
+    const planned: { valueIds: string[]; ordered: DimensionValueRow[]; code: string; key: string }[] = [];
     const seen = new Set<string>();
 
     for (const combination of data.combinations) {
@@ -210,20 +210,20 @@ export class OfferingVariantsDomainService {
       const key = this.combinationKey(ordered.map((row) => row.valueId));
       if (existing.has(key) || seen.has(key)) continue;
       seen.add(key);
-      planned.push({ valueIds: combination.valueIds, ordered, sku: this.deriveSku(offering.code, ordered), key });
+      planned.push({ valueIds: combination.valueIds, ordered, code: this.deriveCode(offering.code, ordered), key });
     }
 
     if (planned.length === 0) {
       return { created: [], message: 'Nothing to create — every selected combination already exists.' };
     }
 
-    await this.assertSkusFree(planned.map((plan) => plan.sku));
+    await this.assertCodesFree(planned.map((plan) => plan.code));
 
     const created = await this.repository.transaction(async () => {
       const inserted = await this.repository.insertVariants(
         planned.map((plan) => ({
           offeringId: data.offeringId,
-          sku: plan.sku,
+          code: plan.code,
           name: this.deriveName(data.namePrefix ?? offering.name, plan.ordered),
           salesUomId: data.salesUomId,
           taxClassId: offering.taxClassId,
@@ -269,14 +269,14 @@ export class OfferingVariantsDomainService {
     }
     if (data.externalSku) await this.repository.update(created[0].id, { externalSku: data.externalSku });
     // Re-read rather than decorating the insert's own rows: `returning()` carries no joined names
-    return { success: true, message: `"${created[0].sku}" created.`, data: await this.findById(created[0].id) };
+    return { success: true, message: `"${created[0].code}" created.`, data: await this.findById(created[0].id) };
   }
 
   async update(id: string, data: Omit<UpdateVariantDto, 'id'>): Promise<SuccessResponseDto> {
     const { variant } = await this.requireOwnedVariant(id);
     if (data.isActive) await this.assertBomSatisfied(variant);
     await this.repository.update(id, data);
-    return { success: true, message: `"${variant.sku}" updated.` };
+    return { success: true, message: `"${variant.code}" updated.` };
   }
 
   // The batch form of the isActive flip. Ownership is settled once on the parent offering, and every
@@ -304,7 +304,7 @@ export class OfferingVariantsDomainService {
       if (missing.length > 0) {
         throw new ConflictException({
           label: 'No Bill Of Materials',
-          detail: `${pluralize('variant', missing.length, true)} in this selection still need components before they can be sold: ${missing.map((variant) => `"${variant.sku}"`).join(', ')}.`,
+          detail: `${pluralize('variant', missing.length, true)} in this selection still need components before they can be sold: ${missing.map((variant) => `"${variant.code}"`).join(', ')}.`,
         });
       }
     }
@@ -346,7 +346,7 @@ export class OfferingVariantsDomainService {
   }
 
   // Replaces every attribute value this variant carries. Attributes sit outside the combination matrix,
-  // so there is nothing to regenerate — the SKU, the combination key and the variant's own identity are
+  // so there is nothing to regenerate — the Code, the combination key and the variant's own identity are
   // all untouched, which is why this is an edit rather than a create.
   async setAttributes(id: string, valueIds: string[]): Promise<SuccessResponseDto> {
     const { variant, offering } = await this.requireOwnedVariant(id);
@@ -372,13 +372,13 @@ export class OfferingVariantsDomainService {
       await this.repository.insertVariantAttributeValues(rows);
     });
 
-    this.logger.log(`Set ${rows.length} attribute values on variant ${variant.sku} (${id})`);
+    this.logger.log(`Set ${rows.length} attribute values on variant ${variant.code} (${id})`);
     return {
       success: true,
       message:
         rows.length === 0
-          ? `"${variant.sku}" no longer carries any attributes.`
-          : `"${variant.sku}" now carries ${pluralize('attribute value', rows.length, true)}.`,
+          ? `"${variant.code}" no longer carries any attributes.`
+          : `"${variant.code}" now carries ${pluralize('attribute value', rows.length, true)}.`,
     };
   }
 
@@ -434,19 +434,19 @@ export class OfferingVariantsDomainService {
   async setTaxClass(id: string, data: SetVariantTaxClassDto): Promise<SuccessResponseDto> {
     const { variant } = await this.requireOwnedVariant(id);
     await this.repository.update(id, { taxClassId: data.taxClassId, isTaxClassOverridden: true });
-    this.logger.log(`Overrode tax class on variant ${variant.sku} (${id})`);
-    return { success: true, message: `Tax class overridden on "${variant.sku}".` };
+    this.logger.log(`Overrode tax class on variant ${variant.code} (${id})`);
+    return { success: true, message: `Tax class overridden on "${variant.code}".` };
   }
 
   // Drops the override and resynchronises with the parent offering
   async clearTaxClassOverride(id: string): Promise<SuccessResponseDto> {
     const { variant, offering } = await this.requireOwnedVariant(id);
     if (!variant.isTaxClassOverridden) {
-      return { success: true, message: `"${variant.sku}" already follows its offering.` };
+      return { success: true, message: `"${variant.code}" already follows its offering.` };
     }
     await this.repository.update(id, { taxClassId: offering.taxClassId, isTaxClassOverridden: false });
-    this.logger.log(`Cleared tax class override on variant ${variant.sku} (${id})`);
-    return { success: true, message: `"${variant.sku}" now follows "${offering.name}".` };
+    this.logger.log(`Cleared tax class override on variant ${variant.code} (${id})`);
+    return { success: true, message: `"${variant.code}" now follows "${offering.name}".` };
   }
 
   // Pins this variant's own fulfilment type, exempting it from the offering's cascade from here on.
@@ -456,26 +456,26 @@ export class OfferingVariantsDomainService {
     const { variant } = await this.requireOwnedVariant(id);
     const next = data.fulfilmentType as FulfilmentType;
     if (variant.fulfilmentType === next && variant.isFulfilmentOverridden) {
-      return { success: true, message: `"${variant.sku}" already uses that fulfilment type.` };
+      return { success: true, message: `"${variant.code}" already uses that fulfilment type.` };
     }
 
     await this.assertBomFits(variant, next);
     await this.repository.update(id, { fulfilmentType: next, isFulfilmentOverridden: true });
-    this.logger.log(`Overrode fulfilment on variant ${variant.sku} (${id}) to ${next}`);
-    return { success: true, message: `"${variant.sku}" is now ${next.toLowerCase()}.` };
+    this.logger.log(`Overrode fulfilment on variant ${variant.code} (${id}) to ${next}`);
+    return { success: true, message: `"${variant.code}" is now ${next.toLowerCase()}.` };
   }
 
   // Drops the override and resynchronises with the parent offering
   async clearFulfilmentOverride(id: string): Promise<SuccessResponseDto> {
     const { variant, offering } = await this.requireOwnedVariant(id);
     if (!variant.isFulfilmentOverridden) {
-      return { success: true, message: `"${variant.sku}" already follows its offering.` };
+      return { success: true, message: `"${variant.code}" already follows its offering.` };
     }
 
     await this.assertBomFits(variant, offering.fulfilmentType);
     await this.repository.update(id, { fulfilmentType: offering.fulfilmentType, isFulfilmentOverridden: false });
-    this.logger.log(`Cleared fulfilment override on variant ${variant.sku} (${id})`);
-    return { success: true, message: `"${variant.sku}" now follows "${offering.name}".` };
+    this.logger.log(`Cleared fulfilment override on variant ${variant.code} (${id})`);
+    return { success: true, message: `"${variant.code}" now follows "${offering.name}".` };
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {
@@ -486,7 +486,7 @@ export class OfferingVariantsDomainService {
     if (orderLines > 0) {
       throw new ConflictException({
         label: 'Variant Sold',
-        detail: `"${variant.sku}" appears on ${pluralize('order line', orderLines, true)} and cannot be deleted. Unpublish it instead so it stops being sellable.`,
+        detail: `"${variant.code}" appears on ${pluralize('order line', orderLines, true)} and cannot be deleted. Unpublish it instead so it stops being available.`,
       });
     }
 
@@ -496,11 +496,11 @@ export class OfferingVariantsDomainService {
       await this.repository.deleteVariantValues(id);
       await this.repository.delete(id);
     });
-    return { success: true, message: `"${variant.sku}" deleted.` };
+    return { success: true, message: `"${variant.code}" deleted.` };
   }
 
-  // SKU = offering code + one value code per dimension, in dimension order
-  private deriveSku(offeringCode: string, ordered: DimensionValueRow[]): string {
+  // Code = offering code + one value code per dimension, in dimension order
+  private deriveCode(offeringCode: string, ordered: DimensionValueRow[]): string {
     return [offeringCode, ...ordered.map((row) => row.valueCode)].join('-');
   }
 
@@ -516,35 +516,35 @@ export class OfferingVariantsDomainService {
     return new Set(await this.repository.findCombinationKeys(offeringId));
   }
 
-  // Two different combinations can derive the same SKU once a variant may skip a dimension — a value
-  // coded "s" on Size and another on Colour both yield "<offering>-s". The SKU is unique org-wide, so
+  // Two different combinations can derive the same Code once a variant may skip a dimension — a value
+  // coded "s" on Size and another on Colour both yield "<offering>-s". The Code is unique org-wide, so
   // this reports the clash by name rather than letting the insert fail on the constraint.
-  private async assertSkusFree(skus: string[]): Promise<void> {
+  private async assertCodesFree(codes: string[]): Promise<void> {
     const seen = new Set<string>();
-    const duplicated = skus.filter((sku) => {
-      if (seen.has(sku)) return true;
-      seen.add(sku);
+    const duplicated = codes.filter((code) => {
+      if (seen.has(code)) return true;
+      seen.add(code);
       return false;
     });
     if (duplicated.length > 0) {
       throw new ConflictException({
-        label: 'Duplicate SKU',
-        detail: `${[...new Set(duplicated)].map((sku) => `"${sku}"`).join(', ')} would be produced by more than one combination in this batch. Give the clashing values distinct codes.`,
+        label: 'Duplicate Code',
+        detail: `${[...new Set(duplicated)].map((code) => `"${code}"`).join(', ')} would be produced by more than one combination in this batch. Give the clashing values distinct codes.`,
       });
     }
 
-    const taken = await this.repository.findTakenSkus(skus);
+    const taken = await this.repository.findTakenCodes(codes);
     if (taken.length > 0) {
       throw new ConflictException({
-        label: 'SKU Taken',
-        detail: `${taken.map((sku) => `"${sku}"`).join(', ')} ${taken.length === 1 ? 'is' : 'are'} already in use. A SKU is unique across the organization.`,
+        label: 'Code Taken',
+        detail: `${taken.map((code) => `"${code}"`).join(', ')} ${taken.length === 1 ? 'is' : 'are'} already in use. A Code is unique across the organization.`,
       });
     }
   }
 
   // A combination names at most one value per dimension, and need not name them all — an offering's
   // dimensions are the axes available, not a set every variant has to fill. The rows come back in
-  // dimension order, which is what gives the SKU its segment order.
+  // dimension order, which is what gives the Code its segment order.
   private requireValueOnDimension(
     valueId: string,
     dimensionId: string,
@@ -591,13 +591,13 @@ export class OfferingVariantsDomainService {
     if (lines > rule.max) {
       throw new ConflictException({
         label: 'Too Many Components',
-        detail: `"${variant.sku}" holds ${pluralize('component', lines, true)}, but ${next.toLowerCase()} allows ${rule.max === 1 ? 'exactly one' : 'any number'}. Remove the extras first.`,
+        detail: `"${variant.code}" holds ${pluralize('component', lines, true)}, but ${next.toLowerCase()} allows ${rule.max === 1 ? 'exactly one' : 'any number'}. Remove the extras first.`,
       });
     }
     if (variant.isActive && lines < rule.min) {
       throw new ConflictException({
         label: 'No Bill Of Materials',
-        detail: `"${variant.sku}" is on sale with ${pluralize('component', lines, true)}, which ${next.toLowerCase()} does not allow. Deactivate it first, or add components.`,
+        detail: `"${variant.code}" is on sale with ${pluralize('component', lines, true)}, which ${next.toLowerCase()} does not allow. Deactivate it first, or add components.`,
       });
     }
   }
@@ -609,7 +609,7 @@ export class OfferingVariantsDomainService {
     if (lines.length < rule.min) {
       throw new ConflictException({
         label: 'No Bill Of Materials',
-        detail: `"${variant.sku}" needs at least ${pluralize('component', rule.min, true)} before it can be sold.`,
+        detail: `"${variant.code}" needs at least ${pluralize('component', rule.min, true)} before it can be sold.`,
       });
     }
   }

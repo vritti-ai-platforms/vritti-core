@@ -14,7 +14,7 @@ export class SiteOfferingDimensionsController {
 
   constructor(private readonly service: OfferingDimensionsDomainService) {}
 
-  // Returns an offering's dimensions with their values, in SKU segment order
+  // Returns an offering's dimensions with their values, in Code segment order
   @MessagePattern({ cmd: 'site.offerings.dimensions.list' })
   list(@Payload() data: { offeringId: string }): Promise<OfferingDimensionDto[]> {
     this.logger.log(`offerings.dimensions.list — offeringId: ${data.offeringId}`);
@@ -52,7 +52,7 @@ export class SiteOfferingDimensionsController {
   }
 
   // Removes a dimension; refused while any variant uses one of its values
-  // Renames a dimension; its code is fixed because every derived SKU carries it
+  // Renames a dimension; its code is fixed because every derived Code carries it
   @MessagePattern({ cmd: 'site.offerings.dimensions.update' })
   update(@Payload() dto: UpdateOfferingDimensionDto): Promise<SuccessResponseDto> {
     const { id, ...data } = dto;

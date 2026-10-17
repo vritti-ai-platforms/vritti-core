@@ -16,14 +16,14 @@ export class SiteCatalogListingsController {
   // Returns paginated listings of one catalog, each with its prices
   @MessagePattern({ cmd: 'site.catalogs.listings.table' })
   findListingsForTable(
-    @Payload() data: { catalogId: string; state: TableViewState },
+    @Payload() data: { catalogId: string; state: TableViewState; currencyCode?: string },
   ): Promise<{ result: CatalogListingDto[]; count: number }> {
     this.logger.log(`catalogs.listings.table — catalogId: ${data.catalogId}`);
-    return this.listingsService.findForTable(data.catalogId, data.state);
+    return this.listingsService.findForTable(data.catalogId, data.state, data.currencyCode);
   }
 
   // The MRP slices a variant can be listed at
-  // Everything one storefront channel sells — the list a provisioned website files its pages against
+  // Everything one storefront channel makes available — the list a provisioned website files its pages against
   @MessagePattern({ cmd: 'site.catalogs.listings.mrpOptions' })
   findMrpOptions(@Payload() data: { offeringVariantId: string }): Promise<CatalogListingMrpOptionDto[]> {
     this.logger.log(`catalogs.listings.mrpOptions — variantId: ${data.offeringVariantId}`);
@@ -45,6 +45,17 @@ export class SiteCatalogListingsController {
   }
 
   // Shows or hides one listing on one channel of its catalog
+  // Clears one (listing, currency, site) price slot
+  @MessagePattern({ cmd: 'site.catalogs.listings.clearPrice' })
+  clearListingPrice(
+    @Payload() data: { catalogListingId: string; currencyCode: string; siteId?: string | null },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `catalogs.listings.clearPrice — listingId: ${data.catalogListingId}, currency: ${data.currencyCode}`,
+    );
+    return this.listingsService.clearPrice(data);
+  }
+
   @MessagePattern({ cmd: 'site.catalogs.listings.setChannelVisibility' })
   setListingChannelVisibility(
     @Payload() data: { id: string; catalogChannelId: string; visible: boolean },

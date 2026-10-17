@@ -101,7 +101,7 @@ export function createVapSdk(options: VapSdkOptions = {}) {
        */
       cart: createCartOperations(client, context, currencyCode),
       /** The range this storefront sells. Needs no party — it is the shop's catalogue, not a person's. */
-      catalogChannels: createCatalogChannelsOperations(client, context),
+      catalogChannels: createCatalogChannelsOperations(client, context, currencyCode),
       /**
        * The organization's own shape: its stores and legal entities.
        *

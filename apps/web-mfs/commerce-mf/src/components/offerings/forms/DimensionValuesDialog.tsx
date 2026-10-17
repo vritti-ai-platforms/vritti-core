@@ -71,7 +71,7 @@ export const DimensionValuesDialog: React.FC<DimensionValuesDialogProps> = ({
     setCopyOpen(false);
   };
 
-  // The code is a SKU segment and the name is what a person reads, so they are kept apart. Typing the
+  // The code is a Code segment and the name is what a person reads, so they are kept apart. Typing the
   // name fills the code until the code is edited by hand.
   const deriveCode = (index: number, name: string) => {
     if (form.getFieldState(`values.${index}.code`).isDirty) return;

@@ -1,8 +1,8 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, check, index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { catalogListings } from './catalog-listings';
 import { commerceSchema } from './commerce-schema';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { organizationIdColumn, workspaceScopeColumns, workspaceScopePolicies } from './workspace-scope';
 
 export const catalogListingPrices = commerceSchema.table(
   'catalog_listing_prices',
@@ -14,7 +14,8 @@ export const catalogListingPrices = commerceSchema.table(
       .references(() => catalogListings.id, { onDelete: 'cascade' }),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     amount: bigint('amount', { mode: 'bigint' }).notNull(),
-    siteId: uuid('site_id'),
+    legalEntityId: workspaceScopeColumns.legalEntityId,
+    siteId: workspaceScopeColumns.siteId,
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -23,12 +24,23 @@ export const catalogListingPrices = commerceSchema.table(
   },
   (table) => [
     unique('uq_catalog_listing_prices_scope')
-      .on(table.catalogListingId, table.currencyCode, table.siteId)
+      .on(table.catalogListingId, table.currencyCode, table.legalEntityId, table.siteId)
       .nullsNotDistinct(),
+    check(
+      'ck_catalog_listing_prices_site_needs_le',
+      sql`${table.siteId} is null or ${table.legalEntityId} is not null`,
+    ),
     index('idx_catalog_listing_prices_listing').on(table.catalogListingId),
-    orgIsolationPolicy(),
+    index('idx_catalog_listing_prices_resolve').on(table.catalogListingId, table.currencyCode, table.siteId),
+    ...workspaceScopePolicies('catalog_listing_price_reach'),
   ],
 );
 
 export type CatalogListingPrice = typeof catalogListingPrices.$inferSelect;
 export type NewCatalogListingPrice = typeof catalogListingPrices.$inferInsert;
+
+// Mirrors channelSpecificity: the narrowest workspace that priced a listing wins, and reach has
+// already hidden the rows belonging to workspaces this one cannot see.
+export const listingPriceSpecificity = sql`
+  (case when ${catalogListingPrices.siteId} is not null then 4 else 0 end)
+  + (case when ${catalogListingPrices.legalEntityId} is not null then 2 else 0 end)`;

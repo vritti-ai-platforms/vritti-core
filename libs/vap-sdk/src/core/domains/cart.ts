@@ -14,11 +14,10 @@ import type { Money, RequestContext } from '../types';
 export type CartItem = {
   id: string;
   catalogListingId: string;
-  /** What a storefront joins its own product page on — the variant, stable across sites. */
-  offeringVariantId: string;
   quantity: number;
   name: string;
-  sku: string | null;
+  /** What a storefront joins its own product page on — the variant's code, stable across sites. */
+  code: string;
   unitPrice: Money | null;
   lineTotal: Money | null;
   /** False once delisted, switched off, or no longer priced in the basket's currency. */
@@ -36,7 +35,7 @@ export type Cart = {
 
 /** How many of one product the party holds in their basket. */
 export type CartQuantity = {
-  offeringVariantId: string;
+  code: string;
   quantity: number;
 };
 
@@ -99,38 +98,38 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
       );
     },
     /** Adds a listing, or raises the quantity of the line already there. */
-    async add(offeringVariantId: string, quantity = 1): Promise<Cart> {
+    async add(code: string, quantity = 1): Promise<Cart> {
       requireParty();
       return run(() =>
         client
           .mutate({
             mutation: ADD_TO_CART,
-            variables: { input: { offeringVariantId, quantity, currencyCode: currencyCode() } },
+            variables: { input: { code, quantity, currencyCode: currencyCode() } },
             context: requestContext,
           })
           .then((r) => requireData(r.data).addToCart as Cart),
       );
     },
     /** Sets a line to an exact quantity — not a delta. Use `removeFromCart` to take it out. */
-    async update(offeringVariantId: string, quantity: number): Promise<Cart> {
+    async update(code: string, quantity: number): Promise<Cart> {
       requireParty();
       return run(() =>
         client
           .mutate({
             mutation: UPDATE_CART_ITEM,
-            variables: { input: { offeringVariantId, quantity, currencyCode: currencyCode() } },
+            variables: { input: { code, quantity, currencyCode: currencyCode() } },
             context: requestContext,
           })
           .then((r) => requireData(r.data).updateCartItem as Cart),
       );
     },
-    async remove(offeringVariantId: string): Promise<Cart> {
+    async remove(code: string): Promise<Cart> {
       requireParty();
       return run(() =>
         client
           .mutate({
             mutation: REMOVE_FROM_CART,
-            variables: { input: { offeringVariantId, currencyCode: currencyCode() } },
+            variables: { input: { code, currencyCode: currencyCode() } },
             context: requestContext,
           })
           .then((r) => requireData(r.data).removeFromCart as Cart),

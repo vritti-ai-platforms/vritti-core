@@ -104,7 +104,7 @@ export class VariantOption {
       'combination is not sold here — render it disabled rather than hiding it, or the range looks ' +
       'smaller than it is.',
   })
-  sku: string | null;
+  variantCode: string | null;
 }
 
 @ObjectType()
@@ -128,7 +128,7 @@ export class CatalogListingDetail {
   listing: CatalogListing;
 
   @Field(() => [VariantAxis], {
-    description: 'Only axes and values a sellable sibling carries — never an option the shop cannot fulfil',
+    description: 'Only axes and values an available sibling carries — never an option the shop cannot fulfil',
   })
   axes: VariantAxis[];
 }

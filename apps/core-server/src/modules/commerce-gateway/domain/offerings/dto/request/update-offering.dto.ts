@@ -4,7 +4,7 @@ import { IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-valid
 
 export class UpdateOfferingDto {
   @Trim({ nullify: false })
-  @ApiPropertyOptional({ description: 'Prefix of every SKU derived from here on', example: 'hf-kichidi' })
+  @ApiPropertyOptional({ description: 'Prefix of every Code derived from here on', example: 'hf-kichidi' })
   @IsOptional()
   @IsString()
   @IsNotEmpty()

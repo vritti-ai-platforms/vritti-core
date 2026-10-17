@@ -16,6 +16,7 @@ interface SetListingPriceDialogProps {
   binding: CatalogsBinding;
   catalogId: string;
   listing: CatalogListingData;
+  currencyCode: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -24,13 +25,16 @@ export const SetListingPriceDialog: React.FC<SetListingPriceDialogProps> = ({
   binding,
   catalogId,
   listing,
+  currencyCode,
   onSuccess,
   onCancel,
 }) => {
-  const current = listing.prices.find((entry) => entry.siteId === null) ?? listing.prices[0];
+  // Prefills with what applies today, inherited or not: a price being overridden starts from the
+  // number it replaces rather than from an empty field
+  const current = listing.prices.find((entry) => entry.price.currency === currencyCode)?.price;
   const form = useForm<SetCatalogListingPriceFormData>({
     resolver: zodResolver(setCatalogListingPriceSchema),
-    defaultValues: { price: current?.price },
+    defaultValues: { price: current ?? { currency: currencyCode, value: '' } },
   });
 
   const setPriceMutation = binding.useSetListingPrice({ onSuccess });
@@ -43,7 +47,7 @@ export const SetListingPriceDialog: React.FC<SetListingPriceDialogProps> = ({
       onCancel={onCancel}
     >
       <div className="space-y-4">
-        <CurrencyField name="price" label="Price" />
+        <CurrencyField name="price" label="Price" currencyCode={currencyCode} />
       </div>
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

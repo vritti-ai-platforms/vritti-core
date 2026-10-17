@@ -35,7 +35,7 @@ export class OfferingVariantResponseDto {
     description: 'Derived from the offering code and value codes; never edited',
     example: 'tshirt-classic-m-red',
   })
-  sku: string;
+  code: string;
   @ApiPropertyOptional({ nullable: true, description: 'Manufacturer part number or GTIN — the stable identifier' })
   externalSku: string | null;
   @ApiProperty() name: string;

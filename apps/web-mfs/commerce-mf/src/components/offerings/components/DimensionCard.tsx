@@ -137,7 +137,7 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
         handle={valuesDialog}
         icon={SwatchBook}
         title={noValues ? 'Add Values' : 'Edit Values'}
-        description="Each value becomes a segment of a derived SKU. Values already used by a variant cannot be deleted."
+        description="Each value becomes a segment of a derived Code. Values already used by a variant cannot be deleted."
         content={(close) => (
           <DimensionValuesDialog dimension={dimension} useUpsert={useUpsertValues} onSuccess={close} onCancel={close} />
         )}

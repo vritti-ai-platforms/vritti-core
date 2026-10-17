@@ -7,7 +7,7 @@ export interface PersonWishlistRow {
   // What the storefront's own product record is keyed on — stable across sites, unlike the listing
   offeringVariantId: string;
   name: string;
-  sku: string | null;
+  code: string | null;
   price: CurrencyAmount | null;
   isAvailable: boolean;
   createdAt: string;

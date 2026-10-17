@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { aliasedTable, and, asc, eq, gt, isNull, lte, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, gt, lte, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type Cart,
   type CartItem,
@@ -8,6 +8,7 @@ import {
   carts,
   catalogListingPrices,
   catalogListings,
+  listingPriceSpecificity,
   offerings,
   offeringVariants,
   ownedByWorkspaceExpression,
@@ -47,9 +48,8 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
   }
 
   // The shape of a priced basket line, ready for a `where` to narrow it
-  private lineRows(currencyCode: string, appId?: string | null, siteId?: string) {
-    const sitePrice = aliasedTable(catalogListingPrices, 'site_price');
-    const orgPrice = aliasedTable(catalogListingPrices, 'org_price');
+  private lineRows(currencyCode: string, appId?: string | null) {
+    const price = this.priceLateral(currencyCode);
 
     return this.db
       .select({
@@ -59,15 +59,11 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
         legalEntityId: carts.legalEntityId,
         catalogListingId: catalogListings.id,
         offeringId: offeringVariants.offeringId,
-        offeringVariantId: cartItems.offeringVariantId,
+        offeringVariantId: offeringVariants.id,
         quantity: cartItems.quantity,
-        // A raw template skips the column's bigint decoder, so the driver's string comes back as-is and
-        // BigInt math on it throws. Decoded here, as the column itself would have been.
-        amount: sql<bigint | null>`coalesce(${sitePrice.amount}, ${orgPrice.amount})`.mapWith((value: unknown) =>
-          value == null ? null : BigInt(value as string),
-        ),
-        currencyCode: sql<string | null>`coalesce(${sitePrice.currencyCode}, ${orgPrice.currencyCode})`,
-        sku: offeringVariants.sku,
+        amount: price.amount,
+        currencyCode: price.currencyCode,
+        code: offeringVariants.code,
         variantName: offeringVariants.name,
         offeringName: offerings.name,
         listingActive: sql<boolean>`${catalogListings.id} is not null`,
@@ -77,41 +73,41 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       })
       .from(cartItems)
       .innerJoin(carts, eq(carts.id, cartItems.cartId))
-      .innerJoin(offeringVariants, eq(offeringVariants.id, cartItems.offeringVariantId))
+      .innerJoin(
+        offeringVariants,
+        and(eq(offeringVariants.organizationId, cartItems.organizationId), eq(offeringVariants.code, cartItems.code)),
+      )
       .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .leftJoin(
         catalogListings,
         and(
-          eq(catalogListings.offeringVariantId, cartItems.offeringVariantId),
+          eq(catalogListings.offeringVariantId, offeringVariants.id),
           eq(catalogListings.catalogId, partyChannelCatalogId(sql`${carts.partyId}`, appId)),
         ),
       )
-      .leftJoin(
-        sitePrice,
+      .leftJoinLateral(price, sql`true`);
+  }
+
+  // The price that applies to the reader: reach narrows the rows to the ones this workspace inherits,
+  // and the narrowest of those wins — the same precedence the storefront listing resolves with.
+  private priceLateral(currencyCode: string) {
+    return this.db
+      .select({ amount: catalogListingPrices.amount, currencyCode: catalogListingPrices.currencyCode })
+      .from(catalogListingPrices)
+      .where(
         and(
-          eq(sitePrice.catalogListingId, catalogListings.id),
-          eq(sitePrice.currencyCode, currencyCode),
-          siteId ? eq(sitePrice.siteId, siteId) : sql`false`,
+          eq(catalogListingPrices.catalogListingId, catalogListings.id),
+          eq(catalogListingPrices.currencyCode, currencyCode),
         ),
       )
-      .leftJoin(
-        orgPrice,
-        and(
-          eq(orgPrice.catalogListingId, catalogListings.id),
-          eq(orgPrice.currencyCode, currencyCode),
-          isNull(orgPrice.siteId),
-        ),
-      );
+      .orderBy(desc(listingPriceSpecificity))
+      .limit(1)
+      .as('price');
   }
 
   // Every line of one basket
-  async findItems(
-    cartId: string,
-    currencyCode: string,
-    appId?: string | null,
-    siteId?: string,
-  ): Promise<CartItemRow[]> {
-    const rows = await this.lineRows(currencyCode, appId, siteId)
+  async findItems(cartId: string, currencyCode: string, appId?: string | null): Promise<CartItemRow[]> {
+    const rows = await this.lineRows(currencyCode, appId)
       .where(eq(cartItems.cartId, cartId))
       .orderBy(asc(cartItems.createdAt));
     return rows as CartItemRow[];
@@ -123,12 +119,11 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
     currencyCode: string,
     appId?: string | null,
-    siteId?: string,
   ): Promise<{ result: CartItemRow[]; count: number }> {
     const where = and(eq(cartItems.cartId, cartId), options.where);
 
     const [rows, [total]] = await Promise.all([
-      this.lineRows(currencyCode, appId, siteId)
+      this.lineRows(currencyCode, appId)
         .where(where)
         .orderBy(...(options.orderBy?.length ? options.orderBy : [asc(cartItems.createdAt)]))
         .limit(options.limit)
@@ -136,7 +131,10 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       this.db
         .select({ count: sql<number>`count(*)::int` })
         .from(cartItems)
-        .innerJoin(offeringVariants, eq(offeringVariants.id, cartItems.offeringVariantId))
+        .innerJoin(
+          offeringVariants,
+          and(eq(offeringVariants.organizationId, cartItems.organizationId), eq(offeringVariants.code, cartItems.code)),
+        )
         .where(where),
     ]);
 
@@ -144,42 +142,53 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
   }
 
   // How many of each product a party holds in their basket here — what a product page draws its quantity stepper from
-  async findQuantitiesForParty(partyId: string): Promise<{ offeringVariantId: string; quantity: number }[]> {
+  async findQuantitiesForParty(partyId: string): Promise<{ code: string; quantity: number }[]> {
     return this.db
-      .select({ offeringVariantId: cartItems.offeringVariantId, quantity: cartItems.quantity })
+      .select({ code: cartItems.code, quantity: cartItems.quantity })
       .from(cartItems)
       .innerJoin(carts, eq(carts.id, cartItems.cartId))
       .where(and(eq(carts.partyId, partyId), ownedByWorkspaceExpression()));
   }
 
   // Adds a line, or raises the quantity of the one already there
-  async upsertItem(cartId: string, offeringVariantId: string, quantity: number): Promise<CartItem> {
+  async upsertItem(cartId: string, code: string, quantity: number): Promise<CartItem> {
     const rows = (await this.db
       .insert(cartItems)
-      .values({ cartId, offeringVariantId, quantity })
+      .values({ cartId, code, quantity })
       .onConflictDoUpdate({
-        target: [cartItems.cartId, cartItems.offeringVariantId],
+        target: [cartItems.cartId, cartItems.code],
         set: { quantity: sql`least(${cartItems.quantity} + ${quantity}, 99)`, updatedAt: new Date() },
       })
       .returning()) as CartItem[];
     return rows[0];
   }
 
-  async setItemQuantity(cartId: string, offeringVariantId: string, quantity: number): Promise<CartItem | undefined> {
+  async setItemQuantity(cartId: string, code: string, quantity: number): Promise<CartItem | undefined> {
     const rows = (await this.db
       .update(cartItems)
       .set({ quantity, updatedAt: new Date() })
-      .where(and(eq(cartItems.cartId, cartId), eq(cartItems.offeringVariantId, offeringVariantId)))
+      .where(and(eq(cartItems.cartId, cartId), eq(cartItems.code, code)))
       .returning()) as CartItem[];
     return rows[0];
   }
 
-  async deleteItem(cartId: string, offeringVariantId: string): Promise<number> {
+  async deleteItem(cartId: string, code: string): Promise<number> {
     const rows = (await this.db
       .delete(cartItems)
-      .where(and(eq(cartItems.cartId, cartId), eq(cartItems.offeringVariantId, offeringVariantId)))
+      .where(and(eq(cartItems.cartId, cartId), eq(cartItems.code, code)))
       .returning({ id: cartItems.id })) as { id: string }[];
     return rows.length;
+  }
+
+  // The code a variant id names. Staff screens hold the id off a table row while a line is keyed by
+  // code, so the staff write paths translate here. Org-scoped by RLS.
+  async findCodeByVariantId(offeringVariantId: string): Promise<string | undefined> {
+    const rows = (await this.db
+      .select({ code: offeringVariants.code })
+      .from(offeringVariants)
+      .where(eq(offeringVariants.id, offeringVariantId))
+      .limit(1)) as { code: string }[];
+    return rows[0]?.code;
   }
 
   // Empties a basket without closing it — the cart row survives for the shopper to fill again
@@ -188,8 +197,8 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
   }
 
   // Takes an ordered quantity off a line — the line goes when nothing of it is left
-  async consumeItem(cartId: string, offeringVariantId: string, quantity: number): Promise<void> {
-    const line = and(eq(cartItems.cartId, cartId), eq(cartItems.offeringVariantId, offeringVariantId));
+  async consumeItem(cartId: string, code: string, quantity: number): Promise<void> {
+    const line = and(eq(cartItems.cartId, cartId), eq(cartItems.code, code));
     await this.db.delete(cartItems).where(and(line, lte(cartItems.quantity, quantity)));
     await this.db
       .update(cartItems)
@@ -202,9 +211,8 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     partyId: string,
     currencyCode: string,
     appId?: string | null,
-    siteId?: string,
   ): Promise<(CartItemRow & { cartId: string; siteId: string | null; legalEntityId: string })[]> {
-    const rows = await this.lineRows(currencyCode, appId, siteId)
+    const rows = await this.lineRows(currencyCode, appId)
       .where(eq(carts.partyId, partyId))
       .orderBy(asc(cartItems.createdAt));
     return rows as (CartItemRow & { cartId: string; siteId: string | null; legalEntityId: string })[];

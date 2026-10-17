@@ -98,7 +98,7 @@ export class SelectController {
     return this.offeringsService.findForSelect(query);
   }
 
-  // Variants of one offering — scoped, because a SKU only means anything next to its siblings
+  // Variants of one offering — scoped, because a code only means anything next to its siblings
   @MessagePattern({ cmd: 'select.offeringVariants' })
   async offeringVariants(@Payload() data: OfferingVariantsSelectQueryDto): Promise<SelectQueryResult> {
     const { offeringId, ...query } = data;

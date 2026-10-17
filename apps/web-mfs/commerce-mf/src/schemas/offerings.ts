@@ -50,7 +50,7 @@ export const FULFILMENT_TYPE_META: Record<
   },
 };
 
-// A code becomes a segment of every derived SKU, so it is lowercase-kebab. Derived from the label
+// A code becomes a segment of every derived variant code, so it is lowercase-kebab. Derived from the label
 // rather than asked for separately — one field to fill, and codes stay predictable.
 export function toCode(value: string): string {
   return value
@@ -291,7 +291,7 @@ export interface BomLineData {
 export interface OfferingVariantData {
   id: string;
   offeringId: string;
-  sku: string;
+  code: string;
   externalSku: string | null;
   name: string;
   salesUomId: string;
@@ -337,7 +337,7 @@ export interface PreviewCombinationsData {
 
 export interface VariantCombinationData {
   valueIds: string[];
-  sku: string;
+  code: string;
   name: string;
   labels: string;
   exists: boolean;
@@ -382,7 +382,7 @@ export interface CreateAttributeFromTemplateData {
 }
 
 // One field per dimension, each optional — a variant carries whichever axes apply to it, so leaving
-// one blank simply omits it from the combination and from the derived SKU
+// one blank simply omits it from the combination and from the derived code
 export function buildAddVariantSchema(dimensions: OfferingDimensionData[]) {
   const axes = Object.fromEntries(dimensions.map((dimension) => [dimension.id, z.string()]));
   return z.object({
@@ -473,7 +473,7 @@ export interface GenerateVariantsData {
   combinations: { valueIds: string[] }[];
 }
 
-// The SKU is absent by design — the server takes it from the variant
+// The code is absent by design — the server takes it from the variant
 export interface CreateVariantInventoryItemData {
   variantId: string;
   name: string;
@@ -521,9 +521,9 @@ export type AddBomLineFormData = z.infer<typeof addBomLineSchema>;
 export type EditBomLineFormData = z.infer<typeof editBomLineSchema>;
 
 // Every combination of the selected values, in dimension order — the matrix the wizard reviews
-// SKU = offering code + one value code per dimension, in dimension order. Mirrors the server so the
+// The variant code = offering code + one value code per dimension, in dimension order. Mirrors the server so the
 // wizard can preview what will be created without a round trip.
-export function deriveSku(offeringCode: string, dimensions: OfferingDimensionData[], valueIds: string[]): string {
+export function deriveCode(offeringCode: string, dimensions: OfferingDimensionData[], valueIds: string[]): string {
   const codes = dimensions.map((dimension) => {
     const match = dimension.values.find((value) => valueIds.includes(value.id));
     return match?.code ?? '';

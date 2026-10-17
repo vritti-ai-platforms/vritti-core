@@ -50,7 +50,7 @@ export const EditOfferingDialog: React.FC<EditOfferingDialogProps> = ({ useUpdat
           description={
             locked
               ? `Locked — ${pluralize('variant', offering.variantCount, true)} already carry SKUs built from this code.`
-              : 'Becomes the first segment of every variant SKU.'
+              : 'Becomes the first segment of every variant Code.'
           }
         />
         <TextField name="name" label="Name" />

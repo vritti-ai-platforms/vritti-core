@@ -11,7 +11,7 @@ export class SiteOfferingBomController {
 
   constructor(private readonly bom: OfferingBomDomainService) {}
 
-  // The components, plus the inventory item already carrying this variant's SKU — read on its own
+  // The components, plus the inventory item already carrying this variant's Code — read on its own
   // because only the bill-of-materials view needs either
   @MessagePattern({ cmd: 'site.offerings.variants.bom.lines.list' })
   findBom(@Payload() data: { variantId: string }): Promise<VariantBomDto> {
@@ -38,7 +38,7 @@ export class SiteOfferingBomController {
     return this.bom.deleteLine(data.id);
   }
 
-  // Links the item already carrying this variant's SKU, without the caller naming it
+  // Links the item already carrying this variant's Code, without the caller naming it
   @MessagePattern({ cmd: 'site.offerings.variants.bom.addSuggested' })
   addSuggestedComponent(@Payload() data: { variantId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bom.addSuggested — variantId: ${data.variantId}`);

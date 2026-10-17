@@ -164,7 +164,7 @@ export class LeOfferingsGatewayService {
     return this.nats.send('commerce', 'le.offerings.delete', { id });
   }
 
-  // Returns an offering's dimensions with their values, in SKU segment order
+  // Returns an offering's dimensions with their values, in Code segment order
   async listDimensions(offeringId: string): Promise<OfferingDimensionResponseDto[]> {
     this.logger.log(`offerings.dimensions.list — offeringId: ${offeringId}`);
     return this.nats.send('commerce', 'le.offerings.dimensions.list', { offeringId });
@@ -329,7 +329,7 @@ export class LeOfferingsGatewayService {
   }
 
   // One component at a time — the whole-list replace it supersedes could silently drop a concurrent edit
-  // The components plus the SKU-matched suggestion, read on its own rather than with the variant
+  // The components plus the code-matched suggestion, read on its own rather than with the variant
   findVariantBom(variantId: string): Promise<VariantBomResponseDto> {
     this.logger.log(`offerings.variants.bom.lines.list — variantId: ${variantId}`);
     return this.nats.send('commerce', 'le.offerings.variants.bom.lines.list', { variantId });
@@ -350,7 +350,7 @@ export class LeOfferingsGatewayService {
     return this.nats.send('commerce', 'le.offerings.variants.bom.lines.delete', { id: lineId });
   }
 
-  // Links the item already carrying this variant's SKU; the item is resolved server-side
+  // Links the item already carrying this variant's Code; the item is resolved server-side
   async addSuggestedComponent(variantId: string): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bom.addSuggested — variantId: ${variantId}`);
     return this.nats.send('commerce', 'le.offerings.variants.bom.addSuggested', { variantId });

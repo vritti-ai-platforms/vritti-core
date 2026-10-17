@@ -7,7 +7,7 @@ import { getChannelItems } from '@/services/legal-entity/catalog-channels.servic
 import { CHANNEL_ITEMS_KEY } from './keys';
 
 export function useChannelItems(channelId: string) {
-  const { available } = usePermission(LE_CATALOG_CHANNELS.view);
+  const { available } = usePermission(LE_CATALOG_CHANNELS.listings);
   return useQuery<ChannelItemsTableResponse, AxiosError>({
     queryKey: CHANNEL_ITEMS_KEY(channelId),
     queryFn: () => getChannelItems(channelId),

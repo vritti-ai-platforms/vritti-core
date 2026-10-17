@@ -20,7 +20,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ offering, variant }) =
       {needsBom && (
         <Alert
           variant="warning"
-          title="Not sellable yet"
+          title="Not available yet"
           description={`A ${meta.label.toLowerCase()} variant needs ${pluralize('bill of materials line', meta.minBomLines, true)} before it can be made active. Add one on the Bill of Materials tab.`}
         />
       )}
@@ -30,8 +30,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ offering, variant }) =
           <CardTitle>Identity</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <DetailField label="SKU" type="string" value={variant.sku} mono />
-          <DetailField label="External SKU" type="string" value={variant.externalSku} mono />
+          <DetailField label="Code" type="string" value={variant.code} mono />
+          <DetailField label="External Code" type="string" value={variant.externalSku} mono />
           <DetailField label="Offering" type="string" value={offering.name} />
           <DetailField label="Fulfilment" type="string" value={<Badge variant="outline">{meta.label}</Badge>} />
           <DetailField
@@ -81,7 +81,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ offering, variant }) =
 
       <Card>
         <CardHeader>
-          <CardTitle>Selling</CardTitle>
+          <CardTitle>Available</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <DetailField label="Sold in" type="string" value={variant.salesUomName} />

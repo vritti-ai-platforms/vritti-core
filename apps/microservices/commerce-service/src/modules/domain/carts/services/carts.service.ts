@@ -25,7 +25,7 @@ export class CartsDomainService {
   // What the items table may filter, search and sort on
   private static readonly ITEM_FIELD_MAP: FieldMap = {
     name: { column: offeringVariants.name, type: 'string' },
-    sku: { column: offeringVariants.sku, type: 'string' },
+    code: { column: offeringVariants.code, type: 'string' },
     quantity: { column: cartItems.quantity, type: 'number' },
     createdAt: { column: cartItems.createdAt, type: 'string' },
   };
@@ -60,13 +60,13 @@ export class CartsDomainService {
   }
 
   // How many of each product the party holds in their basket at this workspace
-  findQuantities(partyId: string): Promise<{ offeringVariantId: string; quantity: number }[]> {
+  findQuantities(partyId: string): Promise<{ code: string; quantity: number }[]> {
     return this.repository.findQuantitiesForParty(partyId);
   }
 
-  // Its lines, priced by the catalogue the caller sells from
-  async findItemsById(id: string, currencyCode: string, appId?: string | null, siteId?: string): Promise<CartDto> {
-    const items = await this.repository.findItems(id, currencyCode, appId, siteId);
+  // Its lines, priced by the catalogue the caller reads from
+  async findItemsById(id: string, currencyCode: string, appId?: string | null): Promise<CartDto> {
+    const items = await this.repository.findItems(id, currencyCode, appId);
     return CartDto.from(currencyCode, items);
   }
 
@@ -76,7 +76,6 @@ export class CartsDomainService {
     state: TableViewState,
     currencyCode: string,
     appId?: string | null,
-    siteId?: string,
   ): Promise<{ result: CartItemDto[]; count: number }> {
     const where =
       and(
@@ -91,7 +90,6 @@ export class CartsDomainService {
       { where, orderBy, limit, offset },
       currencyCode,
       appId,
-      siteId,
     );
     return { result: result.map((row) => CartItemDto.from(row)), count };
   }
@@ -118,11 +116,11 @@ export class CartsDomainService {
   }
 
   // The basket, or an empty one. Never opens a cart
-  async find(partyId: string, currencyCode: string, appId?: string | null, siteId?: string): Promise<CartDto> {
+  async find(partyId: string, currencyCode: string, appId?: string | null): Promise<CartDto> {
     const cart = await this.repository.findByParty(partyId);
     if (!cart) return CartDto.from(currencyCode, []);
 
-    const items = await this.repository.findItems(cart.id, currencyCode, appId, siteId);
+    const items = await this.repository.findItems(cart.id, currencyCode, appId);
     return CartDto.from(currencyCode, items);
   }
 
@@ -131,19 +129,18 @@ export class CartsDomainService {
     partyId: string,
     currencyCode: string,
     appId?: string | null,
-    siteId?: string,
   ): Promise<{ cartId: string; lines: CartItemRow[] } | null> {
     const cart = await this.repository.findByParty(partyId);
     if (!cart) return null;
-    return { cartId: cart.id, lines: await this.repository.findItems(cart.id, currencyCode, appId, siteId) };
+    return { cartId: cart.id, lines: await this.repository.findItems(cart.id, currencyCode, appId) };
   }
 
   // Takes paid-for quantities out of the shopper's basket, leaving anything added since checkout
-  async consumeOrderedLines(partyId: string, lines: { offeringVariantId: string; quantity: number }[]): Promise<void> {
+  async consumeOrderedLines(partyId: string, lines: { code: string; quantity: number }[]): Promise<void> {
     const cart = await this.repository.findByParty(partyId);
     if (!cart) return;
     for (const line of lines) {
-      await this.repository.consumeItem(cart.id, line.offeringVariantId, line.quantity);
+      await this.repository.consumeItem(cart.id, line.code, line.quantity);
     }
     this.logger.log(`cart ${cart.id} — consumed ${pluralize('paid line', lines.length, true)} for party ${partyId}`);
   }
@@ -151,52 +148,44 @@ export class CartsDomainService {
   // Adds a product to the basket, opening one if this is the shopper's first line here
   async addItem(input: {
     partyId: string;
-    offeringVariantId: string;
+    code: string;
     quantity: number;
     currencyCode: string;
     appId?: string | null;
-    siteId?: string;
   }): Promise<CartDto> {
     const quantity = this.requireQuantity(input.quantity);
 
     const { cart } = await this.repository.findOrCreateForParty(input.partyId);
-    await this.repository.upsertItem(cart.id, input.offeringVariantId, quantity);
-    this.logger.log(`cart ${cart.id} — party ${input.partyId} added ${input.offeringVariantId} x${quantity}`);
+    await this.repository.upsertItem(cart.id, input.code, quantity);
+    this.logger.log(`cart ${cart.id} — party ${input.partyId} added ${input.code} x${quantity}`);
 
-    return this.find(input.partyId, input.currencyCode, input.appId, input.siteId);
+    return this.find(input.partyId, input.currencyCode, input.appId);
   }
 
   // Sets a line to an exact quantity. Zero is not accepted — removing is its own operation
   async updateItem(input: {
     partyId: string;
-    offeringVariantId: string;
+    code: string;
     quantity: number;
     currencyCode: string;
     appId?: string | null;
-    siteId?: string;
   }): Promise<CartDto> {
     const quantity = this.requireQuantity(input.quantity);
     const cart = await this.requireCart(input.partyId);
 
-    const updated = await this.repository.setItemQuantity(cart.id, input.offeringVariantId, quantity);
+    const updated = await this.repository.setItemQuantity(cart.id, input.code, quantity);
     if (!updated) throw new NotFoundException('That item is not in your basket.');
 
-    return this.find(input.partyId, input.currencyCode, input.appId, input.siteId);
+    return this.find(input.partyId, input.currencyCode, input.appId);
   }
 
-  async removeItem(
-    partyId: string,
-    offeringVariantId: string,
-    currencyCode: string,
-    appId?: string | null,
-    siteId?: string,
-  ): Promise<CartDto> {
+  async removeItem(partyId: string, code: string, currencyCode: string, appId?: string | null): Promise<CartDto> {
     const cart = await this.requireCart(partyId);
 
-    const removed = await this.repository.deleteItem(cart.id, offeringVariantId);
+    const removed = await this.repository.deleteItem(cart.id, code);
     if (removed === 0) throw new NotFoundException('That item is not in your basket.');
 
-    return this.find(partyId, currencyCode, appId, siteId);
+    return this.find(partyId, currencyCode, appId);
   }
 
   // Empties the basket, keeping it open
@@ -207,13 +196,8 @@ export class CartsDomainService {
   }
 
   // Every basket line a person holds, across every outlet
-  async findAllForParty(
-    partyId: string,
-    currencyCode: string,
-    appId?: string | null,
-    siteId?: string,
-  ): Promise<StaffCartItemDto[]> {
-    const rows = await this.repository.findAllForParty(partyId, currencyCode, appId, siteId);
+  async findAllForParty(partyId: string, currencyCode: string, appId?: string | null): Promise<StaffCartItemDto[]> {
+    const rows = await this.repository.findAllForParty(partyId, currencyCode, appId);
     return rows.map((row) => StaffCartItemDto.fromStaffRow(row));
   }
 
@@ -225,13 +209,12 @@ export class CartsDomainService {
     quantity: number;
     currencyCode: string;
     appId?: string | null;
-    siteId?: string;
   }): Promise<StaffCartItemDto[]> {
     const quantity = this.requireQuantity(input.quantity);
 
-    await this.repository.upsertItem(input.cartId, input.offeringVariantId, quantity);
+    await this.repository.upsertItem(input.cartId, await this.requireCode(input.offeringVariantId), quantity);
     this.logger.log(`cart ${input.cartId} — staff added ${input.offeringVariantId} x${quantity}`);
-    return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
+    return this.findAllForParty(input.partyId, input.currencyCode, input.appId);
   }
 
   // Sets a line to an exact quantity on a shopper's behalf
@@ -242,12 +225,12 @@ export class CartsDomainService {
     quantity: number;
     currencyCode: string;
     appId?: string | null;
-    siteId?: string;
   }): Promise<StaffCartItemDto[]> {
     const quantity = this.requireQuantity(input.quantity);
-    const updated = await this.repository.setItemQuantity(input.cartId, input.offeringVariantId, quantity);
+    const code = await this.requireCode(input.offeringVariantId);
+    const updated = await this.repository.setItemQuantity(input.cartId, code, quantity);
     if (!updated) throw new NotFoundException('That item is not in their basket.');
-    return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
+    return this.findAllForParty(input.partyId, input.currencyCode, input.appId);
   }
 
   // Removes a line on a shopper's behalf
@@ -257,11 +240,10 @@ export class CartsDomainService {
     offeringVariantId: string;
     currencyCode: string;
     appId?: string | null;
-    siteId?: string;
   }): Promise<StaffCartItemDto[]> {
-    const removed = await this.repository.deleteItem(input.cartId, input.offeringVariantId);
+    const removed = await this.repository.deleteItem(input.cartId, await this.requireCode(input.offeringVariantId));
     if (removed === 0) throw new NotFoundException('That item is not in their basket.');
-    return this.findAllForParty(input.partyId, input.currencyCode, input.appId, input.siteId);
+    return this.findAllForParty(input.partyId, input.currencyCode, input.appId);
   }
 
   // The shopper's basket here, or a refusal — for the operations that edit an existing line
@@ -272,6 +254,14 @@ export class CartsDomainService {
   }
 
   // Rejected here rather than left to the CHECK constraint
+  // Staff screens address a product by id; a line is keyed by code, so the id is translated once at
+  // the edge. An id the organization does not carry is a 404 rather than a write that matches nothing.
+  private async requireCode(offeringVariantId: string): Promise<string> {
+    const code = await this.repository.findCodeByVariantId(offeringVariantId);
+    if (!code) throw new NotFoundException('That product no longer exists.');
+    return code;
+  }
+
   private requireQuantity(quantity: number): number {
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
       throw new ConflictException({

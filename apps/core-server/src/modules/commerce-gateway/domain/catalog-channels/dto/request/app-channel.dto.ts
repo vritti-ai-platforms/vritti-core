@@ -4,7 +4,7 @@ import { IsUUID, ValidateIf } from 'class-validator';
 // One DTO per channel type: each names a different target, and the database rejects the combinations
 // the others allow. A shared DTO carrying every target column would accept a B2B channel with an app.
 export class UpsertAppChannelDto {
-  @ApiProperty({ description: 'Catalog this channel sells' })
+  @ApiProperty({ description: 'Catalog this channel carries' })
   @IsUUID('7')
   catalogId: string;
 
@@ -17,12 +17,12 @@ export class UpsertAppChannelDto {
 }
 
 export class UpsertPosChannelDto {
-  @ApiProperty({ description: 'Catalog this channel sells' })
+  @ApiProperty({ description: 'Catalog this channel carries' })
   @IsUUID('7')
   catalogId: string;
 
   @ApiPropertyOptional({
-    description: 'Named POS terminal. Omit to sell this catalog at every terminal this workspace covers.',
+    description: 'Named POS terminal. Omit to carry this catalog at every terminal this workspace covers.',
   })
   @ValidateIf((_, value) => value !== undefined)
   @IsUUID('7')
@@ -30,7 +30,7 @@ export class UpsertPosChannelDto {
 }
 
 export class UpsertB2bChannelDto {
-  @ApiProperty({ description: 'Catalog this channel sells' })
+  @ApiProperty({ description: 'Catalog this channel carries' })
   @IsUUID('7')
   catalogId: string;
 

@@ -73,7 +73,7 @@ export function deleteOffering(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/${id}`).then((r) => r.data);
 }
 
-// Dimensions, in the order their codes appear in a derived SKU
+// Dimensions, in the order their codes appear in a derived code
 export function getDimensions(offeringId: string): Promise<OfferingDimensionData[]> {
   return axios.get<OfferingDimensionData[]>(`${BASE}/${offeringId}/dimensions`).then((r) => r.data);
 }
@@ -131,7 +131,7 @@ export function upsertDimensionValues({ dimensionId, ...data }: UpsertDimensionV
 export function upsertAttributeValues({ attributeId, ...data }: UpsertAttributeValuesData): Promise<SuccessResponse> {
   return axios.put<SuccessResponse>(`${BASE}/attributes/${attributeId}/values`, data).then((r) => r.data);
 }
-// Position drives SKU segment order, so the whole ordered list travels together
+// Position drives code segment order, so the whole ordered list travels together
 export function reorderDimensions({ offeringId, dimensionIds }: ReorderDimensionsData): Promise<SuccessResponse> {
   return axios.put<SuccessResponse>(`${BASE}/${offeringId}/dimensions/order`, { dimensionIds }).then((r) => r.data);
 }
@@ -173,7 +173,7 @@ export function previewVariantCombinations({
 }
 
 // Additive — combinations that already exist are skipped, never recreated
-// One combination added by hand; the server derives the SKU exactly as generation would
+// One combination added by hand; the server derives the code exactly as generation would
 export function createVariant({
   offeringId,
   ...data
@@ -250,13 +250,13 @@ export function createInventoryItem({
     .then((r) => r.data);
 }
 
-// Links the item already carrying this variant's SKU — the server resolves it, so nothing is named here
+// Links the item already carrying this variant's code — the server resolves it, so nothing is named here
 export function addSuggestedComponent(variantId: string): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/variants/${variantId}/bom/suggested`).then((r) => r.data);
 }
 
 // One component at a time — the whole-list replace could silently drop a concurrent edit
-// The components plus the SKU-matched suggestion — its own read, so the variant page does not carry it
+// The components plus the code-matched suggestion — its own read, so the variant page does not carry it
 export function getVariantBom(variantId: string): Promise<VariantBomData> {
   return axios.get<VariantBomData>(`${BASE}/variants/${variantId}/bom/lines`).then((r) => r.data);
 }
@@ -318,7 +318,7 @@ export function clearVariantTaxClass(variantId: string): Promise<SuccessResponse
   return axios.delete<SuccessResponse>(`${BASE}/variants/${variantId}/tax-class`).then((r) => r.data);
 }
 
-// Renames a dimension; its code is fixed because every derived SKU carries it
+// Renames a dimension; its code is fixed because every derived code carries it
 export function updateDimension({ id, name }: UpdateDimensionData): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${BASE}/dimensions/${id}`, { name }).then((r) => r.data);
 }

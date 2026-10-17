@@ -47,7 +47,7 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({ useCreate,
   const name = useWatch({ control: form.control, name: 'name' });
 
   // Derive the code from the name until the operator edits the code themselves. The code becomes a
-  // prefix of every variant SKU, so it is worth getting right without making them type it twice.
+  // prefix of every variant Code, so it is worth getting right without making them type it twice.
   useEffect(() => {
     if (!form.formState.dirtyFields.code) form.setValue('code', toCode(name ?? ''));
   }, [name, form]);
@@ -64,7 +64,7 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({ useCreate,
               name="code"
               label="Code"
               placeholder="e.g. tshirt-classic"
-              description="Unique per organization. Prefixes every variant SKU, so it is fixed once created."
+              description="Unique per organization. Prefixes every variant Code, so it is fixed once created."
             />
             <div className="col-span-2">
               <TextArea name="description" label="Description" placeholder="Optional" />

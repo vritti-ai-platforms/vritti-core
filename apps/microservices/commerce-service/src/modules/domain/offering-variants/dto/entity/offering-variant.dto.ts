@@ -19,7 +19,7 @@ export class OfferingVariantAttributeValueRefDto {
 export class OfferingVariantDto {
   id: string;
   offeringId: string;
-  sku: string;
+  code: string;
   externalSku: string | null;
   name: string;
   salesUomId: string;
@@ -37,12 +37,12 @@ export class OfferingVariantDto {
   bomLineCount: number;
   canMarkActive: boolean;
   canDelete: boolean;
-  // The inventory item already carrying this variant's SKU, when there is one. Null means the
+  // The inventory item already carrying this variant's code, when there is one. Null means the
   // variant has no inventory counterpart yet and may offer to create it.
   createdAt: string;
   updatedAt: string;
 
-  // A table row carries no inventory counterpart: it is a SKU-matched join the list read does not run,
+  // A table row carries no inventory counterpart: it is a code-matched join the list read does not run,
   // so the row does not claim "no item exists" when it simply never looked
   static fromTableRow(
     entity: OfferingVariant,
@@ -68,7 +68,7 @@ export class OfferingVariantDto {
     return {
       id: entity.id,
       offeringId: entity.offeringId,
-      sku: entity.sku,
+      code: entity.code,
       externalSku: entity.externalSku ?? null,
       name: entity.name,
       salesUomId: entity.salesUomId,
@@ -78,7 +78,7 @@ export class OfferingVariantDto {
       isTaxClassOverridden: entity.isTaxClassOverridden,
       fulfilmentType: entity.fulfilmentType,
       isFulfilmentOverridden: entity.isFulfilmentOverridden,
-      // Effective sellability, not the raw column: a variant only sells while its own flag AND its
+      // Effective availability, not the raw column: a variant is only available while its own flag AND its
       // offering's are on. isOfferingActive rides along so a caller can say WHY it is off.
       isActive: entity.isActive && entity.isOfferingActive,
       isOfferingActive: entity.isOfferingActive,
@@ -108,5 +108,5 @@ export class OfferingVariantDto {
   }
 }
 
-// The same row without the SKU-matched item only the detail read joins
+// The same row without the code-matched item only the detail read joins
 export type OfferingVariantTableRowDto = Omit<OfferingVariantDto, 'inventoryItem'>;

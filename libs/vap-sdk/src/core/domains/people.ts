@@ -12,8 +12,8 @@ import {
   REMOVE_PARTY_ADDRESS,
   UPDATE_PARTY_ADDRESS,
   UPDATE_PARTY_PROFILE,
+  WISHLIST_CODES_QUERY,
   WISHLIST_QUERY,
-  WISHLIST_VARIANT_IDS_QUERY,
 } from '../graphql/people';
 import { requireData, run } from '../transport/errors';
 import { type Money, type RequestContext, withoutWorkspace } from '../types';
@@ -112,10 +112,9 @@ export type WishlistAddResult = {
 export type WishlistItem = {
   id: string;
   catalogListingId: string;
-  /** What a storefront joins its own product page on — the variant, stable across sites. */
-  offeringVariantId: string;
   name: string;
-  sku: string | null;
+  /** What a storefront joins its own product page on — the variant's code, stable across sites. */
+  code: string;
   price: Money | null;
   isAvailable: boolean;
   createdAt: string;
@@ -280,16 +279,16 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
       );
     },
     /**
-     * Which products are saved — ids only, for a product page's "Saved" state.
+     * Which products are saved — codes only, for a product page's "Saved" state.
      *
      * Sent with no workspace, like every other wishlist call: the list is the person's, org-wide.
      */
-    async savedVariantIds(): Promise<string[]> {
+    async savedCodes(): Promise<string[]> {
       requireParty();
       return run(() =>
         client
-          .query({ query: WISHLIST_VARIANT_IDS_QUERY, context: wishlistContext })
-          .then((r) => requireData(r.data).wishlistVariantIds as string[]),
+          .query({ query: WISHLIST_CODES_QUERY, context: wishlistContext })
+          .then((r) => requireData(r.data).wishlistCodes as string[]),
       );
     },
     /**
@@ -298,25 +297,25 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
      * Never fails on a repeat: `alreadyExists` reports it instead, so a caller can tell somebody it
      * was already saved rather than claiming a save that did nothing.
      */
-    async addToWishlist(offeringVariantId: string): Promise<WishlistAddResult> {
+    async addToWishlist(code: string): Promise<WishlistAddResult> {
       requireParty();
       return run(() =>
         client
           .mutate({
             mutation: ADD_TO_WISHLIST,
-            variables: { input: { offeringVariantId, currencyCode: currencyCode() } },
+            variables: { input: { code, currencyCode: currencyCode() } },
             context: wishlistContext,
           })
           .then((r) => requireData(r.data).addToWishlist as WishlistAddResult),
       );
     },
-    async removeFromWishlist(offeringVariantId: string): Promise<WishlistItem[]> {
+    async removeFromWishlist(code: string): Promise<WishlistItem[]> {
       requireParty();
       return run(() =>
         client
           .mutate({
             mutation: REMOVE_FROM_WISHLIST,
-            variables: { input: { offeringVariantId, currencyCode: currencyCode() } },
+            variables: { input: { code, currencyCode: currencyCode() } },
             context: wishlistContext,
           })
           .then((r) => requireData(r.data).removeFromWishlist as WishlistItem[]),

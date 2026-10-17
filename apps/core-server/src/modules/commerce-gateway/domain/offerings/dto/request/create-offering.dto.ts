@@ -6,7 +6,7 @@ const FULFILMENT_TYPES = ['STOCK', 'ASSEMBLY', 'COMPOSITE', 'SERVICE'] as const;
 
 export class CreateOfferingDto {
   @Trim({ nullify: false })
-  @ApiProperty({ description: 'Stable identifier; every variant SKU is built from it', example: 'tshirt-classic' })
+  @ApiProperty({ description: 'Stable identifier; every variant Code is built from it', example: 'tshirt-classic' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)

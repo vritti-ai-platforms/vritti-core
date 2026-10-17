@@ -54,9 +54,9 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
         enableSorting: true,
       },
       {
-        accessorKey: 'sku',
-        header: 'SKU',
-        cell: ({ row }) => <StringCell value={row.original.sku} mono />,
+        accessorKey: 'code',
+        header: 'Code',
+        cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
       {
@@ -135,7 +135,7 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
         searchConfig={{
           columns: [
             { id: 'name', label: 'Product' },
-            { id: 'sku', label: 'SKU' },
+            { id: 'code', label: 'Code' },
           ],
           searchAll: true,
         }}
@@ -167,7 +167,7 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
         handle={addDialog}
         icon={Plus}
         title="Add Item"
-        description={`Whatever this ${binding.scopeNoun} sells can be added. A product it does not price yet is added anyway, and the item says so.`}
+        description={`Whatever this ${binding.scopeNoun} carries can be added. A product it does not price yet is added anyway, and the item says so.`}
         content={(close) => (
           <AddCartLineDialog binding={binding} cartId={cartId} partyId={partyId} onSuccess={close} onCancel={close} />
         )}

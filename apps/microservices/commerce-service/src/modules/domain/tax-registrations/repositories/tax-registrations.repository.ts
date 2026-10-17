@@ -33,7 +33,7 @@ export class TaxRegistrationsDomainRepository extends PrimaryBaseRepository<type
       : sql`${taxRegistrations.legalEntityId} = cast(current_setting('app.le_id') as uuid)`;
     const { result } = await this.findAllAndCount<TaxRegistrationWithJurisdiction>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       where: where as SQL,
       orderBy: [asc(taxJurisdictions.name)],
       limit: 200,
@@ -46,7 +46,7 @@ export class TaxRegistrationsDomainRepository extends PrimaryBaseRepository<type
   async findAllInOrg(): Promise<TaxRegistrationWithJurisdiction[]> {
     const { result } = await this.findAllAndCount<TaxRegistrationWithJurisdiction>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       orderBy: [asc(taxJurisdictions.name)],
       limit: 500,
       offset: 0,
@@ -57,7 +57,7 @@ export class TaxRegistrationsDomainRepository extends PrimaryBaseRepository<type
   async findByIdWithJurisdiction(id: string): Promise<TaxRegistrationWithJurisdiction | undefined> {
     const { result } = await this.findAllAndCount<TaxRegistrationWithJurisdiction>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       where: eq(taxRegistrations.id, id),
       limit: 1,
       offset: 0,
@@ -73,7 +73,7 @@ export class TaxRegistrationsDomainRepository extends PrimaryBaseRepository<type
   }): Promise<{ result: TaxRegistrationWithJurisdiction[]; count: number }> {
     return this.findAllAndCount<TaxRegistrationWithJurisdiction>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       ...options,
     });
   }

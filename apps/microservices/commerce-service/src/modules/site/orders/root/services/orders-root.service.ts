@@ -56,7 +56,7 @@ export class SiteOrdersService {
       if (existing) return this.reuseCheckoutOrder(existing, dto.currencyCode, customer);
     }
 
-    const checkout = await this.cartsService.findForCheckout(dto.partyId, dto.currencyCode, dto.appId, siteId);
+    const checkout = await this.cartsService.findForCheckout(dto.partyId, dto.currencyCode, dto.appId);
     const priced = (checkout?.lines ?? []).map((row) => ({ row, view: CartItemDto.from(row) }));
     const available = priced.filter((line) => line.view.isAvailable);
     if (available.length === 0) {
@@ -68,7 +68,7 @@ export class SiteOrdersService {
 
     const unavailable = priced.filter((line) => !line.view.isAvailable);
     if (unavailable.length > 0) {
-      const names = unavailable.map((line) => line.view.name || line.view.sku || line.row.offeringVariantId);
+      const names = unavailable.map((line) => line.view.name || line.view.code || line.row.offeringVariantId);
       throw new ConflictException({
         label: 'Cart Changed',
         detail: `${names.join(', ')} can no longer be bought. Review your basket before paying.`,
@@ -82,7 +82,7 @@ export class SiteOrdersService {
       offeringVariantId: row.offeringVariantId,
       itemName: row.offeringName ?? row.variantName ?? '',
       variantName: row.variantName,
-      sku: row.sku,
+      code: row.code,
       quantity: row.quantity,
       unitPrice: row.amount as bigint,
     }));

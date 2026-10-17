@@ -23,7 +23,7 @@ export interface CartLineData {
   offeringVariantId: string;
   quantity: number;
   name: string;
-  sku: string | null;
+  code: string | null;
   unitPrice: CurrencyAmount | null;
   lineTotal: CurrencyAmount | null;
   // False once delisted, switched off, or no longer priced here. Shown, never silently dropped

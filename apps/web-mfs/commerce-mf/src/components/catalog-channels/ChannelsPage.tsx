@@ -15,7 +15,7 @@ export const ChannelsPage: React.FC<ChannelsPageProps> = ({ binding }) => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Catalog Channels"
-        description="Which catalog each selling surface uses. A level with nothing set uses the one above it."
+        description="Which catalog each sales surface uses. A level with nothing set uses the one above it."
       />
 
       {/* The channel types are fixed, so there is always one card each — no empty state to show */}

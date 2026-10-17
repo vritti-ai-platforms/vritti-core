@@ -9,10 +9,9 @@ type Money {
 
 type CatalogListing {
   id: ID!
-  offeringVariantId: ID!
-  sku: String
-  name: String
-  price: Money
+  code: String!
+  name: String!
+  price: Money!
 }
 
 type ListingFilterValue {
@@ -57,7 +56,7 @@ type VariantOption {
   """
   The sibling this option leads to, holding every other axis where it is. Null when that combination is not sold here — render it disabled rather than hiding it, or the range looks smaller than it is.
   """
-  sku: String
+  variantCode: String
 }
 
 type VariantAxis {
@@ -72,7 +71,7 @@ type CatalogListingDetail {
   listing: CatalogListing!
 
   """
-  Only axes and values a sellable sibling carries — never an option the shop cannot fulfil
+  Only axes and values an available sibling carries — never an option the shop cannot fulfil
   """
   axes: [VariantAxis!]!
 }
@@ -109,9 +108,8 @@ type PersonCommunication {
 type WishlistItem {
   id: ID!
   catalogListingId: ID
-  offeringVariantId: ID!
   name: String!
-  sku: String
+  code: String!
   price: Money
   isAvailable: Boolean!
   createdAt: String!
@@ -125,10 +123,9 @@ type WishlistAddResult {
 type CartItem {
   id: ID!
   catalogListingId: ID
-  offeringVariantId: ID!
   quantity: Int!
   name: String!
-  sku: String
+  code: String!
   unitPrice: Money
   lineTotal: Money
   isAvailable: Boolean!
@@ -142,13 +139,13 @@ type Cart {
 }
 
 type CartQuantity {
-  offeringVariantId: ID!
+  code: String!
   quantity: Int!
 }
 
 type OfferingVariantOption {
   id: ID!
-  sku: String!
+  code: String!
   name: String!
 }
 
@@ -525,18 +522,21 @@ type Query {
   partyProfile: Person!
   partyAddresses: [PartyAddress!]!
   wishlist(input: WishlistQueryInput!): [WishlistItem!]!
-  wishlistVariantIds: [ID!]!
+  wishlistCodes: [String!]!
   cart(input: CartScopeInput!): Cart!
   cartQuantities: [CartQuantity!]!
-  catalogListings(filters: [FilterInput!], page: Int, perPage: Int, sort: ListingSort): CatalogListings!
-  catalogListingBySku(sku: String!): CatalogListingDetail
-  catalogListingsFromVariants(variantIds: [ID!]!): [CatalogListing!]!
-  leCatalogListings(filters: [FilterInput!], page: Int, perPage: Int, sort: ListingSort): CatalogListings!
-  leCatalogListingBySku(sku: String!): CatalogListingDetail
-  leCatalogListingsFromVariants(variantIds: [ID!]!): [CatalogListing!]!
-  siteCatalogListings(filters: [FilterInput!], page: Int, perPage: Int, sort: ListingSort): CatalogListings!
-  siteCatalogListingBySku(sku: String!): CatalogListingDetail
-  siteCatalogListingsFromVariants(variantIds: [ID!]!): [CatalogListing!]!
+  catalogCurrencies: [String!]!
+  catalogListings(currencyCode: String!, filters: [FilterInput!], page: Int, perPage: Int, sort: ListingSort): CatalogListings!
+  catalogListingByCode(code: String!, currencyCode: String!): CatalogListingDetail
+  catalogListingsByCodes(codes: [String!]!, currencyCode: String!): [CatalogListing!]!
+  leCatalogCurrencies: [String!]!
+  leCatalogListings(currencyCode: String!, filters: [FilterInput!], page: Int, perPage: Int, sort: ListingSort): CatalogListings!
+  leCatalogListingByCode(code: String!, currencyCode: String!): CatalogListingDetail
+  leCatalogListingsByCodes(codes: [String!]!, currencyCode: String!): [CatalogListing!]!
+  siteCatalogCurrencies: [String!]!
+  siteCatalogListings(currencyCode: String!, filters: [FilterInput!], page: Int, perPage: Int, sort: ListingSort): CatalogListings!
+  siteCatalogListingByCode(code: String!, currencyCode: String!): CatalogListingDetail
+  siteCatalogListingsByCodes(codes: [String!]!, currencyCode: String!): [CatalogListing!]!
   siteOfferingVariants(search: String, excludeIds: [ID!], limit: Int, offset: Int): OfferingVariantOptions!
 }
 
@@ -732,22 +732,22 @@ input AddPersonCommunicationInput {
 
 input WishlistRefInput {
   currencyCode: String!
-  offeringVariantId: ID!
+  code: String!
 }
 
 input AddCartItemInput {
   currencyCode: String!
-  offeringVariantId: ID!
+  code: String!
   quantity: Int! = 1
 }
 
 input UpdateCartItemInput {
   currencyCode: String!
-  offeringVariantId: ID!
+  code: String!
   quantity: Int!
 }
 
 input CartItemRefInput {
   currencyCode: String!
-  offeringVariantId: ID!
+  code: String!
 }

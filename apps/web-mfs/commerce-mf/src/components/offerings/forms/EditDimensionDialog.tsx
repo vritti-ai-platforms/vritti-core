@@ -39,7 +39,7 @@ export const EditDimensionDialog: React.FC<EditDimensionDialogProps> = ({
         <TextField
           name="name"
           label="Name"
-          description={`The code stays "${dimension.code}" — it is a segment of every SKU derived from this dimension.`}
+          description={`The code stays "${dimension.code}" — it is a segment of every Code derived from this dimension.`}
         />
         <TextField name="description" label="Description" placeholder="e.g. Pack sizes offered on this line" />
       </div>

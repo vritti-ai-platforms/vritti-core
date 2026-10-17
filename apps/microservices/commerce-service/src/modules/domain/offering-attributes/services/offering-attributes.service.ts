@@ -103,7 +103,7 @@ export class OfferingAttributesDomainService {
     const submittedIds = new Set(data.values.map((input) => input.id).filter(Boolean));
     const submittedCodes = new Set(data.values.map((input) => input.code));
 
-    // No rename guard, unlike dimensions: an attribute code is not a SKU segment, so changing one
+    // No rename guard, unlike dimensions: an attribute code is not a Code segment, so changing one
     // rewrites nothing. It does change the storefront's filter URL for that value, which the admin
     // copy warns about rather than the server refusing.
 

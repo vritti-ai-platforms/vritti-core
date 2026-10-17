@@ -8,8 +8,8 @@ export interface CatalogListingRow {
   siteId: string | null;
   isOwned: boolean;
   inventoryItemMrpId: string | null;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
   mrpAmount: bigint | null;
   mrpCurrencyCode: string | null;
   mrpUomSymbol: string | null;
@@ -24,18 +24,28 @@ export interface CatalogListingPriceRow {
   catalogListingId: string;
   currencyCode: string;
   amount: bigint;
+  legalEntityId: string | null;
   siteId: string | null;
+  isOwned: boolean;
 }
 
 export class CatalogListingPriceDto {
   id: string;
+  legalEntityId: string | null;
   siteId: string | null;
+  // The workspace that set this price. A narrower one overrides it without touching it.
+  ownerScope: CatalogListingOwnerScope;
+  // False when it comes from a wider workspace: this one may override it but never edit it
+  canEdit: boolean;
   price: CurrencyAmountDto;
 
   static from(row: CatalogListingPriceRow): CatalogListingPriceDto {
     const dto = new CatalogListingPriceDto();
     dto.id = row.id;
+    dto.legalEntityId = row.legalEntityId ?? null;
     dto.siteId = row.siteId ?? null;
+    dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
+    dto.canEdit = row.isOwned;
     dto.price = CurrencyAmountDto.from(row.amount, row.currencyCode);
     return dto;
   }
@@ -45,8 +55,8 @@ export class CatalogListingDto {
   id: string;
   catalogId: string;
   offeringVariantId: string;
-  sku: string | null;
-  variantName: string | null;
+  code: string;
+  variantName: string;
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: CatalogListingOwnerScope;
@@ -55,7 +65,7 @@ export class CatalogListingDto {
   inventoryItemMrpId: string | null;
   mrp: CurrencyAmountDto | null;
   mrpUomSymbol: string | null;
-  hiddenChannelIds: string[];
+  excludedChannelIds: string[];
   prices: CatalogListingPriceDto[];
   createdAt: string;
   updatedAt: string;
@@ -63,14 +73,14 @@ export class CatalogListingDto {
   static from(
     row: CatalogListingRow,
     prices: CatalogListingPriceRow[] = [],
-    hiddenChannelIds: string[] = [],
+    excludedChannelIds: string[] = [],
   ): CatalogListingDto {
     const dto = new CatalogListingDto();
     dto.id = row.id;
     dto.catalogId = row.catalogId;
     dto.offeringVariantId = row.offeringVariantId;
-    dto.sku = row.sku ?? null;
-    dto.variantName = row.variantName ?? null;
+    dto.code = row.code;
+    dto.variantName = row.variantName;
     dto.legalEntityId = row.legalEntityId ?? null;
     dto.siteId = row.siteId ?? null;
     dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
@@ -80,7 +90,7 @@ export class CatalogListingDto {
     dto.mrp =
       row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;
     dto.mrpUomSymbol = row.mrpUomSymbol ?? null;
-    dto.hiddenChannelIds = hiddenChannelIds;
+    dto.excludedChannelIds = excludedChannelIds;
     dto.prices = prices.map((price) => CatalogListingPriceDto.from(price));
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();

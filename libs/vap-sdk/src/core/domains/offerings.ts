@@ -6,7 +6,7 @@ import { contextForScope, type RequestContext } from '../types';
 /** One variant a storefront may file a product page against. */
 export type OfferingVariantOption = {
   id: string;
-  sku: string;
+  code: string;
   name: string;
 };
 

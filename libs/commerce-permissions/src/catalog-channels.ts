@@ -2,29 +2,45 @@
 // One object per workspace scope. Every scope sees the same three channel types and may assign a
 // catalog to each; what differs is whose assignment it is, which RLS decides by row ownership.
 //
-// `view` covers reading a channel whoever is asking: a staff member opening the channels screen and a
-// storefront credential reading the resolved catalogue are the same act of reading, so they share the
-// code. What separates them is the platform the permission names — `view` carries WEB and GRAPHQL, and
-// the interceptor resolves a caller against the bucket its credential type implies — plus the guard
-// itself, which admits a session to the controller and a credential to the resolver.
-//
-// An earlier revision had an `app` sub-group (`app.listings`, `app.listings-from-variants`) for the
-// credential-facing reads. It bought nothing: a credential holds one composed permission set, so the
-// split only created ways to grant half of one feature.
+// One code per act, not one per screen: `view` sees the channels and what each is assigned,
+// `listings` reads a channel's resolved listings (the staff items table on WEB and a storefront
+// credential's catalogue read on GRAPHQL — the same read, two surfaces), `edit` assigns a catalog,
+// `visibility` includes or excludes one listing on a channel, `delete` removes an assignment.
 export const ORG_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'org.catalog-channels.view',
+  listings: 'org.catalog-channels.listings',
+  // A channel's prices per currency, and which currencies it can quote. Staff-only: a storefront
+  // credential reads currencies through `listings`, since a catalogue read it may make is useless
+  // without knowing which currencies to ask in.
+  prices: 'org.catalog-channels.prices',
   edit: 'org.catalog-channels.edit',
+  visibility: 'org.catalog-channels.visibility',
+  delete: 'org.catalog-channels.delete',
 } as const;
 
 export const LE_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'le.catalog-channels.view',
+  listings: 'le.catalog-channels.listings',
+  // A channel's prices per currency, and which currencies it can quote. Staff-only: a storefront
+  // credential reads currencies through `listings`, since a catalogue read it may make is useless
+  // without knowing which currencies to ask in.
+  prices: 'le.catalog-channels.prices',
   edit: 'le.catalog-channels.edit',
+  visibility: 'le.catalog-channels.visibility',
+  delete: 'le.catalog-channels.delete',
 } as const;
 
 export const SITE_CATALOG_CHANNELS = {
   featureCode: 'catalog-channels',
   view: 'site.catalog-channels.view',
+  listings: 'site.catalog-channels.listings',
+  // A channel's prices per currency, and which currencies it can quote. Staff-only: a storefront
+  // credential reads currencies through `listings`, since a catalogue read it may make is useless
+  // without knowing which currencies to ask in.
+  prices: 'site.catalog-channels.prices',
   edit: 'site.catalog-channels.edit',
+  visibility: 'site.catalog-channels.visibility',
+  delete: 'site.catalog-channels.delete',
 } as const;

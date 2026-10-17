@@ -55,9 +55,9 @@ export const ManageVisibilityDialog: React.FC<ManageVisibilityDialogProps> = ({
                     </div>
                   </div>
                   <StatusSwitch
-                    checked={!listing.hiddenChannelIds.includes(channel.id)}
-                    activeLabel="Visible"
-                    inactiveLabel="Hidden"
+                    checked={!listing.excludedChannelIds.includes(channel.id)}
+                    activeLabel="Available"
+                    inactiveLabel="Excluded"
                     permission={binding.permissions.listings.edit}
                     disabled={locked}
                     disabledTip="This channel belongs to a wider scope — change it in the workspace that owns it."
@@ -65,7 +65,7 @@ export const ManageVisibilityDialog: React.FC<ManageVisibilityDialogProps> = ({
                     onCheckedChange={(visible) =>
                       visibilityMutation.mutate({ catalogId, listingId: listing.id, channelId: channel.id, visible })
                     }
-                    ariaLabel={`Show ${listing.sku ?? 'this listing'} on ${channelLabel(channel)}`}
+                    ariaLabel={`Make ${listing.code} available on ${channelLabel(channel)}`}
                   />
                 </div>
               );

@@ -19,7 +19,7 @@ export class OfferingDimensionValueInputDto {
   id?: string;
 
   @Trim({ nullify: false })
-  @ApiProperty({ description: 'Segment this value contributes to a derived SKU', example: 'm' })
+  @ApiProperty({ description: 'Segment this value contributes to a derived Code', example: 'm' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)

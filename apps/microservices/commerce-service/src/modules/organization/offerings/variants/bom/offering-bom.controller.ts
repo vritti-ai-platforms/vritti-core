@@ -24,7 +24,7 @@ export class OrgOfferingBomController {
     return this.orgService.createInventoryItem(dto);
   }
 
-  // The components, plus the inventory item already carrying this variant's SKU — read on its own
+  // The components, plus the inventory item already carrying this variant's code — read on its own
   // because only the bill-of-materials view needs either
   @MessagePattern({ cmd: 'org.offerings.variants.bom.lines.list' })
   findBom(@Payload() data: { variantId: string }): Promise<VariantBomDto> {
@@ -51,7 +51,7 @@ export class OrgOfferingBomController {
     return this.bom.deleteLine(data.id);
   }
 
-  // Links the item already carrying this variant's SKU, without the caller naming it
+  // Links the item already carrying this variant's code, without the caller naming it
   @MessagePattern({ cmd: 'org.offerings.variants.bom.addSuggested' })
   addSuggestedComponent(@Payload() data: { variantId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bom.addSuggested — variantId: ${data.variantId}`);

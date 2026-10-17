@@ -1,13 +1,17 @@
 import type { ApolloClient } from '@apollo/client';
+import { VapError } from '../errors';
 import {
-  CATALOG_LISTING_QUERY_BY_SKU,
-  CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
+  CATALOG_CURRENCIES_QUERY,
+  CATALOG_LISTING_QUERY_BY_CODE,
+  CATALOG_LISTINGS_BY_CODES_QUERY,
   CATALOG_LISTINGS_QUERY,
-  LE_CATALOG_LISTING_QUERY_BY_SKU,
-  LE_CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
+  LE_CATALOG_CURRENCIES_QUERY,
+  LE_CATALOG_LISTING_QUERY_BY_CODE,
+  LE_CATALOG_LISTINGS_BY_CODES_QUERY,
   LE_CATALOG_LISTINGS_QUERY,
-  SITE_CATALOG_LISTING_QUERY_BY_SKU,
-  SITE_CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
+  SITE_CATALOG_CURRENCIES_QUERY,
+  SITE_CATALOG_LISTING_QUERY_BY_CODE,
+  SITE_CATALOG_LISTINGS_BY_CODES_QUERY,
   SITE_CATALOG_LISTINGS_QUERY,
 } from '../graphql/catalog-channels';
 import { requireData, run } from '../transport/errors';
@@ -58,7 +62,7 @@ export type VariantOption = {
    * combination is not sold here — render it disabled rather than hiding it, or the range looks
    * smaller than it is.
    */
-  sku: string | null;
+  variantCode: string | null;
 };
 
 /** One axis of an offering — Pack Size, Flavours — as a product page switches on it. */
@@ -77,12 +81,12 @@ export type CatalogListingDetail = {
 
 /** One item a storefront sells. */
 export type CatalogListing = {
-  /** The catalogue listing — what a site keys its own product record on. */
+  /** The catalogue listing row. */
   id: string;
-  offeringVariantId: string;
-  sku: string | null;
-  name: string | null;
-  price: Money | null;
+  /** What a site keys its own product record on — the variant's code, stable across sites. */
+  code: string;
+  name: string;
+  price: Money;
 };
 
 /**
@@ -97,8 +101,52 @@ export type CatalogListing = {
 /** How long a listing read is cached when the caller does not say — the price-edit latency it accepts. */
 const DEFAULT_LISTINGS_CACHE_SECONDS = 60;
 
-export function createCatalogChannelsOperations(client: ApolloClient, context: RequestContext = {}) {
+export function createCatalogChannelsOperations(client: ApolloClient, context: RequestContext = {}, currency?: string) {
+  /**
+   * The currency the catalogue is read in.
+   *
+   * Not defaulted, for the same reason the basket does not default one: a listing priced only in
+   * INR simply has no row in USD, so a guessed currency returns an empty shop rather than an error.
+   */
+  const currencyCode = (): string => {
+    if (!currency) {
+      throw new VapError(
+        'This storefront has no selling currency — the workspace it resolved carries none.',
+        'Not Configured',
+        undefined,
+      );
+    }
+    return currency;
+  };
   return {
+    /**
+     * The currencies this shop can price in.
+     *
+     * Read before offering a switcher: the answer comes from the catalog the credential resolves to,
+     * so a shop that prices only in one currency has nothing to switch and the control can stay hidden.
+     * Needs no currency itself — it is the question a currency is chosen from.
+     */
+    async currencies(options: { scope?: WorkspaceScope; cacheSeconds?: number } = {}): Promise<string[]> {
+      const scope = options.scope ?? 'org';
+      const ttlSeconds = options.cacheSeconds ?? DEFAULT_LISTINGS_CACHE_SECONDS;
+      const requestContext = {
+        requestContext: contextForScope(context, scope),
+        ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
+      };
+      return run(async () => {
+        if (scope === 'site') {
+          const r = await client.query({ query: SITE_CATALOG_CURRENCIES_QUERY, context: requestContext });
+          return requireData(r.data).siteCatalogCurrencies as string[];
+        }
+        if (scope === 'le') {
+          const r = await client.query({ query: LE_CATALOG_CURRENCIES_QUERY, context: requestContext });
+          return requireData(r.data).leCatalogCurrencies as string[];
+        }
+        const r = await client.query({ query: CATALOG_CURRENCIES_QUERY, context: requestContext });
+        return requireData(r.data).catalogCurrencies as string[];
+      });
+    },
+
     /**
      * One page of what is sellable, delisted rows and channel exclusions already dropped, with the
      * filter rail that produced it.
@@ -132,6 +180,7 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
         page: query.page,
         perPage: query.perPage,
         sort: query.sort,
+        currencyCode: currencyCode(),
       };
       // Each scope is its own query on core, checked against its own permission — and the header
       // sent is the one that scope names, so the two always agree.
@@ -150,9 +199,9 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
     },
 
     /**
-     * One listing by SKU, with the axes its product page switches on.
+     * One listing by code, with the axes its product page switches on.
      *
-     * By SKU because that is what a storefront puts in its address bar: core's SKU already names
+     * By code because that is what a storefront puts in its address bar: core's code already names
      * the offering and one value per dimension, so the URL says what the page is and needs no
      * second lookup to be readable.
      *
@@ -160,8 +209,8 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
      * resolved catalogue, delisted, or excluded from this channel — and a page can say so rather
      * than guessing from a missing price.
      */
-    async listingBySku(
-      sku: string,
+    async listingByCode(
+      code: string,
       options: { scope?: WorkspaceScope; cacheSeconds?: number } = {},
     ): Promise<CatalogListingDetail | null> {
       const scope = options.scope ?? 'org';
@@ -170,67 +219,67 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
         requestContext: contextForScope(context, scope),
         ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
       };
-      const variables = { sku };
+      const variables = { code, currencyCode: currencyCode() };
       return run(async () => {
         if (scope === 'site') {
           const r = await client.query({
-            query: SITE_CATALOG_LISTING_QUERY_BY_SKU,
+            query: SITE_CATALOG_LISTING_QUERY_BY_CODE,
             variables,
             context: requestContext,
           });
-          return (requireData(r.data).siteCatalogListingBySku as CatalogListingDetail | null) ?? null;
+          return (requireData(r.data).siteCatalogListingByCode as CatalogListingDetail | null) ?? null;
         }
         if (scope === 'le') {
-          const r = await client.query({ query: LE_CATALOG_LISTING_QUERY_BY_SKU, variables, context: requestContext });
-          return (requireData(r.data).leCatalogListingBySku as CatalogListingDetail | null) ?? null;
+          const r = await client.query({ query: LE_CATALOG_LISTING_QUERY_BY_CODE, variables, context: requestContext });
+          return (requireData(r.data).leCatalogListingByCode as CatalogListingDetail | null) ?? null;
         }
-        const r = await client.query({ query: CATALOG_LISTING_QUERY_BY_SKU, variables, context: requestContext });
-        return (requireData(r.data).catalogListingBySku as CatalogListingDetail | null) ?? null;
+        const r = await client.query({ query: CATALOG_LISTING_QUERY_BY_CODE, variables, context: requestContext });
+        return (requireData(r.data).catalogListingByCode as CatalogListingDetail | null) ?? null;
       });
     },
 
     /**
-     * The same range, narrowed to variants the caller already holds.
+     * The same range, narrowed to the codes the caller already holds.
      *
-     * For reconciling rows a site stores itself — a wishlist, a saved basket — without pulling the
-     * whole catalogue to price a handful of items. Anything the storefront may not sell is simply
+     * For pricing rows a site stores itself — its own product pages, a saved basket — without pulling
+     * the whole catalogue to price a handful of items. Anything the storefront may not sell is simply
      * absent from the result rather than erroring, so a stale local row resolves to "no longer sold".
      */
-    async listingsFromVariants(
-      variantIds: string[],
+    async listingsByCodes(
+      codes: string[],
       options: { scope?: WorkspaceScope; cacheSeconds?: number } = {},
     ): Promise<CatalogListing[]> {
-      if (variantIds.length === 0) return [];
+      if (codes.length === 0) return [];
       const scope = options.scope ?? 'org';
       const ttlSeconds = options.cacheSeconds ?? DEFAULT_LISTINGS_CACHE_SECONDS;
       const requestContext = {
         requestContext: contextForScope(context, scope),
         ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
       };
-      const variables = { variantIds };
+      const variables = { codes, currencyCode: currencyCode() };
       return run(async () => {
         if (scope === 'site') {
           const r = await client.query({
-            query: SITE_CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
+            query: SITE_CATALOG_LISTINGS_BY_CODES_QUERY,
             variables,
             context: requestContext,
           });
-          return requireData(r.data).siteCatalogListingsFromVariants as CatalogListing[];
+          return requireData(r.data).siteCatalogListingsByCodes as CatalogListing[];
         }
         if (scope === 'le') {
           const r = await client.query({
-            query: LE_CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
+            query: LE_CATALOG_LISTINGS_BY_CODES_QUERY,
             variables,
             context: requestContext,
           });
-          return requireData(r.data).leCatalogListingsFromVariants as CatalogListing[];
+          return requireData(r.data).leCatalogListingsByCodes as CatalogListing[];
         }
         const r = await client.query({
-          query: CATALOG_LISTINGS_FROM_VARIANTS_QUERY,
+          query: CATALOG_LISTINGS_BY_CODES_QUERY,
           variables,
           context: requestContext,
         });
-        return requireData(r.data).catalogListingsFromVariants as CatalogListing[];
+        return requireData(r.data).catalogListingsByCodes as CatalogListing[];
       });
     },
   };

@@ -1,5 +1,6 @@
 import type { CatalogDto } from '@domain/catalogs/dto/entity/catalog.dto';
 import type { CatalogChannelDto } from '@domain/catalogs/dto/entity/catalog-channel.dto';
+import type { CatalogCurrencyDto } from '@domain/catalogs/dto/entity/catalog-currency.dto';
 import { CreateCatalogDto } from '@domain/catalogs/dto/request/create-catalog.dto';
 import { UpdateCatalogDto } from '@domain/catalogs/dto/request/update-catalog.dto';
 import { CatalogListingsDomainService } from '@domain/catalogs/services/catalog-listings.service';
@@ -34,7 +35,7 @@ export class OrgCatalogsController {
   }
 
   // Returns one catalog with its listing and channel counts
-  // Every channel selling one catalog — the read-only tab on the catalog detail
+  // Every channel carrying one catalog — the read-only tab on the catalog detail
   @MessagePattern({ cmd: 'org.catalogs.channels' })
   channels(@Payload() data: { catalogId: string }): Promise<CatalogChannelDto[]> {
     this.logger.log(`catalogs.channels — catalogId: ${data.catalogId}`);
@@ -58,6 +59,26 @@ export class OrgCatalogsController {
     const { id, ...data } = dto;
     this.logger.log(`catalogs.update — id: ${id}`);
     return this.service.update(id, data);
+  }
+
+  // The currencies this catalog may be priced in, with how much of it each one covers
+  @MessagePattern({ cmd: 'org.catalogs.currencies' })
+  currencies(@Payload() data: { catalogId: string }): Promise<CatalogCurrencyDto[]> {
+    this.logger.log(`catalogs.currencies — catalogId: ${data.catalogId}`);
+    return this.service.findCurrencyCoverage(data.catalogId);
+  }
+
+  @MessagePattern({ cmd: 'org.catalogs.currencies.add' })
+  addCurrency(@Payload() data: { catalogId: string; currencyCode: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.currencies.add — catalogId: ${data.catalogId}, currency: ${data.currencyCode}`);
+    return this.service.addCurrency(data.catalogId, data.currencyCode);
+  }
+
+  // Refused while the currency still prices anything — the caller clears those first
+  @MessagePattern({ cmd: 'org.catalogs.currencies.remove' })
+  removeCurrency(@Payload() data: { catalogId: string; currencyCode: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.currencies.remove — catalogId: ${data.catalogId}, currency: ${data.currencyCode}`);
+    return this.service.removeCurrency(data.catalogId, data.currencyCode);
   }
 
   // Deletes a catalog; refused while it still lists anything

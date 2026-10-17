@@ -25,7 +25,7 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-6">
       <PageHeader
-        title={variant.sku}
+        title={variant.code}
         description={variant.name}
         titleSlot={
           <StatusSwitch
@@ -37,10 +37,10 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
             disabledTip={
               variant.isOfferingActive
                 ? `A ${meta.label.toLowerCase()} variant needs its bill of materials first.`
-                : 'This offering is deactivated, so none of its variants sell. Activate the offering first.'
+                : 'This offering is deactivated, so none of its variants are available. Activate the offering first.'
             }
             onCheckedChange={(isActive) => setStatusMutation.mutate({ id: variant.id, data: { isActive } })}
-            ariaLabel={`Mark ${variant.sku} active`}
+            ariaLabel={`Mark ${variant.code} active`}
           />
         }
         actions={

@@ -10,15 +10,12 @@ export class WishlistItem {
   @Field(() => ID, { nullable: true })
   catalogListingId: string | null;
 
-  // What a storefront joins its own product page on — see `CartItem` for why the variant
-  @Field(() => ID)
-  offeringVariantId: string;
-
   @Field(() => String)
   name: string;
 
-  @Field(() => String, { nullable: true })
-  sku?: string | null;
+  // What a storefront joins its own product page on — the variant's code, stable across sites
+  @Field(() => String)
+  code: string;
 
   @Field(() => Money, { nullable: true })
   price?: Money | null;

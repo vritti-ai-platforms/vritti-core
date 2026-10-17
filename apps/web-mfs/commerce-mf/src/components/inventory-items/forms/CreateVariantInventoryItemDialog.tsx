@@ -27,7 +27,7 @@ interface CreateVariantInventoryItemDialogProps {
   onCancel: () => void;
 }
 
-// The inventory counterpart of a STOCK variant. Its SKU is the variant's and is not editable — that
+// The inventory counterpart of a STOCK variant. Its SKU is the variant's code and is not editable — that
 // correspondence is the whole point — so the form asks only for what an item needs beyond it.
 export const CreateVariantInventoryItemDialog: React.FC<CreateVariantInventoryItemDialogProps> = ({
   useCreate,
@@ -72,7 +72,7 @@ export const CreateVariantInventoryItemDialog: React.FC<CreateVariantInventoryIt
       <div className="flex flex-col gap-6">
         <Alert
           variant="default"
-          title={`SKU ${variant.sku}`}
+          title={`SKU ${variant.code}`}
           description="Taken from the variant, so the two always agree. The new item becomes this variant's single component."
         />
 

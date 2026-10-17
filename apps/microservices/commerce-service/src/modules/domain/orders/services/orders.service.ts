@@ -152,7 +152,7 @@ export class OrdersDomainService {
           offeringVariantId: line.offeringVariantId,
           itemName: line.itemName,
           variantName: line.variantName,
-          sku: line.sku,
+          code: line.code,
           quantity: line.quantity,
           unitPrice: line.unitPrice,
           taxRate: 0,
@@ -182,7 +182,7 @@ export class OrdersDomainService {
   ): Promise<{
     result: OrderPaymentStatusDto;
     partyId: string | null;
-    paidLines: { offeringVariantId: string; quantity: number }[];
+    paidLines: { code: string; quantity: number }[];
   }> {
     return this.repository.transaction(async () => {
       const order = await this.repository.findByIdForUpdate(data.orderId, siteId);
@@ -256,7 +256,7 @@ export class OrdersDomainService {
       return {
         result: OrderPaymentStatusDto.from(updated),
         partyId: updated.partyId,
-        paidLines: items.map((item) => ({ offeringVariantId: item.offeringVariantId, quantity: item.quantity })),
+        paidLines: items.flatMap((item) => (item.code ? [{ code: item.code, quantity: item.quantity }] : [])),
       };
     });
   }

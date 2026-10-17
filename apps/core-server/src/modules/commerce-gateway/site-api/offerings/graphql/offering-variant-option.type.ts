@@ -6,7 +6,7 @@ export class OfferingVariantOption {
   id: string;
 
   @Field(() => String)
-  sku: string;
+  code: string;
 
   @Field(() => String)
   name: string;

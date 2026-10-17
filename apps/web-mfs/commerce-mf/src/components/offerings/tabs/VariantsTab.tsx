@@ -98,7 +98,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   );
   // Lands on the overview tab rather than the bare detail URL, which renders no tab at all
   const goToVariant = useCallback(
-    (variant: { sku: string; id: string }) => goTo(`variants/${buildSlug(variant.sku, variant.id)}/overview`),
+    (variant: { code: string; id: string }) => goTo(`variants/${buildSlug(variant.code, variant.id)}/overview`),
     [goTo],
   );
   const confirm = useConfirm();
@@ -122,7 +122,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   const handleDelete = useCallback(
     async (variant: OfferingVariantData) => {
       const confirmed = await confirm({
-        title: `Delete "${variant.sku}"?`,
+        title: `Delete "${variant.code}"?`,
         description: 'The variant and its bill of materials will be permanently removed.',
         confirmLabel: 'Delete',
         variant: 'destructive',
@@ -136,9 +136,9 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     () => [
       getSelectionColumn<OfferingVariantData>(),
       {
-        accessorKey: 'sku',
-        header: 'SKU',
-        cell: ({ row }) => <StringCell value={row.original.sku} mono />,
+        accessorKey: 'code',
+        header: 'Code',
+        cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
       {
@@ -203,10 +203,10 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
               disabledTip={
                 row.original.isOfferingActive
                   ? `A ${meta.label.toLowerCase()} variant needs its bill of materials first.`
-                  : 'This offering is deactivated, so none of its variants sell. Activate the offering first.'
+                  : 'This offering is deactivated, so none of its variants are available. Activate the offering first.'
               }
               onCheckedChange={(isActive) => setStatusMutation.mutate({ id: row.original.id, data: { isActive } })}
-              ariaLabel={`Mark ${row.original.sku} active`}
+              ariaLabel={`Mark ${row.original.code} active`}
             />
           </div>
         ),
@@ -294,7 +294,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 disabled={blocked > 0}
                 disabledTip={
                   offeringOff
-                    ? 'This offering is deactivated, so none of its variants sell. Activate the offering first.'
+                    ? 'This offering is deactivated, so none of its variants are available. Activate the offering first.'
                     : `${pluralize('variant', blocked, true)} in this selection still need a bill of materials.`
                 }
                 onClick={() =>
@@ -324,7 +324,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
               <Button
                 size="sm"
                 variant="outline"
-                permission={permissions.variants.edit}
+                permission={permissions.variants.setTaxClass}
                 startAdornment={<Receipt className="size-4" />}
                 disabled={!offering.canEdit}
                 disabledTip="This offering belongs to a wider scope."
@@ -356,7 +356,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
               <Button
                 size="sm"
                 variant="outline"
-                permission={permissions.variants.edit}
+                permission={permissions.variants.setTaxClass}
                 startAdornment={<Undo2 className="size-4" />}
                 isLoading={clearTaxClassMutation.isPending}
                 disabled={!offering.canEdit || !rows.some((row) => row.original.isTaxClassOverridden)}
@@ -379,8 +379,8 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
         }}
         searchConfig={{
           columns: [
-            { id: 'sku', label: 'SKU' },
-            { id: 'externalSku', label: 'External SKU' },
+            { id: 'code', label: 'Code' },
+            { id: 'externalSku', label: 'External Code' },
           ],
           searchAll: true,
         }}
@@ -430,8 +430,8 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
         }}
         importExport={{
           columns: [
-            { key: 'sku', label: 'SKU' },
-            { key: 'externalSku', label: 'External SKU' },
+            { key: 'code', label: 'Code' },
+            { key: 'externalSku', label: 'External Code' },
             { key: 'name', label: 'Name' },
             { key: 'salesUomName', label: 'Sales UOM' },
             { key: 'taxClassName', label: 'Tax Class' },
@@ -468,7 +468,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
         handle={addDialog}
         icon={Boxes}
         title="Add Variant"
-        description="One combination, added by hand. Its SKU is derived exactly as generation would."
+        description="One combination, added by hand. Its Code is derived exactly as generation would."
         content={(close) => (
           <AddVariantDialog
             offering={offering}

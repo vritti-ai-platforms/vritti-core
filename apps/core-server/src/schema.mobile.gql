@@ -36,10 +36,9 @@ type Money {
 
 type CatalogListing {
   id: ID!
-  offeringVariantId: ID!
-  sku: String
-  name: String
-  price: Money
+  code: String!
+  name: String!
+  price: Money!
 }
 
 type ListingFilterValue {
@@ -84,7 +83,7 @@ type VariantOption {
   """
   The sibling this option leads to, holding every other axis where it is. Null when that combination is not sold here — render it disabled rather than hiding it, or the range looks smaller than it is.
   """
-  sku: String
+  variantCode: String
 }
 
 type VariantAxis {
@@ -99,7 +98,7 @@ type CatalogListingDetail {
   listing: CatalogListing!
 
   """
-  Only axes and values a sellable sibling carries — never an option the shop cannot fulfil
+  Only axes and values an available sibling carries — never an option the shop cannot fulfil
   """
   axes: [VariantAxis!]!
 }
@@ -136,9 +135,8 @@ type PersonCommunication {
 type WishlistItem {
   id: ID!
   catalogListingId: ID
-  offeringVariantId: ID!
   name: String!
-  sku: String
+  code: String!
   price: Money
   isAvailable: Boolean!
   createdAt: String!
@@ -152,10 +150,9 @@ type WishlistAddResult {
 type CartItem {
   id: ID!
   catalogListingId: ID
-  offeringVariantId: ID!
   quantity: Int!
   name: String!
-  sku: String
+  code: String!
   unitPrice: Money
   lineTotal: Money
   isAvailable: Boolean!
@@ -169,13 +166,13 @@ type Cart {
 }
 
 type CartQuantity {
-  offeringVariantId: ID!
+  code: String!
   quantity: Int!
 }
 
 type OfferingVariantOption {
   id: ID!
-  sku: String!
+  code: String!
   name: String!
 }
 

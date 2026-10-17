@@ -16,7 +16,7 @@ export const SITE_OFFERING_VARIANTS_QUERY = graphql(`
     siteOfferingVariants(search: $search, excludeIds: $excludeIds, limit: $limit, offset: $offset) {
       items {
         id
-        sku
+        code
         name
       }
       total

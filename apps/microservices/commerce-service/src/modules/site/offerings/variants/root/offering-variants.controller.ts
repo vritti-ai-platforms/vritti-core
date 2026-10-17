@@ -61,7 +61,7 @@ export class SiteOfferingVariantsController {
   @MessagePattern({ cmd: 'site.offerings.variants.appOptions' })
   appOptions(
     @Payload() data: { search?: string; excludeIds?: string[]; limit?: number; offset?: number },
-  ): Promise<{ items: { id: string; sku: string; name: string }[]; total: number }> {
+  ): Promise<{ items: { id: string; code: string; name: string }[]; total: number }> {
     this.logger.log(`offerings.variants.appOptions — search: ${data.search ?? ''}`);
     return this.service.findOptions(data);
   }

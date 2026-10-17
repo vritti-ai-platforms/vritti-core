@@ -24,21 +24,23 @@ export class CatalogListingsDomainService {
     private readonly catalogsRepository: CatalogsDomainRepository,
   ) {}
 
-  // Returns one page of a catalog's listings, each with its prices
+  // Returns one page of a catalog's listings, each with its prices. A currency narrows those prices to
+  // the one the Prices tab is editing; without it every currency comes back, as the Listings tab needs.
   async findForTable(
     catalogId: string,
     state: TableViewState,
+    currencyCode?: string,
   ): Promise<{ result: CatalogListingDto[]; count: number }> {
     await this.requireCatalog(catalogId);
     const { limit = 20, offset = 0 } = state.pagination;
     const { result: rows, count } = await this.repository.findForTable({
       where: eq(catalogListings.catalogId, catalogId) as SQL,
-      orderBy: [asc(offeringVariants.sku)],
+      orderBy: [asc(offeringVariants.code)],
       limit,
       offset,
     });
     const ids = rows.map((row) => row.id);
-    const prices = await this.repository.findPrices(ids);
+    const prices = await this.repository.findPrices(ids, currencyCode);
     const exclusions = await this.repository.findExclusions(ids);
     return {
       result: rows.map((row) =>
@@ -53,7 +55,7 @@ export class CatalogListingsDomainService {
   }
 
   // The MRP slices a variant can be listed at, for the add-listing picker
-  // Everything one storefront channel sells, priced
+  // Everything one storefront channel offers, priced
   async findMrpOptions(offeringVariantId: string): Promise<CatalogListingMrpOptionDto[]> {
     const rows = await this.repository.findMrpOptionsForVariant(offeringVariantId);
     return rows.map((row) => CatalogListingMrpOptionDto.from(row));
@@ -75,44 +77,68 @@ export class CatalogListingsDomainService {
       if (data.price) {
         const amount = majorToMinor(data.price.value, data.price.currency as CurrencyCode, 'price');
         await this.assertWithinMrp(mrpId, amount, data.price.currency);
-        await this.repository.upsertPrice(item.id, data.price.currency, amount, data.siteId ?? null);
+        await this.repository.upsertPrice(item.id, data.price.currency, amount);
       }
       return item;
     });
 
     this.logger.log(`Listed variant ${data.offeringVariantId} in catalog ${catalog.name} (mrp: ${mrpId ?? 'any'})`);
-    const row = await this.repository.findByIdWithRefs(created.id);
+    const row = (await this.repository.findByIdWithRefs(created.id)) as CatalogListingRow;
     const prices = await this.repository.findPrices([created.id]);
     return {
       success: true,
-      message: row?.sku ? `"${row.sku}" listed.` : 'Listed.',
-      data: CatalogListingDto.from(row as NonNullable<typeof row>, prices),
+      message: `"${row.code}" listed in "${catalog.name}".`,
+      data: CatalogListingDto.from(row, prices),
     };
   }
 
-  // Sets the price for a (listing, currency, site) slot; refused above the listing's printed MRP
+  // Sets this workspace's own price for a listing; refused above the listing's printed MRP. Owning
+  // the listing is deliberately NOT the test: a site prices what the organization listed, which is
+  // the whole point of pricing per workspace. Seeing the listing is enough, and the price row lands
+  // on the workspace writing it.
   async setPrice(data: SetCatalogListingPriceDto): Promise<SuccessResponseDto> {
-    const item = await this.requireOwned(data.catalogListingId);
+    const item = await this.requireReachable(data.catalogListingId);
     const amount = majorToMinor(data.price.value, data.price.currency as CurrencyCode, 'price');
     await this.assertWithinMrp(item.inventoryItemMrpId, amount, data.price.currency);
-    await this.repository.upsertPrice(item.id, data.price.currency, amount, data.siteId ?? null);
-    return { success: true, message: 'Price updated.' };
+    await this.repository.upsertPrice(item.id, data.price.currency, amount);
+    return {
+      success: true,
+      message: `"${item.code}" is now priced at ${data.price.currency} ${data.price.value} in this workspace.`,
+    };
   }
 
-  // Shows everywhere by default, so hiding writes one exclusion and showing removes it. The test is
+  // Drops this workspace's own price, so whatever a wider workspace charges applies again. A price is
+  // removed rather than zeroed — a zero price still charges, an absent one falls back.
+  async clearPrice(data: { catalogListingId: string; currencyCode: string }): Promise<SuccessResponseDto> {
+    const item = await this.requireReachable(data.catalogListingId);
+    const removed = await this.repository.deleteOwnPrice(item.id, data.currencyCode);
+    if (removed === 0) {
+      throw new NotFoundException(`"${item.code}" has no ${data.currencyCode} price of its own in this workspace.`);
+    }
+    return { success: true, message: `${data.currencyCode} price cleared for "${item.code}".` };
+  }
+
+  // Available everywhere by default, so excluding writes one row and making it available again
+  // removes that row. The test is
   // owning the CHANNEL, not the listing: deciding what your own channel shows is your business even
   // when the item came from a wider scope, and the RLS on the exclusion is keyed the same way.
   async setChannelVisibility(id: string, catalogChannelId: string, visible: boolean): Promise<SuccessResponseDto> {
+    const item = await this.requireReachable(id);
     await this.requireOwnedChannel(catalogChannelId);
     if (visible) await this.repository.removeExclusion(id, catalogChannelId);
     else await this.repository.addExclusion(id, catalogChannelId);
-    return { success: true, message: visible ? 'Listing shown on this channel.' : 'Listing hidden on this channel.' };
+    return {
+      success: true,
+      message: visible
+        ? `"${item.code}" is now available on this channel.`
+        : `"${item.code}" is now excluded from this channel.`,
+    };
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {
     const item = await this.requireOwned(id);
     await this.repository.deleteListing(id);
-    return { success: true, message: item.sku ? `"${item.sku}" removed.` : 'Listing removed.' };
+    return { success: true, message: `"${item.code}" removed from this catalog.` };
   }
 
   // Loads the channel behind an exclusion, throwing unless this workspace owns it
@@ -122,9 +148,19 @@ export class CatalogListingsDomainService {
     if (!channel.isOwn) {
       throw new ForbiddenException({
         label: 'Not Your Channel',
-        detail: 'This channel belongs to a wider scope. Switch to the workspace that owns it to change what it sells.',
+        detail:
+          'This channel belongs to a wider scope. Switch to the workspace that owns it to change what it carries.',
       });
     }
+  }
+
+  // Loads a listing this workspace can see. Reach already excludes another branch's rows, so finding
+  // one is the whole test wherever the write lands on a row of this workspace's own rather than on
+  // the listing itself.
+  private async requireReachable(id: string): Promise<CatalogListingRow> {
+    const item = await this.repository.findByIdWithRefs(id);
+    if (!item) throw new NotFoundException('Listing not found.');
+    return item;
   }
 
   // Loads a listing by id, throwing if not found or owned by a wider scope. Reach lets a company see
@@ -136,7 +172,7 @@ export class CatalogListingsDomainService {
     if (!item.isOwned) {
       throw new ForbiddenException({
         label: 'Not Your Listing',
-        detail: `${item.sku ? `"${item.sku}"` : 'This listing'} belongs to a wider scope. Switch to the workspace that owns it to change it.`,
+        detail: `"${item.code}" belongs to a wider scope. Switch to the workspace that owns it to change it.`,
       });
     }
     return item;
@@ -175,7 +211,7 @@ export class CatalogListingsDomainService {
     }
   }
 
-  // A keyed listing may never be priced above the ceiling printed on the pack it sells
+  // A keyed listing may never be priced above the ceiling printed on the pack it covers
   private async assertWithinMrp(
     inventoryItemMrpId: string | null,
     amount: bigint,

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   type CatalogListing,
   catalogChannels,
@@ -9,6 +9,7 @@ import {
   catalogListings,
   type InventoryItemMrp,
   inventoryItemMrps,
+  listingPriceSpecificity,
   type NewCatalogListing,
   offeringBom,
   offeringVariants,
@@ -32,7 +33,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       siteId: catalogListings.siteId,
       isOwned: ownedByWorkspaceExpression(),
       inventoryItemMrpId: catalogListings.inventoryItemMrpId,
-      sku: offeringVariants.sku,
+      code: offeringVariants.code,
       variantName: offeringVariants.name,
       mrpAmount: inventoryItemMrps.amount,
       mrpCurrencyCode: inventoryItemMrps.currencyCode,
@@ -42,9 +43,15 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
     };
   }
 
-  private joins() {
+  // The variant is NOT NULL with a cascading FK, so every listing has exactly one — inner-joining it
+  // is what makes `code` and `variantName` non-null instead of merely looking optional.
+  private variantJoin() {
+    return [{ table: offeringVariants, on: eq(offeringVariants.id, catalogListings.offeringVariantId) }];
+  }
+
+  // An MRP is optional, and its uom hangs off the MRP, so both are genuinely absent sometimes
+  private mrpJoins() {
     return [
-      { table: offeringVariants, on: eq(offeringVariants.id, catalogListings.offeringVariantId) },
       { table: inventoryItemMrps, on: eq(inventoryItemMrps.id, catalogListings.inventoryItemMrpId) },
       { table: uom, on: eq(uom.id, inventoryItemMrps.uomId) },
     ];
@@ -59,7 +66,8 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
   }): Promise<{ result: CatalogListingRow[]; count: number }> {
     return this.findAllAndCount<CatalogListingRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.variantJoin(),
+      leftJoins: this.mrpJoins(),
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
@@ -70,7 +78,8 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
   async findByIdWithRefs(id: string): Promise<CatalogListingRow | undefined> {
     const { result } = await this.findAllAndCount<CatalogListingRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.variantJoin(),
+      leftJoins: this.mrpJoins(),
       where: eq(catalogListings.id, id),
       limit: 1,
       offset: 0,
@@ -101,7 +110,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
     return row;
   }
 
-  // Channels this listing is hidden on — absent means it sells everywhere the catalog reaches
+  // Channels this listing is excluded from — absent means it is available everywhere the catalog reaches
   async findExclusions(catalogListingIds: string[]): Promise<{ catalogListingId: string; catalogChannelId: string }[]> {
     if (catalogListingIds.length === 0) return [];
     return this.db
@@ -154,43 +163,70 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       })
       .from(offeringBom)
       .innerJoin(inventoryItemMrps, eq(inventoryItemMrps.inventoryItemId, offeringBom.inventoryItemId))
-      .leftJoin(uom, eq(uom.id, inventoryItemMrps.uomId))
+      .innerJoin(uom, eq(uom.id, inventoryItemMrps.uomId))
       .where(eq(offeringBom.variantId, offeringVariantId))
       .orderBy(asc(inventoryItemMrps.amount));
   }
 
-  async findPrices(catalogListingIds: string[]): Promise<CatalogListingPriceRow[]> {
+  // One price per (listing, currency): the narrowest workspace that set one. Reach has already hidden
+  // the rows this workspace may not see, so distinct-on picks between its own and its ancestors' —
+  // the same precedence a storefront read resolves with, decided in one place.
+  async findPrices(catalogListingIds: string[], currencyCode?: string): Promise<CatalogListingPriceRow[]> {
     if (catalogListingIds.length === 0) return [];
     return this.db
-      .select({
+      .selectDistinctOn([catalogListingPrices.catalogListingId, catalogListingPrices.currencyCode], {
         id: catalogListingPrices.id,
         catalogListingId: catalogListingPrices.catalogListingId,
         currencyCode: catalogListingPrices.currencyCode,
         amount: catalogListingPrices.amount,
+        legalEntityId: catalogListingPrices.legalEntityId,
         siteId: catalogListingPrices.siteId,
+        isOwned: ownedByWorkspaceExpression('catalog_listing_prices'),
       })
       .from(catalogListingPrices)
-      .where(inArray(catalogListingPrices.catalogListingId, catalogListingIds))
-      .orderBy(asc(catalogListingPrices.currencyCode));
+      .where(
+        and(
+          inArray(catalogListingPrices.catalogListingId, catalogListingIds),
+          currencyCode ? eq(catalogListingPrices.currencyCode, currencyCode) : undefined,
+        ),
+      )
+      .orderBy(
+        asc(catalogListingPrices.catalogListingId),
+        asc(catalogListingPrices.currencyCode),
+        desc(listingPriceSpecificity),
+      );
   }
 
-  // Sets the price for a (listing, currency, site) slot, replacing any existing one
-  async upsertPrice(
-    catalogListingId: string,
-    currencyCode: string,
-    amount: bigint,
-    siteId: string | null,
-  ): Promise<void> {
+  // Sets this workspace's own price for a (listing, currency). The scope columns default from the
+  // request's workspace, so the row lands on whoever is writing it — an org price and the site price
+  // that overrides it are two rows, and neither can edit the other.
+  async upsertPrice(catalogListingId: string, currencyCode: string, amount: bigint): Promise<void> {
     await this.db
       .insert(catalogListingPrices)
-      .values({ catalogListingId, currencyCode, amount, siteId })
+      .values({ catalogListingId, currencyCode, amount })
       .onConflictDoUpdate({
-        target: [catalogListingPrices.catalogListingId, catalogListingPrices.currencyCode, catalogListingPrices.siteId],
+        target: [
+          catalogListingPrices.catalogListingId,
+          catalogListingPrices.currencyCode,
+          catalogListingPrices.legalEntityId,
+          catalogListingPrices.siteId,
+        ],
         set: { amount },
       });
   }
 
-  async deletePrice(id: string): Promise<void> {
-    await this.db.delete(catalogListingPrices).where(eq(catalogListingPrices.id, id));
+  // Clears this workspace's own price, leaving any wider one to apply again. The delete policy admits
+  // only rows owned by exactly this workspace, so a narrower scope cannot erase what it inherited.
+  async deleteOwnPrice(catalogListingId: string, currencyCode: string): Promise<number> {
+    const rows = (await this.db
+      .delete(catalogListingPrices)
+      .where(
+        and(
+          eq(catalogListingPrices.catalogListingId, catalogListingId),
+          eq(catalogListingPrices.currencyCode, currencyCode),
+        ),
+      )
+      .returning({ id: catalogListingPrices.id })) as { id: string }[];
+    return rows.length;
   }
 }
