@@ -17,8 +17,8 @@ export class AttributeTemplatesDomainRepository extends PrimaryBaseRepository<ty
     super(database, attributeTemplates);
   }
 
-  // Returns the templates this workspace can reach, each flagged with whether it owns the row or
-  // merely inherits it from a wider scope (RLS decides reach; the expression decides ownership)
+  // Returns the templates this workspace can reach, each flagged with whether it owns the row or merely inherits it
+  // from a wider scope (RLS decides reach; the expression decides ownership)
   async findAll(where?: SQL): Promise<AttributeTemplateWithOwnership[]> {
     return this.db
       .select({ ...getColumns(attributeTemplates), isOwned: ownedByWorkspaceExpression() })
@@ -27,18 +27,14 @@ export class AttributeTemplatesDomainRepository extends PrimaryBaseRepository<ty
       .orderBy(asc(attributeTemplates.name));
   }
 
-  // Returns one template with its ownership flag, or undefined when out of reach. Callers that may
-  // only write branch on isOwned rather than narrowing here, so a row owned elsewhere still yields
-  // the name their 403 needs — RLS is what actually refuses the write.
+  // Returns one template with its ownership flag, or undefined when out of reach.
   async findByIdWithOwnership(id: string): Promise<AttributeTemplateWithOwnership | undefined> {
     return this.findById<AttributeTemplateWithOwnership>(id, {
       select: { ...getColumns(attributeTemplates), isOwned: ownedByWorkspaceExpression() },
     });
   }
 
-  // Reports which of the two unique keys are already taken, in one pass. They have different scopes:
-  // name is unique per OWNER, code per ORGANIZATION — so an org-owned code blocks an LE too, while an
-  // org-owned name does not. A single row may collide on both, hence bool_or rather than a row lookup.
+  // Reports which of the two unique keys are already taken, in one pass.
   async findConflicts(name: string, code: string): Promise<{ nameTaken: boolean; codeTaken: boolean }> {
     const nameMatch = sql`lower(${attributeTemplates.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`;
     const codeMatch = sql`${attributeTemplates.code} = ${code}`;
@@ -54,9 +50,7 @@ export class AttributeTemplatesDomainRepository extends PrimaryBaseRepository<ty
     return row ?? { nameTaken: false, codeTaken: false };
   }
 
-  // Returns the template matching a name within this workspace's own ownership slot. Scoped to owned
-  // rows because name is unique per OWNER, not per organization — an inherited row sharing the name
-  // is not a collision.
+  // Returns the template matching a name within this workspace's own ownership slot.
   async findByName(name: string): Promise<AttributeTemplate | undefined> {
     const [row] = await this.db
       .select()

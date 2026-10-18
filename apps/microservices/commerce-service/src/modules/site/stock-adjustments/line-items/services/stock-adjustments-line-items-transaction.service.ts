@@ -81,7 +81,6 @@ export class StockAdjustmentsLineItemsTransactionService {
   }
 
   // OPENING+item: serial must NOT already exist for this item (would collide with inventory_item_serials unique).
-  // Deduct+item: serial must exist on an inventory_item_serial where parent_quant = line.quantId AND status=AVAILABLE.
   private async validateSerialForIntent(
     adjustment: { id: string; type: string; inventoryItemId: string },
     line: { id: string; quantId: string | null },

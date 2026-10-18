@@ -86,8 +86,8 @@ export const ChannelPricesPage: React.FC<ChannelPricesPageProps> = ({ binding })
                 activeLabel={r.price === null ? 'Not priced' : 'Available'}
                 inactiveLabel="Excluded"
                 permission={binding.permissions.visibility}
-                // Excluded from the channel outright, or priced by nobody — neither is this
-                // switch's business, and flipping it on would not make the item available
+                // Excluded from the channel outright, or priced by nobody — neither is this switch's business, and
+                // flipping it on would not make the item available
                 disabled={r.excludedOutright || r.price === null}
                 disabledTip={
                   r.excludedOutright

@@ -14,8 +14,7 @@ export class MediaInternalController {
 
   constructor(private readonly mediaGcService: MediaGcService) {}
 
-  // Deletes objects no media record refers to. Left manual rather than scheduled until its output has been watched
-  // on real buckets — a cleanup job that deletes tenant files should earn automation, not start with it.
+  // Deletes objects no media record refers to.
   @Post('sweep')
   async sweep(): Promise<SweepResult> {
     this.logger.log('POST /media/internal/sweep');

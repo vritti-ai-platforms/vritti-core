@@ -9,9 +9,7 @@ import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { FulfilmentTypeValues } from '@/db/schema';
 import type { CreateVariantInventoryItemDto } from '../dto/request/create-variant-inventory-item.dto';
 
-// Orchestrates across two domains, which is why it lives in the API layer: a domain module never
-// imports another. Offerings reaches DOWN into inventory-items here, and inventory-items knows
-// nothing of offerings.
+// Orchestrates across two domains, which is why it lives in the API layer: a domain module never imports another.
 @Injectable()
 export class OrgOfferingBomService {
   private readonly logger = new Logger(OrgOfferingBomService.name);
@@ -23,8 +21,8 @@ export class OrgOfferingBomService {
     private readonly inventoryItems: InventoryItemsDomainService,
   ) {}
 
-  // Creates the inventory item a STOCK variant resolves to, taking its SKU from the variant's code, and links it
-  // as that variant's single bill-of-materials line.
+  // Creates the inventory item a STOCK variant resolves to, taking its SKU from the variant's code, and links it as
+  // that variant's single bill-of-materials line.
   async createInventoryItem(data: CreateVariantInventoryItemDto): Promise<CreateResponseDto<OfferingVariantDto>> {
     const variant = await this.variants.findById(data.variantId);
 

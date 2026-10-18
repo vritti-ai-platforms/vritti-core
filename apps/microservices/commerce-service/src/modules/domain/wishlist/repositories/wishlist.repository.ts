@@ -19,8 +19,8 @@ export class WishlistDomainRepository extends PrimaryBaseRepository<typeof wishl
     super(database, wishlistItems);
   }
 
-  // The price that applies to the reader: reach narrows the rows to the ones this workspace inherits,
-  // and the narrowest of those wins — the same precedence the storefront listing resolves with.
+  // The price that applies to the reader: reach narrows the rows to the ones this workspace inherits, and the narrowest
+  // of those wins — the same precedence the storefront listing resolves with.
   private priceLateral(currencyCode: string) {
     return this.db
       .select({ amount: catalogListingPrices.amount, currencyCode: catalogListingPrices.currencyCode })

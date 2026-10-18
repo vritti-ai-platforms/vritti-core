@@ -7,15 +7,14 @@ import { CostCategory } from './graphql/cost-category.type';
 import { CreateCostCategoryInput, UpdateCostCategoryInput } from './graphql/cost-category-mutation.input';
 import { CostCategoriesGatewayService } from './services/cost-categories-gateway.service';
 
-// Cost categories for the mobile Cost Categories screen: plain list + CRUD. Thin forwards to the gateway
-// service. Select-options (`costCategoriesOptions`) now live in the shared SelectApiModule. Activate/deactivate
-// is folded into updateCostCategory(isActive).
+// Cost categories for the mobile Cost Categories screen: plain list + CRUD.
 @Resolver()
 export class CostCategoriesResolver {
   private readonly logger = new Logger(CostCategoriesResolver.name);
 
   constructor(private readonly costCategoriesGatewayService: CostCategoriesGatewayService) {}
 
+  // All cost categories (with canDelete) — the mobile list.
   // All cost categories (with canDelete) — the mobile list. Small/bounded, so a plain array.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => [CostCategory], { name: 'costCategories' })
@@ -36,7 +35,6 @@ export class CostCategoriesResolver {
   }
 
   // Re-reads + returns the entity so Apollo auto-merges by id (the gateway update returns only success).
-  // The overflow menu's activate/deactivate flows through here as `{ isActive }`.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => CostCategory, { name: 'updateCostCategory' })
   async updateCostCategory(

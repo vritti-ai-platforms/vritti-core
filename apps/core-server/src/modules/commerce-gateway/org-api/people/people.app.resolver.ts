@@ -67,8 +67,8 @@ export class PeopleAppResolver {
   async addPartyAddress(@PartyId() partyId: string, @Args('input') input: PartyAddressInput): Promise<PartyAddress[]> {
     this.logger.log('MUTATION addPartyAddress');
     await this.peopleGatewayService.addPartyAddress(partyId, toAddressPayload(input));
-    // The whole book back, not the one row: marking a new address default unmarks another, so a
-    // single row would leave the caller redrawing a list it cannot see all of.
+    // The whole book back, not the one row: marking a new address default unmarks another, so a single row would leave
+    // the caller redrawing a list it cannot see all of.
     return this.partyAddresses(partyId);
   }
 
@@ -114,9 +114,9 @@ export class PeopleAppResolver {
     return data;
   }
 
-  // ── Wishlist: the things a party marked to come back to ──
-  // Both mutations answer with the whole list rather than the row they touched, because the caller is
-  // redrawing a row of hearts and a single row would leave it guessing at the rest.
+  // ── Wishlist: the things a party marked to come back to ── Both mutations answer with the whole list rather than the
+  // row they touched, because the caller is redrawing a row of hearts and a single row would leave it guessing at the
+  // rest.
 
   @Query(() => [WishlistItem], { name: 'wishlist' })
   @RequirePermission(ORG_PEOPLE.wishlist.view)

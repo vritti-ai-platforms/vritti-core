@@ -96,8 +96,6 @@ const services = [
 
 // Every commerce gateway service, and nothing else
 @Module({
-  // Three gateway services inject SiteDomainService / SiteDomainRepository, so the domain module
-  // must be imported HERE, where those services are provided.
   imports: [SiteDomainModule, LegalEntityDomainModule, AppDomainModule],
   providers: services,
   exports: services,

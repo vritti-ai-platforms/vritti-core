@@ -99,8 +99,8 @@ export class CartsDomainService {
     const { cart, opened } = await this.repository.findOrCreateForParty(input.partyId);
     if (opened) this.logger.log(`cart ${cart.id} opened for party ${input.partyId}`);
 
-    // The one read that earns its keep: the shopper's name lives on `parties`, and the caller wants
-    // to show whose basket this is.
+    // The one read that earns its keep: the shopper's name lives on `parties`, and the caller wants to show whose
+    // basket this is.
     return {
       success: true,
       message: opened ? 'Basket opened.' : 'They already have a basket here.',
@@ -115,6 +115,7 @@ export class CartsDomainService {
     return { success: true, message: 'Basket closed.' };
   }
 
+  // The basket, or an empty one.
   // The basket, or an empty one. Never opens a cart
   async find(partyId: string, currencyCode: string, appId?: string | null): Promise<CartDto> {
     const cart = await this.repository.findByParty(partyId);
@@ -162,6 +163,7 @@ export class CartsDomainService {
     return this.find(input.partyId, input.currencyCode, input.appId);
   }
 
+  // Sets a line to an exact quantity.
   // Sets a line to an exact quantity. Zero is not accepted — removing is its own operation
   async updateItem(input: {
     partyId: string;
@@ -253,9 +255,8 @@ export class CartsDomainService {
     return cart;
   }
 
-  // Rejected here rather than left to the CHECK constraint
-  // Staff screens address a product by id; a line is keyed by code, so the id is translated once at
-  // the edge. An id the organization does not carry is a 404 rather than a write that matches nothing.
+  // Rejected here rather than left to the CHECK constraint Staff screens address a product by id; a line is keyed by
+  // code, so the id is translated once at the edge.
   private async requireCode(offeringVariantId: string): Promise<string> {
     const code = await this.repository.findCodeByVariantId(offeringVariantId);
     if (!code) throw new NotFoundException('That product no longer exists.');

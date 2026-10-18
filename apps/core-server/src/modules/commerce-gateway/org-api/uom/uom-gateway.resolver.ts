@@ -10,9 +10,7 @@ import { UomConnection } from './graphql/uom-feed.type';
 import { CreateUomInput, UpdateUomInput } from './graphql/uom-mutation.input';
 import { UomGatewayService } from './services/uom-gateway.service';
 
-// UOM GraphQL for the mobile UOM screens: the keyset units feed + by-id read + CRUD. Thin forwards to the
-// gateway service (which NATS-forwards to commerce-service). Select-options (`uomOptions`) now live in the
-// shared SelectApiModule. buId flows via NATS context from @Require(AuthType.Session).
+// UOM GraphQL for the mobile UOM screens: the keyset units feed + by-id read + CRUD.
 @Resolver()
 export class UomResolver {
   private readonly logger = new Logger(UomResolver.name);
@@ -20,8 +18,6 @@ export class UomResolver {
   constructor(private readonly uomGatewayService: UomGatewayService) {}
 
   // Keyset/cursor Relay connection of a dimension's units (base + derived) for the mobile infinite feed.
-  // Relay args (first/after) map to limit/cursor; the client merges pages via relayStylePagination. The
-  // fixed sort (base units first, then name) is applied server-side.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => UomConnection, { name: 'uomsFeed' })
   async uomsFeed(

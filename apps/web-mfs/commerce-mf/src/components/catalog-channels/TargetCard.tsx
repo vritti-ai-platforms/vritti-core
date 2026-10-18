@@ -19,8 +19,6 @@ interface TargetCardProps {
 // One app or terminal, showing what it will actually offer
 export const TargetCard: React.FC<TargetCardProps> = ({ binding, type, target }) => {
   const { catalog, isAssigned } = target;
-  // Owned means this workspace may edit the row itself; a target named by a wider level is assigned
-  // but not owned, so it can only be overridden
   const owned = isAssigned && catalog.isOwn;
 
   const { dialog, submit, remove, openItems, isRemoving } = useChannelAssignment(binding, {

@@ -47,8 +47,7 @@ export class InventoryItemLedgerDomainRepository extends PrimaryBaseRepository<t
     });
   }
 
-  // Keyset page for the mobile Relay ledger feed. `where` carries the item filter + cursor predicate;
-  // `orderBy` is (createdAt desc, id asc). Returns {rows, hasMore} (fetches limit+1 internally).
+  // Keyset page for the mobile Relay ledger feed.
   async findLedgerFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
     rows: (InventoryItemLedgerEntry & { inventoryItemName: string })[];
     hasMore: boolean;

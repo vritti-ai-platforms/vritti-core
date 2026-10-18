@@ -6,7 +6,8 @@ import { forwardRef } from 'react';
 
 export type QuantSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
 
-// Custom option row: label=lotNumber (or inventoryItemName), description=locationPath (or lotNumber), qty+symbol on the right
+// Custom option row: label=lotNumber (or inventoryItemName), description=locationPath (or lotNumber), qty+symbol on the
+// right
 function QuantOptionRow({ option, selected, onSelect }: SingleSelectOptionRenderProps) {
   const qty = option.additionals?.quantity;
   const symbol = option.additionals?.symbol as string | null | undefined;

@@ -15,15 +15,14 @@ export class CostCategoriesDomainRepository extends PrimaryBaseRepository<typeof
     return super.findForSelect(config);
   }
 
+  // Lookup by `code` within an org.
   // Lookup by `code` within an org. Used when the admin needs an exact-string match.
   async findByCode(code: string): Promise<CostCategory | undefined> {
     const rows = await this.db.select().from(costCategories).where(eq(costCategories.code, code)).limit(1);
     return rows[0] as CostCategory | undefined;
   }
 
-  // Lookup by `kind`. The GR publish auto-associate uses `findByKind('ITEM')` to resolve the
-  // supplier-price category; the partial unique index guarantees at most one ITEM-kind row per org,
-  // so `.limit(1)` is enough.
+  // Lookup by `kind`.
   async findByKind(kind: CostCategoryKind): Promise<CostCategory | undefined> {
     const rows = await this.db.select().from(costCategories).where(eq(costCategories.kind, kind)).limit(1);
     return rows[0] as CostCategory | undefined;
@@ -34,8 +33,7 @@ export class CostCategoriesDomainRepository extends PrimaryBaseRepository<typeof
     return { costRows: 0 };
   }
 
-  // Sets isActive=false without touching anything else. Used by the deactivate flow when the
-  // category is in use and hard delete is not permitted.
+  // Sets isActive=false without touching anything else.
   async setActive(id: string, isActive: boolean): Promise<CostCategory> {
     const [row] = await this.db
       .update(costCategories)

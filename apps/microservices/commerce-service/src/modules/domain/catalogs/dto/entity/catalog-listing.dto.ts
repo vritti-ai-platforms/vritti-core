@@ -1,4 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export interface CatalogListingRow {
   id: string;
@@ -19,8 +20,6 @@ export interface CatalogListingRow {
   updatedAt: Date;
 }
 
-export type CatalogListingOwnerScope = 'ORG' | 'LE' | 'SITE';
-
 export interface CatalogListingPriceRow {
   id: string;
   catalogListingId: string;
@@ -35,8 +34,7 @@ export class CatalogListingPriceDto {
   id: string;
   legalEntityId: string | null;
   siteId: string | null;
-  // The workspace that set this price. A narrower one overrides it without touching it.
-  ownerScope: CatalogListingOwnerScope;
+  ownerScope: WorkspaceScope;
   // False when it comes from a wider workspace: this one may override it but never edit it
   canEdit: boolean;
   price: CurrencyAmountDto;
@@ -46,7 +44,7 @@ export class CatalogListingPriceDto {
     dto.id = row.id;
     dto.legalEntityId = row.legalEntityId ?? null;
     dto.siteId = row.siteId ?? null;
-    dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
+    dto.ownerScope = workspaceScopeOf(row);
     dto.canEdit = row.isOwned;
     dto.price = CurrencyAmountDto.from(row.amount, row.currencyCode);
     return dto;
@@ -59,11 +57,11 @@ export class CatalogListingDto {
   offeringVariantId: string;
   code: string;
   variantName: string;
-  isVariantActive: boolean;
-  isOfferingActive: boolean;
+  isActive: boolean;
+  availability: string;
   legalEntityId: string | null;
   siteId: string | null;
-  ownerScope: CatalogListingOwnerScope;
+  ownerScope: WorkspaceScope;
   canEdit: boolean;
   canDelete: boolean;
   inventoryItemMrpId: string | null;
@@ -74,10 +72,25 @@ export class CatalogListingDto {
   createdAt: string;
   updatedAt: string;
 
+  // Says where a listing stands, deactivation first and the channel count last
+  private static availabilityOf(
+    row: CatalogListingRow,
+    prices: CatalogListingPriceRow[],
+    excludedChannelIds: string[],
+    channelCount: number,
+  ): string {
+    if (!row.isOfferingActive) return 'Offering inactive';
+    if (!row.isVariantActive) return 'Variant inactive';
+    if (channelCount === 0) return 'No channels';
+    if (prices.length === 0) return 'Not priced';
+    return `${channelCount - excludedChannelIds.length} of ${channelCount}`;
+  }
+
   static from(
     row: CatalogListingRow,
     prices: CatalogListingPriceRow[] = [],
     excludedChannelIds: string[] = [],
+    channelCount = 0,
   ): CatalogListingDto {
     const dto = new CatalogListingDto();
     dto.id = row.id;
@@ -85,11 +98,11 @@ export class CatalogListingDto {
     dto.offeringVariantId = row.offeringVariantId;
     dto.code = row.code;
     dto.variantName = row.variantName;
-    dto.isVariantActive = row.isVariantActive;
-    dto.isOfferingActive = row.isOfferingActive;
+    dto.isActive = row.isVariantActive && row.isOfferingActive;
+    dto.availability = CatalogListingDto.availabilityOf(row, prices, excludedChannelIds, channelCount);
     dto.legalEntityId = row.legalEntityId ?? null;
     dto.siteId = row.siteId ?? null;
-    dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
+    dto.ownerScope = workspaceScopeOf(row);
     dto.canEdit = row.isOwned;
     dto.canDelete = row.isOwned;
     dto.inventoryItemMrpId = row.inventoryItemMrpId ?? null;

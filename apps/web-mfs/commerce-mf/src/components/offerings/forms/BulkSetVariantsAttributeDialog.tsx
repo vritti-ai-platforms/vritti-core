@@ -32,10 +32,7 @@ function carriedValueIds(variant: OfferingVariantData, attributeId: string): Set
   );
 }
 
-// Everything ANY of the selected variants carries — the union, not the intersection. A save replaces the
-// attribute, so the prefill decides what an unedited Save does: the union only ever adds, while the
-// intersection silently strips. One untagged variant empties an intersection, which would have cleared
-// the tag off every other variant in the selection without saying so.
+// Everything ANY of the selected variants carries — the union, not the intersection.
 function unionValueIds(variants: OfferingVariantData[], attributeId: string): string[] {
   if (!attributeId) return [];
   const union = new Set<string>();
@@ -69,17 +66,15 @@ export const BulkSetVariantsAttributeDialog: React.FC<BulkSetVariantsAttributeDi
 
   const union = useMemo(() => unionValueIds(variants, attributeId), [variants, attributeId]);
 
-  // Values belong to one attribute, so switching attributes has to reset the picks — the server rejects
-  // a value that is not on the named attribute, and this seeds the union in its place.
-  // setValue rather than the whole form object: useForm returns a fresh object every render, so depending
-  // on it would re-run this on every render and the useWatch above would re-render on each write.
+  // Values belong to one attribute, so switching attributes has to reset the picks — the server rejects a value that is
+  // not on the named attribute, and this seeds the union in its place. setValue rather than the whole form object:
+  // useForm returns a fresh object every render, so depending on it would re-run this on every render and the useWatch
+  // above would re-render on each write.
   const { setValue } = form;
   useEffect(() => {
     setValue('valueIds', union);
   }, [union, setValue]);
 
-  // Whether the selection already agrees, and how many rows this save would actually move. Both compare
-  // whole sets rather than sizes, and `changing` tracks the live ticks so the count follows every edit.
   const carried = variants.map((variant) => carriedValueIds(variant, attributeId));
   const agrees = new Set(carried.map((set) => [...set].sort().join('|'))).size <= 1;
   const changing = carried.filter((set) => !sameSet(set, valueIds)).length;

@@ -32,8 +32,7 @@ export const catalogChannels = commerceSchema.table(
       .nullsNotDistinct(),
     check(
       'ck_catalog_channels_target_matches_type',
-      // A wholesale site is still a site, so B2B names an app exactly as APP does — only the till
-      // is particular to POS. Which of the two an app resolves through comes from the party buying.
+      // A wholesale site is still a site, so B2B names an app exactly as APP does — only the till is particular to POS.
       sql`case
             when ${table.type} = 'POS' then ${table.appId} is null
             else ${table.terminalId} is null
@@ -64,11 +63,8 @@ export const partyChannelType = (partyId: SQL | string | null | undefined) =>
         'APP')`
     : sql`'APP'`;
 
-export const partyChannelCatalogId = (
-  partyId: SQL | string | null | undefined,
-  // SQL as well as a literal, so a read whose storefront varies per row can correlate on app_id
-  appId?: SQL | string | null,
-) => {
+// Resolves the catalog a party buys from, taking `appId` as SQL as well as a literal so a per-row storefront correlates
+export const partyChannelCatalogId = (partyId: SQL | string | null | undefined, appId?: SQL | string | null) => {
   const channel = partyChannelType(partyId);
   // Unaliased so the shared `channelSpecificity` applies rather than a hand-spelled copy
   return sql<string>`(

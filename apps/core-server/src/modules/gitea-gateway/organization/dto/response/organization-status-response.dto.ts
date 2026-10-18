@@ -1,8 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OrganizationResponseDto } from './organization-response.dto';
 
-// Drives the Organization tab: `namespace` is always present so the create form can show it
-// locked, while `organization` is null until the namespace has actually been provisioned.
 export class OrganizationStatusResponseDto {
   @ApiProperty({ example: false, description: 'Whether the git namespace has been created yet' })
   exists: boolean;

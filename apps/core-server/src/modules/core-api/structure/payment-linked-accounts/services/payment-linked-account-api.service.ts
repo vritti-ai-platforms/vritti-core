@@ -28,8 +28,7 @@ export class PaymentLinkedAccountService {
     return this.linkedAccountService.listByCollector(orgId, collectorConfigId, scope);
   }
 
-  // Reserves a linked account, opens it at the collector's gateway, and records the outcome. A provider failure
-  // marks the row FAILED with the reason, then surfaces the original error
+  // Reserves a linked account, opens it at the collector's gateway, and records the outcome.
   async register(
     orgId: string,
     scope: PaymentLinkedAccountScope,
@@ -74,8 +73,7 @@ export class PaymentLinkedAccountService {
       throw error;
     }
 
-    // The account exists at the provider but its setup stopped part-way: keep what it created and report the
-    // failure. Registering the same bank account again resumes from the step that failed.
+    // The account exists at the provider but its setup stopped part-way: keep what it created and report the failure.
     if (result.setupError) {
       await this.linkedAccountService.markPartial(reservation.id, result, result.setupError.detail);
       throw new BadRequestException({

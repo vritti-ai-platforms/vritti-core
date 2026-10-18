@@ -22,8 +22,7 @@ export class LeCatalogChannelsAppResolver {
 
   constructor(private readonly service: LeCatalogChannelsGatewayService) {}
 
-  // What this storefront may price in. A switcher reads this to know which currencies exist before
-  // offering one — the session then carries the choice, and every priced read is made in it.
+  // What this storefront may price in.
   @Query(() => [String], { name: 'leCatalogCurrencies' })
   @RequirePermission(LE_CATALOG_CHANNELS.listings)
   leCatalogCurrencies(@AppId() appId: string): Promise<string[]> {
@@ -31,8 +30,8 @@ export class LeCatalogChannelsAppResolver {
     return this.service.appCurrencies(appId);
   }
 
-  // One page of what this credential's channel offers, at this workspace's price, with delisted rows
-  // and channel exclusions already dropped. Always paged — nothing reads the whole range.
+  // One page of what this credential's channel offers, at this workspace's price, with delisted rows and channel
+  // exclusions already dropped.
   @Query(() => CatalogListings, { name: 'leCatalogListings' })
   @RequirePermission(LE_CATALOG_CHANNELS.listings)
   leCatalogListings(
@@ -66,8 +65,6 @@ export class LeCatalogChannelsAppResolver {
     @AppId() appId: string,
     @Args({ name: 'codes', type: () => [String] }) codes: string[],
     @Args({ name: 'currencyCode', type: () => String }) currencyCode: string,
-    // The same selections `catalogListings` takes, so a caller can ask which of the codes it holds
-    // carry a value — a bestsellers band with filter tabs is exactly that question.
     @Args({ name: 'filters', type: () => [FilterInput], nullable: true }) filters?: FilterInput[],
   ): Promise<CatalogListing[]> {
     this.logger.log(`QUERY leCatalogListingsByCodes — ${codes.length} codes`);

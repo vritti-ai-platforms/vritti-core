@@ -16,14 +16,11 @@ import {
 export type GoodsReceiptLineWithRefs = GoodsReceiptLine & {
   locationName: string | null;
   locationPath: string | null;
-  // Lot detail (for tracking='lot' or 'serial' lines):
   lotNumber: string | null;
   lotManufacturingDate: string | null;
   lotExpiryDate: string | null;
   lotMrp: bigint | null;
-  // Symbol of the inventory item's primary UOM (for cross-UOM display alongside primaryUomQty):
   primaryUomSymbol: string | null;
-  // Computed:
   lineItemsCount: number;
 };
 

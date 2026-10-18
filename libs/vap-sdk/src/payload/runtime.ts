@@ -1,22 +1,8 @@
 import { VapError } from '../core/errors.js';
 import type { VapSdk } from '../server/sdk.js';
 
-/**
- * What these helpers need from a Payload instance.
- *
- * Structural rather than importing `Payload` itself, so the helpers stay usable across Payload minors
- * that reshape those generics — and so a test can pass a plain object instead of booting a CMS.
- */
 export interface PayloadLike {
-  /**
-   * The instance secret, used to sign anything this package parks in a cookie.
-   *
-   * Declared rather than reached for by cast: `session-token.ts` needed it first and asserted its
-   * way to it, which left the dependency invisible to anybody reading this type.
-   */
   secret: string;
-  // `overrideAccess` is declared because a collection this package owns keeps its access rules shut —
-  // the visitor session is written by server actions through the Local API and by nothing else.
   find(args: {
     collection: string;
     where?: unknown;
@@ -25,8 +11,6 @@ export interface PayloadLike {
     overrideAccess?: boolean;
   }): Promise<{ docs: unknown[] }>;
   create(args: { collection: string; data: Record<string, unknown>; overrideAccess?: boolean }): Promise<unknown>;
-  // `id` is a number under the postgres adapter and a string under mongo, so both are accepted rather
-  // than forcing every caller to cast whichever one their database gives them.
   update(args: {
     collection: string;
     id: string | number;
@@ -42,7 +26,6 @@ export interface PayloadLike {
   config: { custom?: Record<string, unknown> };
 }
 
-/** The signed-in party, as Payload's auth returns them. */
 export interface PartyLike {
   id: string | number;
   email?: string | null;
@@ -50,43 +33,20 @@ export interface PartyLike {
   partyId?: string | null;
 }
 
-/**
- * The slice of a Payload config this plugin touches.
- *
- * Structural rather than Payload's own `Config`, and that is load-bearing: the package's built types
- * would otherwise name one installed copy of payload, and a consumer resolving a different patch gets
- * `Plugin is not assignable to Plugin` — the same nominal-identity trap two copies of `graphql` cause.
- * Describing only what is read and written keeps the plugin usable across Payload minors.
- */
 export interface ConfigLike {
   collections?: unknown[];
-  /** Root endpoints, served under the API route (`/api` by default). Appended to, never replaced. */
   endpoints?: unknown[];
   custom?: Record<string, unknown>;
 }
 
-/** A collection as this package hands it over — opaque on purpose, for the reason above. */
 export type CollectionLike = Record<string, unknown>;
 
-/** Structurally compatible with Payload's own `Plugin`, whichever copy the consumer resolves. */
 export type PayloadPlugin = <T extends ConfigLike>(config: T) => T;
 
-/** Where the plugin parks the client on the Payload config. */
 export const SDK_CONFIG_KEY = 'vritti';
 
-/**
- * The core client the plugin attached to this Payload instance.
- *
- * Reached through `payload.config.custom` rather than a module singleton so there is exactly one
- * client per Payload instance and no import-order coupling — the plugin put it there while building
- * the config, and every helper and hook finds the same one.
- *
- * Throws rather than returning undefined: reaching here without the plugin registered is a
- * configuration mistake, and a clear message beats `Cannot read properties of undefined`.
- */
+// The core client the plugin attached to this Payload instance.
 export function getSdk(payload: PayloadLike): VapSdk {
-  // A factory, not the client itself — see the note in plugin.ts on why a getter would defeat the
-  // deferral it was meant to provide.
   const factory = payload.config.custom?.[SDK_CONFIG_KEY] as (() => VapSdk) | undefined;
   const sdk = typeof factory === 'function' ? factory() : undefined;
   if (!sdk) {

@@ -10,8 +10,8 @@ import {
 import { MutationResult } from './graphql/mutation-result.type';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
-// Per-inventory-item location configs (the mobile Locations tab) — a Relay offset feed (an item can be stocked
-// in many locations) plus create/edit/delete. Thin GraphQL forwards to the existing gateway methods.
+// Per-inventory-item location configs (the mobile Locations tab) — a Relay offset feed (an item can be stocked in many
+// locations) plus create/edit/delete.
 @Resolver()
 export class InventoryItemLocationsResolver {
   private readonly logger = new Logger(InventoryItemLocationsResolver.name);

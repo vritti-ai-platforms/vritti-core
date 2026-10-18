@@ -22,7 +22,6 @@ export class UomDimensionsDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Counts external entities (inventory items, supplier items) that reference any UOM in this dimension.
-  // UOMs themselves are excluded — they cascade with the dimension.
   async countReferences(id: string): Promise<{ inventoryItems: number; supplierItems: number }> {
     const [invResult, suppResult] = await Promise.all([
       this.db

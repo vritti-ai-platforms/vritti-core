@@ -7,8 +7,8 @@ import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-// Shared by the org, le and site controllers — the three surfaces are identical, and the workspace
-// header decides which templates are reachable, so one set of docs describes all of them.
+// Shared by the org, le and site controllers — the three surfaces are identical, and the workspace header decides which
+// templates are reachable, so one set of docs describes all of them.
 export function ApiListDimensionTemplates() {
   return applyDecorators(
     ApiOperation({

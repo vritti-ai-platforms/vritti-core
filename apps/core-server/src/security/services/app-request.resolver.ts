@@ -35,9 +35,6 @@ export class AppRequestResolver {
     const signature = header(requestService, 'x-signature');
     const partyId = header(requestService, PARTY_ID_HEADER);
 
-    // Collected before verification because they are part of what was signed. The
-    // header NAME carries the scope, so re-pointing a request from a site to a legal
-    // entity cannot survive even with the same id.
     const workspaceHeaders: Record<string, string | undefined> = {};
     for (const name of WORKSPACE_HEADER_ORDER) {
       const value = header(requestService, name);
@@ -56,8 +53,6 @@ export class AppRequestResolver {
     const valid = verifySignedRequest({
       method: requestService.getMethod(),
       path: requestService.getPath(),
-      // Signed separately from the path, which strips it. A REST route's filters
-      // would otherwise ride outside the signature.
       query: requestService.getQuery(),
       partyId,
       workspaceHeaders,
@@ -77,19 +72,15 @@ export class AppRequestResolver {
     auth.appId = app.id;
     auth.appType = app.type;
 
-    // Carried on the auth context rather than re-read downstream: the row is already in hand,
-    // so `PermissionInterceptor` gates the request without a second query, and a grant
-    // edited in cloud takes effect on the next request rather than when a cache expires.
+    // Carried on the auth context rather than re-read downstream: the row is already in hand, so
+    // `PermissionInterceptor` gates the request without a second query, and a grant edited in cloud takes effect on the
+    // next request rather than when a cache expires.
     auth.permissions = app.permissions;
 
-    // The party the app is acting for, when it named one. Signed, so it cannot be
-    // swapped in transit. The workspace headers are left to `applyContextHeaders`,
-    // which both callers share.
+    // The party the app is acting for, when it named one.
     if (partyId) auth.partyId = partyId;
 
     // Bookkeeping only — never allowed to fail a request that was otherwise valid.
-    // The service already swallows its own async rejection; this guards a synchronous
-    // throw, so the claim above holds however it fails.
     try {
       this.appService.touchLastUsed(app.id);
     } catch (error) {

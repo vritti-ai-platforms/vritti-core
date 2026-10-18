@@ -39,8 +39,6 @@ export const catalogListingPrices = commerceSchema.table(
 export type CatalogListingPrice = typeof catalogListingPrices.$inferSelect;
 export type NewCatalogListingPrice = typeof catalogListingPrices.$inferInsert;
 
-// Mirrors channelSpecificity: the narrowest workspace that priced a listing wins, and reach has
-// already hidden the rows belonging to workspaces this one cannot see.
 export const listingPriceSpecificity = sql`
   (case when ${catalogListingPrices.siteId} is not null then 4 else 0 end)
   + (case when ${catalogListingPrices.legalEntityId} is not null then 2 else 0 end)`;

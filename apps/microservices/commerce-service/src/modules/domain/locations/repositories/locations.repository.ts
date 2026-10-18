@@ -9,8 +9,6 @@ import {
   locations,
 } from '@/db/schema';
 
-// Hierarchy row consumed by the service's tree builder. The CTE aliases its columns to these
-// camelCase names, so the query result maps to this shape directly (no row-mapping step).
 export type HierarchyRow = {
   id: string;
   parentId: string | null;
@@ -33,8 +31,8 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
     return Number(result?.count ?? 0);
   }
 
-  // Returns a subquery resolving to the location IDs the given inventory item is allowed to use,
-  // based on inventory_item_locations rows. Used by the RESERVED_STORAGE filter in findForSelect.
+  // Returns a subquery resolving to the location IDs the given inventory item is allowed to use, based on
+  // inventory_item_locations rows.
   allowedReservedLocationIdsSubquery(inventoryItemId: string) {
     return this.db
       .select({ id: inventoryItemLocations.locationId })
@@ -42,9 +40,8 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
       .where(eq(inventoryItemLocations.inventoryItemId, inventoryItemId));
   }
 
-  // Returns a subquery resolving to the location IDs already used by lines on the given GR item,
-  // scoped to the lot (matching the (item, lot?, location) duplicate-line key). Used by the
-  // exclude filter in findForSelect so the GR add-line picker hides bins already taken.
+  // Returns a subquery resolving to the location IDs already used by lines on the given GR item, scoped to the lot
+  // (matching the (item, lot?, location) duplicate-line key).
   usedLocationIdsOnGoodsReceiptItemSubquery(goodsReceiptItemId: string, goodsReceiptLotId: string | null) {
     return this.db
       .select({ id: goodsReceiptLines.locationId })

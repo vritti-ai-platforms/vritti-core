@@ -5,8 +5,6 @@ import { useState } from 'react';
 import { AvailabilityTab } from './tabs/AvailabilityTab';
 import { LevelsTab } from './tabs/LevelsTab';
 
-// No current-site-group context exists in this MF yet, so the selection starts empty.
-// The query hooks are enabled-guarded on siteIds.length > 0.
 const siteIds: string[] = [];
 
 export const GroupInventoryPage = () => {

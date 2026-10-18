@@ -33,9 +33,7 @@ export class SiteOrdersService {
     private readonly communicationsService: PartyCommunicationsDomainService,
   ) {}
 
-  // Turns the shopper's basket at this site into an order awaiting payment. The basket is left as it is.
-  // Idempotent on the checkout key: a retried checkout (Pay pressed again after closing the gateway window) gets
-  // back the order it already opened, so its payment is the same payment rather than a second one
+  // Turns the shopper's basket at this site into an order awaiting payment.
   async createFromCart(dto: CreateOrderFromCartDto, siteId: string): Promise<CheckoutOrderDto> {
     const party = await this.partiesRepository.findById(dto.partyId);
     if (!party) throw new NotFoundException('Customer not found.');
@@ -111,9 +109,7 @@ export class SiteOrdersService {
       });
   }
 
-  // Answers a repeated checkout with the order its key already opened. A cancelled one cannot be paid any more —
-  // its payment never started or expired — so the shopper is told to start over, which a page reload does with a
-  // fresh key
+  // Answers a repeated checkout with the order its key already opened.
   private reuseCheckoutOrder(order: Order, currencyCode: string, customer: CheckoutCustomerDto): CheckoutOrderDto {
     if (order.status === OrderStatusValues.CANCELLED) {
       throw new ConflictException({

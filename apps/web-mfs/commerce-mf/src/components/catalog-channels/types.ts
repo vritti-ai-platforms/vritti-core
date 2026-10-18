@@ -30,16 +30,12 @@ export type UseChannelPrices = (
   currencyCode: string,
 ) => UseQueryResult<ChannelPricesTableResponse, AxiosError>;
 
-// One entry point; the service dispatches to the per-type endpoint. Assigning is an upsert, so a
-// caller never has to know whether this workspace already owns a row for the slot.
 export type UseUpsertChannel = Mutation<
   { type: CatalogChannelType; catalogId: string; appId?: string; terminalId?: string },
   CreateResponse<unknown>
 >;
 
-// Everything after assigning keys on channelId and is type-neutral
 export type UseDeleteChannel = Mutation<string>;
-// A currency excludes the item from that currency only; omitting it excludes the item outright
 export type UseSetChannelItemVisibility = Mutation<{
   channelId: string;
   listingId: string;

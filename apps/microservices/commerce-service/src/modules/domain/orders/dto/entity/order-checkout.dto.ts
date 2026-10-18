@@ -1,7 +1,6 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { Order, OrderStatus } from '@/db/schema';
 
-// Who is paying, as the payment gateway's checkout prefills it — so the customer is not asked again on its page
 export interface CheckoutCustomerDto {
   name: string | null;
   phone: string | null;

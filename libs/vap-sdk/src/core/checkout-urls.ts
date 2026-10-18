@@ -1,31 +1,15 @@
-/**
- * The storefront URLs one checkout attempt comes back to — environment-free, so the server action that
- * writes them and the pages that read them share one spelling.
- *
- * The embedded checkout leaves the storefront for the gateway's page. Razorpay posts the result to
- * core, which confirms it and redirects the party to one of two storefront URLs handed over when the
- * checkout started:
- *
- * - the **return URL**, with `intent` and `order` added — read with `readCheckoutAttempt`;
- * - the **checkout URL**, with `payment=failed|cancelled` (and the gateway's `message`) added. The
- *   storefront puts the attempt's `retry` key in it up front with `checkoutRetryUrl`, so Pay again lands
- *   on the same order — read with `readCheckoutRetry`.
- */
+// The storefront URLs one checkout attempt comes back to — environment-free, so the server action that writes them and
+// the pages that read them share one spelling.
 
-/** One checkout attempt: the intent to confirm, the order number to show, the key a retry reuses. */
 export type CheckoutAttempt = {
   paymentIntentId: string;
   orderNumber?: string;
   idempotencyKey?: string;
 };
 
-/** What `readCheckoutRetry` found on a checkout page the gateway sent the party back to. */
 export type CheckoutRetry = {
-  /** The key the failed attempt ran under. Reuse it so Pay again reaches the same order. */
   idempotencyKey?: string;
-  /** `failed` after a decline, `cancelled` after the party left the gateway's page. */
   outcome?: 'failed' | 'cancelled';
-  /** The gateway's sentence for a decline, written for the payer. Plain text — render it as such. */
   message?: string;
 };
 
@@ -55,7 +39,7 @@ function withQuery(base: string, query: Record<string, string | undefined>): str
   return `${base}${base.includes('?') ? '&' : '?'}${text}`;
 }
 
-/** `base` with the attempt in its query — the `callback_url`, and the return page the callback sends on to. */
+// `base` with the attempt in its query — the `callback_url`, and the return page the callback sends on to.
 export function checkoutAttemptUrl(base: string, attempt: CheckoutAttempt): string {
   return withQuery(base, {
     [ATTEMPT_PARAMS.intent]: attempt.paymentIntentId,
@@ -64,12 +48,7 @@ export function checkoutAttemptUrl(base: string, attempt: CheckoutAttempt): stri
   });
 }
 
-/**
- * The attempt `checkoutAttemptUrl` wrote, or null without a valid intent id.
- *
- * Everything here arrived in a URL, so it is the visitor's to rewrite: values that are not the shape
- * they should be are dropped rather than passed on.
- */
+// The attempt `checkoutAttemptUrl` wrote, or null without a valid intent id.
 export function readCheckoutAttempt(params: SearchParamsLike): CheckoutAttempt | null {
   const paymentIntentId = param(params, ATTEMPT_PARAMS.intent);
   if (!UUID.test(paymentIntentId)) return null;
@@ -82,7 +61,7 @@ export function readCheckoutAttempt(params: SearchParamsLike): CheckoutAttempt |
   };
 }
 
-/** The checkout page to come back to after a decline or a cancel, carrying the key for a retry. */
+// The checkout page to come back to after a decline or a cancel, carrying the key for a retry.
 export function checkoutRetryUrl(base: string, retry: CheckoutRetry): string {
   return withQuery(base, {
     [RETRY_PARAMS.key]: retry.idempotencyKey,
@@ -91,7 +70,7 @@ export function checkoutRetryUrl(base: string, retry: CheckoutRetry): string {
   });
 }
 
-/** What `checkoutRetryUrl` wrote, each value dropped unless it is the shape it should be. */
+// What `checkoutRetryUrl` wrote, each value dropped unless it is the shape it should be.
 export function readCheckoutRetry(params: SearchParamsLike): CheckoutRetry {
   const idempotencyKey = param(params, RETRY_PARAMS.key);
   const outcome = param(params, RETRY_PARAMS.outcome);

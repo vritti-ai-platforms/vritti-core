@@ -51,8 +51,8 @@ export class SiteOfferingDimensionsController {
     return this.service.reorder(data.offeringId, data.dimensionIds);
   }
 
-  // Removes a dimension; refused while any variant uses one of its values
-  // Renames a dimension; its code is fixed because every derived Code carries it
+  // Removes a dimension; refused while any variant uses one of its values Renames a dimension; its code is fixed
+  // because every derived Code carries it
   @MessagePattern({ cmd: 'site.offerings.dimensions.update' })
   update(@Payload() dto: UpdateOfferingDimensionDto): Promise<SuccessResponseDto> {
     const { id, ...data } = dto;

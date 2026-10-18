@@ -103,6 +103,7 @@ async function findOne(
   return docs[0] as MirroredUser | undefined;
 }
 
+// Only what cloud is authoritative for.
 // Only what cloud is authoritative for. A site's own columns on the collection are never touched.
 function profileFields(info: CloudUserInfo): Record<string, unknown> {
   const fields: Record<string, unknown> = {};

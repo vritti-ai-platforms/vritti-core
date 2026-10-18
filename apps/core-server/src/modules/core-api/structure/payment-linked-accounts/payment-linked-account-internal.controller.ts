@@ -27,8 +27,7 @@ import { ListPaymentLinkedAccountsInternalQueryDto } from './dto/request/list-pa
 import { PaymentLinkedAccountScopeQueryDto } from './dto/request/payment-linked-account-scope-query.dto';
 import { PaymentLinkedAccountService } from './services/payment-linked-account-api.service';
 
-// The cloud-facing surface. Signed cloud auth rather than a session, because cloud-server calls this on behalf of
-// an operator wiring up split payments — there is no RBAC context to gate on.
+// The cloud-facing surface.
 @ApiTags('Structure - Payment Linked Accounts (internal)')
 @Require(AuthType.Cloud)
 @Controller('payment-linked-accounts/internal')

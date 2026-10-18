@@ -9,6 +9,7 @@ export class CancelUnpaidOrderDto {
   @MaxLength(500)
   reason: string;
 
+  // The payment intent whose expiry triggers the cancel.
   // The payment intent whose expiry triggers the cancel. An order already bound to a different intent is left as is
   @IsOptional()
   @IsUUID()

@@ -18,8 +18,8 @@ export function parseStorefrontUrl(value: string): URL | null {
   return null;
 }
 
-// The canonical origin an allowed-origins entry names, or null when it is not a bare origin (a path, query or
-// fragment, credentials, or a protocol other than the storefront ones). A trailing slash and letter case are forgiven
+// The canonical origin an allowed-origins entry names, or null when it is not a bare origin (a path, query or fragment,
+// credentials, or a protocol other than the storefront ones).
 export function normalizeOrigin(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();

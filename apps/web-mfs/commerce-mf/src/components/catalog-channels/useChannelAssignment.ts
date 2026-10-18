@@ -7,10 +7,7 @@ import type { CatalogChannelsBinding } from './bindings';
 
 interface Slot {
   type: CatalogChannelType;
-  // The row at THIS slot, never the one it inherits — removing is the one action that needs a row,
-  // and deleting an inherited one would take the catalog away from every level below it too
   assignment: ChannelCatalogData | null;
-  // The app or terminal this slot stands for; absent when it is a channel's own default
   targetId?: string | null;
 }
 
@@ -23,20 +20,17 @@ export function useChannelAssignment(binding: CatalogChannelsBinding, slot: Slot
   const upsertChannel = binding.useUpsertChannel({ onSuccess: dialog.close });
   const deleteChannel = binding.useDeleteChannel();
 
-  // One call whether or not this workspace already owns a row here: the API repoints its own row, or
-  // stamps a new one that outranks whatever it was inheriting
   const submit = {
     mutation: upsertChannel,
     transformSubmit: ({ catalogId }: AssignCatalogFormData) => ({
       type: slot.type,
       catalogId,
-      // Only POS names a till; APP and B2B both name an app. Left undefined for a channel's own
-      // default so the request carries no target at all, rather than a null that reads as one.
       appId: slot.type === CatalogChannelTypeValues.POS ? undefined : slot.targetId,
       terminalId: slot.type === CatalogChannelTypeValues.POS ? slot.targetId : undefined,
     }),
   };
 
+  // Confirms, then deletes.
   // Confirms, then deletes. Copy differs between a default and one target, so the caller supplies it
   const remove = async (title: string, description: string) => {
     const existing = slot.assignment;

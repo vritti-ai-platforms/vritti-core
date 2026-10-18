@@ -4,7 +4,7 @@ import { VapError } from '../errors.js';
 import { createCheckoutOperations } from './checkout.js';
 import { createPaymentsOperations, parseCheckout, toKeyValues } from './payments.js';
 
-/** An intent as core answers it — `__typename`s included, the way Apollo hands them back. */
+// An intent as core answers it — `__typename`s included, the way Apollo hands them back.
 function rawIntent(payload = JSON.stringify({ key_id: 'rzp_test', order_id: 'order_1', amount: 49900 })) {
   return {
     __typename: 'PaymentIntent',
@@ -57,6 +57,7 @@ describe('payments', () => {
         channel: undefined,
       },
     });
+    // Site-scoped: the site header only, never the LE alongside it.
     // Site-scoped: the site header only, never the LE alongside it. The party travels when bound.
     expect(call?.context?.requestContext).toEqual({ partyId: 'p_1', siteId: 'site_1' });
   });

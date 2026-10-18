@@ -15,7 +15,8 @@ export class SmsProviderTemplatesGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // Reads Vritti's rows rather than the vendor: MSG91 has no endpoint that lists an account's SMS templates, so these rows are the list (see the schema note on sms_provider_templates)
+  // Reads Vritti's rows rather than the vendor: MSG91 has no endpoint that lists an account's SMS templates, so these
+  // rows are the list (see the schema note on sms_provider_templates)
   async findForTable(userId: string, providerId: string): Promise<SmsProviderTemplateTableResponseDto> {
     this.logger.log(`smsProviders.templates.list — provider: ${providerId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
@@ -44,8 +45,7 @@ export class SmsProviderTemplatesGatewayService {
     return this.nats.send('communications', 'org.smsProviders.templates.refresh', { id: templateId });
   }
 
-  // Forgets Vritti's row. Nothing is deleted at the vendor — unlike the WhatsApp templates tab,
-  // whose delete reaches through to Meta.
+  // Forgets Vritti's row.
   delete(templateId: string): Promise<SuccessResponseDto> {
     this.logger.log(`smsProviders.templates.delete — id: ${templateId}`);
     return this.nats.send('communications', 'org.smsProviders.templates.delete', { id: templateId });

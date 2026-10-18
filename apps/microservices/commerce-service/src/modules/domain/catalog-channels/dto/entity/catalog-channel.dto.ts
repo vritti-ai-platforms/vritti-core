@@ -1,5 +1,6 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { CatalogChannelType, CatalogFilterMode } from '@/db/schema';
+import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export type ChannelScope = 'SITE' | 'LEGAL_ENTITY' | 'ORGANIZATION';
 
@@ -24,15 +25,11 @@ export interface CatalogChannelRow {
   updatedAt: Date;
 }
 
-// The list is the only read that prints "x of y items", and both are correlated subqueries, so it
-// is the only one that selects them
 export interface ChannelListRow extends CatalogChannelRow {
   itemsTotal: number;
   itemsAvailable: number;
 }
 
-// One catalog as a channel serves it: a channel's default, or one app's or terminal's exception.
-// ownerScope / legalEntityId / siteId are what the gateway's OwnerNameService resolves names from.
 export class ChannelCatalogDto {
   channelId: string;
   catalogId: string;
@@ -53,7 +50,7 @@ export class ChannelCatalogDto {
     dto.catalogIsActive = row.catalogIsActive;
     dto.legalEntityId = row.legalEntityId ?? null;
     dto.siteId = row.siteId ?? null;
-    dto.ownerScope = row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG';
+    dto.ownerScope = workspaceScopeOf(row);
     dto.isOwn = row.isOwn;
     dto.itemsTotal = row.itemsTotal;
     dto.itemsAvailable = row.itemsAvailable;
@@ -154,8 +151,6 @@ export class ChannelItemDto {
   }
 }
 
-export type ChannelPriceOwnerScope = 'ORG' | 'LE' | 'SITE';
-
 export class ChannelPriceDto {
   listingId: string;
   offeringVariantId: string;
@@ -164,7 +159,7 @@ export class ChannelPriceDto {
   mrp: CurrencyAmountDto | null;
   // Null when nobody priced it in this currency, which is why it is unavailable here
   price: CurrencyAmountDto | null;
-  priceOwnerScope: ChannelPriceOwnerScope | null;
+  priceOwnerScope: WorkspaceScope | null;
   priceLegalEntityId: string | null;
   priceSiteId: string | null;
   availableHere: boolean;
@@ -184,7 +179,9 @@ export class ChannelPriceDto {
         ? CurrencyAmountDto.from(row.priceAmount, row.priceCurrencyCode)
         : null;
     dto.priceOwnerScope =
-      row.priceAmount == null ? null : row.priceSiteId ? 'SITE' : row.priceLegalEntityId ? 'LE' : 'ORG';
+      row.priceAmount == null
+        ? null
+        : workspaceScopeOf({ legalEntityId: row.priceLegalEntityId, siteId: row.priceSiteId });
     dto.priceLegalEntityId = row.priceLegalEntityId ?? null;
     dto.priceSiteId = row.priceSiteId ?? null;
     dto.availableHere = row.availableHere;
@@ -193,8 +190,6 @@ export class ChannelPriceDto {
   }
 }
 
-// Asking is not failing: an operator inspecting an unconfigured channel gets an answer, not an error.
-// Real callers use resolve(), which throws — a storefront with no catalog must not look "in stock".
 export class ResolvedCatalogDto {
   catalogId: string;
   catalogName: string;

@@ -33,13 +33,7 @@ export class SiteService {
     return this.siteService.findForSelect(orgId, query);
   }
 
-  /**
-   * The site types this organization has, as select options.
-   *
-   * Labelled here rather than in each consumer: `OUTLET` is a database value, "Outlet" is what an
-   * operator reads, and the two parting company across three screens is how one of them ends up
-   * showing the enum.
-   */
+  // The site types this organization has, as select options.
   async findTypesForSelect(orgId: string): Promise<SelectQueryResult> {
     const types = await this.siteService.findTypesForOrg(orgId);
     return {

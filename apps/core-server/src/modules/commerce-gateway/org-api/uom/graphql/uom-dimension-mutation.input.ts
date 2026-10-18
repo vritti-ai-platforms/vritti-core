@@ -2,8 +2,7 @@ import { Field, InputType, PartialType } from '@nestjs/graphql';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
-// Mirror create-/update-uom-dimension.dto.ts so the resolver forwards an input straight to
-// gateway.create/update. `code` is uppercase A-Z/0-9/_ starting with a letter (unique per BU).
+// Mirror create-/update-uom-dimension.dto.ts so the resolver forwards an input straight to gateway.create/update.
 @InputType()
 export class CreateUomDimensionInput {
   @Field(() => String)

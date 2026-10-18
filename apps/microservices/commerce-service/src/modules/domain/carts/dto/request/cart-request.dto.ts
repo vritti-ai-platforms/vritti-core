@@ -5,6 +5,7 @@ export class CartScopeDto {
   @IsUUID('7')
   partyId: string;
 
+  // ISO 4217.
   // ISO 4217. Fixes which of a listing's prices the basket is read at
   @IsString()
   @Length(3, 3)
@@ -17,12 +18,13 @@ export class CartScopeDto {
 }
 
 export class AddCartItemDto extends CartScopeDto {
+  // The product, by its code.
   // The product, by its code. Which catalogue offers it is resolved per read, never stored
   @IsCode()
   code: string;
 
-  // Bounded here as well as by the CHECK, so an out-of-range quantity is a readable refusal rather
-  // than a constraint violation surfacing as a server error.
+  // Bounded here as well as by the CHECK, so an out-of-range quantity is a readable refusal rather than a constraint
+  // violation surfacing as a server error.
   @IsInt()
   @Min(1)
   @Max(99)

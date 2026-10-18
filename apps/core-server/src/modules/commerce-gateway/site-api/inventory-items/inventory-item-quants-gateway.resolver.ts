@@ -5,8 +5,8 @@ import { SessionTypeValues } from '@/db/schema';
 import { InventoryItemQuantConnection } from './graphql/inventory-item-quant.type';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
-// Read-only per-quant feed for an inventory item — a Relay connection (offset cursor) for the mobile
-// infinite-scroll Quants tab. Thin forward to the gateway (which paginates via the commerce-service DB).
+// Read-only per-quant feed for an inventory item — a Relay connection (offset cursor) for the mobile infinite-scroll
+// Quants tab.
 @Resolver()
 export class InventoryItemQuantsFeedResolver {
   private readonly logger = new Logger(InventoryItemQuantsFeedResolver.name);

@@ -1,17 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-// Gitea's SSH listens on 2222 in the deployment stack. A non-22 port can't be expressed in the scp
-// form (`git@host:path`), so the SSH URL uses the ssh:// form to carry it.
 const GITEA_SSH_PORT = 2222;
 
-// Raw repository shape returned by the Gitea REST API — snake_case mirrors the wire format.
-// Kept beside the DTO that maps it so the two stay in step. The URL fields here are no longer used
-// for the DTO's URLs — those are derived from BASE_DOMAIN, not this Gitea payload.
 export interface GiteaApiRepository {
   id: number;
   name: string;
   full_name: string;
-  // Gitea sends null when a repository has no description, not an empty string
   description: string | null;
   private: boolean;
   empty: boolean;
@@ -74,9 +68,6 @@ export class RepositoryResponseDto {
     dto.isPrivate = repository.private;
     dto.isEmpty = repository.empty;
     dto.size = repository.size;
-    // Git URLs derived from BASE_DOMAIN, not Gitea's own html_url/clone_url/ssh_url (those depend on
-    // Gitea's ROOT_URL config, which can be wrong — e.g. gitea:3000). HTTP is portless (the edge/nginx
-    // handles :443); SSH carries Gitea's :2222 since it isn't fronted by the HTTP edge.
     const gitHost = `git.${baseDomain}`;
     dto.htmlUrl = `https://${gitHost}/${repository.full_name}`;
     dto.cloneUrl = `https://${gitHost}/${repository.full_name}.git`;

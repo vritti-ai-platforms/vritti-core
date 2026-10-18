@@ -20,16 +20,14 @@ export class OfferingAttributesDomainService {
 
   constructor(private readonly repository: OfferingAttributesDomainRepository) {}
 
-  // Lists an offering's axes with their values. The offering probe tells a missing offering apart from
-  // one that simply has no attributes yet, which an empty list alone cannot.
+  // Lists an offering's axes with their values.
   async list(offeringId: string): Promise<OfferingAttributeDto[]> {
     if (!(await this.repository.findOffering(offeringId))) throw new NotFoundException('Offering not found.');
     const attributes = await this.repository.findByOfferingWithValues(offeringId);
     return attributes.map((d) => OfferingAttributeDto.from(d, d.values));
   }
 
-  // Adds an empty axis to an offering. Existing variants are untouched — a variant names whichever
-  // attributes apply to it, not necessarily all of them, so nothing needs backfilling.
+  // Adds an empty axis to an offering.
   async create(data: CreateOfferingAttributeDto): Promise<CreateResponseDto<OfferingAttributeDto>> {
     const offering = await this.requireOwnedOffering(data.offeringId);
 
@@ -91,8 +89,7 @@ export class OfferingAttributesDomainService {
     };
   }
 
-  // Replaces the attribute's value set. Values a variant already carries cannot be dropped — the
-  // variant holds a foreign key to them.
+  // Replaces the attribute's value set.
   async upsertValues(data: UpsertOfferingAttributeValuesDto): Promise<SuccessResponseDto> {
     const attribute = await this.requireOwnedAttribute(data.attributeId);
     this.assertDistinctValueCodes(data.values);
@@ -103,12 +100,8 @@ export class OfferingAttributesDomainService {
     const submittedIds = new Set(data.values.map((input) => input.id).filter(Boolean));
     const submittedCodes = new Set(data.values.map((input) => input.code));
 
-    // No rename guard, unlike dimensions: an attribute code is not a Code segment, so changing one
-    // rewrites nothing. It does change the storefront's filter URL for that value, which the admin
-    // copy warns about rather than the server refusing.
+    // No rename guard, unlike dimensions: an attribute code is not a Code segment, so changing one rewrites nothing.
 
-    // Dropped only when NEITHER its id nor its code came back — id is optional, so a caller that sends
-    // just code/value still matches by code exactly as the transaction below does.
     const dropped = inUse.filter((value) => !submittedIds.has(value.id) && !submittedCodes.has(value.code));
     if (dropped.length > 0) {
       const quoted = dropped.map((value) => `"${value.code}"`).join(', ');
@@ -149,9 +142,7 @@ export class OfferingAttributesDomainService {
     return { success: true, message: `"${attribute.name}" now has ${pluralize('value', data.values.length, true)}.` };
   }
 
-  // Position drives the order filter groups appear in on a storefront. Nothing derived is stored, so
-  // recomputed, so reordering leaves them exactly as they are — variants created before and after a
-  // reorder can therefore carry differently ordered segments.
+  // Position drives the order filter groups appear in on a storefront.
   async reorder(offeringId: string, attributeIds: string[]): Promise<SuccessResponseDto> {
     const offering = await this.requireOwnedOffering(offeringId);
 
@@ -181,16 +172,15 @@ export class OfferingAttributesDomainService {
     return { success: true, message: 'Attribute order updated.' };
   }
 
-  // Renames the attribute. The code is left alone — it is the storefront's filter key for this
-  // attribute, so only the label a person reads is editable.
+  // Renames the attribute.
   async update(id: string, data: Omit<UpdateOfferingAttributeDto, 'id'>): Promise<SuccessResponseDto> {
     await this.requireOwnedAttribute(id);
     await this.repository.update(id, { name: data.name, description: data.description });
     return { success: true, message: `"${data.name}" updated.` };
   }
 
-  // Blocked while any variant carries a value on this axis — removing it would leave those variants
-  // with variants carrying values of an attribute that no longer exists.
+  // Blocked while any variant carries a value on this axis — removing it would leave those variants with variants
+  // carrying values of an attribute that no longer exists.
   async delete(id: string): Promise<SuccessResponseDto> {
     const attribute = await this.requireOwnedAttribute(id);
     const inUse = await this.repository.countVariantsUsingAttribute(id);

@@ -3,23 +3,12 @@ import { SEND_SMS_OTP, VERIFY_SMS_OTP } from '../graphql/otp.js';
 import { requireData, run } from '../transport/errors.js';
 import type { RequestContext, SendOtpResult } from '../types.js';
 
-/**
- * Codes over SMS — core's `sms-otps` domain, and nothing else.
- *
- * The `whatsappOtp` sibling, through the credential's configured SMS provider instead of its WABA.
- * Same two operations, same shapes; see that module for why neither resolves the party.
- */
+// Codes over SMS — core's `sms-otps` domain, and nothing else.
 export function createSmsOtpOperations(client: ApolloClient, context: RequestContext = {}) {
   const requestContext = { requestContext: context };
 
   return {
-    /**
-     * Sends a code to a phone number.
-     *
-     * **Every call spends money** — a billable message on the organization's provider account. Core
-     * refuses a resend inside the credential's cooldown and returns `resendAvailableAt` so a caller
-     * can show the wait rather than discovering it as an error.
-     */
+    // Sends a code to a phone number.
     send(phone: string): Promise<SendOtpResult> {
       return run(() =>
         client
@@ -32,7 +21,7 @@ export function createSmsOtpOperations(client: ApolloClient, context: RequestCon
       );
     },
 
-    /** Whether a code holds, and nothing more. Every failure mode reads identically. */
+    // Whether a code holds, and nothing more.
     verify(phone: string, code: string): Promise<boolean> {
       return run(() =>
         client

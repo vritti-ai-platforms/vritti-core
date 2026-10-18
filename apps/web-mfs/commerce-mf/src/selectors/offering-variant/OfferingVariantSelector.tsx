@@ -2,7 +2,6 @@ import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
 import { forwardRef } from 'react';
 
 export interface OfferingVariantSelectorProps extends SelectProps {
-  // Variants are only meaningful within their offering, so the parent scopes every query
   offeringId: string;
 }
 

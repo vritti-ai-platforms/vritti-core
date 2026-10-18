@@ -60,8 +60,8 @@ export class SmsOtpsGatewayService {
       },
     );
 
-    // The two timestamps cross NATS as ISO strings, and GraphQLISODateTime serializes anything that
-    // is not a Date instance to null — so convert before the resolver returns
+    // The two timestamps cross NATS as ISO strings, and GraphQLISODateTime serializes anything that is not a Date
+    // instance to null — so convert before the resolver returns
     return {
       sent: result.sent,
       expiresAt: new Date(result.expiresAt),
@@ -99,8 +99,7 @@ export class SmsOtpsGatewayService {
     return this.nats.send('communications', 'org.smsOtps.stats', {});
   }
 
-  // Apps set up to send SMS sign-in codes. Read from the app rows, so it reflects configuration
-  // rather than traffic — an app configured today but not yet used still belongs in this list.
+  // Apps set up to send SMS sign-in codes.
   async findConfiguredApps(organizationId: string): Promise<ConfiguredSmsOtpAppResponseDto[]> {
     const apps = await this.appService.listForOrg(organizationId);
     return apps

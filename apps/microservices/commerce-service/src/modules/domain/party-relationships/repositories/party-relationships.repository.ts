@@ -123,7 +123,6 @@ export class PartyRelationshipsDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // Returns paginated relationship (person) options of a company party, optionally holders of a function.
-  // The picker value is the relationship id (used as supplier_sites.order_relationship_id).
   async findOptionsForSelect(
     partyId: string,
     query: SelectOptionsQueryDto,

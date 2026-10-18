@@ -42,10 +42,8 @@ export class WhatsappAccountsGatewayController {
     return this.service.findForTable(userId);
   }
 
-  // Whether this deployment can run Embedded Signup at all, so the UI can hide its buttons rather
-  // than starting a flow that cannot finish.
-  // Declared above @Get(':id') — that route is not UUID-piped, so a single-segment path here would
-  // be swallowed by it.
+  // Whether this deployment can run Embedded Signup at all, so the UI can hide its buttons rather than starting a flow
+  // that cannot finish.
   @Get('embedded-signup/config')
   @RequirePermission(ORG_WHATSAPP_ACCOUNTS.add)
   @ApiGetEmbeddedSignupConfig()
@@ -68,8 +66,7 @@ export class WhatsappAccountsGatewayController {
     return this.service.createConnectState(organizationId, userId, dto);
   }
 
-  // Starts a credential replacement for one existing account. The account id rides in the minted
-  // state, so the completion cannot be redirected onto a different row.
+  // Starts a credential replacement for one existing account.
   @Post(':id/reconnect/state')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_WHATSAPP_ACCOUNTS.edit)

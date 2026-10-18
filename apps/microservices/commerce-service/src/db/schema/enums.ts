@@ -20,8 +20,6 @@ export const FulfilmentTypeValues = {
   SERVICE: 'SERVICE' as const,
 };
 
-// How many bill-of-materials components each fulfilment type takes. A property of the enum, so it
-// lives with it rather than being copied into every service that enforces it.
 export const BOM_RULES = {
   [FulfilmentTypeValues.STOCK]: { min: 1, max: 1 },
   [FulfilmentTypeValues.ASSEMBLY]: { min: 1, max: Number.POSITIVE_INFINITY },

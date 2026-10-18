@@ -6,19 +6,8 @@ import { resolvePayload } from './payload-adapter.js';
 import { formField, type PartyActionState, returnToFrom, withPartyErrors } from './state.js';
 import { vapSdk } from './visitor-session.js';
 
-/**
- * The basket, as server actions a storefront imports directly.
- *
- * Form posts rather than client fetches, deliberately: a storefront that works with JavaScript off
- * needs them, and a `fetch` cannot follow the `redirect()` a signed-out visitor is answered with.
- *
- * Each one guards first — `requireParty` either hands back a party with a party, or redirects to
- * sign-in carrying where they were, so nothing below deals with a signed-out caller. Nothing passes
- * a party to core: it reads that from the request signature, which is also what proves the basket
- * being changed is theirs.
- */
+// The basket, as server actions a storefront imports directly.
 
-/** The basket's ceiling per line — the bound core's `ck_cart_items_quantity` CHECK enforces. */
 const MAX_QUANTITY = 99;
 
 export async function addToCartAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
@@ -33,8 +22,8 @@ export async function addToCartAction(_previous: PartyActionState, formData: For
   const result = await withPartyErrors(payload, async () =>
     (await vapSdk(payload, { partyId: party.partyId })).cart.add(code, quantity).then(() => ({ ok: true })),
   );
-  // The header's basket count renders on every page, so the route the party is looking at has to be
-  // re-rendered for it to change.
+  // The header's basket count renders on every page, so the route the party is looking at has to be re-rendered for it
+  // to change.
   revalidatePath(returnTo);
   return result;
 }
@@ -68,13 +57,7 @@ export async function removeFromCartAction(_previous: PartyActionState, formData
   return result;
 }
 
-/**
- * One step of a product page's quantity stepper.
- *
- * The form carries the quantity it was rendered with and `intent` says which way to go. Stepping
- * down from one removes the line rather than asking core for zero, which it refuses — removing is
- * its own operation there.
- */
+// One step of a product page's quantity stepper.
 export async function setCartQuantityAction(
   _previous: PartyActionState,
   formData: FormData,

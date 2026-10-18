@@ -23,8 +23,6 @@ const binding: AttributeTemplatesBinding = {
   useSetActive: useSetAttributeTemplateActive,
 };
 
-// The gate sits above the page so a denied user never mounts it and never fires the request —
-// useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.
 const routes: RouteObject[] = [
   {
     index: true,

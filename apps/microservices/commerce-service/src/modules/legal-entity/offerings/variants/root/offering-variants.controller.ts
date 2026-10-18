@@ -63,8 +63,7 @@ export class LeOfferingVariantsController {
     return this.service.findById(data.id);
   }
 
-  // Creates every selected combination that does not exist yet. Additive: an unselected combination
-  // is never deleted, because a variant may already carry stock or sit on an order line.
+  // Creates every selected combination that does not exist yet.
   @MessagePattern({ cmd: 'le.offerings.variants.generate' })
   generate(@Payload() dto: GenerateVariantsDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.generate — offeringId: ${dto.offeringId}, count: ${dto.combinations.length}`);
@@ -116,8 +115,8 @@ export class LeOfferingVariantsController {
     return this.service.bulkSetAttribute(dto);
   }
 
-  // Replaces the attribute values this variant carries; attributes sit outside the combination matrix,
-  // so nothing about the variant's identity changes
+  // Replaces the attribute values this variant carries; attributes sit outside the combination matrix, so nothing about
+  // the variant's identity changes
   @MessagePattern({ cmd: 'le.offerings.variants.setAttributes' })
   setAttributes(@Payload() dto: SetVariantAttributesDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.setAttributes — id: ${dto.id}, values: ${dto.valueIds.length}`);

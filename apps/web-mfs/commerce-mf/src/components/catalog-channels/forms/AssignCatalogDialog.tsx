@@ -10,14 +10,8 @@ import { type AssignCatalogFormData, assignCatalogSchema } from '@/schemas/catal
 import { CatalogSelector } from '@/selectors/catalog';
 
 interface AssignCatalogDialogProps {
-  // Catalogs this slot already resolves to. The API refuses an assignment that changes nothing, so
-  // offering one back would only earn a 409.
   excludeCatalogIds?: (string | null | undefined)[];
-  // The grid already names every app and terminal, so the target is implied by the card that opened
-  // this — there is nothing left to pick but the catalog.
-  // biome-ignore lint/suspicious/noExplicitAny: one dialog serves several differently-shaped mutations
   mutation: UseMutationResult<any, AxiosError, any>;
-  // Turns the single catalogId field into whichever payload that mutation takes
   transformSubmit: (data: AssignCatalogFormData) => unknown;
   submitLabel: string;
   onCancel: () => void;

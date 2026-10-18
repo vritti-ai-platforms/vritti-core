@@ -18,7 +18,6 @@ import {
 import { StockAdjustmentLineItemDto } from '../dto/entity/stock-adjustment-line-item.dto';
 import { StockAdjustmentLineItemsDomainRepository } from '../repositories/stock-adjustment-line-items.repository';
 
-// Minimal adjustment shape needed by write methods — passed in from app-layer
 interface AdjustmentContext {
   id: string;
   status: StockAdjustmentStatus;
@@ -56,9 +55,8 @@ export class StockAdjustmentLineItemsDomainService {
     return this.repository.countByLineId(lineId);
   }
 
-  // For tracking='serial' lines:
-  //   - OPENING_STOCK: register a NEW serial — must not exist in inventory_item_serials for this item
-  //   - Deduct types:  consume an EXISTING serial — must be AVAILABLE on the line's quant
+  // For tracking='serial' lines: - OPENING_STOCK: register a NEW serial — must not exist in inventory_item_serials for
+  // this item - Deduct types: consume an EXISTING serial — must be AVAILABLE on the line's quant
   async addLineItem(
     adjustment: AdjustmentContext,
     lineId: string,

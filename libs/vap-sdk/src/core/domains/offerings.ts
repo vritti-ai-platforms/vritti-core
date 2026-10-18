@@ -3,7 +3,6 @@ import { SITE_OFFERING_VARIANTS_QUERY } from '../graphql/offerings.js';
 import { requireData, run } from '../transport/errors.js';
 import { contextForScope, type RequestContext } from '../types.js';
 
-/** One variant a storefront may file a product page against. */
 export type OfferingVariantOption = {
   id: string;
   code: string;
@@ -12,19 +11,10 @@ export type OfferingVariantOption = {
 
 export type OfferingVariantOptions = {
   items: OfferingVariantOption[];
-  /** Matching variants across every page, after `excludeIds` */
   total: number;
 };
 
-/**
- * The products a storefront's own CMS points at.
- *
- * Separate from `catalogChannels`: that answers what the shop sells and for how much, this answers
- * what exists to be sold. A page is filed against a variant, which may happen before anyone lists it.
- *
- * Read only, and never cached by default — this is the picker staff file from, and a variant created
- * a moment ago belongs in it.
- */
+// The products a storefront's own CMS points at.
 export function createOfferingsOperations(client: ApolloClient, context: RequestContext = {}) {
   return {
     async variants(

@@ -17,8 +17,7 @@ export class SmsProvidersGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // The providers that can actually be connected. Comes from the microservice's transport registry,
-  // so it never advertises a provider nothing can send through.
+  // The providers that can actually be connected.
   listAvailable(): Promise<SmsProviderCapabilitiesResponseDto[]> {
     this.logger.log('smsProviders.available');
     return this.nats.send('communications', 'org.smsProviders.available', {});

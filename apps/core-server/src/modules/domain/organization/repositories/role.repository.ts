@@ -14,7 +14,8 @@ export class RoleDomainRepository extends PrimaryBaseRepository<typeof roles> {
     super(database, roles);
   }
 
-  // Returns an org's roles matching an exact scope as select options; SITE scope also matches null or the given site type
+  // Returns an org's roles matching an exact scope as select options; SITE scope also matches null or the given site
+  // type
   async findForSelectOptions(
     query: SelectOptionsQueryDto,
     orgId: string,

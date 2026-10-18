@@ -27,14 +27,9 @@ const REPOSITORIES_TABLE_SLUG = 'gitea-org-repositories';
 // A single page is enough for a branch picker — 50 is also Gitea's own MAX_RESPONSE_ITEMS ceiling
 const BRANCH_LIMIT = 50;
 
-// Last-commit fields cost an extra tree walk in Gitea, so they are requested explicitly — they feed the
-// listing's Last-commit column. lfs_metadata surfaces lfs_size, without which an LFS-tracked row would
-// report its ~130-byte pointer as the file size. File content is not requested: nothing renders it.
 const CONTENTS_INCLUDES = 'commit_metadata,commit_message,lfs_metadata';
 
 // Percent-encodes each segment of a repository-relative path, keeping the separators intact.
-// Repository names and paths arrive as route params and query strings, and an unescaped `..` would
-// let the request climb out of the repository to another endpoint under the site-admin token.
 function encodeRepoPath(path: string): string {
   return path.split('/').map(encodeURIComponent).join('/');
 }
@@ -54,8 +49,6 @@ export class RepositoriesGatewayService {
   }
 
   // Returns a page of repositories for the data table, with the view state the client last pushed.
-  // The git service can only honour pagination — it offers no filtering or sorting over org repos — so
-  // the rest of the state is round-tripped for the client rather than faked here.
   async findForTable(userId: string, subdomain: string): Promise<RepositoryTableResponseDto> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, REPOSITORIES_TABLE_SLUG);
@@ -85,8 +78,6 @@ export class RepositoriesGatewayService {
   }
 
   // Reads a collection's total from its x-total-count header without fetching the collection.
-  // Resolves to 0 rather than throwing when Gitea reports the collection does not exist — /commits
-  // 404s on a repository with no commits, which is a legitimate zero rather than an error.
   private async countOf(path: string, params?: Record<string, unknown>): Promise<number> {
     try {
       const response = await this.gitea.getWithHeaders<unknown[]>(path, {
@@ -106,8 +97,8 @@ export class RepositoriesGatewayService {
     const base = `/repos/${namespace}/${encodeURIComponent(name)}`;
 
     const [commits, branches, tags] = await Promise.all([
-      // Scoped to the selected ref, matching what the branch picker is showing. stat=false skips diff
-      // computation Gitea would otherwise do for a payload we discard anyway.
+      // Scoped to the selected ref, matching what the branch picker is showing. stat=false skips diff computation Gitea
+      // would otherwise do for a payload we discard anyway.
       this.countOf(`${base}/commits`, { stat: false, ...(ref ? { sha: ref } : {}) }),
       this.countOf(`${base}/branches`),
       this.countOf(`${base}/tags`),
@@ -140,9 +131,6 @@ export class RepositoriesGatewayService {
     // Gitea defaults `ref` to the repository's default branch, so it is only sent when overridden
     const ref = query.ref ? { ref: query.ref } : {};
 
-    // contents-ext carries per-entry commit metadata in one call, but it does not exist on every Gitea
-    // (verified absent on 1.23 and 1.24). Its 404 is indistinguishable from an empty directory here, so
-    // fall back to /contents — same listing, minus the last-commit message.
     const ext = await this.gitea.getOrNull<GiteaApiContentsExt>(`${base}/contents-ext/${path}`, {
       params: { includes: CONTENTS_INCLUDES, ...ref },
     });
@@ -152,9 +140,9 @@ export class RepositoriesGatewayService {
       params: ref,
     });
 
-    // A repository with no commits and a path that no longer exists on this ref both 404, and a path
-    // resolving to a file answers with a single object — all three collapse to an empty listing,
-    // because this gateway browses directories only.
+    // A repository with no commits and a path that no longer exists on this ref both 404, and a path resolving to a
+    // file answers with a single object — all three collapse to an empty listing, because this gateway browses
+    // directories only.
     return RepositoryContentsResponseDto.from(Array.isArray(plain) ? plain : []);
   }
 
@@ -180,8 +168,6 @@ export class RepositoriesGatewayService {
 
   // Deletes a repository owned by the organization's git namespace
   async remove(subdomain: string, name: string): Promise<SuccessResponseDto> {
-    // Resolve the namespace like every sibling operation instead of assuming it equals the subdomain —
-    // it is stored independently, so a drifted value would delete under the wrong owner.
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
 
     await this.gitea.delete<void>(`/repos/${namespace}/${encodeURIComponent(name)}`);

@@ -1,19 +1,16 @@
 import type { Catalog } from '@/db/schema';
-
-export type CatalogOwnerScope = 'ORG' | 'LE' | 'SITE';
+import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export class CatalogDto {
   id: string;
   name: string;
   legalEntityId: string | null;
   siteId: string | null;
-  ownerScope: CatalogOwnerScope;
+  ownerScope: WorkspaceScope;
   taxInclusive: boolean;
   isActive: boolean;
   listingCount: number;
   channelCount: number;
-  // False when the catalog belongs to a wider workspace: this one prices its listings but cannot
-  // rename it, retire it, or change which currencies it offers
   canEdit: boolean;
   // The currencies this price list may be priced in, in the order they are offered
   currencyCodes: string[];
@@ -30,7 +27,7 @@ export class CatalogDto {
     dto.name = entity.name;
     dto.legalEntityId = entity.legalEntityId ?? null;
     dto.siteId = entity.siteId ?? null;
-    dto.ownerScope = entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG';
+    dto.ownerScope = workspaceScopeOf(entity);
     dto.taxInclusive = entity.taxInclusive;
     dto.isActive = entity.isActive;
     dto.listingCount = counts?.items ?? 0;

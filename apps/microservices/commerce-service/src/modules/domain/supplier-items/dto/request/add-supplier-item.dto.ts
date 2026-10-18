@@ -10,8 +10,8 @@ export class AddSupplierItemDto {
   @IsUUID('7')
   inventoryItemId: string;
 
-  // How this supplier's invoice classifies the goods — the same item can be goods from one supplier
-  // and job work from another. Required: there is no fallback to the item or its category.
+  // How this supplier's invoice classifies the goods — the same item can be goods from one supplier and job work from
+  // another.
   @IsUUID('7')
   taxClassId: string;
 
@@ -43,6 +43,7 @@ export class AddSupplierItemDto {
   @IsBoolean()
   isPreferred?: boolean;
 
+  // Standing free-goods scheme (e.g. buy 9 get 1).
   // Standing free-goods scheme (e.g. buy 9 get 1). Prefills PO/GR lines for this supplier item.
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 3 })

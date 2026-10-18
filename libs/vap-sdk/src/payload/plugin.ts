@@ -1,6 +1,5 @@
-// Payload is ESM-only while this package emits CommonJS, so a type-only import needs to be told which
-// resolution mode to read its `exports` map under. Safe precisely because it is type-only: nothing here
-// imports a runtime value from payload, so there is no CJS/ESM interop at all in the built output.
+// Payload is ESM-only while this package emits CommonJS, so a type-only import needs to be told which resolution mode
+// to read its `exports` map under.
 import type { Field } from 'payload' with { 'resolution-mode': 'import' };
 import type { VapSdkOptions } from '../core/config.js';
 import { createPostgresResponseCache } from '../server/cache/postgres.js';
@@ -13,96 +12,24 @@ import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime.j
 import { type PaymentEventHandler, paymentWebhookEndpoint } from './webhooks.js';
 
 export interface VapOptions extends VapSdkOptions {
-  /** Mirrors `s3Storage` — off leaves the config untouched, so a branch can disable it without edits. */
   enabled?: boolean;
 
-  /**
-   * Where to cache core's responses — the same connection string Payload's adapter is given.
-   *
-   * Supplying it turns caching on: the plugin builds the store over its own `vap-cache` table, so a
-   * storefront gets it by configuring one value instead of writing an adapter. Omit it and the client
-   * behaves exactly as it does without a cache, and no pool is ever opened.
-   *
-   * Caching is still opt-in per operation on top of this — a store only makes it possible.
-   */
   databaseUrl?: string;
 
-  /**
-   * The schema Payload namespaces its tables under — pass the same value as `postgresAdapter`'s
-   * `schemaName`, or the cache addresses a table that is not there.
-   */
   databaseSchema?: string;
 
-  /** Extra fields appended to the generated collections, for a storefront's own columns. */
   fields?: {
     parties?: Field[];
     vapCache?: Field[];
     visitorSessions?: Field[];
   };
 
-  /**
-   * What the ready-made sign-in actions need, for an app importing them from
-   * `@vritti/vap-sdk/next/auth` rather than writing its own.
-   *
-   * Parked in `config.custom`, which is server-only, and read back through the running Payload
-   * instance — so the actions need nothing passed at call time, and a storefront configures its
-   * sign-in exactly once, here.
-   *
-   * Omit it entirely if the app wires the flow itself with `createOtpSignInActions`.
-   */
   auth?: VapNextConfig;
 
-  /**
-   * Receives core's payment webhooks — succeeded, failed, expired.
-   *
-   * Setting it adds `POST /api/vap/webhooks` (after any endpoints the site already has), which
-   * verifies each delivery against this plugin's `clientSecret` before calling you. Register that URL
-   * as the website's webhook URL in cloud. Throw to have core retry; make the handler idempotent on
-   * `event.id`, since retries and duplicate deliveries both happen.
-   *
-   * ```ts
-   * vap({
-   *   ...credentials,
-   *   onPaymentEvent: async (event, { payload }) => {
-   *     if (event.type !== 'payment_intent.succeeded') return;
-   *     await payload.update({ collection: 'bookings', id: event.data.reference.id, data: { paid: true } });
-   *   },
-   * })
-   * ```
-   */
   onPaymentEvent?: PaymentEventHandler;
 }
 
-/**
- * Everything a storefront needs to talk to VAP, as one Payload plugin.
- *
- * ```ts
- * plugins: [
- *   vap({
- *     endpoint: process.env.CORE_GRAPHQL_URL,
- *     clientId: process.env.VRITTI_APP_CLIENT_ID,
- *     clientSecret: process.env.VRITTI_APP_CLIENT_SECRET,
- *   }),
- * ]
- * ```
- *
- * That generates the `customers` collection and attaches the core client.
- * The credentials are read by the host and passed in — the SDK touches no environment variable of
- * its own, for the reasons in `resolveConfig`. Those three names are what cloud seals into a
- * provisioned website's container, so on one of those the block above is the whole configuration.
- *
- * **Why a plugin and not a module the app imports.** Payload's `Plugin` is
- * `(config: Config) => Config`, and contributing collections is only possible from inside that
- * transform. Every storefront otherwise hand-writes the same two collections and they drift — which is
- * exactly what happened before this existed.
- *
- * **The client is built lazily.** A getter rather than a value, so a missing variable fails the first
- * request that needs core instead of the whole CMS at boot: the storefront's pages, its login and its
- * admin panel are all meant to work with core unreachable.
- *
- * **`custom` is server-only.** It is in Payload's `serverOnlyConfigProperties` strip list, so the
- * client — and the signing key it holds — never reaches the browser bundle.
- */
+// Everything a storefront needs to talk to VAP, as one Payload plugin.
 export function vap(options: VapOptions = {}): PayloadPlugin {
   const { enabled = true, fields, databaseUrl, databaseSchema, auth, onPaymentEvent, ...sdkOptions } = options;
 
@@ -111,8 +38,7 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
 
     let client: ReturnType<typeof createVapSdk> | undefined;
 
-    // Cast because spreading a generic and adding known keys cannot be proven to still be `T`. It is:
-    // both keys are declared on ConfigLike, so nothing outside the constraint is being changed.
+    // Cast because spreading a generic and adding known keys cannot be proven to still be `T`.
     return {
       ...config,
       collections: [
@@ -131,16 +57,15 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
         : {}),
       custom: {
         ...config.custom,
-        // A function rather than a getter, and that matters: spreading an object invokes its getters, so
-        // `{ ...config.custom }` anywhere in Payload or in a later plugin would build the client during the
-        // config phase — and throw there when a credential is missing, which is exactly what deferring it
-        // was meant to avoid. `JSON.stringify` has the same problem. A function reference survives both.
+        // A function rather than a getter, and that matters: spreading an object invokes its getters, so `{
+        // ...config.custom }` anywhere in Payload or in a later plugin would build the client during the config phase —
+        // and throw there when a credential is missing, which is exactly what deferring it was meant to avoid.
         ...(auth ? { [VAP_NEXT_KEY]: auth } : {}),
         [SDK_CONFIG_KEY]: () =>
           (client ??= createVapSdk({
             ...sdkOptions,
-            // Only when a connection was supplied — otherwise the client has no store and never
-            // consults one, which is the same shape it had before caching existed.
+            // Only when a connection was supplied — otherwise the client has no store and never consults one, which is
+            // the same shape it had before caching existed.
             ...(databaseUrl ? { responseCache: createPostgresResponseCache({ databaseUrl, databaseSchema }) } : {}),
           })),
       },

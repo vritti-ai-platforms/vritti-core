@@ -25,8 +25,8 @@ interface CatalogPricesPageProps {
   binding: CatalogsBinding;
 }
 
-// The table holds one currency, and the backend resolved it to one row per listing: this workspace's
-// own price when it set one, otherwise the price it inherits from a wider workspace
+// The table holds one currency, and the backend resolved it to one row per listing: this workspace's own price when it
+// set one, otherwise the price it inherits from a wider workspace
 const resolvedPrice = (listing: CatalogListingData) => listing.prices[0];
 
 // What one catalog charges in one currency — the drill-in behind a card on the Prices tab
@@ -140,8 +140,6 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
               label: 'Clear Price',
               variant: 'destructive',
               permission: binding.permissions.prices.clear,
-              // Only this workspace's own price can go, and an inherited one is cleared where it was
-              // set — so the action is absent rather than greyed out, as there is nothing to enable
               hidden: !own,
               onClick: () => handleClear(r),
             },

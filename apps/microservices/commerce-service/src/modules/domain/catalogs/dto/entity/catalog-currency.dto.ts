@@ -6,8 +6,6 @@ export interface CatalogCurrencyCoverageRow {
 
 export class CatalogCurrencyDto {
   currencyCode: string;
-  // Listings this workspace can quote in this currency, out of every listing in the catalog — the gap
-  // is what a storefront asking for it finds unpriced
   pricedCount: number;
   listingCount: number;
 

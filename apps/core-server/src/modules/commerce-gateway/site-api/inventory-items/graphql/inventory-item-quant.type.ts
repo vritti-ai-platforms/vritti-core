@@ -1,7 +1,6 @@
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 
 // One physical stock segment for an inventory item (read-only) — a quant at a (location, lot, cost) batch.
-// `id` is the quant's own uuid, so Apollo's normalized cache keys it directly.
 @ObjectType()
 export class InventoryItemQuant {
   @Field(() => ID)
@@ -41,8 +40,7 @@ export class InventoryItemQuant {
   createdAt: string;
 }
 
-// Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache. Names are
-// quant-scoped to avoid global GraphQL type-name collisions (NestJS code-first).
+// Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache.
 @ObjectType()
 export class InventoryItemQuantPageInfo {
   @Field(() => Boolean)

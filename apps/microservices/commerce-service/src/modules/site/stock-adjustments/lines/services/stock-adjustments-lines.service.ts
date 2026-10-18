@@ -10,8 +10,6 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { InventoryTrackingValues } from '@/db/schema';
 
 // App-layer orchestrator for stock-adjustment line writes that need inventory-aggregate awareness.
-// Handles UOM validation against the item's allowed set + converting the line quantity to the item's
-// primary UOM (snapshot stored on the line) before delegating persistence to the domain service.
 @Injectable()
 export class StockAdjustmentsLinesService {
   private readonly logger = new Logger(StockAdjustmentsLinesService.name);
@@ -153,9 +151,8 @@ export class StockAdjustmentsLinesService {
     return { success: true, message: 'Line updated successfully.' };
   }
 
-  // Recomputes the primary-qty snapshot when either uomQty or uomId changes; returns undefined otherwise
-  // so the domain update leaves the existing snapshot in place. Fetches the existing line so callers
-  // can update just one of (uomQty, uomId).
+  // Recomputes the primary-qty snapshot when either uomQty or uomId changes; returns undefined otherwise so the domain
+  // update leaves the existing snapshot in place.
   private async recomputePrimaryQtyForUpdate(
     inventoryItemId: string,
     adjustmentId: string,
@@ -186,8 +183,7 @@ export class StockAdjustmentsLinesService {
     }
   }
 
-  // Validates that the supplied uomId is in the item's allowed set. Serial-tracked items
-  // are restricted to the primary UOM since quants store serials 1:1.
+  // Validates that the supplied uomId is in the item's allowed set.
   private async validateUomId(
     adjustment: { inventoryItemId: string; inventoryItemUomId: string; inventoryItemTracking: string },
     uomId: string,

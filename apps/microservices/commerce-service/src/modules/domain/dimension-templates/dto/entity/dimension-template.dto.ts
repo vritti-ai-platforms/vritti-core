@@ -1,6 +1,5 @@
 import type { DimensionTemplate, DimensionTemplateValue } from '@/db/schema';
-
-export type TemplateOwnerScope = 'ORG' | 'LE' | 'SITE';
+import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export class DimensionTemplateValueDto {
   id: string;
@@ -29,7 +28,7 @@ export class DimensionTemplateDto {
   isActive: boolean;
   legalEntityId: string | null;
   siteId: string | null;
-  ownerScope: TemplateOwnerScope;
+  ownerScope: WorkspaceScope;
   values: DimensionTemplateValueDto[];
   valueCount: number;
   canEdit: boolean;
@@ -37,8 +36,8 @@ export class DimensionTemplateDto {
   createdAt: string;
   updatedAt: string;
 
-  // Maps a DimensionTemplate entity with its values to a DimensionTemplateDto; only the owning
-  // workspace may change it, so isOwned drives both canEdit and canDelete
+  // Maps a DimensionTemplate entity with its values to a DimensionTemplateDto; only the owning workspace may change it,
+  // so isOwned drives both canEdit and canDelete
   static from(entity: DimensionTemplate, values: DimensionTemplateValue[] = [], isOwned = false): DimensionTemplateDto {
     const dto = new DimensionTemplateDto();
     dto.id = entity.id;
@@ -48,7 +47,7 @@ export class DimensionTemplateDto {
     dto.isActive = entity.isActive;
     dto.legalEntityId = entity.legalEntityId ?? null;
     dto.siteId = entity.siteId ?? null;
-    dto.ownerScope = entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG';
+    dto.ownerScope = workspaceScopeOf(entity);
     dto.values = values.map(DimensionTemplateValueDto.from);
     dto.valueCount = values.length;
     dto.canEdit = isOwned;

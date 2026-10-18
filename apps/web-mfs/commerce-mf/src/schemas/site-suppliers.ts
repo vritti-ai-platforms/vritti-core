@@ -1,7 +1,6 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 
-// A site's view of an enrolled supplier: supplier fields + this site's enrollment picks.
 export interface SiteSupplierRow {
   id: string;
   partyId: string;

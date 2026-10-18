@@ -13,8 +13,6 @@ import {
 } from 'class-validator';
 
 // Mirror create-/update-tax-group.dto.ts so the resolver forwards an input straight to gateway.create/update.
-// Create/update send the FULL taxRates array (the microservice replaces all rates on update); sortOrder is
-// derived server-side from array position, so it's not part of the input.
 @InputType()
 export class TaxRateInput {
   @Field(() => String)

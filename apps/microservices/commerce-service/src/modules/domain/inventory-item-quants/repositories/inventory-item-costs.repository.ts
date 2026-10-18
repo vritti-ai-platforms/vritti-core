@@ -15,8 +15,8 @@ export class InventoryItemCostsDomainRepository extends PrimaryBaseRepository<ty
     super(database, inventoryItemCosts);
   }
 
-  // Resolves the org's single ITEM-kind cost category id; the partial unique index guarantees at
-  // most one, so limit(1) is enough. Returns null when the org has no ITEM category seeded.
+  // Resolves the org's single ITEM-kind cost category id; the partial unique index guarantees at most one, so limit(1)
+  // is enough.
   async findItemCategoryId(): Promise<string | null> {
     const rows = await this.db
       .select({ id: costCategories.id })

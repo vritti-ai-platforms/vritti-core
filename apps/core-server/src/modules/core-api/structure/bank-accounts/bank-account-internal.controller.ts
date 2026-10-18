@@ -32,8 +32,7 @@ import { BankAccountScopeQueryDto } from './dto/request/bank-account-scope-query
 import { GetBankAccountsInternalDto } from './dto/request/get-bank-accounts-internal.dto';
 import { BankAccountService } from './services/bank-account-api.service';
 
-// The cloud-facing surface. Signed cloud auth rather than a session, because cloud-server calls this
-// on behalf of an operator setting up a legal entity — there is no RBAC context to gate on.
+// The cloud-facing surface.
 @ApiTags('Structure - Bank Accounts (internal)')
 @Require(AuthType.Cloud)
 @Controller('bank-accounts/internal')

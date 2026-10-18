@@ -62,8 +62,7 @@ export class SmsProviderTemplatesGatewayController {
     return this.service.add(id, dto);
   }
 
-  // Re-reads the vendor snapshot. Gated on view rather than add: it changes nothing an operator
-  // chose, it only makes what is displayed current.
+  // Re-reads the vendor snapshot.
   @Post(':templateId/refresh')
   @HttpCode(HttpStatus.OK)
   @RequirePermission(ORG_SMS_PROVIDERS.templates.view)

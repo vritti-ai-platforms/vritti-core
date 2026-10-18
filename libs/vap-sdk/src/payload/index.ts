@@ -1,6 +1,5 @@
 export { type OtpFlowData, safeReturnTo } from '../core/flows/auth.js';
-// Re-exported from `core` so a Payload app has one import for everything it needs. The phone rules
-// are universal — React Native will want the same ones — so they live in the core tier.
+// Re-exported from `core` so a Payload app has one import for everything it needs.
 export {
   type CountryCode,
   countryFlag,

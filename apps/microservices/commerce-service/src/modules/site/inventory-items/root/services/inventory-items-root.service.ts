@@ -4,8 +4,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { InventoryItemSite } from '@/db/schema';
 
-// Site-scope service for the physical projection writes: enabling a master item at the
-// current site and adjusting its reorder point. Reads go straight to the domain service.
+// Site-scope service for the physical projection writes: enabling a master item at the current site and adjusting its
+// reorder point.
 @Injectable()
 export class SiteInventoryItemsService {
   private readonly logger = new Logger(SiteInventoryItemsService.name);

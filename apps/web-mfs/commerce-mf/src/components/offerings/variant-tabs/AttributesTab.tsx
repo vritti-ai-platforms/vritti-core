@@ -34,8 +34,8 @@ export const AttributesTab: React.FC<AttributesTabProps> = ({
   const saved = new Set(variant.attributeValues.map((entry) => entry.valueId));
   const isDirty = selected.size !== saved.size || [...selected].some((valueId) => !saved.has(valueId));
 
-  // One CheckboxGroup per attribute, but `selected` is flat across all of them — the save replaces the
-  // variant's whole set in one call. So a group reports its own values and only those are swapped out.
+  // One CheckboxGroup per attribute, but `selected` is flat across all of them — the save replaces the variant's whole
+  // set in one call.
   const replaceOn = (groupValues: { id: string }[], ids: string[]) => {
     setSelected((current) => {
       const next = new Set(current);
@@ -69,8 +69,8 @@ export const AttributesTab: React.FC<AttributesTabProps> = ({
     </div>
   );
 
-  // An empty array reads the same whether the attributes are loading or genuinely absent, so the loading
-  // branch has to come first or the empty state flashes on every visit
+  // An empty array reads the same whether the attributes are loading or genuinely absent, so the loading branch has to
+  // come first or the empty state flashes on every visit
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">

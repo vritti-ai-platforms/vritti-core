@@ -10,6 +10,7 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     super(database, apps);
   }
 
+  // Resolves a presented client id.
   // Resolves a presented client id. The hot path on every signed app request
   async findByClientId(clientId: string): Promise<App | undefined> {
     return this.model.findFirst({
@@ -44,7 +45,8 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
     });
   }
 
-  // Scoped by org as well as id on purpose: the caller supplies both, and matching on id alone would let one organization address another's app
+  // Scoped by org as well as id on purpose: the caller supplies both, and matching on id alone would let one
+  // organization address another's app
   async findByIdInOrg(id: string, organizationId: string): Promise<App | undefined> {
     return this.model.findFirst({
       where: { id, organizationId },
@@ -61,8 +63,7 @@ export class AppDomainRepository extends PrimaryBaseRepository<typeof apps> {
       ) as Promise<App[]>;
   }
 
-  // Resolves the app that sends sign-in codes from a given number. Deliberately cross-tenant: a
-  // delivery callback carries no org context, and `apps` has no RLS for exactly this class of lookup.
+  // Resolves the app that sends sign-in codes from a given number.
   async findByOtpPhoneNumber(phoneNumberId: string): Promise<App | undefined> {
     const [app] = await this.db
       .select()

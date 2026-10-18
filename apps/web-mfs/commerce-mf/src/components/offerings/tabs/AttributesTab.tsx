@@ -123,8 +123,8 @@ export const AttributesTab: React.FC<AttributesTabProps> = ({
     </div>
   );
 
-  // An empty array reads the same whether the attributes are loading or genuinely absent, so the loading
-  // branch has to come first or the empty state flashes on every visit
+  // An empty array reads the same whether the attributes are loading or genuinely absent, so the loading branch has to
+  // come first or the empty state flashes on every visit
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">

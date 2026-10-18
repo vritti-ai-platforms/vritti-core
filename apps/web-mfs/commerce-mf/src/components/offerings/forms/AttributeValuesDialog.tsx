@@ -41,14 +41,11 @@ export const AttributeValuesDialog: React.FC<AttributeValuesDialogProps> = ({
   });
 
   const upsertMutation = useUpsert({ onSuccess });
-  // keyName defaults to 'id', and react-hook-form strips the key property from submitted values —
-  // which would eat the value id the server needs to tell a rename from a delete
   const valueFields = useFieldArray({ control: form.control, name: 'values', keyName: '_key' });
   const rows = useWatch({ control: form.control, name: 'values' });
   const lockedCodes = new Set(attribute.values.filter((value) => !value.canDelete).map((value) => value.code));
 
-  // The code is what a storefront filters by and the name is what a person reads, so they are kept apart. Typing the
-  // name fills the code until the code is edited by hand.
+  // The code is what a storefront filters by and the name is what a person reads, so they are kept apart.
   const deriveCode = (index: number, name: string) => {
     if (form.getFieldState(`values.${index}.code`).isDirty) return;
     form.setValue(`values.${index}.code`, toCode(name));

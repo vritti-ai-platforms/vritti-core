@@ -11,8 +11,8 @@ export const CatalogChannelTypeValues = {
   B2B: 'B2B',
 } as const satisfies Record<CatalogChannelType, CatalogChannelType>;
 
-// slotLabel and gridLabel name the channel's own parts — never the workspace rendering them, because
-// one set of components serves every scope
+// slotLabel and gridLabel name the channel's own parts — never the workspace rendering them, because one set of
+// components serves every scope
 export const CHANNEL_TYPE_META: Record<
   CatalogChannelType,
   { label: string; description: string; slotLabel: string; gridLabel: string; emptyNote: string }
@@ -41,7 +41,6 @@ export const CHANNEL_TYPE_META: Record<
   },
 };
 
-// The level an assignment was made at. Always comes from the row, never from the current workspace.
 export type ChannelOwnerScope = 'ORG' | 'LE' | 'SITE';
 
 export const OWNER_SCOPE_LABEL: Record<ChannelOwnerScope, string> = {
@@ -70,8 +69,6 @@ export interface ChannelCatalogData {
   itemsAvailable: number;
 }
 
-// One app or terminal. `catalog` is never null — a target with no row of its own carries the channel
-// default, so nothing downstream has to fall back for itself.
 export interface ChannelTargetData {
   targetId: string;
   name: string;
@@ -79,15 +76,12 @@ export interface ChannelTargetData {
   isAssigned: boolean;
 }
 
-// targets is null for B2B, which names no target, and empty for POS above an outlet
 export interface ChannelEntryData {
   type: CatalogChannelType;
   defaultCatalog: ChannelCatalogData | null;
   targets: ChannelTargetData[] | null;
 }
 
-// One channel carrying a catalog, as the catalog detail reads it — enough to name the channel, say
-// which level set it, and decide whether this workspace may toggle a listing's visibility on it
 export interface CatalogChannelData {
   id: string;
   type: CatalogChannelType;
@@ -107,9 +101,7 @@ export interface ChannelItemData {
   code: string;
   variantName: string;
   mrp: CurrencyValue | null;
-  // Whether the channel carries it at all; per-currency withdrawals are on the Prices tab
   availableHere: boolean;
-  // The currencies a shopper can buy it in here — priced, declared, and withheld from none
   availableCurrencyCodes: string[];
 }
 
@@ -119,12 +111,10 @@ export interface ChannelPriceData {
   code: string;
   variantName: string;
   mrp: CurrencyValue | null;
-  // Null when nobody priced it in this currency, which is why it is unavailable here
   price: CurrencyValue | null;
   priceOwnerScope: CatalogChannelOwnerScope | null;
   priceOwnerName: string | null;
   availableHere: boolean;
-  // Withdrawn from the channel outright, so this currency's switch cannot help
   excludedOutright: boolean;
 }
 

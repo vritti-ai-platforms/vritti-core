@@ -6,8 +6,8 @@ import { ApiGetOrgStorage } from './docs/storage-internal.docs';
 import { OrgStorageBodyDto } from './dto/request/org-storage-body.dto';
 import { OrgStorageResponseDto } from './dto/response/org-storage-response.dto';
 
-// Signed-internal read for cloud-server: it has no core session, so the org subdomain arrives in the trusted
-// signed body and the whole controller is @Require(AuthType.Cloud)-gated (mirrors GiteaInternalController's reads).
+// Signed-internal read for cloud-server: it has no core session, so the org subdomain arrives in the trusted signed
+// body and the whole controller is @Require(AuthType.Cloud)-gated (mirrors GiteaInternalController's reads).
 @ApiTags('Storage - Internal')
 @Controller('storage/internal')
 @Require(AuthType.Cloud)

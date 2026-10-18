@@ -109,8 +109,6 @@ export class SiteDomainService {
 
     const effectiveLegalEntityId = dto.legalEntityId !== undefined ? dto.legalEntityId : site.legalEntityId;
 
-    // Registrations live in commerce now, so a legal-entity change drops the link rather than
-    // re-checking ownership here — the API layer validates it when one is set
     const legalEntityChanged = dto.legalEntityId !== undefined && dto.legalEntityId !== site.legalEntityId;
     const effectiveRegistrationId =
       dto.registrationId !== undefined ? dto.registrationId : legalEntityChanged ? null : site.registrationId;

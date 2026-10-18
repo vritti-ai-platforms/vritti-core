@@ -32,7 +32,6 @@ export class UpsertAttributeTemplateValuesDto {
   templateId: string;
 
   // The complete set the template should end up with — the service replaces rather than diffs.
-  // Both keys are uniquely constrained per template, so a repeat is rejected rather than dropped.
   @IsArray()
   @ArrayMaxSize(200)
   @ArrayUnique((entry: TemplateValueInput) => entry.code, { message: 'Each value needs its own code.' })

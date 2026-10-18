@@ -1,35 +1,11 @@
 import type { GatewayResponse, PaymentCheckout } from '@vritti/vap-sdk';
 
-/**
- * Opening a gateway's checkout in the browser — `@vritti/vap-sdk/next/checkout`.
- *
- * **Client-safe.** No `'use server'`, no `next/headers`, no Payload: import it from a client component.
- * The server half — starting the checkout, confirming it — is `@vritti/vap-sdk/next/payments`.
- *
- * Two ways to take the payment:
- *
- * - **Embedded page** (HDFC's Razorpay kit): `submitEmbeddedCheckout(embeddedCheckout(checkout))`
- *   leaves for the gateway's page. Razorpay posts the result to **core**, which confirms it and
- *   redirects the party to the return or checkout URL `startCheckoutAction` handed over.
- * - **Modal**: `openCheckout(checkout)` opens checkout.js over the page and resolves with what
- *   `confirmPaymentAction` needs.
- *
- * ```ts
- * try {
- *   const gatewayResponse = await openCheckout(state.checkout, { name: 'My Shop' });
- *   await confirmPaymentAction({ paymentIntentId: state.paymentIntentId, gatewayResponse });
- * } catch (error) {
- *   if (error instanceof CheckoutDismissedError) return; // they closed it — nothing failed
- *   if (error instanceof CheckoutFailedError) show(error.description);
- * }
- * ```
- */
+// Opening a gateway's checkout in the browser — `/vap-sdk/next/checkout`.
 
 export type { GatewayResponse, PaymentCheckout };
 
 // ── Failures ─────────────────────────────────────────────────────────────────────────────────────
 
-/** Base of every failure `openCheckout` reports, so one `instanceof` catches them all. */
 export class CheckoutError extends Error {
   constructor(message: string) {
     super(message);
@@ -37,12 +13,6 @@ export class CheckoutError extends Error {
   }
 }
 
-/**
- * The party closed the modal without paying.
- *
- * Not a failure: nothing was charged and the intent is still open, so opening the same checkout again
- * retries on the same gateway order.
- */
 export class CheckoutDismissedError extends CheckoutError {
   constructor() {
     super('The checkout was closed before payment completed.');
@@ -50,19 +20,10 @@ export class CheckoutDismissedError extends CheckoutError {
   }
 }
 
-/**
- * The gateway declined the attempt — card refused, UPI timed out.
- *
- * The modal is closed when this is raised, so the promise settles once. The intent stays open: open
- * the same checkout again to let them retry.
- */
 export class CheckoutFailedError extends CheckoutError {
   constructor(
-    /** The gateway's error code, e.g. `BAD_REQUEST_ERROR`. */
     readonly code: string | undefined,
-    /** The gateway's sentence for it, written for the payer. */
     readonly description: string | undefined,
-    /** The gateway's machine-readable reason, e.g. `payment_failed`. */
     readonly reason?: string,
   ) {
     super(description ?? 'The payment did not go through.');
@@ -72,27 +33,20 @@ export class CheckoutFailedError extends CheckoutError {
 
 // ── Embedded page ───────────────────────────────────────────────────────────────────────────────
 
-/** Where the embedded checkout form is posted. HDFC-issued keys use the same host — the kit names no other. */
 export const RAZORPAY_EMBEDDED_CHECKOUT_URL = 'https://api.razorpay.com/v1/checkout/embedded';
 
 // Bank editions of Razorpay (HDFC's smart gateway) are Razorpay underneath and take the same form
 const RAZORPAY_GATEWAYS = new Set(['razorpay', 'hdfc-razorpay']);
 
 export type EmbeddedCheckoutOptions = {
-  /** Where Razorpay posts the result. Defaults to core's `checkout.callbackUrl` — override only to test. */
   callbackUrl?: string;
-  /** Where Razorpay sends a party who cancels. Defaults to core's `checkout.cancelUrl`. */
   cancelUrl?: string;
-  /** Merchant name shown on Razorpay's page. */
   name?: string;
   description?: string;
-  /** Absolute URL of the merchant logo shown on Razorpay's page. */
   image?: string;
-  /** Extra notes, added to whatever the intent's checkout already carries. */
   notes?: Record<string, string>;
 };
 
-/** A form to post: render it as hidden inputs, or hand it to `submitEmbeddedCheckout`. */
 export type EmbeddedCheckoutForm = {
   action: string;
   method: 'POST';
@@ -115,17 +69,7 @@ function requireRazorpay(gateway: string): void {
   }
 }
 
-/**
- * The form that opens Razorpay's embedded checkout for an intent.
- *
- * Built from `intent.checkout` — the key id, the gateway order, the amount in paise, the currency, the
- * prefill, and core's callback and cancel addresses — plus what only the storefront knows: what to call
- * itself. Nested values are flattened the way Razorpay's form API reads them — `prefill[email]`,
- * `notes[reference]`.
- *
- * Throws when there is nowhere for the result to go: an intent opened without a return or checkout URL
- * has no callback, and the embedded page needs one (the modal does not — use `openCheckout`).
- */
+// The form that opens Razorpay's embedded checkout for an intent.
 export function embeddedCheckout(checkout: PaymentCheckout, opts: EmbeddedCheckoutOptions = {}): EmbeddedCheckoutForm {
   requireRazorpay(checkout.gateway);
   const base = checkout.options;
@@ -167,11 +111,7 @@ export function embeddedCheckout(checkout: PaymentCheckout, opts: EmbeddedChecko
   return { action: RAZORPAY_EMBEDDED_CHECKOUT_URL, method: 'POST', fields };
 }
 
-/**
- * Posts an embedded checkout form from the browser, leaving the page for the gateway's.
- *
- * A real form submission rather than `fetch`: the customer has to land on the gateway's page.
- */
+// Posts an embedded checkout form from the browser, leaving the page for the gateway's.
 export function submitEmbeddedCheckout(form: EmbeddedCheckoutForm): void {
   if (typeof document === 'undefined') {
     throw new CheckoutError('submitEmbeddedCheckout runs in a browser — call it from client code.');
@@ -194,14 +134,13 @@ export function submitEmbeddedCheckout(form: EmbeddedCheckoutForm): void {
 // ── Modal ───────────────────────────────────────────────────────────────────────────────────────
 
 export type OpenCheckoutOptions = {
-  /** Shown as the merchant name in the gateway's modal. Overrides whatever the payload carried. */
   name?: string;
   description?: string;
   theme?: { color?: string };
 };
 
-// ── Razorpay ─────────────────────────────────────────────────────────────────────────────────────
-// The slice of checkout.js this file uses, typed here rather than pulled from a types package.
+// ── Razorpay ───────────────────────────────────────────────────────────────────────────────────── The slice of
+// checkout.js this file uses, typed here rather than pulled from a types package.
 
 const RAZORPAY_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 
@@ -227,12 +166,7 @@ type RazorpayWindow = { Razorpay?: RazorpayConstructor };
 
 let razorpayLoading: Promise<RazorpayConstructor> | undefined;
 
-/**
- * checkout.js, loaded once per page however many times `openCheckout` runs.
- *
- * A failed load clears the memo so the next attempt fetches again — a flaky network should not
- * leave the page unable to pay until it is reloaded.
- */
+// checkout.js, loaded once per page however many times `openCheckout` runs.
 function loadRazorpay(): Promise<RazorpayConstructor> {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return Promise.reject(new CheckoutError('openCheckout runs in a browser — call it from client code.'));
@@ -297,8 +231,8 @@ async function openRazorpay(checkout: PaymentCheckout, opts: OpenCheckoutOptions
 
     instance.on('payment.failed', (response) => {
       settle(() => {
-        // Closed so the promise and the modal agree: a retry inside a modal nobody is listening to
-        // would take the money with no handler left to confirm it.
+        // Closed so the promise and the modal agree: a retry inside a modal nobody is listening to would take the money
+        // with no handler left to confirm it.
         instance.close();
         reject(new CheckoutFailedError(response.error?.code, response.error?.description, response.error?.reason));
       });
@@ -308,20 +242,11 @@ async function openRazorpay(checkout: PaymentCheckout, opts: OpenCheckoutOptions
   });
 }
 
-/**
- * Opens the gateway's checkout for an intent and resolves with what core needs to confirm it.
- *
- * Rejects with `CheckoutDismissedError` when the party closes it, `CheckoutFailedError` when the
- * gateway declines, and a plain `CheckoutError` for a gateway this SDK cannot open or a script that
- * would not load.
- *
- * Resolving is not "paid": pass the result to `confirmPayment` (or `confirmPaymentAction`) and read
- * the status core answers.
- */
+// Opens the gateway's checkout for an intent and resolves with what core needs to confirm it.
 export function openCheckout(checkout: PaymentCheckout, opts: OpenCheckoutOptions = {}): Promise<GatewayResponse> {
   switch (checkout.gateway.toLowerCase()) {
-    // Bank editions of Razorpay (HDFC's smart gateway) are Razorpay underneath — same checkout.js, same options and
-    // the same response — so they open through the same launcher
+    // Bank editions of Razorpay (HDFC's smart gateway) are Razorpay underneath — same checkout.js, same options and the
+    // same response — so they open through the same launcher
     case 'razorpay':
     case 'hdfc-razorpay':
       return openRazorpay(checkout, opts);

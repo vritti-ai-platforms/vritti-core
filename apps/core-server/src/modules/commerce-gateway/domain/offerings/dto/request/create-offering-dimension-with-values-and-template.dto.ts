@@ -30,8 +30,7 @@ export class OfferingDimensionValueInputDto {
 }
 
 export class CreateOfferingDimensionWithValuesAndTemplateDto {
-  // The template the values were taken from. Required: the microservice checks every submitted
-  // value really belongs to it, so without this a caller could invent values and claim a template.
+  // The template the values were taken from.
   @ApiProperty({ format: 'uuid', description: 'Template the values were chosen from' })
   @IsUUID('7')
   templateId: string;

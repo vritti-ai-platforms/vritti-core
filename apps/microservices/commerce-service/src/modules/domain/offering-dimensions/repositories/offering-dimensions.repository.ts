@@ -25,9 +25,8 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
     super(database, offeringDimensions);
   }
 
-  // The parent offering, read here rather than through the offerings module — a domain module owns
-  // its own cross-table reads. Pass requireOwned to narrow to offerings this workspace owns rather
-  // than merely inherits; without it the lookup is reachability alone, which is what reads need.
+  // The parent offering, read here rather than through the offerings module — a domain module owns its own cross-table
+  // reads.
   async findOffering(
     offeringId: string,
     options: { requireOwned?: boolean } = {},
@@ -60,9 +59,7 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
       .orderBy(asc(offeringDimensions.sortOrder));
   }
 
-  // The dimensions plus their values in one read. The outer id is the qualified TABLE, never
-  // ${offeringDimensions.id} — a select-list column of the query's own FROM table renders bare and
-  // would bind to the subquery's v instead.
+  // The dimensions plus their values in one read.
   async findByOfferingWithValues(offeringId: string): Promise<OfferingDimensionWithValues[]> {
     return this.db
       .select({
@@ -113,8 +110,7 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
     return (row?.max ?? -1) + 1;
   }
 
-  // A reachable, active template with its values, for the seed-from-template path. Read here rather
-  // than through the templates module — a domain module owns its own cross-table reads.
+  // A reachable, active template with its values, for the seed-from-template path.
   async findTemplateWithValues(templateId: string): Promise<
     | {
         code: string;

@@ -88,7 +88,6 @@ export class UomDimensionsDomainService {
   }
 
   // Deletes a UOM dimension; cascades all UOMs in it.
-  // Blocked if any UOM in the dimension is referenced by an inventory item or supplier item.
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('UOM dimension not found.');

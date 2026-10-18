@@ -6,8 +6,7 @@ import { Field, InputType } from '@nestjs/graphql';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
-// Mirror create-/update-cost-category.dto.ts. `code` + `kind` are immutable after create (only name +
-// isActive are updatable), so UpdateCostCategoryInput is explicit — NOT PartialType of the create input.
+// Mirror create-/update-cost-category.dto.ts.
 @InputType()
 export class CreateCostCategoryInput {
   @Field(() => String)

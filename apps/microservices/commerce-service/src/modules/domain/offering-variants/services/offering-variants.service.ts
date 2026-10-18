@@ -82,8 +82,7 @@ export class OfferingVariantsDomainService {
     return { result: rows.map((row) => this.toTableRow(row)), count };
   }
 
-  // Variant options for a storefront's own picker — which variant a product page is about. Not scoped
-  // to a catalog on purpose: a page should be fileable before the variant is listed anywhere.
+  // Variant options for a storefront's own picker — which variant a product page is about.
   findOptions(query: {
     search?: string;
     excludeIds?: string[];
@@ -119,8 +118,7 @@ export class OfferingVariantsDomainService {
     );
   }
 
-  // Flat rows for the file export, scoped to one offering. Reach is settled first so a variant of an
-  // offering this workspace cannot see never reaches the file.
+  // Flat rows for the file export, scoped to one offering.
   async findForExport(offeringId: string, page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
     await this.requireReachableOffering(offeringId);
     const rows = await this.repository.findForExport(offeringId, page);
@@ -179,15 +177,14 @@ export class OfferingVariantsDomainService {
     };
   }
 
-  // Creates every selected combination that does not exist yet. Additive by design: a combination the
-  // caller left out is never deleted, because removing a variant may destroy stock or order history.
+  // Creates every selected combination that does not exist yet.
   async generate(data: GenerateVariantsDto): Promise<SuccessResponseDto> {
     const { message } = await this.runGenerate(data);
     return { success: true, message };
   }
 
-  // Shared by generate() and create(): returns the rows it inserted, so a single-variant create can
-  // report the variant it actually made rather than guessing at the end of a sorted list.
+  // Shared by generate() and create(): returns the rows it inserted, so a single-variant create can report the variant
+  // it actually made rather than guessing at the end of a sorted list.
   private async runGenerate(data: GenerateVariantsDto): Promise<{ created: OfferingVariant[]; message: string }> {
     const offering = await this.requireOwnedOffering(data.offeringId);
     const dimensionCount = await this.repository.countDimensions(data.offeringId);
@@ -279,8 +276,7 @@ export class OfferingVariantsDomainService {
     return { success: true, message: `"${variant.code}" updated.` };
   }
 
-  // The batch form of the isActive flip. Ownership is settled once on the parent offering, and every
-  // variant is checked before anything is written — a half-applied bulk action is worse than a refusal.
+  // The batch form of the isActive flip.
   async bulkSetStatus(data: BulkSetVariantsStatusDto): Promise<SuccessResponseDto> {
     const offering = await this.repository.findOffering(data.offeringId);
     if (!offering) throw new NotFoundException('Offering not found.');
@@ -317,8 +313,7 @@ export class OfferingVariantsDomainService {
     };
   }
 
-  // The batch form of setTaxClass. Ownership is settled once on the parent offering and every id is
-  // checked before anything is written, so the whole selection moves together or nothing does.
+  // The batch form of setTaxClass.
   async bulkSetTaxClass(data: BulkSetVariantsTaxClassDto): Promise<SuccessResponseDto> {
     const offering = await this.requireOwnedOffering(data.offeringId);
 
@@ -345,16 +340,12 @@ export class OfferingVariantsDomainService {
     };
   }
 
-  // Replaces every attribute value this variant carries. Attributes sit outside the combination matrix,
-  // so there is nothing to regenerate — the Code, the combination key and the variant's own identity are
-  // all untouched, which is why this is an edit rather than a create.
+  // Replaces every attribute value this variant carries.
   async setAttributes(id: string, valueIds: string[]): Promise<SuccessResponseDto> {
     const { variant, offering } = await this.requireOwnedVariant(id);
 
     const available = await this.repository.findAttributeValues(offering.id);
     const byValueId = new Map(available.map((row) => [row.valueId, row.attributeId]));
-    // Deduplicated rather than refused: the same value twice means the same thing as once, and the
-    // (variant, value) unique index would otherwise turn a harmless payload into a constraint error
     const rows = [...new Set(valueIds)].map((valueId) => {
       const attributeId = byValueId.get(valueId);
       if (!attributeId) {
@@ -382,8 +373,7 @@ export class OfferingVariantsDomainService {
     };
   }
 
-  // The batch form of setAttributes, narrowed to ONE attribute. Ownership and membership are settled
-  // before anything is written, so the whole selection moves together or nothing does.
+  // The batch form of setAttributes, narrowed to ONE attribute.
   async bulkSetAttribute(data: BulkSetVariantsAttributeDto): Promise<SuccessResponseDto> {
     const offering = await this.requireOwnedOffering(data.offeringId);
     const variants = await this.requireVariantsInOffering(offering, data.ids);
@@ -396,8 +386,6 @@ export class OfferingVariantsDomainService {
       });
     }
 
-    // Membership in the NAMED attribute, not merely in the offering: a value of a different attribute
-    // stored under this one would be invisible to the delete-by-attribute that this action relies on
     const available = await this.repository.findAttributeValues(offering.id);
     const onAttribute = new Set(
       available.filter((row) => row.attributeId === data.attributeId).map((row) => row.valueId),
@@ -450,8 +438,6 @@ export class OfferingVariantsDomainService {
   }
 
   // Pins this variant's own fulfilment type, exempting it from the offering's cascade from here on.
-  // Refused while the bill of materials it already holds would break the new type's rule — changing
-  // the label must not leave a variant in a state its own rule forbids.
   async setFulfilment(id: string, data: Omit<SetVariantFulfilmentDto, 'id'>): Promise<SuccessResponseDto> {
     const { variant } = await this.requireOwnedVariant(id);
     const next = data.fulfilmentType as FulfilmentType;
@@ -491,8 +477,8 @@ export class OfferingVariantsDomainService {
     }
 
     await this.repository.transaction(async () => {
-      // offering_bom and offering_variant_values both cascade on the variant, so only the values
-      // need clearing here — they carry no cascade of their own
+      // offering_bom and offering_variant_values both cascade on the variant, so only the values need clearing here —
+      // they carry no cascade of their own
       await this.repository.deleteVariantValues(id);
       await this.repository.delete(id);
     });
@@ -516,9 +502,8 @@ export class OfferingVariantsDomainService {
     return new Set(await this.repository.findCombinationKeys(offeringId));
   }
 
-  // Two different combinations can derive the same Code once a variant may skip a dimension — a value
-  // coded "s" on Size and another on Colour both yield "<offering>-s". The Code is unique org-wide, so
-  // this reports the clash by name rather than letting the insert fail on the constraint.
+  // Two different combinations can derive the same Code once a variant may skip a dimension — a value coded "s" on Size
+  // and another on Colour both yield "<offering>-s".
   private async assertCodesFree(codes: string[]): Promise<void> {
     const seen = new Set<string>();
     const duplicated = codes.filter((code) => {
@@ -542,9 +527,8 @@ export class OfferingVariantsDomainService {
     }
   }
 
-  // A combination names at most one value per dimension, and need not name them all — an offering's
-  // dimensions are the axes available, not a set every variant has to fill. The rows come back in
-  // dimension order, which is what gives the Code its segment order.
+  // A combination names at most one value per dimension, and need not name them all — an offering's dimensions are the
+  // axes available, not a set every variant has to fill.
   private requireValueOnDimension(
     valueId: string,
     dimensionId: string,
@@ -614,8 +598,8 @@ export class OfferingVariantsDomainService {
     }
   }
 
-  // A table row stops at what the list read selected — no inventory counterpart, because that join
-  // only runs for the detail view
+  // A table row stops at what the list read selected — no inventory counterpart, because that join only runs for the
+  // detail view
   private toTableRow(variant: OfferingVariantTableRow): OfferingVariantTableRowDto {
     return OfferingVariantDto.fromTableRow(variant, {
       values: variant.values,
@@ -628,8 +612,8 @@ export class OfferingVariantsDomainService {
     });
   }
 
-  // The rows arrive with their many-to-one names already joined; the one-to-many collections ride
-  // along as aggregates, so this is a pure mapping
+  // The rows arrive with their many-to-one names already joined; the one-to-many collections ride along as aggregates,
+  // so this is a pure mapping
   private toDto(variant: OfferingVariantTableRow): OfferingVariantDto {
     return OfferingVariantDto.from(variant, {
       values: variant.values,
@@ -671,8 +655,8 @@ export class OfferingVariantsDomainService {
     return offering;
   }
 
-  // Returns the parent alongside the variant: resolving it is how ownership is checked, so a caller
-  // that needs the offering has it already rather than fetching the same row again.
+  // Returns the parent alongside the variant: resolving it is how ownership is checked, so a caller that needs the
+  // offering has it already rather than fetching the same row again.
   private async requireOwnedVariant(id: string): Promise<{ variant: OfferingVariant; offering: OfferingRef }> {
     const variant = await this.repository.findById(id);
     if (!variant) throw new NotFoundException('Variant not found.');

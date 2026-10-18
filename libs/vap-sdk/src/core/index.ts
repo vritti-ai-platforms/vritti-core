@@ -8,15 +8,6 @@ export {
 } from './checkout-urls.js';
 export { resolveConfig, type VapSdkOptions } from './config.js';
 export {
-  formatCurrency,
-  formatCurrencyMajor,
-  formatMoney,
-  majorToMinor,
-  minorToMajor,
-  moneyFromMinor,
-  percentOff,
-} from './money.js';
-export {
   type Cart,
   type CartItem,
   type CartOperations,
@@ -95,6 +86,15 @@ export {
   safeReturnTo,
   stepFromFlow,
 } from './flows/auth.js';
+export {
+  formatCurrency,
+  formatCurrencyMajor,
+  formatMoney,
+  majorToMinor,
+  minorToMajor,
+  moneyFromMinor,
+  percentOff,
+} from './money.js';
 export {
   type CountryCode,
   countryFlag,

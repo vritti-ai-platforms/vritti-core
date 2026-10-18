@@ -60,8 +60,7 @@ export class PartiesDomainRepository extends PrimaryBaseRepository<typeof partie
     return super.findForSelect(config);
   }
 
-  // Whether any supplier references this party (the only FK that restricts party deletion;
-  // party_* children cascade). Drives the delete guard.
+  // Whether any supplier references this party (the only FK that restricts party deletion; party_* children cascade).
   async isReferencedBySupplier(partyId: string): Promise<boolean> {
     const [row] = await this.db
       .select({ id: suppliers.id })
@@ -71,8 +70,7 @@ export class PartiesDomainRepository extends PrimaryBaseRepository<typeof partie
     return !!row;
   }
 
-  // Whether this party is a contact of any company (child in a party relationship). Blocks person
-  // deletion so a live company contact isn't silently unlinked.
+  // Whether this party is a contact of any company (child in a party relationship).
   async isLinkedToCompany(partyId: string): Promise<boolean> {
     const [row] = await this.db
       .select({ id: partyRelationships.id })
@@ -82,8 +80,8 @@ export class PartiesDomainRepository extends PrimaryBaseRepository<typeof partie
     return !!row;
   }
 
-  // Single-query party detail: the party joined to its primary REGISTERED address plus its EMAIL/PHONE
-  // main lines and a supplier-reference flag for canDelete — one round-trip instead of several.
+  // Single-query party detail: the party joined to its primary REGISTERED address plus its EMAIL/PHONE main lines and a
+  // supplier-reference flag for canDelete — one round-trip instead of several.
   async findByIdWithDetails(id: string): Promise<
     | {
         party: Party;

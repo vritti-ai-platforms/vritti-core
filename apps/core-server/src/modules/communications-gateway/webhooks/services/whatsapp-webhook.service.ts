@@ -8,8 +8,6 @@ import { AppDomainService } from '@/modules/domain/app/services/app.service';
 
 const STATUS_FIELD = 'messages';
 
-// Only the parts this handler reads. Meta's payload carries far more — contacts, conversation,
-// pricing, recipient_id — and gains fields over time, so nothing here claims to be the full shape.
 interface StatusEntry {
   id?: string;
   status?: string;
@@ -106,9 +104,7 @@ export class WhatsappWebhookService {
 
     this.logger.log(`[whatsapp-webhook] resolved org ${app.organizationId} via app ${app.id} (${app.name})`);
 
-    // The NATS context resolver reads request.auth, and a public webhook has none. The HMAC is what
-    // authenticated this call, so stamping the resolved org here is the same move CloudRequestResolver
-    // makes for a signed control-plane request — without it the microservice runs with app.org_id unset.
+    // The NATS context resolver reads request.auth, and a public webhook has none.
     request.auth = { kind: 'cloud', organizationId: app.organizationId };
 
     for (const status of statuses) {

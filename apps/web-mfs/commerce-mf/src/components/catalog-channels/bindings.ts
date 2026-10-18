@@ -11,10 +11,8 @@ import type {
 
 export interface CatalogChannelsBinding {
   permissions: CatalogChannelPermissions;
-  // Must byte-match the gateway's getCurrentState key or the user's saved view silently resets
   itemsTableSlug: (channelId: string) => string;
   itemsKey: (channelId: string) => readonly unknown[];
-  // The Prices drill-in shares one saved view across currencies — the columns never differ
   pricesTableSlug: (channelId: string) => string;
   pricesKey: (channelId: string, currencyCode: string) => readonly unknown[];
 

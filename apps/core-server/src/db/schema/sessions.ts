@@ -21,11 +21,7 @@ export const sessions = coreSchema.table(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
-    // The hot path. Authentication resolves a session by access token hash on
-    // every request, and this table carried no index at all — a sequential scan
-    // per request, survivable only because staff sessions are few. Unrelated to
-    // the storefront work that briefly shared this table, and kept for its own
-    // sake.
+    // The hot path.
     index('idx_sessions_access_token_hash').on(table.accessTokenHash),
     index('idx_sessions_refresh_token_hash').on(table.refreshTokenHash),
     index('idx_sessions_user').on(table.userId),

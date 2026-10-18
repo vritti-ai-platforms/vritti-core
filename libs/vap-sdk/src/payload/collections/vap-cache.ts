@@ -1,27 +1,13 @@
-// Payload is ESM-only while this package emits CommonJS, so a type-only import needs to be told which
-// resolution mode to read its `exports` map under. Safe precisely because it is type-only: nothing here
-// imports a runtime value from payload, so there is no CJS/ESM interop at all in the built output.
+// Payload is ESM-only while this package emits CommonJS, so a type-only import needs to be told which resolution mode
+// to read its `exports` map under.
 import type { CollectionConfig, Field } from 'payload' with { 'resolution-mode': 'import' };
 import type { CollectionLike } from '../runtime.js';
 
-/** The table name Payload derives from the slug — hyphens become underscores. */
+// The table name Payload derives from the slug — hyphens become underscores.
 export { VAP_CACHE_TABLE } from '../../server/cache/postgres.js';
 
-/**
- * Cached responses from VAP, one row per operation-and-scope.
- *
- * **A collection purely so Payload's migration generator creates the table.** Nothing reads or writes it
- * through the Local API — the store in `response-cache-postgres.ts` uses one indexed query per hit,
- * because this is consulted on every cached request and a document pipeline is the wrong shape for that.
- * Declaring it here is what keeps the table inside the reviewed migration history instead of appearing
- * from a `CREATE TABLE IF NOT EXISTS` the first time something is cached.
- *
- * Every access rule is shut and reads are staff-only: there is nothing here a visitor should reach, and
- * the keys themselves encode which party and which store a result belongs to.
- */
+// Cached responses from VAP, one row per operation-and-scope.
 export function vapCacheCollection(extraFields: Field[] = []): CollectionLike {
-  // Authored against CollectionConfig for the field-level safety, handed back opaque so the built types
-  // never name one installed copy of payload.
   const collection: CollectionConfig = {
     slug: 'vap-cache',
     labels: { singular: 'VAP Cache Entry', plural: 'VAP Cache' },

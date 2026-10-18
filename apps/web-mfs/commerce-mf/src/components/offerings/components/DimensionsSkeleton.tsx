@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader } from '@vritti/quantum-ui/Card';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 
-// Mirrors the dimension cards — same header row, value chips and spacing — so the list does not jump
-// when the data lands. Stands in for the Code-order strip too, since that renders from the same fetch.
+// Mirrors the dimension cards — same header row, value chips and spacing — so the list does not jump when the data
+// lands.
 export const DimensionsSkeleton = () => (
   <div className="flex flex-col gap-4">
     <Skeleton className="h-12 w-full rounded-lg" />

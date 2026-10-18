@@ -64,8 +64,6 @@ export class CatalogChannelsGatewayService {
     const entries = CHANNEL_TYPES.map((type) => {
       const slots = resolved[type] ?? {};
       const defaultCatalog = slots[DEFAULT_SLOT] ?? null;
-      // Only POS names a till. APP and B2B both name an app — which of the two a caller resolves
-      // through comes from the party buying, not from the site.
       const existing = type === CatalogChannelTypeValues.POS ? terminals : liveApps;
 
       const entry = new ChannelEntryResponseDto();
@@ -79,8 +77,8 @@ export class CatalogChannelsGatewayService {
     return entries;
   }
 
-  // The storefront's range — one call, because commerce resolves the channel and joins the prices
-  // The page plus what the lazy `filters` field will need, so the channel resolves once per request
+  // The storefront's range — one call, because commerce resolves the channel and joins the prices The page plus what
+  // the lazy `filters` field will need, so the channel resolves once per request
   async appCatalogChannelListings(appId: string, query: ListingQuery, currencyCode: string): Promise<CatalogListings> {
     this.logger.log(`org.catalogChannels.app.listings — page: ${query.page ?? 1}`);
     const page = await this.nats.send<Omit<CatalogListings, 'filters' | 'appId' | 'selected' | 'scope'>>(
@@ -103,8 +101,8 @@ export class CatalogChannelsGatewayService {
     return this.nats.send('commerce', 'org.catalogChannels.app.listingFilters', { appId, filters });
   }
 
-  // Prices variants the caller already holds — a wishlist or a basket
-  // The currencies this storefront's catalog carries — what its switcher may offer
+  // Prices variants the caller already holds — a wishlist or a basket The currencies this storefront's catalog carries
+  // — what its switcher may offer
   async appCurrencies(appId: string): Promise<string[]> {
     this.logger.log(`org.catalogChannels.app.currencies — appId: ${appId}`);
     return this.nats.send('commerce', 'org.catalogChannels.app.currencies', { appId });
@@ -165,6 +163,7 @@ export class CatalogChannelsGatewayService {
     return this.nats.send('commerce', 'org.catalogChannels.currencies', { channelId });
   }
 
+  // One currency's prices for this channel.
   // One currency's prices for this channel. Shares one saved view across currencies — same columns.
   async findPricesForTable(
     orgId: string,
@@ -245,6 +244,8 @@ export class CatalogChannelsGatewayService {
     ];
   }
 
+  // commerce stores only the owning ids; the names live in core. commerce stores only the owning ids; the names live in
+  // core.
   // commerce stores only the owning ids; the names live in core. One batched pass over the list.
   private async stampOwnerNames(orgId: string, entries: ChannelEntryResponseDto[]): Promise<void> {
     const catalogs = entries

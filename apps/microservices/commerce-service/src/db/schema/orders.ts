@@ -55,8 +55,6 @@ export const orders = commerceSchema.table(
     paymentMethod: varchar('payment_method', { length: 30 }),
     paymentReference: varchar('payment_reference', { length: 100 }),
     needsReview: boolean('needs_review').notNull().default(false),
-    // The storefront's checkout idempotency key: a retried checkout finds the order it already opened instead of
-    // opening a second one (whose payment would then collide with the first under the same key)
     checkoutKey: varchar('checkout_key', { length: 100 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

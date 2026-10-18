@@ -19,8 +19,6 @@ export class CreateUomDto {
   baseUnitId?: string;
 
   // Integer pair: `uomQty` units of THIS UOM = `baseUomQty` units of the dimension base UOM.
-  // Example for 1 Box = 12 Each → baseUomQty=12, uomQty=1.
-  // Both default to 1 (no conversion) when omitted.
   @IsOptional()
   @IsInt()
   @IsPositive()

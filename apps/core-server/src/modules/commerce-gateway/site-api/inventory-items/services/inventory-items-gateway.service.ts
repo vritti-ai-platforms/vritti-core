@@ -106,8 +106,7 @@ export class SiteInventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Keyset Relay connection of an item's supplier links for the mobile infinite feed (mirrors
-  // findStockLevelsForFeed). Read-only; each row already has a unique id, so the node is forwarded as-is.
+  // Keyset Relay connection of an item's supplier links for the mobile infinite feed (mirrors findStockLevelsForFeed).
   async findSuppliersForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
     edges: { cursor: string; node: InventoryItemSupplierResponseDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -146,8 +145,7 @@ export class SiteInventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Keyset Relay connection of an item's ledger entries for the mobile infinite feed (mirrors
-  // findStockLevelsForFeed). Read-only; each row already has a unique id, so the node is forwarded as-is.
+  // Keyset Relay connection of an item's ledger entries for the mobile infinite feed (mirrors findStockLevelsForFeed).
   async findLedgerForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
     edges: { cursor: string; node: InventoryItemLedgerResponseDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -169,9 +167,8 @@ export class SiteInventoryItemsGatewayService {
     return this.nats.send('commerce', 'site.inventoryItems.stocks', { inventoryItemId });
   }
 
-  // Keyset Relay connection of per-location stock levels for the mobile infinite feed (a single item can be
-  // stocked in >100 locations). The commerce-service keyset-paginates at the DB and builds the opaque cursor
-  // + composite `id` (item:location); this is a thin forward. The client merges pages via relayStylePagination.
+  // Keyset Relay connection of per-location stock levels for the mobile infinite feed (a single item can be stocked in
+  // >100 locations).
   async findStockLevelsForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
     edges: { cursor: string; node: InventoryItemStockResponseDto & { id: string } }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -203,8 +200,7 @@ export class SiteInventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Keyset Relay connection of an item's quants for the mobile infinite feed (mirrors
-  // findStockLevelsForFeed). Read-only; each row already has a unique id, so the node is forwarded as-is.
+  // Keyset Relay connection of an item's quants for the mobile infinite feed (mirrors findStockLevelsForFeed).
   async findQuantsForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
     edges: { cursor: string; node: InventoryItemQuantResponseDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -256,7 +252,7 @@ export class SiteInventoryItemsGatewayService {
   }
 
   // Keyset Relay connection of an item's location configs for the mobile infinite feed (mirrors
-  // findStockLevelsForFeed). Each row already has a unique id, so the node is forwarded as-is.
+  // findStockLevelsForFeed).
   async findItemLocationsForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
     edges: { cursor: string; node: InventoryItemLocationResponseDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -309,10 +305,8 @@ export class SiteInventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Lean list of an item's UOM conversion overrides for the mobile detail tab — skips the web DataTableState
-  // machinery (no per-user saved views). The per-item list is small/bounded, so request a single large page.
-  // The commerce-service handler reads state.pagination/filters/search/sort, so pass an explicit default state
-  // (pagination is required — it destructures state.pagination.limit).
+  // Lean list of an item's UOM conversion overrides for the mobile detail tab — skips the web DataTableState machinery
+  // (no per-user saved views).
   async findUomConversions(inventoryItemId: string): Promise<SiteInventoryItemUomConversionResponseDto[]> {
     this.logger.log(`org.inventoryItems.uom.table (list) — inventoryItemId: ${inventoryItemId}`);
     const { result } = await this.nats.send<{ result: SiteInventoryItemUomConversionResponseDto[]; count: number }>(

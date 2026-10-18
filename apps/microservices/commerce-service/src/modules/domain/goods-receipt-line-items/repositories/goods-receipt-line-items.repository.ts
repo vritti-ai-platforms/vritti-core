@@ -76,8 +76,7 @@ export class GoodsReceiptLineItemsDomainRepository extends PrimaryBaseRepository
     return rows[0] as GoodsReceiptLineItem | undefined;
   }
 
-  // True if the serial is already registered in inventory for the given item. Goods receipt
-  // REGISTERS new serials, so a hit here is a collision with existing inventory_item_serials.
+  // True if the serial is already registered in inventory for the given item.
   async existsSerialInInventory(inventoryItemId: string, serialNumber: string): Promise<boolean> {
     const rows = await this.db
       .select({ id: inventoryItemSerials.id })

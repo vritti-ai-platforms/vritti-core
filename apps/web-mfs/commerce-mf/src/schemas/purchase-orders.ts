@@ -151,7 +151,9 @@ export const addPurchaseOrderItemSchema = z
 
 export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
 
-// Pass `minQty` when the line has already been received against — blocks reducing ordered qty below received. Defaults to no minimum.
+// Pass `minQty` when the line has already been received against — blocks reducing ordered qty below received.
+// Pass `minQty` when the line has already been received against — blocks reducing ordered qty below received. Defaults
+// to no minimum.
 export function buildUpdatePurchaseOrderItemSchema(options: { minQty?: number } = {}) {
   const { minQty } = options;
   return z

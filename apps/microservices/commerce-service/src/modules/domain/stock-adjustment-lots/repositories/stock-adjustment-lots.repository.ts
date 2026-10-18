@@ -56,7 +56,6 @@ export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<t
   }
 
   // Returns the OPENING+serial tree as fully-formed StockAdjustmentTreeNode rows in one query.
-  // SQL emits the wire shape directly via json_build_object/json_agg — service consumes as-is.
   async findTreeNodesByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentTreeNode[]> {
     const childrenJson = sql`COALESCE(
       json_agg(
@@ -99,6 +98,7 @@ export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<t
     return rows.map((r) => r.node);
   }
 
+  // Single lot's detail — stats for the selected lot header.
   // Single lot's detail — stats for the selected lot header. Returns undefined if the lot doesn't exist.
   async findLotDetail(lotId: string): Promise<StockAdjustmentLotDetailRow | undefined> {
     const [row] = await this.db

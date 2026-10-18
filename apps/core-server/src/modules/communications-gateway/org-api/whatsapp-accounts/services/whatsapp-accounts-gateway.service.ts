@@ -19,8 +19,6 @@ import {
 } from '../../../embedded-signup/embedded-signup.constants';
 import { EmbeddedSignupStateService } from '../../../embedded-signup/services/embedded-signup-state.service';
 
-// Must track GRAPH_API_VERSION in communications-service's MetaGraphHttpService: the dialog and the
-// server-side calls that follow it have to speak the same Graph version.
 const GRAPH_API_VERSION = 'v26.0';
 
 const CONNECT_SUBDOMAIN = 'api';
@@ -52,10 +50,6 @@ export class WhatsappAccountsGatewayService {
       appId: this.configService.getOrThrow<string>('META_CLIENT_ID'),
       configId,
       graphVersion: GRAPH_API_VERSION,
-      // The broker origin always resolves (it falls back to connect.<BASE_DOMAIN>) and the app id is
-      // required at boot, so the Facebook Login configuration is the only prerequisite a deployment
-      // can actually be missing — without it there is nothing to open, and the UI hides its button
-      // rather than starting a flow that cannot finish.
       enabled: Boolean(configId),
     };
   }
@@ -81,8 +75,7 @@ export class WhatsappAccountsGatewayService {
     return { url: this.brokerUrl(state) };
   }
 
-  // Starts a reconnect attempt against one existing account. Gated on `edit`, and the account id is
-  // carried in the state rather than by the browser, so the completion cannot be pointed elsewhere.
+  // Starts a reconnect attempt against one existing account.
   createReconnectState(
     accountId: string,
     organizationId: string,
@@ -100,8 +93,7 @@ export class WhatsappAccountsGatewayService {
     return { url: this.brokerUrl(state) };
   }
 
-  // Connects a WABA from an Embedded Signup result. The authorization code is forwarded, never the
-  // token — the exchange and the ownership check both happen downstream.
+  // Connects a WABA from an Embedded Signup result.
   connectEmbedded(dto: ConnectEmbeddedSignupDto): Promise<CreateResponseDto<WhatsappAccountResponseDto>> {
     this.logger.log('whatsappAccounts.connectEmbedded');
     return this.nats.send('communications', 'org.whatsappAccounts.connectEmbedded', dto);
@@ -144,8 +136,6 @@ export class WhatsappAccountsGatewayService {
 
   // Disconnects a WhatsApp account by ID, refusing while an app still sends sign-in codes from it
   async delete(id: string, organizationId: string): Promise<SuccessResponseDto> {
-    // No foreign key spans the core/communications boundary, so this server is the only place that
-    // can see both sides — miss it and a live storefront starts failing at Meta instead
     const dependents = await this.appService.findByOtpAccount(organizationId, id);
     if (dependents.length > 0) {
       const names = dependents.map((app) => app.name).join(', ');
@@ -168,22 +158,17 @@ export class WhatsappAccountsGatewayService {
   private brokerBaseUrl(): string {
     const host = `${CONNECT_SUBDOMAIN}.${this.configService.getOrThrow<string>('BASE_DOMAIN')}`;
 
-    // Compared as a string: `validate()` returns the raw environment rather than the
-    // class-transformed instance, so this arrives as 'true' — and typing it as a boolean would make
-    // 'false' truthy
     const terminatesTls = String(this.configService.get('USE_HTTPS')) === 'true';
     const port = Number(this.configService.get('PORT'));
 
-    // 443 is omitted even when terminating TLS here: Meta matches the redirect URI exactly, and
-    // `:443` would not match a registration written without it
     const suffix = terminatesTls && port && port !== 443 ? `:${port}` : '';
 
     return `https://${host}${suffix}`;
   }
 
   private brokerUrl(state: string): string {
-    // The state is base64url plus a '.', so encoding is a no-op today — kept so it stays correct if
-    // the payload format ever changes
+    // The state is base64url plus a '.', so encoding is a no-op today — kept so it stays correct if the payload format
+    // ever changes
     return `${this.brokerBaseUrl()}${EMBEDDED_SIGNUP_BROKER_PATH}?state=${encodeURIComponent(state)}`;
   }
 
@@ -206,8 +191,8 @@ export class WhatsappAccountsGatewayService {
 
     if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new BadRequestException(rejected);
 
-    // Matched on the parsed hostname, not with endsWith on the whole URL, so a lookalike domain
-    // ending in the base domain cannot satisfy it
+    // Matched on the parsed hostname, not with endsWith on the whole URL, so a lookalike domain ending in the base
+    // domain cannot satisfy it
     if (url.hostname !== baseDomain && !url.hostname.endsWith(`.${baseDomain}`)) {
       this.logger.warn(`Refusing to start a signup returning to ${url.hostname} — outside ${baseDomain}`);
       throw new BadRequestException(rejected);

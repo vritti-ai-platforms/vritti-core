@@ -35,19 +35,8 @@ import type { WorkflowListResponseDto } from './dto/response/workflow-list-respo
 import { ActionsGatewayService } from './services/actions-gateway.service';
 import { RepositoriesGatewayService } from './services/repositories-gateway.service';
 
-// Actions are not a separate feature — they are a view of a repository — so every route lives here and
-// shares the repositories feature. Permissions split by what the route actually does rather than by verb:
-// the repository record is CRUD (`view`/`add`/`edit`/`delete`), browsing source is `code.view`, and the
-// actions routes are executions, split by lifecycle stage. The definitions are `actions.workflows.*` —
-// `dispatch` starts one on a caller-chosen ref, `configure` enables or disables it org-wide. The
-// executions are `actions.runs.*` — `rerun` replays one, `delete` removes it (Gitea has no cancel, so
-// that is also the only way to stop one).
-// Job logs are `logs.view` of their own: the endpoint is job-scoped rather than run-scoped, and CI output
-// routinely carries secrets and internal hostnames.
-//
-// Route order matters within a path depth: a static segment must be declared before a dynamic one at the
-// same position, or the parameter swallows it. Hence `table` before `:name`, and `runs/table` before
-// `runs/:runId`.
+// Actions are not a separate feature — they are a view of a repository — so every route lives here and shares the
+// repositories feature.
 @ApiTags('Gitea - Repositories')
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
@@ -216,8 +205,8 @@ export class RepositoriesGatewayController {
     return this.repositoriesGatewayService.getStats(subdomain, name, ref);
   }
 
-  // Stays on `view`, not `code.view`: the dispatch dialog populates its ref picker from this, so a user
-  // with actions.dispatch but no Code-tab access would otherwise have no branch to run against
+  // Stays on `view`, not `code.view`: the dispatch dialog populates its ref picker from this, so a user with
+  // actions.dispatch but no Code-tab access would otherwise have no branch to run against
   @Get(':name/branches')
   @RequirePermission(ORG_REPOSITORIES.view)
   listBranches(@OrgSubdomain() subdomain: string, @Param('name') name: string): Promise<BranchListResponseDto> {

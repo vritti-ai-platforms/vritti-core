@@ -16,48 +16,29 @@ export type CartItem = {
   catalogListingId: string;
   quantity: number;
   name: string;
-  /** What a storefront joins its own product page on — the variant's code, stable across sites. */
   code: string;
   unitPrice: Money | null;
   lineTotal: Money | null;
-  /** False once delisted, switched off, or no longer priced in the basket's currency. */
   isAvailable: boolean;
 };
 
-/** A view over the lines a party holds — no id, no status, because there is no basket row. */
 export type Cart = {
   currencyCode: string;
   items: CartItem[];
-  /** Totals only the available lines. */
   subtotal: Money;
   itemCount: number;
 };
 
-/** How many of one product the party holds in their basket. */
 export type CartQuantity = {
   code: string;
   quantity: number;
 };
 
-/**
- * One party's basket, at the site the storefront sells from.
- *
- * **Reachable only through `sdk.forContext({ partyId })`.** Core reads whose basket it is from the
- * request signature rather than from an argument, so an unbound client has nobody to act for.
- *
- * Every call answers with the whole basket, so a caller redraws from one response rather than
- * patching what it already had.
- */
+// One party's basket, at the site the storefront sells from.
 export function createCartOperations(client: ApolloClient, context: RequestContext = {}, currency?: string) {
   const requestContext = { requestContext: context };
 
-  /**
-   * The currency the storefront sells in.
-   *
-   * Not defaulted: guessing one would price a basket in a currency nobody chose, and the mistake
-   * would surface as an empty basket rather than an error — core simply finds no price for a
-   * listing in a currency the catalogue does not carry.
-   */
+  // The currency the storefront sells in.
   const currencyCode = (): string => {
     if (!currency) {
       throw new VapError(
@@ -69,14 +50,8 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
     return currency;
   };
 
-  /**
-   * Refused here rather than at core, so a caller that forgot `forContext` gets a message naming
-   * the mistake instead of a uniform "sign in" from the far end of a signed request.
-   *
-   * Every operation below is `async` so this lands as a **rejected promise**, not a synchronous
-   * throw. A function typed `Promise<Cart>` that throws before returning one slips straight past
-   * `.catch()` and surfaces as an unhandled error in the caller.
-   */
+  // Refused here rather than at core, so a caller that forgot `forContext` gets a message naming the mistake instead of
+  // a uniform "sign in" from the far end of a signed request.
   const requireParty = (): void => {
     if (!context.partyId) {
       throw new VapError('This needs a signed-in party — use sdk.forContext({ partyId }).', 'No Party', 401);
@@ -84,7 +59,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
   };
 
   return {
-    /** The basket, or an empty one for a party who has added nothing. */
+    // The basket, or an empty one for a party who has added nothing.
     async items(): Promise<Cart> {
       requireParty();
       return run(() =>
@@ -97,7 +72,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
           .then((r) => requireData(r.data).cart as Cart),
       );
     },
-    /** Adds a listing, or raises the quantity of the line already there. */
+    // Adds a listing, or raises the quantity of the line already there.
     async add(code: string, quantity = 1): Promise<Cart> {
       requireParty();
       return run(() =>
@@ -110,7 +85,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
           .then((r) => requireData(r.data).addToCart as Cart),
       );
     },
-    /** Sets a line to an exact quantity — not a delta. Use `removeFromCart` to take it out. */
+    // Sets a line to an exact quantity — not a delta.
     async update(code: string, quantity: number): Promise<Cart> {
       requireParty();
       return run(() =>
@@ -147,12 +122,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
           .then((r) => requireData(r.data).clearCart as Cart),
       );
     },
-    /**
-     * How many of each product is in the basket — for a product page's stepper.
-     *
-     * Counts only, so it is cheap enough to ask on every view, unlike `cart()`, which prices every
-     * line. Sent at the configured site, like every other basket call.
-     */
+    // How many of each product is in the basket — for a product page's stepper.
     async quantities(): Promise<CartQuantity[]> {
       requireParty();
       return run(() =>

@@ -185,7 +185,6 @@ export const changeSupplierCurrencySchema = z.object({
 
 export type ChangeSupplierCurrencyFormData = z.infer<typeof changeSupplierCurrencySchema>;
 
-// Supplier site enrollment (per-site branch: origin GSTIN pick + branch payee pick).
 export interface SupplierSiteRow {
   id: string;
   supplierId: string;

@@ -39,8 +39,6 @@ export class AppDomainService {
       type: input.type,
       signingKey: privateKey,
       signingPublicKey: publicKey,
-      // Omitted means an empty grant, which authenticates but can do nothing — a new
-      // credential is inert until someone says what it is for.
       permissions: sanitizeGrants(input.permissions ?? {}),
       allowedOrigins: normalizeOrigins(input.allowedOrigins ?? []),
     });
@@ -139,8 +137,8 @@ function sanitizeGrants(grants: FeatureUnlocks): FeatureUnlocks {
       if (!Array.isArray(codes)) continue;
       entry[platform] = [...new Set(codes.filter((code): code is string => typeof code === 'string'))];
     }
-    // Checked across every bucket — naming web/mobile here silently discarded app-only grants,
-    // which is the only shape the credential permission editor actually sends
+    // Checked across every bucket — naming web/mobile here silently discarded app-only grants, which is the only shape
+    // the credential permission editor actually sends
     if (PLATFORMS.some((platform) => entry[platform] !== undefined)) clean[featureCode] = entry;
   }
   return clean;

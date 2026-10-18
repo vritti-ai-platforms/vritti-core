@@ -14,8 +14,6 @@ export class OrgServiceDomainRepository extends PrimaryBaseRepository<typeof org
   }
 
   // Records a provisioned service, refreshing the provider's identifiers when the row already exists.
-  // Only the keys the caller supplied are written — a re-provision carrying one identifier must not
-  // null the other, because a blank externalName silently re-locks every feature gated on the service.
   async upsert(
     orgId: string,
     service: ServiceType,

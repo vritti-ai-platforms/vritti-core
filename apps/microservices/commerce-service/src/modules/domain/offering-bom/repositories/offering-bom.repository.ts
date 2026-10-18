@@ -30,8 +30,7 @@ export class OfferingBomDomainRepository extends PrimaryBaseRepository<typeof of
     super(database, offeringBom);
   }
 
-  // The variant a bill of materials hangs off. Read here rather than through the variants module —
-  // a domain module owns its own cross-table reads.
+  // The variant a bill of materials hangs off.
   async findVariant(variantId: string): Promise<BomVariantRef | undefined> {
     const [row] = await this.db
       .select({

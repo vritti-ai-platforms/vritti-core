@@ -33,8 +33,7 @@ export class InventoryItemLedgerDomainService {
     return entry;
   }
 
-  // Keyset ledger feed for one item (mobile Relay, read-only). Ordered by (createdAt desc, id asc); the
-  // cursor encodes those boundary values (via CursorCodec) so pages don't skip/duplicate.
+  // Keyset ledger feed for one item (mobile Relay, read-only).
   async findFeed(
     inventoryItemId: string,
     limit: number,
@@ -62,8 +61,7 @@ export class InventoryItemLedgerDomainService {
     };
   }
 
-  // Returns paginated ledger entries for one item's data table (web). Scoped to inventoryItemId — the
-  // inventory_item_ledger table has no RLS, so without this filter the per-item tab leaks every item's rows.
+  // Returns paginated ledger entries for one item's data table (web).
   async findForTable(
     inventoryItemId: string,
     state: TableViewState,

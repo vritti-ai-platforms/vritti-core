@@ -34,8 +34,6 @@ export class MediaController {
       throw new BadRequestException('No file provided.');
     }
 
-    // Buffered rather than streamed because the checksum has to be known before the upload: it is what decides
-    // whether this is a duplicate of something the org already stored. The Fastify multipart limit caps the cost.
     const buffer = await file.toBuffer();
     const result = await this.mediaService.upload(
       { buffer, filename: file.filename, mimetype: file.mimetype },

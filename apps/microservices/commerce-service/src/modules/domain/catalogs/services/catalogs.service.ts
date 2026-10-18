@@ -98,8 +98,8 @@ export class CatalogsDomainService {
   async update(id: string, data: Omit<UpdateCatalogDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.requireCatalog(id);
     if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) await this.assertNameFree(data.name);
-    // isActive only hides a catalog from selectors, so retiring one that still lists items would leave
-    // those listings reachable with no way to reach the catalog again
+    // isActive only hides a catalog from selectors, so retiring one that still lists items would leave those listings
+    // reachable with no way to reach the catalog again
     if (data.isActive === false && existing.items > 0) {
       throw new ConflictException({
         label: 'Catalog In Use',
@@ -136,6 +136,7 @@ export class CatalogsDomainService {
     return rows.map((row) => CatalogCurrencyDto.from(row, catalog.items));
   }
 
+  // Offers a currency on this price list.
   // Offers a currency on this price list. Nothing is priced by it yet — the Prices tab fills that in.
   async addCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
     const catalog = await this.requireCatalog(catalogId);
@@ -144,8 +145,8 @@ export class CatalogsDomainService {
     return { success: true, message: `"${catalog.name}" can now be priced in ${currencyCode}.` };
   }
 
-  // Withdrawing a currency makes its prices unreachable, so it is refused while any exist rather
-  // than cascading — a price list is too expensive to lose to a mis-click.
+  // Withdrawing a currency makes its prices unreachable, so it is refused while any exist rather than cascading — a
+  // price list is too expensive to lose to a mis-click.
   async removeCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
     const catalog = await this.requireCatalog(catalogId);
     const [priced] = await this.currencies.countPrices(catalogId, [currencyCode]);

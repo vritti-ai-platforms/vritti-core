@@ -68,8 +68,8 @@ export const CurrencyCard: React.FC<CurrencyCardProps> = ({
           size="icon"
           className="size-8 text-muted-foreground"
           permission={editPermission}
-          // Withdrawing a currency that still prices listings would strand those prices, so the
-          // server refuses it — saying so here beats a toast after the click
+          // Withdrawing a currency that still prices listings would strand those prices, so the server refuses it —
+          // saying so here beats a toast after the click
           disabled={!canEdit || pricedCount > 0 || isRemoving}
           disabledTip={canEdit ? 'Clear its prices before removing it' : 'This price list belongs to a wider workspace'}
           onClick={onRemove}

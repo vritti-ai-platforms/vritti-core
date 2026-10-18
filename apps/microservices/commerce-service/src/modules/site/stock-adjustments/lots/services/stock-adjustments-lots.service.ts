@@ -10,7 +10,6 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import type { InventoryItemLot } from '@/db/schema';
 
 // App-layer orchestrator for stock-adjustment lot writes that need inventory-aggregate awareness.
-// Keeps domain `StockAdjustmentLotsDomainService` self-contained while this layer crosses to inventory-item-lots.
 @Injectable()
 export class StockAdjustmentsLotsService {
   private readonly logger = new Logger(StockAdjustmentsLotsService.name);
@@ -30,8 +29,6 @@ export class StockAdjustmentsLotsService {
     const adjustment = await this.adjustmentsService.findById(adjustmentId);
     const trimmed = data.lotNumber;
     if (trimmed) {
-      // Reject if a lot with the same number already exists in inventory for this item.
-      // OPENING_STOCK can only register new lots — published lots can't be re-registered through a draft.
       const inventoryLot = await this.inventoryItemLotsService.findByItemAndNumber(adjustment.inventoryItemId, trimmed);
       if (inventoryLot) {
         throw new ValidationException({
@@ -76,7 +73,6 @@ export class StockAdjustmentsLotsService {
   }
 
   // Used by the publish flow: creates the matching inventory_item_lots row from this draft lot.
-  // Throws if a lot with the same (item, number) already exists in inventory (cannot reuse).
   async resolveInventoryLot(
     inventoryItemId: string,
     lotId: string,

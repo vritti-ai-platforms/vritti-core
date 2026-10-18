@@ -2,23 +2,7 @@ import { createPrivateKey, createPublicKey, type KeyObject, verify } from 'node:
 import type { PaymentReference } from '../core/domains/payments.js';
 import type { Money } from '../core/types.js';
 
-/**
- * Verifying the webhooks core sends a website — payment outcomes, delivered server to server.
- *
- * **Signed with the website's own app key.** Core signs each delivery with the app's Ed25519 signing
- * key — the same key the website holds as its `clientSecret` — and the website checks with the public
- * half, derived here from that `clientSecret` or passed as `publicKey` (cloud shows it on the app's
- * webhook settings). No second secret to provision; rotating the app key rotates this one too.
- *
- * ```
- * x-vap-event-id:  <event id, equal to body.id>
- * x-vap-timestamp: <unix seconds>
- * x-vap-signature: base64 Ed25519 over UTF-8 `${timestamp}.${rawBody}`
- * ```
- *
- * The timestamp is inside the signature and checked against a window, so a captured delivery cannot
- * be replayed later. Within the window, deduplicate on `event.id` — core retries until it hears 2xx.
- */
+// Verifying the webhooks core sends a website — payment outcomes, delivered server to server.
 
 export const VAP_EVENT_ID_HEADER = 'x-vap-event-id';
 export const VAP_TIMESTAMP_HEADER = 'x-vap-timestamp';
@@ -31,7 +15,6 @@ export type VapPaymentEventType =
 
 export type VapWebhookEventType = VapPaymentEventType | 'webhook.test';
 
-/** What every payment event carries — enough to find and settle the record it is about. */
 export type VapPaymentEventData = {
   paymentIntentId: string;
   appId: string;
@@ -39,20 +22,13 @@ export type VapPaymentEventData = {
   legalEntityId: string | null;
   siteId: string | null;
   configId: string | null;
-  /** The reference the intent was created with — how the receiver finds its own record. */
   reference: PaymentReference;
   amount: Money;
-  /** How it was paid — `card`, `upi`… — once known. */
   method: string | null;
   providerPaymentId: string | null;
   paidAt: string | null;
   failure: { code: string | null; message: string | null } | null;
-  /** The intent's metadata, as a flat map whichever shape core sent it in. */
   metadata: Record<string, string>;
-  /**
-   * Set when the outcome arrived after the intent had already been settled another way — a payment
-   * that succeeded after the intent expired, say. Usually means a refund to arrange.
-   */
   late?: boolean;
 };
 
@@ -63,7 +39,6 @@ export type VapPaymentEvent = {
   data: VapPaymentEventData;
 };
 
-/** Sent from cloud's "send test webhook" button. Verifies like any other; carries nothing to act on. */
 export type VapTestEvent = {
   id: string;
   type: 'webhook.test';
@@ -74,16 +49,13 @@ export type VapTestEvent = {
 export type VapWebhookEvent = VapPaymentEvent | VapTestEvent;
 
 export type VapWebhookErrorReason =
-  /** No key to verify with — neither `clientSecret` nor `publicKey`, or one that is not a valid key. */
+  // No key to verify with — neither `clientSecret` nor `publicKey`, or one that is not a valid key.
   | 'no_key'
   | 'missing_headers'
   | 'stale_timestamp'
   | 'bad_signature'
   | 'bad_json'
-  /**
-   * Authentic, but a type this SDK version does not know. Answer 2xx and ignore it — refusing would
-   * have core retry an event no deploy of this version will ever handle.
-   */
+  // Authentic, but a type this SDK version does not know.
   | 'unsupported_event';
 
 export class VapWebhookError extends Error {
@@ -96,21 +68,13 @@ export class VapWebhookError extends Error {
   }
 }
 
-/** Fetch `Headers`, or Node's `IncomingHttpHeaders` — whatever the framework hands over. */
 export type WebhookHeaders = Headers | Record<string, string | string[] | undefined>;
 
 export type VerifyVapWebhookInput = {
-  /**
-   * The body **exactly as received** — before any JSON parsing. A re-serialised object is different
-   * bytes and will not verify.
-   */
   rawBody: string | Uint8Array;
   headers: WebhookHeaders;
-  /** The app's `clientSecret` (base64 pkcs8 DER); its public half is derived here. */
   clientSecret?: string;
-  /** Or the public key itself, base64 spki DER, for a verifier that should not hold the secret. */
   publicKey?: string;
-  /** How old a delivery may be, in seconds, before it is refused as a possible replay. */
   toleranceSeconds?: number;
 };
 
@@ -162,13 +126,7 @@ function toMetadata(value: unknown): Record<string, string> {
   return {};
 }
 
-/**
- * Proves a webhook came from core and returns it typed — or throws `VapWebhookError`.
- *
- * Checks, in order: a key to verify with, the three headers, the signature over the raw body, the
- * timestamp window, then the JSON. Answer 401 for any `VapWebhookError` except `unsupported_event`,
- * which deserves a 2xx (see its note).
- */
+// Proves a webhook came from core and returns it typed — or throws `VapWebhookError`.
 export function verifyVapWebhook(input: VerifyVapWebhookInput): VapWebhookEvent {
   const key = verificationKey(input);
   const tolerance = input.toleranceSeconds ?? 300;

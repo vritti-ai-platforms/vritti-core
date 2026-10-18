@@ -282,8 +282,7 @@ export class SiteOfferingsGatewayService {
     return this.nats.send('commerce', 'site.offerings.variants.update', { id: variantId, ...dto });
   }
 
-  // Replaces a variant's bill of materials as a set
-  // Cascades to every variant that has not pinned its own tax class
+  // Replaces a variant's bill of materials as a set Cascades to every variant that has not pinned its own tax class
   // Changes what the offering is; the microservice cascades to variants that have not pinned their own
   async setFulfilment(id: string, dto: SetFulfilmentDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.offerings.setFulfilment — id: ${id}, type: ${dto.fulfilmentType}`);
@@ -307,8 +306,8 @@ export class SiteOfferingsGatewayService {
     return this.nats.send('commerce', 'site.offerings.setTaxClass', { id, ...dto });
   }
 
-  // Flat value ids: the attribute each belongs to is derived by the microservice from the offering
-  // Only the named attribute is replaced; the microservice leaves the selection's other attributes alone
+  // Flat value ids: the attribute each belongs to is derived by the microservice from the offering Only the named
+  // attribute is replaced; the microservice leaves the selection's other attributes alone
   async bulkSetVariantsAttribute(offeringId: string, dto: BulkSetVariantsAttributeDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bulkSetAttribute — count: ${dto.ids.length}, attributeId: ${dto.attributeId}`);
     return this.nats.send('commerce', 'site.offerings.variants.bulkSetAttribute', { offeringId, ...dto });
@@ -340,8 +339,8 @@ export class SiteOfferingsGatewayService {
     return this.nats.send('commerce', 'site.offerings.variants.clearTaxClass', { id: variantId });
   }
 
-  // One component at a time — the whole-list replace it supersedes could silently drop a concurrent edit
-  // The components plus the code-matched suggestion, read on its own rather than with the variant
+  // One component at a time — the whole-list replace it supersedes could silently drop a concurrent edit The components
+  // plus the code-matched suggestion, read on its own rather than with the variant
   findVariantBom(variantId: string): Promise<VariantBomResponseDto> {
     this.logger.log(`offerings.variants.bom.lines.list — variantId: ${variantId}`);
     return this.nats.send('commerce', 'site.offerings.variants.bom.lines.list', { variantId });

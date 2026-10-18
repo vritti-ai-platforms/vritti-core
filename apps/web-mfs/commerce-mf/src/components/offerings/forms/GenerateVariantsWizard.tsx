@@ -36,7 +36,6 @@ export const GenerateVariantsWizard: React.FC<GenerateVariantsWizardProps> = ({
   const [step, setStep] = useState<VariantWizardStep>('values');
   const [salesUomId, setSalesUomId] = useState<string>('');
   // Every dimension and value starts selected — the common case is "generate the whole matrix".
-  // Switching a dimension off drops it from this batch entirely; the variants simply will not carry it.
   const [selected, setSelected] = useState<Record<string, Set<string>>>(() =>
     Object.fromEntries(dimensions.map((d) => [d.id, new Set(d.values.map((v) => v.id))])),
   );
@@ -76,8 +75,8 @@ export const GenerateVariantsWizard: React.FC<GenerateVariantsWizardProps> = ({
     setSelected((current) => ({ ...current, [dimensionId]: new Set(valueIds) }));
   };
 
-  // A dimension with nothing selected is simply not one of this batch's axes — the variants created
-  // will not carry it at all, and its segment is absent from their SKUs
+  // A dimension with nothing selected is simply not one of this batch's axes — the variants created will not carry it
+  // at all, and its segment is absent from their SKUs
   const toggleDimension = (dimension: OfferingDimensionData) => {
     setSelected((current) => ({
       ...current,

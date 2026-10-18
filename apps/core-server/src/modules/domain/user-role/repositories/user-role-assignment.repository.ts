@@ -161,8 +161,8 @@ export class UserRoleAssignmentDomainRepository extends PrimaryBaseRepository<ty
       .limit(1);
     return rows[0] as UserRoleAssignment | undefined;
   }
-  // Finds user ids holding any assignment in an organization for SSE re-push fan-out — joins only
-  // non-RLS tables (roles, user_role_assignments) so it works in the RLS-less event-listener context
+  // Finds user ids holding any assignment in an organization for SSE re-push fan-out — joins only non-RLS tables
+  // (roles, user_role_assignments) so it works in the RLS-less event-listener context
   async findUserIdsByOrg(orgId: string): Promise<string[]> {
     const rows = await this.db
       .selectDistinct({ userId: userRoleAssignments.userId })

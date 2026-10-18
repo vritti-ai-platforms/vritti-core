@@ -9,8 +9,8 @@ import { ChannelsPage } from '@/components/catalog-channels/ChannelsPage';
 import { ChannelsPageSkeleton } from '@/components/catalog-channels/ChannelsPageSkeleton';
 import { siteCatalogChannelsBinding } from './binding';
 
-// The gate sits outside the boundary so a denied user never mounts the page and never fires the
-// request — useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.
+// The gate sits outside the boundary so a denied user never mounts the page and never fires the request —
+// useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.
 const gated = (element: React.ReactNode, fallback: React.ReactNode) => (
   <PermissionGate
     permission={SITE_CATALOG_CHANNELS.view}

@@ -23,22 +23,17 @@ export interface ExportOfferingRow {
   variantCount: number;
 }
 
-// What the table renders: the row, whether this workspace owns it, and the two counts shown as columns
 export type OfferingTableRow = Offering & {
   isOwned: boolean;
   dimensionCount: number;
   variantCount: number;
 };
 
-// The detail page additionally shows how many variants follow the offering's tax class and how many still
-// need a bill of materials. Both are correlated subqueries, so they are computed for one row, not for a page.
 export type OfferingWithOwnership = OfferingTableRow & {
   variantsFollowingTaxClass: number;
   variantsWithoutBom: number;
 };
 
-// A bulk write only has to decide whether it may proceed: ownership, whether any variant exists, and a name
-// for the refusal it may have to report
 export type OfferingGuardRow = Pick<Offering, 'id' | 'code' | 'name'> & {
   isOwned: boolean;
   variantCount: number;
@@ -50,8 +45,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     super(database, offerings);
   }
 
-  // Each read selects what it shows. A correlated subquery runs once per returned row, so a count only the
-  // detail page renders would be computed for every row of a page and thrown away.
+  // Each read selects what it shows.
   private tableSelection() {
     return {
       ...getColumns(offerings),
@@ -81,9 +75,9 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     };
   }
 
-  // Returns the offerings this workspace can reach, each flagged with whether it owns the row or
-  // merely inherits it from a wider scope (RLS decides reach; ownedByWorkspaceExpression decides ownership)
-  // Returns one page of reachable offerings with ownership, plus the unpaginated total
+  // Returns the offerings this workspace can reach, each flagged with whether it owns the row or merely inherits it
+  // from a wider scope (RLS decides reach; ownedByWorkspaceExpression decides ownership) Returns one page of reachable
+  // offerings with ownership, plus the unpaginated total
   async findForTable(options: {
     where?: SQL;
     orderBy: SQL[];
@@ -99,9 +93,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     });
   }
 
-  // Returns one offering with its ownership flag, or undefined when out of reach. Callers that may
-  // only write branch on isOwned rather than narrowing here, so a row owned elsewhere still yields
-  // the name their 403 needs — RLS is what actually refuses the write.
+  // Returns one offering with its ownership flag, or undefined when out of reach.
   async findDetailById(id: string): Promise<OfferingWithOwnership | undefined> {
     return this.findById<OfferingWithOwnership>(id, { select: this.detailSelection() });
   }
@@ -122,9 +114,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     });
   }
 
-  // Reports which of the two unique keys are already taken, in one pass. They have different scopes:
-  // name is unique per OWNER, code per ORGANIZATION — and a sibling's code is invisible to reach, so
-  // the database stays the final arbiter on code.
+  // Reports which of the two unique keys are already taken, in one pass.
   async findConflicts(name: string, code: string): Promise<{ nameTaken: boolean; codeTaken: boolean }> {
     const nameMatch = sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`;
     const codeMatch = sql`${offerings.code} = ${code}`;
@@ -140,9 +130,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     return row ?? { nameTaken: false, codeTaken: false };
   }
 
-  // Returns the offering matching a name within this workspace's own ownership slot. Scoped to owned
-  // rows because name is unique per OWNER, not per organization — an inherited row sharing the name
-  // is not a collision.
+  // Returns the offering matching a name within this workspace's own ownership slot.
   async findByName(name: string): Promise<Offering | undefined> {
     const [row] = await this.db
       .select()
@@ -178,8 +166,8 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     await this.db.update(offerings).set({ isActive }).where(inArray(offerings.id, ids));
   }
 
-  // The variants that would break a fulfilment type's bill-of-materials rule if it were applied to
-  // them — checked before a cascade writes anything, so the offering never half-moves.
+  // The variants that would break a fulfilment type's bill-of-materials rule if it were applied to them — checked
+  // before a cascade writes anything, so the offering never half-moves.
   async findVariantsBreachingBomRule(offeringId: string, max: number, min: number): Promise<string[]> {
     const lineCount = this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id));
     const rows = await this.db

@@ -12,6 +12,7 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Boxes, Plus, Radio, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import type { CatalogListingData } from '@/schemas/catalogs';
@@ -73,20 +74,18 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         enableSorting: false,
       },
       {
-        id: 'priced',
-        header: () => <div className="text-center">Priced</div>,
+        id: 'pricedIn',
+        header: () => <div className="text-center">Priced in</div>,
         cell: ({ row }) => {
-          // Prices themselves live on the Prices tab; this only says whether every currency has one.
-          // The backend already resolved one price per currency — its own or an inherited one — so
-          // counting the rows is counting the currencies this workspace can actually quote in.
           const priced = row.original.prices.length;
           if (currencyCount === 0) return <div className="text-center">—</div>;
+          const label = `${priced} of ${currencyCount} ${pluralize('Currency', currencyCount)}`;
           return (
             <div className="flex justify-center">
               {priced === currencyCount ? (
-                <span className="text-sm">{`${priced} of ${currencyCount}`}</span>
+                <span className="text-sm">{label}</span>
               ) : (
-                <Badge variant="warning">{`${priced} of ${currencyCount}`}</Badge>
+                <Badge variant="warning">{label}</Badge>
               )}
             </div>
           );
@@ -94,33 +93,20 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         enableSorting: false,
       },
       {
-        id: 'channels',
-        header: () => <div className="text-center">Available on</div>,
+        id: 'availability',
+        header: () => <div className="text-center">Availability</div>,
         cell: ({ row }) => {
-          const excluded = row.original.excludedChannelIds.length;
-          const priced = row.original.prices.length > 0;
-          if (!row.original.isOfferingActive) {
-            return (
-              <div className="text-center">
-                <Badge variant="destructive">Offering inactive</Badge>
-              </div>
-            );
-          }
-          if (!row.original.isVariantActive) {
-            return (
-              <div className="text-center">
-                <Badge variant="destructive">Variant inactive</Badge>
-              </div>
-            );
-          }
+          // Takes the wording from the backend and chooses only how loudly to say it
+          const { isActive, availability } = row.original;
+          const blocked = channels.length === 0 || row.original.prices.length === 0;
           return (
             <div className="text-center">
-              {channels.length === 0 ? (
-                <Badge variant="warning">No channels</Badge>
-              ) : priced ? (
-                <span className="text-sm">{`${channels.length - excluded} of ${channels.length}`}</span>
+              {!isActive ? (
+                <Badge variant="destructive">{availability}</Badge>
+              ) : blocked ? (
+                <Badge variant="warning">{availability}</Badge>
               ) : (
-                <Badge variant="warning">Not priced</Badge>
+                <span className="text-sm">{availability}</span>
               )}
             </div>
           );

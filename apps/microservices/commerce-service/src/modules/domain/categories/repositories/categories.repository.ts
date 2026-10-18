@@ -246,8 +246,6 @@ export class CategoriesDomainRepository extends PrimaryBaseRepository<typeof cat
       defaultTaxClassName: taxClasses.name,
       itemCount: this.db.$count(offerings, eq(offerings.categoryId, categories.id)),
       inventoryItemCount: this.db.$count(inventoryItems, eq(inventoryItems.categoryId, categories.id)),
-      // Self-correlated, so the inner table needs its own alias and the outer one stays qualified.
-      // $count cannot express this — over an alias() it emits a bare relation name with no table.
       childCount: sql<number>`(select count(*) from ${categories} as child
         where child.parent_id = ${categories}.id)`.mapWith(Number),
     };

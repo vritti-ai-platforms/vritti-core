@@ -244,8 +244,7 @@ export class PartiesDomainService {
     return { success: true, message: `${data.displayName ?? existing.displayName} updated successfully.` };
   }
 
-  // Deletes a party by ID. Blocked when a supplier references it; a person is also blocked while
-  // still linked to companies (so a live contact isn't silently unlinked).
+  // Deletes a party by ID.
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.requireById(id);
     if (await this.repository.isReferencedBySupplier(id)) {

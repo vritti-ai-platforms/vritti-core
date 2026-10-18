@@ -10,8 +10,8 @@ import type { TableViewState } from '@vritti/api-sdk/data-table';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-// Site-workspace orchestration: every mutation is verified to belong to the caller's site
-// (RpcSiteId) since the permissive RLS policies cannot restrict per-site on their own.
+// Site-workspace orchestration: every mutation is verified to belong to the caller's site (RpcSiteId) since the
+// permissive RLS policies cannot restrict per-site on their own.
 @Injectable()
 export class SiteSuppliersService {
   private readonly logger = new Logger(SiteSuppliersService.name);

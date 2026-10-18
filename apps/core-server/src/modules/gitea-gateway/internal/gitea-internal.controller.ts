@@ -20,8 +20,8 @@ import { PackageTagsSelectBodyDto } from './dto/request/package-tags-select-body
 import { GiteaCredentialsStatusResponseDto } from './dto/response/gitea-credentials-status-response.dto';
 import { PullTokenResponseDto } from './dto/response/pull-token-response.dto';
 
-// Auth is declared per-method, not class-wide: the credential endpoints are signed by the deployment
-// agent (AgentSignatureGuard / AGENT_PUBLIC_KEY) while the reads are signed by cloud (@Require(AuthType.Cloud)).
+// Auth is declared per-method, not class-wide: the credential endpoints are signed by the deployment agent
+// (AgentSignatureGuard / AGENT_PUBLIC_KEY) while the reads are signed by cloud (@Require(AuthType.Cloud)).
 @ApiTags('Gitea - Internal')
 @Controller('gitea/internal')
 @Require(AuthType.Public)

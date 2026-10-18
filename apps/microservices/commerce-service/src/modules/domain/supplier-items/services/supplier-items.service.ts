@@ -98,8 +98,6 @@ export class SupplierItemsDomainService {
   ) {}
 
   // Returns paginated supplier item options for select dropdowns and filters.
-  // When supplierId is absent, returns all active supplier items across all suppliers (supplier name on description).
-  // When excludeOnPurchaseOrderId / excludeOnGoodsReceiptId is supplied, hides items already on that PO / GR.
   findForSelect(
     query: SelectOptionsQueryDto,
     options?: {
@@ -185,8 +183,7 @@ export class SupplierItemsDomainService {
     };
   }
 
-  // Keyset feed of an item's supplier links. Ordered by (isPreferred desc, createdAt desc, id asc); the
-  // cursor encodes those boundary values (via CursorCodec) so pages don't skip/duplicate.
+  // Keyset feed of an item's supplier links.
   async findSuppliersFeed(
     inventoryItemId: string,
     limit: number,
@@ -222,7 +219,6 @@ export class SupplierItemsDomainService {
   }
 
   // Returns the inventory_item_id that owns a given supplier_items row, or null if not found.
-  // Used by top-level cross-domain validation (no inventory-items dependency in this domain).
   async findInventoryItemIdFor(supplierItemId: string): Promise<string | null> {
     const row = await this.repository.findSupplierItemById(supplierItemId);
     return row?.inventoryItemId ?? null;
@@ -256,6 +252,7 @@ export class SupplierItemsDomainService {
       });
     }
 
+    // Per-row currency must match the supplier's (composite FK).
     // Per-row currency must match the supplier's (composite FK). Reject early with a field-scoped error.
     if (data.unitPrice && data.unitPrice.currency !== supplier.currencyCode) {
       throw new ValidationException({
@@ -581,7 +578,6 @@ export class SupplierItemsDomainService {
   }
 
   // Delimit core (SAP ME11): rejects a later-or-equal row in the stratum, closes the open row, inserts.
-  // Callers must run this inside a transaction; site_id is assigned by the DB GUC default on insert.
   private async applyPriceInsert(supplierItemId: string, data: AddSupplierItemPriceInput): Promise<SupplierItemPrice> {
     const conflict = await this.repository.hasPriceOnOrAfter(supplierItemId, data.validFrom);
     if (conflict) {

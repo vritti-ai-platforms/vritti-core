@@ -1,4 +1,4 @@
-/** A party's own details and addresses. See `cart.ts` for why this barrel carries no directive. */
+// A party's own details and addresses.
 export {
   removeAddressAction,
   saveAddressAction,

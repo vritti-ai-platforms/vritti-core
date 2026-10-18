@@ -18,6 +18,7 @@ export class CartsController {
 
   constructor(private readonly service: CartsDomainService) {}
 
+  // Returns the open basket, or an empty one.
   // Returns the open basket, or an empty one. Never creates.
   @MessagePattern({ cmd: 'site.carts.get' })
   get(@Payload() dto: CartScopeDto): Promise<CartDto> {
@@ -60,8 +61,8 @@ export class CartsController {
     return this.service.findById(data.id);
   }
 
-  // Returns one basket's lines, priced by the caller's catalogue
-  // How many of each product the shopper holds here — a product page's stepper, without pricing
+  // Returns one basket's lines, priced by the caller's catalogue How many of each product the shopper holds here — a
+  // product page's stepper, without pricing
   @MessagePattern({ cmd: 'site.carts.quantities' })
   quantities(@Payload() data: { partyId: string }): Promise<{ code: string; quantity: number }[]> {
     this.logger.log(`site.carts.quantities — party: ${data.partyId}`);

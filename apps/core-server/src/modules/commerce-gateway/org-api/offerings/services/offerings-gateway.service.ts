@@ -282,8 +282,8 @@ export class OrgOfferingsGatewayService {
     return this.nats.send('commerce', 'org.offerings.variants.update', { id: variantId, ...dto });
   }
 
-  // Replaces a variant's bill of materials as a set
-  // Creates the inventory item this variant resolves to and links it as the variant's component
+  // Replaces a variant's bill of materials as a set Creates the inventory item this variant resolves to and links it as
+  // the variant's component
   async createInventoryItem(
     variantId: string,
     dto: CreateVariantInventoryItemDto,
@@ -292,8 +292,8 @@ export class OrgOfferingsGatewayService {
     return this.nats.send('commerce', 'org.offerings.variants.createInventoryItem', { variantId, ...dto });
   }
 
-  // Cascades to every variant that has not pinned its own tax class
-  // Changes what the offering is; the microservice cascades to variants that have not pinned their own
+  // Cascades to every variant that has not pinned its own tax class Changes what the offering is; the microservice
+  // cascades to variants that have not pinned their own
   async setFulfilment(id: string, dto: SetFulfilmentDto): Promise<SuccessResponseDto> {
     this.logger.log(`org.offerings.setFulfilment — id: ${id}, type: ${dto.fulfilmentType}`);
     return this.nats.send('commerce', 'org.offerings.setFulfilment', { id, ...dto });
@@ -316,8 +316,8 @@ export class OrgOfferingsGatewayService {
     return this.nats.send('commerce', 'org.offerings.setTaxClass', { id, ...dto });
   }
 
-  // Flat value ids: the attribute each belongs to is derived by the microservice from the offering
-  // Only the named attribute is replaced; the microservice leaves the selection's other attributes alone
+  // Flat value ids: the attribute each belongs to is derived by the microservice from the offering Only the named
+  // attribute is replaced; the microservice leaves the selection's other attributes alone
   async bulkSetVariantsAttribute(offeringId: string, dto: BulkSetVariantsAttributeDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bulkSetAttribute — count: ${dto.ids.length}, attributeId: ${dto.attributeId}`);
     return this.nats.send('commerce', 'org.offerings.variants.bulkSetAttribute', { offeringId, ...dto });
@@ -338,8 +338,8 @@ export class OrgOfferingsGatewayService {
     return this.nats.send('commerce', 'org.offerings.variants.clearTaxClass', { id: variantId });
   }
 
-  // One component at a time — the whole-list replace it supersedes could silently drop a concurrent edit
-  // The components plus the code-matched suggestion, read on its own rather than with the variant
+  // One component at a time — the whole-list replace it supersedes could silently drop a concurrent edit The components
+  // plus the code-matched suggestion, read on its own rather than with the variant
   findVariantBom(variantId: string): Promise<VariantBomResponseDto> {
     this.logger.log(`offerings.variants.bom.lines.list — variantId: ${variantId}`);
     return this.nats.send('commerce', 'org.offerings.variants.bom.lines.list', { variantId });

@@ -56,8 +56,6 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
       FROM commerce.goods_receipt_lines
       WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
-    // Balanced when the lines distribute exactly the operator-declared item quantity (and there are
-    // lines, none serial-unbalanced). Decoupled from the PO — the PO only caps the quantity at entry.
     const itemBalanced = sql`(
       ${itemLinesCount} > 0
       AND ${itemUnbalanced} = 0

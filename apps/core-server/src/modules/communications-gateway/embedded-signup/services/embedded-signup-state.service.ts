@@ -3,8 +3,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 
-// The operator has to get through Meta's flow in this window. Generous, because it can include
-// creating a business portfolio and a phone number.
 const TTL_MS = 15 * 60 * 1000;
 
 export type EmbeddedSignupMode = 'connect' | 'reconnect';
@@ -14,9 +12,7 @@ export interface EmbeddedSignupState {
   userId: string;
   mode: EmbeddedSignupMode;
   accountId?: string;
-  // Absolute URL on the tenant console to return to. Validated against BASE_DOMAIN when signed.
   returnUrl: string;
-  // Unix ms
   exp: number;
 }
 
@@ -64,8 +60,8 @@ export class EmbeddedSignupStateService {
       throw new BadRequestException(TAMPERED);
     }
 
-    // Signed by us, so the shape is ours — but a key rotation or a stale link from an older format
-    // would land here, and a half-read state is worse than a rejected one
+    // Signed by us, so the shape is ours — but a key rotation or a stale link from an older format would land here, and
+    // a half-read state is worse than a rejected one
     if (!state.orgId || !state.userId || !state.mode || !state.returnUrl || !state.exp) {
       throw new BadRequestException(TAMPERED);
     }

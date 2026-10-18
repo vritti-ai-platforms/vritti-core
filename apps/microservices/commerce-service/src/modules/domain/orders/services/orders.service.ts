@@ -175,6 +175,7 @@ export class OrdersDomainService {
     return this.repository.findByCheckoutKey(partyId, checkoutKey, siteId);
   }
 
+  // Records a captured payment against a site's order and releases it to the store.
   // Records a captured payment against a site's order and releases it to the store. Idempotent per payment intent
   async markPaid(
     data: MarkOrderPaidDto,
@@ -261,8 +262,7 @@ export class OrdersDomainService {
     });
   }
 
-  // Abandons a site's unpaid checkout. Any other state, or an order bound to a different payment intent, is left
-  // untouched and reported as it stands
+  // Abandons a site's unpaid checkout.
   async cancelUnpaid(data: CancelUnpaidOrderDto, siteId: string): Promise<OrderPaymentStatusDto> {
     const { orderId, reason, paymentIntentId } = data;
     return this.repository.transaction(async () => {
@@ -382,8 +382,6 @@ export class OrdersDomainService {
 
       const taxRate = new Decimal(await this.repository.getEffectiveTaxRate(variant.taxClassId));
       // TODO(pricing): offering_variants.price was removed with the catalog teardown — a variant's
-      // price now resolves from the price layer (Layer 2), which does not exist yet. Until it does,
-      // every line prices at zero. Orders is empty in production, so nothing has been mispriced.
       const unitPrice = new Decimal(0);
 
       const lineSubtotal = unitPrice.times(item.quantity);

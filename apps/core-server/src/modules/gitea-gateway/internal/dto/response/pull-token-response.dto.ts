@@ -1,8 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-// Pull credentials handed back to the caller for authenticating container image pulls against the
-// Gitea package registry. `token` is the read:package Personal Access Token the deployment agent
-// provisioned and stored — core reads it straight from the credentials row and never mints it.
 export class PullTokenResponseDto {
   @ApiProperty({ description: 'Gitea container registry host', example: 'git.example.com' })
   registry: string;

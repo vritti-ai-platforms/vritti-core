@@ -23,8 +23,6 @@ import {
 } from '@/db/schema';
 
 // Correlated scalar subquery resolving the price effective today for the outer supplier_items row.
-// Site rows win over general rows (A017 → A018); the session site GUC scopes site rows — LE context
-// (GUC unset) naturally reduces to general rows.
 export function currentPriceSql(): SQL<bigint | null> {
   return sql<bigint | null>`(
     SELECT sip.unit_price FROM ${supplierItemPrices} sip
@@ -54,10 +52,6 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Returns paginated supplier item options — one row per (inventoryItem, uom) pair.
-  // Identity is `supplier_items.id`; inventory item's name = label; tracking = description.
-  // Filters out inactive supplier items; optional supplier scope; optional NOT-EXISTS on PO/GR
-  // lines to hide combinations already on the target. Composes via super.findForSelect so the
-  // base bigint-string serialization, additionalKeys resolution, and pagination logic apply.
   override findForSelect(
     config: FindForSelectConfig,
     options?: {
@@ -145,7 +139,9 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
     });
   }
 
-  // Returns paginated supplier items for an inventory item with joined supplier name/code, UOM symbol, and current price
+  // Returns paginated supplier items for an inventory item with joined supplier name/code, UOM symbol, and current
+  // price Returns paginated supplier items for an inventory item with joined supplier name/code, UOM symbol, and
+  // current price
   async findSuppliersForItem(
     inventoryItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
@@ -184,9 +180,8 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
     });
   }
 
-  // Stable-ordered page for the mobile Relay suppliers feed: preferred first, then newest, with an id
-  // tie-breaker so the total order is deterministic (offset cursors don't skip/duplicate). Reuses the same
-  // select + count as findSuppliersForItem.
+  // Stable-ordered page for the mobile Relay suppliers feed: preferred first, then newest, with an id tie-breaker so
+  // the total order is deterministic (offset cursors don't skip/duplicate).
   async findSuppliersFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
     rows: (SupplierItem & {
       supplierName: string;
@@ -239,7 +234,6 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Clears is_preferred on all supplier_items for an inventory item except the given row.
-  // Used to enforce at-most-one preferred supplier per item before flipping a new one to preferred.
   async clearPreferredForOtherSuppliers(inventoryItemId: string, exceptSupplierItemId?: string): Promise<void> {
     const where = exceptSupplierItemId
       ? and(eq(supplierItems.inventoryItemId, inventoryItemId), ne(supplierItems.id, exceptSupplierItemId))
@@ -270,9 +264,7 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       .where(inArray(supplierItems.id, ids));
   }
 
-  // Bulk-sets is_preferred on the given supplier item links. When flipping to preferred, first clears
-  // preferred on every other supplier for the same inventory items so the at-most-one-preferred unique
-  // index is never violated.
+  // Bulk-sets is_preferred on the given supplier item links.
   async bulkSetPreferred(ids: string[], isPreferred: boolean): Promise<void> {
     if (ids.length === 0) return;
     if (isPreferred) {

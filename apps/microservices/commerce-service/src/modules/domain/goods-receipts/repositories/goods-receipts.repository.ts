@@ -14,8 +14,6 @@ import {
   suppliers,
 } from '@/db/schema';
 
-// GR row joined with supplier + purchase-order display fields. Supplier fields are non-null in
-// practice (supplier_id is a required FK) but left-joined; PO fields are null when no PO is linked.
 export type GoodsReceiptWithRefs = GoodsReceipt & {
   supplierName: string | null;
   supplierCurrencyCode: string | null;
@@ -26,7 +24,6 @@ export type GoodsReceiptWithRefs = GoodsReceipt & {
   poCurrencyCode: string | null;
 };
 
-// Table rows carry the same refs minus the supplier currency (not needed in list views).
 export type GoodsReceiptTableRow = Omit<GoodsReceiptWithRefs, 'supplierCurrencyCode'>;
 
 @Injectable()
@@ -127,7 +124,6 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Returns up to limit+1 GR rows (keyset) joined with supplier + PO display fields, for the mobile feed.
-  // Same joins as findForTable but goes through findKeyset (limit+1 / hasMore) instead of offset count.
   async findKeysetForFeed(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
     rows: GoodsReceiptWithRefs[];
     hasMore: boolean;

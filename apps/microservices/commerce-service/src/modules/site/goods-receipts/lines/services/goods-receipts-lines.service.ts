@@ -4,8 +4,8 @@ import { UomConversionsDomainService } from '@domain/uom-conversions/services/uo
 import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-// App-layer orchestrator for GR line writes: snapshots the primary-UOM quantity (cross-domain UOM
-// conversion lives here, not in the domain service) before delegating to the domain service.
+// App-layer orchestrator for GR line writes: snapshots the primary-UOM quantity (cross-domain UOM conversion lives
+// here, not in the domain service) before delegating to the domain service.
 @Injectable()
 export class GoodsReceiptsLinesService {
   constructor(

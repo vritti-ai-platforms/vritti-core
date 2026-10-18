@@ -12,8 +12,7 @@ import { StructureServicesModule } from './structure-services.module';
 import { TaxJurisdictionInternalController } from './tax-jurisdictions/tax-jurisdiction-internal.controller';
 import { TaxRegistrationInternalController } from './tax-registrations/tax-registration-internal.controller';
 
-// The internal structure surface: controllers only. Services come from StructureServicesModule so
-// the external-app surface can reach them without importing this module's resolvers.
+// The internal structure surface: controllers only.
 @Module({
   imports: [StructureServicesModule, CommerceGatewayServicesModule],
   controllers: [

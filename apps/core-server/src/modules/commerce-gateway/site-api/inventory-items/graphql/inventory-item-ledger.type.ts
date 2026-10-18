@@ -1,7 +1,6 @@
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 
-// One stock movement journal entry for an inventory item (read-only). `quantity` is signed (inflow > 0,
-// outflow < 0); `balanceAfter` is nullable — the feed does not compute a running balance.
+// One stock movement journal entry for an inventory item (read-only).
 @ObjectType()
 export class InventoryItemLedgerEntry {
   @Field(() => ID)
@@ -29,8 +28,7 @@ export class InventoryItemLedgerEntry {
   createdAt: string;
 }
 
-// Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache. Names are
-// ledger-scoped to avoid global GraphQL type-name collisions (NestJS code-first).
+// Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache.
 @ObjectType()
 export class InventoryItemLedgerPageInfo {
   @Field(() => Boolean)

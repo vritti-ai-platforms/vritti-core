@@ -19,7 +19,6 @@ export class UomConversionsDomainService {
   }
 
   // Resolves the "primary units per uom unit" factor for an (inventory item, uom) pair.
-  // Per-item conversion wins; otherwise we go through the dimension base via the global uom pair.
   private async resolveFactor(inventoryItemId: string, uomId: string): Promise<Decimal> {
     const inventoryItem = await this.repository.findInventoryItem(inventoryItemId);
     if (!inventoryItem) throw new NotFoundException(`Inventory item ${inventoryItemId} not found.`);
@@ -63,8 +62,6 @@ function effectiveBaseId(uomRow: UomRow, uomId: string): string {
 }
 
 // A global conversion only exists when both UOMs share an effective base unit.
-// Two distinct base UOMs (each with baseUnitId=null) in the same dimension have no derivable
-// relationship — they require a per-inventory-item conversion row.
 function formatUom(uomRow: UomRow): string {
   return uomRow.symbol ? `${uomRow.name} (${uomRow.symbol})` : uomRow.name;
 }

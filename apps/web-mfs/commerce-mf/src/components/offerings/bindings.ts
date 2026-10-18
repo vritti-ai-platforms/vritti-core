@@ -49,10 +49,8 @@ import type {
 
 export interface OfferingsBinding {
   permissions: OfferingPermissions;
-  // Shown under the page title — the only copy that differs between scopes
   listDescription: string;
   tableKey: readonly unknown[];
-  // Must byte-match the gateway's getCurrentState key or the user's saved view silently resets
   tableSlug: string;
   variantsTableKey: (offeringId: string) => readonly unknown[];
   variantsTableSlug: (offeringId: string) => string;
@@ -107,7 +105,5 @@ export interface OfferingsBinding {
   useDeleteBomLine: UseDeleteBomLine;
   useAddSuggestedComponent: UseAddSuggestedComponent;
 
-  // Organization only — a site enables org-owned items rather than creating them, and a company has
-  // no inventory-items feature at all
   useCreateVariantInventoryItem?: UseCreateVariantInventoryItem;
 }

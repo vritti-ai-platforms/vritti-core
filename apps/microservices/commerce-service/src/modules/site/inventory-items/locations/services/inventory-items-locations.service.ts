@@ -5,9 +5,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-// Top-level service for inventory-item locations endpoints. All reads/writes
-// go through here so we can assert parent-item existence before delegating
-// to the locations domain service.
+// Top-level service for inventory-item locations endpoints.
 @Injectable()
 export class InventoryItemsLocationsService {
   private readonly logger = new Logger(InventoryItemsLocationsService.name);

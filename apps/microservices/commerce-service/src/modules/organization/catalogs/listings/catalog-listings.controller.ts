@@ -22,8 +22,8 @@ export class OrgCatalogListingsController {
     return this.listingsService.findForTable(data.catalogId, data.state, data.currencyCode);
   }
 
-  // The MRP slices a variant can be listed at
-  // Everything one storefront channel makes available — the list a provisioned website files its pages against
+  // The MRP slices a variant can be listed at Everything one storefront channel makes available — the list a
+  // provisioned website files its pages against
   @MessagePattern({ cmd: 'org.catalogs.listings.mrpOptions' })
   findMrpOptions(@Payload() data: { offeringVariantId: string }): Promise<CatalogListingMrpOptionDto[]> {
     this.logger.log(`catalogs.listings.mrpOptions — variantId: ${data.offeringVariantId}`);
@@ -44,8 +44,7 @@ export class OrgCatalogListingsController {
     return this.listingsService.setPrice(dto);
   }
 
-  // Shows or hides one listing on one channel of its catalog
-  // Clears one (listing, currency, site) price slot
+  // Shows or hides one listing on one channel of its catalog Clears one (listing, currency, site) price slot
   @MessagePattern({ cmd: 'org.catalogs.listings.clearPrice' })
   clearListingPrice(
     @Payload() data: { catalogListingId: string; currencyCode: string; siteId?: string | null },

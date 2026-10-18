@@ -38,8 +38,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       })
       .returning()) as Cart[];
 
-    // A returned row means this statement is what created it. A conflict returns nothing, which is
-    // the signal that they already had one — an outcome worth reporting, not a failure.
+    // A returned row means this statement is what created it.
     if (inserted[0]) return { cart: inserted[0], opened: true };
 
     const existing = await this.findByParty(partyId);
@@ -88,8 +87,8 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       .leftJoinLateral(price, sql`true`);
   }
 
-  // The price that applies to the reader: reach narrows the rows to the ones this workspace inherits,
-  // and the narrowest of those wins — the same precedence the storefront listing resolves with.
+  // The price that applies to the reader: reach narrows the rows to the ones this workspace inherits, and the narrowest
+  // of those wins — the same precedence the storefront listing resolves with.
   private priceLateral(currencyCode: string) {
     return this.db
       .select({ amount: catalogListingPrices.amount, currencyCode: catalogListingPrices.currencyCode })
@@ -180,8 +179,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     return rows.length;
   }
 
-  // The code a variant id names. Staff screens hold the id off a table row while a line is keyed by
-  // code, so the staff write paths translate here. Org-scoped by RLS.
+  // The code a variant id names.
   async findCodeByVariantId(offeringVariantId: string): Promise<string | undefined> {
     const rows = (await this.db
       .select({ code: offeringVariants.code })

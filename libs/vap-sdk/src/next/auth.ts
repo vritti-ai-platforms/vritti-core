@@ -1,11 +1,4 @@
-/**
- * The sign-in actions, re-exported.
- *
- * Deliberately carries no `'use server'` of its own: a barrel without the directive passes through
- * the transform untouched, and the bundler resolves the chain to `auth-actions.ts` where the
- * references were registered. Shaped after `@payloadcms/next`'s `dist/exports/auth.js`, which is
- * the arrangement Next demonstrably handles.
- */
+// The sign-in actions, re-exported.
 export {
   completeOtpAction,
   requestOtpAction,

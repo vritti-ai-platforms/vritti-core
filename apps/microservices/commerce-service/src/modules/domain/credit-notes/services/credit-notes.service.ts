@@ -13,7 +13,6 @@ import type { ApplyCreditNoteDto } from '../dto/request/apply-credit-note.dto';
 import type { CreateCreditNoteDto } from '../dto/request/create-credit-note.dto';
 import { CreditNotesDomainRepository } from '../repositories/credit-notes.repository';
 
-// Invoice context pre-fetched by the app-layer before apply operations
 export type InvoiceContext = {
   id: string;
   invoiceNumber: string;
@@ -58,8 +57,6 @@ export class CreditNotesDomainService {
   }
 
   // Applies a credit note against a pre-validated invoice context.
-  // Returns invoice balance deltas for the app-layer to apply to the invoice.
-  // App-layer is responsible for fetching the invoice, validating its status, and updating it.
   async apply(
     id: string,
     data: Omit<ApplyCreditNoteDto, 'id'>,

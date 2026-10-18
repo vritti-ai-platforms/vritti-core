@@ -33,8 +33,8 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
     });
   };
 
-  // Suspense, like every other detail read: the route holds the skeleton, so the page can treat the
-  // basket as present instead of threading `undefined` through every field it renders.
+  // Suspense, like every other detail read: the route holds the skeleton, so the page can treat the basket as present
+  // instead of threading `undefined` through every field it renders.
   const useCart = (cartId: string) =>
     useSuspenseQuery<CartData, AxiosError>({
       queryKey: keys.cart(cartId),

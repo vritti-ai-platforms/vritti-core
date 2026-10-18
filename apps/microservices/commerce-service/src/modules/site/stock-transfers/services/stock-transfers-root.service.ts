@@ -23,7 +23,6 @@ export class StockTransfersService {
   ) {}
 
   // Updates transfer status, handling batch operations for IN_TRANSIT and RECEIVED transitions.
-  // App-layer resolves lots before calling createQuant so the domain quant service stays independent.
   async updateStatus(
     id: string,
     data: Omit<UpdateStockTransferStatusDto, 'id'>,

@@ -160,8 +160,8 @@ export class GoodsReceiptsPublishService {
     await this.reconcilePoItem(goodsReceipt, grItem, grItem.orderedQty);
   }
 
-  // Splits the item's paid amount across its quants by received qty so Σ quant_cost == paid exactly,
-  // pinning each slice in inventory_item_costs/_quant_costs when an ITEM cost category exists.
+  // Splits the item's paid amount across its quants by received qty so Σ quant_cost == paid exactly, pinning each slice
+  // in inventory_item_costs/_quant_costs when an ITEM cost category exists.
   private async allocateItemCost(
     goodsReceipt: GoodsReceiptWithRefs,
     grItem: PublishItem,
@@ -232,8 +232,6 @@ export class GoodsReceiptsPublishService {
   }
 
   // Creates the quant for one line (tracking-aware via optional fields) + the ledger entry.
-  // Returns the created/merged quant id and the primary-UOM qty added on this line; the cost
-  // baseline is skipped — allocateItemCost owns quant_cost/value for GR.
   private async publishLine(
     goodsReceipt: GoodsReceiptWithRefs,
     grItem: PublishItem,
@@ -244,9 +242,6 @@ export class GoodsReceiptsPublishService {
     // Snapshotted in the item's primary UOM at line add/edit — read it as-is.
     const primaryUomQuantity = grLine.primaryUomQty;
 
-    // Effective landed unit cost in site-currency minor units. The amount paid (price × exchange rate × ordered
-    // qty) is spread across the TOTAL received qty (ordered + free), so free goods pull the per-unit
-    // cost down without ever reaching 0 (ordered_qty > 0 is guaranteed at item add).
     const unitCost = BigInt(
       new Decimal((grItem.primaryUomUnitPrice ?? 0n).toString())
         .times(goodsReceipt.exchangeRate)

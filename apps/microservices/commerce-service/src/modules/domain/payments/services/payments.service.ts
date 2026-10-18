@@ -6,7 +6,6 @@ import { PaymentDto } from '../dto/entity/payment.dto';
 import type { CreatePaymentDto } from '../dto/request/create-payment.dto';
 import { PaymentsDomainRepository } from '../repositories/payments.repository';
 
-// Invoice context pre-fetched by the app-layer before payment creation
 export type PaymentInvoiceContext = {
   id: string;
   invoiceNumber: string;
@@ -22,8 +21,7 @@ export class PaymentsDomainService {
 
   constructor(private readonly repository: PaymentsDomainRepository) {}
 
-  // Creates a payment record. App-layer fetches the invoice and updates it after payment creation.
-  // Returns the payment DTO and invoice balance deltas for the app-layer to apply.
+  // Creates a payment record.
   async createPayment(
     data: CreatePaymentDto,
     invoice: PaymentInvoiceContext,

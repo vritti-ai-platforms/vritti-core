@@ -1,8 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
-// Mirrors UomDimensionResponseDto — the UOM Dimension cards the mobile UOM screen lists. Date fields are
-// String (ISO 8601): the gateway response carries ISO strings, not Date objects. canEdit/canDelete are
-// only populated on detail/create/update responses (nullable on the list).
+// Mirrors UomDimensionResponseDto — the UOM Dimension cards the mobile UOM screen lists.
 @ObjectType()
 export class UomDimension {
   @Field(() => ID)

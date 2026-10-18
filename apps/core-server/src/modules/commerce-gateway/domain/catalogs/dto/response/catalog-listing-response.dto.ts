@@ -25,11 +25,14 @@ export class CatalogListingResponseDto {
   @ApiProperty() code: string;
   @ApiProperty() variantName: string;
 
-  @ApiProperty({ description: 'False when the variant is deactivated — no channel can sell it' })
-  isVariantActive: boolean;
+  @ApiProperty({ description: 'False when the variant or its offering is deactivated — no channel can sell it' })
+  isActive: boolean;
 
-  @ApiProperty({ description: 'False when the whole offering is deactivated — no channel can sell it' })
-  isOfferingActive: boolean;
+  @ApiProperty({
+    description: 'Where the listing stands, ready to render: "2 of 2" channels, or what stops it',
+    example: '2 of 2',
+  })
+  availability: string;
 
   @ApiPropertyOptional({ nullable: true }) legalEntityId: string | null;
   @ApiPropertyOptional({ nullable: true }) siteId: string | null;

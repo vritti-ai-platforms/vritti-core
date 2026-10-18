@@ -23,8 +23,6 @@ import {
 } from '@vritti/api-sdk/catalog-resolver';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 
-// Exhaustive by type, so a new bucket cannot silently fall through to a UI platform —
-// which is how an API caller would end up resolving mobile's feature set.
 const CLIENT_BY_BUCKET: Record<PlatformBucket, ClientPlatform> = {
   web: 'web',
   mobile: 'android',
@@ -37,8 +35,6 @@ import { templateAppliesAtSite } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 
 // External services this org has provisioned — features declaring one stay locked until a row exists.
-// The stored codes and the resolver's ServiceCode union are the same vocabulary, kept in step by the
-// service_type enum; anything unrecognised is dropped rather than trusted.
 function toServiceCodes(rows: OrgServiceEntity[]): ServiceCode[] {
   return rows.map((row) => row.service).filter((code): code is ServiceCode => SERVICE_CODES.includes(code));
 }
@@ -113,7 +109,8 @@ export class UserPermissionsDomainService {
     private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
 
-  // Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a principal in a workspace context on a platform
+  // Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a principal in a workspace context
+  // on a platform
   async resolveEnabledPermissions(
     source: GrantSource,
     ctx: PermissionContext,
@@ -133,7 +130,8 @@ export class UserPermissionsDomainService {
     return enabled;
   }
 
-  // Resolves the feature codes whose switch is on (present ∧ not plan/node-locked) for a principal in a workspace context
+  // Resolves the feature codes whose switch is on (present ∧ not plan/node-locked) for a principal in a workspace
+  // context
   async resolveAvailableFeatures(
     source: GrantSource,
     ctx: PermissionContext,
@@ -153,8 +151,7 @@ export class UserPermissionsDomainService {
       return this.resolveGrantedFeatures(source.grants, ctx, bucket);
     }
 
-    // getPermissionsForContext collapses ClientPlatform → bucket internally; 'android' stands in
-    // for the mobile bucket. A user never resolves an API bucket, so the two-way mapping holds.
+    // getPermissionsForContext collapses ClientPlatform → bucket internally; 'android' stands in for the mobile bucket.
     const { features } = await this.getPermissionsForContext(source.userId, ctx, bucket === 'web' ? 'web' : 'android');
     return features;
   }
@@ -179,8 +176,6 @@ export class UserPermissionsDomainService {
       planCode: node.org.planCode ?? undefined,
       workspaceLocks: node.locks,
       roleFeatures: grants,
-      // ClientPlatform, not PlatformBucket: 'android' is how the resolver is told to read the mobile
-      // bucket (ios/android share one); the API buckets map one-to-one since a credential has no variants
       platform: CLIENT_BY_BUCKET[bucket],
       siteType: node.siteType,
       scope: ctx.scope,
@@ -245,8 +240,8 @@ export class UserPermissionsDomainService {
     return toServiceCodes(await this.orgServiceRepository.findByOrg(orgId));
   }
 
-  // Routes feature resolution to the scope-appropriate path for a workspace context. availableServices is
-  // threaded in by callers that resolve many nodes for one org, so the lookup happens once, not per node.
+  // Routes feature resolution to the scope-appropriate path for a workspace context. availableServices is threaded in
+  // by callers that resolve many nodes for one org, so the lookup happens once, not per node.
   async getPermissionsForContext(
     userId: string,
     ctx: PermissionContext,
@@ -359,7 +354,8 @@ export class UserPermissionsDomainService {
     };
   }
 
-  // Resolves combined features + MF config for a user at a site via api-sdk resolveUserFeatures; no snapshot/entitlement = zero features
+  // Resolves combined features + MF config for a user at a site via api-sdk resolveUserFeatures; no
+  // snapshot/entitlement = zero features
   async getPermissions(
     userId: string,
     siteId: string,
@@ -377,7 +373,8 @@ export class UserPermissionsDomainService {
     const snapshot = await this.catalogService.getActiveSnapshot();
     const org = await this.organizationRepository.findById(site.organizationId);
 
-    // Grants from templates that target another site type are dropped BEFORE nearest-wins, so broader levels can still apply
+    // Grants from templates that target another site type are dropped BEFORE nearest-wins, so broader levels can still
+    // apply
     const typed = this.filterGrantsBySiteType(grants, snapshot ?? undefined, org?.businessCode ?? undefined, site.type);
     const applicable = this.selectNearestGrants(typed, site, chain);
 
@@ -604,7 +601,6 @@ export class UserPermissionsDomainService {
   }
 
   // Merges the effective grants of all assignments additively per feature, per platform bucket.
-  // Iterates PLATFORMS rather than naming buckets — the web/mobile-only version dropped app grants.
   private mergeRoleGrants(grantSets: FeatureUnlocks[]): FeatureUnlocks {
     const merged: FeatureUnlocks = {};
     for (const features of grantSets) {

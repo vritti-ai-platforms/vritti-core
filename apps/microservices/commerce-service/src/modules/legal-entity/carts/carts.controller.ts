@@ -25,8 +25,8 @@ export class LeCartsController {
     return this.service.findById(data.id);
   }
 
-  // Returns one basket's lines, priced by the caller's catalogue
-  // Returns paginated, filtered and sorted items of one basket for the data table
+  // Returns one basket's lines, priced by the caller's catalogue Returns paginated, filtered and sorted items of one
+  // basket for the data table
   @MessagePattern({ cmd: 'le.carts.items.table' })
   itemsTable(
     @Payload()

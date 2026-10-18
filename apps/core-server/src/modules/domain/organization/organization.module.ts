@@ -9,8 +9,6 @@ import { OrganizationDomainService } from './services/organization.service';
 import { RoleDomainService } from './services/role.service';
 
 @Module({
-  // Circular by nature: media resolves an org's credential from the org row, and deleting an org has to purge
-  // its objects. forwardRef on both sides is what lets the two modules reference each other.
   imports: [SiteDomainModule, CatalogDomainModule, forwardRef(() => MediaDomainModule)],
   providers: [
     OrganizationDomainService,

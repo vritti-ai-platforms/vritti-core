@@ -180,6 +180,7 @@ export class LeOfferingsGatewayController {
     this.logger.log(`PUT /commerce-api/le/offerings/dimensions/${dimensionId}/values`);
     return this.service.upsertDimensionValues(dimensionId, dto);
   }
+  // Reorders the axes.
   // Reorders the axes. Stored SKUs are never recomputed, so this only affects variants created after it
   @Put(':id/dimensions/order')
   @RequirePermission(LE_OFFERINGS.dimensions.edit)
@@ -189,8 +190,8 @@ export class LeOfferingsGatewayController {
     return this.service.reorderDimensions(id, dto.dimensionIds);
   }
 
-  // Removes a dimension; refused while variants use its values
-  // Renames a dimension; its code is fixed because every derived Code carries it
+  // Removes a dimension; refused while variants use its values Renames a dimension; its code is fixed because every
+  // derived Code carries it
   @Patch('dimensions/:dimensionId')
   @RequirePermission(LE_OFFERINGS.dimensions.edit)
   @ApiUpdateOfferingDimension()
@@ -329,8 +330,7 @@ export class LeOfferingsGatewayController {
     return this.service.createVariant(id, dto);
   }
 
-  // Updates a variant; activation is gated on its bill of materials
-  // One variant with its values and bill of materials
+  // Updates a variant; activation is gated on its bill of materials One variant with its values and bill of materials
   @Get('variants/:variantId')
   @RequirePermission(LE_OFFERINGS.variants.view)
   @ApiGetOfferingVariant()
@@ -347,9 +347,8 @@ export class LeOfferingsGatewayController {
     return this.service.updateVariant(variantId, dto);
   }
 
-  // Replaces a variant's bill of materials as a set
-  // Its own route rather than a field on update: setting it cascades to every variant that has not
-  // pinned its own, and the response reports how many kept an override
+  // Replaces a variant's bill of materials as a set Its own route rather than a field on update: setting it cascades to
+  // every variant that has not pinned its own, and the response reports how many kept an override
   @Patch(':id/fulfilment')
   @RequirePermission(LE_OFFERINGS.setFulfilment)
   @ApiSetOfferingFulfilment()
@@ -445,8 +444,8 @@ export class LeOfferingsGatewayController {
     return this.service.deleteBomLine(lineId);
   }
 
-  // Its own grant: the caller names no item, so this can be given to someone who may not edit the
-  // bill of materials freely
+  // Its own grant: the caller names no item, so this can be given to someone who may not edit the bill of materials
+  // freely
   @Post('variants/:variantId/bom/suggested')
   @RequirePermission(LE_OFFERINGS.variants.bom.addFromSuggestion)
   @ApiAddSuggestedComponent()

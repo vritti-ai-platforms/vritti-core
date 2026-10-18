@@ -51,7 +51,6 @@ export class TaxGroupsDomainService {
   }
 
   // Returns all tax groups (with rates + canDelete) for the mobile plain list — base groups first by name.
-  // Bounded set (a BU has a handful of tax groups), so no pagination. Batches rates + references like the table.
   async list(search?: string): Promise<TaxGroupDto[]> {
     const { result: groups } = await this.taxGroupsRepository.findAllForTable({
       where: search ? ilike(taxGroups.name, `%${search}%`) : undefined,

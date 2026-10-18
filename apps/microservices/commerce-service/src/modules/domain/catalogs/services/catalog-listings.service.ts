@@ -24,8 +24,7 @@ export class CatalogListingsDomainService {
     private readonly catalogsRepository: CatalogsDomainRepository,
   ) {}
 
-  // Returns one page of a catalog's listings, each with its prices. A currency narrows those prices to
-  // the one the Prices tab is editing; without it every currency comes back, as the Listings tab needs.
+  // Returns one page of a catalog's listings, each with its prices.
   async findForTable(
     catalogId: string,
     state: TableViewState,
@@ -42,20 +41,23 @@ export class CatalogListingsDomainService {
     const ids = rows.map((row) => row.id);
     const prices = await this.repository.findPrices(ids, currencyCode);
     const exclusions = await this.repository.findExclusions(ids);
+    // Reads the channels once for the page — every listing in a catalog shares them
+    const channelCount = (await this.catalogsRepository.findChannels(catalogId)).length;
     return {
       result: rows.map((row) =>
         CatalogListingDto.from(
           row,
           prices.filter((price) => price.catalogListingId === row.id),
           exclusions.filter((x) => x.catalogListingId === row.id).map((x) => x.catalogChannelId),
+          channelCount,
         ),
       ),
       count,
     };
   }
 
-  // The MRP slices a variant can be listed at, for the add-listing picker
-  // Everything one storefront channel offers, priced
+  // The MRP slices a variant can be listed at, for the add-listing picker Everything one storefront channel offers,
+  // priced
   async findMrpOptions(offeringVariantId: string): Promise<CatalogListingMrpOptionDto[]> {
     const rows = await this.repository.findMrpOptionsForVariant(offeringVariantId);
     return rows.map((row) => CatalogListingMrpOptionDto.from(row));
@@ -92,10 +94,7 @@ export class CatalogListingsDomainService {
     };
   }
 
-  // Sets this workspace's own price for a listing; refused above the listing's printed MRP. Owning
-  // the listing is deliberately NOT the test: a site prices what the organization listed, which is
-  // the whole point of pricing per workspace. Seeing the listing is enough, and the price row lands
-  // on the workspace writing it.
+  // Sets this workspace's own price for a listing; refused above the listing's printed MRP.
   async setPrice(data: SetCatalogListingPriceDto): Promise<SuccessResponseDto> {
     const item = await this.requireReachable(data.catalogListingId);
     const amount = majorToMinor(data.price.value, data.price.currency as CurrencyCode, 'price');
@@ -107,8 +106,7 @@ export class CatalogListingsDomainService {
     };
   }
 
-  // Drops this workspace's own price, so whatever a wider workspace charges applies again. A price is
-  // removed rather than zeroed — a zero price still charges, an absent one falls back.
+  // Drops this workspace's own price, so whatever a wider workspace charges applies again.
   async clearPrice(data: { catalogListingId: string; currencyCode: string }): Promise<SuccessResponseDto> {
     const item = await this.requireReachable(data.catalogListingId);
     const removed = await this.repository.deleteOwnPrice(item.id, data.currencyCode);
@@ -118,10 +116,7 @@ export class CatalogListingsDomainService {
     return { success: true, message: `${data.currencyCode} price cleared for "${item.code}".` };
   }
 
-  // Available everywhere by default, so excluding writes one row and making it available again
-  // removes that row. The test is
-  // owning the CHANNEL, not the listing: deciding what your own channel shows is your business even
-  // when the item came from a wider scope, and the RLS on the exclusion is keyed the same way.
+  // Available everywhere by default, so excluding writes one row and making it available again removes that row.
   async setChannelVisibility(id: string, catalogChannelId: string, visible: boolean): Promise<SuccessResponseDto> {
     const item = await this.requireReachable(id);
     await this.requireOwnedChannel(catalogChannelId);
@@ -154,18 +149,14 @@ export class CatalogListingsDomainService {
     }
   }
 
-  // Loads a listing this workspace can see. Reach already excludes another branch's rows, so finding
-  // one is the whole test wherever the write lands on a row of this workspace's own rather than on
-  // the listing itself.
+  // Loads a listing this workspace can see.
   private async requireReachable(id: string): Promise<CatalogListingRow> {
     const item = await this.repository.findByIdWithRefs(id);
     if (!item) throw new NotFoundException('Listing not found.');
     return item;
   }
 
-  // Loads a listing by id, throwing if not found or owned by a wider scope. Reach lets a company see
-  // the organization's listings, so seeing one is never enough to change or remove it — and the RLS
-  // write policies would silently match zero rows rather than raise, which would read as success.
+  // Loads a listing by id, throwing if not found or owned by a wider scope.
   private async requireOwned(id: string): Promise<CatalogListingRow> {
     const item = await this.repository.findByIdWithRefs(id);
     if (!item) throw new NotFoundException('Listing not found.');
@@ -178,8 +169,8 @@ export class CatalogListingsDomainService {
     return item;
   }
 
-  // Within one catalog a variant is listed either generally or by MRP slice — mixing the two
-  // leaves the same stock reachable under two listings with no principled way to choose
+  // Within one catalog a variant is listed either generally or by MRP slice — mixing the two leaves the same stock
+  // reachable under two listings with no principled way to choose
   private async assertListingShape(
     catalogId: string,
     offeringVariantId: string,

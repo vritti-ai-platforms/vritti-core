@@ -17,8 +17,7 @@ export class WhatsappAccountsTemplatesGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // Returns the WABA's message templates as a data table. The rows come live from Meta — the state
-  // round-trip only carries column visibility etc.; Meta cannot sort or filter this list
+  // Returns the WABA's message templates as a data table.
   async findForTable(userId: string, accountId: string): Promise<WhatsappTemplateTableResponseDto> {
     this.logger.log(`whatsappAccounts.templates.list — account: ${accountId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(

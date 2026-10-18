@@ -1,8 +1,6 @@
 import Decimal from '@vritti/api-sdk/decimal';
 
 // Splits a total (minor units) across weights so the parts sum to EXACTLY total (largest-remainder).
-// Floors each total*weightᵢ/Σweights, then hands the leftover one minor unit at a time to the largest
-// fractional remainders (ties → lowest index). Returns zeros when Σweights == 0.
 export function allocateByWeight(total: bigint, weights: number[]): bigint[] {
   const n = weights.length;
   if (n === 0) return [];

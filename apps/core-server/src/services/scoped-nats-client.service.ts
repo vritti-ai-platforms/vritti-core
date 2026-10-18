@@ -10,11 +10,8 @@ export interface NatsScope {
   legalEntityId?: string | null;
 }
 
-// Sends NATS messages with an explicit workspace context, for work that runs outside a request (sweeps, workers)
-// or must speak for a different site than the request did. NatsClientService builds its headers from
-// request.auth, so this hands it a synthetic control-plane request carrying exactly the scope given — the
-// gateway's context resolver then derives the site's legal entity, timezone and currency the same way it does
-// for a real request. The org's RLS context wraps the send because that derivation reads the site row.
+// Sends NATS messages with an explicit workspace context, for work that runs outside a request (sweeps, workers) or
+// must speak for a different site than the request did.
 @Injectable()
 export class ScopedNatsClientService {
   constructor(

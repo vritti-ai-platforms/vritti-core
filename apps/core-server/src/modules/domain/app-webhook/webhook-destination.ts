@@ -4,8 +4,7 @@ import { BlockList, isIP } from 'node:net';
 // The setting that opens webhook delivery to private and local addresses, for local development
 export const ALLOW_PRIVATE_DESTINATIONS_ENV = 'WEBHOOK_ALLOW_PRIVATE_DESTINATIONS';
 
-// True when the setting is on. It switches off the check that keeps a tenant from aiming core's outbound requests at
-// its own network, so it belongs in local environments only — never set it on a deployed core
+// True when the setting is on.
 export function privateDestinationsAllowed(read: (key: string) => unknown): boolean {
   const value = read(ALLOW_PRIVATE_DESTINATIONS_ENV);
   return value === true || value === 'true';
@@ -47,8 +46,8 @@ export function isBlockedHostname(hostname: string): boolean {
   return host === 'localhost' || BLOCKED_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
 }
 
-// True when an address is private, loopback, link-local, CGNAT, ULA, multicast or unspecified, including an
-// IPv4 address wrapped as IPv4-mapped IPv6
+// True when an address is private, loopback, link-local, CGNAT, ULA, multicast or unspecified, including an IPv4
+// address wrapped as IPv4-mapped IPv6
 export function isBlockedAddress(address: string): boolean {
   const bare = address.replace(/^\[|\]$/g, '').replace(/%.*$/, '');
   const family = isIP(bare);
@@ -65,8 +64,7 @@ export function isBlockedAddress(address: string): boolean {
   return BLOCKED_ADDRESSES.check(bare, 'ipv6');
 }
 
-// Why a webhook URL must not be called, or null when its host resolves only to public addresses. A host that does
-// not resolve is blocked too — there is nothing public to send to
+// Why a webhook URL must not be called, or null when its host resolves only to public addresses.
 export async function findBlockedDestination(
   rawUrl: string,
   lookup: HostLookup = resolveAllAddresses,

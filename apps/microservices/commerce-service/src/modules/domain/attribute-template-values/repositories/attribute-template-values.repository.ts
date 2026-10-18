@@ -16,8 +16,7 @@ export class AttributeTemplateValuesDomainRepository extends PrimaryBaseReposito
     super(database, attributeTemplateValues);
   }
 
-  // Returns the owning template with its ownership flag, or undefined when out of reach. Read here
-  // rather than by injecting the templates domain, because a domain module never depends on a sibling.
+  // Returns the owning template with its ownership flag, or undefined when out of reach.
   async findTemplate(templateId: string): Promise<TemplateSummary | undefined> {
     const [row] = await this.db
       .select({

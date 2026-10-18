@@ -7,14 +7,14 @@ import { TaxGroup } from './graphql/tax-group.type';
 import { CreateTaxGroupInput, UpdateTaxGroupInput } from './graphql/tax-group-mutation.input';
 import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 
-// Tax groups for the mobile Tax Groups screen: plain list + CRUD. Thin forwards to the gateway service.
-// Select-options (`taxGroupsOptions`) now live in the shared SelectApiModule. buId flows via NATS context.
+// Tax groups for the mobile Tax Groups screen: plain list + CRUD.
 @Resolver()
 export class TaxGroupsResolver {
   private readonly logger = new Logger(TaxGroupsResolver.name);
 
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}
 
+  // All tax groups (with rates + canDelete) — the mobile Tax Groups list.
   // All tax groups (with rates + canDelete) — the mobile Tax Groups list. Small/bounded, so a plain array.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => [TaxGroup], { name: 'taxGroups' })

@@ -9,8 +9,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { TaxRegistrationsGatewayService } from '@/modules/commerce-gateway/le-api/tax-registrations/services/tax-registrations-gateway.service';
 import { GetTaxRegistrationsInternalDto } from './dto/get-tax-registrations-internal.dto';
 
-// The cloud-facing surface. Signed cloud auth rather than a session, because cloud-server calls this
-// on behalf of an operator setting up a legal entity — there is no RBAC context to gate on.
+// The cloud-facing surface.
 @ApiTags('Internal - Tax Registrations')
 @Require(AuthType.Cloud)
 @Controller('tax-registrations/internal')

@@ -31,9 +31,8 @@ export class LeCatalogChannelsController {
     return this.service.list();
   }
 
-  // One page of what a storefront makes available — the channel is resolved from the credential, not named by
-  // the caller. Always paged: nothing reads the whole range any more.
-  // What this storefront can price in — the switcher's options
+  // One page of what a storefront makes available — the channel is resolved from the credential, not named by the
+  // caller.
   @MessagePattern({ cmd: 'le.catalogChannels.app.currencies' })
   appCurrencies(@Payload() data: { appId: string }): Promise<string[]> {
     this.logger.log(`catalogChannels.app.currencies — appId: ${data.appId}`);
@@ -107,8 +106,8 @@ export class LeCatalogChannelsController {
     return this.service.findCurrencies(data.channelId);
   }
 
-  // A null currency withdraws the item from the channel outright; a code withdraws it from that
-  // currency only, leaving the others available
+  // A null currency withdraws the item from the channel outright; a code withdraws it from that currency only, leaving
+  // the others available
   @MessagePattern({ cmd: 'le.catalogChannels.setItemVisibility' })
   setItemVisibility(
     @Payload()

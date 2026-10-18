@@ -4,8 +4,7 @@ import { InventoryItemsDomainService } from '@domain/inventory-items/services/in
 import { Injectable, Logger } from '@nestjs/common';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 
-// Top-level service for inventory-item per-quant table reads. Asserts parent-item
-// existence before delegating to the quants domain service.
+// Top-level service for inventory-item per-quant table reads.
 @Injectable()
 export class InventoryItemsQuantsService {
   private readonly logger = new Logger(InventoryItemsQuantsService.name);

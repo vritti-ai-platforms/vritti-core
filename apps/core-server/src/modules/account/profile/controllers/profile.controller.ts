@@ -40,8 +40,6 @@ export class ProfileController {
       throw new BadRequestException('No file provided.');
     }
 
-    // Buffered rather than streamed for the same reason the media endpoints buffer: the checksum has to be known
-    // before the object is written. The Fastify multipart limit caps the cost.
     const buffer = await file.toBuffer();
     this.logger.log(`POST /account/profile/photo - userId: ${userId} (${buffer.length} bytes)`);
 

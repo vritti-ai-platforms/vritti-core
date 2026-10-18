@@ -10,8 +10,8 @@ export class RlsInterceptor implements NestInterceptor {
 
   constructor(private readonly db: PrimaryDatabaseService) {}
 
-  // Extracts NatsHeaders and stashes them in AsyncLocalStorage so each downstream query
-  // can be auto-wrapped in BEGIN; SET LOCAL app.* ; <query>; COMMIT; by RlsAwarePool.
+  // Extracts NatsHeaders and stashes them in AsyncLocalStorage so each downstream query can be auto-wrapped in BEGIN;
+  // SET LOCAL app.* ; <query>; COMMIT; by RlsAwarePool.
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const rpcContext = context.switchToRpc().getContext<NatsContext>();
     const rawHeaders = rpcContext?.getHeaders?.();

@@ -1,8 +1,3 @@
-// Attribute templates permission codes — MUST match the cloud catalog's authored codes exactly.
-// One object per workspace scope the feature is exposed in; codes are scope.feature.permission.
-// Every scope owns its own template library, so all three carry the full surface — reach is bounded by
-// row ownership (RLS), not by the permission set.
-// A template's values are replaced as a set through one endpoint, so they need one code, not three.
 export const ORG_ATTRIBUTE_TEMPLATES = {
   featureCode: 'attribute-templates',
   view: 'org.attribute-templates.view',

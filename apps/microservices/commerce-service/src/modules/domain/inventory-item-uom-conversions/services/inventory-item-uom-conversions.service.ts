@@ -52,9 +52,7 @@ export class InventoryItemUomConversionsDomainService {
     };
   }
 
-  // Creates a per-item UOM conversion. Only base UOMs (no global derivation) are eligible —
-  // derived UOMs already have a universal global factor and should not have per-item conversions.
-  // App-layer is responsible for validating the UOM exists; caller passes the pre-fetched UOM context.
+  // Creates a per-item UOM conversion.
   async create(
     inventoryItemId: string,
     dto: { uomId: string } & ConversionPair,
@@ -141,6 +139,7 @@ export class InventoryItemUomConversionsDomainService {
   }
 }
 
+// Validates a positive-integer conversion pair.
 // Validates a positive-integer conversion pair. One side must be 1 to keep ratios canonical.
 function validateConversionPair(pair: ConversionPair): void {
   if (!Number.isInteger(pair.primaryUomQty) || pair.primaryUomQty <= 0) {

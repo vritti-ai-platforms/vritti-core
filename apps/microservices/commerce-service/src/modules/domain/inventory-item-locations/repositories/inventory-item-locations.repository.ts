@@ -10,8 +10,6 @@ export class InventoryItemLocationsDomainRepository extends PrimaryBaseRepositor
   }
 
   // Returns paginated configs for an item with location name + path.
-  // The Locations tab is the registry view (reorder thresholds); actual stock figures live on the
-  // Stocks tab via the inventory_stock_levels view.
   async findByInventoryItemId(
     inventoryItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
@@ -35,8 +33,7 @@ export class InventoryItemLocationsDomainRepository extends PrimaryBaseRepositor
     });
   }
 
-  // Keyset page for the mobile Relay locations feed. `where` carries the item filter + cursor predicate;
-  // `orderBy` is (locationName asc, id asc). Returns {rows, hasMore} (fetches limit+1 internally).
+  // Keyset page for the mobile Relay locations feed.
   async findLocationsFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
     rows: (InventoryItemLocation & { locationName: string | null; locationPath: string | null })[];
     hasMore: boolean;

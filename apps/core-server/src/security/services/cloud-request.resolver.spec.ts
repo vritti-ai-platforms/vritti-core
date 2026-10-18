@@ -42,7 +42,6 @@ describe('CloudRequestResolver', () => {
   });
 
   // The org is a signed input, so swapping it in transit must invalidate the whole request.
-  // This is what lets the established context be trusted by RlsInterceptor and the NATS resolver.
   it('rejects when x-org-id is swapped after signing', () => {
     const service = makeRequestService({ ...sign(ORG_ID), 'x-org-id': 'org-2' });
     expect(() => makeResolver().resolve(service, emptyCloudAuth())).toThrow(UnauthorizedException);
@@ -55,7 +54,6 @@ describe('CloudRequestResolver', () => {
   });
 
   // Deployment-wide (catalog license) and cross-tenant (media sweep) routes carry no org.
-  // Routes that need one read it through @OrgId(), which throws when it is absent.
   it('authenticates a signed request that names no organization, leaving the org unset', () => {
     const auth = emptyCloudAuth();
     makeResolver().resolve(makeRequestService(sign()), auth);

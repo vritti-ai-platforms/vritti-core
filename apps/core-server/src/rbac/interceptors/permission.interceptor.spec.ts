@@ -15,7 +15,6 @@ jest.mock('@/modules/domain/user-permissions/services/user-permissions.service',
 
 import { PermissionInterceptor } from './permission.interceptor';
 
-// biome-ignore lint/suspicious/noExplicitAny: test doubles for Nest primitives
 type Any = any;
 
 describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement', () => {
@@ -226,8 +225,7 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
       },
     });
 
-    // The grant source an app request must resolve through. Asserting on `kind: 'app'` is what
-    // now proves the user path was not taken, since both share one method.
+    // The grant source an app request must resolve through.
     const appSource = (grants: unknown) => ({ kind: 'app', appId: 'app-1', grants });
 
     it('resolves from the credential rather than from role assignments', async () => {
@@ -321,8 +319,8 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
       );
     });
 
-    // The surface check fails closed: an app without a recognised credential type must resolve
-    // nothing, not everything — resolution is never even attempted.
+    // The surface check fails closed: an app without a recognised credential type must resolve nothing, not everything
+    // — resolution is never even attempted.
     it.each([undefined, 'SOAP'])('denies (403) an app whose type is %p', async (appType) => {
       reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.people.view';
       const request = appRequest({ people: { graphql: ['view'] } });

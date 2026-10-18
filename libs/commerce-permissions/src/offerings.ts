@@ -1,15 +1,3 @@
-// Offerings permission codes — MUST match the cloud catalog's authored codes exactly.
-// One object per workspace scope the feature is exposed in; codes are scope.feature.permission.
-// Every scope owns the offerings it creates, so all three carry the full surface — reach is bounded by
-// row ownership (RLS), not by the permission set.
-// Dimensions and variants are tabs on the offering, so each carries its own view alongside the parent's.
-// Seeding a dimension from a template is its own permission: it copies a shared, wider-scoped template
-// onto the offering, which is a different act from defining one inline.
-// Attributes mirror dimensions exactly: a tab on the offering defining the groups and their values. They
-// differ only in not being part of a SKU, so which values a variant carries is set on the variant —
-// `variants.set-attributes` — rather than fixed by the combination matrix.
-// A variant's bill of materials is edited under variants — it records which stock a variant draws on,
-// which is ordinary variant maintenance. Manufacturing BOMs belong to inventory items, not here.
 export const ORG_OFFERINGS = {
   featureCode: 'offerings',
   view: 'org.offerings.view',
@@ -17,8 +5,6 @@ export const ORG_OFFERINGS = {
   edit: 'org.offerings.edit',
   delete: 'org.offerings.delete',
   setTaxClass: 'org.offerings.set-tax-class',
-  // Changing fulfilment type deactivates every variant that no longer satisfies the new rule, so it
-  // is not ordinary editing — the same reasoning that gives set-tax-class its own code.
   setFulfilment: 'org.offerings.set-fulfilment',
   toggle: 'org.offerings.toggle',
   export: 'org.offerings.export',
@@ -39,16 +25,12 @@ export const ORG_OFFERINGS = {
   variants: {
     view: 'org.offerings.variants.view',
     add: 'org.offerings.variants.add',
-    // Creates the whole combination matrix in one act — tens of variants from one press, which is a
-    // different thing to grant than adding one by hand.
     generate: 'org.offerings.variants.generate',
     edit: 'org.offerings.variants.edit',
     delete: 'org.offerings.variants.delete',
     setTaxClass: 'org.offerings.variants.set-tax-class',
     setAttributes: 'org.offerings.variants.set-attributes',
     export: 'org.offerings.variants.export',
-    // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
-    // `variants` in the catalog — the authoring script takes only the first segment.
     bom: {
       view: 'org.offerings.variants.bom.view',
       add: 'org.offerings.variants.bom.add',
@@ -56,8 +38,6 @@ export const ORG_OFFERINGS = {
       delete: 'org.offerings.variants.bom.delete',
       // Linking the item that already carries the variant's SKU, without naming it
       addFromSuggestion: 'org.offerings.variants.bom.add-from-suggestion',
-      // Reaches into inventory items, so it is its own grant. Org only — a site enables
-      // org-owned items rather than creating them, and a company has no such feature.
       createInventoryItem: 'org.offerings.variants.bom.create-inventory-item',
     },
   },
@@ -70,8 +50,6 @@ export const LE_OFFERINGS = {
   edit: 'le.offerings.edit',
   delete: 'le.offerings.delete',
   setTaxClass: 'le.offerings.set-tax-class',
-  // Changing fulfilment type deactivates every variant that no longer satisfies the new rule, so it
-  // is not ordinary editing — the same reasoning that gives set-tax-class its own code.
   setFulfilment: 'le.offerings.set-fulfilment',
   toggle: 'le.offerings.toggle',
   export: 'le.offerings.export',
@@ -92,16 +70,12 @@ export const LE_OFFERINGS = {
   variants: {
     view: 'le.offerings.variants.view',
     add: 'le.offerings.variants.add',
-    // Creates the whole combination matrix in one act — tens of variants from one press, which is a
-    // different thing to grant than adding one by hand.
     generate: 'le.offerings.variants.generate',
     edit: 'le.offerings.variants.edit',
     delete: 'le.offerings.variants.delete',
     setTaxClass: 'le.offerings.variants.set-tax-class',
     setAttributes: 'le.offerings.variants.set-attributes',
     export: 'le.offerings.variants.export',
-    // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
-    // `variants` in the catalog — the authoring script takes only the first segment.
     bom: {
       view: 'le.offerings.variants.bom.view',
       add: 'le.offerings.variants.bom.add',
@@ -120,8 +94,6 @@ export const SITE_OFFERINGS = {
   edit: 'site.offerings.edit',
   delete: 'site.offerings.delete',
   setTaxClass: 'site.offerings.set-tax-class',
-  // Changing fulfilment type deactivates every variant that no longer satisfies the new rule, so it
-  // is not ordinary editing — the same reasoning that gives set-tax-class its own code.
   setFulfilment: 'site.offerings.set-fulfilment',
   toggle: 'site.offerings.toggle',
   export: 'site.offerings.export',
@@ -139,24 +111,16 @@ export const SITE_OFFERINGS = {
     edit: 'site.offerings.attributes.edit',
     delete: 'site.offerings.attributes.delete',
   },
-  // What a storefront credential may read. Site scope only: the picker that uses it is one outlet's
-  // website choosing which variant a page is about.
-  // The storefront's variant lookup. Flat and prerequisite-free on purpose: a credential needs it alone, and
-  // nesting it under `variants` would drag the staff `view` chain into the GraphQL surface, where no query answers it.
   variantOptions: 'site.offerings.variant-options',
   variants: {
     view: 'site.offerings.variants.view',
     add: 'site.offerings.variants.add',
-    // Creates the whole combination matrix in one act — tens of variants from one press, which is a
-    // different thing to grant than adding one by hand.
     generate: 'site.offerings.variants.generate',
     edit: 'site.offerings.variants.edit',
     delete: 'site.offerings.variants.delete',
     setTaxClass: 'site.offerings.variants.set-tax-class',
     setAttributes: 'site.offerings.variants.set-attributes',
     export: 'site.offerings.variants.export',
-    // Every bill-of-materials action, nested to mirror the dotted code. It still groups under
-    // `variants` in the catalog — the authoring script takes only the first segment.
     bom: {
       view: 'site.offerings.variants.bom.view',
       add: 'site.offerings.variants.bom.add',

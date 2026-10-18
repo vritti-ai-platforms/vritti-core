@@ -34,8 +34,8 @@ export class LeCatalogsController {
     return this.service.findForSelect(query);
   }
 
-  // Returns one catalog with its listing and channel counts
-  // Every channel carrying one catalog — the read-only tab on the catalog detail
+  // Returns one catalog with its listing and channel counts Every channel carrying one catalog — the read-only tab on
+  // the catalog detail
   @MessagePattern({ cmd: 'le.catalogs.channels' })
   channels(@Payload() data: { catalogId: string }): Promise<CatalogChannelDto[]> {
     this.logger.log(`catalogs.channels — catalogId: ${data.catalogId}`);

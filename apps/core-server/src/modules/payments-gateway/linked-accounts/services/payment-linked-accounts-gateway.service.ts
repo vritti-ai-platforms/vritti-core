@@ -32,7 +32,6 @@ export interface CreateLinkedAccountRequest {
   gatewayCode: string;
   credentials: Record<string, string>;
   account: LinkedAccountPayload;
-  // What an earlier attempt already created at the provider, so the setup resumes instead of opening a second account
   resume?: { providerAccountId: string; providerData: Record<string, string> };
 }
 
@@ -41,7 +40,6 @@ export interface CreateLinkedAccountResult {
   providerData: Record<string, string>;
   status: ProviderLinkedAccountStatus;
   transfersAllowedAt: string | null;
-  // Set when the account exists at the provider but a later setup step failed; the ids above are still valid
   setupError: { label: string; detail: string } | null;
 }
 

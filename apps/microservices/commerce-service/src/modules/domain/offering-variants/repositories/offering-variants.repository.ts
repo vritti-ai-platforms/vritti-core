@@ -141,8 +141,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .where(eq(offeringVariantValues.variantId, offeringVariants.id));
   }
 
-  // The attribute values the variant carries. Ordered by attribute then value so the UI groups them
-  // without sorting, and unlike valuesJson() there may be several rows per attribute.
+  // The attribute values the variant carries.
   private attributeValuesJson() {
     return this.db
       .select({
@@ -233,8 +232,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .orderBy(asc(offeringDimensions.sortOrder), asc(offeringDimensionValues.sortOrder));
   }
 
-  // Every attribute value an offering offers, so an assignment can be checked against the offering that
-  // owns it. Only the ids matter — the caller is validating a submitted set, not rendering it.
+  // Every attribute value an offering offers, so an assignment can be checked against the offering that owns it.
   async findAttributeValues(offeringId: string): Promise<AttributeValueRow[]> {
     return this.db
       .select({ attributeId: offeringAttributes.id, valueId: offeringAttributeValues.id })
@@ -262,10 +260,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     });
   }
 
-  // Variant options for a picker, across every offering this workspace can reach. `excludeIds` is
-  // applied in SQL rather than by the caller: filtering a page after it is fetched can return an empty
-  // page while matches sit on the next one, which reads as "nothing left" and is indistinguishable
-  // from it.
+  // Variant options for a picker, across every offering this workspace can reach.
   async findOptions(options: {
     search?: string;
     excludeIds?: string[];
@@ -292,6 +287,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return { items: rows, total };
   }
 
+  // Which of these SKUs are already taken.
   // Which of these SKUs are already taken. Org-wide, matching the constraint — RLS scopes it.
   async findTakenCodes(codes: string[]): Promise<string[]> {
     if (codes.length === 0) return [];
@@ -311,8 +307,8 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return rows.map((row) => row.combinationKey);
   }
 
-  // The given variants, restricted to one offering — ids from another offering simply do not come back,
-  // so the caller can compare counts rather than trusting the payload
+  // The given variants, restricted to one offering — ids from another offering simply do not come back, so the caller
+  // can compare counts rather than trusting the payload
   async findManyInOffering(offeringId: string, ids: string[]): Promise<VariantWithBomCount[]> {
     if (ids.length === 0) return [];
     return this.db
@@ -356,8 +352,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     await this.db.update(offeringVariants).set({ isActive }).where(inArray(offeringVariants.id, ids));
   }
 
-  // Sets a tax class on many variants at once. Overridden pins them, exempting each from the
-  // offering's cascade; clearing it hands them back to the offering.
+  // Sets a tax class on many variants at once.
   async bulkSetTaxClass(ids: string[], taxClassId: string, isTaxClassOverridden: boolean): Promise<void> {
     if (ids.length === 0) return;
     await this.db
@@ -398,8 +393,8 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .orderBy(asc(offeringBom.sortOrder));
   }
 
-  // One line, with the variant it belongs to, so ownership can be checked from a line id alone
-  // How many order lines name this variant — the FK is NO ACTION, so any at all blocks a delete
+  // One line, with the variant it belongs to, so ownership can be checked from a line id alone How many order lines
+  // name this variant — the FK is NO ACTION, so any at all blocks a delete
   async countOrderLines(variantId: string): Promise<number> {
     const [row] = await this.db
       .select({ n: sql<number>`count(*)::int` })
@@ -431,8 +426,8 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     await this.db.delete(offeringVariantAttributeValues).where(eq(offeringVariantAttributeValues.variantId, variantId));
   }
 
-  // Clears ONE attribute across many variants, leaving their other attributes alone — the bulk action
-  // sets a single axis, so it must not touch what it was not shown
+  // Clears ONE attribute across many variants, leaving their other attributes alone — the bulk action sets a single
+  // axis, so it must not touch what it was not shown
   async deleteVariantAttributeValuesForAttribute(variantIds: string[], attributeId: string): Promise<void> {
     if (variantIds.length === 0) return;
     await this.db

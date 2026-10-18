@@ -29,6 +29,7 @@ export class WhatsappOtpsAppResolver {
     return this.service.send(appId, organizationId, input.recipient);
   }
 
+  // Checks a code.
   // Checks a code. Every failure mode returns `verified: false` — see the service
   @Mutation(() => VerifyWhatsappOtpResult, { name: 'verifyWhatsappOtp' })
   @RequirePermission(ORG_WHATSAPP_OTPS.verify)

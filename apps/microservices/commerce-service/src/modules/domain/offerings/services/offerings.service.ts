@@ -5,7 +5,7 @@ import { ConflictException, ForbiddenException, NotFoundException } from '@vritt
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { BOM_RULES, type FulfilmentType, FulfilmentTypeValues, offerings } from '@/db/schema';
+import { BOM_RULES, type FulfilmentType, FulfilmentTypeValues, offerings, workspaceScopeOf } from '@/db/schema';
 import { OfferingDto, type OfferingTableRowDto } from '../dto/entity/offering.dto';
 import type { BulkSetOfferingStatusDto } from '../dto/request/bulk-set-offering-status.dto';
 import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
@@ -75,8 +75,7 @@ export class OfferingsDomainService {
     });
   }
 
-  // Flat rows for the file export. The gateway turns these into the workbook, so nothing binary
-  // crosses NATS and the column set stays one readable list.
+  // Flat rows for the file export.
   async findForExport(page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
     const rows = await this.repository.findForExport(page);
     return rows.map((row) => ({
@@ -84,7 +83,7 @@ export class OfferingsDomainService {
       Name: row.name,
       Description: row.description ?? '',
       Fulfilment: row.fulfilmentType,
-      Owner: row.siteId ? 'SITE' : row.legalEntityId ? 'LE' : 'ORG',
+      Owner: workspaceScopeOf(row),
       Dimensions: row.dimensionCount,
       Variants: row.variantCount,
       Status: row.isActive ? 'Active' : 'Inactive',
@@ -173,9 +172,7 @@ export class OfferingsDomainService {
     };
   }
 
-  // Changes what the offering is, and cascades to every variant that has not pinned its own. Refused
-  // outright when any of those variants already holds a bill of materials the new type forbids —
-  // nothing is written until the whole set can move, so an offering never half-changes.
+  // Changes what the offering is, and cascades to every variant that has not pinned its own.
   async setFulfilment(id: string, data: Omit<SetOfferingFulfilmentDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.requireOwned(id);
     const next = data.fulfilmentType as FulfilmentType;
@@ -222,8 +219,7 @@ export class OfferingsDomainService {
     return { success: true, message: `"${existing.name}" ${data.isActive ? 'activated' : 'deactivated'}.` };
   }
 
-  // The batch form of setStatus. Every id is checked before anything is written, so the whole
-  // selection either moves together or nothing does — a half-applied bulk action is worse than a refusal.
+  // The batch form of setStatus.
   async bulkSetStatus(data: BulkSetOfferingStatusDto): Promise<SuccessResponseDto> {
     const rows = await this.repository.findByIds(data.ids);
     if (rows.length !== data.ids.length) {
@@ -259,8 +255,8 @@ export class OfferingsDomainService {
     };
   }
 
-  // Deleting cascades into dimensions and variants, so it is blocked while any variant exists —
-  // a variant may already carry stock or sit on an order line.
+  // Deleting cascades into dimensions and variants, so it is blocked while any variant exists — a variant may already
+  // carry stock or sit on an order line.
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.requireOwned(id);
     if (existing.variantCount > 0) {
@@ -274,9 +270,7 @@ export class OfferingsDomainService {
     return { success: true, message: `"${existing.name}" deleted.` };
   }
 
-  // The code is the first segment of every Code derived from it. Stored SKUs are never recomputed, so
-  // changing it once variants exist would leave them carrying a prefix the offering no longer has —
-  // recognisable to nobody. Free to change until the first variant.
+  // The code is the first segment of every Code derived from it.
   private assertCodeChangeable(existing: OfferingWithOwnership): void {
     if (existing.variantCount > 0) {
       throw new ConflictException({

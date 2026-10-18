@@ -5,9 +5,6 @@ export class VariantOptionDto {
   code: string;
   name: string;
   selected: boolean;
-  // The sibling this option leads to, holding every other axis where it is. Null when that
-  // combination is not sold here — the option still renders, disabled, because a switcher that
-  // hides unavailable sizes makes the range look smaller than it is.
   variantCode: string | null;
 }
 
@@ -25,17 +22,7 @@ export class CatalogListingDetailDto {
 
 type Sibling = { variantCode: string; values: Map<string, string> };
 
-/**
- * Turns the flat (variant, dimension) rows into the axes a product page switches on.
- *
- * An option's target is resolved by **holding every other axis fixed and swapping this one** — so
- * from 250g · Dark Chocolate, the 750g option leads to 750g · Dark Chocolate, not to whichever 750g
- * happens to exist. That is the whole reason this cannot be built from a list of SKUs: the answer
- * depends on where the shopper is standing.
- *
- * Only values carried by an available sibling appear at all. A flavour the shop does not stock is not
- * a disabled option, it is not an option — the same rule the filter rail follows.
- */
+// Turns the flat (variant, dimension) rows into the axes a product page switches on.
 export function buildVariantAxes(rows: VariantSiblingRow[], currentVariantId: string): VariantAxisDto[] {
   const siblings = new Map<string, Sibling>();
   const axes = new Map<string, VariantAxisDto & { seen: Map<string, { name: string; sortOrder: number }> }>();

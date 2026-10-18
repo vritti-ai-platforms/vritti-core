@@ -82,8 +82,7 @@ export class SiteCatalogsGatewayService {
     return this.nats.send('commerce', 'site.catalogs.currencies.remove', { catalogId, currencyCode });
   }
 
-  // Returns paginated listings of one catalog, each with its prices. A currency narrows those prices
-  // to one, and the drill-in shares a single saved view across currencies — the columns never differ.
+  // Returns paginated listings of one catalog, each with its prices.
   async findListingsForTable(
     orgId: string,
     catalogId: string,
@@ -100,7 +99,6 @@ export class SiteCatalogsGatewayService {
       'site.catalogs.listings.table',
       { catalogId, state, currencyCode },
     );
-    // commerce stores only the owning ids; the names live in core
     const rows = await this.ownerNames.resolve(orgId, result);
     return { result: await this.namePriceOwners(orgId, rows), count, state, activeViewId };
   }

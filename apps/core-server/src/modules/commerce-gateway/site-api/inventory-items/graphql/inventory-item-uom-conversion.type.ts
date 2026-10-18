@@ -1,7 +1,7 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 
-// Mirrors SiteInventoryItemUomConversionResponseDto — the per-item UOM conversion overrides the mobile detail
-// tab lists. Date fields are String (ISO 8601): the gateway response carries ISO strings, not Date objects.
+// Mirrors SiteInventoryItemUomConversionResponseDto — the per-item UOM conversion overrides the mobile detail tab
+// lists.
 @ObjectType()
 export class InventoryItemUomConversion {
   @Field(() => ID)

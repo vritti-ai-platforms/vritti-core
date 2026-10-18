@@ -10,8 +10,8 @@ export class PosTerminalsDomainRepository extends PrimaryBaseRepository<typeof p
     super(database, posTerminals);
   }
 
-  // Every active terminal in reach, unpaginated — callers that render the whole estate rather than a
-  // page of it, such as the channels list
+  // Every active terminal in reach, unpaginated — callers that render the whole estate rather than a page of it, such
+  // as the channels list
   async findAllActive(): Promise<{ id: string; name: string }[]> {
     return this.db
       .select({ id: posTerminals.id, name: posTerminals.name })

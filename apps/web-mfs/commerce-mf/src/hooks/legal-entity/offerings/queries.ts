@@ -42,8 +42,8 @@ export function useOfferingsTable(options?: Options<OfferingsTableResponse>) {
   });
 }
 
-// Suspense-backed: the detail route renders a skeleton at its boundary, so the page never handles
-// a loading state and `data` is always defined
+// Suspense-backed: the detail route renders a skeleton at its boundary, so the page never handles a loading state and
+// `data` is always defined
 export function useOffering(id: string, options?: SuspenseOptions<OfferingData>) {
   return useSuspenseQuery<OfferingData, AxiosError>({
     queryKey: [...OFFERINGS_KEY, id],
@@ -83,8 +83,7 @@ export function useOfferingVariantsTable(offeringId: string, options?: Options<O
   });
 }
 
-// The bill of materials, fetched by the tab that shows it rather than riding on the variant. A plain
-// query, not suspense — the tab renders inside the variant page and must not suspend it.
+// The bill of materials, fetched by the tab that shows it rather than riding on the variant.
 export function useVariantBom(variantId: string, options?: Options<VariantBomData>) {
   const { available } = usePermission(LE_OFFERINGS.variants.bom.view);
   return useQuery<VariantBomData, AxiosError>({

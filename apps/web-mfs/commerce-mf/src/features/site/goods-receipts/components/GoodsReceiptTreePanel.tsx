@@ -164,7 +164,6 @@ export const GoodsReceiptTreePanel = ({
               if (!itemId) return onSelect(null);
               return onSelect({ kind: 'lot', itemId, lotId: node.id });
             }
-            // line
             const parents = itemAndLotOfLine.get(node.id);
             if (!parents) return onSelect(null);
             onSelect({ kind: 'line', itemId: parents.itemId, lotId: parents.lotId ?? null, lineId: node.id });

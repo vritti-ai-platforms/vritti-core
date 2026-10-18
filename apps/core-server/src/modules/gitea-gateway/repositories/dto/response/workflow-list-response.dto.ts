@@ -1,9 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-// Raw workflow shape from Gitea. Note `id` is the workflow FILE NAME (e.g. `ci.yaml`), not a number,
-// so it needs percent-encoding wherever it is interpolated into a URL.
-// Gitea exposes no trigger list and no input schema here, which is why dispatchability cannot be known
-// up front — see the dispatch endpoint.
 export interface GiteaApiWorkflow {
   id: string;
   name: string;

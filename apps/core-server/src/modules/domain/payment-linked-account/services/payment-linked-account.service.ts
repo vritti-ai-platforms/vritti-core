@@ -19,7 +19,6 @@ export interface PaymentLinkedAccountReservation {
   id: string;
   collectorConfigId: string;
   bank: { accountNumber: string; ifscCode: string; beneficiaryName: string };
-  // Set when an earlier attempt already created the account at the provider; the provider call resumes from it
   resume: { providerAccountId: string; providerData: Record<string, string> } | null;
 }
 
@@ -27,7 +26,6 @@ export interface PaymentLinkedAccountProviderResult {
   providerAccountId: string;
   providerData: Record<string, string>;
   status: PaymentLinkedAccountStatus;
-  // Set by the gateway: Razorpay holds a new linked account for 24 hours, another provider may not hold it at all
   transfersAllowedAt: string | null;
 }
 
@@ -51,10 +49,7 @@ export class PaymentLinkedAccountDomainService {
     return rows.map(toDto);
   }
 
-  // Validates a registration and records it as PENDING, returning what the provider call needs. A FAILED earlier
-  // attempt is always reused under the same id (its provider reference): with a provider account the setup resumes
-  // on it, and without one the retry reuses the reference so an account a timed-out call did create is not
-  // duplicated. Any other existing row, or a concurrent registration winning the insert, is a conflict
+  // Validates a registration and records it as PENDING, returning what the provider call needs.
   async reserve(
     orgId: string,
     scope: PaymentLinkedAccountScope,
@@ -193,8 +188,8 @@ export class PaymentLinkedAccountDomainService {
     return { success: true, message: 'Linked account removed successfully.' };
   }
 
-  // Finds the linked account a collector can split a payment to for a bank account, once activated and past the
-  // cooling period
+  // Finds the linked account a collector can split a payment to for a bank account, once activated and past the cooling
+  // period
   async findActivatedForBankAccount(
     orgId: string,
     collectorConfigId: string,

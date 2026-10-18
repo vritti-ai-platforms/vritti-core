@@ -6,9 +6,6 @@ const BASE_GATEWAY_CREDENTIAL_FIELDS = {
   phonepe: { keyIdField: 'merchant_id', fields: ['merchant_id', 'client_id', 'client_secret'] },
 } as const;
 
-// Every selectable gateway code. A bank-branded deployment (HDFC's dedicated Razorpay/Cashfree stacks) is its own
-// code because it runs on its own host and API version, even though it takes the same credentials as its base —
-// the adapter registry will key on these codes too, so one line here is one provider everywhere.
 export const GATEWAY_CREDENTIAL_FIELDS = {
   ...BASE_GATEWAY_CREDENTIAL_FIELDS,
   'hdfc-razorpay': BASE_GATEWAY_CREDENTIAL_FIELDS.razorpay,

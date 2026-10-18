@@ -20,9 +20,8 @@ export class GoodsReceiptItemsCostDto {
   currencyCode: string | null;
   grandTotal: CurrencyAmountDto | null;
 
-  // Line total = unitPrice (minor) × orderedQty (the paid quantity; free units are not billed),
-  // rounded once to minor units; grand total sums the line totals. All prices share the GR's
-  // single supplier currency.
+  // Line total = unitPrice (minor) × orderedQty (the paid quantity; free units are not billed), rounded once to minor
+  // units; grand total sums the line totals.
   static from(items: GoodsReceiptItemWithRefs[]): GoodsReceiptItemsCostDto {
     const dto = new GoodsReceiptItemsCostDto();
     let currencyCode: string | null = null;

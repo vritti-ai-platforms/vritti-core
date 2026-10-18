@@ -62,15 +62,10 @@ export class UomDomainService {
   }
 
   // Keyset/cursor Relay connection of a dimension's units (base + derived) for the mobile infinite feed.
-  // Fixed order: base units first (baseUnitId NULLS FIRST), then by name, with id as the unique tie-breaker
-  // (required for keyset correctness). Joins the base-unit symbol; org-scoped so canEdit is always true
-  // and the batch reference check gates canDelete.
   async findForFeed(query: { dimensionId: string; limit?: number; cursor?: string }): Promise<{
     edges: { cursor: string; node: UomDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
-    // baseUnitId is nullable (base units), so the NULL-aware keyset path is used; the id tie-breaker makes
-    // the order total. Each entry carries the row accessor key so cursor values are read by JS property.
     const orderByEntries: (KeysetOrderBy & { key: string })[] = [
       { column: uom.baseUnitId, direction: 'asc', nulls: 'first', key: 'baseUnitId' },
       { column: uom.name, direction: 'asc', key: 'name' },
@@ -78,8 +73,6 @@ export class UomDomainService {
     ];
     const orderBy = [sql`${uom.baseUnitId} ASC NULLS FIRST`, asc(uom.name), asc(uom.id)];
 
-    // The sort is fixed (not client-controlled), but still bind the cursor to it — decode throws
-    // InvalidCursorException (400) on a malformed/forged cursor.
     const signature = keysetSignature(orderByEntries);
     const cursorWhere = query.cursor
       ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(query.cursor, signature))
@@ -123,12 +116,7 @@ export class UomDomainService {
     return entities.map((e) => UomDto.from(e, !referencedIds.has(e.id)));
   }
 
-  // Returns paginated UOM options for select dropdowns. When `inventoryItemId` is set, the
-  // result is restricted to that item's allowed-UOMs set (see UomDomainRepository.allowedUomIdsForItemSubquery).
-  // When `supplierId` is also set (no purchaseOrderId): restricts to UOMs the supplier offers for this item,
-  //   excluding UOMs already linked to the supplier for this item.
-  // When `supplierId` + `purchaseOrderId` are both set: restricts to UOMs in supplier_items for this
-  //   supplier+item, excluding UOMs already on the PO for this item.
+  // Returns paginated UOM options for select dropdowns.
   findForSelect(
     query: SelectOptionsQueryDto,
     options?: {
@@ -252,10 +240,8 @@ export class UomDomainService {
     };
   }
 
-  // Builds a COMPLETE UomDto by id — same primitives findForFeed uses, so canDelete and
-  // baseUnitSymbol are computed identically on every read path (the by-id re-read after update/create).
-  // Without this, a bare UomDto.from(entity) defaults canDelete=true and baseUnitSymbol=null, which
-  // Apollo then auto-merges over the feed's correct values (delete button reappears; conversion shows "—").
+  // Builds a COMPLETE UomDto by id — same primitives findForFeed uses, so canDelete and baseUnitSymbol are computed
+  // identically on every read path (the by-id re-read after update/create).
   private async toDto(id: string): Promise<UomDto> {
     const { result } = await this.uomRepository.findForTableWithBase({
       where: eq(uom.id, id),

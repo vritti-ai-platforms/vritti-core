@@ -60,6 +60,7 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'site.goodsReceipts.findById', { id });
   }
 
+  // Keyset/cursor Relay connection for the mobile infinite feed.
   // Keyset/cursor Relay connection for the mobile infinite feed. Thin NATS forward; maps first→limit, after→cursor.
   findForFeed(query: { search?: SearchState | null; first?: number; after?: string }): Promise<{
     edges: { cursor: string; node: GoodsReceiptResponseDto }[];

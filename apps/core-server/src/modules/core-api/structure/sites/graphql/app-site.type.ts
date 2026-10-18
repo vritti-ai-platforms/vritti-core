@@ -8,21 +8,13 @@ export enum AppSiteType {
 }
 registerEnumType(AppSiteType, { name: 'AppSiteType' });
 
-// Kept beside the enum so a value added to the schema fails the build here rather than silently
-// dropping out of a storefront's options.
 export const APP_SITE_TYPES: Record<string, AppSiteType> = {
   [SiteTypeValues.OUTLET]: AppSiteType.OUTLET,
   [SiteTypeValues.WAREHOUSE]: AppSiteType.WAREHOUSE,
   [SiteTypeValues.PRODUCTION]: AppSiteType.PRODUCTION,
 };
 
-/**
- * A store a storefront may sell from.
- *
- * Carries its legal entity and that entity's currency, which is what lets one click set a whole
- * selling context: a site has no currency of its own, so without this a switcher would have to read
- * the entities as well to learn what it was switching into.
- */
+// A store a storefront may sell from.
 @ObjectType()
 export class AppSite {
   @Field(() => String)

@@ -39,7 +39,6 @@ interface AttemptOutcome {
   ok: boolean;
   statusCode: number | null;
   error: string | null;
-  // Set when the delivery can never be sent as things stand, so it fails now instead of working through retries
   terminal?: boolean;
 }
 
@@ -134,8 +133,7 @@ export class WebhookDeliveryDomainService {
     return { result: result.map(WebhookDeliveryDto.from), count };
   }
 
-  // Puts a delivery back in the queue for an immediate attempt with a fresh retry budget. A delivery a worker is
-  // sending, or one already waiting on its next retry, is still in progress and is refused
+  // Puts a delivery back in the queue for an immediate attempt with a fresh retry budget.
   async redeliver(organizationId: string, appId: string, deliveryId: string): Promise<{ deliveryId: string }> {
     const delivery = await this.deliveryRepository.findForApp(organizationId, appId, deliveryId);
     if (!delivery) {
@@ -156,6 +154,7 @@ export class WebhookDeliveryDomainService {
     return { deliveryId: delivery.id };
   }
 
+  // Sends the organization's due deliveries once each and records every outcome.
   // Sends the organization's due deliveries once each and records every outcome. The caller supplies the RLS context
   async deliverDue(organizationId: string, now: Date = new Date()): Promise<WebhookDeliveryRunResult> {
     const claimed = await this.deliveryRepository.claimDue(
@@ -177,8 +176,7 @@ export class WebhookDeliveryDomainService {
     return result;
   }
 
-  // POSTs one signed delivery. Redirects are not followed, so a 3xx counts as a failure rather than a hop elsewhere.
-  // Nothing is sent for an inactive or revoked app, or when the host now resolves to a private address
+  // POSTs one signed delivery.
   private async attempt(target: WebhookDeliveryTarget): Promise<AttemptOutcome> {
     const { delivery } = target;
     if (!target.appActive) return { ok: false, statusCode: null, error: 'App inactive', terminal: true };

@@ -3,8 +3,8 @@ import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength 
 import { TaxRegistrationTypeValues } from '@/db/schema';
 
 export class CreateTaxRegistrationDto {
-  // Absent on the VAP path — the column defaults to the workspace entity, so a body value cannot
-  // point a registration at someone else's legal entity
+  // Absent on the VAP path — the column defaults to the workspace entity, so a body value cannot point a registration
+  // at someone else's legal entity
   @IsOptional()
   @IsUUID('7')
   legalEntityId?: string;

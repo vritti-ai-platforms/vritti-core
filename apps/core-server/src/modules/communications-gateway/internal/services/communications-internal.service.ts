@@ -124,8 +124,8 @@ export class CommunicationsInternalService {
     }
 
     this.logger.log(`org.whatsappOtps.send — test for app ${appId}`);
-    // orgId is not passed explicitly: the cloud-signed request already carries it on request.auth,
-    // which the NATS context resolver reads
+    // orgId is not passed explicitly: the cloud-signed request already carries it on request.auth, which the NATS
+    // context resolver reads
     return this.nats.send('communications', 'org.whatsappOtps.send', {
       appId,
       accountId: config.accountId,
@@ -172,8 +172,8 @@ export class CommunicationsInternalService {
       });
     }
   }
-  // ---- Platform SMS providers — the calls carry no org headers, so the microservice's RLS
-  // policy scopes them to the NULL-org rows and they can never touch a client's provider ----
+  // ---- Platform SMS providers — the calls carry no org headers, so the microservice's RLS policy scopes them to the
+  // NULL-org rows and they can never touch a client's provider ----
 
   listPlatformSmsProviders(): Promise<SmsProviderResponseDto[]> {
     this.logger.log('internal.smsProviders.list');
@@ -196,8 +196,8 @@ export class CommunicationsInternalService {
   }
   // ---- SMS OTP config — the SMS sibling of the WhatsApp methods above ----
 
-  // Active providers the config screen may pick — the org's own rows plus platform rows, via the
-  // org-scoped select (the signed x-org-id sets the RLS context downstream)
+  // Active providers the config screen may pick — the org's own rows plus platform rows, via the org-scoped select (the
+  // signed x-org-id sets the RLS context downstream)
   async listSmsProviderOptions(): Promise<SmsProviderOptionDto[]> {
     this.logger.log('select.smsProviders');
     const { options } = await this.nats.send<SelectQueryResult>('communications', 'select.smsProviders', {
@@ -207,8 +207,6 @@ export class CommunicationsInternalService {
       limit: SELECT_LIMIT,
     } satisfies SelectOptionsQueryDto);
 
-    // Merged in so the config screen knows whether to demand a template without inferring it from
-    // the provider code — the registry is the only thing that actually knows
     const capabilities = await this.nats.send<{ code: string; requiresTemplate: boolean }[]>(
       'communications',
       'org.smsProviders.available',
@@ -232,8 +230,7 @@ export class CommunicationsInternalService {
       });
   }
 
-  // The templates registered against one provider — what the app's OTP config picks from. Vritti's
-  // own rows: a provider's vendor may have no endpoint that lists them (MSG91 has none for SMS).
+  // The templates registered against one provider — what the app's OTP config picks from.
   listSmsProviderTemplates(providerId: string): Promise<SmsProviderTemplateResponseDto[]> {
     this.logger.log(`org.smsProviders.templates.list — provider: ${providerId}`);
     return this.nats.send('communications', 'org.smsProviders.templates.list', { providerId });

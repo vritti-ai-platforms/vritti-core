@@ -41,7 +41,7 @@ export class PartyFunctionsDomainService {
   }
 
   // Upserts the function rows of one address or relationship: inserts new, deletes removed, and applies
-  // single-primary-per-function via clear-then-set. Runs inside the caller's transaction.
+  // single-primary-per-function via clear-then-set.
   async syncEntityFunctions(input: SyncEntityFunctionsInput): Promise<void> {
     const { partyId, target, functions } = input;
     const addressId = target.addressId;

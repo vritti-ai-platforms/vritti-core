@@ -67,8 +67,8 @@ export class TaxRegistrationsGatewayService {
     return this.nats.send('commerce', 'le.taxRegistrations.update', { id, ...dto });
   }
 
-  // Sites hold a loose reference to the registration they trade under, so the check that the dropped
-  // foreign key used to make lives here — core owns sites, commerce cannot see them
+  // Sites hold a loose reference to the registration they trade under, so the check that the dropped foreign key used
+  // to make lives here — core owns sites, commerce cannot see them
   async delete(id: string): Promise<SuccessResponseDto> {
     const siteCount = await this.siteRepository.countByRegistration(id);
     if (siteCount > 0) {
@@ -82,8 +82,8 @@ export class TaxRegistrationsGatewayService {
     return this.nats.send('commerce', 'le.taxRegistrations.delete', { id });
   }
 
-  // Cloud names the legal entity explicitly, so the registration must belong to it — a mismatch is a 404,
-  // never a delete of another entity's registration
+  // Cloud names the legal entity explicitly, so the registration must belong to it — a mismatch is a 404, never a
+  // delete of another entity's registration
   async deleteForLegalEntity(legalEntityId: string, id: string): Promise<SuccessResponseDto> {
     const registration = await this.findById(id);
     if (registration.legalEntityId !== legalEntityId) {

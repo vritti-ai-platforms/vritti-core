@@ -5,8 +5,6 @@ export type GiteaEntryType = 'file' | 'dir' | 'symlink' | 'submodule';
 // Sort rank putting directories ahead of every other entry type
 const directoryFirst = (type: GiteaEntryType): number => (type === 'dir' ? 0 : 1);
 
-// Raw contents shape returned by the Gitea REST API — snake_case mirrors the wire format.
-// File content is deliberately absent: this gateway browses directories, it does not serve file bodies.
 export interface GiteaApiContents {
   name: string;
   path: string;
@@ -15,12 +13,9 @@ export interface GiteaApiContents {
   size: number;
   last_commit_sha?: string | null;
   last_commit_message?: string | null;
-  // An LFS-tracked entry's `size` is its ~130-byte pointer's; `lfs_size` is the tracked object's
   lfs_size?: number | null;
 }
 
-// Response of /contents-ext. It also carries a `file_contents` field for single files, which this
-// gateway ignores — a path resolving to a file yields an empty listing rather than its contents.
 export interface GiteaApiContentsExt {
   dir_contents?: GiteaApiContents[] | null;
 }

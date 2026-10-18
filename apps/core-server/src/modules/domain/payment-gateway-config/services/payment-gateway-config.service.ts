@@ -130,8 +130,6 @@ export class PaymentGatewayConfigDomainService {
   }
 
   // Updates a config; new credentials are re-validated and re-encrypted, absent ones are kept as stored.
-  // New credentials or a new gateway void the last verification, and a new gateway also drops the old account's
-  // webhook secret and merchant id unless replacements arrive with it
   async update(
     orgId: string,
     id: string,
@@ -242,8 +240,7 @@ export class PaymentGatewayConfigDomainService {
     return best;
   }
 
-  // Resolves what a public webhook needs to be authenticated and forwarded. The organization comes from the URL
-  // and the caller runs this under its RLS context; the ownership check keeps a foreign config id a 404 regardless
+  // Resolves what a public webhook needs to be authenticated and forwarded.
   async findWebhookTarget(orgId: string, id: string): Promise<PaymentWebhookTarget | undefined> {
     const row = await this.configRepository.findById(id);
     if (!row || row.organizationId !== orgId) return undefined;
@@ -317,8 +314,7 @@ export class PaymentGatewayConfigDomainService {
     return { keyId: clean[spec.keyIdField], credentials: clean };
   }
 
-  // Rejects a slot (legal entity, type, site, app) another config already occupies. A slot routes through exactly
-  // one config whatever gateway or bank account it uses, because resolveForContext can only pick one of them
+  // Rejects a slot (legal entity, type, site, app) another config already occupies.
   private async assertSlotFree(
     legalEntityId: string,
     type: PaymentGatewayConfigType,

@@ -1,7 +1,6 @@
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 
-// Per-location stock aggregate for an inventory item (read-only). `id` is composite (`itemId:locationId`)
-// so Apollo doesn't collide the same location's row across different items in the normalized cache.
+// Per-location stock aggregate for an inventory item (read-only).
 @ObjectType()
 export class InventoryItemStockLevel {
   @Field(() => ID)
@@ -29,8 +28,7 @@ export class InventoryItemStockLevel {
   reorderLevel: number | null;
 }
 
-// Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache. Names are
-// stock-level-scoped to avoid global GraphQL type-name collisions (NestJS code-first).
+// Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache.
 @ObjectType()
 export class InventoryItemStockLevelPageInfo {
   @Field(() => Boolean)

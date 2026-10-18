@@ -172,8 +172,7 @@ export class CatalogChannelsDomainService {
     };
   }
 
-  // What this storefront can switch between: the currencies its resolved catalog carries. Empty when
-  // the credential resolves to no channel, which a switcher renders as "no choice" rather than an error.
+  // What this storefront can switch between: the currencies its resolved catalog carries.
   async appCurrencies(appId: string): Promise<string[]> {
     const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return [];
@@ -206,11 +205,6 @@ export class CatalogChannelsDomainService {
   }
 
   // One listing by code, with the axes a product page switches on.
-  //
-  // By code because that is what a storefront puts in its address bar: the code already names the
-  // offering and one value per dimension, so the URL says what the page is and needs no second
-  // lookup to be readable. Null when this shop does not offer it, which a page renders as "not
-  // found" rather than guessing.
   async appListingByCode(appId: string, code: string, currencyCode: string): Promise<CatalogListingDetailDto | null> {
     const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return null;
@@ -225,9 +219,7 @@ export class CatalogChannelsDomainService {
     };
   }
 
-  // Prices variants the caller already holds, against the same credential's catalog — optionally
-  // narrowed, so a caller can ask "which of these are ready to cook" in one read rather than pricing
-  // all of them and sorting it out itself.
+  // Prices variants the caller already holds, narrowed by the same filters the paged read takes
   async appListingsByCodes(
     appId: string,
     codes: string[],
@@ -242,11 +234,6 @@ export class CatalogChannelsDomainService {
   }
 
   // The filter rail: dimension groups then attribute groups, each value carrying a listing count.
-  //
-  // The unfiltered pass always runs, because it is the only thing that knows the full set of groups
-  // and values. Narrowing then overwrites the counts it can and leaves the rest at zero, which is how
-  // a value that would return nothing still renders — as a disabled zero rather than vanishing, so the
-  // rail does not reshape itself under the pointer.
   async appListingFilters(appId: string, selected: ListingFilterSelection[]): Promise<ListingFilterDto[]> {
     const channel = await this.repository.resolveCatalogChannel({ type: CatalogChannelTypeValues.APP, appId });
     if (!channel) return [];
@@ -262,11 +249,7 @@ export class CatalogChannelsDomainService {
     return groups;
   }
 
-  // Each group is counted with every OTHER group's selections applied, but never its own. Applying the
-  // whole filter instead would compute Chocolate as "Kesar Badam AND Chocolate" the moment Kesar Badam
-  // is ticked, zeroing every other flavour and making a second flavour unselectable forever.
-  //
-  // So: one pass for the unselected groups with the full filter, plus one per selected group.
+  // Each group is counted with every OTHER group's selections applied, but never its own.
   private async narrowCounts(
     channel: StorefrontChannel,
     groups: ListingFilterDto[],
@@ -357,8 +340,7 @@ export class CatalogChannelsDomainService {
     });
   }
 
-  // A named app or terminal is an exception to a default, so there has to be a default to except
-  // from. Without this a workspace could name one app and leave every other caller with nothing.
+  // A named app or terminal is an exception to a default, so there has to be a default to except from.
   private async assertDefaultExists(target: ChannelTarget): Promise<void> {
     if (!target.appId && !target.terminalId) return;
     if (await this.repository.hasDefaultInReach(target.type)) return;

@@ -227,8 +227,8 @@ export class LegalEntityDomainService {
     await this.legalEntityRepository.setSortOrders(sequentialSortOrders(siblings.map((sibling) => sibling.id)));
   }
 
-  // Returns the org's legal entities and tax registrations
-  // Registrations moved to commerce, so the aggregate assembles them in the API layer
+  // Returns the org's legal entities and tax registrations Registrations moved to commerce, so the aggregate assembles
+  // them in the API layer
   async listByOrg(orgId: string): Promise<LegalEntityDto[]> {
     const entities = await this.legalEntityRepository.findByOrg(orgId);
     return entities.map(LegalEntityDto.from);

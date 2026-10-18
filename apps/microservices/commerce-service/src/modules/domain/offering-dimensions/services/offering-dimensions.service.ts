@@ -20,16 +20,14 @@ export class OfferingDimensionsDomainService {
 
   constructor(private readonly repository: OfferingDimensionsDomainRepository) {}
 
-  // Lists an offering's axes with their values. The offering probe tells a missing offering apart from
-  // one that simply has no dimensions yet, which an empty list alone cannot.
+  // Lists an offering's axes with their values.
   async list(offeringId: string): Promise<OfferingDimensionDto[]> {
     if (!(await this.repository.findOffering(offeringId))) throw new NotFoundException('Offering not found.');
     const dimensions = await this.repository.findByOfferingWithValues(offeringId);
     return dimensions.map((d) => OfferingDimensionDto.from(d, d.values));
   }
 
-  // Adds an empty axis to an offering. Existing variants are untouched — a variant names whichever
-  // dimensions apply to it, not necessarily all of them, so nothing needs backfilling.
+  // Adds an empty axis to an offering.
   async create(data: CreateOfferingDimensionDto): Promise<CreateResponseDto<OfferingDimensionDto>> {
     const offering = await this.requireOwnedOffering(data.offeringId);
 
@@ -91,8 +89,7 @@ export class OfferingDimensionsDomainService {
     };
   }
 
-  // Replaces the dimension's value set. Values a variant already carries cannot be dropped — the
-  // variant holds a foreign key to them, and their codes are baked into that variant's stored Code.
+  // Replaces the dimension's value set.
   async upsertValues(data: UpsertOfferingDimensionValuesDto): Promise<SuccessResponseDto> {
     const dimension = await this.requireOwnedDimension(data.dimensionId);
     this.assertDistinctValueCodes(data.values);
@@ -103,8 +100,6 @@ export class OfferingDimensionsDomainService {
     const submittedIds = new Set(data.values.map((input) => input.id).filter(Boolean));
     const submittedCodes = new Set(data.values.map((input) => input.code));
 
-    // A row keeps its id across an edit, so a changed code is a rename of that very value — and the
-    // code is a Code segment of every variant already built on it.
     const renamed = data.values
       .map((input, index) => ({ input, index }))
       .filter(({ input }) => input.id && inUse.some((value) => value.id === input.id))
@@ -117,8 +112,6 @@ export class OfferingDimensionsDomainService {
       });
     }
 
-    // Dropped only when NEITHER its id nor its code came back — id is optional, so a caller that sends
-    // just code/value still matches by code exactly as the transaction below does.
     const dropped = inUse.filter((value) => !submittedIds.has(value.id) && !submittedCodes.has(value.code));
     if (dropped.length > 0) {
       const quoted = dropped.map((value) => `"${value.code}"`).join(', ');
@@ -159,9 +152,7 @@ export class OfferingDimensionsDomainService {
     return { success: true, message: `"${dimension.name}" now has ${pluralize('value', data.values.length, true)}.` };
   }
 
-  // Position drives the segment order of SKUs derived from here on. Existing SKUs are stored, never
-  // recomputed, so reordering leaves them exactly as they are — variants created before and after a
-  // reorder can therefore carry differently ordered segments.
+  // Position drives the segment order of SKUs derived from here on.
   async reorder(offeringId: string, dimensionIds: string[]): Promise<SuccessResponseDto> {
     const offering = await this.requireOwnedOffering(offeringId);
 
@@ -191,16 +182,15 @@ export class OfferingDimensionsDomainService {
     return { success: true, message: 'Dimension order updated.' };
   }
 
-  // Renames the axis. The code is left alone — it is a segment of every Code derived from this
-  // dimension, so only the label a person reads is editable.
+  // Renames the axis.
   async update(id: string, data: Omit<UpdateOfferingDimensionDto, 'id'>): Promise<SuccessResponseDto> {
     await this.requireOwnedDimension(id);
     await this.repository.update(id, { name: data.name, description: data.description });
     return { success: true, message: `"${data.name}" updated.` };
   }
 
-  // Blocked while any variant carries a value on this axis — removing it would leave those variants
-  // with SKUs containing a segment for a dimension that no longer exists.
+  // Blocked while any variant carries a value on this axis — removing it would leave those variants with SKUs
+  // containing a segment for a dimension that no longer exists.
   async delete(id: string): Promise<SuccessResponseDto> {
     const dimension = await this.requireOwnedDimension(id);
     const inUse = await this.repository.countVariantsUsingDimension(id);

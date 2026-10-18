@@ -13,11 +13,7 @@ export interface PaymentDispatchResult {
   acked: number;
 }
 
-// Fans payment events out to core: the internal handler for what the intent paid for, then the paying app's
-// webhook. An event is acknowledged to payments-service once both have gone through, or once its handler was refused
-// for good (a 4xx such as Already Paid) — repeating that can never succeed, so it is logged and the webhook still
-// queued. Anything transient (timeouts, no responders, 5xx) stays unacknowledged so the pending-events sweep retries
-// it. Handlers and the webhook queue are idempotent per event.
+// Fans payment events out to core: the internal handler for what the intent paid for, then the paying app's webhook.
 @Injectable()
 export class PaymentEventDispatcherService {
   private readonly logger = new Logger(PaymentEventDispatcherService.name);
@@ -40,6 +36,7 @@ export class PaymentEventDispatcherService {
     this.handlers.set(handler.referenceType, handler);
   }
 
+  // Dispatches a batch for one organization and acknowledges what went through.
   // Dispatches a batch for one organization and acknowledges what went through. Never throws for a failed event
   async dispatch(orgId: string, events: PaymentEventResponseDto[]): Promise<PaymentDispatchResult> {
     if (events.length === 0) return { dispatched: 0, failed: 0, acked: 0 };

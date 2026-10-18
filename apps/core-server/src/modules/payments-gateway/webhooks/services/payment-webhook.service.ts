@@ -28,8 +28,8 @@ export class PaymentWebhookService {
     private readonly dispatcher: PaymentEventDispatcherService,
   ) {}
 
-  // Resolves the config the URL names under its organization, stamps that organization on the request, and
-  // forwards the signed body
+  // Resolves the config the URL names under its organization, stamps that organization on the request, and forwards the
+  // signed body
   async ingest(
     request: FastifyRequest,
     orgId: string,
@@ -44,9 +44,6 @@ export class PaymentWebhookService {
 
     if (!rawBody) throw new BadRequestException('Webhook body is required.');
 
-    // A public route carries no auth, so the request interceptor sets no RLS context and the org-isolation policy
-    // would hide every config. The organization in the URL is the one cloud wrote into the webhook url, so the
-    // row is read under its context — and still has to prove it belongs to that organization before anything moves.
     const target = await this.db.runWithRlsContext({ orgId }, () =>
       this.configService.findWebhookTarget(orgId, configId),
     );
@@ -55,14 +52,12 @@ export class PaymentWebhookService {
       throw new NotFoundException('Payment gateway config not found.');
     }
 
-    // The NATS context resolver reads request.auth, and a public webhook has none. The config row is what
-    // authenticated this call so far (payments-service checks the signature next), so stamping its organization
-    // here is the same move the WhatsApp webhook makes — without it the service runs with app.org_id unset.
+    // The NATS context resolver reads request.auth, and a public webhook has none.
     request.auth = { kind: 'cloud', organizationId: orgId };
 
     this.logger.log(`[payment-webhook] → payments.webhooks.ingest for org ${orgId}`);
-    // Not caught: when payments-service could not record the event it answers 503, and that has to reach the
-    // provider as a non-2xx so it redelivers
+    // Not caught: when payments-service could not record the event it answers 503, and that has to reach the provider
+    // as a non-2xx so it redelivers
     const { paymentEvents, ...result } = await this.nats.send<PaymentsIngestResponse>(
       'payments',
       'payments.webhooks.ingest',
@@ -76,9 +71,7 @@ export class PaymentWebhookService {
       },
     );
 
-    // Settles orders and queues app webhooks for what the provider just reported. It never throws — anything that
-    // fails stays unacknowledged in payments-service for the sweep — so the provider still gets its 200 and does not
-    // redeliver a webhook that was already recorded. The provider sees only the ingest outcome, never the events
+    // Settles orders and queues app webhooks for what the provider just reported.
     if (paymentEvents && paymentEvents.length > 0) {
       await this.dispatcher.dispatch(orgId, paymentEvents);
     }

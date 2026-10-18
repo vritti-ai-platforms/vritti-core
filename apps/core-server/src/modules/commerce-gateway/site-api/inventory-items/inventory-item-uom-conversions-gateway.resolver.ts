@@ -10,9 +10,7 @@ import {
 import { MutationResult } from './graphql/mutation-result.type';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
-// Per-inventory-item UOM conversion overrides for the mobile detail tab. Thin GraphQL forwards to the
-// existing gateway service (which proxies the commerce-service NATS handlers). The list is small/bounded,
-// so it's a plain array (no Relay connection). Site context flows via NATS from @Require(AuthType.Session).
+// Per-inventory-item UOM conversion overrides for the mobile detail tab.
 @Resolver()
 export class InventoryItemUomConversionsResolver {
   private readonly logger = new Logger(InventoryItemUomConversionsResolver.name);
@@ -40,8 +38,8 @@ export class InventoryItemUomConversionsResolver {
     return result.data;
   }
 
-  // Update changes only the ratio (primaryUomQty/uomQty); returns success — the client patches the cached
-  // entity (qty + derived factors are computable client-side), no refetch.
+  // Update changes only the ratio (primaryUomQty/uomQty); returns success — the client patches the cached entity (qty +
+  // derived factors are computable client-side), no refetch.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'updateInventoryItemUomConversion' })
   async updateInventoryItemUomConversion(

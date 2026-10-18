@@ -65,8 +65,6 @@ export const DimensionTemplateCard: React.FC<DimensionTemplateCardProps> = ({
                 icon: Pencil,
                 label: 'Edit',
                 permission: binding.permissions.edit,
-                // A template owned by a wider scope is read-only here, so the action is hidden
-                // rather than shown greyed out — there is nothing the user can do to enable it
                 hidden: !template.canEdit,
                 dialog: {
                   title: 'Edit Dimension Template',

@@ -7,8 +7,8 @@ import { ConflictException, NotFoundException, ValidationException } from '@vrit
 import _ from '@vritti/api-sdk/lodash';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-// Org-scope service for the manual suggested-MRP table: reads the per-currency MRPs and
-// adds/edits/removes them, delegating money conversion to the domain service.
+// Org-scope service for the manual suggested-MRP table: reads the per-currency MRPs and adds/edits/removes them,
+// delegating money conversion to the domain service.
 @Injectable()
 export class InventoryItemsMrpService {
   private readonly logger = new Logger(InventoryItemsMrpService.name);

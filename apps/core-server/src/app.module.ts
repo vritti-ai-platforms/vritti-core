@@ -114,8 +114,6 @@ const graphqlBaseOptions = {
     }),
     // Two Apollo transports, two schemas, one process
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
-      // `driver` belongs on this object, NOT in useFactory — assertDriver() reads the outer
-      // options and throws before the factory ever runs.
       driver: ApolloDriver,
       useFactory: () => ({
         ...graphqlBaseOptions,
@@ -127,8 +125,6 @@ const graphqlBaseOptions = {
         ],
         autoSchemaFile: join(process.cwd(), 'src/schema.app.gql'),
         path: '/graphql',
-        // Public product surface: integrators codegen against it rather than reverse-engineering
-        // from docs. Every type reachable from a storefront operation is therefore published API.
         introspection: true,
       }),
     }),
@@ -194,10 +190,6 @@ const graphqlBaseOptions = {
           csrfExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
           refreshTokenBindingExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
           csrfExemptTransports: ['graphql'],
-          // Runs for BOTH callers. A session arrives already authenticated by the
-          // guard and only needs its host checked; an app arrives unauthenticated
-          // and is resolved here, because verifying its signature needs a database
-          // lookup the SDK cannot do. Both then share the workspace-context headers.
           onAuthenticated: async (requestService, auth) => {
             // Reads context from the header, or the equivalent query param on SSE where headers can't be set
             const readContext = (name: string, param: string): string | undefined => {
@@ -216,24 +208,20 @@ const graphqlBaseOptions = {
             };
 
             if (auth.kind === 'app') {
-              // Fills organizationId, appId, appType and the credential's grants. No host
-              // check: an app calls whatever hostname it was configured with, so the host
-              // must not decide which tenant it speaks for.
+              // Fills organizationId, appId, appType and the credential's grants.
               await appRequestResolver.resolve(requestService, auth);
               applyContextHeaders();
               return;
             }
 
             if (auth.kind === 'cloud') {
-              // No workspace headers: the control plane names an organization, never a
-              // workspace within it.
+              // No workspace headers: the control plane names an organization, never a workspace within it.
               cloudRequestResolver.resolve(requestService, auth);
               return;
             }
 
             if (auth.kind === 'oauth') {
-              // No route here declares AuthType.OAuth, so this cannot happen today. It fails closed
-              // so a future OAuth route never silently inherits the session host checks below.
+              // No route here declares AuthType.OAuth, so this cannot happen today.
               throw new UnauthorizedException('OAuth credentials are not accepted on this server');
             }
 
@@ -303,10 +291,9 @@ const graphqlBaseOptions = {
         services: [{ name: 'commerce' }, { name: 'communications' }, { name: 'payments' }],
         contextResolver: async (request) => {
           const auth = request.auth;
-          // A cloud-signed call without an organization IS the platform scope: the send goes out
-          // with no RLS headers, the receiving service sets no GUCs, and its policies resolve only
-          // the NULL-org (platform-owned) rows — e.g. platform SMS providers. Empty values are
-          // omitted from the headers, so this context serializes to none at all.
+          // A cloud-signed call without an organization IS the platform scope: the send goes out with no RLS headers,
+          // the receiving service sets no GUCs, and its policies resolve only the NULL-org (platform-owned) rows — e.g.
+          // platform SMS providers.
           if (auth?.kind === 'cloud' && !auth.organizationId) {
             return {
               orgId: '',
@@ -319,14 +306,12 @@ const graphqlBaseOptions = {
               siteCurrencyCode: '',
             };
           }
-          // For every other caller an organization is mandatory — without one the receiving
-          // service would run with app.org_id unset, matching no rows rather than failing.
+          // For every other caller an organization is mandatory — without one the receiving service would run with
+          // app.org_id unset, matching no rows rather than failing.
           if (!auth?.organizationId) return null;
 
           const orgId = auth.organizationId;
 
-          // Who acted, per caller kind. A control-plane call has no principal at all, and
-          // parseNatsHeaders now tolerates that rather than discarding the whole context.
           const userId = auth.kind === 'session' ? auth.userId : auth.kind === 'app' ? auth.appId : '';
 
           // A site workspace carries the full site context and derives its legal entity
@@ -344,8 +329,6 @@ const graphqlBaseOptions = {
             };
           }
 
-          // A group workspace resolves its member sites here, never from the request — scope policies
-          // widen a group's reach to exactly these sites, so a client-supplied list would be an IDOR
           const siteIds = auth.siteGroupId ? await siteGroupContextResolver.resolveSiteIds(auth.siteGroupId) : [];
 
           // Group / LE / org workspaces pass their own context through; empty values are omitted from the headers
@@ -385,13 +368,13 @@ const graphqlBaseOptions = {
     CommerceGatewayModule,
     // Forwards requests to communications-service via NATS
     CommunicationsGatewayModule,
-    // Signed internal communications endpoints (OTP config options) — deliberately unprefixed so
-    // their paths match the Ed25519-signed request path
+    // Signed internal communications endpoints (OTP config options) — deliberately unprefixed so their paths match the
+    // Ed25519-signed request path
     CommunicationsInternalModule,
     // Public Meta delivery callbacks — unprefixed so the path matches what is registered with Meta
     WhatsappWebhookModule,
-    // The one fixed origin allowed to spawn Meta's Embedded Signup popup — unprefixed for the same
-    // reason: its absolute URL is registered in the Meta app's allowed-domain lists
+    // The one fixed origin allowed to spawn Meta's Embedded Signup popup — unprefixed for the same reason: its absolute
+    // URL is registered in the Meta app's allowed-domain lists
     WhatsappEmbeddedSignupBrokerModule,
     // Public payment-provider callbacks — unprefixed so the path matches the URL registered with the provider
     PaymentWebhookModule,
@@ -399,11 +382,11 @@ const graphqlBaseOptions = {
     CheckoutCallbackModule,
     // Forwards requests to the self-hosted Gitea instance over HTTP
     GiteaGatewayModule,
-    // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the
-    // Ed25519-signed request path; must NOT go under the gitea-api RouterModule prefix
+    // Signed internal Gitea endpoint (pull-token) — deliberately unprefixed so its path matches the Ed25519-signed
+    // request path; must NOT go under the gitea-api RouterModule prefix
     GiteaInternalModule,
-    // Signed internal storage endpoint (org-storage) — deliberately unprefixed so its path matches the
-    // Ed25519-signed request path, same as GiteaInternalModule
+    // Signed internal storage endpoint (org-storage) — deliberately unprefixed so its path matches the Ed25519-signed
+    // request path, same as GiteaInternalModule
     StorageInternalModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
     RouterModule.register([{ path: 'communications-api', module: CommunicationsGatewayModule }]),

@@ -18,8 +18,6 @@ interface EditOfferingDialogProps {
 }
 
 // `taxClassId` is absent too: it has its own action, because changing it cascades to the variants.
-// `fulfilmentType` is absent by design — it drives the rules existing variants were built against.
-// `code` is editable until the first variant exists, after which those SKUs carry it and it is frozen.
 export const EditOfferingDialog: React.FC<EditOfferingDialogProps> = ({ useUpdate, offering, onSuccess, onCancel }) => {
   const form = useForm<UpdateOfferingFormData>({
     resolver: zodResolver(updateOfferingSchema),

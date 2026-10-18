@@ -20,8 +20,6 @@ interface AssignmentSlotProps {
   onAssign: () => void;
   onChange: () => void;
   onRemove: () => void;
-  // B2B has no cards at all, and App/POS have none until an app or terminal exists, so the items view
-  // has to be reachable from the default too — otherwise those channels have no way in
   onOpenItems: () => void;
   isRemoving?: boolean;
 }

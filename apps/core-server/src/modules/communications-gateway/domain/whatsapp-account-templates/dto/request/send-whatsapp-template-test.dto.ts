@@ -3,8 +3,6 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import { IsArray, IsIn, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
-// Sends a real, billable template message. The sender is one of the WABA's registered phone
-// numbers, and Meta addresses the template by name + language (not template ID).
 export class SendWhatsappTemplateTestDto {
   @ApiProperty({ description: 'Meta phone number ID of the WABA number to send from', example: '106540352242922' })
   @Trim({ nullify: false })

@@ -73,8 +73,6 @@ export const BomTab: React.FC<BomTabProps> = ({
     [confirm, meta, deleteMutation, variant, lines.length],
   );
 
-  // All three stay on screen rather than appearing and disappearing with the variant's state — each
-  // says why it cannot be used, which is also how the three routes to a component get taught.
   const linked = !!suggestion && lines.some((line) => line.inventoryItemId === suggestion?.id);
 
   const suggestionTip = !suggestion

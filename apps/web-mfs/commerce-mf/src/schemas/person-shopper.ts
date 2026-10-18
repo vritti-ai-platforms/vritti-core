@@ -4,7 +4,6 @@ export interface PersonWishlistRow {
   id: string;
   appId: string;
   catalogListingId: string;
-  // What the storefront's own product record is keyed on — stable across sites, unlike the listing
   offeringVariantId: string;
   name: string;
   code: string | null;

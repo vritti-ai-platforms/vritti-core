@@ -97,8 +97,8 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
     });
   }
 
-  // The totalQuantity aggregate arrives as a numeric string, so the row is mapped after the read rather than
-  // in the query
+  // The totalQuantity aggregate arrives as a numeric string, so the row is mapped after the read rather than in the
+  // query
   async findByIdWithRefs(id: string): Promise<StockAdjustmentWithRefs | undefined> {
     const row = await this.findById<Omit<StockAdjustmentWithRefs, 'totalQuantity'> & { totalQuantity: string }>(id, {
       select: {

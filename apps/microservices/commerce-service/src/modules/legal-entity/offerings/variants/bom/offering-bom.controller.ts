@@ -11,8 +11,8 @@ export class LeOfferingBomController {
 
   constructor(private readonly bom: OfferingBomDomainService) {}
 
-  // The components, plus the inventory item already carrying this variant's Code — read on its own
-  // because only the bill-of-materials view needs either
+  // The components, plus the inventory item already carrying this variant's Code — read on its own because only the
+  // bill-of-materials view needs either
   @MessagePattern({ cmd: 'le.offerings.variants.bom.lines.list' })
   findBom(@Payload() data: { variantId: string }): Promise<VariantBomDto> {
     this.logger.log(`offerings.variants.bom.lines.list — variantId: ${data.variantId}`);

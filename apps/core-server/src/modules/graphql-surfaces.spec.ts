@@ -41,6 +41,7 @@ function importsOf(source: string): string[] {
     .filter((entry) => /^[A-Za-z][A-Za-z0-9]*$/.test(entry));
 }
 
+// GraphQL resolvers end in `Resolver`.
 // GraphQL resolvers end in `Resolver`. *RequestResolver are security services, never in a schema.
 const isGraphqlResolver = (name: string) => name.endsWith('Resolver') && !name.endsWith('RequestResolver');
 
@@ -48,7 +49,8 @@ describe('GraphQL surfaces', () => {
   const files = allModuleFiles(MODULES_DIR);
   const byFile = new Map(files.map((f) => [f, readFileSync(f, 'utf8')]));
 
-  // THE failure this exists for: a resolver left declared in both its feature module and a surface module lands in BOTH schemas
+  // THE failure this exists for: a resolver left declared in both its feature module and a surface module lands in BOTH
+  // schemas
   it('declares every resolver in exactly one module', () => {
     const owners = new Map<string, string[]>();
     for (const [file, source] of byFile) {
@@ -61,7 +63,8 @@ describe('GraphQL surfaces', () => {
     expect(duplicated).toEqual([]);
   });
 
-  // `include` walks imports transitively, so an app-surface module importing anything that declares a resolver would drag that resolver into the storefront schema
+  // `include` walks imports transitively, so an app-surface module importing anything that declares a resolver would
+  // drag that resolver into the storefront schema
   it('keeps the app-surface import closures free of other resolvers', () => {
     const declaresResolver = new Map<string, boolean>();
     for (const source of byFile.values()) {
@@ -86,7 +89,8 @@ describe('GraphQL surfaces', () => {
     }
   });
 
-  // Without this, adding a surface module and forgetting to list it above makes the closure check pass by never looking at it — the guard reports green on exactly the case it exists to catch
+  // Without this, adding a surface module and forgetting to list it above makes the closure check pass by never looking
+  // at it — the guard reports green on exactly the case it exists to catch
   it('checks every module that looks like an app surface', () => {
     const unlisted = files
       .filter((f) => APP_SURFACE_NAME.test(f))

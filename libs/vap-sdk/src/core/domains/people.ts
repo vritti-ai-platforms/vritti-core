@@ -18,7 +18,6 @@ import {
 import { requireData, run } from '../transport/errors.js';
 import { type Money, type RequestContext, withoutWorkspace } from '../types.js';
 
-/** The channels core recognises. `WEB_APP` is a reference, not a contact method. */
 export const CHANNELS = {
   EMAIL: 'EMAIL',
   PHONE: 'PHONE',
@@ -27,7 +26,6 @@ export const CHANNELS = {
 
 export type Channel = (typeof CHANNELS)[keyof typeof CHANNELS];
 
-/** A person party in the organization. */
 export type Person = {
   id: string;
   displayName: string;
@@ -49,20 +47,10 @@ export type PersonCommunication = {
 export type CreatePersonInput = {
   firstName: string;
   lastName?: string;
-  /** Becomes the party's primary EMAIL communication, in the same transaction. */
   email?: string;
-  /** Becomes the party's primary PHONE communication, in the same transaction. */
   phone?: string;
 };
 
-/**
- * The three people primitives, one call each.
- *
- * Deliberately thin — they map one-to-one onto core's operations and hold no policy. Deciding *which*
- * person a phone number belongs to, or what a signup should do when it matches nobody, lives in
- * `flows/auth.ts`, so every app that stands up gets the same answers rather than its own.
- */
-/** One of the party's saved addresses. */
 export type PartyAddress = {
   id: string;
   line1: string;
@@ -71,11 +59,9 @@ export type PartyAddress = {
   region?: string | null;
   postalCode?: string | null;
   countryCode: string;
-  /** Where orders go unless told otherwise. Marking one default unmarks the previous one. */
   isDefault: boolean;
 };
 
-/** An address as a party writes it. Clearing an optional field means sending `null`. */
 export type PartyAddressInput = {
   line1: string;
   line2?: string | null;
@@ -86,7 +72,6 @@ export type PartyAddressInput = {
   isDefault?: boolean;
 };
 
-/** The party's own details, as their profile page shows them. */
 export type PartyProfile = {
   id: string;
   displayName: string;
@@ -96,14 +81,12 @@ export type PartyProfile = {
   phone?: string | null;
 };
 
-/** What a party may change about themselves. Phone is absent — that is the OTP flow. */
 export type PartyProfileInput = {
   firstName?: string | null;
   lastName?: string | null;
   email?: string | null;
 };
 
-/** What `addToWishlist` answers with — the list, plus whether it was already there. */
 export type WishlistAddResult = {
   alreadyExists: boolean;
   wishlist: WishlistItem[];
@@ -113,7 +96,6 @@ export type WishlistItem = {
   id: string;
   catalogListingId: string;
   name: string;
-  /** What a storefront joins its own product page on — the variant's code, stable across sites. */
   code: string;
   price: Money | null;
   isAvailable: boolean;
@@ -121,26 +103,12 @@ export type WishlistItem = {
 };
 
 export function createPeopleOperations(client: ApolloClient, context: RequestContext = {}, currency?: string) {
-  // The party rides as Apollo context, so one long-lived client serves every caller and the
-  // signature is built per request from the headers that request carries.
   const requestContext = { requestContext: context };
   // A wishlist is the person's across the whole organization, so its calls carry no workspace.
   const wishlistContext = { requestContext: withoutWorkspace(context) };
 
-  /**
-   * Refused here rather than at core, so a caller that forgot `forContext` gets a message naming the
-   * mistake instead of a uniform "sign in" from the far end of a signed request.
-   *
-   * Only the party-scoped operations below take this gate — finding and creating a person happens
-   * before anyone is signed in, which is the whole point of those three.
-   */
-  /**
-   * The currency the storefront sells in.
-   *
-   * Not defaulted: guessing one would price a list in a currency nobody chose, and the mistake would
-   * surface as an unpriced row rather than an error — core simply finds no price for a listing in a
-   * currency the catalogue does not carry.
-   */
+  // Refused here rather than at core, so a caller that forgot `forContext` gets a message naming the mistake instead of
+  // a uniform "sign in" from the far end of a signed request.
   const currencyCode = (): string => {
     if (!currency) {
       throw new VapError(
@@ -159,13 +127,7 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
   };
 
   return {
-    /**
-     * Who is reachable at this email or phone, oldest party first.
-     *
-     * Whole records, so a caller that has just authenticated somebody can greet them without a
-     * second call. A list because one address legitimately sits on several people — a household
-     * line, a shop counter. Choosing between them is policy, and belongs to the caller.
-     */
+    // Who is reachable at this email or phone, oldest party first.
     findByCommunication(channel: Channel, value: string): Promise<Person[]> {
       return run(() =>
         client
@@ -178,7 +140,7 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
       );
     },
 
-    /** Creates the person plus their primary EMAIL and PHONE rows, in one transaction server-side. */
+    // Creates the person plus their primary EMAIL and PHONE rows, in one transaction server-side.
     create(input: CreatePersonInput): Promise<Person> {
       return run(() =>
         client
@@ -187,7 +149,7 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
       );
     },
 
-    /** Adds one communication — the `WEB_APP` reference, and the backfilled EMAIL/PHONE. */
+    // Adds one communication — the `WEB_APP` reference, and the backfilled EMAIL/PHONE.
     addCommunication(personId: string, channel: Channel, value: string): Promise<PersonCommunication> {
       return run(() =>
         client
@@ -199,12 +161,7 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
           .then((r) => requireData(r.data).addPersonCommunication as PersonCommunication),
       );
     },
-    /**
-     * The signed-in party's own details.
-     *
-     * Sent with no workspace, like the wishlist: a person belongs to the organization, not to one
-     * of its outlets, so which site the storefront sells from has no bearing on who they are.
-     */
+    // The signed-in party's own details.
     async profile(): Promise<PartyProfile> {
       requireParty();
       return run(() =>
@@ -213,7 +170,7 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
           .then((r) => requireData(r.data).partyProfile as PartyProfile),
       );
     },
-    /** Saves a change to those details, and answers the profile as it now stands. */
+    // Saves a change to those details, and answers the profile as it now stands.
     async updateProfile(input: PartyProfileInput): Promise<PartyProfile> {
       requireParty();
       return run(() =>
@@ -222,14 +179,7 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
           .then((r) => requireData(r.data).updatePartyProfile as PartyProfile),
       );
     },
-    /**
-     * The party's address book.
-     *
-     * Workspace-less like the profile and the wishlist: a person's addresses belong to them, not to
-     * the outlet they happen to be shopping at.
-     *
-     * Every write answers the whole book, because marking one address the default unmarks another.
-     */
+    // The party's address book.
     async addresses(): Promise<PartyAddress[]> {
       requireParty();
       return run(() =>
@@ -278,11 +228,7 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
           .then((r) => requireData(r.data).wishlist as WishlistItem[]),
       );
     },
-    /**
-     * Which products are saved — codes only, for a product page's "Saved" state.
-     *
-     * Sent with no workspace, like every other wishlist call: the list is the person's, org-wide.
-     */
+    // Which products are saved — codes only, for a product page's "Saved" state.
     async savedCodes(): Promise<string[]> {
       requireParty();
       return run(() =>
@@ -291,12 +237,7 @@ export function createPeopleOperations(client: ApolloClient, context: RequestCon
           .then((r) => requireData(r.data).wishlistCodes as string[]),
       );
     },
-    /**
-     * Marks a listing.
-     *
-     * Never fails on a repeat: `alreadyExists` reports it instead, so a caller can tell somebody it
-     * was already saved rather than claiming a save that did nothing.
-     */
+    // Marks a listing.
     async addToWishlist(code: string): Promise<WishlistAddResult> {
       requireParty();
       return run(() =>

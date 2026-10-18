@@ -8,7 +8,6 @@ import type { DimensionTemplatesBinding } from './types';
 
 interface DimensionTemplatesGridProps {
   binding: DimensionTemplatesBinding;
-  // The scope's suspense query — this component is what suspends, so the boundary sits just above it
   search: string;
   isDeleting: boolean;
   isTogglingActive: boolean;

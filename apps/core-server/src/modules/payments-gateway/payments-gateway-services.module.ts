@@ -8,9 +8,7 @@ import { PaymentLinkedAccountsGatewayService } from './linked-accounts/services/
 
 const services = [PaymentGatewaysGatewayService, PaymentLinkedAccountsGatewayService, PaymentIntentsGatewayService];
 
-// Payments gateway services, and nothing else — the same split as CommunicationsGatewayServicesModule. The
-// structure surface owns the config controllers and needs these for verify and the gateway list, so it
-// imports this module rather than one that would drag controllers along.
+// Payments gateway services, and nothing else — the same split as CommunicationsGatewayServicesModule.
 @Module({
   imports: [PaymentGatewayConfigDomainModule, PaymentEventsModule, AppDomainModule],
   providers: services,

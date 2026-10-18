@@ -1,7 +1,6 @@
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 
-// Per-item location config (the "Locations" tab — reorder threshold per storage location). Has a real unique
-// `id` (the inventory_item_locations row), so no composite id is needed for cache normalization.
+// Per-item location config (the "Locations" tab — reorder threshold per storage location).
 @ObjectType()
 export class InventoryItemLocation {
   @Field(() => ID)
@@ -23,8 +22,7 @@ export class InventoryItemLocation {
   reorderLevel: number;
 }
 
-// Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache. Names are
-// location-scoped to avoid global GraphQL type-name collisions (NestJS code-first).
+// Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache.
 @ObjectType()
 export class InventoryItemLocationPageInfo {
   @Field(() => Boolean)

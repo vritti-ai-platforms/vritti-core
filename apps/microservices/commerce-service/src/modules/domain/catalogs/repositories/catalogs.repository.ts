@@ -30,8 +30,7 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
     };
   }
 
-  // Every channel carrying one catalog. Read here rather than from the channels domain: a catalog
-  // answering "who carries me" is its own question, and RLS bounds the rows either way.
+  // Every channel carrying one catalog.
   async findChannels(catalogId: string): Promise<CatalogChannelDto[]> {
     return this.db
       .select({
@@ -69,8 +68,8 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
     return this.findById<CatalogWithCounts>(id, { select: this.selection() });
   }
 
-  // Scoped to this workspace, mirroring uq_catalogs_owner_name — an LE may reuse a name an org catalog
-  // already has, and reach alone would wrongly report that as taken
+  // Scoped to this workspace, mirroring uq_catalogs_owner_name — an LE may reuse a name an org catalog already has, and
+  // reach alone would wrongly report that as taken
   async findByName(name: string): Promise<Catalog | undefined> {
     const [row] = await this.db
       .select()

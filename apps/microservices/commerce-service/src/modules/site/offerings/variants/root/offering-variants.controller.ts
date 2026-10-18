@@ -56,8 +56,7 @@ export class SiteOfferingVariantsController {
     return this.service.findForExport(data.offeringId, data);
   }
 
-  // Variant options for a storefront's own picker. Not catalog-scoped: a product page should be
-  // fileable before the variant is listed anywhere.
+  // Variant options for a storefront's own picker.
   @MessagePattern({ cmd: 'site.offerings.variants.appOptions' })
   appOptions(
     @Payload() data: { search?: string; excludeIds?: string[]; limit?: number; offset?: number },
@@ -73,8 +72,7 @@ export class SiteOfferingVariantsController {
     return this.service.findById(data.id);
   }
 
-  // Creates every selected combination that does not exist yet. Additive: an unselected combination
-  // is never deleted, because a variant may already carry stock or sit on an order line.
+  // Creates every selected combination that does not exist yet.
   @MessagePattern({ cmd: 'site.offerings.variants.generate' })
   generate(@Payload() dto: GenerateVariantsDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.generate — offeringId: ${dto.offeringId}, count: ${dto.combinations.length}`);
@@ -126,8 +124,8 @@ export class SiteOfferingVariantsController {
     return this.service.bulkSetAttribute(dto);
   }
 
-  // Replaces the attribute values this variant carries; attributes sit outside the combination matrix,
-  // so nothing about the variant's identity changes
+  // Replaces the attribute values this variant carries; attributes sit outside the combination matrix, so nothing about
+  // the variant's identity changes
   @MessagePattern({ cmd: 'site.offerings.variants.setAttributes' })
   setAttributes(@Payload() dto: SetVariantAttributesDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.setAttributes — id: ${dto.id}, values: ${dto.valueIds.length}`);

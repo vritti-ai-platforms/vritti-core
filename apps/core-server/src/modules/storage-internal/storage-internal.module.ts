@@ -3,9 +3,7 @@ import { Module } from '@nestjs/common';
 import { StorageInternalController } from './storage-internal.controller';
 
 // The signed internal endpoint must resolve at the literal path `/storage/internal/...` because cloud verification
-// verifies the Ed25519 signature over the exact request path. It therefore lives in its own unprefixed module
-// (mirroring GiteaInternalModule / CatalogApiModule) rather than behind a RouterModule prefix. It pulls the org row
-// via the exported OrganizationDomainService.
+// verifies the Ed25519 signature over the exact request path.
 @Module({
   imports: [OrganizationDomainModule],
   controllers: [StorageInternalController],

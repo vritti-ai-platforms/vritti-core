@@ -56,8 +56,6 @@ export class AuthService {
         userId,
         orgId,
       );
-      // Resolved once for the whole fan-out: the org's services are the same for every site, group and
-      // legal entity below it, and resolving per node cost one identical query each
       const availableServices = await this.userPermissionsService.getAvailableServices(orgId);
       const [featuresBySiteId, featuresByGroupId, featuresByLeId, orgFeatures] = await Promise.all([
         this.resolveFeaturesByNode(userId, sites, 'SITE', platform, availableServices),
@@ -116,9 +114,6 @@ export class AuthService {
     userAgent?: string,
     subdomain?: string,
   ): Promise<AuthResponseDto & { refreshToken?: string }> {
-    // The org is resolved before the user so the lookup is always tenant-scoped — an email may exist in
-    // several orgs, and an unscoped match would mint a session for whichever row came back first.
-    // Mobile has no tenant subdomain and supplies organizationId from the org picker instead.
     const org = dto.organizationId
       ? await this.organizationService.getById(dto.organizationId)
       : subdomain
@@ -384,7 +379,8 @@ export class AuthService {
       const { accessToken, expiresIn, userId, sessionId } = await this.sessionService.generateAccessToken(refreshToken);
       const user = await this.userService.findById(userId);
 
-      // Web connects via refresh cookie (no bearer header), so enrich sites + features here too from the subdomain-resolved org
+      // Web connects via refresh cookie (no bearer header), so enrich sites + features here too from the
+      // subdomain-resolved org
       let sites: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['sites'] = [];
       let legalEntities: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['legalEntities'] =
         [];

@@ -11,7 +11,6 @@ export class OwnerNameCacheService {
   constructor(private readonly cache: CacheService) {}
 
   // Returns the names already cached, and the ids the caller still has to read from the database.
-  // One MGET on Redis rather than a command per id.
   async getMany(kind: OwnerKind, ids: string[]): Promise<{ names: Map<string, string>; missing: string[] }> {
     const names = new Map<string, string>();
     const missing: string[] = [];
@@ -27,6 +26,7 @@ export class OwnerNameCacheService {
     return { names, missing };
   }
 
+  // Caches the names just read, so the next request for them costs nothing.
   // Caches the names just read, so the next request for them costs nothing. One pipelined write.
   async setMany(kind: OwnerKind, rows: { id: string; name: string }[]): Promise<void> {
     await this.cache.mset(

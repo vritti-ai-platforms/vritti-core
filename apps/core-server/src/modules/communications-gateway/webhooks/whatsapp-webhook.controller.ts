@@ -24,8 +24,7 @@ export class WhatsappWebhookController {
     return this.service.verifyChallenge(mode, token, challenge);
   }
 
-  // Accepts delivery status callbacks. Always 200 once the signature checks out — Meta retries any
-  // non-2xx, and a retry cannot fix a payload we simply had nothing to do with.
+  // Accepts delivery status callbacks.
   @Post('whatsapp')
   @Require(AuthType.Public)
   @HttpCode(HttpStatus.OK)

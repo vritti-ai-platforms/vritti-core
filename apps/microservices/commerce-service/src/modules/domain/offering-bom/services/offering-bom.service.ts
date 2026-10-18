@@ -18,8 +18,7 @@ import { type BomVariantRef, OfferingBomDomainRepository } from '../repositories
 export class OfferingBomDomainService {
   constructor(private readonly repository: OfferingBomDomainRepository) {}
 
-  // A variant's components plus the inventory item already carrying its code. Both only matter to the
-  // bill-of-materials view, so neither rides on the variant read.
+  // A variant's components plus the inventory item already carrying its code.
   async findByVariant(variantId: string): Promise<VariantBomDto> {
     const variant = await this.requireReachableVariant(variantId);
     const [lines, suggestion] = await Promise.all([
@@ -29,8 +28,7 @@ export class OfferingBomDomainService {
     return VariantBomDto.from(lines, suggestion ?? null);
   }
 
-  // Whether an inventory item already carries this code. The create-item path asks before minting one,
-  // because the code is the only thing linking a variant to its stocked counterpart.
+  // Whether an inventory item already carries this code.
   async findItemBySku(sku: string): Promise<{ id: string; name: string } | null> {
     const item = await this.repository.findInventoryItemBySku(sku);
     return item ? { id: item.id, name: item.name } : null;
@@ -115,9 +113,7 @@ export class OfferingBomDomainService {
     };
   }
 
-  // Links the inventory item already carrying this variant's code, at quantity 1 in that item's own
-  // stocking unit. The suggestion is resolved server-side, so the caller names no item and cannot
-  // pass this off as a way to link something arbitrary under a narrower grant.
+  // Links the inventory item already carrying this variant's code, at quantity 1 in that item's own stocking unit.
   async addSuggested(variantId: string): Promise<SuccessResponseDto> {
     const variant = await this.requireOwnedVariant(variantId);
 

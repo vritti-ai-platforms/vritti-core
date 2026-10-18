@@ -37,7 +37,6 @@ const _categorySchema = z
     }
   });
 
-// TypeScript form type — sortOrder is number for defaultValues, mutation, and form logic
 export type CategoryFormData = {
   name: string;
   parentId?: string | null;
@@ -66,7 +65,6 @@ export interface CategoryData {
   createdAt: string;
 }
 
-// One inventory item row shown under a leaf (CATEGORY-role) category.
 export interface CategoryItemRow {
   id: string;
   name: string;

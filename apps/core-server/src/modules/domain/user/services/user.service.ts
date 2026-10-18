@@ -257,8 +257,8 @@ export class UserDomainService {
       });
     }
 
-    // The session rows cascade away with the user, but a cascade fires no event — push the
-    // logout to their live SSE connections first so open tabs do not wait for a token refresh
+    // The session rows cascade away with the user, but a cascade fires no event — push the logout to their live SSE
+    // connections first so open tabs do not wait for a token refresh
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SESSION_REVOKED, new SessionRevokedEvent(user.id));
 
     await this.userRepository.delete(id);

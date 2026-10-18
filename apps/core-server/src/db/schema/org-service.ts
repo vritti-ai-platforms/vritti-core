@@ -4,8 +4,6 @@ import { coreSchema } from './core-schema';
 import { serviceTypeEnum } from './enums';
 import { organizations } from './organizations';
 
-// One row per external service the organization has provisioned. Presence IS the answer to "is this
-// service available" — features declaring a service stay locked until the matching row exists.
 export const orgServices = coreSchema.table(
   'org_services',
   {

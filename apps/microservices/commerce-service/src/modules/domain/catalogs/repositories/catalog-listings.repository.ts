@@ -45,8 +45,8 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
     };
   }
 
-  // The variant is NOT NULL with a cascading FK, so every listing has exactly one — inner-joining it
-  // is what makes `code` and `variantName` non-null instead of merely looking optional.
+  // The variant is NOT NULL with a cascading FK, so every listing has exactly one — inner-joining it is what makes
+  // `code` and `variantName` non-null instead of merely looking optional.
   private variantJoin() {
     return [{ table: offeringVariants, on: eq(offeringVariants.id, catalogListings.offeringVariantId) }];
   }
@@ -124,8 +124,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       .where(inArray(catalogListingChannelExclusions.catalogListingId, catalogListingIds));
   }
 
-  // An exclusion belongs to the channel, so the write is gated on owning the channel. Read here rather
-  // than through the channels domain — a domain module never imports another.
+  // An exclusion belongs to the channel, so the write is gated on owning the channel.
   async findChannelOwnership(channelId: string): Promise<{ id: string; isOwn: boolean } | undefined> {
     const [row] = await this.db
       .select({ id: catalogChannels.id, isOwn: ownedByWorkspaceExpression('catalog_channels') })
@@ -170,9 +169,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       .orderBy(asc(inventoryItemMrps.amount));
   }
 
-  // One price per (listing, currency): the narrowest workspace that set one. Reach has already hidden
-  // the rows this workspace may not see, so distinct-on picks between its own and its ancestors' —
-  // the same precedence a storefront read resolves with, decided in one place.
+  // One price per (listing, currency): the narrowest workspace that set one.
   async findPrices(catalogListingIds: string[], currencyCode?: string): Promise<CatalogListingPriceRow[]> {
     if (catalogListingIds.length === 0) return [];
     return this.db
@@ -199,9 +196,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       );
   }
 
-  // Sets this workspace's own price for a (listing, currency). The scope columns default from the
-  // request's workspace, so the row lands on whoever is writing it — an org price and the site price
-  // that overrides it are two rows, and neither can edit the other.
+  // Sets this workspace's own price for a (listing, currency).
   async upsertPrice(catalogListingId: string, currencyCode: string, amount: bigint): Promise<void> {
     await this.db
       .insert(catalogListingPrices)
@@ -217,8 +212,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       });
   }
 
-  // Clears this workspace's own price, leaving any wider one to apply again. The delete policy admits
-  // only rows owned by exactly this workspace, so a narrower scope cannot erase what it inherited.
+  // Clears this workspace's own price, leaving any wider one to apply again.
   async deleteOwnPrice(catalogListingId: string, currencyCode: string): Promise<number> {
     const rows = (await this.db
       .delete(catalogListingPrices)

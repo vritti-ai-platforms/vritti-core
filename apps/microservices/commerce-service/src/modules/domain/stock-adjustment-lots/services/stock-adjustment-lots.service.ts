@@ -14,7 +14,6 @@ import { StockAdjustmentLotDetailDto } from '../dto/entity/stock-adjustment-lot-
 import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
 import { StockAdjustmentLotsDomainRepository } from '../repositories/stock-adjustment-lots.repository';
 
-// Minimal adjustment shape required by write methods — passed in from app-layer
 interface AdjustmentContext {
   id: string;
   status: StockAdjustmentStatus;
@@ -35,7 +34,6 @@ export class StockAdjustmentLotsDomainService {
   }
 
   // Returns a single lot's detail (stats + already-used location ids + line ids).
-  // Used by the FE when a lot is selected to drive the AddLine excludeIds and the lot header.
   async getLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailDto> {
     const row = await this.repository.findLotDetail(lotId);
     if (!row || row.stockAdjustmentId !== adjustmentId) {

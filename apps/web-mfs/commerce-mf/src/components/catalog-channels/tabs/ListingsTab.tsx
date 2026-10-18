@@ -14,6 +14,7 @@ interface ListingsTabProps {
   channelId: string;
 }
 
+// What this channel carries.
 // What this channel carries. Whether it is available at a given price, in a given currency, is the Prices tab.
 export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, channelId }) => {
   const queryClient = useQueryClient();
@@ -43,9 +44,6 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, channelId }) 
         id: 'availableHere',
         header: () => <div className="text-center">Available here</div>,
         cell: ({ row }) => {
-          // The switch controls the exclusion, but a row the channel carries and nobody priced is
-          // not live — so it reads amber rather than claiming availability it does not have. The
-          // codes already account for exclusions, so an empty list under a carried row means unpriced.
           const purchasable = row.original.availableCurrencyCodes.length > 0;
           return (
             <div className="flex justify-center">

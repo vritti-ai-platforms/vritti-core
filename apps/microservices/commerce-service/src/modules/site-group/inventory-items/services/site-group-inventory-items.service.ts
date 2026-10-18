@@ -6,8 +6,8 @@ import {
   SiteGroupItemLevelsDto,
 } from '../dto/entity/site-group-inventory-item.dto';
 
-// Site-group scope service: all reads project the item × site availability matrix
-// (inventory_item_sites across the group's sites) into the requested shape.
+// Site-group scope service: all reads project the item × site availability matrix (inventory_item_sites across the
+// group's sites) into the requested shape.
 @Injectable()
 export class SiteGroupInventoryItemsService {
   private readonly logger = new Logger(SiteGroupInventoryItemsService.name);

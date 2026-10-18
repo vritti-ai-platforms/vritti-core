@@ -24,8 +24,8 @@ export class OrgOfferingBomController {
     return this.orgService.createInventoryItem(dto);
   }
 
-  // The components, plus the inventory item already carrying this variant's code — read on its own
-  // because only the bill-of-materials view needs either
+  // The components, plus the inventory item already carrying this variant's code — read on its own because only the
+  // bill-of-materials view needs either
   @MessagePattern({ cmd: 'org.offerings.variants.bom.lines.list' })
   findBom(@Payload() data: { variantId: string }): Promise<VariantBomDto> {
     this.logger.log(`offerings.variants.bom.lines.list — variantId: ${data.variantId}`);

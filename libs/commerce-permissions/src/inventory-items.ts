@@ -1,5 +1,3 @@
-// Inventory-items permission codes — MUST match the cloud catalog's authored codes exactly.
-// One object per workspace scope the feature is exposed in; codes are scope.feature.permission.
 export const ORG_INVENTORY_ITEMS = {
   featureCode: 'inventory-items',
   view: 'org.inventory-items.view',
@@ -20,9 +18,6 @@ export const ORG_INVENTORY_ITEMS = {
   },
 } as const;
 
-// Scope variants that exist for their `featureCode` alone: the SITE and SITE_GROUP inventory screens
-// are feature-gated reads with no per-action codes of their own. `view` is kept so the group matches
-// the shape every other scope has, and so a later add/edit has a `view` to depend on.
 export const SITE_INVENTORY_ITEMS = {
   featureCode: 'inventory-items',
   view: 'site.inventory-items.view',

@@ -5,8 +5,8 @@ import { MediaDomainService } from './services/media.service';
 import { MediaGcService } from './services/media-gc.service';
 import { OrgStorageResolverService } from './storage/org-storage-resolver.service';
 
-// No process-wide StorageFactory: every client is built from the org's own credentials by OrgStorageResolverService,
-// so there is no deployment-level provider to register here.
+// No process-wide StorageFactory: every client is built from the org's own credentials by OrgStorageResolverService, so
+// there is no deployment-level provider to register here.
 @Module({
   imports: [forwardRef(() => OrganizationDomainModule)],
   providers: [MediaDomainService, MediaGcService, MediaDomainRepository, OrgStorageResolverService],

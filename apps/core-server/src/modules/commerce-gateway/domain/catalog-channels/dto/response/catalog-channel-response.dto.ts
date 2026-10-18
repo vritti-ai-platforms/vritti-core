@@ -44,8 +44,6 @@ export class CatalogChannelTableResponseDto extends TableResponseDto<CatalogChan
 
 // ─── the one-list payload ───
 
-// What commerce returns: per type, the default under DEFAULT_SLOT plus any app or terminal that
-// overrides it. Only decided slots appear — core joins it to the apps and terminals that exist.
 export const DEFAULT_SLOT = 'default';
 
 export type ResolvedChannels = Record<string, Record<string, ChannelCatalogResponseDto>>;

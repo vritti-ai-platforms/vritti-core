@@ -77,6 +77,7 @@ export class PartyCommunicationsDomainService {
     return this.repository.findPrimary(partyId, channel);
   }
 
+  // Sets the party's primary value for a channel; an empty value clears it.
   // Sets the party's primary value for a channel; an empty value clears it. Runs in the caller's transaction.
   async upsertPrimary(partyId: string, channel: PartyCommunicationChannel, value?: string | null): Promise<void> {
     const trimmed = value?.trim() || null;
@@ -154,9 +155,9 @@ export class PartyCommunicationsDomainService {
     channel: PartyCommunicationChannel,
     isActive: boolean,
   ): Promise<boolean> {
-    // A primary must be reachable and contactable: an inactive row cannot be primary,
-    // and the party_communications_primary_channel_chk CHECK rejects a primary WEB_APP
-    // outright — one person may hold accounts in several web apps.
+    // A primary must be reachable and contactable: an inactive row cannot be primary, and the
+    // party_communications_primary_channel_chk CHECK rejects a primary WEB_APP outright — one person may hold accounts
+    // in several web apps.
     if (!isActive) return false;
     if (!CONTACTABLE_CHANNELS.includes(channel as (typeof CONTACTABLE_CHANNELS)[number])) return false;
 

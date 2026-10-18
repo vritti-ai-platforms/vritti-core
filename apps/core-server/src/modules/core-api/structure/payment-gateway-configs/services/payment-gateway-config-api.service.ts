@@ -193,8 +193,6 @@ export class PaymentGatewayConfigService {
   }
 }
 
-// Intents carry no transfer legs yet, so a split config would collect everything into the collector's account.
-// Flip once split payments are wired end to end
 const SPLIT_PAYMENTS_AVAILABLE = false;
 
 // Refuses to switch split payments on until they are wired end to end

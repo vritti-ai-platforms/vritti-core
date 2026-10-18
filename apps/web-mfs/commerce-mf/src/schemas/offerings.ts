@@ -15,8 +15,6 @@ export const FULFILMENT_TYPE_META: Record<
     description: string;
     minBomLines: number;
     maxBomLines: number;
-    // Whether the variant itself is a thing stock is kept of. Only true for STOCK: every other type
-    // resolves to components that are stocked, while the variant is assembled, bundled or performed.
     hasInventoryCounterpart: boolean;
   }
 > = {
@@ -50,8 +48,7 @@ export const FULFILMENT_TYPE_META: Record<
   },
 };
 
-// A code becomes a segment of every derived variant code, so it is lowercase-kebab. Derived from the label
-// rather than asked for separately — one field to fill, and codes stay predictable.
+// A code becomes a segment of every derived variant code, so it is lowercase-kebab.
 export function toCode(value: string): string {
   return value
     .toLowerCase()
@@ -69,8 +66,6 @@ export const createOfferingSchema = z.object({
   taxClassId: z.string().min(1, 'Tax class is required'),
 });
 
-// `taxClassId` is absent by design — it has its own endpoint, because changing it cascades to every
-// variant that has not pinned its own
 export const updateOfferingSchema = z.object({
   code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(255, 'Name cannot exceed 255 characters'),
@@ -96,8 +91,6 @@ export const createAttributeSchema = z.object({
   description: z.string().max(500, 'Description cannot exceed 500 characters'),
 });
 
-// The template supplies code, name and values — only the reference travels, and the copy keeps no
-// link back, so editing the template later never reshapes the offering
 export const createDimensionFromTemplateSchema = z.object({
   templateId: z.string().min(1, 'Select a template'),
   code: zodCodeField({ max: 50 }),
@@ -106,8 +99,6 @@ export const createDimensionFromTemplateSchema = z.object({
   valueCodes: z.array(z.string()).min(1, 'Pick at least one value'),
 });
 
-// The template supplies code, name and values — only the reference travels, and the copy keeps no
-// link back, so editing the template later never reshapes the offering
 export const createAttributeFromTemplateSchema = z.object({
   templateId: z.string().min(1, 'Select a template'),
   code: zodCodeField({ max: 50 }),
@@ -203,7 +194,6 @@ export interface OfferingData {
   updatedAt: string;
 }
 
-// The list endpoint does not measure the tax-class or bill-of-materials counts; only the detail read does
 export type OfferingTableRow = Omit<OfferingData, 'variantsFollowingTaxClassCount' | 'variantsMissingBomCount'>;
 export type OfferingsTableResponse = TableResponse<OfferingTableRow>;
 export type OfferingVariantsTableResponse = TableResponse<OfferingVariantData>;
@@ -262,7 +252,6 @@ export interface VariantValueRefData {
   valueCode: string;
 }
 
-// Several entries may share an attributeId — an attribute is multi-valued, unlike a dimension
 export interface VariantAttributeValueRefData {
   attributeId: string;
   attributeName: string;
@@ -306,9 +295,7 @@ export interface OfferingVariantData {
   canDelete: boolean;
   taxClassId: string;
   taxClassName: string | null;
-  // Pinned to this variant, so an offering-level change no longer cascades to it
   isTaxClassOverridden: boolean;
-  // Follows the offering's unless pinned — a variety pack inside a stock offering is composite
   fulfilmentType: FulfilmentType;
   isFulfilmentOverridden: boolean;
 
@@ -381,8 +368,8 @@ export interface CreateAttributeFromTemplateData {
   values: AttributeTemplateValueOption[];
 }
 
-// One field per dimension, each optional — a variant carries whichever axes apply to it, so leaving
-// one blank simply omits it from the combination and from the derived code
+// One field per dimension, each optional — a variant carries whichever axes apply to it, so leaving one blank simply
+// omits it from the combination and from the derived code
 export function buildAddVariantSchema(dimensions: OfferingDimensionData[]) {
   const axes = Object.fromEntries(dimensions.map((dimension) => [dimension.id, z.string()]));
   return z.object({
@@ -451,15 +438,11 @@ export interface UpsertAttributeValuesData {
   values: { id?: string; code: string; value: string }[];
 }
 
-// Flat and empty-allowed: the attribute each value belongs to is derived server-side, and an empty
-// list is how a variant's attributes are cleared
 export interface SetVariantAttributesData {
   variantId: string;
   valueIds: string[];
 }
 
-// One attribute at a time: only its values are replaced on each selected variant, so the batch cannot
-// wipe attributes the dialog never showed. Empty valueIds clears it across the selection.
 export interface BulkSetVariantsAttributeData {
   offeringId: string;
   ids: string[];
@@ -473,7 +456,6 @@ export interface GenerateVariantsData {
   combinations: { valueIds: string[] }[];
 }
 
-// The code is absent by design — the server takes it from the variant
 export interface CreateVariantInventoryItemData {
   variantId: string;
   name: string;
@@ -505,8 +487,6 @@ export interface DeleteBomLineData {
   lineId: string;
 }
 
-// One component, added at a time. How many a variant may hold is the fulfilment type's rule and is
-// enforced server-side — the tab hides Add at the maximum rather than encoding it here.
 export const editBomLineSchema = z.object({
   quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
   uomId: z.string().min(1, 'Unit is required'),
@@ -520,9 +500,8 @@ export const addBomLineSchema = editBomLineSchema.extend({
 export type AddBomLineFormData = z.infer<typeof addBomLineSchema>;
 export type EditBomLineFormData = z.infer<typeof editBomLineSchema>;
 
-// Every combination of the selected values, in dimension order — the matrix the wizard reviews
-// The variant code = offering code + one value code per dimension, in dimension order. Mirrors the server so the
-// wizard can preview what will be created without a round trip.
+// Every combination of the selected values, in dimension order — the matrix the wizard reviews The variant code =
+// offering code + one value code per dimension, in dimension order.
 export function deriveCode(offeringCode: string, dimensions: OfferingDimensionData[], valueIds: string[]): string {
   const codes = dimensions.map((dimension) => {
     const match = dimension.values.find((value) => valueIds.includes(value.id));

@@ -61,8 +61,8 @@ class EnvironmentVariables {
   @Transform(({ value }) => value === 'true')
   MASK_PII: boolean;
 
-  // Local development only: lets an app's webhook URL point at this machine or a private network (and use
-  // http), so a storefront running locally can receive deliveries. Never set it on a deployed core
+  // Local development only: lets an app's webhook URL point at this machine or a private network (and use http), so a
+  // storefront running locally can receive deliveries.
   @IsOptional()
   @IsBoolean()
   @Transform(({ value }) => value === true || value === 'true')
@@ -137,7 +137,8 @@ class EnvironmentVariables {
   @IsString()
   LICENSE_PUBLIC_KEY: string;
 
-  // Deployment agent public key (Ed25519, base64 spki DER) — verifies signed agent→core requests (gitea credential writes)
+  // Deployment agent public key (Ed25519, base64 spki DER) — verifies signed agent→core requests (gitea credential
+  // writes)
   @IsString()
   AGENT_PUBLIC_KEY: string;
 
@@ -154,8 +155,8 @@ class EnvironmentVariables {
   @IsIn(['lru', 'redis'])
   CACHE_DRIVER?: 'lru' | 'redis';
 
-  // Meta app for tenant WhatsApp — distinct from cloud-server's onboarding app
-  // Public app id, read server-side to initialise the Embedded Signup broker page
+  // Meta app for tenant WhatsApp — distinct from cloud-server's onboarding app Public app id, read server-side to
+  // initialise the Embedded Signup broker page
   @IsString()
   META_CLIENT_ID: string;
 
@@ -163,8 +164,7 @@ class EnvironmentVariables {
   @IsString()
   META_CLIENT_SECRET: string;
 
-  // Facebook Login for Business configuration id that drives Embedded Signup. Optional on purpose:
-  // a deployment whose Meta app is not configured yet still boots, and the UI reports it disabled.
+  // Facebook Login for Business configuration id that drives Embedded Signup.
   @IsOptional()
   @IsString()
   META_EMBEDDED_SIGNUP_CONFIG_ID?: string;

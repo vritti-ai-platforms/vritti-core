@@ -18,9 +18,8 @@ export class CatalogCurrenciesDomainRepository extends PrimaryBaseRepository<typ
       .orderBy(asc(catalogCurrencies.sortOrder), asc(catalogCurrencies.currencyCode));
   }
 
-  // Appended rather than inserted in place: the order currencies were added is the order they are
-  // offered, and a shop that adds USD second should not see it jump ahead of INR. Idempotent, so a
-  // double-submit adds nothing.
+  // Appended rather than inserted in place: the order currencies were added is the order they are offered, and a shop
+  // that adds USD second should not see it jump ahead of INR.
   async addForCatalog(catalogId: string, currencyCode: string): Promise<void> {
     const [last] = (await this.db
       .select({ sortOrder: catalogCurrencies.sortOrder })
@@ -43,10 +42,7 @@ export class CatalogCurrenciesDomainRepository extends PrimaryBaseRepository<typ
     return rows.length;
   }
 
-  // What each declared currency actually covers, for the cards on the Prices tab. Left-joined from the
-  // declared currency so one that prices nothing still comes back, at zero — that is exactly the state
-  // the card has to show. Reach decides which prices count, so this is coverage as this workspace
-  // prices it: its own prices plus the ones it inherits.
+  // What each declared currency actually covers, for the cards on the Prices tab.
   async findCoverage(catalogId: string): Promise<CatalogCurrencyCoverageRow[]> {
     return this.db
       .select({

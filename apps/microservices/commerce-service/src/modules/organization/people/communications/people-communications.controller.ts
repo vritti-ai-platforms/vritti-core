@@ -24,8 +24,7 @@ export class PeopleCommunicationsController {
     return this.service.findForTable(personId, state);
   }
 
-  // Resolves the people reachable at an email or phone, oldest party first. The caller
-  // decides which match wins — several people can legitimately share an address.
+  // Resolves the people reachable at an email or phone, oldest party first.
   @MessagePattern({ cmd: 'org.people.communications.findByValue' })
   findByValue(@Payload() dto: FindPartiesByCommunicationDto): Promise<string[]> {
     this.logger.log(`people.communications.findByValue — channel: ${dto.channel}`);

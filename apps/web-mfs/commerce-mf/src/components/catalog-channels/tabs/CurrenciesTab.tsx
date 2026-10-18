@@ -14,6 +14,7 @@ interface CurrenciesTabProps {
   channelId: string;
 }
 
+// The currencies this channel can quote in.
 // The currencies this channel can quote in. Each opens what it charges and what it excludes.
 export const CurrenciesTab: React.FC<CurrenciesTabProps> = ({ binding, channelId }) => {
   const { data: currencies = [], isLoading } = binding.useChannelCurrencies(channelId);
@@ -22,8 +23,8 @@ export const CurrenciesTab: React.FC<CurrenciesTabProps> = ({ binding, channelId
   // This tab only renders on `…/<channel>/currencies`, so the currency hangs straight off the URL
   const openCurrency = (currencyCode: string) => navigate(currencyCode, { relative: 'path' });
 
-  // The tab wrapper stretches its direct child, so the scroller takes that height and the grid
-  // inside it starts at the top — otherwise one row of cards is stretched down the whole viewport
+  // The tab wrapper stretches its direct child, so the scroller takes that height and the grid inside it starts at the
+  // top — otherwise one row of cards is stretched down the whole viewport
   if (isLoading) {
     return (
       <div className="min-h-0 flex-1 overflow-y-auto">

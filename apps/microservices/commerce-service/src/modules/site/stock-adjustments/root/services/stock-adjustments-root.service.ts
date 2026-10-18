@@ -138,9 +138,6 @@ export class StockAdjustmentsService {
         await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id, siteCurrencyCode);
       }
 
-      // Re-fetch lots after Phase A so each draft carries its now-populated `resolvedLotId`. The
-      // publishRegisterLine path creates quants that expect a pre-resolved lot id, so we can't rely
-      // on the stale snapshot taken before Phase A.
       const resolvedLots =
         adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK &&
         (tracking === InventoryTrackingValues.LOT || tracking === InventoryTrackingValues.LOT_SERIAL)
@@ -175,7 +172,6 @@ export class StockAdjustmentsService {
   }
 
   // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials]).
-  // The entered unit cost is set on the quant at creation, so opening stock is valued immediately.
   private async publishRegisterLine(
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string },
@@ -190,9 +186,6 @@ export class StockAdjustmentsService {
       throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK.`);
     }
 
-    // Snapshot of the line quantity in the item's primary UOM, computed at create/update time.
-    // Serial tracking is restricted to primary UOM at validation time, so primaryUomQty === uomQty
-    // in those branches by construction.
     const primaryUomQty = line.primaryUomQty;
 
     const costProvenance = {
@@ -241,8 +234,8 @@ export class StockAdjustmentsService {
       }
       const lot = lots.find((l) => l.id === line.stockAdjustmentLotId);
       if (!lot) throw new BadRequestException(`Line ${line.id}: lot draft not found.`);
-      // Phase A resolved each SA lot draft into an inventory_item_lots row and stamped its id
-      // onto `resolved_lot_id`. createQuantScoped requires that resolved id.
+      // Phase A resolved each SA lot draft into an inventory_item_lots row and stamped its id onto `resolved_lot_id`.
+      // createQuantScoped requires that resolved id.
       if (!lot.resolvedLotId) {
         throw new BadRequestException(`Line ${line.id}: lot draft is missing resolvedLotId (Phase A skipped).`);
       }
@@ -294,11 +287,6 @@ export class StockAdjustmentsService {
   }
 
   // Deduct/CORRECTION: line carries (quantId, quantity, [serials]).
-  // PR4: for deduct types (WASTE/DAMAGE/THEFT/EXPIRED) and negative CORRECTIONs we snapshot
-  // `write_off_amount = sourceQuant.unit_cost × primaryUomQty` plus `write_off_currency`
-  // onto the SA line so loss reporting + period-end queries don't have to re-join the quant's
-  // cost history. The snapshot is taken BEFORE the decrement (the quant value is unchanged at
-  // that moment).
   private async publishChangeLine(
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string },
@@ -346,9 +334,8 @@ export class StockAdjustmentsService {
     await this.linesRepository.setResolvedQuant(line.id, line.quantId);
   }
 
-  // PR4: reads the source quant's denormalized unit_cost + cost_currency and snapshots
-  // `unit_cost × primaryUomQty` onto the SA line. Cheap because quant.unit_cost is
-  // already denormalized — no cost-row roll-up needed at write-off time.
+  // PR4: reads the source quant's denormalized unit_cost + cost_currency and snapshots `unit_cost × primaryUomQty` onto
+  // the SA line.
   private async snapshotWriteOff(line: StockAdjustmentLineWithRefs, primaryUomQty: number): Promise<void> {
     if (!line.quantId) return;
     const sourceQuant = await this.quantsRepository.findById(line.quantId);

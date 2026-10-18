@@ -44,8 +44,7 @@ export class CostCategoriesDomainService {
     return { result: dtos, count };
   }
 
-  // Returns all cost categories (with canDelete) for the mobile plain list — by name, searchable on
-  // name + code. Bounded set (org-scoped taxonomy), so no pagination.
+  // Returns all cost categories (with canDelete) for the mobile plain list — by name, searchable on name + code.
   async list(search?: string): Promise<CostCategoryDto[]> {
     const where = search
       ? or(ilike(costCategories.name, `%${search}%`), ilike(costCategories.code, `%${search}%`))

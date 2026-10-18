@@ -29,8 +29,6 @@ export const SetListingPriceDialog: React.FC<SetListingPriceDialogProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  // Prefills with what applies today, inherited or not: a price being overridden starts from the
-  // number it replaces rather than from an empty field
   const current = listing.prices.find((entry) => entry.price.currency === currencyCode)?.price;
   const form = useForm<SetCatalogListingPriceFormData>({
     resolver: zodResolver(setCatalogListingPriceSchema),

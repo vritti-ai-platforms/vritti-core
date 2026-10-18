@@ -2,8 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { RunResponseDto } from './run-response.dto';
 
-// Canonical DataTable envelope. The git service applies only pagination and its four native filters
-// (event, branch, status, actor) — the rest of the state round-trips through Redis for the client.
 export class RunTableResponseDto extends TableResponseDto<RunResponseDto> {
   @ApiProperty({ type: [RunResponseDto] })
   declare result: RunResponseDto[];

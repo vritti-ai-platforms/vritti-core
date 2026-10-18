@@ -1,6 +1,5 @@
 import type { FulfilmentType, Offering } from '@/db/schema';
-
-export type OfferingOwnerScope = 'ORG' | 'LE' | 'SITE';
+import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export class OfferingDto {
   id: string;
@@ -13,7 +12,7 @@ export class OfferingDto {
   isActive: boolean;
   legalEntityId: string | null;
   siteId: string | null;
-  ownerScope: OfferingOwnerScope;
+  ownerScope: WorkspaceScope;
   dimensionCount: number;
   variantCount: number;
   variantsFollowingTaxClassCount: number;
@@ -25,8 +24,8 @@ export class OfferingDto {
   createdAt: string;
   updatedAt: string;
 
-  // A table row carries no tax-class or bill-of-materials counts: both are correlated subqueries the list read
-  // does not run, so the row does not claim a number it never measured
+  // A table row carries no tax-class or bill-of-materials counts: both are correlated subqueries the list read does not
+  // run, so the row does not claim a number it never measured
   static fromTableRow(
     entity: Offering,
     options: { dimensionCount: number; variantCount: number; isOwned: boolean; canDelete: boolean },
@@ -43,7 +42,7 @@ export class OfferingDto {
       isActive: entity.isActive,
       legalEntityId: entity.legalEntityId ?? null,
       siteId: entity.siteId ?? null,
-      ownerScope: entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG',
+      ownerScope: workspaceScopeOf(entity),
       dimensionCount,
       variantCount,
       canEdit: isOwned,
@@ -54,8 +53,7 @@ export class OfferingDto {
     };
   }
 
-  // Every count is the caller's to supply. A default would let a read that never measured one report a zero,
-  // which reads as "none" rather than "not counted".
+  // Every count is the caller's to supply.
   static from(
     entity: Offering,
     options: {
@@ -75,5 +73,4 @@ export class OfferingDto {
   }
 }
 
-// The same row without the two counts only the detail read measures
 export type OfferingTableRowDto = Omit<OfferingDto, 'variantsFollowingTaxClassCount' | 'variantsMissingBomCount'>;

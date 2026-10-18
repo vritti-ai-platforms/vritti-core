@@ -61,9 +61,8 @@ export class WhatsappOtpsGatewayService {
       },
     );
 
-    // The two timestamps cross NATS as ISO strings, and GraphQLISODateTime serializes anything that is not a
-    // Date instance to null. Both fields are non-nullable, so passing the strings straight through fails the
-    // whole mutation AFTER the code has already been sent — the caller sees an error for a message that went.
+    // The two timestamps cross NATS as ISO strings, and GraphQLISODateTime serializes anything that is not a Date
+    // instance to null.
     return {
       sent: result.sent,
       expiresAt: new Date(result.expiresAt),
@@ -101,8 +100,7 @@ export class WhatsappOtpsGatewayService {
     return this.nats.send('communications', 'org.whatsappOtps.stats', {});
   }
 
-  // Apps set up to send sign-in codes. Read from the app rows, so it reflects configuration rather
-  // than traffic — an app configured today but not yet used still belongs in this list.
+  // Apps set up to send sign-in codes.
   async findConfiguredApps(organizationId: string): Promise<ConfiguredOtpAppResponseDto[]> {
     const apps = await this.appService.listForOrg(organizationId);
     return apps

@@ -17,8 +17,6 @@ const RUNS_TABLE_SLUG = 'gitea-org-action-runs';
 // The only run fields Gitea will filter on. A filter on anything else is round-tripped, not applied.
 const GITEA_RUN_FILTERS = ['event', 'branch', 'status', 'actor'] as const;
 
-// Run detail, job listing, logs, rerun and delete are routed only from Gitea 1.25. Older instances
-// answer with a bare 404, which is indistinguishable from a deleted run — gate them instead.
 const RUNS_MIN_VERSION = '1.25';
 const RUNS_FEATURE = 'Repository actions';
 
@@ -32,19 +30,16 @@ export class ActionsGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // Resolves the repository's Gitea base path. `name` is a caller-supplied route param, so it is
-  // percent-encoded — an unescaped `..` would let the request climb to another endpoint under the
-  // site-admin token.
+  // Resolves the repository's Gitea base path.
   private async repoBase(subdomain: string, name: string): Promise<string> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
     return `/repos/${namespace}/${encodeURIComponent(name)}`;
   }
 
-  // Fetches a page of runs, tolerating every route shape across Gitea versions.
-  //   - `/actions/runs` is the listing from RUNS_MIN_VERSION onwards
-  //   - `/actions/tasks` is the same payload under the older name, so it stands in verbatim
-  //   - the per-workflow listing exists only on Gitea main; below that the scope is dropped rather
-  //     than 404ing, so the table still renders (unfiltered) instead of erroring
+  // Fetches a page of runs, tolerating every route shape across Gitea versions. - `/actions/runs` is the listing from
+  // RUNS_MIN_VERSION onwards - `/actions/tasks` is the same payload under the older name, so it stands in verbatim -
+  // the per-workflow listing exists only on Gitea main; below that the scope is dropped rather than 404ing, so the
+  // table still renders (unfiltered) instead of erroring
   private async fetchRuns(
     base: string,
     params: Record<string, unknown>,
@@ -75,8 +70,6 @@ export class ActionsGatewayService {
   }
 
   // Triggers a workflow run against a ref.
-  // Gitea rejects this when the workflow does not declare `on: workflow_dispatch`, and its API exposes
-  // no trigger list, so there is no way to know that before trying — the rejection is surfaced as-is.
   async dispatchWorkflow(
     subdomain: string,
     name: string,
@@ -115,7 +108,6 @@ export class ActionsGatewayService {
   }
 
   // Returns a page of runs for the data table, with the view state the client last pushed.
-  // Only pagination and the git service's four native filters are applied — see toGiteaFilters.
   async findRunsForTable(
     userId: string,
     subdomain: string,
@@ -160,8 +152,6 @@ export class ActionsGatewayService {
   }
 
   // Returns a job's log output.
-  // Gitea answers text/plain here even though its OpenAPI spec declares application/json, so the call
-  // opts out of axios' JSON parsing.
   async getJobLogs(subdomain: string, name: string, jobId: number): Promise<JobLogsResponseDto> {
     await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
     const base = await this.repoBase(subdomain, name);
@@ -186,8 +176,7 @@ export class ActionsGatewayService {
     return { success: true, message: failedOnly ? 'Failed jobs re-queued.' : 'Run re-queued.' };
   }
 
-  // Deletes a run and its logs. Gitea exposes no cancel endpoint at any version we support, so a
-  // queued or running run can only be deleted, not stopped.
+  // Deletes a run and its logs.
   async removeRun(subdomain: string, name: string, runId: number): Promise<SuccessResponseDto> {
     await this.gitea.requireMinVersion(RUNS_MIN_VERSION, RUNS_FEATURE);
     const base = await this.repoBase(subdomain, name);

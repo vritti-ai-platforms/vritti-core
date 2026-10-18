@@ -63,8 +63,7 @@ export class PartyAddressesDomainService {
     return result.map(PartyAddressDto.from);
   }
 
-  // Adds an address to a party. The party's first address is seeded with all four address functions;
-  // later addresses carry the request's function assignments. Runs in one transaction.
+  // Adds an address to a party.
   async add(partyId: string, data: AddPartyAddressDto): Promise<CreateResponseDto<PartyAddressDto>> {
     const { functions, ...address } = data;
     const isFirst = (await this.repository.countByParty(partyId)) === 0;

@@ -5,8 +5,6 @@ export interface StorefrontListingRow {
   offeringVariantId: string;
   code: string;
   name: string;
-  // The price lateral is an INNER join, so a row exists only because a price does — and the lateral
-  // selects the column itself, so the driver's bigint decoder runs and no manual BigInt() is needed.
   priceCurrency: string;
   priceAmount: bigint;
 }

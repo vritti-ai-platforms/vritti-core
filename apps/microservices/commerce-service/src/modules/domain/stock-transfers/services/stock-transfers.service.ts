@@ -51,7 +51,9 @@ export class StockTransfersDomainService {
     return StockTransferDto.from(entity);
   }
 
-  // Validates a status transition and returns the transfer entity. App-layer handles batch operations before calling applyStatus().
+  // Validates a status transition and returns the transfer entity.
+  // Validates a status transition and returns the transfer entity. App-layer handles batch operations before calling
+  // applyStatus().
   async prepareStatusUpdate(
     id: string,
     data: Omit<UpdateStockTransferStatusDto, 'id'>,
@@ -72,6 +74,7 @@ export class StockTransfersDomainService {
     return { transfer: StockTransferDto.from(entity), currentStatus, newStatus };
   }
 
+  // Persists the status change.
   // Persists the status change. Call after batch operations have been applied by the app-layer.
   async applyStatus(
     id: string,

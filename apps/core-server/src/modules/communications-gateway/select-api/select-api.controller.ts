@@ -13,9 +13,6 @@ import { ApiSmsProvidersSelect, ApiWhatsappAccountsSelect } from './docs/select-
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @Controller('select-api')
-// Feature is declared per route, not on the class: this controller serves selectors for the whole
-// communications gateway, so a class-level @RequireFeature would gate a future selector by whichever
-// feature happened to be added first.
 export class SelectApiController {
   private readonly logger = new Logger(SelectApiController.name);
 

@@ -46,8 +46,7 @@ export class InventoryItemLocationsDomainService {
     return { result: result.map(InventoryItemLocationDto.from), count };
   }
 
-  // Keyset feed for the mobile Relay locations list. Ordered by (locationName asc, id asc); the cursor
-  // encodes those boundary values (via CursorCodec) so pages don't skip/duplicate.
+  // Keyset feed for the mobile Relay locations list.
   async findLocationsFeed(
     inventoryItemId: string,
     limit: number,

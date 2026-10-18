@@ -51,8 +51,8 @@ export class SiteOfferingAttributesController {
     return this.service.reorder(data.offeringId, data.attributeIds);
   }
 
-  // Removes an attribute; refused while any variant uses one of its values
-  // Renames an attribute; its code is fixed because a storefront filters on it
+  // Removes an attribute; refused while any variant uses one of its values Renames an attribute; its code is fixed
+  // because a storefront filters on it
   @MessagePattern({ cmd: 'site.offerings.attributes.update' })
   update(@Payload() dto: UpdateOfferingAttributeDto): Promise<SuccessResponseDto> {
     const { id, ...data } = dto;

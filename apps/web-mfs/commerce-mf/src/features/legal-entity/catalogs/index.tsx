@@ -9,8 +9,8 @@ import { CatalogPricesPage } from '@/components/catalogs/CatalogPricesPage';
 import { CatalogsPage } from '@/components/catalogs/CatalogsPage';
 import { leCatalogsBinding } from './binding';
 
-// The gate sits outside the boundary so a denied user never mounts the page and never fires the
-// request — useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.
+// The gate sits outside the boundary so a denied user never mounts the page and never fires the request —
+// useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.
 const gated = (permission: string, element: React.ReactNode) => (
   <PermissionGate
     permission={permission}

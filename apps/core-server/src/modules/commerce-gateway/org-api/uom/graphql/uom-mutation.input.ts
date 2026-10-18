@@ -2,8 +2,8 @@ import { Field, ID, InputType, Int, PartialType } from '@nestjs/graphql';
 import { Trim } from '@vritti/api-sdk/decorators';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
-// Mirror create-/update-uom.dto.ts so the resolver forwards an input straight to gateway.create/update.
-// baseUnitId null/omitted → this is a BASE unit; set → DERIVED with the uomQty:baseUomQty ratio.
+// Mirror create-/update-uom.dto.ts so the resolver forwards an input straight to gateway.create/update. baseUnitId
+// null/omitted → this is a BASE unit; set → DERIVED with the uomQty:baseUomQty ratio.
 @InputType()
 export class CreateUomInput {
   @Field(() => ID)

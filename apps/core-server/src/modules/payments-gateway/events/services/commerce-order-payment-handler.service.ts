@@ -75,8 +75,7 @@ export class CommerceOrderPaymentHandlerService implements PaymentEventHandler {
     });
   }
 
-  // Order commands are site-scoped. An order intent without a site can never be settled, so it is logged and
-  // treated as handled rather than retried forever
+  // Order commands are site-scoped.
   private requireSite(event: PaymentEventResponseDto): string | null {
     if (event.payload.siteId) return event.payload.siteId;
     this.logger.error(

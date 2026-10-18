@@ -7,9 +7,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-// Top-level service used by the items sub-controller for the two write paths that
-// need cross-domain validation: a supplier_item's UOM must be in the inventory
-// item's allowed-UOM set (primary + per-item conversions + globally-derived family).
+// Top-level service used by the items sub-controller for the two write paths that need cross-domain validation: a
+// supplier_item's UOM must be in the inventory item's allowed-UOM set (primary + per-item conversions +
+// globally-derived family).
 @Injectable()
 export class SuppliersItemsService {
   private readonly logger = new Logger(SuppliersItemsService.name);

@@ -2,9 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { RepositoryResponseDto } from './repository-response.dto';
 
-// Canonical DataTable envelope. `state` and `activeViewId` come from DataTableStateService (Redis), so
-// column sizing, order, visibility and density round-trip like every other table in the product — even
-// though the git service itself can only honour pagination.
 export class RepositoryTableResponseDto extends TableResponseDto<RepositoryResponseDto> {
   @ApiProperty({ type: [RepositoryResponseDto] })
   declare result: RepositoryResponseDto[];

@@ -14,13 +14,7 @@ export class DimensionTemplateValuesDomainService {
 
   constructor(private readonly repository: DimensionTemplateValuesDomainRepository) {}
 
-  // Replaces a template's values with the set supplied. The whole set is rewritten rather than
-  // diffed: nothing references a value's id (they are seeds that get copied onto a dimension), so
-  // preserving row identity buys nothing, and a full replace makes two concurrent edits
-  // last-write-wins instead of silently merging into a set neither caller asked for.
-  //
-  // Delete and insert are one transaction, so a failure can never leave the template with values
-  // half-removed — or, worse, active with none, which is a state setActive refuses to create.
+  // Replaces a template's values with the set supplied.
   async upsert(data: UpsertDimensionTemplateValuesDto): Promise<SuccessResponseDto> {
     return this.repository.transaction(async () => {
       const template = await this.requireOwnedTemplate(data.templateId);

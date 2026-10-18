@@ -41,22 +41,14 @@ export type CreateQuantParams = {
   inventoryItemId: string;
   locationId: string;
   tracking: InventoryTracking;
-  // `quantity` is in the inventory item's PRIMARY UOM.
   quantity: number;
-  // Unit cost (site-currency minor units), set at creation and always > 0. Part of the cost-batch identity:
-  // stock at the same (item, location, lot) but a different unit cost stays a separate quant.
   unitCost: bigint;
-  // for tracking='lot' or 'lot_serial': lotId must be pre-resolved by the app-layer
   lotId?: string | null;
-  // retained for backward compat with createQuant callers that pass lot/serialNumbers
   lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string };
-  // for tracking='serial' or 'lot_serial': required, length must equal quantity
   serialNumbers?: string[];
-  // Provenance of the cost batch's first creation (informational).
   costCurrency?: string;
   sourceType?: CostSourceType;
   sourceId?: string;
-  // GR publish owns the cost/value via its allocation pass; skip the unit_cost × qty baseline here.
   skipCostBaseline?: boolean;
 };
 
@@ -136,10 +128,7 @@ export class InventoryItemQuantsDomainService {
     return rows.map((row) => LocationItemQuantDto.from(row));
   }
 
-  // Creates a new quant in its own transaction and writes the ledger entry. Tracking-aware.
-  // For lot/lot_serial tracking: caller must pass a pre-resolved `lotId` (app-layer resolves/creates the lot).
-  // For serial tracking: caller may pass `serialNumbers`.
-  // For quantity tracking: neither lotId nor serialNumbers are needed.
+  // Creates a new quant in its own transaction and writes the ledger entry.
   async createQuant(params: {
     inventoryItemId: string;
     locationId: string;
@@ -203,12 +192,7 @@ export class InventoryItemQuantsDomainService {
     return { quant };
   }
 
-  // Creates or upserts a quant within a transaction. Tracking-aware:
-  //   'quantity':   lotId=null, upsert by (item, location)
-  //   'lot':        uses pre-resolved lotId passed by the app-layer, upsert by (item, location, lotId)
-  //   'lot_serial': uses pre-resolved lotId passed by the app-layer, upsert quant, then inserts N quant_items with serials
-  //   'serial':     lotId=null, upsert quant by (item, location), then inserts N quant_items with serials
-  // No ledger — caller handles it. App-layer is responsible for resolving/creating the lot and passing lotId.
+  // Creates or upserts a quant within a transaction.
   async createQuantScoped(
     params: CreateQuantParams,
   ): Promise<{ quant: InventoryItemQuant; lot: InventoryItemLot | null; quantItems: InventoryItemSerial[] }> {
@@ -258,9 +242,8 @@ export class InventoryItemQuantsDomainService {
         });
       }
 
-      // Non-GR creation books its baseline as its own cost header (transfers/conversions create a
-      // fresh header for the destination quant's value; the source outflow already reduced its
-      // value, so system cost nets out). Junction is additive — a quant can hold many cost rows.
+      // Non-GR creation books its baseline as its own cost header (transfers/conversions create a fresh header for the
+      // destination quant's value; the source outflow already reduced its value, so system cost nets out).
       if (baseline > 0n) {
         await this.bookBaselineCost(quant, baseline, params);
       }
@@ -284,8 +267,8 @@ export class InventoryItemQuantsDomainService {
     });
   }
 
-  // Creates a cost header + one junction row for a non-GR baseline; skips gracefully when no ITEM
-  // category is seeded or no currency is known (header.currency_code is NOT NULL).
+  // Creates a cost header + one junction row for a non-GR baseline; skips gracefully when no ITEM category is seeded or
+  // no currency is known (header.currency_code is NOT NULL).
   private async bookBaselineCost(
     quant: InventoryItemQuant,
     baseline: bigint,
@@ -360,6 +343,7 @@ export class InventoryItemQuantsDomainService {
     }
   }
 
+  // Adjusts a quant in its own transaction and writes the ledger entry.
   // Adjusts a quant in its own transaction and writes the ledger entry. Tracking-aware.
   async adjustQuant(params: {
     quantId: string;
@@ -389,22 +373,21 @@ export class InventoryItemQuantsDomainService {
     return { quant: updated };
   }
 
-  // Adjusts a quant within a transaction (no ledger — caller handles it).
-  //   'quantity' | 'lot':         delta-based adjustment; auto-deletes quant when quantity <= 0
-  //   'serial' | 'lot_serial':    resolves serials → consumes those quant_items; auto-deletes at zero
+  // Adjusts a quant within a transaction (no ledger — caller handles it). 'quantity' | 'lot': delta-based adjustment;
+  // auto-deletes quant when quantity <= 0 'serial' | 'lot_serial': resolves serials → consumes those quant_items;
+  // auto-deletes at zero
   async adjustQuantScoped(
     quantId: string,
     params: AdjustQuantParams,
   ): Promise<{ quant: InventoryItemQuant; consumedItems: InventoryItemSerial[] }> {
     return this.database.runInTransaction(async () => {
-      // PR4 (cost-tracking foundation, plan §6): zero-qty quants STAY — cost history, returns,
-      // and period-end snapshots all read this row. The old auto-delete-on-zero behavior was
-      // removed; the row's cost_currency / source_type / source_id keep the audit trail intact
-      // even when quantity reaches 0.
+      // PR4 (cost-tracking foundation, plan §6): zero-qty quants STAY — cost history, returns, and period-end snapshots
+      // all read this row.
       switch (params.tracking) {
         case 'quantity':
         case 'lot': {
           let quant = await this.repository.updateQuantity(quantId, params.delta);
+          // Outflow: decrement value (clears to 0 on final depletion).
           // Outflow: decrement value (clears to 0 on final depletion). Inflow (rare): add baseline.
           if (params.delta < 0) {
             quant = await this.repository.applyOutflowValue(quantId, Math.abs(params.delta));
@@ -429,6 +412,7 @@ export class InventoryItemQuantsDomainService {
     });
   }
 
+  // Loads the lot for a quant.
   // Loads the lot for a quant. Useful for stock transfers preserving source lot at destination.
   async loadLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
     const quant = await this.repository.findByIdWithRefs(quantId);
@@ -466,9 +450,7 @@ export class InventoryItemQuantsDomainService {
     return { result: result.map((row) => InventoryItemQuantDto.from(row, true)), count };
   }
 
-  // Keyset page of an item's quants for the mobile Relay feed (read-only). Ordered by (createdAt desc,
-  // id asc); the cursor encodes those boundary values (via CursorCodec) so pages don't skip/duplicate on
-  // concurrent insert/delete.
+  // Keyset page of an item's quants for the mobile Relay feed (read-only).
   async findQuantsFeed(
     inventoryItemId: string,
     limit: number,
@@ -517,9 +499,7 @@ export class InventoryItemQuantsDomainService {
     });
   }
 
-  // Keyset page backing the mobile Relay stock-levels feed. Ordered by (locationName asc, locationId asc);
-  // the cursor encodes those boundary values. Node id is composite (item:location) so Apollo keys each row
-  // uniquely per item (the view has no own id).
+  // Keyset page backing the mobile Relay stock-levels feed.
   async findLocationStockFeed(
     inventoryItemId: string,
     limit: number,
@@ -528,8 +508,6 @@ export class InventoryItemQuantsDomainService {
     edges: { cursor: string; node: LocationStockDto & { id: string } }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
-    // Keyset on the real joined `locations` columns (the view's own columns are aliased SQL, not
-    // Columns). locations.id equals the view's locationId via the join, so it's a stable unique tiebreaker.
     const orderByEntries: (KeysetOrderBy & { key: string })[] = [
       { column: locations.name, direction: 'asc', key: 'locationName' },
       { column: locations.id, direction: 'asc', key: 'locationId' },

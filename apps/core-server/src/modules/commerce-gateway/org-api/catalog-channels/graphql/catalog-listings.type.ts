@@ -18,8 +18,8 @@ registerEnumType(ListingSort, { name: 'ListingSort' });
 
 @InputType()
 export class FilterInput {
-  // A group code, which may name a dimension or an attribute — the storefront URL carries only codes
-  // and core discovers which junction the code lives in
+  // A group code, which may name a dimension or an attribute — the storefront URL carries only codes and core discovers
+  // which junction the code lives in
   @Field(() => String)
   @IsString()
   code: string;
@@ -75,8 +75,8 @@ export class CatalogListings {
   @Field(() => Int)
   perPage: number;
 
-  // Resolved as a field rather than returned with the page: a caller that only wants prices never
-  // pays for the facet aggregates. The resolver carries appId down so the channel is resolved once.
+  // Resolved as a field rather than returned with the page: a caller that only wants prices never pays for the facet
+  // aggregates.
   @Field(() => [ListingFilter])
   filters: ListingFilter[];
 

@@ -19,9 +19,7 @@ export class OwnerNameService {
     private readonly cache: OwnerNameCacheService,
   ) {}
 
-  // Commerce stores only the owning ids; the names live in core, so they are resolved here. Read
-  // through the cache and batched by scope, so a warm grid costs no database round trip at all and a
-  // cold one costs at most three — never one per row.
+  // Commerce stores only the owning ids; the names live in core, so they are resolved here.
   async resolve<T extends OwnedRow>(orgId: string, rows: T[]): Promise<(T & { ownerName: string })[]> {
     if (rows.length === 0) return [];
 

@@ -94,9 +94,6 @@ export const offeringVariantValues = commerceSchema.table(
 export type OfferingVariantValue = typeof offeringVariantValues.$inferSelect;
 export type NewOfferingVariantValue = typeof offeringVariantValues.$inferInsert;
 
-// Unique on (variant, value) rather than (variant, attribute): an attribute is multi-valued, so one
-// variant is both High Protein and High Fibre. That is the single difference from the dimension
-// junction above, and the reason attributes stay out of combination_key and the variant matrix.
 export const offeringVariantAttributeValues = commerceSchema.table(
   'offering_variant_attribute_values',
   {

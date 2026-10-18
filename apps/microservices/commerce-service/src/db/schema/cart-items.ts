@@ -13,8 +13,6 @@ export const cartItems = commerceSchema.table(
     cartId: uuid('cart_id')
       .notNull()
       .references(() => carts.id, { onDelete: 'cascade' }),
-    // The variant by its code, not its id — the storefront addresses products this way, and the
-    // composite key below keeps the reference real without a uuid to carry.
     code: varchar('code', { length: 200 }).notNull(),
     quantity: integer('quantity').notNull().default(1),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

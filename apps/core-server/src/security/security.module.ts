@@ -8,9 +8,6 @@ import { CloudRequestResolver } from './services/cloud-request.resolver';
 
 @Global()
 @Module({
-  // AppRequestResolver turns a client id into a credential row, so this module needs
-  // the app domain. Imported rather than relied on globally so the dependency is
-  // visible where it is created.
   imports: [AppDomainModule],
   providers: [
     AgentSignatureGuard,

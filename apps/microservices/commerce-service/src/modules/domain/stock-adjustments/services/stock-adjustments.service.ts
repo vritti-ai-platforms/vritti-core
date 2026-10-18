@@ -53,7 +53,6 @@ export class StockAdjustmentsDomainService {
   }
 
   // Creates a new DRAFT stock adjustment with an auto-generated code.
-  // No `quantity` on the header — totals are derived from lines.
   async create(data: {
     inventoryItemId: string;
     type: StockAdjustmentType;

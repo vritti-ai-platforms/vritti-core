@@ -5,9 +5,7 @@ import type { FastifyRequest } from 'fastify';
 import { type PaymentWebhookIngestResult, PaymentWebhookService } from './services/payment-webhook.service';
 
 // Public by necessity: a provider authenticates with a signature over the raw body rather than a bearer, and
-// payments-service checks it against the config's own secret. The path is unprefixed and stable because it is
-// the literal URL an operator registers in the provider's dashboard, and it names the organization because a
-// public call has nothing else to pick the row-level context the config is read under.
+// payments-service checks it against the config's own secret.
 @ApiExcludeController()
 @Controller('payments/webhooks')
 @SkipCsrf()

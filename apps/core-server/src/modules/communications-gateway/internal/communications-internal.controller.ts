@@ -142,8 +142,6 @@ export class CommunicationsInternalController {
   }
 
   // ---- Platform SMS providers — Vritti-owned rows every org can use, managed only from cloud.
-  // These deliberately carry no org context: the NATS calls run without RLS headers, so the table
-  // policy scopes them to the NULL-org rows and they can never touch a client's provider. ----
 
   @Get('sms-providers')
   @Require(AuthType.Cloud)

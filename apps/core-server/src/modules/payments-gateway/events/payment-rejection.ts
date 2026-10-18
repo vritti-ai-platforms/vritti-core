@@ -14,8 +14,8 @@ export function errorStatus(error: unknown): number | null {
   return null;
 }
 
-// True when the other side refused the request for good (a 4xx such as Already Paid, Amount Mismatch, Order Not
-// Payable or a validation failure), so repeating it can never succeed. Timeouts, no-responders and 5xx are not
+// True when the other side refused the request for good (a 4xx such as Already Paid, Amount Mismatch, Order Not Payable
+// or a validation failure), so repeating it can never succeed.
 export function isDefinitiveRejection(error: unknown): boolean {
   const status = errorStatus(error);
   if (status === null) return false;

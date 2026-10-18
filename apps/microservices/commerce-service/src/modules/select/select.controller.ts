@@ -170,8 +170,8 @@ export class SelectController {
     return this.partyBankAccountsService.findForSelect(query, partyId);
   }
 
-  // Returns paginated contact-person (relationship) options of a company party for the select component,
-  // optionally filtered to holders of a function (e.g. ORDER for the order-contact picker)
+  // Returns paginated contact-person (relationship) options of a company party for the select component, optionally
+  // filtered to holders of a function (e.g.
   @MessagePattern({ cmd: 'select.partyContacts' })
   async partyContacts(@Payload() data: PartyContactSelectQueryDto): Promise<SelectQueryResult> {
     const { partyId, function: functionCode, ...query } = data;

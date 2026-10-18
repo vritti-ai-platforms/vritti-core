@@ -18,8 +18,7 @@ export class WhatsappAccountsPhoneNumbersGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // Returns the WABA's phone numbers as a data table. The rows come live from Meta — the state
-  // round-trip only carries column visibility etc.; Meta cannot sort or filter this list
+  // Returns the WABA's phone numbers as a data table.
   async findForTable(userId: string, accountId: string): Promise<WhatsappPhoneNumberTableResponseDto> {
     this.logger.log(`whatsappAccounts.phoneNumbers.list — account: ${accountId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(

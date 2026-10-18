@@ -1,18 +1,10 @@
 import type { Payload } from 'payload' with { 'resolution-mode': 'import' };
 import { VapWebhookError, type VapWebhookEvent, verifyVapWebhook } from '../server/webhooks.js';
 
-/** Under Payload's API route — so `/api/vap/webhooks` with the default `routes.api`. */
 export const VAP_WEBHOOK_PATH = '/vap/webhooks';
 
-/**
- * What a site does with a verified payment event — mark the booking paid, release the stock.
- *
- * Throwing answers 500, and core redelivers; so make it idempotent on `event.id` (or on the record's
- * own state), because a delivery that half-succeeded before throwing will arrive again.
- */
 export type PaymentEventHandler = (event: VapWebhookEvent, context: { payload: Payload }) => Promise<void> | void;
 
-/** The slice of Payload's request this endpoint reads. Structural for the reason in `runtime.ts`. */
 interface WebhookRequest {
   payload: Payload;
   headers: Headers;
@@ -22,16 +14,7 @@ interface WebhookRequest {
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
-/**
- * The receiving end of core's payment webhooks, as a Payload root endpoint.
- *
- * Reads the body as text — never Payload's parsed `data` — because the signature covers the exact
- * bytes sent. Answers:
- * - 200 `{ received: true }` once the handler resolves (or for an authentic event type this version
- *   does not know, so core stops retrying it);
- * - 401 when the delivery does not verify;
- * - 500 when the handler throws or the plugin has no `clientSecret`, so core retries.
- */
+// The receiving end of core's payment webhooks, as a Payload root endpoint.
 export function paymentWebhookEndpoint(options: { clientSecret?: string; onPaymentEvent: PaymentEventHandler }) {
   return {
     path: VAP_WEBHOOK_PATH,

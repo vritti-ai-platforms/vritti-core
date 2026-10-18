@@ -112,8 +112,7 @@ export class GoodsReceiptsDomainService {
     return this.repository.existsByPoId(poId);
   }
 
-  // Returns a keyset/cursor Relay connection of goods receipts for the mobile infinite feed. Fixed sort
-  // (createdAt desc + id asc tiebreak); search spans grNumber/supplierName/poNumber via the SEARCH_FIELD_MAP.
+  // Returns a keyset/cursor Relay connection of goods receipts for the mobile infinite feed.
   async findForFeed(query: { search?: SearchState | null; limit?: number; cursor?: string }): Promise<{
     edges: { cursor: string; node: GoodsReceiptDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -317,8 +316,8 @@ export class GoodsReceiptsDomainService {
     return userExchangeRate;
   }
 
-  // Throws unless the draft is publishable — reuses the same signal the UI's Publish button reads,
-  // so publish and the button stay in lock-step.
+  // Throws unless the draft is publishable — reuses the same signal the UI's Publish button reads, so publish and the
+  // button stay in lock-step.
   async assertPublishable(id: string, status: string, purchaseOrderId: string | null): Promise<void> {
     const { isPublishable } = await this.computeDraftSignals(id, status, purchaseOrderId);
     if (!isPublishable) {

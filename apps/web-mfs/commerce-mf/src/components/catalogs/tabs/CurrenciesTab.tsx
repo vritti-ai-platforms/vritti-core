@@ -44,8 +44,8 @@ export const CurrenciesTab: React.FC<CurrenciesTabProps> = ({ binding, catalog }
       startAdornment={<Plus className="size-4" />}
       onClick={addDialog.open}
       permission={binding.permissions.currencies.add}
-      // The currency list belongs to the catalog, so only the workspace that owns it may change
-      // which currencies exist — a wider scope's price list is priced here, not edited here
+      // The currency list belongs to the catalog, so only the workspace that owns it may change which currencies exist
+      // — a wider scope's price list is priced here, not edited here
       disabled={!catalog.canEdit}
       disabledTip="This price list belongs to a wider workspace. Switch to the workspace that owns it to add a currency."
     >
@@ -54,8 +54,8 @@ export const CurrenciesTab: React.FC<CurrenciesTabProps> = ({ binding, catalog }
   );
 
   return (
-    // The tab wrapper stretches its direct child, so the column takes that height and the card grid
-    // scrolls inside it — otherwise one row of cards is stretched down the whole viewport
+    // The tab wrapper stretches its direct child, so the column takes that height and the card grid scrolls inside it —
+    // otherwise one row of cards is stretched down the whole viewport
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
       {isLoading ? (
         <div className="grid content-start gap-4 sm:grid-cols-2 lg:grid-cols-3">

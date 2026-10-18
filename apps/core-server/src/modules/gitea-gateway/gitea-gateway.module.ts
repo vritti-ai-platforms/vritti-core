@@ -11,8 +11,7 @@ import { GiteaCredentialsRepository } from './services/gitea-credentials.reposit
 import { GiteaCredentialsService } from './services/gitea-credentials.service';
 import { GiteaHttpService } from './services/gitea-http.service';
 
-// HTTP gateway to the self-hosted Gitea instance. GiteaHttpService stays private — callers get the
-// typed feature services only, mirroring cloud-server's CoreServerModule.
+// HTTP gateway to the self-hosted Gitea instance.
 @Module({
   // The organization is provisioned from our own org record, so the domain service is needed here
   imports: [OrganizationDomainModule],
@@ -31,8 +30,6 @@ import { GiteaHttpService } from './services/gitea-http.service';
     // Select options for dropdowns
     SelectApiGatewayService,
   ],
-  // Exposed so the signed internal endpoints (mounted outside the gitea-api prefix) can reuse them while
-  // GiteaHttpService itself stays private
   exports: [GiteaCredentialsService, SelectApiGatewayService],
 })
 export class GiteaGatewayModule {}

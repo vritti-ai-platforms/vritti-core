@@ -1,11 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-// Raw organization shape returned by the Gitea REST API — snake_case mirrors the wire format.
-// Kept beside the DTO that maps it so the two stay in step.
 export interface GiteaApiOrganization {
   id: number;
   username: string;
-  // Gitea sends these as null when unset, not as empty strings
   full_name: string | null;
   description: string | null;
   website: string | null;
@@ -44,8 +41,8 @@ export class OrganizationResponseDto {
     const dto = new OrganizationResponseDto();
     dto.id = organization.id;
     dto.namespace = organization.username;
-    // Unset fields stay null rather than collapsing to '' — an empty string reads as a present-but-blank
-    // value to every consumer, where null is the absence the UI already renders as a placeholder
+    // Unset fields stay null rather than collapsing to '' — an empty string reads as a present-but-blank value to every
+    // consumer, where null is the absence the UI already renders as a placeholder
     dto.fullName = organization.full_name;
     dto.description = organization.description;
     dto.website = organization.website;

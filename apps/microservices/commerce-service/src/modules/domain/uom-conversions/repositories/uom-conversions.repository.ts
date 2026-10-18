@@ -65,8 +65,7 @@ export class UomConversionsDomainRepository extends PrimaryBaseRepository<typeof
     return row ?? null;
   }
 
-  // Primary UOM id + name in one read — used by resolveFactor so it doesn't re-query the item just
-  // to label an error.
+  // Primary UOM id + name in one read — used by resolveFactor so it doesn't re-query the item just to label an error.
   async findInventoryItem(inventoryItemId: string): Promise<{ primaryUomId: string; name: string } | null> {
     const [row] = await this.db
       .select({ primaryUomId: inventoryItems.uomId, name: inventoryItems.name })

@@ -20,21 +20,17 @@ export { quantLocations };
 export type StockAdjustmentLineWithRefs = StockAdjustmentLine & {
   locationName: string | null;
   locationPath: string | null;
-  // UOM (always set):
   uomName: string | null;
   uomSymbol: string | null;
-  // Source quant detail (for deduct lines):
   quantLotNumber: string | null;
   quantLocationId: string | null;
   quantLocationName: string | null;
   quantLocationPath: string | null;
   quantTotalQuantity: string | null;
   quantReservedQuantity: string | null;
-  // Lot detail (for OPENING+lot/item lines):
   lotNumber: string | null;
   lotManufacturingDate: string | null;
   lotExpiryDate: string | null;
-  // Computed:
   lineItemsCount: number;
 };
 
@@ -148,9 +144,7 @@ export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<
     await this.db.update(stockAdjustmentLines).set({ resolvedQuantId }).where(eq(stockAdjustmentLines.id, lineId));
   }
 
-  // Snapshots the write-off (sourceQuant.unit_cost × primary_uom_qty) onto a deduct-type
-  // SA line at publish time. PR 4. Loss reporting and period-end queries read these columns
-  // directly so they don't have to re-join to the quant's cost history.
+  // Snapshots the write-off (sourceQuant.unit_cost × primary_uom_qty) onto a deduct-type SA line at publish time.
   async setWriteOff(lineId: string, amount: bigint, currency: string): Promise<void> {
     await this.db
       .update(stockAdjustmentLines)

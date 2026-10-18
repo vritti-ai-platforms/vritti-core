@@ -27,10 +27,9 @@ export class UomDomainRepository extends PrimaryBaseRepository<typeof uom> {
     return this.model.findFirst({ where: { symbol } });
   }
 
-  // Returns a subquery resolving to the UOM IDs an inventory item is allowed to transact in:
-  //   (a) per-item conversion overrides in inventory_item_uom_conversions
-  //   (b) every UOM in the global "family" (sharing COALESCE(base_unit_id, id) with the item's primary)
-  // Used as an inArray filter inside findForSelect.
+  // Returns a subquery resolving to the UOM IDs an inventory item is allowed to transact in: (a) per-item conversion
+  // overrides in inventory_item_uom_conversions (b) every UOM in the global "family" (sharing COALESCE(base_unit_id,
+  // id) with the item's primary) Used as an inArray filter inside findForSelect.
   allowedUomIdsForItemSubquery(itemId: string): SQL {
     return sql`(
       WITH p AS (
@@ -70,8 +69,6 @@ export class UomDomainRepository extends PrimaryBaseRepository<typeof uom> {
   }
 
   // Returns up to limit+1 UOMs joined with their base unit symbol (self-join) for keyset pagination.
-  // The keyset `where` predicate + `orderBy` are built by the service; base findKeyset fetches
-  // limit+1 and reports hasMore.
   async findKeysetWithBase(options: {
     where?: SQL;
     orderBy: SQL[];

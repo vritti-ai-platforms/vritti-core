@@ -182,7 +182,9 @@ export const addOpeningStockLineSchema = z.object({
 });
 export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSchema>;
 
-// Deduct/CORRECTION lines (change intent). Factory because validation depends on adjustment type (CORRECTION allows negative/zero) and the source quant's available qty (maxQty).
+// Deduct/CORRECTION lines (change intent).
+// Deduct/CORRECTION lines (change intent). Factory because validation depends on adjustment type (CORRECTION allows
+// negative/zero) and the source quant's available qty (maxQty).
 export function buildAddChangeLineSchema(opts: { isCorrection: boolean; maxQty?: number }) {
   return z.object({
     quantId: z.string().min(1, 'Quant is required'),

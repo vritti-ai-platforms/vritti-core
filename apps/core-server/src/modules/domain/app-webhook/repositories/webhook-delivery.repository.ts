@@ -14,7 +14,6 @@ export interface WebhookDeliveryTarget {
   delivery: WebhookDelivery;
   url: string;
   signingKey: string;
-  // False once the app is deactivated or revoked — its deliveries are not sent
   appActive: boolean;
 }
 
@@ -54,9 +53,8 @@ export class WebhookDeliveryDomainRepository extends PrimaryBaseRepository<typeo
     return this.model.findFirst({ where: { id, organizationId, appId } });
   }
 
-  // Requeues a delivery for an immediate first attempt, unless it is PENDING with its next attempt still ahead —
-  // leased by a worker that is sending it, or waiting on a scheduled retry. Atomic, so a worker claiming the row at
-  // the same moment makes this a no-op. Returns whether the delivery was requeued
+  // Requeues a delivery for an immediate first attempt, unless it is PENDING with its next attempt still ahead — leased
+  // by a worker that is sending it, or waiting on a scheduled retry.
   async requeueIfIdle(id: string, now: Date): Promise<boolean> {
     const rows = await this.db
       .update(webhookDeliveries)
@@ -81,9 +79,7 @@ export class WebhookDeliveryDomainRepository extends PrimaryBaseRepository<typeo
     return rows.length > 0;
   }
 
-  // Claims due deliveries by pushing their next attempt out by a lease, so a second worker skips them. Rows locked
-  // by another worker are skipped rather than waited on. A deactivated endpoint stops receiving everything except
-  // test sends, which an operator triggers explicitly
+  // Claims due deliveries by pushing their next attempt out by a lease, so a second worker skips them.
   async claimDue(organizationId: string, now: Date, leaseUntil: Date, limit: number): Promise<WebhookDelivery[]> {
     const due = this.db
       .select({ id: webhookDeliveries.id })

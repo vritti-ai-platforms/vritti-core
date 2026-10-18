@@ -1,9 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
-// A repository-relative path: no leading slash, and no `..` segment. The path is interpolated into
-// the Gitea request URL, so a traversal segment could climb out of the repository and reach another
-// endpoint under the site-admin token. Rejected here and percent-encoded again in the service.
 const SAFE_REPO_PATH_PATTERN = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$)).*$/;
 
 // Git forbids spaces and the glob metacharacters in ref names, so this covers branches, tags and SHAs

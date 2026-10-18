@@ -15,12 +15,10 @@ export interface CartTableRow {
 
 export interface CartItemRow {
   id: string;
-  // Null once the catalogue stops carrying it — the line stays, as `isAvailable` explains
   catalogListingId: string | null;
   offeringId: string;
   offeringVariantId: string;
   quantity: number;
-  // Null when the catalogue holds no price for the basket's currency — see `CartItemDto.from`
   amount: bigint | null;
   currencyCode: string | null;
   code: string;
@@ -101,7 +99,6 @@ export class CartDto {
 export class StaffCartItemDto extends CartItemDto {
   // Which basket this line sits in — a person may hold one at each outlet, so an edit must name it
   cartId: string;
-  // The outlet whose basket it is. Null on a basket the company itself holds
   siteId: string | null;
   legalEntityId: string;
 
@@ -118,6 +115,7 @@ export class StaffCartItemDto extends CartItemDto {
 
 export class CartDetailDto {
   id: string;
+  // The outlet whose basket it is. Null on a basket the company itself holds
   siteId: string | null;
   legalEntityId: string | null;
   partyId: string;

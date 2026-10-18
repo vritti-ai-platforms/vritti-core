@@ -24,9 +24,6 @@ export class CreateWhatsappTemplateDto {
   category: 'AUTHENTICATION' | 'UTILITY' | 'MARKETING';
 
   // Custom path: Meta component objects, passed through — Meta validates their internals.
-  // Exactly one of components / libraryTemplateName must be present.
-  // @Type(() => Object) pins the item type: without it, enableImplicitConversion coerces each
-  // nested object to the property's reflected Array type, forwarding [[],[],[]] to Meta.
   @ApiPropertyOptional({ description: 'Custom template components (header/body/footer/buttons)' })
   @ValidateIf((o: CreateWhatsappTemplateDto) => !o.libraryTemplateName)
   @IsArray()

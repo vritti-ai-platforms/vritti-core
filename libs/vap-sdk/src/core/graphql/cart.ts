@@ -1,11 +1,5 @@
 import { graphql } from '../gql/index.js';
 
-/**
- * The money shape every priced field uses — a currency and a major-unit **string**.
- *
- * Never parse `value` with `Number` for arithmetic. Core sums in integer minor units and formats
- * once; a float here would reintroduce exactly the rounding that avoids.
- */
 export const MoneyFieldsFragment = graphql(`
   fragment MoneyFields on Money {
     currency
@@ -13,12 +7,6 @@ export const MoneyFieldsFragment = graphql(`
   }
 `);
 
-/**
- * A whole basket, returned by every basket operation.
- *
- * Mutations answer with the basket rather than the line they touched, so a caller redraws from one
- * response instead of reconciling a patch against what it already had.
- */
 export const CartFieldsFragment = graphql(`
   fragment CartFields on Cart {
     currencyCode
@@ -43,12 +31,6 @@ export const CartFieldsFragment = graphql(`
   }
 `);
 
-/**
- * The signed-in party's basket.
- *
- * Takes no party: core reads it from the request signature. Deliberately never response-cached —
- * a basket is the one thing a party expects to be exactly right the moment they look at it.
- */
 export const CART_QUERY = graphql(`
   query Cart($input: CartScopeInput!) {
     cart(input: $input) {
@@ -89,12 +71,6 @@ export const CLEAR_CART = graphql(`
   }
 `);
 
-/**
- * How many of each product the party holds — counts only, nothing priced.
- *
- * What a product page reads to show a quantity stepper instead of "Add to cart". Cheap by design:
- * core resolves no catalogue for it, so asking on every view costs one indexed read.
- */
 export const CART_QUANTITIES_QUERY = graphql(`
   query CartQuantities {
     cartQuantities {

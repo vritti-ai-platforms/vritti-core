@@ -53,13 +53,10 @@ interface StorefrontUrls {
 interface ResolvedScope {
   legalEntityId: string;
   siteId?: string;
-  // The site's selling currency — its legal entity's. Known only for a site scope
   currencyCode?: string;
 }
 
-// The storefront's payment surface. Every intent an app touches is checked to be that app's own — an intent of
-// another app in the same organization is a 404, never a read — and the gateway credentials are decrypted here for
-// the one NATS call that needs them, never returned
+// The storefront's payment surface.
 @Injectable()
 export class PaymentIntentsGatewayService {
   private readonly logger = new Logger(PaymentIntentsGatewayService.name);
@@ -98,8 +95,7 @@ export class PaymentIntentsGatewayService {
     return toPaymentIntent(intent, caller.orgId);
   }
 
-  // Completes an intent from the gateway checkout's response, then settles whatever it paid for. A gateway callback
-  // may arrive without a signed-in party, so only a party that is present has to match
+  // Completes an intent from the gateway checkout's response, then settles whatever it paid for.
   async confirm(caller: PaymentCallerContext, input: ConfirmPaymentInput): Promise<PaymentIntent> {
     const existing = await this.findOwned(caller, input.paymentIntentId, false);
     const { credentials } = await this.configService.getDecryptedCredentials(caller.orgId, existing.configId);
@@ -138,10 +134,7 @@ export class PaymentIntentsGatewayService {
     return toPaymentIntent(intent, caller.orgId);
   }
 
-  // Turns the party's cart into an order awaiting payment and opens the intent that pays for it. The gateway is
-  // resolved first so a site with no gateway never leaves an order behind; if the intent still cannot be opened
-  // the order is cancelled before the error surfaces — but only an order this call opened, and only when payments
-  // refused for good. A timeout or 5xx may still have created the intent, which the expiry sweep settles
+  // Turns the party's cart into an order awaiting payment and opens the intent that pays for it.
   async startCheckoutFromCart(caller: PaymentCallerContext, input: StartCheckoutInput): Promise<CheckoutSession> {
     const partyId = caller.partyId;
     if (!partyId) {
@@ -169,7 +162,6 @@ export class PaymentIntentsGatewayService {
       currencyCode,
       ...(input.addressId ? { addressId: input.addressId } : {}),
       ...(input.notes ? { notes: input.notes } : {}),
-      // A retried checkout reuses the order this key already opened, so the payment below is the same payment
       idempotencyKey: input.idempotencyKey,
     });
 
@@ -182,6 +174,7 @@ export class PaymentIntentsGatewayService {
         reference: { type: COMMERCE_ORDER_REFERENCE_TYPE, id: order.orderId },
         description: `Order ${order.orderNumber}`,
         metadata: { orderNumber: order.orderNumber },
+        // A retried checkout reuses the order this key already opened, so the payment below is the same payment
         idempotencyKey: input.idempotencyKey,
         channel: PaymentChannel.APP,
         urls,
@@ -297,9 +290,7 @@ export class PaymentIntentsGatewayService {
     });
   }
 
-  // Loads an intent and hides it unless the calling app opened it. A shopper's intent is hidden from every other
-  // party; with requireParty it is hidden from a caller with no party too, so one shopper cannot read or cancel
-  // another's payment through the same storefront
+  // Loads an intent and hides it unless the calling app opened it.
   private async findOwned(
     caller: PaymentCallerContext,
     paymentIntentId: string,
@@ -343,10 +334,8 @@ export function namespacedIdempotencyKey(caller: PaymentCallerContext, clientKey
     .digest('hex');
 }
 
-// Converts a major-unit amount to minor units, naming the GraphQL field on failure
-// The currency a site's checkout prices in: its legal entity's, never the storefront's choice. A storefront may still
-// send one (older SDKs always did), but only to agree with it — a different one would price the basket in a currency
-// the site does not sell in
+// Converts a major-unit amount to minor units, naming the GraphQL field on failure The currency a site's checkout
+// prices in: its legal entity's, never the storefront's choice.
 function checkoutCurrency(scope: ResolvedScope, requested?: string): string {
   if (!scope.currencyCode) {
     throw new BadRequestException({
@@ -419,9 +408,7 @@ function toCheckout(intent: PaymentIntentResponseDto, orgId: string): PaymentInt
   return { gateway: gatewayCode, payload: JSON.stringify(launch), ...paths };
 }
 
-// The shopper's contact details as the payment intent takes them, so the gateway's page comes prefilled. Each value
-// is bounded the way payments-service validates it, and an email that does not look like one is left out rather
-// than failing the whole checkout over a bad contact row. isEmail is the same check payments-service validates with
+// The shopper's contact details as the payment intent takes them, so the gateway's page comes prefilled.
 
 function checkoutCustomer(
   customer: CheckoutOrderResponseDto['customer'],

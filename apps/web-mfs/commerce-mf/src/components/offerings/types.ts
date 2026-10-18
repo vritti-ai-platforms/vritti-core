@@ -47,7 +47,6 @@ export interface OfferingPermissions {
   export: string;
   dimensions: { view: string; add: string; addFromTemplate: string; edit: string; delete: string };
   attributes: { view: string; add: string; addFromTemplate: string; edit: string; delete: string };
-  // createInventoryItem is organization-only, so the shared shape leaves it optional
   variants: {
     view: string;
     add: string;
@@ -56,7 +55,6 @@ export interface OfferingPermissions {
     setTaxClass: string;
     setAttributes: string;
     export: string;
-    // createInventoryItem is organization-only, so the shared shape leaves it optional
     bom: {
       view: string;
       add: string;
@@ -68,8 +66,6 @@ export interface OfferingPermissions {
   };
 }
 
-// A dialog owns its own mutation because Form has no onSuccess — closing it on success has to be
-// wired where the hook is called. So the scope's hook is handed over rather than its result.
 type MutationHook<TData, TVars> = (
   options?: Omit<UseMutationOptions<TData, AxiosError, TVars>, 'mutationFn'>,
 ) => UseMutationResult<TData, AxiosError, TVars>;
@@ -88,7 +84,6 @@ export type UseOfferingVariantsTable = (offeringId: string) => {
 };
 export type UseOfferingsTable = () => { data: OfferingsTableResponse | undefined; isLoading: boolean };
 
-// Suspense-backed: the route renders a skeleton at its boundary, so `data` is always defined
 export type UseSuspenseOffering = (id: string) => { data: OfferingData };
 export type UseSuspenseVariant = (variantId: string) => { data: OfferingVariantData };
 export type UseVariantBom = (variantId: string) => {

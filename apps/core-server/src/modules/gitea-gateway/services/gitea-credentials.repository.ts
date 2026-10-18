@@ -3,7 +3,6 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/d
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { type GiteaCredentials, giteaCredentials } from '@/db/schema';
 
-// The fields the agent writes when it provisions or rotates the singleton credentials row
 export interface GiteaCredentialsUpsert {
   baseUrl: string;
   coreToken: string;

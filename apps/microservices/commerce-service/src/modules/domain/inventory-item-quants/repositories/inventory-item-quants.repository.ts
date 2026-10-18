@@ -23,7 +23,6 @@ export type InventoryItemQuantWithRefs = InventoryItemQuant & {
   expiryDate: string | null;
 };
 
-// One grouped row of a location's stocked items (summed across that item's non-zero quants).
 export interface LocationItemRow {
   inventoryItemId: string;
   itemName: string;
@@ -36,7 +35,6 @@ export interface LocationItemRow {
   batchCount: number;
 }
 
-// One per-quant breakdown row for a single (location, item) pair.
 export interface LocationItemQuantRow {
   quantId: string;
   lotNumber: string | null;
@@ -104,8 +102,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
     });
   }
 
-  // Keyset page for the mobile Relay quants feed. `where` already carries the item filter + cursor
-  // predicate; `orderBy` is (createdAt desc, id asc). Returns {rows, hasMore} (fetches limit+1 internally).
+  // Keyset page for the mobile Relay quants feed.
   async findQuantsFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
     rows: InventoryItemQuantWithRefs[];
     hasMore: boolean;
@@ -184,8 +181,8 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
     return results[0] as InventoryItemQuant;
   }
 
-  // Decrements quant_value by ROUND(unit_cost × qtyOut); clears it to 0 once quantity has reached 0
-  // (read post-decrement), absorbing the rounding residual on final depletion.
+  // Decrements quant_value by ROUND(unit_cost × qtyOut); clears it to 0 once quantity has reached 0 (read
+  // post-decrement), absorbing the rounding residual on final depletion.
   async applyOutflowValue(quantId: string, qtyOut: number): Promise<InventoryItemQuant> {
     const results = await this.db
       .update(inventoryItemQuants)
@@ -216,8 +213,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
     return results[0] as InventoryItemQuant;
   }
 
-  // Quants resolved from a GR-item's lines, with location + lot labels and the denormalized landed
-  // cost. Powers the Items Cost tab's per-item "view quants & cost" dialog.
+  // Quants resolved from a GR-item's lines, with location + lot labels and the denormalized landed cost.
   async findCostsByGrItemId(grItemId: string): Promise<GrItemQuantCostRow[]> {
     const rows = await this.db
       .select({
@@ -261,8 +257,6 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
   }
 
   // Find an existing quant by item + location + lotId. lotId=null matches NULL (tracking='quantity').
-  // Quant identity for merging includes unit_cost: stock at the same (item, location, lot) but a
-  // different cost is a distinct cost batch and must not be merged.
   async findByItemLocationLotCost(
     inventoryItemId: string,
     locationId: string,
@@ -299,7 +293,6 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
   }
 
   // Returns the single serial row matching (item, serial) along with its parent quant + status.
-  // Used by callers that need to validate serial uniqueness or AVAILABLE-vs-parent-quant binding.
   async findSerial(
     inventoryItemId: string,
     serialNumber: string,
@@ -372,9 +365,8 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
       .where(eq(inventoryStockLevels.inventoryItemId, inventoryItemId));
   }
 
-  // Keyset page for the mobile Relay stock-levels feed (a VIEW aggregate — not this repo's base table, so
-  // built directly on this.db rather than the base findKeyset). `where` carries the item filter + cursor
-  // predicate; `orderBy` is (locationName asc, locationId asc). Returns {rows, hasMore} (fetches limit+1).
+  // Keyset page for the mobile Relay stock-levels feed (a VIEW aggregate — not this repo's base table, so built
+  // directly on this.db rather than the base findKeyset).
   async findLocationStockKeyset(options: { where: SQL; orderBy: SQL[]; limit: number }): Promise<{
     rows: {
       locationId: string;
@@ -407,9 +399,8 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
     return { rows: hasMore ? rows.slice(0, options.limit) : rows, hasMore };
   }
 
-  // Groups a location's non-zero quants by inventory item: SUM(quantity), SUM(reserved),
-  // SUM(quant_value), COUNT(*) as batchCount, joined to item name/code and uom symbol. Uses
-  // findAllAndCount (count = distinct items) with the caller's FilterProcessor where/orderBy + pagination.
+  // Groups a location's non-zero quants by inventory item: SUM(quantity), SUM(reserved), SUM(quant_value), COUNT(*) as
+  // batchCount, joined to item name/code and uom symbol.
   async findItemsForLocation(
     locationId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
@@ -441,9 +432,8 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
     });
   }
 
-  // Per-quant breakdown for a single (location, item): non-zero quants joined to locations + lots,
-  // selecting quantity, reservedQuantity, unit cost, cost currency, quant value, lot number, and
-  // expiry date. Ordered by creation for a stable, FIFO-ish display.
+  // Per-quant breakdown for a single (location, item): non-zero quants joined to locations + lots, selecting quantity,
+  // reservedQuantity, unit cost, cost currency, quant value, lot number, and expiry date.
   async findItemBreakdownForLocation(locationId: string, inventoryItemId: string): Promise<LocationItemQuantRow[]> {
     const rows = await this.db
       .select({

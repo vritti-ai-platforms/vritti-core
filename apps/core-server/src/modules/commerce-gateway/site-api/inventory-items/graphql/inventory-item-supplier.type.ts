@@ -11,8 +11,7 @@ export class SupplierUnitPrice {
   value: string;
 }
 
-// A supplier link for an inventory item (the read-only "Suppliers" tab). Has a unique `id`
-// (supplier_items row), so no composite id is needed for cache normalization.
+// A supplier link for an inventory item (the read-only "Suppliers" tab).
 @ObjectType()
 export class InventoryItemSupplier {
   @Field(() => ID)

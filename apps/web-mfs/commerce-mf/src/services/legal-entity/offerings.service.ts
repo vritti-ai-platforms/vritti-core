@@ -171,8 +171,8 @@ export function previewVariantCombinations({
     .then((r) => r.data);
 }
 
-// Additive — combinations that already exist are skipped, never recreated
-// One combination added by hand; the server derives the Code exactly as generation would
+// Additive — combinations that already exist are skipped, never recreated One combination added by hand; the server
+// derives the Code exactly as generation would
 export function createVariant({
   offeringId,
   ...data
@@ -243,8 +243,8 @@ export function addSuggestedComponent(variantId: string): Promise<SuccessRespons
   return axios.post<SuccessResponse>(`${BASE}/variants/${variantId}/bom/suggested`).then((r) => r.data);
 }
 
-// One component at a time — the whole-list replace could silently drop a concurrent edit
-// The components plus the Code-matched suggestion — its own read, so the variant page does not carry it
+// One component at a time — the whole-list replace could silently drop a concurrent edit The components plus the
+// Code-matched suggestion — its own read, so the variant page does not carry it
 export function getVariantBom(variantId: string): Promise<VariantBomData> {
   return axios.get<VariantBomData>(`${BASE}/variants/${variantId}/bom/lines`).then((r) => r.data);
 }
@@ -292,8 +292,8 @@ export function bulkSetVariantsAttribute({
   return axios.put<SuccessResponse>(`${BASE}/${offeringId}/variants/attributes`, data).then((r) => r.data);
 }
 
-// Replaces every attribute value this variant carries; the attribute each belongs to is derived
-// server-side, and an empty list clears them
+// Replaces every attribute value this variant carries; the attribute each belongs to is derived server-side, and an
+// empty list clears them
 export function setVariantAttributes({ variantId, valueIds }: SetVariantAttributesData): Promise<SuccessResponse> {
   return axios.put<SuccessResponse>(`${BASE}/variants/${variantId}/attributes`, { valueIds }).then((r) => r.data);
 }

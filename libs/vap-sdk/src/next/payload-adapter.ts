@@ -4,28 +4,9 @@ import { type PayloadLike, VAP_NEXT_KEY, type VapNextConfig } from '@vritti/vap-
 export type { VapNextConfig };
 export { VAP_NEXT_KEY };
 
-/**
- * The CMS half of the Next actions — Payload's, and the only part of this tier that is.
- *
- * Everything else here is framework glue: the `'use server'` boundary, `cookies()`, `redirect()`,
- * `revalidatePath()`. Those are what make these server actions at all, and they are the same for any
- * CMS behind them. **This file is the seam.** A second CMS gets its own adapter exporting the same
- * three functions, and the actions pick one — rather than a parallel `strapi/auth` re-deriving the
- * cookie and redirect handling.
- */
+// The CMS half of the Next actions — Payload's, and the only part of this tier that is.
 
-/**
- * The running Payload instance, without the app handing one over.
- *
- * `getPayload` refuses to run without a config object, and a package cannot import the app's —
- * `@payload-config` is a path alias in the app's own tsconfig, which bundlers do not apply inside
- * `node_modules`. So this reads the instance Payload itself caches: `global._payload` is a Map keyed
- * by `options.key ?? 'default'`, which is how Payload avoids re-initialising across calls and how it
- * survives HMR.
- *
- * That is an internal of Payload rather than a published API, so it is guarded: if the cache is cold
- * this throws something that names the cause, instead of failing later as a null dereference.
- */
+// The running Payload instance, without the app handing one over.
 export async function resolvePayload(): Promise<PayloadLike> {
   const cache = (globalThis as { _payload?: Map<string, { payload?: unknown; promise?: unknown }> })._payload;
   const entry = cache?.get('default');
@@ -42,7 +23,7 @@ export async function resolvePayload(): Promise<PayloadLike> {
   return instance as PayloadLike;
 }
 
-/** The app's own settings, read from `payload.config.custom` where `vap({ auth })` put them. */
+// The app's own settings, read from `payload.config.custom` where `vap({ auth })` put them.
 export function vapNextConfig(payload: PayloadLike): VapNextConfig {
   const custom = (payload as unknown as { config?: { custom?: Record<string, unknown> } }).config?.custom;
   const config = custom?.[VAP_NEXT_KEY] as VapNextConfig | undefined;
@@ -56,7 +37,7 @@ export function vapNextConfig(payload: PayloadLike): VapNextConfig {
   return config;
 }
 
-/** The editor's wording, or undefined so the SDK's defaults stand. */
+// The editor's wording, or undefined so the SDK's defaults stand.
 export async function vapNextMessages(
   payload: PayloadLike,
   slug: string | undefined,

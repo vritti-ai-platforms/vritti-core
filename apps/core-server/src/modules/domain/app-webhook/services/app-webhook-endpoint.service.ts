@@ -60,8 +60,7 @@ export class AppWebhookEndpointDomainService {
   }
 }
 
-// Rejects anything but https to a named host. IP literals and localhost would let a tenant aim core's outbound
-// requests at the network it runs in
+// Rejects anything but https to a named host.
 function assertPublicHttpsUrl(raw: string): void {
   let url: URL;
   try {

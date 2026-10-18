@@ -1,7 +1,6 @@
 import type { PayloadLike } from './runtime.js';
 
 export interface IssuedSession {
-  /** The cookie name Payload reads its token from, including this app's prefix. */
   name: string;
   value: string;
   expiresAt: Date;
@@ -12,20 +11,7 @@ interface CollectionRuntime {
   auth: { tokenExpiration: number };
 }
 
-/**
- * Mints a Payload session for a party this app has already authenticated some other way.
- *
- * `payloadLogin` is the password path and `customers` has no password, so this does what a login does
- * *after* the credential check: records a session on the row and signs a token naming it. The JWT
- * strategy then looks that `sid` up in `user.sessions` on every request, exactly as it would for a
- * password login.
- *
- * Returns the cookie's parts rather than a serialised `Set-Cookie`, because the caller here is a Next
- * server action holding a `cookies()` store rather than something returning a Response.
- *
- * **Authenticate before calling this.** Nothing below checks anything — handing it a customer asserts
- * that whoever asked has already proved they are that customer.
- */
+// Mints a Payload session for a party this app has already authenticated some other way.
 export async function issueSessionToken(args: {
   payload: PayloadLike;
   req: unknown;

@@ -42,8 +42,8 @@ export class SmsProvidersGatewayController {
 
   constructor(private readonly service: SmsProvidersGatewayService) {}
 
-  // Which providers can be connected at all — read by the connect form
-  // Gated on view, not add: the Templates tab reads it too, and add already depends on view
+  // Which providers can be connected at all — read by the connect form Gated on view, not add: the Templates tab reads
+  // it too, and add already depends on view
   @Get('available')
   @RequirePermission(ORG_SMS_PROVIDERS.view)
   @ApiGetAvailableSmsProviders()

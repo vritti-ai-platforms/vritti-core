@@ -52,8 +52,6 @@ export class DimensionTemplatesDomainService {
       additionalExpressions: {
         code: sql`${dimensionTemplates.code}`,
         description: sql`${dimensionTemplates.description}`,
-        // The outer id must be the qualified TABLE, not ${dimensionTemplates.id} — Drizzle renders a
-        // select-list column of its own FROM table bare, so "id" would bind to the subquery's v
         values: sql`(
           SELECT COALESCE(json_agg(json_build_object('code', v.code, 'value', v.value) ORDER BY v.sort_order), '[]'::json)
           FROM ${dimensionTemplateValues} v
@@ -111,8 +109,8 @@ export class DimensionTemplatesDomainService {
     return { success: true, message: `Template "${updated.name}" updated successfully.` };
   }
 
-  // Switches a template on or off; activation is refused while it has no values, because an empty
-  // template would seed a dimension with nothing
+  // Switches a template on or off; activation is refused while it has no values, because an empty template would seed a
+  // dimension with nothing
   async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
     const existing = await this.requireOwned(id);
 

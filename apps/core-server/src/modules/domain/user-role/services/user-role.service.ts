@@ -55,7 +55,8 @@ export class UserRoleDomainService {
     };
     const targetLabel = await this.resolveTargetLabel(target);
 
-    // SITE targets must match the template's site type; GROUP/LE/ORG targets are allowed (resolution intersects per site)
+    // SITE targets must match the template's site type; GROUP/LE/ORG targets are allowed (resolution intersects per
+    // site)
     if (target.siteId) {
       const site = await this.siteRepository.findById(target.siteId);
       if (site) await this.assertRoleAppliesToSite(role, site);
@@ -87,7 +88,8 @@ export class UserRoleDomainService {
     return { success: true, message: 'Role assigned successfully.' };
   }
 
-  // Rejects assigning a role at a site unless its template is SITE-scoped with a matching site type; custom/unknown templates pass
+  // Rejects assigning a role at a site unless its template is SITE-scoped with a matching site type; custom/unknown
+  // templates pass
   private async assertRoleAppliesToSite(role: Role, site: Site): Promise<void> {
     const [snapshot, org] = await Promise.all([
       this.catalogService.getActiveSnapshot(),

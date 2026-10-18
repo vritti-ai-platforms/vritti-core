@@ -1,6 +1,5 @@
-// Derives the bonus (free) quantity for a slab trade scheme given the paid/ordered quantity.
-//   one free block per complete buyQty (9+1 on 15 → 1; on 18 → 2)
-// Returns 0 when there is no scheme or the ratio is incomplete.
+// Derives the bonus (free) quantity for a slab trade scheme given the paid/ordered quantity. one free block per
+// complete buyQty (9+1 on 15 → 1; on 18 → 2) Returns 0 when there is no scheme or the ratio is incomplete.
 export function computeFreeQty(
   orderedQty: number,
   buyQty?: number | null,

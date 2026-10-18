@@ -46,8 +46,7 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({ useCreate,
 
   const name = useWatch({ control: form.control, name: 'name' });
 
-  // Derive the code from the name until the operator edits the code themselves. The code becomes a
-  // prefix of every variant Code, so it is worth getting right without making them type it twice.
+  // Derive the code from the name until the operator edits the code themselves.
   useEffect(() => {
     if (!form.formState.dirtyFields.code) form.setValue('code', toCode(name ?? ''));
   }, [name, form]);

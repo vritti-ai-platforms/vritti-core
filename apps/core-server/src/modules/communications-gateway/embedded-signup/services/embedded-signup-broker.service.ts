@@ -62,8 +62,8 @@ export class EmbeddedSignupBrokerService {
 
   // Completes one attempt from Meta's redirect, then hands the operator back to their console
   async handleCallback(request: FastifyRequest, query: EmbeddedSignupCallbackQuery): Promise<string> {
-    // Raises on a forged or malformed state — there is then no trustworthy address to return to,
-    // which is the one case that cannot be reported by redirecting
+    // Raises on a forged or malformed state — there is then no trustworthy address to return to, which is the one case
+    // that cannot be reported by redirecting
     const { state, expired } = this.stateService.verify(query.state);
 
     if (expired) return this.returnTo(state, false, EXPIRED);
@@ -98,9 +98,9 @@ export class EmbeddedSignupBrokerService {
       const created = await this.accountsGateway.connectEmbedded(signup);
       return this.returnTo(state, true, created.message);
     } catch (failure) {
-      // The raw error, not the message shown to the operator: a downstream problem arriving over
-      // NATS is frequently neither an HttpException nor an Error, and logging only the presentable
-      // sentence made every distinct failure look identical in the log
+      // The raw error, not the message shown to the operator: a downstream problem arriving over NATS is frequently
+      // neither an HttpException nor an Error, and logging only the presentable sentence made every distinct failure
+      // look identical in the log
       this.logger.error(
         `Embedded Signup completion failed for org ${state.orgId}: ${this.describe(failure)}`,
         failure instanceof Error ? failure.stack : undefined,
@@ -110,8 +110,7 @@ export class EmbeddedSignupBrokerService {
     }
   }
 
-  // The console's own address with the outcome attached. Built from the URL that was signed into the
-  // state, so it cannot have been redirected elsewhere in the meantime.
+  // The console's own address with the outcome attached.
   private returnTo(state: EmbeddedSignupState, ok: boolean, message: string): string {
     const url = new URL(state.returnUrl);
     url.searchParams.set(RESULT_PARAM, ok ? 'connected' : 'failed');
@@ -137,8 +136,7 @@ export class EmbeddedSignupBrokerService {
       return body && typeof body === 'object' ? body : undefined;
     }
 
-    // A leaked problem object from NATS. Deliberately excludes Error instances, whose `message` is
-    // diagnostic rather than presentable.
+    // A leaked problem object from NATS.
     if (error && typeof error === 'object' && !(error instanceof Error)) {
       return error as { detail?: string; label?: string; title?: string };
     }

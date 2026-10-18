@@ -124,8 +124,8 @@ export const DimensionsTab: React.FC<DimensionsTabProps> = ({
     </div>
   );
 
-  // An empty array reads the same whether the axes are loading or genuinely absent, so the loading
-  // branch has to come first or the empty state flashes on every visit
+  // An empty array reads the same whether the axes are loading or genuinely absent, so the loading branch has to come
+  // first or the empty state flashes on every visit
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">

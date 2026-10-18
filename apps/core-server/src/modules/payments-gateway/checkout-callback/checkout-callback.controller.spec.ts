@@ -8,8 +8,8 @@ import { CheckoutCallbackService } from './services/checkout-callback.service';
 const ORG = '0199e000-0000-7000-8000-000000000001';
 const INTENT = '0199e000-0000-7000-8000-0000000000aa';
 
-// Boots the controller on a real Fastify instance, registered the way main.ts registers it, to prove the gateway's
-// form post parses with the raw-body plugin in place and that the outcome is written as a 303 or a page
+// Boots the controller on a real Fastify instance, registered the way main.ts registers it, to prove the gateway's form
+// post parses with the raw-body plugin in place and that the outcome is written as a 303 or a page
 describe('CheckoutCallbackController', () => {
   let app: NestFastifyApplication;
   const handleCallback = jest.fn();

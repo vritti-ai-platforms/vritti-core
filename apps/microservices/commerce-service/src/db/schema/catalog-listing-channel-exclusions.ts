@@ -16,8 +16,6 @@ export const catalogListingChannelExclusions = commerceSchema.table(
     catalogChannelId: uuid('catalog_channel_id')
       .notNull()
       .references(() => catalogChannels.id, { onDelete: 'cascade' }),
-    // Null excludes the listing from the channel outright; a code excludes it only from callers
-    // asking in that currency, so a shop can keep an item available domestically and not to foreign buyers
     currencyCode: varchar('currency_code', { length: 3 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },

@@ -2,19 +2,7 @@ import { CLIENT_ID_HEADER, PARTY_ID_HEADER } from '../core/transport/headers.js'
 import type { VapSdkConfig } from '../core/types.js';
 import { signRequest, WORKSPACE_HEADER_ORDER } from './signing.js';
 
-/**
- * The `fetch` Apollo's HttpLink calls, wrapped to sign what it is about to send.
- *
- * A custom fetch rather than a custom ApolloLink, deliberately. The signature covers the exact
- * request bytes, and only here do those bytes exist — a link sees an operation, but HttpLink is what
- * serialises it, and re-serialising to sign would risk a different key order and a signature over
- * bytes nobody sent.
- *
- * Context headers (`x-party-id`, one workspace header) are stamped onto the request by a setContext
- * link before this runs, so they are read back off the outgoing headers rather than captured in a
- * closure. That is what lets one long-lived client serve many parties and scopes: the signature is
- * built per request from the headers that request actually carries.
- */
+// The `fetch` Apollo's HttpLink calls, wrapped to sign what it is about to send.
 export function createSignedFetch(config: VapSdkConfig): typeof fetch {
   const doFetch = config.fetch ?? globalThis.fetch;
   // Core signs over the pathname only; a query string would not match.
@@ -32,8 +20,8 @@ export function createSignedFetch(config: VapSdkConfig): typeof fetch {
     const partyId = headers.get(PARTY_ID_HEADER) ?? undefined;
 
     headers.set(CLIENT_ID_HEADER, config.clientId);
-    // The context goes into the signature as well as onto the wire, so stripping or re-pointing
-    // either one in transit invalidates the request.
+    // The context goes into the signature as well as onto the wire, so stripping or re-pointing either one in transit
+    // invalidates the request.
     for (const [name, value] of Object.entries(
       signRequest({ method: 'POST', path, body, partyId, workspaceHeaders }, config.clientSecret),
     )) {

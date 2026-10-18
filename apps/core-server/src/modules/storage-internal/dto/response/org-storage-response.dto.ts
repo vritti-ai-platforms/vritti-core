@@ -1,9 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import type { OrgStorage } from '@/db/schema';
 
-// The org's object-storage descriptor handed back to cloud-server. The credential is returned in whatever form the
-// writer stored it (plaintext or ciphertext) — core reads it straight off the org row and applies no treatment,
-// matching how the media path consumes the same secret. `createdAt` is intentionally omitted from the wire shape.
 export class OrgStorageResponseDto {
   @ApiProperty({ description: 'Object-storage provider', example: 'r2' })
   provider: string;

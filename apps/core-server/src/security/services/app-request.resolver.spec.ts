@@ -94,8 +94,8 @@ describe('AppRequestResolver', () => {
     expect(auth.appType).toBe('GRAPHQL');
     // The app IS the principal — named as itself rather than standing in as a user.
     expect(auth.appId).toBe(APP_ID);
-    // Grants ride the request that authenticated it, so a revoked permission stops working
-    // on the next call rather than when a cache expires.
+    // Grants ride the request that authenticated it, so a revoked permission stops working on the next call rather than
+    // when a cache expires.
     expect(auth.permissions).toEqual(makeApp().permissions);
     expect(touched).toEqual([APP_ID]);
   });
@@ -192,15 +192,12 @@ describe('AppRequestResolver', () => {
       const { resolver } = makeResolver(makeApp());
       const auth = emptyAppAuth();
 
-      // The resolver only verifies it — applyContextHeaders, shared with the session
-      // path, is what puts it on auth.
+      // The resolver only verifies it — applyContextHeaders, shared with the session path, is what puts it on auth.
       await resolver.resolve(makeRequestService(headers), auth);
       expect(auth.organizationId).toBe(ORG_ID);
     });
 
     it('refuses the same workspace id moved to a different scope header', async () => {
-      // Signing the header NAME is what stops a request being re-scoped from a site to
-      // a legal entity with the id left untouched.
       const headers = {
         ...sign({ workspaceHeaders: { 'x-site-id': 'id-1' } }),
         'x-vritti-client-id': CLIENT_ID,

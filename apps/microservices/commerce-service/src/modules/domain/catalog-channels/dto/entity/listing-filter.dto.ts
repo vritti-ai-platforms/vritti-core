@@ -24,9 +24,7 @@ export class ListingFilterDto {
   sortOrder: number;
   values: ListingFilterValueDto[];
 
-  // Rows arrive one per (group, value) already ordered, so grouping is a single pass. A group's name
-  // comes from whichever row the ordering put first — several offerings can spell one code's name
-  // differently, and the heading has to be deterministic rather than whatever the planner returned.
+  // Rows arrive one per (group, value) already ordered, so grouping is a single pass.
   static group(rows: ListingFilterRow[], kind: ListingFilterKind): ListingFilterDto[] {
     const groups = new Map<string, ListingFilterDto>();
     for (const row of rows) {

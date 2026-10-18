@@ -1,57 +1,30 @@
 import type { ResponseCacheStore } from '../../core/transport/response-cache-store.js';
 
-/** The table both this store and the Payload collection that declares it address. */
 export const VAP_CACHE_TABLE = 'vap_cache';
 
-/** The slice of `pg` this uses. Structural, so `@types/pg` is not a dependency. */
 interface PoolLike {
   query(sql: string, values?: unknown[]): Promise<{ rows: Record<string, unknown>[] }>;
   end(): Promise<void>;
 }
 
 export interface PostgresResponseCacheOptions {
-  /** The same connection string Payload's adapter is given. */
   databaseUrl: string;
 
-  /**
-   * The schema Payload namespaces its tables under — `postgresAdapter`'s `schemaName`.
-   *
-   * Must match, or this addresses a table that is not there. A mismatch degrades rather than breaks:
-   * every query fails, the link treats that as a miss, and requests still go to the network.
-   */
   databaseSchema?: string;
 
-  /** Somewhere to report a failing cache. A cache is not worth a thrown request. */
   logger?: { error: (...args: unknown[]) => void };
 }
 
-/**
- * A `ResponseCacheStore` over the `vap-cache` table.
- *
- * Raw SQL rather than Payload's Local API, deliberately: this is consulted on every cached request, and
- * a cache read should be one indexed lookup rather than a document pipeline with hooks and access rules
- * to walk. The table itself is still declared as a collection so Payload's migration generator creates
- * it — the query path and the schema path are separate on purpose.
- *
- * **Nothing here throws.** `createResponseCacheLink` already treats a rejected store as a miss, and
- * these methods keep that contract explicit so a database problem costs latency, never availability.
- */
+// A `ResponseCacheStore` over the `vap-cache` table.
 export function createPostgresResponseCache(options: PostgresResponseCacheOptions): ResponseCacheStore {
   const schema = options.databaseSchema?.trim() || 'public';
-  // Identifiers cannot be parameterised, so they are quoted and the schema is the only interpolation —
-  // it comes from the app's own config, never from a request.
   const table = `"${schema.replace(/"/g, '""')}"."${VAP_CACHE_TABLE}"`;
 
   let pool: PoolLike | undefined;
   let poolFailed = false;
   let queryWarned = false;
 
-  /**
-   * Runs a cache query, swallowing whatever it hits.
-   *
-   * A wrong schema or a table that has not been migrated yet fails *every* query, so it is reported once
-   * per store rather than per request — otherwise one misconfiguration buries every other log line.
-   */
+  // Runs a cache query, swallowing whatever it hits.
   async function attempt<T>(what: string, run: (db: PoolLike) => Promise<T>, fallback: T): Promise<T> {
     const db = await connect();
     if (!db) return fallback;
@@ -66,12 +39,7 @@ export function createPostgresResponseCache(options: PostgresResponseCacheOption
     }
   }
 
-  /**
-   * Opens the pool on first use.
-   *
-   * `pg` is imported dynamically so a storefront that configures no cache never loads it, and a build
-   * that never reaches this file never resolves it either.
-   */
+  // Opens the pool on first use.
   async function connect(): Promise<PoolLike | undefined> {
     if (pool || poolFailed) return pool;
     try {
@@ -84,8 +52,8 @@ export function createPostgresResponseCache(options: PostgresResponseCacheOption
       pool = new Pool({ connectionString: options.databaseUrl, max: 4 });
       return pool;
     } catch (error) {
-      // Recorded once rather than on every request — a missing driver or a bad URL will not fix itself,
-      // and logging it per request would bury everything else.
+      // Recorded once rather than on every request — a missing driver or a bad URL will not fix itself, and logging it
+      // per request would bury everything else.
       poolFailed = true;
       options.logger?.error({ err: error }, 'Response cache unavailable — running without it');
       return undefined;
@@ -108,9 +76,9 @@ export function createPostgresResponseCache(options: PostgresResponseCacheOption
     async set(key, result, ttlSeconds) {
       const now = new Date();
       const expiresAt = new Date(now.getTime() + ttlSeconds * 1000);
-      // Both timestamps are supplied rather than left to their DEFAULT now(): a column default fires only
-      // on insert, so on the `do update` path updated_at would keep the value from when the row was first
-      // written and stop reflecting when the entry was actually refreshed.
+      // Both timestamps are supplied rather than left to their DEFAULT now(): a column default fires only on insert, so
+      // on the `do update` path updated_at would keep the value from when the row was first written and stop reflecting
+      // when the entry was actually refreshed.
       await attempt(
         'write',
         (db) =>
@@ -126,8 +94,8 @@ export function createPostgresResponseCache(options: PostgresResponseCacheOption
     },
 
     async invalidate(keyPrefix) {
-      // Prefix rather than equality: keys lead with the operation name for exactly this, so one
-      // operation's entries can be dropped without knowing every variable combination behind them.
+      // Prefix rather than equality: keys lead with the operation name for exactly this, so one operation's entries can
+      // be dropped without knowing every variable combination behind them.
       await attempt(
         'invalidate',
         (db) => db.query(`delete from ${table} where key like $1 || '%'`, [keyPrefix]),

@@ -7,17 +7,14 @@ import { GoodsReceipt } from './graphql/goods-receipt.type';
 import { GoodsReceiptConnection } from './graphql/goods-receipts-feed.type';
 import { GoodsReceiptsGatewayService } from './services/goods-receipts-gateway.service';
 
-// Goods receipts for the mobile screens: a keyset feed (list) + a by-id read (detail). Read-only — GR creation
-// is a PO-linked flow not exposed on mobile. Thin forwards to the gateway service (which NATS-forwards to
-// commerce-service). buId flows via NATS context from @Require(AuthType.Session).
+// Goods receipts for the mobile screens: a keyset feed (list) + a by-id read (detail).
 @Resolver()
 export class GoodsReceiptsResolver {
   private readonly logger = new Logger(GoodsReceiptsResolver.name);
 
   constructor(private readonly goodsReceiptsGatewayService: GoodsReceiptsGatewayService) {}
 
-  // Keyset/cursor Relay connection of goods receipts for the mobile infinite feed. Relay args (first/after)
-  // map to limit/cursor; the client merges pages via relayStylePagination. Fixed sort (newest first) server-side.
+  // Keyset/cursor Relay connection of goods receipts for the mobile infinite feed.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => GoodsReceiptConnection, { name: 'goodsReceiptsFeed' })
   async goodsReceiptsFeed(

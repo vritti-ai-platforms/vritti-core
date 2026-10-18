@@ -18,8 +18,6 @@ import type { UseInventoryItemSuppliersTable } from '../types';
 interface SuppliersTabProps {
   inventoryItemId: string;
   useSuppliersTable: UseInventoryItemSuppliersTable;
-  // The saved-view key and the query key are scope-specific, so both are handed in rather than built
-  // here — a slug that drifts from the gateway's silently resets that user's table view
   tableKey: readonly unknown[];
   tableSlug: string;
   permission?: string;

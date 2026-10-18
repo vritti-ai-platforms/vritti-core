@@ -15,10 +15,7 @@ export class SiteOfferingsAppResolver {
 
   constructor(private readonly service: SiteOfferingsGatewayService) {}
 
-  // Variants a storefront can point one of its own product pages at. Deliberately not catalog-scoped:
-  // this answers "which variant is this page about", which a page may settle before it is listed
-  // anywhere. `excludeIds` is applied in SQL so the caller can page it — filtering the page itself
-  // after it arrives can empty a page while matches sit on the next one.
+  // Variants a storefront can point one of its own product pages at.
   @Query(() => OfferingVariantOptions, { name: 'siteOfferingVariants' })
   @RequirePermission(SITE_OFFERINGS.variantOptions)
   siteOfferingVariants(

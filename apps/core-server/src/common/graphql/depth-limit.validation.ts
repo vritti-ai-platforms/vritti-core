@@ -8,10 +8,8 @@ import {
   type ValidationContext,
 } from 'graphql';
 
-// Rejects operations whose selection nesting exceeds `maxDepth` — defense-in-depth against abusive,
-// deeply-nested queries (complements the keyset page-size clamp, which bounds breadth). Fragment spreads
-// are resolved so a deep query can't hide behind fragments; a cycle guard prevents infinite recursion on
-// recursive fragments (which a separate rule rejects anyway). Runs at validation time, before execution.
+// Rejects operations whose selection nesting exceeds `maxDepth` — defense-in-depth against abusive, deeply-nested
+// queries (complements the keyset page-size clamp, which bounds breadth).
 export function depthLimit(maxDepth: number): (context: ValidationContext) => ASTVisitor {
   return (context: ValidationContext): ASTVisitor => {
     const fragments: Record<string, FragmentDefinitionNode> = {};

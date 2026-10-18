@@ -42,8 +42,6 @@ export const WishlistTab: React.FC<WishlistTabProps> = ({ partyId }) => {
       {
         accessorKey: 'isAvailable',
         header: 'Status',
-        // A wishlist outlives what it points at — that is rather the point of one — so a delisted
-        // item stays on the list and says so rather than disappearing.
         cell: ({ row }) =>
           row.original.isAvailable ? (
             <Badge variant="secondary" className="bg-success/15 text-success">

@@ -106,9 +106,6 @@ export class InventoryItemsDomainService {
     const searchWhere = FilterProcessor.buildSearch(query.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
     const baseWhere = and(filterWhere, searchWhere);
 
-    // Resolve the requested sort to concrete columns; default to createdAt desc when none given,
-    // then always append the unique id tie-breaker so the order is total (required for keyset correctness).
-    // Each entry carries the row accessor key so cursor values are read by JS property, not DB column name.
     const fieldMap: FieldMap = {
       ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
       ...InventoryItemsDomainService.FILTER_FIELD_MAP,
@@ -130,13 +127,8 @@ export class InventoryItemsDomainService {
             { column: inventoryItems.id, direction: 'asc', key: 'id' },
           ];
     const orderBy = orderByEntries.map((e) => (e.direction === 'asc' ? asc(e.column) : desc(e.column)));
-    // Bind the cursor to this exact sort so a cursor minted under one sort is rejected (400) if the
-    // client changes `sort` mid-pagination, rather than silently applying boundary values to the wrong
-    // columns. The feed's sort is user-controlled, so this binding matters here (unlike the fixed feeds).
     const signature = keysetSignature(orderByEntries);
 
-    // When a cursor is present, restrict to rows strictly after the boundary row. decode throws
-    // InvalidCursorException (400) on a malformed/forged cursor or a sort mismatch.
     const cursorWhere = query.cursor
       ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(query.cursor, signature))
       : undefined;
@@ -167,6 +159,7 @@ export class InventoryItemsDomainService {
     };
   }
 
+  // Org-wide master list (no site filter).
   // Org-wide master list (no site filter). Same table shape as findForTable; RLS scopes to org.
   async findForOrgTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
     return this.findForTable(state);
@@ -269,6 +262,7 @@ export class InventoryItemsDomainService {
     return { name: entity.name, allowedUomIds };
   }
 
+  // Updates an inventory item.
   // Updates an inventory item. Tracking is set at creation and cannot be changed.
   async update(id: string, data: Omit<UpdateInventoryItemDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);

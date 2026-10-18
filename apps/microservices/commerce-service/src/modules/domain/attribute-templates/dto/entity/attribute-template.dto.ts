@@ -1,6 +1,5 @@
 import type { AttributeTemplate, AttributeTemplateValue } from '@/db/schema';
-
-export type TemplateOwnerScope = 'ORG' | 'LE' | 'SITE';
+import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export class AttributeTemplateValueDto {
   id: string;
@@ -29,7 +28,7 @@ export class AttributeTemplateDto {
   isActive: boolean;
   legalEntityId: string | null;
   siteId: string | null;
-  ownerScope: TemplateOwnerScope;
+  ownerScope: WorkspaceScope;
   values: AttributeTemplateValueDto[];
   valueCount: number;
   canEdit: boolean;
@@ -37,8 +36,8 @@ export class AttributeTemplateDto {
   createdAt: string;
   updatedAt: string;
 
-  // Maps an AttributeTemplate entity with its values to an AttributeTemplateDto; only the owning
-  // workspace may change it, so isOwned drives both canEdit and canDelete
+  // Maps an AttributeTemplate entity with its values to an AttributeTemplateDto; only the owning workspace may change
+  // it, so isOwned drives both canEdit and canDelete
   static from(entity: AttributeTemplate, values: AttributeTemplateValue[] = [], isOwned = false): AttributeTemplateDto {
     const dto = new AttributeTemplateDto();
     dto.id = entity.id;
@@ -48,7 +47,7 @@ export class AttributeTemplateDto {
     dto.isActive = entity.isActive;
     dto.legalEntityId = entity.legalEntityId ?? null;
     dto.siteId = entity.siteId ?? null;
-    dto.ownerScope = entity.siteId ? 'SITE' : entity.legalEntityId ? 'LE' : 'ORG';
+    dto.ownerScope = workspaceScopeOf(entity);
     dto.values = values.map(AttributeTemplateValueDto.from);
     dto.valueCount = values.length;
     dto.canEdit = isOwned;

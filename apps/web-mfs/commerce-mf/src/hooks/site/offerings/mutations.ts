@@ -169,8 +169,7 @@ export function useBulkSetVariantsTaxClass(
   });
 }
 
-// One attribute across the whole selection. Scoped to that attribute so a batch cannot clear values
-// the dialog never showed.
+// One attribute across the whole selection.
 export function useBulkSetVariantsAttribute(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, BulkSetVariantsAttributeData>, 'mutationFn'>,
 ) {
@@ -555,8 +554,8 @@ export function useSetOfferingTaxClass(
   });
 }
 
-// The whole set in one call: attributes are multi-valued, so a per-value toggle would make an eight-tag
-// variant eight requests and leave it half-tagged if one failed
+// The whole set in one call: attributes are multi-valued, so a per-value toggle would make an eight-tag variant eight
+// requests and leave it half-tagged if one failed
 export function useSetVariantAttributes(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetVariantAttributesData>, 'mutationFn'>,
 ) {

@@ -36,9 +36,8 @@ export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxG
     return byGroup;
   }
 
-  // Nothing references a tax group directly any more: products carry a tax CLASS, and a class is
-  // mapped to a group per LE by tax_class_rates — which does not exist yet. Until it does, no group
-  // is referenced, so none is protected from deletion.
+  // Nothing references a tax group directly any more: products carry a tax CLASS, and a class is mapped to a group per
+  // LE by tax_class_rates — which does not exist yet.
   async findReferencedIds(_ids: string[]): Promise<Set<string>> {
     return new Set();
   }

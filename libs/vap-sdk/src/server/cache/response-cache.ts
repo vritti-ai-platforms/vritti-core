@@ -4,27 +4,9 @@ import { PARTY_ID_HEADER } from '../../core/transport/headers.js';
 import type { ResponseCacheContext, ResponseCacheStore } from '../../core/transport/response-cache-store.js';
 import { WORKSPACE_HEADER_ORDER } from '../signing.js';
 
-/**
- * Where cached operation results live.
- *
- * The consumer implements this — vap-sdk never opens a connection or owns a table, so it needs no
- * database driver and no migration of its own, and a caller with nowhere to cache simply omits it.
- * Mirrors how the mobile host injects MMKV into the Apollo layer.
- *
- * Postgres cannot be Apollo's *cache*: `ApolloCache.read` and `diff` are synchronous. It can be a
- * response cache in front of the network, which is what this is.
- */
+// Where cached operation results live.
 
-/**
- * Serves whole operation results from the store, keyed per tenant and scope.
- *
- * **Opt-in per operation, never blanket.** An operation caches only when it passes
- * `context: { responseCache: { ttlSeconds } }`, which keeps a latency optimisation from quietly
- * becoming a correctness problem — the identity lookup in `register` must never be cached, because a
- * stale "nobody found" would create a duplicate party.
- *
- * Mutations are never read from or written to the store, whatever their context says.
- */
+// Serves whole operation results from the store, keyed per tenant and scope.
 export function createResponseCacheLink(store: ResponseCacheStore, clientId: string): ApolloLink {
   return new ApolloLink((operation, forward) => {
     const cacheContext = operation.getContext().responseCache as ResponseCacheContext | undefined;
@@ -40,8 +22,8 @@ export function createResponseCacheLink(store: ResponseCacheStore, clientId: str
         if (cancelled) return;
         subscription = forward(operation).subscribe({
           next: (result) => {
-            // Only a clean result is worth keeping — caching a partial one would serve those errors
-            // again for the whole TTL.
+            // Only a clean result is worth keeping — caching a partial one would serve those errors again for the whole
+            // TTL.
             if (!result.errors?.length) {
               void store.set(key, result, cacheContext.ttlSeconds).catch(() => undefined);
             }
@@ -74,16 +56,7 @@ export function createResponseCacheLink(store: ResponseCacheStore, clientId: str
   });
 }
 
-/**
- * Identity of a cached result.
- *
- * Carries the tenant and the scope, not just the query: `clientId` is what identifies the
- * organization client-side (core derives it from the credential), and the party changes
- * what the same query returns. Leaving either out would serve one party's or one site's data to
- * another.
- *
- * The operation name leads the key so `invalidate` can drop one operation's entries by prefix.
- */
+// Identity of a cached result.
 function cacheKey(clientId: string, operation: Parameters<ApolloLink['request']>[0]): string {
   const headers = (operation.getContext().headers ?? {}) as Record<string, string>;
   const scope = WORKSPACE_HEADER_ORDER.map((name) => `${name}=${headers[name] ?? ''}`).join('&');

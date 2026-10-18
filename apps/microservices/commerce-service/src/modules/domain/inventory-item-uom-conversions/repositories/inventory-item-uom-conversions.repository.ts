@@ -83,8 +83,8 @@ export class InventoryItemUomConversionsDomainRepository extends PrimaryBaseRepo
     return row?.uomId;
   }
 
-  // True when a supplier item is priced in this (inventory item, UOM) pair — deleting the
-  // conversion would orphan it, so the delete is blocked.
+  // True when a supplier item is priced in this (inventory item, UOM) pair — deleting the conversion would orphan it,
+  // so the delete is blocked.
   async isUsedBySupplierItem(inventoryItemId: string, uomId: string): Promise<boolean> {
     const [row] = await this.db
       .select({ one: sql<number>`1` })

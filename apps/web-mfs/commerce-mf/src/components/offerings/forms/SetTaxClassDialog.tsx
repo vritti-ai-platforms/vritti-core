@@ -22,8 +22,8 @@ interface SetTaxClassDialogProps {
   onCancel: () => void;
 }
 
-// Its own dialog rather than a field on the edit form: applying it rewrites every variant that has
-// not pinned its own, which is not something a general edit should do without saying so.
+// Its own dialog rather than a field on the edit form: applying it rewrites every variant that has not pinned its own,
+// which is not something a general edit should do without saying so.
 export const SetTaxClassDialog: React.FC<SetTaxClassDialogProps> = ({ useSet, offering, onSuccess, onCancel }) => {
   const form = useForm<SetTaxClassFormData>({
     resolver: zodResolver(setTaxClassSchema),

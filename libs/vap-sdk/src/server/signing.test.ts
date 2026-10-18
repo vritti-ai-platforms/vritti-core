@@ -2,13 +2,7 @@ import { generateKeyPairSync, verify } from 'node:crypto';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { buildCanonical, signRequest, WORKSPACE_HEADER_ORDER } from './signing.js';
 
-/**
- * The request canonical is a wire format shared with core's verifier. The authority is
- * `buildRequestCanonical` in `@vritti/api-sdk/signing` (`src/signing/request.ts`); the strings pinned
- * below were produced by that function for the same inputs. If one of these fails, either this
- * package drifted — and every signed request would 401 — or api-sdk changed and this must change in
- * the same release.
- */
+// The request canonical is a wire format shared with core's verifier.
 
 const BODY = JSON.stringify({ query: 'query Cart { cart { itemCount } }', variables: {} });
 

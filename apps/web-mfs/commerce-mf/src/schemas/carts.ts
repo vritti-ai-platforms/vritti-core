@@ -8,7 +8,6 @@ export interface CartData {
   legalEntityId: string;
   partyId: string;
   partyName: string;
-  // Set while a payment is in flight, which is what freezes the basket
   checkoutStartedAt: string | null;
   itemCount: number;
   createdAt: string;
@@ -26,7 +25,6 @@ export interface CartLineData {
   code: string | null;
   unitPrice: CurrencyAmount | null;
   lineTotal: CurrencyAmount | null;
-  // False once delisted, switched off, or no longer priced here. Shown, never silently dropped
   isAvailable: boolean;
 }
 

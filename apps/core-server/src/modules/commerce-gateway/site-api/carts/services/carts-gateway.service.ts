@@ -165,11 +165,9 @@ export class CartsGatewayService {
     return this.findItems(cartId, input.currencyCode);
   }
 
-  // ── The party's own basket, for a storefront acting for one signed-in party ──
-  //
-  // The catalogue comes from the calling credential's APP channel, never from the caller, so a
-  // storefront cannot reach a catalogue it does not carry even knowing a listing id. `appId` and
-  // `partyId` arrive from `auth`, which the signature covers.
+  // ── The party's own basket, for a storefront acting for one signed-in party ── The catalogue comes from the calling
+  // credential's APP channel, never from the caller, so a storefront cannot reach a catalogue it does not carry even
+  // knowing a listing id.
 
   async findPartyCart(appId: string, partyId: string, currencyCode: string): Promise<CartPayload> {
     this.logger.log(`site.carts.get — party: ${partyId}`);

@@ -1,8 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
-// Shared across every gitea select endpoint. The org namespace is resolved from the session host
-// (not a query param), so it is not documented here.
 const BASE_SELECT_QUERIES = [
   ApiQuery({ name: 'search', description: 'Search term to filter options by name', required: false }),
   ApiQuery({ name: 'limit', description: 'Maximum number of results', required: false }),

@@ -53,7 +53,6 @@ import type {
 
 interface VariantsTabProps {
   useVariantsTable: UseOfferingVariantsTable;
-  // The matrix wizard is a route; adding one by hand stays a dialog here
   useDimensions: UseOfferingDimensions;
   useAttributes: UseOfferingAttributes;
   useCreateVariant: UseCreateVariant;
@@ -257,8 +256,6 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     serverState: response,
     slug: tableSlug,
     label: 'variant',
-    // Variants are owned through their offering, not individually, so an inherited offering makes the whole
-    // selection meaningless rather than some rows of it
     enableRowSelection: offering.canEdit,
     enableSorting: true,
     enableMultiSort: false,
@@ -279,8 +276,6 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
         isLoading={isLoading}
         permission={permissions.variants.view}
         selectActions={(rows) => {
-          // Activating is pointless while the offering is off, so it blocks the bulk action too. Every
-          // row here belongs to the same offering, so one row settles which reason to report.
           const offeringOff = rows.length > 0 && !rows[0].original.isOfferingActive;
           const blocked = offeringOff ? rows.length : rows.filter((row) => !row.original.canMarkActive).length;
           return (

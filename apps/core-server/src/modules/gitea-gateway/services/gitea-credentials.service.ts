@@ -6,17 +6,13 @@ import { GiteaCredentialsRepository, type GiteaCredentialsUpsert } from './gitea
 // Fixed Gitea user the pull token belongs to — core does not resolve it from Gitea anymore
 const PULL_USERNAME = 'gitea-core';
 
-// Pull credential handed to the ws-agent so it can authenticate read:package image pulls
 export interface GiteaPullCredential {
   registry: string;
   username: string;
   token: string;
 }
 
-// Reads the agent-owned singleton gitea_credentials row. Core is a pure reader here — the deployment
-// agent provisions Gitea and writes/rotates the tokens. The row is cached in memory so this is not a DB
-// hit per Gitea request; invalidate() drops the cache so an agent rotation is picked up without a
-// restart (GiteaHttpService calls it after a 401).
+// Reads the agent-owned singleton gitea_credentials row.
 @Injectable()
 export class GiteaCredentialsService {
   private cached: Promise<GiteaCredentials> | null = null;
@@ -43,9 +39,7 @@ export class GiteaCredentialsService {
     return { registry: new URL(baseUrl).host, username: PULL_USERNAME, token };
   }
 
-  // Whether the agent has already fully provisioned the singleton row (all three fields present). Reads
-  // the row directly (not the throwing cache) — this backs the agent's signed existence-probe, which
-  // decides whether to mint, so it must answer plainly rather than raise ServiceUnavailable.
+  // Whether the agent has already fully provisioned the singleton row (all three fields present).
   async exists(): Promise<boolean> {
     const row = await this.repository.get();
     return Boolean(row?.baseUrl && row?.coreToken && row?.pullToken);

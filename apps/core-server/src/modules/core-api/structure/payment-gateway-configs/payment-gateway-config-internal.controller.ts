@@ -37,8 +37,7 @@ import { GetPaymentGatewayConfigsInternalDto } from './dto/request/get-payment-g
 import { PaymentGatewayConfigScopeQueryDto } from './dto/request/payment-gateway-config-scope-query.dto';
 import { PaymentGatewayConfigService } from './services/payment-gateway-config-api.service';
 
-// The cloud-facing surface. Signed cloud auth rather than a session, because cloud-server calls this
-// on behalf of an operator setting up a legal entity — there is no RBAC context to gate on.
+// The cloud-facing surface.
 @ApiTags('Structure - Payment Gateway Configs (internal)')
 @Require(AuthType.Cloud)
 @Controller('payment-gateway-configs/internal')

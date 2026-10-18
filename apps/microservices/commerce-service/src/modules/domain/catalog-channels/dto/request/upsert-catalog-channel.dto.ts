@@ -1,8 +1,7 @@
 import { IsUUID, ValidateIf } from 'class-validator';
 
-// One DTO per channel type, because each type names a different target and the database rejects the
-// combinations the others allow. A shared DTO carrying `type` plus every target column lets
-// { type: 'B2B', appId } through validation and fails it on a CHECK constraint instead.
+// One DTO per channel type, because each type names a different target and the database rejects the combinations the
+// others allow.
 
 // appId absent means the fallback every unnamed caller resolves to
 export class UpsertAppChannelDto {

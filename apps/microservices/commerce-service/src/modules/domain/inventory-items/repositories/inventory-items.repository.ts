@@ -24,11 +24,6 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
   }
 
   // Returns paginated inventory item options for select dropdowns.
-  // When excludeOnSupplierId is supplied, hides items whose every allowed UOM (per-item overrides plus
-  // the global UOM family rooted on the item's primary UOM) is already linked to that supplier — i.e.
-  // no remaining (inventoryItemId, uomId) pair is available to create another supplier_items row.
-  // Overrides the base findForSelect to add the UOM LEFT JOIN (so `symbol` is reachable via additionalKeys)
-  // and the optional supplier filter.
   override async findForSelect(
     config: FindForSelectConfig,
     options?: { excludeOnSupplierId?: string },
@@ -68,10 +63,9 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     });
   }
 
-  // Returns the set of UOM IDs allowed to transact for a given inventory item:
-  //  - the item's primary UOM
-  //  - every per-item conversion override
-  //  - every UOM in the same global "family" (sharing COALESCE(base_unit_id, id) with the primary)
+  // Returns the set of UOM IDs allowed to transact for a given inventory item: - the item's primary UOM - every
+  // per-item conversion override - every UOM in the same global "family" (sharing COALESCE(base_unit_id, id) with the
+  // primary)
   async findAllowedUomIds(inventoryItemId: string): Promise<string[]> {
     const result = await this.db.execute<{ id: string }>(sql`
       WITH p AS (
@@ -173,6 +167,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return row ?? null;
   }
 
+  // Org-wide master list (no site filter — RLS scopes to org).
   // Org-wide master list (no site filter — RLS scopes to org). Alias of findAllWithUom for the master table.
   findForOrgTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (InventoryItem & { uomSymbol: string | null; categoryName: string | null })[];
@@ -181,8 +176,8 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return this.findAllWithUom(options);
   }
 
-  // Items enabled at the current site (have an inventory_item_sites row) joined to their site projection
-  // and per-site summed stock. RLS on inventory_item_sites already scopes to the active site.
+  // Items enabled at the current site (have an inventory_item_sites row) joined to their site projection and per-site
+  // summed stock.
   async findForSiteTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (InventoryItem & {
       uomSymbol: string | null;

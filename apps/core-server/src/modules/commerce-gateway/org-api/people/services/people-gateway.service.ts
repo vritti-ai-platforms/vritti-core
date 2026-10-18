@@ -139,6 +139,7 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.delete', { id });
   }
 
+  // A person's saved items.
   // A person's saved items. Read only — see the microservice controller for why
   listWishlist(partyId: string, currencyCode: string): Promise<StaffWishlistItemRow[]> {
     this.logger.log(`org.people.wishlist.list — partyId: ${partyId}`);
@@ -226,14 +227,8 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
   }
 
-  // ── The party's own address book, for a storefront acting for one signed-in party ──
-  //
-  // Every method takes `partyId` from the caller's signature, and it is not optional on any of
-  // them. `addPartyAddress` is safe by shape — the party is what the row is created under. The
-  // other two name an **address id**, which is attacker-controlled input, so each one proves the
-  // address belongs to that party before forwarding. `assertOwned` is the single place that check
-  // lives: every app-surface write goes through it, so there is one line to read to know the rule
-  // and one place to change it.
+  // ── The party's own address book, for a storefront acting for one signed-in party ── Every method takes `partyId`
+  // from the caller's signature, and it is not optional on any of them.
 
   // Every address the party holds
   listShopperAddresses(partyId: string): Promise<PartyAddressResponseDto[]> {
@@ -241,6 +236,7 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.addresses.list', { personId: partyId });
   }
 
+  // Adds one.
   // Adds one. Scoped by construction — the party is what it is created under
   addPartyAddress(
     partyId: string,
@@ -485,10 +481,6 @@ export class PeopleGatewayService {
   }): Promise<WishlistAddPayload> {
     this.logger.log(`org.wishlist.add — party: ${input.partyId}, code: ${input.code}`);
 
-    // Renamed on the way through, deliberately rather than by assertion. The microservice answers
-    // `wishlistItems` and the schema field is `wishlist`; `nats.send<T>` only *claims* a shape, so
-    // declaring the schema's name here left `wishlist` undefined at runtime and every save failed
-    // on a non-nullable list. Translating between the two contracts is this layer's job.
     const result = await this.nats.send<{ alreadyExists: boolean; wishlistItems: WishlistItemPayload[] }>(
       'commerce',
       'org.wishlist.add',

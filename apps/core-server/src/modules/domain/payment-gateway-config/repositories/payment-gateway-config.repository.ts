@@ -41,8 +41,8 @@ export class PaymentGatewayConfigDomainRepository extends PrimaryBaseRepository<
     });
   }
 
-  // Finds the config already occupying a slot, whatever its gateway or bank account; a null site or app matches only
-  // a null column, and excludeId skips the row being updated
+  // Finds the config already occupying a slot, whatever its gateway or bank account; a null site or app matches only a
+  // null column, and excludeId skips the row being updated
   async findSlotOccupant(
     legalEntityId: string,
     type: PaymentGatewayConfigType,
@@ -66,8 +66,8 @@ export class PaymentGatewayConfigDomainRepository extends PrimaryBaseRepository<
     return row;
   }
 
-  // Finds every config that could serve a context — the legal entity defaults plus any pinned to its site or
-  // app — newest first, so the service's specificity ranking breaks ties deterministically
+  // Finds every config that could serve a context — the legal entity defaults plus any pinned to its site or app —
+  // newest first, so the service's specificity ranking breaks ties deterministically
   async findCandidatesForContext(orgId: string, context: PaymentGatewayConfigContext): Promise<PaymentGatewayConfig[]> {
     const { siteId, appId } = context;
     return this.db

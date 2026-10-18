@@ -56,8 +56,7 @@ export class MediaDomainService {
     const org = await this.organizationRepository.findById(organizationId);
     if (!org) throw new NotFoundException('Organization not found.');
 
-    // Only writes are gated. Reads and deletes stay open on purpose: an org over its quota must still be able to see
-    // what it has and delete some of it, or it has no way back under the limit.
+    // Only writes are gated.
     if (forWrite && !org.storageEnabled) {
       throw new PayloadTooLargeException({
         label: 'Storage Limit Reached',
@@ -79,8 +78,7 @@ export class MediaDomainService {
     return this.store(file, organizationId, uploadedBy, query, resolved, resolved.storage.bucket);
   }
 
-  // Uploads into the org's public bucket and returns the permanent URL. Use for assets rendered in lists, where a
-  // presigned URL per object would mean an API round trip per image.
+  // Uploads into the org's public bucket and returns the permanent URL.
   async uploadPublic(
     file: FilePayload,
     organizationId: string,
@@ -100,8 +98,7 @@ export class MediaDomainService {
     return { ...result, url: provider.getPublicUrl(result.storageKey, storage.publicBucket) };
   }
 
-  // The shared upload path. `bucket` decides whether the object is private or public — everything else, including
-  // dedup and replacement, behaves identically.
+  // The shared upload path.
   private async store(
     file: FilePayload,
     organizationId: string,
@@ -122,9 +119,7 @@ export class MediaDomainService {
     );
 
     if (existingForEntity) {
-      // The bucket has to match as well as the checksum. The same file uploaded to the other endpoint is not the same
-      // object: short-circuiting across buckets would hand back a public URL for an object in the private bucket, or
-      // report a private upload as done while the file stays world-readable in the public one.
+      // The bucket has to match as well as the checksum.
       if (existingForEntity.checksum === checksum && existingForEntity.bucket === bucket) {
         this.logger.log(
           `Same file already exists for entity ${query.entityType}/${query.entityId}, returning existing`,
@@ -188,8 +183,7 @@ export class MediaDomainService {
     return { url, expiresIn: this.signedUrlExpiry };
   }
 
-  // Resolves the single media item attached to an entity, with a presigned URL ready to render. Returns null when the
-  // entity has none — callers treat "no media yet" as a normal state, not an error.
+  // Resolves the single media item attached to an entity, with a presigned URL ready to render.
   async getUrlForEntity(
     organizationId: string,
     entityType: string,
@@ -203,6 +197,7 @@ export class MediaDomainService {
     return { id: record.id, url, expiresIn: this.signedUrlExpiry };
   }
 
+  // Deletes whatever media an entity holds.
   // Deletes whatever media an entity holds. A no-op when there is none, so callers can remove idempotently.
   async deleteForEntity(organizationId: string, entityType: string, entityId: string): Promise<void> {
     const record = await this.mediaRepository.findOneByEntity(organizationId, entityType, entityId);
@@ -268,8 +263,7 @@ export class MediaDomainService {
     return value.replace(/[^a-zA-Z0-9_-]/g, '_');
   }
 
-  // Generates a storage key: {organizationId}/{entityType}/{uuid}.{ext}. The org bucket already isolates tenants, but
-  // keeping the org in the key means a mis-targeted bucket cannot collide and a shared-bucket fallback stays possible.
+  // Generates a storage key: {organizationId}/{entityType}/{uuid}.{ext}.
   private generateStorageKey(organizationId: string, filename: string, entityType: string): string {
     const ext = extname(filename).toLowerCase();
     const uuid = randomUUID();

@@ -10,8 +10,8 @@ import { OfferingDetailPage } from './OfferingDetailPage';
 import { OfferingsPage } from './OfferingsPage';
 import { VariantDetailPage } from './VariantDetailPage';
 
-// The gate sits outside the boundary so a denied user never mounts the page and never fires the
-// request — useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.
+// The gate sits outside the boundary so a denied user never mounts the page and never fires the request —
+// useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.
 const gated = (permission: string, element: React.ReactNode, fallback = <OfferingDetailSkeleton />) => (
   <PermissionGate
     permission={permission}

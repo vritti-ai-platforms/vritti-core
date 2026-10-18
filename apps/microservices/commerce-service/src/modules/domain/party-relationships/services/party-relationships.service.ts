@@ -81,8 +81,8 @@ export class PartyRelationshipsDomainService {
     return { result: rows.map((row) => PartyRelationshipDto.from(row)), count };
   }
 
-  // Returns paginated relationship (person) options of a company party for select dropdowns —
-  // optionally filtered to holders of a function (e.g. ORDER for the order-contact picker)
+  // Returns paginated relationship (person) options of a company party for select dropdowns — optionally filtered to
+  // holders of a function (e.g.
   findForSelect(
     query: SelectOptionsQueryDto,
     partyId: string,

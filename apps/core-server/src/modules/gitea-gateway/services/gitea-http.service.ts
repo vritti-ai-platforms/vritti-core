@@ -17,8 +17,7 @@ function parseVersion(version: string): [number, number, number] | null {
   return [Number(match[1]), Number(match[2]), Number(match[3] ?? 0)];
 }
 
-// Negative when a < b, 0 when equal, positive when a > b. Unparseable versions sort as equal so an
-// odd build string never trips a gate.
+// Negative when a < b, 0 when equal, positive when a > b.
 function compareVersions(a: string, b: string): number {
   const left = parseVersion(a);
   const right = parseVersion(b);
@@ -31,18 +30,12 @@ function compareVersions(a: string, b: string): number {
 
 interface GiteaRequestOptions {
   params?: Record<string, unknown>;
-  // Action job logs come back as text/plain even though the OpenAPI spec declares application/json,
-  // so that call has to opt out of axios' JSON parsing
   responseType?: 'text';
 }
 
-// Marks a config that has already been retried once after a 401 so the response interceptor can't loop
 type RetryableConfig = InternalAxiosRequestConfig & { _giteaRetried?: boolean };
 
-// Single authenticated HTTP client for the Gitea instance. Owns transport concerns only — the base URL
-// and admin token come from the agent-owned gitea_credentials row (via GiteaCredentialsService), the
-// instance version probe, and funnelling every failure through one translation point. The token is the
-// all-scopes admin PAT; core no longer mints anything, so there is no Basic-auth path.
+// Single authenticated HTTP client for the Gitea instance.
 @Injectable()
 export class GiteaHttpService {
   private readonly client: AxiosInstance;
@@ -52,8 +45,8 @@ export class GiteaHttpService {
   constructor(private readonly credentials: GiteaCredentialsService) {
     this.client = axios.create({ timeout: REQUEST_TIMEOUT_MS });
 
-    // Base URL and admin token both live in the DB and can rotate, so they are resolved per request
-    // rather than baked into axios.create — the credentials service caches them in memory.
+    // Base URL and admin token both live in the DB and can rotate, so they are resolved per request rather than baked
+    // into axios.create — the credentials service caches them in memory.
     this.client.interceptors.request.use(async (config) => {
       const baseUrl = (await this.credentials.getBaseUrl()).replace(/\/+$/, '');
       config.baseURL = `${baseUrl}/api/v1`;
@@ -61,8 +54,8 @@ export class GiteaHttpService {
       return config;
     });
 
-    // A 401 means the agent rotated the admin token out from under us: drop the cached credentials and
-    // retry the request once so the request interceptor re-reads the fresh token. A second 401 surfaces.
+    // A 401 means the agent rotated the admin token out from under us: drop the cached credentials and retry the
+    // request once so the request interceptor re-reads the fresh token.
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
@@ -94,8 +87,7 @@ export class GiteaHttpService {
     }
   }
 
-  // The connected instance's version, or null when it can't be determined. Never throws: a probe
-  // failure must not be the reason a repository call fails.
+  // The connected instance's version, or null when it can't be determined.
   async getVersion(): Promise<string | null> {
     this.versionProbe ??= this.client
       .get<{ version?: string }>('/version')
@@ -104,9 +96,7 @@ export class GiteaHttpService {
     return this.versionProbe;
   }
 
-  // Rejects a call whose Gitea route only exists from `min` onwards. Gitea answers an unrouted path
-  // with a bare 404, which reads as "missing data" — this turns that into an actionable problem.
-  // An unknown version falls through to the real call rather than hard-failing.
+  // Rejects a call whose Gitea route only exists from `min` onwards.
   async requireMinVersion(min: string, feature: string): Promise<void> {
     const version = await this.getVersion();
     if (!version || compareVersions(version, min) >= 0) return;

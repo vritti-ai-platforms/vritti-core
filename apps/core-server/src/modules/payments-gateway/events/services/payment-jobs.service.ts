@@ -27,10 +27,8 @@ const DEFAULT_OPTIONS: PaymentJobsOptions = {
 
 type JobName = 'event-sweep' | 'expire-sweep' | 'delivery-worker';
 
-// The payments safety nets, run in-process on timers: drain events payments-service still holds unacknowledged,
-// expire intents nobody completed, and send due outbound webhooks. Every job walks the organizations one at a time
-// under that organization's RLS context, a failing organization never stops the rest, and a job still running when
-// its next tick fires skips that tick rather than overlapping itself.
+// The payments safety nets, run in-process on timers: drain events payments-service still holds unacknowledged, expire
+// intents nobody completed, and send due outbound webhooks.
 @Injectable()
 export class PaymentJobsService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PaymentJobsService.name);
@@ -124,8 +122,7 @@ export class PaymentJobsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // Runs the work once per organization under its RLS context. When payments-service is not deployed at all every
-  // organization would fail the same way, so the first "no subscribers" answer ends the pass for this tick
+  // Runs the work once per organization under its RLS context.
   private async forEachOrganization(
     name: JobName,
     needsPaymentsService: boolean,

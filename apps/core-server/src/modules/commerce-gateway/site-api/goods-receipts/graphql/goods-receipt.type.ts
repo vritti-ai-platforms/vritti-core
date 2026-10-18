@@ -28,8 +28,7 @@ export class GoodsReceiptPo {
   totalAmount: GoodsReceiptMoney;
 }
 
-// One goods receipt for the mobile list + detail. `status` is DRAFT | PUBLISHED (String; the client narrows
-// to a union). `po` is null when no purchase order is linked.
+// One goods receipt for the mobile list + detail.
 @ObjectType()
 export class GoodsReceipt {
   @Field(() => ID)

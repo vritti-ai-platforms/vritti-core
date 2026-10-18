@@ -182,6 +182,7 @@ export class OrgOfferingsGatewayController {
     this.logger.log(`PUT /commerce-api/org/offerings/dimensions/${dimensionId}/values`);
     return this.service.upsertDimensionValues(dimensionId, dto);
   }
+  // Reorders the axes.
   // Reorders the axes. Stored SKUs are never recomputed, so this only affects variants created after it
   @Put(':id/dimensions/order')
   @RequirePermission(ORG_OFFERINGS.dimensions.edit)
@@ -191,8 +192,8 @@ export class OrgOfferingsGatewayController {
     return this.service.reorderDimensions(id, dto.dimensionIds);
   }
 
-  // Removes a dimension; refused while variants use its values
-  // Renames a dimension; its code is fixed because every derived code carries it
+  // Removes a dimension; refused while variants use its values Renames a dimension; its code is fixed because every
+  // derived code carries it
   @Patch('dimensions/:dimensionId')
   @RequirePermission(ORG_OFFERINGS.dimensions.edit)
   @ApiUpdateOfferingDimension()
@@ -331,8 +332,7 @@ export class OrgOfferingsGatewayController {
     return this.service.createVariant(id, dto);
   }
 
-  // Updates a variant; activation is gated on its bill of materials
-  // One variant with its values and bill of materials
+  // Updates a variant; activation is gated on its bill of materials One variant with its values and bill of materials
   @Get('variants/:variantId')
   @RequirePermission(ORG_OFFERINGS.variants.view)
   @ApiGetOfferingVariant()
@@ -362,9 +362,8 @@ export class OrgOfferingsGatewayController {
     return this.service.updateVariant(variantId, dto);
   }
 
-  // Replaces a variant's bill of materials as a set
-  // Its own route rather than a field on update: setting it cascades to every variant that has not
-  // pinned its own, and the response reports how many kept an override
+  // Replaces a variant's bill of materials as a set Its own route rather than a field on update: setting it cascades to
+  // every variant that has not pinned its own, and the response reports how many kept an override
   @Patch(':id/fulfilment')
   @RequirePermission(ORG_OFFERINGS.setFulfilment)
   @ApiSetOfferingFulfilment()
@@ -460,8 +459,8 @@ export class OrgOfferingsGatewayController {
     return this.service.deleteBomLine(lineId);
   }
 
-  // Its own grant: the caller names no item, so this can be given to someone who may not edit the
-  // bill of materials freely
+  // Its own grant: the caller names no item, so this can be given to someone who may not edit the bill of materials
+  // freely
   @Post('variants/:variantId/bom/suggested')
   @RequirePermission(ORG_OFFERINGS.variants.bom.addFromSuggestion)
   @ApiAddSuggestedComponent()

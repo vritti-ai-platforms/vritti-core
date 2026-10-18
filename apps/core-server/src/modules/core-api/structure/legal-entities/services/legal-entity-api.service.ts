@@ -46,8 +46,7 @@ export class LegalEntityService {
     return this.legalEntityService.create(orgId, dto);
   }
 
-  // Updates a legal entity
-  // Registrations live in commerce, so the half of the currency lock that counts them sits here
+  // Updates a legal entity Registrations live in commerce, so the half of the currency lock that counts them sits here
   async update(id: string, dto: UpdateLegalEntityInternalDto): Promise<SuccessResponseDto> {
     if (dto.currencyCode) {
       const registrations = await this.taxRegistrationsService.listByLegalEntity(id);

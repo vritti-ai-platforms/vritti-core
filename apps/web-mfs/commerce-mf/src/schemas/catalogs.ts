@@ -77,8 +77,8 @@ export interface CatalogListingData {
   offeringVariantId: string;
   code: string;
   variantName: string;
-  isVariantActive: boolean;
-  isOfferingActive: boolean;
+  isActive: boolean;
+  availability: string;
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: CatalogOwnerScope;

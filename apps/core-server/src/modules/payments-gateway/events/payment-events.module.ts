@@ -7,8 +7,7 @@ import { CommerceOrderPaymentHandlerService } from './services/commerce-order-pa
 import { PaymentEventDispatcherService } from './services/payment-event-dispatcher.service';
 import { PaymentJobsService } from './services/payment-jobs.service';
 
-// Payment event fan-out and the background jobs that feed it. Singletons only — nothing here may depend on a
-// request-scoped provider, or the timers in PaymentJobsService could not be constructed at boot
+// Payment event fan-out and the background jobs that feed it.
 @Module({
   imports: [PaymentGatewayConfigDomainModule, AppWebhookDomainModule, OrganizationDomainModule],
   providers: [

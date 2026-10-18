@@ -6,16 +6,12 @@ import {
 } from '@vritti/api-sdk/exceptions';
 import { isAxiosError } from 'axios';
 
-// Gitea reports failures as { message, url } regardless of status code
 interface GiteaApiError {
   message?: string;
   url?: string;
 }
 
-// Rethrows a failed Gitea call as an RFC 9457 problem. Gitea answers with { message, url }, so each
-// status is mapped to an equivalent problem rather than forwarded as-is. The one exception is a
-// conflict, whose upstream text names the clashing resource and is the only actionable detail Gitea
-// gives — every other status discards the body, which can leak instance internals.
+// Rethrows a failed Gitea call as an RFC 9457 problem.
 export function rethrowGiteaError(error: unknown, detail: string): never {
   if (!isAxiosError(error)) {
     throw error instanceof Error ? error : new InternalServerErrorException('Git service request failed.');

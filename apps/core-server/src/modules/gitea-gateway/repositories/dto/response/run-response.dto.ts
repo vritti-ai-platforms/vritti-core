@@ -1,7 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-// Non-terminal statuses. Anything else (in practice `completed`) carries a conclusion instead, which is
-// what tells a caller whether polling can stop.
 const ACTIVE_STATUSES = new Set(['waiting', 'queued', 'running']);
 
 interface GiteaApiActor {
@@ -10,7 +8,6 @@ interface GiteaApiActor {
   avatar_url?: string | null;
 }
 
-// Raw run shape from Gitea. `path` arrives as `<workflow file>@<ref>`, e.g. `ci.yaml@refs/heads/main`.
 export interface GiteaApiRun {
   id: number;
   run_number: number;

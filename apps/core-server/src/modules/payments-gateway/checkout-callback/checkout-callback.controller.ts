@@ -4,10 +4,7 @@ import { AuthType, Require, SkipCsrf } from '@vritti/api-sdk/auth';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { type CheckoutCallbackOutcome, CheckoutCallbackService } from './services/checkout-callback.service';
 
-// Core's hosted end of an embedded gateway checkout. Public by necessity: the gateway's page posts the shopper's
-// browser here as a top-level form submission, with no bearer and no CSRF token. The path names the organization
-// because a public call has nothing else to pick the row-level context the intent is read under. Every answer is a
-// 303 to a storefront page whose origin the intent's app allows, or a static page — never an open redirect, never a 500
+// Core's hosted end of an embedded gateway checkout.
 @ApiExcludeController()
 @Controller('payments/checkout')
 @SkipCsrf()

@@ -56,7 +56,9 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
     };
   }
 
-  // Replaces the full set of messaging apps for a communication (delete-all then re-insert). Runs in the caller's transaction.
+  // Replaces the full set of messaging apps for a communication (delete-all then re-insert).
+  // Replaces the full set of messaging apps for a communication (delete-all then re-insert). Runs in the caller's
+  // transaction.
   async replaceApps(communicationId: string, apps: { app: MessagingApp; handle?: string | null }[]): Promise<void> {
     await this.db.delete(partyCommunicationApps).where(eq(partyCommunicationApps.communicationId, communicationId));
     if (apps.length > 0) {
@@ -98,8 +100,7 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
       )
       .orderBy(asc(parties.createdAt));
 
-    // Two rows differing only in case both match, so the same party can come
-    // back twice. Dedupe while keeping oldest-first order.
+    // Two rows differing only in case both match, so the same party can come back twice.
     return [...new Set(rows.map((row) => row.partyId))];
   }
 
@@ -119,8 +120,8 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
     return row as PartyCommunication | undefined;
   }
 
-  // Looks up a communication by party, channel and value
-  // The party's existing row on this channel with this value, if any
+  // Looks up a communication by party, channel and value The party's existing row on this channel with this value, if
+  // any
   async findByPartyChannelValue(
     partyId: string,
     channel: PartyCommunicationChannel,

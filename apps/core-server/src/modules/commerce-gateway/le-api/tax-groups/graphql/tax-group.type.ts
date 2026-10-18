@@ -1,8 +1,6 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 
-// Mirrors TaxGroupResponseDto — the Tax Group cards the mobile Tax Groups screen lists. A group has a name,
-// an active flag, a canDelete flag (false when referenced by an inventory item or offering), and its tax
-// rates. There is NO server `total` — the client sums `rate` across `taxRates`.
+// Mirrors TaxGroupResponseDto — the Tax Group cards the mobile Tax Groups screen lists.
 @ObjectType()
 export class TaxRate {
   @Field(() => ID)

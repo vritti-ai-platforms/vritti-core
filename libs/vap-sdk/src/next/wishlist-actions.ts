@@ -6,19 +6,9 @@ import { resolvePayload } from './payload-adapter.js';
 import { formField, type PartyActionState, returnToFrom, withPartyErrors } from './state.js';
 import { vapSdk } from './visitor-session.js';
 
-/**
- * The saved list, as server actions a storefront imports directly.
- *
- * Same shape and the same reasoning as the basket's — see `cart-actions`.
- */
+// The saved list, as server actions a storefront imports directly.
 
-/**
- * Saves something for later, or takes it back off.
- *
- * The product page knows whether the item is saved — it reads the party's saved ids alongside the
- * basket counts — so the form says which it wants with `intent`. A form posted without one
- * (JavaScript off, a stale page) saves, and "already there" still comes back as an outcome.
- */
+// Saves something for later, or takes it back off.
 export async function toggleWishlistAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
   const returnTo = returnToFrom(formData);
   const party = await requireParty(returnTo);
@@ -44,7 +34,7 @@ export async function toggleWishlistAction(_previous: PartyActionState, formData
   return result;
 }
 
-/** Takes something off the wishlist. Called from the list itself. */
+// Takes something off the wishlist.
 export async function removeFromWishlistAction(
   _previous: PartyActionState,
   formData: FormData,

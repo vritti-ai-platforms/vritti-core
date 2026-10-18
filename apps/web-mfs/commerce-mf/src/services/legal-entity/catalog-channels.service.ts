@@ -17,8 +17,7 @@ export interface UpsertChannelPayload {
   terminalId?: string;
 }
 
-// One endpoint per type, because each names a target the others forbid. Assigning is a PUT: the API
-// repoints the row this workspace owns, or stamps a new one, so there is no create/update split here.
+// One endpoint per type, because each names a target the others forbid.
 export function upsertChannel({
   type,
   catalogId,

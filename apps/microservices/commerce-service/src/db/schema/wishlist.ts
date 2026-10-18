@@ -19,8 +19,7 @@ export const wishlistItems = commerceSchema.table(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    // Saving twice saves the same thing. The insert takes this as its idempotency key rather
-    // than reading first, so two taps in quick succession cannot make two rows.
+    // Saving twice saves the same thing.
     unique('uq_wishlist_items_party_variant').on(table.organizationId, table.appId, table.partyId, table.code),
     // A code is unique per organization, never globally, so the reference carries both columns
     foreignKey({

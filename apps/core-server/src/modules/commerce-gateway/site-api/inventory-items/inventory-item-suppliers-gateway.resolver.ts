@@ -5,8 +5,8 @@ import { SessionTypeValues } from '@/db/schema';
 import { InventoryItemSupplierConnection } from './graphql/inventory-item-supplier.type';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
-// Read-only per-inventory-item supplier links for the mobile Suppliers tab — a Relay offset feed (an item can
-// have many suppliers). Thin forward to the gateway (which paginates via the commerce-service DB).
+// Read-only per-inventory-item supplier links for the mobile Suppliers tab — a Relay offset feed (an item can have many
+// suppliers).
 @Resolver()
 export class InventoryItemSuppliersResolver {
   private readonly logger = new Logger(InventoryItemSuppliersResolver.name);

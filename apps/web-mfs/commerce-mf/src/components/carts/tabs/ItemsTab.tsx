@@ -80,8 +80,6 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
       {
         accessorKey: 'isAvailable',
         header: 'Status',
-        // An item this workspace has stopped pricing stays in the basket and says so — dropping it
-        // silently would lose what the shopper chose.
         cell: ({ row }) =>
           row.original.isAvailable ? (
             <Badge variant="success">Available</Badge>

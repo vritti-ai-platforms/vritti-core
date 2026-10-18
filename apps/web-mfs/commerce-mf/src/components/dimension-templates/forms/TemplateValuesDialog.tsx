@@ -25,8 +25,8 @@ interface TemplateValuesDialogProps {
   onCancel: () => void;
 }
 
-// One form for both adding the first values and editing an existing set — the endpoint takes the
-// whole set either way, so there is nothing to branch on.
+// One form for both adding the first values and editing an existing set — the endpoint takes the whole set either way,
+// so there is nothing to branch on.
 export const TemplateValuesDialog: React.FC<TemplateValuesDialogProps> = ({
   template,
   useUpsertDimensionTemplateValues,
@@ -45,8 +45,8 @@ export const TemplateValuesDialog: React.FC<TemplateValuesDialogProps> = ({
   const upsertMutation = useUpsertDimensionTemplateValues({ onSuccess });
   const valueFields = useFieldArray({ control: form.control, name: 'values' });
 
-  // Typing the name fills the code until the code is edited by hand — the code is copied onto every
-  // offering that seeds from this template and ends up in their SKUs, so it is worth getting right.
+  // Typing the name fills the code until the code is edited by hand — the code is copied onto every offering that seeds
+  // from this template and ends up in their SKUs, so it is worth getting right.
   const deriveCode = (index: number, name: string) => {
     if (form.getFieldState(`values.${index}.code`).isDirty) return;
     form.setValue(`values.${index}.code`, toCode(name));

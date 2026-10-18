@@ -82,8 +82,6 @@ export class GoodsReceiptLineItemsDomainService {
       });
     }
 
-    // Enforce the user-declared cap on the line. The line's `quantity` field is the expected number
-    // of serials at this location; once the count reaches that, the line is balanced and full.
     const currentCount = await this.repository.countByLineId(lineId);
     if (currentCount >= line.quantity) {
       throw new ConflictException({
@@ -173,6 +171,7 @@ export class GoodsReceiptLineItemsDomainService {
     return { success: true, message: `Serial "${existing.serialNumber}" removed successfully.` };
   }
 
+  // Goods receipt always REGISTERS new serials.
   // Goods receipt always REGISTERS new serials. Reject collision with existing inventory_item_serials.
   private async validateSerialForRegister(inventoryItemId: string, serialNumber: string): Promise<void> {
     const exists = await this.repository.existsSerialInInventory(inventoryItemId, serialNumber);

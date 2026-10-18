@@ -30,7 +30,9 @@ export class CategoriesDomainService {
     private readonly categoriesRepository: CategoriesDomainRepository,
   ) {}
 
-  // Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce leaf-only links
+  // Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce leaf-only
+  // links Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce
+  // leaf-only links
   async assertIsLeaf(categoryId: string): Promise<void> {
     const category = await this.requireById(categoryId);
     if (category.categoryRole !== CategoryRoleValues.CATEGORY) {
@@ -69,8 +71,7 @@ export class CategoriesDomainService {
     return { count };
   }
 
-  // Returns categories as a TreeView-compatible hierarchy. Single pass: the CTE returns rows in
-  // pre-order so a row's parent is always already in the map by the time the row is processed.
+  // Returns categories as a TreeView-compatible hierarchy.
   async findTree(search?: string): Promise<CategoryTreeDto[]> {
     const rows = await this.categoriesRepository.findHierarchyRows(search?.trim());
 

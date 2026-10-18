@@ -30,14 +30,14 @@ export class OrdersDomainRepository extends PrimaryBaseRepository<typeof orders>
     return this.db.insert(orderItems).values(data).returning() as Promise<OrderItem[]>;
   }
 
-  // The order a party's checkout already opened under this key at this site. orders' site_* RLS policies are
-  // permissive and OR with org isolation, so they do not narrow to the site — the siteId filter here does
+  // The order a party's checkout already opened under this key at this site. orders' site_* RLS policies are permissive
+  // and OR with org isolation, so they do not narrow to the site — the siteId filter here does
   async findByCheckoutKey(partyId: string, checkoutKey: string, siteId: string): Promise<Order | undefined> {
     return this.model.findFirst({ where: { partyId, checkoutKey, siteId } });
   }
 
   // Loads a site's order and locks its row until the surrounding transaction ends, so concurrent payment callbacks
-  // serialize. Filters by site in code — RLS alone lets every site of the org through
+  // serialize.
   async findByIdForUpdate(id: string, siteId: string): Promise<Order | undefined> {
     const [row] = await this.db
       .select()

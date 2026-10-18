@@ -32,7 +32,7 @@ const event = {
   },
 };
 
-/** What core sends: the headers, and a signature over `${timestamp}.${rawBody}`. */
+// What core sends: the headers, and a signature over `${timestamp}.${rawBody}`.
 function deliver(privateKey: KeyObject, rawBody: string, timestamp = Math.floor(Date.now() / 1000)) {
   const signature = sign(null, Buffer.from(`${timestamp}.${rawBody}`, 'utf8'), privateKey).toString('base64');
   return {

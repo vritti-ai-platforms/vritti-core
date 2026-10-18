@@ -112,18 +112,15 @@ export class LocationsDomainService {
     ZONE: 'Zone',
   };
 
-  // Display order for role groups in select dropdowns. Reserved bins surface first since they
-  // are item-scoped and the most relevant choice when both roles are requested together.
+  // Display order for role groups in select dropdowns.
   private static readonly LOCATION_ROLE_GROUP_ORDER: LocationRole[] = [
     LocationRoleValues.RESERVED_STORAGE,
     LocationRoleValues.STORAGE,
     LocationRoleValues.ZONE,
   ];
 
-  // Returns paginated location options for select dropdowns.
-  // locationRoles is a comma-separated whitelist against locations.location_role.
-  // When inventoryItemId is provided AND RESERVED_STORAGE is requested, RESERVED_STORAGE bins are
-  // further restricted to those linked to that item via inventory_item_locations.
+  // Returns paginated location options for select dropdowns. locationRoles is a comma-separated whitelist against
+  // locations.location_role.
   findForSelect(
     query: SelectOptionsQueryDto & {
       locationRoles?: string;

@@ -8,7 +8,6 @@ export interface LoginState extends SealedState {
   state: string;
   verifier: string;
   redirectUri: string;
-  /** Server-configured (the admin route), never caller-supplied — so it needs no open-redirect guard. */
   returnTo: string;
 }
 
@@ -21,6 +20,7 @@ export function randomState(): string {
   return randomBytes(16).toString('base64url');
 }
 
+// The login leg's state, parked in a cookie rather than a table.
 // The login leg's state, parked in a cookie rather than a table. See `seal` for why.
 export function sealState(state: LoginState, secret: string): string {
   return seal(state, secret);

@@ -10,7 +10,6 @@ import type { CreatePosTerminalDto } from '../dto/request/create-pos-terminal.dt
 import type { UpdatePosTerminalDto } from '../dto/request/update-pos-terminal.dto';
 import { PosTerminalsDomainRepository } from '../repositories/pos-terminals.repository';
 
-// Location context pre-fetched by the app-layer before write operations
 export type LocationContext = {
   id: string;
   locationRole: string;
@@ -58,8 +57,8 @@ export class PosTerminalsDomainService {
     return PosTerminalDto.from(entity);
   }
 
-  // Returns paginated POS terminal options for select dropdowns
-  // Every active terminal in reach, for callers that list the estate rather than page through it
+  // Returns paginated POS terminal options for select dropdowns Every active terminal in reach, for callers that list
+  // the estate rather than page through it
   list(): Promise<{ id: string; name: string }[]> {
     return this.repository.findAllActive();
   }
@@ -81,6 +80,7 @@ export class PosTerminalsDomainService {
     });
   }
 
+  // Creates a new POS terminal.
   // Creates a new POS terminal. App-layer must pre-validate the location and pass it as context.
   async create(data: CreatePosTerminalDto, location: LocationContext): Promise<CreateResponseDto<PosTerminalDto>> {
     this.assertValidLocation(location);
@@ -104,6 +104,7 @@ export class PosTerminalsDomainService {
     };
   }
 
+  // Updates an existing POS terminal.
   // Updates an existing POS terminal. App-layer must pre-validate the location if provided.
   async update(id: string, data: UpdatePosTerminalDto, location?: LocationContext): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);

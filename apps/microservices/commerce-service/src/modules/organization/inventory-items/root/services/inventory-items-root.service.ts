@@ -6,8 +6,8 @@ import { InventoryItemsDomainService } from '@domain/inventory-items/services/in
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
-// Top-level service for inventory item create/update paths that require
-// cross-domain validation: the assigned category must be a leaf.
+// Top-level service for inventory item create/update paths that require cross-domain validation: the assigned category
+// must be a leaf.
 @Injectable()
 export class OrgInventoryItemsService {
   private readonly logger = new Logger(OrgInventoryItemsService.name);

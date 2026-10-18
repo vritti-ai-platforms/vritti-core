@@ -72,9 +72,9 @@ export class OrganizationDomainService {
     return { success: true, message: 'Organization feature locks updated successfully.' };
   }
 
-  // Returns the services this organization has provisioned. org_services carries an org_isolation
-  // policy and callers include the public /auth/status path, where no session has set app.org_id — so
-  // the read supplies its own context rather than relying on the connection owning the table.
+  // Returns the services this organization has provisioned. org_services carries an org_isolation policy and callers
+  // include the public /auth/status path, where no session has set app.org_id — so the read supplies its own context
+  // rather than relying on the connection owning the table.
   async getServices(orgId: string): Promise<OrgServiceEntity[]> {
     return this.primaryDb.runWithRlsContext({ orgId }, () => this.orgServiceRepository.findByOrg(orgId));
   }
@@ -84,16 +84,14 @@ export class OrganizationDomainService {
     const org = await this.organizationRepository.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found.');
 
-    // Passed through as-is: an omitted identifier must stay undefined so the upsert leaves the stored
-    // value alone rather than overwriting it with null
+    // Passed through as-is: an omitted identifier must stay undefined so the upsert leaves the stored value alone
+    // rather than overwriting it with null
     await this.orgServiceRepository.upsert(orgId, dto.service, {
       externalId: dto.externalId,
       externalName: dto.externalName,
     });
 
-    // Bust the resolved permission sets BEFORE announcing, or the SSE re-push serves the stale locked
-    // set. Reached from the read-only status backfill too, but only on the transition into provisioned,
-    // so the blunt invalidateAll still fires about once per service (same as a catalog push).
+    // Bust the resolved permission sets BEFORE announcing, or the SSE re-push serves the stale locked set.
     await this.permissionSetCache.invalidateAll();
 
     this.logger.log(`Provisioned service ${dto.service} for org ${orgId} (${dto.externalName ?? 'no ref'})`);
@@ -113,9 +111,9 @@ export class OrganizationDomainService {
     return org ? OrganizationDto.from(org, await this.getServices(org.id)) : null;
   }
 
-  // Returns an org's object-storage descriptor by subdomain for signed-internal callers; read straight off the org
-  // row (cloud provisions storage before the org exists, so a live org always has it) and returned in whatever form
-  // the writer stored — core applies no extra treatment, matching how the media path consumes the same credential
+  // Returns an org's object-storage descriptor by subdomain for signed-internal callers; read straight off the org row
+  // (cloud provisions storage before the org exists, so a live org always has it) and returned in whatever form the
+  // writer stored — core applies no extra treatment, matching how the media path consumes the same credential
   async getStorageBySubdomain(subdomain: string): Promise<OrgStorage> {
     const org = await this.organizationRepository.findBySubdomain(subdomain);
     if (!org) throw new NotFoundException(`Organization "${subdomain}" not found.`);
@@ -222,9 +220,6 @@ export class OrganizationDomainService {
     const org = await this.organizationRepository.findById(id);
     if (!org) throw new NotFoundException('Organization not found.');
 
-    // Captured before the row goes, then used after it. Purging first would mean a failed row delete leaves the org
-    // intact with every file destroyed — silent data loss with nothing deleted. This way the worst case is orphaned
-    // objects, which the control plane's bucket delete and the GC sweep both clean up.
     const storage = org.storage;
     await this.organizationRepository.delete(id);
 

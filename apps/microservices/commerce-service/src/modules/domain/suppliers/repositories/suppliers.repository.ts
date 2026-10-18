@@ -21,8 +21,8 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
     super(database, suppliers);
   }
 
-  // Returns paginated supplier options — in site context only enrolled, purchase-unblocked suppliers
-  // (fail-closed); `enrollable` flips the enrollment predicate for the site enroll dialog.
+  // Returns paginated supplier options — in site context only enrolled, purchase-unblocked suppliers (fail-closed);
+  // `enrollable` flips the enrollment predicate for the site enroll dialog.
   override findForSelect(config: FindForSelectConfig, options?: { enrollable?: boolean }): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
 

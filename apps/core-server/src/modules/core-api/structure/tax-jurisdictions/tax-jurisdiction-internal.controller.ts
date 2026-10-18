@@ -9,8 +9,7 @@ import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { TaxJurisdictionsGatewayService } from '@/modules/commerce-gateway/org-api/tax-jurisdictions/services/tax-jurisdictions-gateway.service';
 
-// The cloud-facing surface. A legal entity's registration needs a jurisdiction, and the operator may
-// have to create one during setup, so cloud gets select + create + update rather than the full tree.
+// The cloud-facing surface.
 @ApiTags('Internal - Tax Jurisdictions')
 @Require(AuthType.Cloud)
 @Controller('tax-jurisdictions/internal')

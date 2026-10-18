@@ -2,7 +2,6 @@ import { Card } from '@vritti/quantum-ui/Card';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 
 // Mirrors the card grid's layout — same columns, gap and internal rhythm — so nothing shifts on load.
-// The page header is not part of this: it renders instantly with its static title.
 export const AttributeTemplateGridSkeleton = () => (
   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
     {[0, 1, 2, 3, 4, 5].map((key) => (

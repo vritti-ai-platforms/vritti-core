@@ -23,8 +23,7 @@ export class ListingFilterSelectionDto {
 }
 
 export class ListingQueryDto {
-  // Group code → value codes. OR within a group, AND across groups; a group may name a dimension or
-  // an attribute, and which one it is is resolved by the query rather than declared by the caller.
+  // Group code → value codes.
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })

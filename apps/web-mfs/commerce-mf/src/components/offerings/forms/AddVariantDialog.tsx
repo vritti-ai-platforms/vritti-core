@@ -19,8 +19,7 @@ interface AddVariantDialogProps {
   onCancel: () => void;
 }
 
-// The matrix wizard covers batches; this is the one-off — a single combination picked by hand. The
-// Code is still derived, never typed, so a hand-added variant is indistinguishable from a generated one.
+// The matrix wizard covers batches; this is the one-off — a single combination picked by hand.
 export const AddVariantDialog: React.FC<AddVariantDialogProps> = ({
   offering,
   dimensions,

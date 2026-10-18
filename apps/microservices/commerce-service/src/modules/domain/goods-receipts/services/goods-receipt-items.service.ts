@@ -47,8 +47,7 @@ export class GoodsReceiptItemsDomainService {
     );
   }
 
-  // Effective per-unit cost after the scheme = unit_price × ordered_qty / total_qty (free units dilute
-  // it). In the item's UOM and supplier currency; null when there's no price or no quantity yet.
+  // Effective per-unit cost after the scheme = unit_price × ordered_qty / total_qty (free units dilute it).
   private computeUnitCost(unitPrice: bigint | null, orderedQty: number, totalQty: number): bigint | null {
     if (unitPrice == null || totalQty <= 0) return null;
     return BigInt(
@@ -158,6 +157,7 @@ export class GoodsReceiptItemsDomainService {
     );
   }
 
+  // Add an item to a GR by referencing a purchase_order_items row.
   // Add an item to a GR by referencing a purchase_order_items row. Used when the GR is linked to a PO.
   async addItemFromPurchaseOrderItem(
     goodsReceiptId: string,
@@ -308,9 +308,7 @@ export class GoodsReceiptItemsDomainService {
 
     if (data.orderedQty !== undefined) {
       this.validateOrderedQty(data.orderedQty);
-      // PO-linked: keep the ordered (paid) quantity within the PO line's outstanding amount. Lowering
-      // it below what's already distributed across lines is allowed — the item just shows unbalanced
-      // until the operator removes lines.
+      // PO-linked: keep the ordered (paid) quantity within the PO line's outstanding amount.
       if (item.poOrderedQuantity != null) {
         this.validateQuantityAgainstPoRemaining(
           data.orderedQty,
@@ -335,8 +333,6 @@ export class GoodsReceiptItemsDomainService {
     }
     if (data.currencyCode !== undefined) update.currencyCode = data.currencyCode;
 
-    // Recompute free_qty + total_qty whenever ordered qty or any scheme field changes. free_qty is
-    // always derived from the (possibly updated) ordered qty and scheme — never an operator input.
     const schemeOrQtyChanged =
       data.orderedQty !== undefined ||
       data.schemeBuyQty !== undefined ||

@@ -130,9 +130,7 @@ export class CheckoutCallbackService {
     orgId: string,
     paymentIntentId: string,
   ): Promise<CheckoutContext | null> {
-    // A public route carries no auth, so neither RLS nor the NATS context has an organization. The one in the URL is
-    // what core put in the callback path, and payments-service reads the intent under it — an intent of another
-    // organization is simply not found
+    // A public route carries no auth, so neither RLS nor the NATS context has an organization.
     request.auth = { kind: 'cloud', organizationId: orgId };
     try {
       return await this.db.runWithRlsContext({ orgId }, async () => {
@@ -153,8 +151,7 @@ export class CheckoutCallbackService {
     }
   }
 
-  // Confirms a success the way the storefront's own confirm would. A failure is only logged: the gateway's webhook
-  // settles the payment anyway, and the shopper still goes back to the store, which reads the intent's status
+  // Confirms a success the way the storefront's own confirm would.
   private async confirmQuietly(
     orgId: string,
     intent: PaymentIntentResponseDto,
@@ -177,8 +174,8 @@ export class CheckoutCallbackService {
     }
   }
 
-  // A 303 to the target with the params appended, but only when the app is still active and still allows the
-  // target's origin; otherwise the static page
+  // A 303 to the target with the params appended, but only when the app is still active and still allows the target's
+  // origin; otherwise the static page
   private redirectOr(
     fallback: string,
     orgId: string,

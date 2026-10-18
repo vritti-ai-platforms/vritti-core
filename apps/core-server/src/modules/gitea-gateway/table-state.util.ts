@@ -1,7 +1,5 @@
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 
-// Gitea caps any page at 50; the DataTable's largest page size is also 50, so this only guards a
-// hand-crafted state
 const MAX_PAGE_SIZE = 50;
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -16,12 +14,6 @@ export function toGiteaPaging(state: TableViewState): { page: number; limit: num
 }
 
 // Picks out the equality filters Gitea can actually honour, keyed by field name.
-//
-// The git service has no query language: each endpoint accepts a fixed set of single-value params. So
-// only `equals` on an allowed field is applied — every other field, every other operator, the search
-// term, and sorting entirely are round-tripped to the client untouched rather than silently faked. A
-// table column that appears sortable but is not would be worse than one that never claims to be, which
-// is why the callers pass `enableSorting: false`.
 export function toGiteaFilters(state: TableViewState, allowedFields: readonly string[]): Record<string, string> {
   const params: Record<string, string> = {};
 

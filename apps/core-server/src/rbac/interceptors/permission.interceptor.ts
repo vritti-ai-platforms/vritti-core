@@ -47,9 +47,7 @@ export class PermissionInterceptor implements NestInterceptor {
       `  auth: kind=${auth?.kind} siteId=${siteId} siteGroupId=${siteGroupId} legalEntityId=${legalEntityId} orgId=${orgId}`,
     );
 
-    // Only a session or an app carries grants. A control-plane request has no principal to
-    // resolve permissions for, so a permission-gated route is not something it may reach —
-    // denied rather than waved through on the strength of its signature.
+    // Only a session or an app carries grants.
     if (!orgId || (auth?.kind !== 'session' && auth?.kind !== 'app')) {
       this.logger.warn(`  DENY — no grant-bearing principal (kind=${auth?.kind ?? 'none'}, orgId=${orgId ?? 'none'})`);
       throw new ForbiddenException('You do not have permission to perform this action.');
@@ -64,13 +62,8 @@ export class PermissionInterceptor implements NestInterceptor {
           ? { scope: 'LE', id: legalEntityId }
           : { scope: 'ORG', id: orgId };
 
-    // Platform bucket follows the caller: MOBILE enforces the mobile feature set, an app
-    // credential the bucket of its own surface (GRAPHQL → graphql, HTTP → http), everything else
-    // web. The credential type BEING the bucket is what lets a plan entitle each API surface
-    // independently, and what frees a headless feature from needing a microfrontend to be reachable.
-    //
-    // Fails closed: an app whose type is missing or unrecognised resolves nothing rather
-    // than everything.
+    // Platform bucket follows the caller: MOBILE enforces the mobile feature set, an app credential the bucket of its
+    // own surface (GRAPHQL → graphql, HTTP → http), everything else web.
     let bucket: PlatformBucket;
     if (auth.kind === 'app') {
       const surface = API_SURFACES.find((s) => s === auth.appType);
@@ -83,9 +76,6 @@ export class PermissionInterceptor implements NestInterceptor {
       bucket = auth.sessionType === SessionTypeValues.MOBILE ? 'mobile' : 'web';
     }
 
-    // The grant source differs — an app holds one composed set on its credential, a user's is
-    // derived from role assignments — but the catalog it is intersected with does not. A plan
-    // lock or a node's feature switch binds an app exactly as it binds a person.
     const source: GrantSource =
       auth.kind === 'app'
         ? { kind: 'app', appId: auth.appId, grants: auth.permissions ?? {} }

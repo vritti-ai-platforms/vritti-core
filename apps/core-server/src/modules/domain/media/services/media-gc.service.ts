@@ -8,8 +8,6 @@ import type { OrgStorage } from '@/db/schema';
 import { MediaDomainRepository } from '../repositories/media.repository';
 import { OrgStorageResolverService } from '../storage/org-storage-resolver.service';
 
-// An object younger than this is assumed to be an upload still in flight — its media row may be milliseconds away.
-// Without the grace period the sweep races live uploads and deletes files that were about to become valid.
 const ORPHAN_GRACE_MS = 24 * 60 * 60 * 1000;
 
 export interface SweepResult {
@@ -28,8 +26,7 @@ export class MediaGcService {
     private readonly primaryDb: PrimaryDatabaseService,
   ) {}
 
-  // Sweeps every org. One org's failure must not abandon the rest — a bad credential on one tenant should not stop
-  // the others being cleaned.
+  // Sweeps every org.
   async sweepAll(): Promise<SweepResult> {
     const orgs = await this.organizationRepository.findAll();
     const total: SweepResult = { scanned: 0, deleted: 0 };
@@ -57,8 +54,6 @@ export class MediaGcService {
 
     const { storage, provider } = this.storageResolver.resolve(org.storage);
 
-    // The media read runs outside a request, so nothing has set app.org_id and the org_isolation policy would return
-    // no rows — making every object look orphaned. Supplying the context is what stops this deleting the whole bucket.
     const knownKeys = await this.primaryDb.runWithRlsContext({ orgId: organizationId }, () =>
       this.mediaRepository.findStorageKeys(organizationId),
     );
@@ -78,14 +73,7 @@ export class MediaGcService {
     return result;
   }
 
-  // Empties both of an org's buckets. Unlike the sweep this ignores media rows and the grace period — the org is
-  // going away, so every object goes with it, including uploads still in flight.
-  //
-  // Takes the descriptor rather than an org id so it can run AFTER the row has been deleted. That ordering matters:
-  // if it ran first and the row delete then failed, the org would still exist with every file destroyed.
-  //
-  // Core does this rather than the control plane because emptying needs S3 access, and the org's credential lives
-  // only here. The control plane deletes the buckets afterwards, which R2 refuses while they still hold objects.
+  // Empties both of an org's buckets.
   async purgeObjects(storage: OrgStorage): Promise<number> {
     const { provider } = this.storageResolver.resolve(storage);
     let deleted = 0;

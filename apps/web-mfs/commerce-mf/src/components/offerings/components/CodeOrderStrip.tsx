@@ -3,8 +3,6 @@ import type { OfferingData, OfferingDimensionData } from '@/schemas/offerings';
 
 interface CodeOrderStripProps {
   offering: OfferingData;
-  // Whichever axes are in play — the whole offering on the dimensions tab, this batch's subset in the
-  // generate wizard. The shape is the same either way: offering code then one segment per axis, in order.
   dimensions: OfferingDimensionData[];
 }
 

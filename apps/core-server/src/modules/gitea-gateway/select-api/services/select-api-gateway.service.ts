@@ -13,7 +13,6 @@ const DEFAULT_LIMIT = 20;
 // Website container images live in Gitea's container registry; every other package type is ignored
 const CONTAINER_PACKAGE_TYPE = 'container';
 
-// Gitea's repo search answers with an envelope, unlike /orgs/{ns}/repos which answers with a bare array
 interface GiteaApiRepoSearch {
   ok: boolean;
   data: GiteaApiRepository[];
@@ -27,8 +26,8 @@ export class SelectApiGatewayService {
     private readonly organizationService: OrganizationDomainService,
   ) {}
 
-  // Returns repository options for select dropdowns, keyed by name — repositories are addressed by name
-  // everywhere in this API, so the name is both the value and the label
+  // Returns repository options for select dropdowns, keyed by name — repositories are addressed by name everywhere in
+  // this API, so the name is both the value and the label
   async selectRepositories(subdomain: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
 
@@ -55,8 +54,7 @@ export class SelectApiGatewayService {
     return { options, hasMore: repositories.length === limit };
   }
 
-  // Returns distinct container-package options for select dropdowns. Gitea lists one entry per package
-  // version, so the raw page is collapsed to distinct names — the name is both value and label.
+  // Returns distinct container-package options for select dropdowns.
   async selectPackages(subdomain: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
 
@@ -80,12 +78,10 @@ export class SelectApiGatewayService {
     }
 
     // Gitea reports no usable total here, so a full raw page is treated as "there may be another".
-    // Distinct names can be fewer than the page size when a package has many versions.
     return { options, hasMore: packages.length === limit };
   }
 
-  // Returns tag (version) options for one container package, newest first — the version is both value
-  // and label. Backs the website-creation package selector.
+  // Returns tag (version) options for one container package, newest first — the version is both value and label.
   async selectPackageTags(subdomain: string, query: PackageTagsSelectQueryDto): Promise<SelectQueryResult> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
 
@@ -99,8 +95,6 @@ export class SelectApiGatewayService {
     const page = Math.floor((query.offset ?? 0) / limit) + 1;
     const versions = await this.listPackageVersions(namespace, query.package, page, limit);
 
-    // Gitea's `q` matches package names by substring, so entries for a package whose name merely
-    // contains this one are dropped here. Versions are then ordered newest-first.
     const exact = versions
       .filter((entry) => entry.name === query.package)
       .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
@@ -120,11 +114,8 @@ export class SelectApiGatewayService {
     return { options, hasMore: versions.length === limit };
   }
 
-  // Returns combined image options (`name:tag`) for select dropdowns — one option per container-package
-  // VERSION, since a website pins a single name+version. Gitea lists one entry per version already, so no
-  // collapsing: each entry becomes an option whose value and label are `${name}:${version}`. Callers split
-  // on the last ':' back into image + tag. Backs the website-creation image selector (replaces the
-  // package→tag cascade), so it takes no package param.
+  // Returns combined image options (`name:tag`) for select dropdowns — one option per container-package VERSION, since
+  // a website pins a single name+version.
   async selectImages(subdomain: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
 
@@ -155,8 +146,7 @@ export class SelectApiGatewayService {
     return { options, hasMore: packages.length === limit };
   }
 
-  // Searches within the organization's repositories. The search route needs the org's numeric git id,
-  // which only the provisioned service row carries; without it fall back to the unfiltered listing.
+  // Searches within the organization's repositories.
   private async searchRepositories(
     subdomain: string,
     namespace: string,
@@ -179,8 +169,7 @@ export class SelectApiGatewayService {
     return repositories ?? [];
   }
 
-  // Lists the namespace's container packages. Gitea's `q` filters by package name (substring), and the
-  // registry returns one entry per version, so callers must collapse by name.
+  // Lists the namespace's container packages.
   private async searchPackages(
     namespace: string,
     search: string | undefined,
@@ -193,8 +182,7 @@ export class SelectApiGatewayService {
     return packages ?? [];
   }
 
-  // Lists version entries for a single container package. There is no list-versions route on Gitea, so
-  // this reuses the packages listing pinned to the package name via `q`; the caller exact-matches the name.
+  // Lists version entries for a single container package.
   private async listPackageVersions(
     namespace: string,
     packageName: string,

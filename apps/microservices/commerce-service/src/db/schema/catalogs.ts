@@ -13,9 +13,6 @@ export const catalogs = commerceSchema.table(
     siteId: workspaceScopeColumns.siteId,
     name: varchar('name', { length: 255 }).notNull(),
     taxInclusive: boolean('tax_inclusive').notNull().default(false),
-    // What the number beside a storefront filter value counts. STATIC counts the whole catalog and
-    // costs one query; NARROWING counts what each value would still return given the other groups'
-    // selections, which prevents dead-end clicks but costs one aggregate per selected group.
     filterMode: catalogFilterModeEnum('filter_mode').notNull().default('STATIC'),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -31,9 +28,8 @@ export const catalogs = commerceSchema.table(
       .nullsNotDistinct(),
     index('idx_catalogs_org').on(table.organizationId, table.name),
     check('ck_catalogs_site_needs_le', sql`${table.siteId} is null or ${table.legalEntityId} is not null`),
-    // Same reach as its listings: a workspace sees catalogs owned by itself or any workspace above it,
-    // and may only write its own. A site's catalog is therefore edited from the site workspace, where
-    // every item it can reach — org, its LE, its own — is available to add.
+    // Same reach as its listings: a workspace sees catalogs owned by itself or any workspace above it, and may only
+    // write its own.
     ...workspaceScopePolicies('catalog_reach'),
   ],
 );

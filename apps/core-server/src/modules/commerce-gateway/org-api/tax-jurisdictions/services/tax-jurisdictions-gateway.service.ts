@@ -45,8 +45,8 @@ export class TaxJurisdictionsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates a new tax jurisdiction
-  // Options for a jurisdiction picker — the same select the session surface exposes, reachable by cloud
+  // Creates a new tax jurisdiction Options for a jurisdiction picker — the same select the session surface exposes,
+  // reachable by cloud
   async findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.taxJurisdictions');
     return this.nats.send('commerce', 'select.taxJurisdictions', query);

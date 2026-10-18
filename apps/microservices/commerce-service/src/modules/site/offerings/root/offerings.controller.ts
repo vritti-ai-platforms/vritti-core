@@ -53,8 +53,8 @@ export class SiteOfferingsController {
     return this.service.update(id, data);
   }
 
-  // Sets the tax class and cascades it to every variant that has not been overridden
-  // Changes what the offering is, cascading to variants that have not pinned their own
+  // Sets the tax class and cascades it to every variant that has not been overridden Changes what the offering is,
+  // cascading to variants that have not pinned their own
   @MessagePattern({ cmd: 'site.offerings.setFulfilment' })
   setFulfilment(@Payload() dto: SetOfferingFulfilmentDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.setFulfilment — id: ${dto.id}, type: ${dto.fulfilmentType}`);

@@ -10,8 +10,6 @@ export const carts = commerceSchema.table(
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     ...workspaceScopeColumns,
-    // Declared here rather than by calling .notNull() on the shared builder: drizzle mutates builders
-    // in place, so that would make legal_entity_id NOT NULL on every table that spreads them.
     legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw(LE_GUC)),
     partyId: uuid('party_id')
       .notNull()

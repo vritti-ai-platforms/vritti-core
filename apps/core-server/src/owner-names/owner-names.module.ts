@@ -7,9 +7,8 @@ import { CacheModule } from '@vritti/api-sdk/cache';
 import { OwnerNameService } from './owner-name.service';
 import { OwnerNameCacheService } from './owner-name-cache.service';
 
-// An owning organization, legal entity or site is a core concept, not a commerce one, so this sits
-// above the gateways that read it. Global so the domain services that rename one can invalidate
-// without importing upward from a gateway.
+// An owning organization, legal entity or site is a core concept, not a commerce one, so this sits above the gateways
+// that read it.
 @Global()
 @Module({
   imports: [

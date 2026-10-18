@@ -1,5 +1,3 @@
-// Location permission codes — MUST match the cloud catalog's authored codes exactly.
-// One object per workspace scope the feature is exposed in; codes are scope.feature.permission.
 export const SITE_LOCATIONS = {
   featureCode: 'locations',
   view: 'site.locations.view',
