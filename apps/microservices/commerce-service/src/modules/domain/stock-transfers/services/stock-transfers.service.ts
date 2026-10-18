@@ -74,7 +74,6 @@ export class StockTransfersDomainService {
     return { transfer: StockTransferDto.from(entity), currentStatus, newStatus };
   }
 
-  // Persists the status change.
   // Persists the status change. Call after batch operations have been applied by the app-layer.
   async applyStatus(
     id: string,

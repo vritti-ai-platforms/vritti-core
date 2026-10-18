@@ -14,7 +14,6 @@ export class TaxGroupsResolver {
 
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}
 
-  // All tax groups (with rates + canDelete) — the mobile Tax Groups list.
   // All tax groups (with rates + canDelete) — the mobile Tax Groups list. Small/bounded, so a plain array.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => [TaxGroup], { name: 'taxGroups' })

@@ -35,7 +35,6 @@ export class InventoryItemsResolver {
     });
   }
 
-  // Single inventory item — live detail screen + post-update re-fetch.
   // Single inventory item — live detail screen + post-update re-fetch. Reuses the findById gateway.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => InventoryItem, { name: 'inventoryItem' })

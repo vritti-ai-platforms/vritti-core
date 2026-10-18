@@ -167,7 +167,6 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return row ?? null;
   }
 
-  // Org-wide master list (no site filter — RLS scopes to org).
   // Org-wide master list (no site filter — RLS scopes to org). Alias of findAllWithUom for the master table.
   findForOrgTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (InventoryItem & { uomSymbol: string | null; categoryName: string | null })[];

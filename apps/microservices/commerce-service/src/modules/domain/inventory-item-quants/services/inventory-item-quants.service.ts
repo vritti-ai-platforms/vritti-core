@@ -343,7 +343,6 @@ export class InventoryItemQuantsDomainService {
     }
   }
 
-  // Adjusts a quant in its own transaction and writes the ledger entry.
   // Adjusts a quant in its own transaction and writes the ledger entry. Tracking-aware.
   async adjustQuant(params: {
     quantId: string;
@@ -387,7 +386,6 @@ export class InventoryItemQuantsDomainService {
         case 'quantity':
         case 'lot': {
           let quant = await this.repository.updateQuantity(quantId, params.delta);
-          // Outflow: decrement value (clears to 0 on final depletion).
           // Outflow: decrement value (clears to 0 on final depletion). Inflow (rare): add baseline.
           if (params.delta < 0) {
             quant = await this.repository.applyOutflowValue(quantId, Math.abs(params.delta));
@@ -412,7 +410,6 @@ export class InventoryItemQuantsDomainService {
     });
   }
 
-  // Loads the lot for a quant.
   // Loads the lot for a quant. Useful for stock transfers preserving source lot at destination.
   async loadLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
     const quant = await this.repository.findByIdWithRefs(quantId);

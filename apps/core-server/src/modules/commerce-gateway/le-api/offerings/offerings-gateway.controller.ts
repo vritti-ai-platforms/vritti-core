@@ -180,7 +180,6 @@ export class LeOfferingsGatewayController {
     this.logger.log(`PUT /commerce-api/le/offerings/dimensions/${dimensionId}/values`);
     return this.service.upsertDimensionValues(dimensionId, dto);
   }
-  // Reorders the axes.
   // Reorders the axes. Stored SKUs are never recomputed, so this only affects variants created after it
   @Put(':id/dimensions/order')
   @RequirePermission(LE_OFFERINGS.dimensions.edit)

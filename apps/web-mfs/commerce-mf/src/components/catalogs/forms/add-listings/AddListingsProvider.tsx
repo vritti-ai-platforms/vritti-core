@@ -6,32 +6,24 @@ import { LISTING_WIZARD_STEPS, type ListingWizardStep } from './wizardSteps';
 
 export interface VariantLabel {
   code: string;
-  // The variant's dimension values, which is what the picker describes an option with
   facets?: string;
 }
 
 export interface AddListingsWizard {
-  // The scope's hooks and permission codes — org, legal entity or site
   binding: CatalogsBinding;
   catalogId: string;
   catalogName: string;
   currencies: CatalogCurrencyData[];
 
   step: ListingWizardStep;
-  // The 1-based position StepProgressIndicator expects
   position: number;
   isLast: boolean;
-  // Whether this step has been answered — what the Next button reads
   canAdvance: boolean;
 
-  // What the first two steps chose. None of it is form state: the user is naming what to price, not filling
-  // in a field, and only the last step has anything to validate or submit.
   offeringId: string;
-  // Every variant name begins with it, so the cards strip it rather than repeating it N times
   offeringName: string;
   variantIds: string[];
   currencyCode?: string;
-  // The pickers are the only place a variant's code and name are spelled out — the payload carries ids alone
   labels: Record<string, VariantLabel>;
 
   selectOffering: (offeringId: string, offeringName: string) => void;
@@ -53,8 +45,7 @@ interface AddListingsProviderProps {
   children: React.ReactNode;
 }
 
-// Owns the whole wizard's state — which step, and what the steps before it chose. Every step reads from
-// here, so there is one source of truth and no prop-drilling. Mirrors cloud-web's view providers.
+// Owns the wizard's state, so every step reads it from here rather than through props
 export const AddListingsProvider: React.FC<AddListingsProviderProps> = ({
   binding,
   catalogId,
@@ -77,8 +68,7 @@ export const AddListingsProvider: React.FC<AddListingsProviderProps> = ({
     setVariantIds([]);
   }, []);
 
-  // Merged, never replaced: searching a picker reloads its options, and a variant already carded still
-  // needs the code it was labelled with
+  // Merged, never replaced: searching a picker reloads its options under a variant already carded
   const rememberLabels = useCallback(
     (entries: Record<string, VariantLabel>) => setLabels((previous) => ({ ...previous, ...entries })),
     [],

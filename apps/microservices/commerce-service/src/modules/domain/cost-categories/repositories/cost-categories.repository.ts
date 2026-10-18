@@ -15,7 +15,6 @@ export class CostCategoriesDomainRepository extends PrimaryBaseRepository<typeof
     return super.findForSelect(config);
   }
 
-  // Lookup by `code` within an org.
   // Lookup by `code` within an org. Used when the admin needs an exact-string match.
   async findByCode(code: string): Promise<CostCategory | undefined> {
     const rows = await this.db.select().from(costCategories).where(eq(costCategories.code, code)).limit(1);

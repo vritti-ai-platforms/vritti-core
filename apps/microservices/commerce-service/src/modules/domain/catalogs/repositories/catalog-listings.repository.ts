@@ -31,7 +31,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       offeringVariantId: catalogListings.offeringVariantId,
       legalEntityId: catalogListings.legalEntityId,
       siteId: catalogListings.siteId,
-      isOwned: ownedByWorkspaceExpression(),
+      isOwned: ownedByWorkspaceExpression(catalogListings),
       inventoryItemMrpId: catalogListings.inventoryItemMrpId,
       code: offeringVariants.code,
       offeringName: offerings.name,
@@ -47,8 +47,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
     };
   }
 
-  // The variant is NOT NULL with a cascading FK, and so is its offering, so every listing has exactly one of
-  // each — inner-joining them is what makes `code` and `offeringName` non-null instead of merely looking optional.
+  // Both FKs are NOT NULL, so inner-joining is what makes `code` and `offeringName` non-null here
   private variantJoin() {
     return [
       { table: offeringVariants, on: eq(offeringVariants.id, catalogListings.offeringVariantId) },
@@ -194,7 +193,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
   async findUnownedChannels(catalogChannelIds: string[]): Promise<string[]> {
     if (catalogChannelIds.length === 0) return [];
     const rows = await this.db
-      .select({ id: catalogChannels.id, isOwn: ownedByWorkspaceExpression('catalog_channels') })
+      .select({ id: catalogChannels.id, isOwn: ownedByWorkspaceExpression(catalogChannels) })
       .from(catalogChannels)
       .where(inArray(catalogChannels.id, catalogChannelIds));
     const found = new Set(rows.map((row) => row.id));
@@ -256,7 +255,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
   // An exclusion belongs to the channel, so the write is gated on owning the channel.
   async findChannelOwnership(channelId: string): Promise<{ id: string; isOwn: boolean } | undefined> {
     const [row] = await this.db
-      .select({ id: catalogChannels.id, isOwn: ownedByWorkspaceExpression('catalog_channels') })
+      .select({ id: catalogChannels.id, isOwn: ownedByWorkspaceExpression(catalogChannels) })
       .from(catalogChannels)
       .where(eq(catalogChannels.id, channelId))
       .limit(1);
@@ -292,7 +291,7 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
         amount: catalogListingPrices.amount,
         legalEntityId: catalogListingPrices.legalEntityId,
         siteId: catalogListingPrices.siteId,
-        isOwned: ownedByWorkspaceExpression('catalog_listing_prices'),
+        isOwned: ownedByWorkspaceExpression(catalogListingPrices),
       })
       .from(catalogListingPrices)
       .where(

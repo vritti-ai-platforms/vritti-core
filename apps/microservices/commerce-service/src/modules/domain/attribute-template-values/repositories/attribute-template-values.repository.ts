@@ -23,7 +23,7 @@ export class AttributeTemplateValuesDomainRepository extends PrimaryBaseReposito
         id: attributeTemplates.id,
         name: attributeTemplates.name,
         isActive: attributeTemplates.isActive,
-        isOwned: ownedByWorkspaceExpression(),
+        isOwned: ownedByWorkspaceExpression(attributeTemplates),
       })
       .from(attributeTemplates)
       .where(eq(attributeTemplates.id, templateId))

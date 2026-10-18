@@ -48,7 +48,7 @@ export class OfferingBomDomainRepository extends PrimaryBaseRepository<typeof of
   // The offering above the variant, for the ownership check a write needs
   async findOffering(offeringId: string): Promise<BomOfferingRef | undefined> {
     const [row] = await this.db
-      .select({ id: offerings.id, isOwned: ownedByWorkspaceExpression() })
+      .select({ id: offerings.id, isOwned: ownedByWorkspaceExpression(offerings) })
       .from(offerings)
       .where(eq(offerings.id, offeringId))
       .limit(1);

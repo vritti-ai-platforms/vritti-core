@@ -163,7 +163,6 @@ export class SiteCatalogChannelsGatewayService {
     return this.nats.send('commerce', 'site.catalogChannels.currencies', { channelId });
   }
 
-  // One currency's prices for this channel.
   // One currency's prices for this channel. Shares one saved view across currencies — same columns.
   async findPricesForTable(
     orgId: string,

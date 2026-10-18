@@ -182,7 +182,6 @@ export class OrgOfferingsGatewayController {
     this.logger.log(`PUT /commerce-api/org/offerings/dimensions/${dimensionId}/values`);
     return this.service.upsertDimensionValues(dimensionId, dto);
   }
-  // Reorders the axes.
   // Reorders the axes. Stored SKUs are never recomputed, so this only affects variants created after it
   @Put(':id/dimensions/order')
   @RequirePermission(ORG_OFFERINGS.dimensions.edit)

@@ -30,7 +30,6 @@ export function useChannelAssignment(binding: CatalogChannelsBinding, slot: Slot
     }),
   };
 
-  // Confirms, then deletes.
   // Confirms, then deletes. Copy differs between a default and one target, so the caller supplies it
   const remove = async (title: string, description: string) => {
     const existing = slot.assignment;

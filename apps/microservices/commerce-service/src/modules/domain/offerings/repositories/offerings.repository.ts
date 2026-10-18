@@ -49,7 +49,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
   private tableSelection() {
     return {
       ...getColumns(offerings),
-      isOwned: ownedByWorkspaceExpression(),
+      isOwned: ownedByWorkspaceExpression(offerings),
       dimensionCount: this.db.$count(offeringDimensions, eq(offeringDimensions.offeringId, offerings.id)),
       variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
     };
@@ -75,9 +75,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     };
   }
 
-  // Returns the offerings this workspace can reach, each flagged with whether it owns the row or merely inherits it
-  // from a wider scope (RLS decides reach; ownedByWorkspaceExpression decides ownership) Returns one page of reachable
-  // offerings with ownership, plus the unpaginated total
+  // Returns one page of reachable offerings, each flagged with whether this workspace owns it, plus the total
   async findForTable(options: {
     where?: SQL;
     orderBy: SQL[];
@@ -106,7 +104,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
         id: offerings.id,
         code: offerings.code,
         name: offerings.name,
-        isOwned: ownedByWorkspaceExpression(),
+        isOwned: ownedByWorkspaceExpression(offerings),
         variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
       },
       where: inArray(offerings.id, ids),
@@ -116,7 +114,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
 
   // Reports which of the two unique keys are already taken, in one pass.
   async findConflicts(name: string, code: string): Promise<{ nameTaken: boolean; codeTaken: boolean }> {
-    const nameMatch = sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`;
+    const nameMatch = sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspaceExpression(offerings)}`;
     const codeMatch = sql`${offerings.code} = ${code}`;
 
     const [row] = await this.db
@@ -135,7 +133,7 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     const [row] = await this.db
       .select()
       .from(offerings)
-      .where(sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`)
+      .where(sql`lower(${offerings.name}) = lower(${name}) and ${ownedByWorkspaceExpression(offerings)}`)
       .limit(1);
     return row;
   }

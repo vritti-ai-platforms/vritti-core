@@ -80,7 +80,6 @@ export class PosTerminalsDomainService {
     });
   }
 
-  // Creates a new POS terminal.
   // Creates a new POS terminal. App-layer must pre-validate the location and pass it as context.
   async create(data: CreatePosTerminalDto, location: LocationContext): Promise<CreateResponseDto<PosTerminalDto>> {
     this.assertValidLocation(location);
@@ -104,7 +103,6 @@ export class PosTerminalsDomainService {
     };
   }
 
-  // Updates an existing POS terminal.
   // Updates an existing POS terminal. App-layer must pre-validate the location if provided.
   async update(id: string, data: UpdatePosTerminalDto, location?: LocationContext): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);

@@ -41,7 +41,6 @@ export class PartySocialProfilesDomainService {
     return { result: rows.map(PartySocialProfileDto.from), count };
   }
 
-  // Sets the party's WEBSITE profile from the company form; an empty value clears it.
   // Sets the party's WEBSITE profile from the company form; an empty value clears it. Runs in the caller's transaction.
   async upsertWebsite(partyId: string, url?: string | null): Promise<void> {
     const trimmed = url?.trim() || null;

@@ -15,7 +15,6 @@ interface ListingsTabProps {
   channelId: string;
 }
 
-// What this channel carries.
 // What this channel carries. Whether it is available at a given price, in a given currency, is the Prices tab.
 export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, channelId }) => {
   const queryClient = useQueryClient();

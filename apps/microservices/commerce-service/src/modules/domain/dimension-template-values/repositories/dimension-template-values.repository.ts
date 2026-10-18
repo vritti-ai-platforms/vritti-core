@@ -23,7 +23,7 @@ export class DimensionTemplateValuesDomainRepository extends PrimaryBaseReposito
         id: dimensionTemplates.id,
         name: dimensionTemplates.name,
         isActive: dimensionTemplates.isActive,
-        isOwned: ownedByWorkspaceExpression(),
+        isOwned: ownedByWorkspaceExpression(dimensionTemplates),
       })
       .from(dimensionTemplates)
       .where(eq(dimensionTemplates.id, templateId))

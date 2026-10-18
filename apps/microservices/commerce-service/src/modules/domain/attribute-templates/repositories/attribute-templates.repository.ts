@@ -21,7 +21,7 @@ export class AttributeTemplatesDomainRepository extends PrimaryBaseRepository<ty
   // from a wider scope (RLS decides reach; the expression decides ownership)
   async findAll(where?: SQL): Promise<AttributeTemplateWithOwnership[]> {
     return this.db
-      .select({ ...getColumns(attributeTemplates), isOwned: ownedByWorkspaceExpression() })
+      .select({ ...getColumns(attributeTemplates), isOwned: ownedByWorkspaceExpression(attributeTemplates) })
       .from(attributeTemplates)
       .where(where)
       .orderBy(asc(attributeTemplates.name));
@@ -30,13 +30,13 @@ export class AttributeTemplatesDomainRepository extends PrimaryBaseRepository<ty
   // Returns one template with its ownership flag, or undefined when out of reach.
   async findByIdWithOwnership(id: string): Promise<AttributeTemplateWithOwnership | undefined> {
     return this.findById<AttributeTemplateWithOwnership>(id, {
-      select: { ...getColumns(attributeTemplates), isOwned: ownedByWorkspaceExpression() },
+      select: { ...getColumns(attributeTemplates), isOwned: ownedByWorkspaceExpression(attributeTemplates) },
     });
   }
 
   // Reports which of the two unique keys are already taken, in one pass.
   async findConflicts(name: string, code: string): Promise<{ nameTaken: boolean; codeTaken: boolean }> {
-    const nameMatch = sql`lower(${attributeTemplates.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`;
+    const nameMatch = sql`lower(${attributeTemplates.name}) = lower(${name}) and ${ownedByWorkspaceExpression(attributeTemplates)}`;
     const codeMatch = sql`${attributeTemplates.code} = ${code}`;
 
     const [row] = await this.db
@@ -55,7 +55,9 @@ export class AttributeTemplatesDomainRepository extends PrimaryBaseRepository<ty
     const [row] = await this.db
       .select()
       .from(attributeTemplates)
-      .where(sql`lower(${attributeTemplates.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`)
+      .where(
+        sql`lower(${attributeTemplates.name}) = lower(${name}) and ${ownedByWorkspaceExpression(attributeTemplates)}`,
+      )
       .limit(1);
     return row;
   }

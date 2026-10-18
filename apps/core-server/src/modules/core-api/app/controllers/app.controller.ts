@@ -79,8 +79,7 @@ export class AppController {
     return new AppSigningKeyResponseDto(app.clientId, app.signingKey);
   }
 
-  // A POST rather than a DELETE because `CoreHttpService.delete` carries no query string and no body, so a true DELETE
-  // could not name the org scope every route here requires
+  // A POST rather than a DELETE because `CoreHttpService.delete` carries no query string and no body, so a true DELETE could not name the org scope every route here requires
   @Post('internal/:id/delete')
   @Require(AuthType.Cloud)
   @HttpCode(HttpStatus.NO_CONTENT)

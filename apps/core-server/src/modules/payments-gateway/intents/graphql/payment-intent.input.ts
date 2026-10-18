@@ -190,7 +190,6 @@ export class PaymentIntentRefInput {
 
 @InputType()
 export class StartCheckoutInput {
-  // Optional: core prices the basket in the site's own currency.
   // Optional: core prices the basket in the site's own currency. Sent only by older SDKs, and then it must agree
   @Field(() => String, {
     nullable: true,

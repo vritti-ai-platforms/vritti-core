@@ -9,11 +9,7 @@ import {
   offeringVariantValues,
 } from '@/db/schema';
 
-// offering_variants.dimensions and .attributes are a rendered copy of the junction tables, kept so a row that
-// merely references a variant can show it without joining four tables. These two expressions are the only
-// definition of that copy: whoever changes a junction, or a name one points at, assigns one of them.
-// Correlated on offering_variants.id, so both belong in an UPDATE over that table.
-
+// Renders the dimension junction as the cached column holds it, correlated for an UPDATE over the variants
 export function dimensionsFacetSql(): SQL {
   return sql`(
     select coalesce(
@@ -37,6 +33,7 @@ export function dimensionsFacetSql(): SQL {
   )`;
 }
 
+// Renders the attribute junction as the cached column holds it, correlated for an UPDATE over the variants
 export function attributesFacetSql(): SQL {
   return sql`(
     select coalesce(

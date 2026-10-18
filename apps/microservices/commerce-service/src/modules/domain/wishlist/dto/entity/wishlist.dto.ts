@@ -22,7 +22,6 @@ export class WishlistItemDto {
   catalogListingId: string | null;
   // What a storefront joins its own product page on — see `CartItemDto` for why the variant
   offeringVariantId: string;
-  // The offering's name — a variant has none of its own. What distinguishes it is in `dimensions`.
   name: string;
   code: string;
   dimensions: VariantFacet[];

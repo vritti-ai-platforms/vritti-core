@@ -115,7 +115,6 @@ export class CartsDomainService {
     return { success: true, message: 'Basket closed.' };
   }
 
-  // The basket, or an empty one.
   // The basket, or an empty one. Never opens a cart
   async find(partyId: string, currencyCode: string, appId?: string | null): Promise<CartDto> {
     const cart = await this.repository.findByParty(partyId);
@@ -163,7 +162,6 @@ export class CartsDomainService {
     return this.find(input.partyId, input.currencyCode, input.appId);
   }
 
-  // Sets a line to an exact quantity.
   // Sets a line to an exact quantity. Zero is not accepted — removing is its own operation
   async updateItem(input: {
     partyId: string;

@@ -32,7 +32,6 @@ export class WishlistDomainService {
     return WishlistAddResultDto.from(!created, wishlistItems);
   }
 
-  // Unmarks a product.
   // Unmarks a product. Removing one that was never saved is the state the caller asked for
   async remove(appId: string, partyId: string, code: string, currencyCode: string): Promise<WishlistItemDto[]> {
     // No listing to resolve: the row is keyed by the product, so removing it needs nothing from the catalogue — which

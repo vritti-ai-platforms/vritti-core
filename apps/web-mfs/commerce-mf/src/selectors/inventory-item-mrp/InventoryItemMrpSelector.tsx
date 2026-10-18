@@ -3,20 +3,14 @@ import { forwardRef } from 'react';
 
 export interface InventoryItemMrpSelectorProps extends SelectProps {
   variantId: string;
-  // What the listing will be priced in. A listing keyed to an MRP must be priced in that MRP's currency,
-  // so naming it here keeps the options to the ones that could actually be chosen.
   currencyCode?: string;
-  // Drops the MRPs this catalog already lists this variant at
   catalogId?: string;
 }
 
-// `fieldKeys` are column names the endpoint maps, not fields read here. Only the value is named: the
-// label and the description are composed server-side, because an amount is minor units and a currency
-// decides its decimals — and a multi-select renders plain strings, with no hook to format them in.
+// Only the value is named — the label and description are composed server-side, where the currency is known
 const DEFAULT_FIELD_KEYS = { valueKey: 'id' } as const;
 
-// Pre-configured Select for the printed MRPs one variant could be listed at — found through its bill of
-// materials, so it offers the prices on the packs the variant actually draws on and nothing else
+// Pre-configured Select for the MRPs a variant could be listed at, found through its bill of materials
 export const InventoryItemMrpSelector = forwardRef<HTMLButtonElement, InventoryItemMrpSelectorProps>(
   ({ variantId, currencyCode, catalogId, fieldKeys, params, ...props }, ref) => (
     <Select

@@ -2,8 +2,7 @@ import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import type React from 'react';
 
-// The wizard always opens on its first step — a header, the three-step strip, and the offering picker.
-// Standing in for the variant cards would promise a form that is not there until an offering is chosen.
+// Stands in for the first step only — the variant cards do not exist until an offering is chosen
 export const AddListingsPageSkeleton: React.FC = () => (
   <div className="mx-auto flex w-full max-w-6xl flex-col">
     <PageHeaderSkeleton showDescription showActions />

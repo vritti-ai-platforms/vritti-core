@@ -7,8 +7,7 @@ import { OfferingVariantSelector } from '@/selectors/offering-variant';
 import { useAddListingsWizard } from './AddListingsProvider';
 import { WizardFooter } from './WizardFooter';
 
-// Step two. The currency is asked here rather than beside the prices: the MRPs offered on the next step are
-// the ones printed in it, so it has to be settled before those pickers open.
+// Step two — the currency is settled here because it decides which MRPs the next step offers
 export const VariantsStep: React.FC = () => {
   const {
     catalogId,

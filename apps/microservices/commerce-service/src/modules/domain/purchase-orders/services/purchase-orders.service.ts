@@ -116,7 +116,6 @@ export class PurchaseOrdersDomainService {
     };
   }
 
-  // Creates a new PO.
   // Creates a new PO. App-layer resolves the supplier and site currency snapshots.
   async create(
     data: CreatePurchaseOrderDto,
@@ -181,7 +180,6 @@ export class PurchaseOrdersDomainService {
     return { success: true, message: `Notes updated for purchase order "${entity.poNumber}".` };
   }
 
-  // Changes supplier on a draft PO.
   // Changes supplier on a draft PO. Items-empty check is the app-layer's responsibility.
   async changeSupplier(id: string, supplierId: string, supplierName: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);

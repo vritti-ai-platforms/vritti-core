@@ -252,7 +252,6 @@ export class SupplierItemsDomainService {
       });
     }
 
-    // Per-row currency must match the supplier's (composite FK).
     // Per-row currency must match the supplier's (composite FK). Reject early with a field-scoped error.
     if (data.unitPrice && data.unitPrice.currency !== supplier.currencyCode) {
       throw new ValidationException({

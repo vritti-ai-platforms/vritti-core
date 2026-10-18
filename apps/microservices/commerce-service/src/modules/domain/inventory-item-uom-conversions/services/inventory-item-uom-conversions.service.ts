@@ -139,7 +139,6 @@ export class InventoryItemUomConversionsDomainService {
   }
 }
 
-// Validates a positive-integer conversion pair.
 // Validates a positive-integer conversion pair. One side must be 1 to keep ratios canonical.
 function validateConversionPair(pair: ConversionPair): void {
   if (!Number.isInteger(pair.primaryUomQty) || pair.primaryUomQty <= 0) {

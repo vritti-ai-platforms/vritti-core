@@ -154,7 +154,6 @@ export class WebhookDeliveryDomainService {
     return { deliveryId: delivery.id };
   }
 
-  // Sends the organization's due deliveries once each and records every outcome.
   // Sends the organization's due deliveries once each and records every outcome. The caller supplies the RLS context
   async deliverDue(organizationId: string, now: Date = new Date()): Promise<WebhookDeliveryRunResult> {
     const claimed = await this.deliveryRepository.claimDue(

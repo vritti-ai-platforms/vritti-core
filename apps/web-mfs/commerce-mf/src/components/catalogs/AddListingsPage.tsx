@@ -8,8 +8,7 @@ interface AddListingsPageProps {
   binding: CatalogsBinding;
 }
 
-// Lists a whole offering's worth of variants in one go. Reads what the wizard needs and hands it to the
-// provider — the steps take it from there.
+// Reads what the wizard needs and hands it to the provider — the steps take it from there
 export const AddListingsPage: React.FC<AddListingsPageProps> = ({ binding }) => {
   const { id: catalogId } = useSlugParams('slug');
   const { data: catalog } = binding.useCatalog(catalogId);

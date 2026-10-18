@@ -16,7 +16,6 @@ export class StorefrontListingDto {
   id: string;
   offeringVariantId: string;
   code: string;
-  // The offering's name — a variant has none of its own. The facets are what tell it from its siblings.
   name: string;
   dimensions: VariantFacet[];
   attributes: VariantFacet[];

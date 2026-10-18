@@ -89,7 +89,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       appId: catalogChannels.appId,
       terminalId: catalogChannels.terminalId,
       terminalName: posTerminals.name,
-      isOwn: ownedByWorkspaceExpression('catalog_channels'),
+      isOwn: ownedByWorkspaceExpression(catalogChannels),
       createdAt: catalogChannels.createdAt,
       updatedAt: catalogChannels.updatedAt,
     };
@@ -144,9 +144,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return row;
   }
 
-  // The winning row for every slot this workspace can see — each type's default, and each app or terminal that
-  // overrides it The winning row for every slot this workspace can see — each type's default, and each app or terminal
-  // that overrides it
+  // The winning row for every slot this workspace can see — each type's default, and each override of it
   async findResolved(): Promise<ChannelListRow[]> {
     const rows = await this.db
       .selectDistinctOn([catalogChannels.type, targetKey], CatalogChannelsDomainRepository.listSelection())
@@ -179,7 +177,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
           eq(catalogChannels.type, target.type),
           is(catalogChannels.appId, target.appId),
           is(catalogChannels.terminalId, target.terminalId),
-          sql`${ownedByWorkspaceExpression('catalog_channels')}`,
+          sql`${ownedByWorkspaceExpression(catalogChannels)}`,
         ),
       )
       .limit(1);
@@ -411,8 +409,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     ) as SQL;
   }
 
-  // Returns a site's own price, falling back to the organization-wide row The price this caller pays, as a relation
-  // rather than a subselect.
+  // The price this caller pays, as an INNER LATERAL relation, so an unpriced listing drops out of the result
   private priceLateral(currencyCode: string) {
     return (
       this.db

@@ -14,22 +14,17 @@ import { InventoryItemMrpSelector } from '@/selectors/inventory-item-mrp';
 import { useAddListingsWizard } from './AddListingsProvider';
 
 interface ListingVariantCardProps {
-  // The step that owns this form hands it over. quantum-ui bundles its own react-hook-form, so the provider
-  // its <Form> renders populates a context instance useFormContext here could never read.
   form: UseFormReturn<CatalogListingPricesFormShape>;
   index: number;
   offeringVariantId: string;
   code: string;
-  // The variant's dimension values, as the picker described it. Never `name`: quantum's Form wraps any
-  // descendant carrying a string `name` prop in a Controller.
   facets?: string;
   onRemove: () => void;
 }
 
 const ANY_BATCH = 'Any batch';
 
-// One variant's card: the MRPs it is being listed at, and a price slot for each of them. Picking no MRP is
-// itself an answer — one listing covering any batch — so there is always at least one slot.
+// One variant's card — picking no MRP is itself an answer, so there is always at least one price slot
 export const ListingVariantCard: React.FC<ListingVariantCardProps> = ({
   form,
   index,

@@ -188,8 +188,7 @@ export class RoleDomainService {
     return { success: true, message: 'Role deleted successfully.' };
   }
 
-  // Returns the org's roles assignable at a site — SITE-scoped templates must target the site's type; custom/unknown
-  // roles always pass
+  // Returns the org's roles assignable at a site — SITE-scoped templates must target the site's type; custom/unknown roles always pass
   async findForSite(siteId: string): Promise<Role[]> {
     const site = await this.siteRepository.findById(siteId);
     if (!site) throw new NotFoundException('Site not found.');
@@ -205,8 +204,7 @@ export class RoleDomainService {
     return roles.filter((role) => templateAssignableAtSite(templates[role.code], site.type));
   }
 
-  // Returns the org's roles assignable at a target — templates scoped to the target's type plus SITE-scoped templates
-  // (any site type); custom/unknown roles always pass
+  // Returns the org's roles assignable at a target — templates scoped to the target's type plus SITE-scoped templates (any site type); custom/unknown roles always pass
   async findForTarget(orgId: string, targetType: string, targetId?: string): Promise<Role[]> {
     const scopes: ScopeType[] = ['ORG', 'LE', 'SITE_GROUP', 'SITE'];
     if (!scopes.includes(targetType as ScopeType)) {

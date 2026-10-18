@@ -23,9 +23,6 @@ import { taxClasses } from './tax-classes';
 import { uom } from './uom';
 import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope';
 
-// A rendered copy of what offering_variant_values and offering_variant_attribute_values hold, so a row
-// that merely references a variant can show it without joining four tables. The junctions stay the truth;
-// refreshVariantFacets rewrites this whenever they, or the names they point at, change.
 export interface VariantFacet {
   code: string;
   label: string;

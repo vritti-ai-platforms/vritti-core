@@ -174,7 +174,6 @@ export class OrdersDomainService {
     return this.repository.findByCheckoutKey(partyId, checkoutKey, siteId);
   }
 
-  // Records a captured payment against a site's order and releases it to the store.
   // Records a captured payment against a site's order and releases it to the store. Idempotent per payment intent
   async markPaid(
     data: MarkOrderPaidDto,

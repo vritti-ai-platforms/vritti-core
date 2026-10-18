@@ -31,7 +31,6 @@ export class UpdateCartItemInput extends CartScopeInput {
   @IsCode()
   code: string;
 
-  // An exact quantity, not a delta.
   // An exact quantity, not a delta. Removing is its own mutation
   @Field(() => Int)
   @IsInt()

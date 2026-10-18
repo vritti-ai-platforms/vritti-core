@@ -22,7 +22,6 @@ export class MarkOrderPaidDto {
   @Matches(/^\d+$/, { message: 'amountMinor must be a non-negative integer string' })
   amountMinor: string;
 
-  // ISO 4217.
   // ISO 4217. The currency the payment was captured in; must match the order's
   @IsString()
   @Length(3, 3)

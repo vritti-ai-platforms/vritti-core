@@ -12,8 +12,7 @@ export class UserPermissionsController {
 
   constructor(private readonly userPermissionsApiService: UserPermissionsService) {}
 
-  // Returns assigned sites in select dropdown format (site switcher); full sites + resolved features via SSE
-  // /auth/status
+  // Returns assigned sites in select dropdown format (site switcher); full sites + resolved features via SSE /auth/status
   @Get('sites/select')
   async getSitesSelect(@UserId() userId: string): Promise<SiteSelectResponseDto> {
     this.logger.log(`GET /api/user-permissions/sites/select — user: ${userId}`);

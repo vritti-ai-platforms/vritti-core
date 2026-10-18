@@ -192,8 +192,7 @@ export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineI
 
 const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);
 
-// GR add-item has two source shapes (supplier-item vs PO-item); server resolves row identity to (inventoryItemId,
-// uomId); unit-price pre-filled and editable, optional.
+// GR add-item has two source shapes (supplier-item vs PO-item); server resolves row identity to (inventoryItemId, uomId); unit-price pre-filled and editable, optional.
 
 // Operator-declared item quantity: required, integer unless UOM allows decimals, capped by PO remaining when PO-linked.
 function buildOrderedQtyField(options: { allowDecimal: boolean; min?: number; max?: number }) {
@@ -284,8 +283,7 @@ export const addGoodsReceiptLotSchema = z
   });
 export type AddGoodsReceiptLotFormData = z.infer<typeof addGoodsReceiptLotSchema>;
 
-// Quantity rules depend on UOM allowDecimal, PO remaining (when linked), and current serial count; built per form
-// mount.
+// Quantity rules depend on UOM allowDecimal, PO remaining (when linked), and current serial count; built per form mount.
 export function buildAddGoodsReceiptLineSchema(options: { allowDecimal: boolean; min?: number; max?: number }) {
   return z.object({
     goodsReceiptLotId: z.string().optional(),

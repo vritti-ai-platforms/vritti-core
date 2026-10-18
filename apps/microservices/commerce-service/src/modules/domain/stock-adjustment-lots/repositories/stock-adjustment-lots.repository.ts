@@ -98,7 +98,6 @@ export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<t
     return rows.map((r) => r.node);
   }
 
-  // Single lot's detail — stats for the selected lot header.
   // Single lot's detail — stats for the selected lot header. Returns undefined if the lot doesn't exist.
   async findLotDetail(lotId: string): Promise<StockAdjustmentLotDetailRow | undefined> {
     const [row] = await this.db

@@ -43,7 +43,6 @@ export class AddSupplierItemDto {
   @IsBoolean()
   isPreferred?: boolean;
 
-  // Standing free-goods scheme (e.g. buy 9 get 1).
   // Standing free-goods scheme (e.g. buy 9 get 1). Prefills PO/GR lines for this supplier item.
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 3 })

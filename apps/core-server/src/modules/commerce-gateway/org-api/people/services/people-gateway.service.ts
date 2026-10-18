@@ -139,7 +139,6 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.delete', { id });
   }
 
-  // A person's saved items.
   // A person's saved items. Read only — see the microservice controller for why
   listWishlist(partyId: string, currencyCode: string): Promise<StaffWishlistItemRow[]> {
     this.logger.log(`org.people.wishlist.list — partyId: ${partyId}`);
@@ -236,7 +235,6 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.addresses.list', { personId: partyId });
   }
 
-  // Adds one.
   // Adds one. Scoped by construction — the party is what it is created under
   addPartyAddress(
     partyId: string,

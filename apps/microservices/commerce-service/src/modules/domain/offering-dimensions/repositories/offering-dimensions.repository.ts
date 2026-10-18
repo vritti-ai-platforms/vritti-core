@@ -38,7 +38,7 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
       .from(offerings)
       .where(
         options.requireOwned
-          ? sql`${offerings.id} = ${offeringId} and ${ownedByWorkspaceExpression()}`
+          ? sql`${offerings.id} = ${offeringId} and ${ownedByWorkspaceExpression(offerings)}`
           : eq(offerings.id, offeringId),
       )
       .limit(1);
@@ -185,9 +185,7 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
     return row?.n ?? 0;
   }
 
-  // Renaming a dimension or one of its values changes what every variant of the offering says it is, and the
-  // variants carry a rendered copy of that. This rewrites the copy they own — the attributes column is the
-  // attributes module's to refresh.
+  // Rewrites the dimensions every variant of this offering caches, after a rename reorders or relabels them
   async refreshVariantDimensions(offeringId: string): Promise<void> {
     await this.db
       .update(offeringVariants)

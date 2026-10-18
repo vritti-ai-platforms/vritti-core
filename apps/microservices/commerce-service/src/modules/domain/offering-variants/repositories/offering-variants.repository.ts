@@ -127,7 +127,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
         name: offerings.name,
         fulfilmentType: offerings.fulfilmentType,
         taxClassId: offerings.taxClassId,
-        isOwned: ownedByWorkspaceExpression(),
+        isOwned: ownedByWorkspaceExpression(offerings),
       })
       .from(offerings)
       .where(eq(offerings.id, offeringId))
@@ -271,8 +271,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       eq(offeringVariants.isActive, true),
       eq(offeringVariants.isOfferingActive, true),
     ];
-    // A variant listed for any batch can take nothing further in that catalog, so it is not offered. One
-    // listed at an MRP still can — at another MRP — so it stays, and the MRP picker drops the taken ones.
+    // Listed for any batch it can take nothing further here; listed at an MRP it can still take another
     if (catalogId) {
       conditions.push(
         sql`not exists (
@@ -286,9 +285,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return super.findForSelect({ ...config, conditions });
   }
 
-  // Rewrites the cached facets of the named variants straight from the junction tables. One statement, in
-  // SQL, so the copy can never disagree with the rows it is a copy of — which is what went wrong with the
-  // derived `name` it replaces.
+  // Rewrites the cached facets from the junctions in one statement, so the copy cannot disagree with them
   async refreshFacets(variantIds: string[]): Promise<void> {
     if (variantIds.length === 0) return;
     await this.db
@@ -314,8 +311,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     offset: number;
   }): Promise<{ items: VariantOptionRow[]; total: number }> {
     const search = options.search?.trim();
-    // A variant has no name of its own, and its code carries every value code, so the code is the whole
-    // searchable surface — "masala" still finds hf-kichidi-250g-classic-masala
+    // Codes carry every value code, so "masala" still finds hf-kichidi-250g-classic-masala
     const where = and(
       search ? or(ilike(offeringVariants.code, `%${search}%`), ilike(offerings.name, `%${search}%`)) : undefined,
       options.excludeIds?.length ? notInArray(offeringVariants.id, options.excludeIds) : undefined,
@@ -342,7 +338,6 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return { items: rows, total };
   }
 
-  // Which of these SKUs are already taken.
   // Which of these SKUs are already taken. Org-wide, matching the constraint — RLS scopes it.
   async findTakenCodes(codes: string[]): Promise<string[]> {
     if (codes.length === 0) return [];
@@ -447,8 +442,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .orderBy(asc(offeringBom.sortOrder));
   }
 
-  // One line, with the variant it belongs to, so ownership can be checked from a line id alone How many order lines
-  // name this variant — the FK is NO ACTION, so any at all blocks a delete
+  // How many order lines name this variant — the FK is NO ACTION, so any at all blocks a delete
   async countOrderLines(variantId: string): Promise<number> {
     const [row] = await this.db
       .select({ n: sql<number>`count(*)::int` })

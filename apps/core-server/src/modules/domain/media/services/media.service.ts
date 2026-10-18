@@ -197,7 +197,6 @@ export class MediaDomainService {
     return { id: record.id, url, expiresIn: this.signedUrlExpiry };
   }
 
-  // Deletes whatever media an entity holds.
   // Deletes whatever media an entity holds. A no-op when there is none, so callers can remove idempotently.
   async deleteForEntity(organizationId: string, entityType: string, entityId: string): Promise<void> {
     const record = await this.mediaRepository.findOneByEntity(organizationId, entityType, entityId);

@@ -36,7 +36,6 @@ export class ProfileService {
     return ProfilePhotoDto.from(media.id, url, expiresIn);
   }
 
-  // Removes the profile photo.
   // Removes the profile photo. Idempotent — removing when there is none is not an error.
   async removePhoto(userId: string, organizationId: string): Promise<void> {
     await this.mediaService.deleteForEntity(organizationId, PHOTO_ENTITY_TYPE, userId);

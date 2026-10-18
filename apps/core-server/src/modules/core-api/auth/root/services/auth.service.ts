@@ -379,8 +379,7 @@ export class AuthService {
       const { accessToken, expiresIn, userId, sessionId } = await this.sessionService.generateAccessToken(refreshToken);
       const user = await this.userService.findById(userId);
 
-      // Web connects via refresh cookie (no bearer header), so enrich sites + features here too from the
-      // subdomain-resolved org
+      // Web connects via refresh cookie (no bearer header), so enrich sites + features here too from the subdomain-resolved org
       let sites: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['sites'] = [];
       let legalEntities: Awaited<ReturnType<UserPermissionsDomainService['getAssignedStructure']>>['legalEntities'] =
         [];

@@ -29,7 +29,6 @@ export class SmsOtpsAppResolver {
     return this.service.send(appId, organizationId, input.recipient);
   }
 
-  // Checks a code.
   // Checks a code. Every failure mode returns `verified: false` — see the service
   @Mutation(() => VerifySmsOtpResult, { name: 'verifySmsOtp' })
   @RequirePermission(ORG_SMS_OTPS.verify)

@@ -157,7 +157,6 @@ export class GoodsReceiptItemsDomainService {
     );
   }
 
-  // Add an item to a GR by referencing a purchase_order_items row.
   // Add an item to a GR by referencing a purchase_order_items row. Used when the GR is linked to a PO.
   async addItemFromPurchaseOrderItem(
     goodsReceiptId: string,

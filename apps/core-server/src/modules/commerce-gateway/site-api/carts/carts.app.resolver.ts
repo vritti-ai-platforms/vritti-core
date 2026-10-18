@@ -17,7 +17,6 @@ export class CartsAppResolver {
 
   constructor(private readonly service: CartsGatewayService) {}
 
-  // The party's basket, or an empty one.
   // The party's basket, or an empty one. Never creates a row
   @Query(() => Cart, { name: 'cart' })
   @RequirePermission(SITE_CARTS.view)

@@ -39,7 +39,6 @@ export class CartItemDto {
   // What a storefront joins its own product page on
   offeringVariantId: string;
   quantity: number;
-  // The offering's name — a variant has none of its own. What distinguishes it is in `dimensions`.
   name: string;
   code: string;
   dimensions: VariantFacet[];

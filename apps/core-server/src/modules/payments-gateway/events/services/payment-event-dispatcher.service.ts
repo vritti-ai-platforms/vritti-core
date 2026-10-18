@@ -36,7 +36,6 @@ export class PaymentEventDispatcherService {
     this.handlers.set(handler.referenceType, handler);
   }
 
-  // Dispatches a batch for one organization and acknowledges what went through.
   // Dispatches a batch for one organization and acknowledges what went through. Never throws for a failed event
   async dispatch(orgId: string, events: PaymentEventResponseDto[]): Promise<PaymentDispatchResult> {
     if (events.length === 0) return { dispatched: 0, failed: 0, acked: 0 };

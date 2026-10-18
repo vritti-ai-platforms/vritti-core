@@ -3,11 +3,11 @@ import { forwardRef } from 'react';
 
 export interface OfferingVariantSelectorProps extends SelectProps {
   offeringId: string;
-  // Drops the variants this catalog already lists for any batch — a second such listing is refused
   catalogId?: string;
 }
 
-const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'code', descriptionKey: 'name' } as const;
+// No descriptionKey: a variant has no name column, so the endpoint composes one from its facets
+const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'code' } as const;
 
 // Pre-configured Select for the variants of one offering, keyed by Code
 export const OfferingVariantSelector = forwardRef<HTMLButtonElement, OfferingVariantSelectorProps>(

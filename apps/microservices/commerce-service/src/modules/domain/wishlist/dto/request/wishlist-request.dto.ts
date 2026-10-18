@@ -15,7 +15,6 @@ export class WishlistScopeDto {
 }
 
 export class AddWishlistItemDto extends WishlistScopeDto {
-  // The product, by its code.
   // The product, by its code. Which catalogue offers it is resolved per read, never stored
   @IsCode()
   code: string;

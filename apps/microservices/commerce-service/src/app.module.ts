@@ -78,8 +78,7 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
           maxConnections: 20,
           applyRlsContext: async (client, ctx) => {
             const r = ctx as NatsHeaders;
-            // Only set the GUCs the workspace context carries — unset GUCs read as NULL in policies instead of failing
-            // uuid casts
+            // Only set the GUCs the workspace context carries — unset GUCs read as NULL in policies instead of failing uuid casts
             const parts = ["set_config('app.org_id', $1, true)"];
             const values: string[] = [r.orgId];
             if (r.siteId) {

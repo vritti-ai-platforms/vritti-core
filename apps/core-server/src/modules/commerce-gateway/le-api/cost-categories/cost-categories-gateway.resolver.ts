@@ -14,7 +14,6 @@ export class CostCategoriesResolver {
 
   constructor(private readonly costCategoriesGatewayService: CostCategoriesGatewayService) {}
 
-  // All cost categories (with canDelete) — the mobile list.
   // All cost categories (with canDelete) — the mobile list. Small/bounded, so a plain array.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Query(() => [CostCategory], { name: 'costCategories' })

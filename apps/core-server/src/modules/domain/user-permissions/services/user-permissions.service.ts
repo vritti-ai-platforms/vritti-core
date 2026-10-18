@@ -109,8 +109,7 @@ export class UserPermissionsDomainService {
     private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
 
-  // Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a principal in a workspace context
-  // on a platform
+  // Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a principal in a workspace context on a platform
   async resolveEnabledPermissions(
     source: GrantSource,
     ctx: PermissionContext,
@@ -130,8 +129,7 @@ export class UserPermissionsDomainService {
     return enabled;
   }
 
-  // Resolves the feature codes whose switch is on (present ∧ not plan/node-locked) for a principal in a workspace
-  // context
+  // Resolves the feature codes whose switch is on (present ∧ not plan/node-locked) for a principal in a workspace context
   async resolveAvailableFeatures(
     source: GrantSource,
     ctx: PermissionContext,
@@ -354,8 +352,7 @@ export class UserPermissionsDomainService {
     };
   }
 
-  // Resolves combined features + MF config for a user at a site via api-sdk resolveUserFeatures; no
-  // snapshot/entitlement = zero features
+  // Resolves combined features + MF config for a user at a site via api-sdk resolveUserFeatures; no snapshot/entitlement = zero features
   async getPermissions(
     userId: string,
     siteId: string,
@@ -373,8 +370,7 @@ export class UserPermissionsDomainService {
     const snapshot = await this.catalogService.getActiveSnapshot();
     const org = await this.organizationRepository.findById(site.organizationId);
 
-    // Grants from templates that target another site type are dropped BEFORE nearest-wins, so broader levels can still
-    // apply
+    // Grants from templates that target another site type are dropped BEFORE nearest-wins, so broader levels can still apply
     const typed = this.filterGrantsBySiteType(grants, snapshot ?? undefined, org?.businessCode ?? undefined, site.type);
     const applicable = this.selectNearestGrants(typed, site, chain);
 

@@ -159,7 +159,6 @@ export class InventoryItemsDomainService {
     };
   }
 
-  // Org-wide master list (no site filter).
   // Org-wide master list (no site filter). Same table shape as findForTable; RLS scopes to org.
   async findForOrgTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
     return this.findForTable(state);
@@ -262,7 +261,6 @@ export class InventoryItemsDomainService {
     return { name: entity.name, allowedUomIds };
   }
 
-  // Updates an inventory item.
   // Updates an inventory item. Tracking is set at creation and cannot be changed.
   async update(id: string, data: Omit<UpdateInventoryItemDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);

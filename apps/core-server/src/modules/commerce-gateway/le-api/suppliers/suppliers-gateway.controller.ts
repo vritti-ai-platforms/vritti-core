@@ -185,8 +185,7 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.addItem(supplierId, dto);
   }
 
-  // Bulk-sets the free-goods scheme on multiple supplier items; declared before :itemId so "scheme" is not captured as
-  // an item id
+  // Bulk-sets the free-goods scheme on multiple supplier items; declared before :itemId so "scheme" is not captured as an item id
   @Patch(':id/items/scheme')
   @RequirePermission(LE_SUPPLIERS.items.edit)
   bulkSetItemScheme(

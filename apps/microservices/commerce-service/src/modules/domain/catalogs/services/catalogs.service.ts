@@ -136,7 +136,6 @@ export class CatalogsDomainService {
     return rows.map((row) => CatalogCurrencyDto.from(row, catalog.items));
   }
 
-  // Offers a currency on this price list.
   // Offers a currency on this price list. Nothing is priced by it yet — the Prices tab fills that in.
   async addCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
     const catalog = await this.requireCatalog(catalogId);

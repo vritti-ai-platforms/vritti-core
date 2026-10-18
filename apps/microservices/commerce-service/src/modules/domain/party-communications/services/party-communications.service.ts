@@ -77,7 +77,6 @@ export class PartyCommunicationsDomainService {
     return this.repository.findPrimary(partyId, channel);
   }
 
-  // Sets the party's primary value for a channel; an empty value clears it.
   // Sets the party's primary value for a channel; an empty value clears it. Runs in the caller's transaction.
   async upsertPrimary(partyId: string, channel: PartyCommunicationChannel, value?: string | null): Promise<void> {
     const trimmed = value?.trim() || null;

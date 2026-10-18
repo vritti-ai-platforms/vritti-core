@@ -53,8 +53,7 @@ export function templateAppliesAtSite(template: SnapshotRoleTemplate | undefined
   return template.siteType === siteType;
 }
 
-// Whether a role template may be OFFERED/ASSIGNED at a site — only SITE-scoped templates of the matching site type
-// (custom roles always pass)
+// Whether a role template may be OFFERED/ASSIGNED at a site — only SITE-scoped templates of the matching site type (custom roles always pass)
 export function templateAssignableAtSite(template: SnapshotRoleTemplate | undefined, siteType: SiteType): boolean {
   if (!template) return true;
   if (template.scope !== 'SITE') return false;

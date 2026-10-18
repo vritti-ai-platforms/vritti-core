@@ -37,7 +37,6 @@ export class InventoryItemLotsDomainService {
     return { result: result.map((row) => InventoryItemLotDto.from(row)), count };
   }
 
-  // Returns existing lot or creates a new one.
   // Returns existing lot or creates a new one. Lot identity is (orgId, inventoryItemId, lotNumber).
   async findOrCreateLot(params: {
     inventoryItemId: string;
@@ -70,7 +69,6 @@ export class InventoryItemLotsDomainService {
     return this.repository.findByItemAndNumber(inventoryItemId, lotNumber);
   }
 
-  // Creates a new inventory lot.
   // Creates a new inventory lot. Used by the publish flow when resolving draft adjustment lots.
   createLot(data: {
     inventoryItemId: string;

@@ -18,7 +18,6 @@ export class CartsController {
 
   constructor(private readonly service: CartsDomainService) {}
 
-  // Returns the open basket, or an empty one.
   // Returns the open basket, or an empty one. Never creates.
   @MessagePattern({ cmd: 'site.carts.get' })
   get(@Payload() dto: CartScopeDto): Promise<CartDto> {

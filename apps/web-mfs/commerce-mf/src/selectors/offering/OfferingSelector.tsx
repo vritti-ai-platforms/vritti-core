@@ -2,8 +2,6 @@ import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
 import { forwardRef } from 'react';
 
 export interface OfferingSelectorProps extends SelectProps {
-  // Drops the offerings this catalog already lists every active variant of — offering one would
-  // only lead to a variant step with nothing left in it
   catalogId?: string;
 }
 

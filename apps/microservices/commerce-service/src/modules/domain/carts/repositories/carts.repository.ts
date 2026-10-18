@@ -147,7 +147,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       .select({ code: cartItems.code, quantity: cartItems.quantity })
       .from(cartItems)
       .innerJoin(carts, eq(carts.id, cartItems.cartId))
-      .where(and(eq(carts.partyId, partyId), ownedByWorkspaceExpression()));
+      .where(and(eq(carts.partyId, partyId), ownedByWorkspaceExpression(carts)));
   }
 
   // Adds a line, or raises the quantity of the one already there

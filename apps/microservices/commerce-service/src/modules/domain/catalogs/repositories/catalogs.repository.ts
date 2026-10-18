@@ -26,7 +26,7 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
       ...getColumns(catalogs),
       items: this.db.$count(catalogListings, eq(catalogListings.catalogId, catalogs.id)),
       channels: this.db.$count(catalogChannels, eq(catalogChannels.catalogId, catalogs.id)),
-      isOwned: ownedByWorkspaceExpression(),
+      isOwned: ownedByWorkspaceExpression(catalogs),
     };
   }
 
@@ -41,7 +41,7 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
         terminalName: posTerminals.name,
         legalEntityId: catalogChannels.legalEntityId,
         siteId: catalogChannels.siteId,
-        isOwn: ownedByWorkspaceExpression('catalog_channels'),
+        isOwn: ownedByWorkspaceExpression(catalogChannels),
       })
       .from(catalogChannels)
       .leftJoin(posTerminals, eq(posTerminals.id, catalogChannels.terminalId))
@@ -74,7 +74,7 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
     const [row] = await this.db
       .select()
       .from(catalogs)
-      .where(sql`lower(${catalogs.name}) = lower(${name}) and ${ownedByWorkspaceExpression()}`)
+      .where(sql`lower(${catalogs.name}) = lower(${name}) and ${ownedByWorkspaceExpression(catalogs)}`)
       .limit(1);
     return row;
   }

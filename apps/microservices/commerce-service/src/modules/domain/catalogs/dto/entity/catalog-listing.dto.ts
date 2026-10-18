@@ -58,7 +58,6 @@ export class CatalogListingDto {
   catalogId: string;
   offeringVariantId: string;
   code: string;
-  // The offering's name — a variant has none of its own. What distinguishes it is in `dimensions`.
   offeringName: string;
   dimensions: VariantFacet[];
   attributes: VariantFacet[];

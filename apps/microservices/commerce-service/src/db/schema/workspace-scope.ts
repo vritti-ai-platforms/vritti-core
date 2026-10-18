@@ -84,9 +84,10 @@ const resolveHop = <TTable extends PgTable>(hop: { table: TTable; fk: (table: TT
   column: hop.fk(hop.table).name,
 });
 
-// The ownership test as a selectable boolean, for the isOwned flag services branch on.
-export const ownedByWorkspaceExpression = (table?: string) =>
-  sql<boolean>`coalesce(${sql.raw(exactlyThisWorkspaceSql(table))}, false)`;
+// The ownership test as a selectable boolean — the table qualifies the owner columns, which a query with a
+// second scoped table in its FROM needs and a policy body never does
+export const ownedByWorkspaceExpression = (table: PgTable) =>
+  sql<boolean>`coalesce(${sql.raw(exactlyThisWorkspaceSql(qualifiedName(table)))}, false)`;
 
 export const WorkspaceScopeValues = {
   ORG: 'ORG',

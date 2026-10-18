@@ -11,15 +11,12 @@ import { useAddListingsWizard } from './AddListingsProvider';
 import { ListingVariantCard } from './ListingVariantCard';
 import { WizardFooter } from './WizardFooter';
 
-// Step three, and the only form in the wizard: one card per variant chosen, each holding the MRPs it is
-// listed at and a price slot per MRP. Submitted as one batch, so a row the server refuses — already listed,
-// or priced above its printed MRP — leaves the catalog as it was rather than half filled.
+// Step three, and the only form in the wizard — one batch, so a refused row leaves the catalog untouched
 export const PricesStep: React.FC = () => {
   const { binding, catalogId, catalogName, currencyCode, variantIds, labels, dropVariant } = useAddListingsWizard();
   const navigate = useNavigate();
 
-  // Seeded from what the steps before chose. One row per variant to begin with — picking MRPs on a card
-  // replaces that row with one per MRP.
+  // Seeded from the steps before — one row per variant until a card's MRPs replace it with one per MRP
   const form = useForm<CatalogListingPricesFormShape>({
     resolver: zodResolver(catalogListingPricesFormSchema),
     defaultValues: {

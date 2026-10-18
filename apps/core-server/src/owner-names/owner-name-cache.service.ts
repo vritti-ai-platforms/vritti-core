@@ -26,7 +26,6 @@ export class OwnerNameCacheService {
     return { names, missing };
   }
 
-  // Caches the names just read, so the next request for them costs nothing.
   // Caches the names just read, so the next request for them costs nothing. One pipelined write.
   async setMany(kind: OwnerKind, rows: { id: string; name: string }[]): Promise<void> {
     await this.cache.mset(

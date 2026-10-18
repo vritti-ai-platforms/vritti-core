@@ -76,8 +76,7 @@ export class AuthStatusEventListener {
     await this.rePushToOrg(event.orgId);
   }
 
-  // Rebuilds and re-pushes fresh auth-state to the org's assigned users when the org itself changes (e.g. feature
-  // locks)
+  // Rebuilds and re-pushes fresh auth-state to the org's assigned users when the org itself changes (e.g. feature locks)
   @OnEvent(AUTH_STATUS_EVENTS.ORG_UPDATED)
   async handleOrgUpdated(event: OrgUpdatedEvent) {
     this.logger.log(`Handling ORG_UPDATED for org ${event.orgId}`);

@@ -75,8 +75,7 @@ function createSwaggerConfig() {
 async function bootstrap() {
   // Configure API SDK settings
 
-  // Determine logger configuration — default provider uses NestJS built-in to avoid circular reference; Winston uses
-  // LoggerService
+  // Determine logger configuration — default provider uses NestJS built-in to avoid circular reference; Winston uses LoggerService
   const useBuiltInLogger = ENV.logProvider === 'default';
   const loggerOptions = useBuiltInLogger
     ? {}
@@ -104,8 +103,7 @@ async function bootstrap() {
   // Get services from DI container
   const configService = app.get(ConfigService);
 
-  // Only replace logger when using Winston provider (default provider would create circular reference via
-  // app.useLogger())
+  // Only replace logger when using Winston provider (default provider would create circular reference via app.useLogger())
   if (!useBuiltInLogger) {
     const appLogger = app.get(LoggerService);
     app.useLogger(appLogger);
@@ -123,8 +121,7 @@ async function bootstrap() {
     },
   });
 
-  // Register raw body plugin for request signature validation (global: true makes rawBody available for all signed
-  // internal API routes)
+  // Register raw body plugin for request signature validation (global: true makes rawBody available for all signed internal API routes)
   await app.register(fastifyRawBody, {
     field: 'rawBody',
     global: true,
@@ -146,8 +143,7 @@ async function bootstrap() {
     },
   });
 
-  // Register global exception filter for RFC 7807 Problem Details format (HTTP only; GraphQL errors fall through to
-  // Apollo's formatter)
+  // Register global exception filter for RFC 7807 Problem Details format (HTTP only; GraphQL errors fall through to Apollo's formatter)
   app.useGlobalFilters(new TransportAwareExceptionFilter());
 
   // Register correlation ID middleware for request tracking using Fastify hooks

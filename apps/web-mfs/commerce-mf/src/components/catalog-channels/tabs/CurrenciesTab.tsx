@@ -14,7 +14,6 @@ interface CurrenciesTabProps {
   channelId: string;
 }
 
-// The currencies this channel can quote in.
 // The currencies this channel can quote in. Each opens what it charges and what it excludes.
 export const CurrenciesTab: React.FC<CurrenciesTabProps> = ({ binding, channelId }) => {
   const { data: currencies = [], isLoading } = binding.useChannelCurrencies(channelId);

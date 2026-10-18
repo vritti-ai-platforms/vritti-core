@@ -137,8 +137,7 @@ class EnvironmentVariables {
   @IsString()
   LICENSE_PUBLIC_KEY: string;
 
-  // Deployment agent public key (Ed25519, base64 spki DER) — verifies signed agent→core requests (gitea credential
-  // writes)
+  // Deployment agent public key (Ed25519, base64 spki DER) — verifies signed agent→core requests (gitea credential writes)
   @IsString()
   AGENT_PUBLIC_KEY: string;
 
