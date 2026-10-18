@@ -51,6 +51,30 @@ export function ApiCustomersSelect() {
   );
 }
 
+export function ApiInventoryItemMrpsSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get the MRP options for one offering variant',
+      description:
+        "Returns the printed MRPs a variant could be listed at — the recorded prices of whatever its bill of materials draws on, labelled by amount and pack unit. Empty when nothing in the BOM has an MRP recorded, which the form reads as 'list for any batch'.",
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiQuery({ name: 'variantId', description: 'Variant whose bill of materials decides the options', required: true }),
+    ApiQuery({
+      name: 'currencyCode',
+      description: 'Narrow to the MRPs printed in one currency — what a listing keyed to one may be priced in',
+      required: false,
+    }),
+    ApiQuery({
+      name: 'catalogId',
+      description: 'Hide the MRPs this catalog already lists the variant at',
+      required: false,
+    }),
+    ApiResponse({ status: 200, description: 'MRP select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
 export function ApiInventoryItemLotsSelect() {
   return applyDecorators(
     ApiOperation({
@@ -146,6 +170,13 @@ export function ApiOfferingVariantsSelect() {
       description:
         'Variants of one offering, keyed by code. Scoped by offeringId — a code only means anything next to its siblings.',
     }),
+    ...BASE_SELECT_QUERIES,
+    ApiQuery({ name: 'offeringId', description: 'Offering whose variants are offered', required: true }),
+    ApiQuery({
+      name: 'catalogId',
+      description: 'Hide the variants this catalog already lists for any batch',
+      required: false,
+    }),
     ApiResponse({ status: 200, description: 'Variant options.' }),
   );
 }
@@ -157,6 +188,11 @@ export function ApiOfferingsSelect() {
       description: 'Returns paginated active offering options for the select component.',
     }),
     ...BASE_SELECT_QUERIES,
+    ApiQuery({
+      name: 'catalogId',
+      description: 'Hide the offerings whose every active variant this catalog already lists',
+      required: false,
+    }),
     ApiResponse({ status: 200, description: 'Offering select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );

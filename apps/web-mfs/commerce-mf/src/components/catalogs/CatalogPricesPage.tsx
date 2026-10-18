@@ -16,6 +16,7 @@ import { Boxes, Coins, Eraser, Tag } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { VariantFacetsLine } from '@/components/VariantFacetsLine';
 import type { CatalogListingData } from '@/schemas/catalogs';
 import { currencyName } from '@/selectors/currency';
 import type { CatalogsBinding } from './bindings';
@@ -64,7 +65,18 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
         cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
-      { accessorKey: 'variantName', header: 'Variant', enableSorting: false },
+      {
+        accessorKey: 'offeringName',
+        header: 'Variant',
+        // The offering names it; the facets under it are what tell this row from its siblings
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span>{row.original.offeringName}</span>
+            <VariantFacetsLine dimensions={row.original.dimensions} />
+          </div>
+        ),
+        enableSorting: false,
+      },
       {
         accessorKey: 'mrp',
         header: () => <div className="text-center">MRP</div>,
@@ -204,7 +216,7 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
         searchConfig={{
           columns: [
             { id: 'code', label: 'Code' },
-            { id: 'variantName', label: 'Variant' },
+            { id: 'offeringName', label: 'Variant' },
           ],
           searchAll: true,
         }}

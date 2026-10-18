@@ -3,6 +3,8 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
+import { AddListingsPage } from '@/components/catalogs/AddListingsPage';
+import { AddListingsPageSkeleton } from '@/components/catalogs/AddListingsPageSkeleton';
 import { CatalogDetailPage } from '@/components/catalogs/CatalogDetailPage';
 import { CatalogDetailPageSkeleton } from '@/components/catalogs/CatalogDetailPageSkeleton';
 import { CatalogPricesPage } from '@/components/catalogs/CatalogPricesPage';
@@ -11,21 +13,33 @@ import { siteCatalogsBinding } from './binding';
 
 // The gate sits outside the boundary so a denied user never mounts the page and never fires the request —
 // useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.
-const gated = (permission: string, element: React.ReactNode) => (
+const gated = (
+  permission: string,
+  element: React.ReactNode,
+  skeleton: React.ReactNode = <CatalogDetailPageSkeleton />,
+) => (
   <PermissionGate
     permission={permission}
     fallback={({ reason, title, tip }) => (
       <Empty icon={<PermissionLockIcon reason={reason} />} title={title} description={tip} />
     )}
   >
-    <Suspense fallback={<CatalogDetailPageSkeleton />}>{element}</Suspense>
+    <Suspense fallback={skeleton}>{element}</Suspense>
   </PermissionGate>
 );
 
 const routes: RouteObject[] = [
   { index: true, element: <CatalogsPage binding={siteCatalogsBinding} /> },
   { path: ':slug/:tab?', element: gated(SITE_CATALOGS.view, <CatalogDetailPage binding={siteCatalogsBinding} />) },
-  // Three segments, so it never collides with the two-segment tab route above
+  // Three segments, so they never collide with the two-segment tab route above
+  {
+    path: ':slug/listings/new',
+    element: gated(
+      SITE_CATALOGS.listings.add,
+      <AddListingsPage binding={siteCatalogsBinding} />,
+      <AddListingsPageSkeleton />,
+    ),
+  },
   {
     path: ':slug/currencies/:currencyCode',
     element: gated(SITE_CATALOGS.view, <CatalogPricesPage binding={siteCatalogsBinding} />),

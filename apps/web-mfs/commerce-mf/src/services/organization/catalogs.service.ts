@@ -2,7 +2,7 @@ import axios from '@vritti/quantum-ui/axios';
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
-  AddCatalogListingFormData,
+  AddCatalogListingItem,
   CatalogCurrencyData,
   CatalogData,
   CatalogListingData,
@@ -24,7 +24,10 @@ export interface UpdateCatalogPayload {
   isActive?: boolean;
 }
 
-export type AddCatalogListingPayload = AddCatalogListingFormData & { catalogId: string };
+export interface AddCatalogListingsPayload {
+  catalogId: string;
+  items: AddCatalogListingItem[];
+}
 
 export function getCatalogsTable(): Promise<CatalogsTableResponse> {
   return axios.get<CatalogsTableResponse>(`${BASE}/table`, { showSuccessToast: false }).then((r) => r.data);
@@ -52,11 +55,13 @@ export function getCatalogListingsTable(catalogId: string): Promise<CatalogListi
     .then((r) => r.data);
 }
 
-export function addCatalogListing({
+export function addCatalogListings({
   catalogId,
-  ...data
-}: AddCatalogListingPayload): Promise<CreateResponse<CatalogListingData>> {
-  return axios.post<CreateResponse<CatalogListingData>>(`${BASE}/${catalogId}/listings`, data).then((r) => r.data);
+  items,
+}: AddCatalogListingsPayload): Promise<CreateResponse<CatalogListingData[]>> {
+  return axios
+    .post<CreateResponse<CatalogListingData[]>>(`${BASE}/${catalogId}/listings/batch`, { items })
+    .then((r) => r.data);
 }
 
 export function setCatalogListingPrice({
@@ -124,6 +129,44 @@ export function getCatalogCurrencyListingsTable({
     .then((r) => r.data);
 }
 
+export function bulkRemoveCatalogListings({
+  catalogId,
+  ids,
+}: {
+  catalogId: string;
+  ids: string[];
+}): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${catalogId}/listings`, { data: { ids } }).then((r) => r.data);
+}
+
+export function bulkSetCatalogListingPrice({
+  catalogId,
+  ids,
+  price,
+}: {
+  catalogId: string;
+  ids: string[];
+  price: CurrencyValue;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${catalogId}/listings/prices`, { ids, price }).then((r) => r.data);
+}
+
+export function bulkSetCatalogListingAvailability({
+  catalogId,
+  ids,
+  channelIds,
+  visible,
+}: {
+  catalogId: string;
+  ids: string[];
+  channelIds: string[];
+  visible: boolean;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`${BASE}/${catalogId}/listings/availability`, { ids, channelIds, visible })
+    .then((r) => r.data);
+}
+
 export function deleteCatalogListing({
   catalogId,
   listingId,
@@ -132,22 +175,6 @@ export function deleteCatalogListing({
   listingId: string;
 }): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/${catalogId}/listings/${listingId}`).then((r) => r.data);
-}
-
-export interface CatalogListingMrpOption {
-  id: string;
-  mrp: CurrencyValue;
-  uomSymbol: string | null;
-  isCurrent: boolean;
-}
-
-export function getCatalogListingMrpOptions(offeringVariantId: string): Promise<CatalogListingMrpOption[]> {
-  return axios
-    .get<CatalogListingMrpOption[]>(`${BASE}/listings/mrp-options`, {
-      params: { offeringVariantId },
-      showSuccessToast: false,
-    })
-    .then((r) => r.data);
 }
 
 export function setCatalogListingChannelVisibility({

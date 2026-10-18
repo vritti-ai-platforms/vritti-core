@@ -10,10 +10,11 @@ import { CompactSwitch } from '@vritti/quantum-ui/Switch';
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import type React from 'react';
 import { useMemo, useState } from 'react';
+import { stepNumber, toStepDefs } from '@/components/wizardSteps';
 import type { OfferingData, OfferingDimensionData, VariantCombinationData } from '@/schemas/offerings';
 import { CodeOrderStrip } from '../components/CodeOrderStrip';
 import type { UseGenerateVariants, UsePreviewVariantCombinations } from '../types';
-import { stepNumber, toStepDefs, VARIANT_WIZARD_STEPS, type VariantWizardStep } from './wizardSteps';
+import { VARIANT_WIZARD_STEPS, type VariantWizardStep } from './wizardSteps';
 
 interface GenerateVariantsWizardProps {
   useGenerate: UseGenerateVariants;

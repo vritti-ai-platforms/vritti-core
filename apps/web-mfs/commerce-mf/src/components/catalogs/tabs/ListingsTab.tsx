@@ -5,6 +5,7 @@ import {
   type ColumnDef,
   CurrencyCell,
   DataTable,
+  getSelectionColumn,
   type RowAction,
   RowActions,
   StringCell,
@@ -13,11 +14,14 @@ import {
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
-import { Boxes, Plus, Radio, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { Boxes, IndianRupee, Plus, Radio, Trash2 } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { VariantFacetsLine } from '@/components/VariantFacetsLine';
 import type { CatalogListingData } from '@/schemas/catalogs';
 import type { CatalogsBinding } from '../bindings';
-import { AddListingDialog } from '../forms/AddListingDialog';
+import { BulkAvailabilityDialog } from '../forms/BulkAvailabilityDialog';
+import { BulkSetPriceDialog } from '../forms/BulkSetPriceDialog';
 import { ManageVisibilityDialog } from '../forms/ManageVisibilityDialog';
 
 interface ListingsTabProps {
@@ -27,12 +31,40 @@ interface ListingsTabProps {
 
 export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { data: response, isLoading } = binding.useListingsTable(catalogId);
   const { data: channels = [] } = binding.useChannelsForCatalog(catalogId);
   const { data: currencies = [] } = binding.useCurrencies(catalogId);
-  const addDialog = useDialog();
+  const bulkPriceDialog = useDialog();
+  const bulkAvailabilityDialog = useDialog();
   const confirm = useConfirm();
   const deleteMutation = binding.useDeleteListing();
+  const bulkRemoveMutation = binding.useBulkRemoveListings();
+  // Held while a dialog is open: the selection bar hands its rows to the click, not to the dialog
+  const [bulkIds, setBulkIds] = useState<string[]>([]);
+
+  const openBulk = useCallback(
+    (which: 'price' | 'availability', ids: string[]) => {
+      setBulkIds(ids);
+      if (which === 'price') bulkPriceDialog.open();
+      else bulkAvailabilityDialog.open();
+    },
+    [bulkAvailabilityDialog, bulkPriceDialog],
+  );
+
+  const handleBulkRemove = useCallback(
+    async (ids: string[]) => {
+      const ok = await confirm({
+        title: `Remove ${pluralize('listing', ids.length, true)}?`,
+        description:
+          'They are removed from this catalog with their prices, in one go — the variants themselves are untouched.',
+        confirmLabel: 'Remove',
+        variant: 'destructive',
+      });
+      if (ok) bulkRemoveMutation.mutate({ catalogId, ids });
+    },
+    [bulkRemoveMutation, catalogId, confirm],
+  );
 
   const handleDelete = useCallback(
     async (row: CatalogListingData) => {
@@ -50,13 +82,25 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
   const currencyCount = currencies.length;
   const columns = useMemo<ColumnDef<CatalogListingData>[]>(
     () => [
+      getSelectionColumn<CatalogListingData>(),
       {
         accessorKey: 'code',
         header: 'Code',
         cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
-      { accessorKey: 'variantName', header: 'Variant', enableSorting: false },
+      {
+        accessorKey: 'offeringName',
+        header: 'Variant',
+        // The offering names it; the facets under it are what tell this row from its siblings
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span>{row.original.offeringName}</span>
+            <VariantFacetsLine dimensions={row.original.dimensions} />
+          </div>
+        ),
+        enableSorting: false,
+      },
       {
         accessorKey: 'ownerName',
         header: 'Owner',
@@ -123,10 +167,10 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
               id: 'visibility',
               icon: Radio,
               label: 'Manage Availability',
-              permission: binding.permissions.listings.edit,
+              permission: binding.permissions.listings.setAvailability,
               dialog: {
                 title: 'Manage Availability',
-                description: `Where "${r.variantName}" is available. It is available on every channel this catalog reaches unless excluded here.`,
+                description: `Where "${r.code}" is available. It is available on every channel this catalog reaches unless excluded here.`,
                 content: (close) => (
                   <ManageVisibilityDialog
                     binding={binding}
@@ -162,7 +206,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
     slug: binding.listingsTableSlug(catalogId),
     label: 'listing',
     serverState: response,
-    enableRowSelection: false,
+    enableRowSelection: true,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: binding.listingsTableKey(catalogId) }),
@@ -181,12 +225,52 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
             <Button
               size="sm"
               startAdornment={<Plus className="size-4" />}
-              onClick={addDialog.open}
+              onClick={() => navigate('new', { relative: 'path' })}
               permission={binding.permissions.listings.add}
             >
-              Add Listing
+              Add Listings
             </Button>
           ),
+        }}
+        selectActions={(rows) => {
+          const ids = rows.map((row) => row.original.id);
+          const inherited = rows.filter((row) => !row.original.canDelete).length;
+          return (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                permission={binding.permissions.prices.set}
+                startAdornment={<IndianRupee className="size-4" />}
+                disabled={currencies.length === 0}
+                disabledTip="This catalog carries no currency yet. Add one on the Currencies tab."
+                onClick={() => openBulk('price', ids)}
+              >
+                Set Price
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                permission={binding.permissions.listings.setAvailability}
+                startAdornment={<Radio className="size-4" />}
+                onClick={() => openBulk('availability', ids)}
+              >
+                Change Availability
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                permission={binding.permissions.listings.delete}
+                startAdornment={<Trash2 className="size-4" />}
+                isLoading={bulkRemoveMutation.isPending}
+                disabled={inherited > 0}
+                disabledTip={`${pluralize('listing', inherited, true)} in this selection belong to a wider workspace.`}
+                onClick={() => handleBulkRemove(ids)}
+              >
+                Remove
+              </Button>
+            </>
+          );
         }}
         emptyStateConfig={{
           icon: Boxes,
@@ -196,12 +280,36 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
       />
 
       <Dialog
-        handle={addDialog}
-        icon={Boxes}
-        title="Add Listing"
-        description="Pick a variant. Leave MRP empty to cover any batch, or choose one to list this variant at a single printed price."
+        handle={bulkPriceDialog}
+        icon={IndianRupee}
+        title="Set Price"
+        description={`One price for ${pluralize('selected listing', bulkIds.length, true)}. Each one keeps it per currency, and a listing keyed to a printed MRP refuses a price above it.`}
         content={(close) => (
-          <AddListingDialog binding={binding} catalogId={catalogId} onSuccess={close} onCancel={close} />
+          <BulkSetPriceDialog
+            binding={binding}
+            catalogId={catalogId}
+            ids={bulkIds}
+            currencyCodes={currencies.map((currency) => currency.currencyCode)}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
+      />
+
+      <Dialog
+        handle={bulkAvailabilityDialog}
+        icon={Radio}
+        title="Change Availability"
+        description={`Where ${pluralize('selected listing', bulkIds.length, true)} should show. They are available on every channel this catalog reaches unless excluded.`}
+        content={(close) => (
+          <BulkAvailabilityDialog
+            binding={binding}
+            catalogId={catalogId}
+            ids={bulkIds}
+            channels={channels}
+            onSuccess={close}
+            onCancel={close}
+          />
         )}
       />
     </>

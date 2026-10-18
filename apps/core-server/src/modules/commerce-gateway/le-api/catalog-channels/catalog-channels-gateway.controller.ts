@@ -113,7 +113,7 @@ export class LeCatalogChannelsGatewayController {
   }
 
   @Patch(':channelId/listings/:listingId')
-  @RequirePermission(LE_CATALOG_CHANNELS.visibility)
+  @RequirePermission(LE_CATALOG_CHANNELS.setAvailability)
   @ApiSetChannelItemVisibility()
   setItemVisibility(
     @Param('channelId') channelId: string,

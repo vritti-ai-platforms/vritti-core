@@ -3,8 +3,7 @@ import type { OrderType } from '@/db/schema';
 export interface AwaitingPaymentOrderLine {
   offeringId: string;
   offeringVariantId: string;
-  itemName: string;
-  variantName: string | null;
+  name: string;
   code: string | null;
   quantity: number;
   unitPrice: bigint;

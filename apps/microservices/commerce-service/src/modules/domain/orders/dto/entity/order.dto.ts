@@ -2,8 +2,8 @@ import type { Order, OrderItem } from '@/db/schema';
 
 export class OrderItemDto {
   id: string;
-  itemName: string;
-  variantName: string | null;
+  // Built when the order was placed — the offering's name and the variant's facets, as they read then
+  name: string;
   code: string | null;
   quantity: number;
   unitPrice: string;
@@ -16,8 +16,7 @@ export class OrderItemDto {
   static from(entity: OrderItem): OrderItemDto {
     const dto = new OrderItemDto();
     dto.id = entity.id;
-    dto.itemName = entity.itemName;
-    dto.variantName = entity.variantName ?? null;
+    dto.name = entity.name;
     dto.code = entity.code ?? null;
     dto.quantity = entity.quantity;
     dto.unitPrice = entity.unitPrice.toString();

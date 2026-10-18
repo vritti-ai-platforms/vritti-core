@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
-import { and, asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,
   ConflictException,
@@ -34,6 +34,7 @@ import {
   type OfferingRef,
   OfferingVariantsDomainRepository,
   type OfferingVariantTableRow,
+  type VariantOptionRow,
   type VariantWithBomCount,
 } from '../repositories/offering-variants.repository';
 
@@ -88,7 +89,7 @@ export class OfferingVariantsDomainService {
     excludeIds?: string[];
     limit?: number;
     offset?: number;
-  }): Promise<{ items: { id: string; code: string; name: string }[]; total: number }> {
+  }): Promise<{ items: VariantOptionRow[]; total: number }> {
     return this.repository.findOptions({
       search: query.search,
       excludeIds: query.excludeIds,
@@ -98,14 +99,25 @@ export class OfferingVariantsDomainService {
   }
 
   // Options for the breadcrumb switcher: this offering's variants, keyed by Code
-  async findForSelect(offeringId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  async findForSelect(
+    offeringId: string,
+    query: SelectOptionsQueryDto & { catalogId?: string },
+  ): Promise<SelectQueryResult> {
     await this.requireReachableOffering(offeringId);
-    return this.repository.findForSelectInOffering(
+    const result = await this.repository.findForSelectInOffering(
       {
         value: query.valueKey || 'id',
         label: query.labelKey || 'code',
         description: query.descriptionKey,
         additionalKeys: query.additionalKeys,
+        // Read off the cached column rather than re-joining the junctions, which is what that column is for
+        additionalExpressions: {
+          facets: sql`(
+            select string_agg(entry->>'value', ' \u00b7 ')
+            from jsonb_array_elements(${offeringVariants.dimensions}) facet,
+                 jsonb_array_elements(facet->'values') entry
+          )`,
+        },
         search: query.search,
         limit: query.limit,
         offset: query.offset,
@@ -115,7 +127,19 @@ export class OfferingVariantsDomainService {
         orderDirection: query.orderDirection || 'asc',
       },
       offeringId,
+      query.catalogId,
     );
+
+    // A variant has nothing else to describe it with: no name of its own, and its offering is already the
+    // thing being browsed. Its dimension values are what tell one option from the next.
+    if (query.descriptionKey) return result;
+    return {
+      ...result,
+      options: result.options.map((option) => ({
+        ...option,
+        description: String(option.additionals?.facets ?? '') || undefined,
+      })),
+    };
   }
 
   // Flat rows for the file export, scoped to one offering.
@@ -125,7 +149,6 @@ export class OfferingVariantsDomainService {
     return rows.map((row) => ({
       Code: row.code,
       'External Code': row.externalSku ?? '',
-      Name: row.name,
       Combination: row.values.map((value) => value.value).join(' \u00b7 '),
       'Sold in': row.salesUomName ?? '',
       'Tax Class': row.taxClassName ?? '',
@@ -165,7 +188,6 @@ export class OfferingVariantsDomainService {
     const combinations = product.map((ordered) => ({
       valueIds: ordered.map((row) => row.valueId),
       code: this.deriveCode(offering.code, ordered),
-      name: this.deriveName(offering.name, ordered),
       labels: ordered.map((row) => row.value).join(' \u00b7 '),
       exists: existing.has(this.combinationKey(ordered.map((row) => row.valueId))),
     }));
@@ -221,7 +243,6 @@ export class OfferingVariantsDomainService {
         planned.map((plan) => ({
           offeringId: data.offeringId,
           code: plan.code,
-          name: this.deriveName(data.namePrefix ?? offering.name, plan.ordered),
           salesUomId: data.salesUomId,
           taxClassId: offering.taxClassId,
           fulfilmentType: offering.fulfilmentType,
@@ -240,6 +261,7 @@ export class OfferingVariantsDomainService {
         ),
       );
 
+      await this.repository.refreshFacets(inserted.map((variant) => variant.id));
       return inserted;
     });
 
@@ -404,6 +426,7 @@ export class OfferingVariantsDomainService {
       await this.repository.insertVariantAttributeValues(
         data.ids.flatMap((variantId) => valueIds.map((valueId) => ({ variantId, attributeId: attribute.id, valueId }))),
       );
+      await this.repository.refreshFacets(data.ids);
     });
 
     this.logger.log(
@@ -488,10 +511,6 @@ export class OfferingVariantsDomainService {
   // Code = offering code + one value code per dimension, in dimension order
   private deriveCode(offeringCode: string, ordered: DimensionValueRow[]): string {
     return [offeringCode, ...ordered.map((row) => row.valueCode)].join('-');
-  }
-
-  private deriveName(base: string, ordered: DimensionValueRow[]): string {
-    return [base, ...ordered.map((row) => row.value)].join(' · ').slice(0, 255);
   }
 
   private combinationKey(valueIds: string[]): string {

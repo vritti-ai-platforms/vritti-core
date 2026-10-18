@@ -25,6 +25,7 @@ import {
   ApiCustomersSelect,
   ApiDimensionTemplatesSelect,
   ApiInventoryItemLotsSelect,
+  ApiInventoryItemMrpsSelect,
   ApiInventoryItemQuantsSelect,
   ApiInventoryItemSerialsSelect,
   ApiInventoryItemsSelect,
@@ -42,7 +43,9 @@ import {
   ApiUomDimensionsSelect,
   ApiUomSelect,
 } from './docs/select-api.docs';
+import { InventoryItemMrpsSelectQueryDto } from './dto/inventory-item-mrps-select-query.dto';
 import { OfferingVariantsSelectQueryDto } from './dto/offering-variants-select-query.dto';
+import { OfferingsSelectQueryDto } from './dto/offerings-select-query.dto';
 
 @ApiTags('Commerce - Select')
 @ApiBearerAuth()
@@ -75,6 +78,12 @@ export class SelectApiController {
     return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItemLots', query);
   }
 
+  @Get('inventory-item-mrps')
+  @ApiInventoryItemMrpsSelect()
+  selectInventoryItemMrps(@Query() query: InventoryItemMrpsSelectQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItemMrps', query);
+  }
+
   @Get('inventory-item-quants')
   @ApiInventoryItemQuantsSelect()
   selectInventoryItemQuants(@Query() query: QuantsSelectQueryDto): Promise<SelectQueryResult> {
@@ -101,7 +110,7 @@ export class SelectApiController {
 
   @Get('offerings')
   @ApiOfferingsSelect()
-  selectOfferings(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  selectOfferings(@Query() query: OfferingsSelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.offerings', query);
   }
 

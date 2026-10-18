@@ -21,7 +21,6 @@ export class OfferingVariantDto {
   offeringId: string;
   code: string;
   externalSku: string | null;
-  name: string;
   salesUomId: string;
   salesUomName: string | null;
   taxClassId: string;
@@ -68,7 +67,6 @@ export class OfferingVariantDto {
       offeringId: entity.offeringId,
       code: entity.code,
       externalSku: entity.externalSku ?? null,
-      name: entity.name,
       salesUomId: entity.salesUomId,
       salesUomName,
       taxClassId: entity.taxClassId,

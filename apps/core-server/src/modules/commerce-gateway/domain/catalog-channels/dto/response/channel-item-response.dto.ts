@@ -1,3 +1,4 @@
+import { VariantFacetResponseDto } from '@commerce/offerings/dto/response/variant-facet-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
@@ -6,7 +7,13 @@ export class ChannelItemResponseDto {
   @ApiProperty() listingId: string;
   @ApiProperty() offeringVariantId: string;
   @ApiProperty() code: string;
-  @ApiProperty() variantName: string;
+  @ApiProperty({ description: 'The offering\u2019s name \u2014 a variant has none of its own' }) offeringName: string;
+
+  @ApiProperty({ type: [VariantFacetResponseDto], description: 'What tells this variant from its siblings' })
+  dimensions: VariantFacetResponseDto[];
+
+  @ApiProperty({ type: [VariantFacetResponseDto] })
+  attributes: VariantFacetResponseDto[];
   @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true }) mrp: CurrencyAmountDto | null;
 
   @ApiProperty({ description: 'False when this channel does not carry the item at all' })
@@ -30,7 +37,13 @@ export class ChannelPriceResponseDto {
   @ApiProperty() listingId: string;
   @ApiProperty() offeringVariantId: string;
   @ApiProperty() code: string;
-  @ApiProperty() variantName: string;
+  @ApiProperty({ description: 'The offering\u2019s name \u2014 a variant has none of its own' }) offeringName: string;
+
+  @ApiProperty({ type: [VariantFacetResponseDto], description: 'What tells this variant from its siblings' })
+  dimensions: VariantFacetResponseDto[];
+
+  @ApiProperty({ type: [VariantFacetResponseDto] })
+  attributes: VariantFacetResponseDto[];
   @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true }) mrp: CurrencyAmountDto | null;
 
   @ApiPropertyOptional({

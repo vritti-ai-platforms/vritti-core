@@ -2,10 +2,13 @@ import type { CatalogChannelResponseDto } from '@commerce/catalog-channels/dto/r
 import {
   ApiAddCatalogCurrency,
   ApiAddCatalogListing,
+  ApiAddCatalogListings,
+  ApiBulkRemoveCatalogListings,
+  ApiBulkSetCatalogListingAvailability,
+  ApiBulkSetCatalogListingPrice,
   ApiCatalogChannels,
   ApiCatalogCurrencies,
   ApiCatalogCurrencyListingsTable,
-  ApiCatalogListingMrpOptions,
   ApiCatalogListingsTable,
   ApiCatalogsTable,
   ApiClearCatalogListingPrice,
@@ -20,17 +23,19 @@ import {
 } from '@commerce/catalogs/docs/catalogs-gateway.docs';
 import { AddCatalogCurrencyDto } from '@commerce/catalogs/dto/request/add-catalog-currency.dto';
 import { AddCatalogListingDto } from '@commerce/catalogs/dto/request/add-catalog-listing.dto';
-import { CatalogListingMrpOptionsQueryDto } from '@commerce/catalogs/dto/request/catalog-listing-mrp-options-query.dto';
+import { AddCatalogListingsBatchDto } from '@commerce/catalogs/dto/request/add-catalog-listings-batch.dto';
+import {
+  BulkRemoveCatalogListingsDto,
+  BulkSetCatalogListingAvailabilityDto,
+  BulkSetCatalogListingPriceDto,
+} from '@commerce/catalogs/dto/request/bulk-catalog-listings.dto';
 import { ClearCatalogListingPriceQueryDto } from '@commerce/catalogs/dto/request/clear-catalog-listing-price-query.dto';
 import { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
 import { SetCatalogListingPriceDto } from '@commerce/catalogs/dto/request/set-catalog-listing-price.dto';
 import { SetCatalogListingVisibilityDto } from '@commerce/catalogs/dto/request/set-catalog-listing-visibility.dto';
 import { UpdateCatalogDto } from '@commerce/catalogs/dto/request/update-catalog.dto';
 import type { CatalogCurrencyResponseDto } from '@commerce/catalogs/dto/response/catalog-currency-response.dto';
-import type {
-  CatalogListingMrpOptionResponseDto,
-  CatalogListingResponseDto,
-} from '@commerce/catalogs/dto/response/catalog-listing-response.dto';
+import type { CatalogListingResponseDto } from '@commerce/catalogs/dto/response/catalog-listing-response.dto';
 import type { CatalogListingTableResponseDto } from '@commerce/catalogs/dto/response/catalog-listing-table-response.dto';
 import type { CatalogResponseDto } from '@commerce/catalogs/dto/response/catalog-response.dto';
 import type { CatalogTableResponseDto } from '@commerce/catalogs/dto/response/catalog-table-response.dto';
@@ -84,15 +89,6 @@ export class CatalogsGatewayController {
     return this.service.findListingsForTable(orgId, id, userId);
   }
 
-  // MRP slices belong to the variant rather than to any one catalog, so this sits outside the :id tree
-  @Get('listings/mrp-options')
-  @RequirePermission(ORG_CATALOGS.listings.view)
-  @ApiCatalogListingMrpOptions()
-  getMrpOptions(@Query() query: CatalogListingMrpOptionsQueryDto): Promise<CatalogListingMrpOptionResponseDto[]> {
-    this.logger.log('GET /commerce-api/org/catalogs/listings/mrp-options');
-    return this.service.findMrpOptions(query.offeringVariantId);
-  }
-
   // Lists a variant, optionally keyed to one MRP slice, with an optional opening price
   @Post(':id/listings')
   @HttpCode(HttpStatus.CREATED)
@@ -104,6 +100,19 @@ export class CatalogsGatewayController {
   ): Promise<CreateResponseDto<CatalogListingResponseDto>> {
     this.logger.log(`POST /commerce-api/org/catalogs/${id}/listings`);
     return this.service.addListing(id, dto);
+  }
+
+  // Lists several variants in one call — judged whole, so a refusal leaves the catalog untouched
+  @Post(':id/listings/batch')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_CATALOGS.listings.add)
+  @ApiAddCatalogListings()
+  addListings(
+    @Param('id') id: string,
+    @Body() dto: AddCatalogListingsBatchDto,
+  ): Promise<CreateResponseDto<CatalogListingResponseDto[]>> {
+    this.logger.log(`POST /commerce-api/org/catalogs/${id}/listings/batch — ${dto.items.length} rows`);
+    return this.service.addListings(id, dto);
   }
 
   // Sets a listing's price; refused above the MRP it is keyed to
@@ -143,7 +152,7 @@ export class CatalogsGatewayController {
 
   // Shows or hides one listing on one channel of this catalog
   @Patch(':id/listings/:listingId/channels/:channelId')
-  @RequirePermission(ORG_CATALOGS.listings.edit)
+  @RequirePermission(ORG_CATALOGS.listings.setAvailability)
   @ApiSetCatalogListingChannelVisibility()
   setListingChannelVisibility(
     @Param('id') id: string,
@@ -153,6 +162,37 @@ export class CatalogsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/catalogs/${id}/listings/${listingId}/channels/${channelId}`);
     return this.service.setListingChannelVisibility(listingId, channelId, dto.visible);
+  }
+
+  // The selection actions. One call each: a loop of single-row calls would half-apply on the first refusal.
+  @Delete(':id/listings')
+  @RequirePermission(ORG_CATALOGS.listings.delete)
+  @ApiBulkRemoveCatalogListings()
+  bulkRemoveListings(@Param('id') id: string, @Body() dto: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/catalogs/${id}/listings — ${dto.ids.length} selected`);
+    return this.service.bulkRemoveListings(id, dto);
+  }
+
+  @Patch(':id/listings/prices')
+  @RequirePermission(ORG_CATALOGS.prices.set)
+  @ApiBulkSetCatalogListingPrice()
+  bulkSetListingPrice(
+    @Param('id') id: string,
+    @Body() dto: BulkSetCatalogListingPriceDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/catalogs/${id}/listings/prices — ${dto.ids.length} selected`);
+    return this.service.bulkSetListingPrice(id, dto);
+  }
+
+  @Patch(':id/listings/availability')
+  @RequirePermission(ORG_CATALOGS.listings.setAvailability)
+  @ApiBulkSetCatalogListingAvailability()
+  bulkSetListingAvailability(
+    @Param('id') id: string,
+    @Body() dto: BulkSetCatalogListingAvailabilityDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/catalogs/${id}/listings/availability — ${dto.ids.length} selected`);
+    return this.service.bulkSetListingAvailability(id, dto);
   }
 
   @Delete(':id/listings/:listingId')

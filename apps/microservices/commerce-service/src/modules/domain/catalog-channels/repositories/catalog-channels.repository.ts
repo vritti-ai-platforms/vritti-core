@@ -19,6 +19,7 @@ import {
   offeringAttributeValues,
   offeringDimensions,
   offeringDimensionValues,
+  offerings,
   offeringVariantAttributeValues,
   offeringVariants,
   offeringVariantValues,
@@ -229,7 +230,9 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         listingId: catalogListings.id,
         offeringVariantId: catalogListings.offeringVariantId,
         code: offeringVariants.code,
-        variantName: offeringVariants.name,
+        offeringName: offerings.name,
+        dimensions: offeringVariants.dimensions,
+        attributes: offeringVariants.attributes,
         mrpAmount: inventoryItemMrps.amount,
         mrpCurrencyCode: inventoryItemMrps.currencyCode,
         // Only an outright exclusion answers this; one naming a currency is shown on the Prices tab
@@ -259,6 +262,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .leftJoin(inventoryItemMrps, eq(inventoryItemMrps.id, catalogListings.inventoryItemMrpId))
       .leftJoin(uom, eq(uom.id, inventoryItemMrps.uomId))
       .where(where)
@@ -270,6 +274,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .select({ count: sql<number>`count(*)::int` })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .where(where);
 
     const [result, [{ count }]] = await Promise.all([rows, total]);
@@ -296,7 +301,9 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         listingId: catalogListings.id,
         offeringVariantId: catalogListings.offeringVariantId,
         code: offeringVariants.code,
-        variantName: offeringVariants.name,
+        offeringName: offerings.name,
+        dimensions: offeringVariants.dimensions,
+        attributes: offeringVariants.attributes,
         mrpAmount: inventoryItemMrps.amount,
         mrpCurrencyCode: inventoryItemMrps.currencyCode,
         priceAmount: price.amount,
@@ -321,6 +328,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .leftJoin(inventoryItemMrps, eq(inventoryItemMrps.id, catalogListings.inventoryItemMrpId))
       .leftJoin(uom, eq(uom.id, inventoryItemMrps.uomId))
       .leftJoinLateral(price, sql`true`)
@@ -333,6 +341,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .select({ count: sql<number>`count(*)::int` })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .where(where);
 
     const [result, [{ count }]] = await Promise.all([rows, total]);
@@ -344,6 +353,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .select({ id: catalogListings.id, code: offeringVariants.code })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .where(and(eq(catalogListings.id, listingId), eq(catalogListings.catalogId, catalogId)))
       .limit(1);
     return row;
@@ -436,7 +446,9 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       id: catalogListings.id,
       offeringVariantId: catalogListings.offeringVariantId,
       code: offeringVariants.code,
-      name: offeringVariants.name,
+      name: offerings.name,
+      dimensions: offeringVariants.dimensions,
+      attributes: offeringVariants.attributes,
       ...CatalogChannelsDomainRepository.listingPriceColumns(price),
     };
   }
@@ -513,6 +525,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .select(CatalogChannelsDomainRepository.listingSelection(price))
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .innerJoinLateral(price, sql`true`)
       .where(where)
       .orderBy(...CatalogChannelsDomainRepository.orderBy(query.sort, price))
@@ -523,6 +536,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .select({ count: sql<number>`count(*)::int` })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .innerJoinLateral(price, sql`true`)
       .where(where);
 
@@ -541,6 +555,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .select({ ...CatalogChannelsDomainRepository.listingSelection(price), offeringId: offeringVariants.offeringId })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .innerJoinLateral(price, sql`true`)
       .where(
         and(
@@ -572,6 +587,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .innerJoin(offeringVariantValues, eq(offeringVariantValues.variantId, offeringVariants.id))
       .innerJoin(offeringDimensions, eq(offeringDimensions.id, offeringVariantValues.dimensionId))
       .innerJoin(offeringDimensionValues, eq(offeringDimensionValues.id, offeringVariantValues.valueId))
@@ -599,6 +615,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .innerJoin(offeringVariantValues, eq(offeringVariantValues.variantId, offeringVariants.id))
       .innerJoin(offeringDimensions, eq(offeringDimensions.id, offeringVariantValues.dimensionId))
       .innerJoin(offeringDimensionValues, eq(offeringDimensionValues.id, offeringVariantValues.valueId))
@@ -626,6 +643,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       })
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .innerJoin(offeringVariantAttributeValues, eq(offeringVariantAttributeValues.variantId, offeringVariants.id))
       .innerJoin(offeringAttributes, eq(offeringAttributes.id, offeringVariantAttributeValues.attributeId))
       .innerJoin(offeringAttributeValues, eq(offeringAttributeValues.id, offeringVariantAttributeValues.valueId))
@@ -655,6 +673,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .select(CatalogChannelsDomainRepository.listingSelection(price))
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .innerJoinLateral(price, sql`true`)
       .where(
         and(

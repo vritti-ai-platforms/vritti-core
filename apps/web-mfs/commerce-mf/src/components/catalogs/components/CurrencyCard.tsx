@@ -64,9 +64,9 @@ export const CurrencyCard: React.FC<CurrencyCardProps> = ({
           View prices
         </Button>
         <Button
-          variant="ghost"
+          variant="destructive"
           size="icon"
-          className="size-8 text-muted-foreground"
+          className="size-8"
           permission={editPermission}
           // Withdrawing a currency that still prices listings would strand those prices, so the server refuses it —
           // saying so here beats a toast after the click

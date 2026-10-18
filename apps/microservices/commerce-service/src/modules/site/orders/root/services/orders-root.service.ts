@@ -15,6 +15,7 @@ import { PartyCommunicationsDomainService } from '@domain/party-communications/s
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { variantLabel } from '@/common/variant-label';
 import { type Order, OrderStatusValues, OrderTypeValues, PartyCommunicationChannelValues } from '@/db/schema';
 
 // orders.customer_phone is varchar(20)
@@ -78,8 +79,7 @@ export class SiteOrdersService {
     const lines: AwaitingPaymentOrderLine[] = available.map(({ row }) => ({
       offeringId: row.offeringId,
       offeringVariantId: row.offeringVariantId,
-      itemName: row.offeringName ?? row.variantName ?? '',
-      variantName: row.variantName,
+      name: variantLabel(row.offeringName ?? row.code, row.dimensions),
       code: row.code,
       quantity: row.quantity,
       unitPrice: row.amount as bigint,

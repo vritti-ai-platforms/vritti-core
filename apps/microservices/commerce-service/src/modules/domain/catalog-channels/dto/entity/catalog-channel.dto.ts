@@ -1,5 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { CatalogChannelType, CatalogFilterMode } from '@/db/schema';
+import type { CatalogChannelType, CatalogFilterMode, VariantFacet } from '@/db/schema';
 import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export type ChannelScope = 'SITE' | 'LEGAL_ENTITY' | 'ORGANIZATION';
@@ -104,7 +104,9 @@ export interface ChannelItemRow {
   listingId: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   mrpAmount: bigint | null;
   mrpCurrencyCode: string | null;
   availableHere: boolean;
@@ -115,7 +117,9 @@ export interface ChannelPriceRow {
   listingId: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   mrpAmount: bigint | null;
   mrpCurrencyCode: string | null;
   priceAmount: bigint | null;
@@ -130,7 +134,9 @@ export class ChannelItemDto {
   listingId: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   mrp: CurrencyAmountDto | null;
   // Whether the channel carries it at all. Prices and per-currency exclusions are the Prices tab.
   availableHere: boolean;
@@ -142,7 +148,9 @@ export class ChannelItemDto {
     dto.listingId = row.listingId;
     dto.offeringVariantId = row.offeringVariantId;
     dto.code = row.code;
-    dto.variantName = row.variantName;
+    dto.offeringName = row.offeringName;
+    dto.dimensions = row.dimensions;
+    dto.attributes = row.attributes;
     dto.mrp =
       row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;
     dto.availableHere = row.availableHere;
@@ -155,7 +163,9 @@ export class ChannelPriceDto {
   listingId: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   mrp: CurrencyAmountDto | null;
   // Null when nobody priced it in this currency, which is why it is unavailable here
   price: CurrencyAmountDto | null;
@@ -171,7 +181,9 @@ export class ChannelPriceDto {
     dto.listingId = row.listingId;
     dto.offeringVariantId = row.offeringVariantId;
     dto.code = row.code;
-    dto.variantName = row.variantName;
+    dto.offeringName = row.offeringName;
+    dto.dimensions = row.dimensions;
+    dto.attributes = row.attributes;
     dto.mrp =
       row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;
     dto.price =

@@ -1,6 +1,5 @@
-import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsUUID, ValidateNested } from 'class-validator';
 
 export class VariantCombinationInput {
   @IsArray()
@@ -22,10 +21,4 @@ export class GenerateVariantsDto {
   @ValidateNested({ each: true })
   @Type(() => VariantCombinationInput)
   combinations: VariantCombinationInput[];
-
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  namePrefix?: string | null;
 }

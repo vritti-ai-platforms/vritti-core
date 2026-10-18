@@ -1,10 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CatalogCurrencyResponseDto } from '../dto/response/catalog-currency-response.dto';
-import {
-  CatalogListingMrpOptionResponseDto,
-  CatalogListingResponseDto,
-} from '../dto/response/catalog-listing-response.dto';
+import { CatalogListingResponseDto } from '../dto/response/catalog-listing-response.dto';
 import { CatalogListingTableResponseDto } from '../dto/response/catalog-listing-table-response.dto';
 import { CatalogResponseDto } from '../dto/response/catalog-response.dto';
 import { CatalogTableResponseDto } from '../dto/response/catalog-table-response.dto';
@@ -116,17 +113,6 @@ export function ApiCatalogCurrencyListingsTable() {
   );
 }
 
-export function ApiCatalogListingMrpOptions() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'MRP slices a variant can be listed at',
-      description: 'The MRPs recorded against the inventory item the variant draws on.',
-    }),
-    ApiParam(ID),
-    ApiResponse({ status: 200, type: [CatalogListingMrpOptionResponseDto] }),
-  );
-}
-
 export function ApiClearCatalogListingPrice() {
   return applyDecorators(
     ApiOperation({
@@ -163,6 +149,43 @@ export function ApiSetCatalogListingChannelVisibility() {
   );
 }
 
+export function ApiBulkRemoveCatalogListings() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Remove a selection of listings from a catalog',
+      description:
+        'One statement: the whole selection goes or none of it does. Refused if any of them is no longer in this catalog, or belongs to a wider workspace. The variants themselves are untouched.',
+    }),
+    ApiResponse({ status: 200, description: 'Listings removed.' }),
+    ApiResponse({ status: 403, description: 'Some of them belong to a wider scope.' }),
+    ApiResponse({ status: 404, description: 'Some of them are no longer in this catalog.' }),
+  );
+}
+
+export function ApiBulkSetCatalogListingPrice() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Price a selection of listings the same',
+      description:
+        "Sets this workspace's own price on every selected listing. Checked against each printed MRP first, so a selection that would breach one is refused whole rather than priced in part.",
+    }),
+    ApiResponse({ status: 200, description: 'Listings priced.' }),
+    ApiResponse({ status: 409, description: 'One of them is keyed to a lower MRP, or to another currency.' }),
+  );
+}
+
+export function ApiBulkSetCatalogListingAvailability() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Show or hide a selection of listings on a set of channels',
+      description:
+        'Writes the channel exclusions for every pair in one statement. Exclusions belong to the channel, so this is refused unless this workspace owns all of them.',
+    }),
+    ApiResponse({ status: 200, description: 'Availability updated.' }),
+    ApiResponse({ status: 403, description: 'Some of the channels belong to a wider scope.' }),
+  );
+}
+
 export function ApiAddCatalogListing() {
   return applyDecorators(
     ApiOperation({
@@ -173,6 +196,19 @@ export function ApiAddCatalogListing() {
     ApiParam(ID),
     ApiResponse({ status: 201, type: CatalogListingResponseDto }),
     ApiResponse({ status: 409, description: 'Already listed, or the price exceeds the printed MRP.' }),
+  );
+}
+
+export function ApiAddCatalogListings() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List several variants in one go',
+      description:
+        'Each row may key to one MRP slice and open at a price. Judged whole: a row that is already listed, or priced above its printed MRP, refuses the whole batch rather than leaving half of it in the catalog.',
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 201, type: [CatalogListingResponseDto] }),
+    ApiResponse({ status: 409, description: 'One of them is already listed, or priced above its printed MRP.' }),
   );
 }
 

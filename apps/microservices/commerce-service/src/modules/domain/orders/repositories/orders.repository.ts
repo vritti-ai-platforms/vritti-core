@@ -11,6 +11,7 @@ import {
   orderNumberSeq,
   orders,
   taxRates,
+  type VariantFacet,
 } from '@/db/schema';
 
 @Injectable()
@@ -59,7 +60,7 @@ export class OrdersDomainRepository extends PrimaryBaseRepository<typeof orders>
     | {
         offeringId: string;
         offeringName: string;
-        variantName: string;
+        dimensions: VariantFacet[];
         taxClassId: string;
       }
     | undefined
@@ -68,7 +69,7 @@ export class OrdersDomainRepository extends PrimaryBaseRepository<typeof orders>
       .select({
         offeringId: offerings.id,
         offeringName: offerings.name,
-        variantName: offeringVariants.name,
+        dimensions: offeringVariants.dimensions,
         taxClassId: offeringVariants.taxClassId,
       })
       .from(offeringVariants)

@@ -19,6 +19,8 @@ export const ORG_CATALOGS = {
     add: 'org.catalogs.listings.add',
     edit: 'org.catalogs.listings.edit',
     delete: 'org.catalogs.listings.delete',
+    // Where a listing shows, which is a channel's exclusions rather than the listing's own fields
+    setAvailability: 'org.catalogs.listings.set-availability',
   },
 } as const;
 
@@ -43,6 +45,8 @@ export const LE_CATALOGS = {
     add: 'le.catalogs.listings.add',
     edit: 'le.catalogs.listings.edit',
     delete: 'le.catalogs.listings.delete',
+    // Where a listing shows, which is a channel's exclusions rather than the listing's own fields
+    setAvailability: 'le.catalogs.listings.set-availability',
   },
 } as const;
 
@@ -67,5 +71,7 @@ export const SITE_CATALOGS = {
     add: 'site.catalogs.listings.add',
     edit: 'site.catalogs.listings.edit',
     delete: 'site.catalogs.listings.delete',
+    // Where a listing shows, which is a channel's exclusions rather than the listing's own fields
+    setAvailability: 'site.catalogs.listings.set-availability',
   },
 } as const;

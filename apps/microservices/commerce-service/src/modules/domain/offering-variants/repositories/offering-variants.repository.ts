@@ -14,7 +14,9 @@ import {
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { attributesFacetSql, dimensionsFacetSql } from '@/common/variant-facets';
 import {
+  catalogListings,
   type FulfilmentType,
   FulfilmentTypeValues,
   inventoryItems,
@@ -33,6 +35,7 @@ import {
   ownedByWorkspaceExpression,
   taxClasses,
   uom,
+  type VariantFacet,
 } from '@/db/schema';
 
 export interface OfferingRef {
@@ -60,12 +63,19 @@ export interface VariantAttributeValueRef {
   valueCode: string;
 }
 
+export interface VariantOptionRow {
+  id: string;
+  code: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
+}
+
 export type VariantWithBomCount = OfferingVariant & { bomLineCount: number };
 
 export interface ExportVariantRow {
   code: string;
   externalSku: string | null;
-  name: string;
   values: VariantValueRef[];
   salesUomName: string | null;
   taxClassName: string | null;
@@ -89,6 +99,7 @@ export type OfferingVariantTableRow = OfferingVariant & {
 
 export interface DimensionValueRow {
   dimensionId: string;
+  dimensionCode: string;
   dimensionName: string;
   dimensionSortOrder: number;
   valueId: string;
@@ -220,6 +231,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return this.db
       .select({
         dimensionId: offeringDimensions.id,
+        dimensionCode: offeringDimensions.code,
         dimensionName: offeringDimensions.name,
         dimensionSortOrder: offeringDimensions.sortOrder,
         valueId: offeringDimensionValues.id,
@@ -249,15 +261,49 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return row?.n ?? 0;
   }
 
-  async findForSelectInOffering(config: FindForSelectConfig, offeringId: string): Promise<SelectQueryResult> {
-    return super.findForSelect({
-      ...config,
-      conditions: [
-        eq(offeringVariants.offeringId, offeringId),
-        eq(offeringVariants.isActive, true),
-        eq(offeringVariants.isOfferingActive, true),
-      ],
-    });
+  async findForSelectInOffering(
+    config: FindForSelectConfig,
+    offeringId: string,
+    catalogId?: string,
+  ): Promise<SelectQueryResult> {
+    const conditions = [
+      eq(offeringVariants.offeringId, offeringId),
+      eq(offeringVariants.isActive, true),
+      eq(offeringVariants.isOfferingActive, true),
+    ];
+    // A variant listed for any batch can take nothing further in that catalog, so it is not offered. One
+    // listed at an MRP still can — at another MRP — so it stays, and the MRP picker drops the taken ones.
+    if (catalogId) {
+      conditions.push(
+        sql`not exists (
+        select 1 from ${catalogListings}
+        where ${catalogListings.offeringVariantId} = ${offeringVariants.id}
+          and ${catalogListings.catalogId} = ${catalogId}
+          and ${catalogListings.inventoryItemMrpId} is null
+      )` as SQL,
+      );
+    }
+    return super.findForSelect({ ...config, conditions });
+  }
+
+  // Rewrites the cached facets of the named variants straight from the junction tables. One statement, in
+  // SQL, so the copy can never disagree with the rows it is a copy of — which is what went wrong with the
+  // derived `name` it replaces.
+  async refreshFacets(variantIds: string[]): Promise<void> {
+    if (variantIds.length === 0) return;
+    await this.db
+      .update(offeringVariants)
+      .set({ dimensions: dimensionsFacetSql(), attributes: attributesFacetSql() })
+      .where(inArray(offeringVariants.id, variantIds));
+  }
+
+  // Every variant of an offering, for when a dimension, an attribute or one of their values is renamed
+  async findVariantIdsForOffering(offeringId: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ id: offeringVariants.id })
+      .from(offeringVariants)
+      .where(eq(offeringVariants.offeringId, offeringId));
+    return rows.map((row) => row.id);
   }
 
   // Variant options for a picker, across every offering this workspace can reach.
@@ -266,16 +312,25 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     excludeIds?: string[];
     limit: number;
     offset: number;
-  }): Promise<{ items: { id: string; code: string; name: string }[]; total: number }> {
+  }): Promise<{ items: VariantOptionRow[]; total: number }> {
     const search = options.search?.trim();
+    // A variant has no name of its own, and its code carries every value code, so the code is the whole
+    // searchable surface — "masala" still finds hf-kichidi-250g-classic-masala
     const where = and(
-      search ? or(ilike(offeringVariants.code, `%${search}%`), ilike(offeringVariants.name, `%${search}%`)) : undefined,
+      search ? or(ilike(offeringVariants.code, `%${search}%`), ilike(offerings.name, `%${search}%`)) : undefined,
       options.excludeIds?.length ? notInArray(offeringVariants.id, options.excludeIds) : undefined,
     );
 
     const items = this.db
-      .select({ id: offeringVariants.id, code: offeringVariants.code, name: offeringVariants.name })
+      .select({
+        id: offeringVariants.id,
+        code: offeringVariants.code,
+        offeringName: offerings.name,
+        dimensions: offeringVariants.dimensions,
+        attributes: offeringVariants.attributes,
+      })
       .from(offeringVariants)
+      .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))
       .where(where)
       .orderBy(asc(offeringVariants.code))
       .limit(options.limit)
@@ -326,7 +381,6 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .select({
         code: offeringVariants.code,
         externalSku: offeringVariants.externalSku,
-        name: offeringVariants.name,
         values: sql<VariantValueRef[]>`(${this.valuesJson()})`,
         salesUomName: uom.name,
         taxClassName: taxClasses.name,

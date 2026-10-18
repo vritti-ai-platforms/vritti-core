@@ -14,7 +14,7 @@ export interface CatalogChannelPermissions {
   listings: string;
   prices: string;
   edit: string;
-  visibility: string;
+  setAvailability: string;
   delete: string;
 }
 

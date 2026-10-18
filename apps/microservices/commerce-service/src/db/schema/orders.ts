@@ -106,8 +106,7 @@ export const orderItems = commerceSchema.table(
     offeringVariantId: uuid('offering_variant_id')
       .notNull()
       .references(() => offeringVariants.id),
-    itemName: varchar('item_name', { length: 255 }).notNull(),
-    variantName: varchar('variant_name', { length: 255 }),
+    name: varchar('name', { length: 500 }).notNull(),
     code: varchar('code', { length: 200 }),
     quantity: integer('quantity').notNull().default(1),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),

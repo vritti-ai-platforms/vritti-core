@@ -1,6 +1,7 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
+import type { VariantFacet } from './variant-facets';
 
 export const CATALOG_CHANNEL_TYPES = ['APP', 'POS', 'B2B'] as const;
 export type CatalogChannelType = (typeof CATALOG_CHANNEL_TYPES)[number];
@@ -99,7 +100,9 @@ export interface ChannelItemData {
   listingId: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   mrp: CurrencyValue | null;
   availableHere: boolean;
   availableCurrencyCodes: string[];
@@ -109,7 +112,9 @@ export interface ChannelPriceData {
   listingId: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   mrp: CurrencyValue | null;
   price: CurrencyValue | null;
   priceOwnerScope: CatalogChannelOwnerScope | null;

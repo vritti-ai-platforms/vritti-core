@@ -7,11 +7,13 @@ export {
   CATALOGS_TABLE_KEY,
 } from './keys';
 export { useAddCatalogCurrency } from './useAddCatalogCurrency';
-export { useAddCatalogListing } from './useAddCatalogListing';
+export { useAddCatalogListings } from './useAddCatalogListings';
+export { useBulkRemoveCatalogListings } from './useBulkRemoveCatalogListings';
+export { useBulkSetCatalogListingAvailability } from './useBulkSetCatalogListingAvailability';
+export { useBulkSetCatalogListingPrice } from './useBulkSetCatalogListingPrice';
 export { useCatalog } from './useCatalog';
 export { useCatalogCurrencies } from './useCatalogCurrencies';
 export { useCatalogCurrencyListingsTable } from './useCatalogCurrencyListingsTable';
-export { useCatalogListingMrpOptions } from './useCatalogListingMrpOptions';
 export { useCatalogListingsTable } from './useCatalogListingsTable';
 export * from './useCatalogOptions';
 export { useCatalogsTable } from './useCatalogsTable';

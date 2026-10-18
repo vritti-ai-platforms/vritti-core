@@ -1,11 +1,13 @@
 import type {
   CatalogPermissions,
   UseAddCatalogCurrency,
-  UseAddCatalogListing,
+  UseAddCatalogListings,
+  UseBulkRemoveCatalogListings,
+  UseBulkSetCatalogListingAvailability,
+  UseBulkSetCatalogListingPrice,
   UseCatalogChannelsForCatalog,
   UseCatalogCurrencies,
   UseCatalogCurrencyListingsTable,
-  UseCatalogListingMrpOptions,
   UseCatalogListingsTable,
   UseCatalogsTable,
   UseClearCatalogListingPrice,
@@ -36,12 +38,15 @@ export interface CatalogsBinding {
   useDeleteCatalog: UseDeleteCatalog;
 
   useListingsTable: UseCatalogListingsTable;
-  useListingMrpOptions: UseCatalogListingMrpOptions;
-  useAddListing: UseAddCatalogListing;
+  useAddListings: UseAddCatalogListings;
   useDeleteListing: UseDeleteCatalogListing;
   useSetListingPrice: UseSetCatalogListingPrice;
   useSetListingChannelVisibility: UseSetCatalogListingChannelVisibility;
   useClearListingPrice: UseClearCatalogListingPrice;
+
+  useBulkRemoveListings: UseBulkRemoveCatalogListings;
+  useBulkSetListingPrice: UseBulkSetCatalogListingPrice;
+  useBulkSetListingAvailability: UseBulkSetCatalogListingAvailability;
 
   useCurrencies: UseCatalogCurrencies;
   useCurrencyListingsTable: UseCatalogCurrencyListingsTable;

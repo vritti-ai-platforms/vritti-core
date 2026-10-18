@@ -1,5 +1,11 @@
-import type { CatalogListingDto, CatalogListingMrpOptionDto } from '@domain/catalogs/dto/entity/catalog-listing.dto';
+import type { CatalogListingDto } from '@domain/catalogs/dto/entity/catalog-listing.dto';
 import { AddCatalogListingDto } from '@domain/catalogs/dto/request/add-catalog-listing.dto';
+import { AddCatalogListingsBatchDto } from '@domain/catalogs/dto/request/add-catalog-listings-batch.dto';
+import {
+  BulkRemoveCatalogListingsDto,
+  BulkSetCatalogListingAvailabilityDto,
+  BulkSetCatalogListingPriceDto,
+} from '@domain/catalogs/dto/request/bulk-catalog-listings.dto';
 import { SetCatalogListingPriceDto } from '@domain/catalogs/dto/request/set-catalog-listing-price.dto';
 import { CatalogListingsDomainService } from '@domain/catalogs/services/catalog-listings.service';
 import { Controller, Logger } from '@nestjs/common';
@@ -23,18 +29,19 @@ export class SiteCatalogListingsController {
   }
 
   // The MRP slices a variant can be listed at Everything one storefront channel makes available — the list a
-  // provisioned website files its pages against
-  @MessagePattern({ cmd: 'site.catalogs.listings.mrpOptions' })
-  findMrpOptions(@Payload() data: { offeringVariantId: string }): Promise<CatalogListingMrpOptionDto[]> {
-    this.logger.log(`catalogs.listings.mrpOptions — variantId: ${data.offeringVariantId}`);
-    return this.listingsService.findMrpOptions(data.offeringVariantId);
-  }
 
   // Lists a variant, optionally keyed to one MRP slice, with an optional opening price
   @MessagePattern({ cmd: 'site.catalogs.listings.add' })
   addListing(@Payload() dto: AddCatalogListingDto): Promise<CreateResponseDto<CatalogListingDto>> {
     this.logger.log(`catalogs.listings.add — catalogId: ${dto.catalogId}, variantId: ${dto.offeringVariantId}`);
     return this.listingsService.add(dto);
+  }
+
+  // Lists several variants in one go — judged whole, so a batch that breaches one rule writes nothing
+  @MessagePattern({ cmd: 'site.catalogs.listings.addBatch' })
+  addListings(@Payload() dto: AddCatalogListingsBatchDto): Promise<CreateResponseDto<CatalogListingDto[]>> {
+    this.logger.log(`catalogs.listings.addBatch — catalogId: ${dto.catalogId}, items: ${dto.items.length}`);
+    return this.listingsService.addBatch(dto);
   }
 
   // Sets the price for a (listing, currency, site) slot
@@ -61,6 +68,27 @@ export class SiteCatalogListingsController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`catalogs.listings.setChannelVisibility — id: ${data.id}, visible: ${data.visible}`);
     return this.listingsService.setChannelVisibility(data.id, data.catalogChannelId, data.visible);
+  }
+
+  // Removes a whole selection in one statement — refused unless every one of them is in this catalog
+  @MessagePattern({ cmd: 'site.catalogs.listings.bulkDelete' })
+  bulkDeleteListings(@Payload() data: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.listings.bulkDelete — ${data.ids.length} selected`);
+    return this.listingsService.bulkRemove(data);
+  }
+
+  // Prices a whole selection the same, refused if any one of them is keyed to a lower printed MRP
+  @MessagePattern({ cmd: 'site.catalogs.listings.bulkSetPrice' })
+  bulkSetListingPrice(@Payload() data: BulkSetCatalogListingPriceDto): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.listings.bulkSetPrice — ${data.ids.length} selected`);
+    return this.listingsService.bulkSetPrice(data);
+  }
+
+  // Shows or hides a whole selection on a set of channels
+  @MessagePattern({ cmd: 'site.catalogs.listings.bulkSetAvailability' })
+  bulkSetListingAvailability(@Payload() data: BulkSetCatalogListingAvailabilityDto): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.listings.bulkSetAvailability — ${data.ids.length} selected`);
+    return this.listingsService.bulkSetAvailability(data);
   }
 
   @MessagePattern({ cmd: 'site.catalogs.listings.delete' })

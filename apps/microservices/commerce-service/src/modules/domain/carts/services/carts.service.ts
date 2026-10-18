@@ -4,7 +4,7 @@ import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { cartItems, carts, offeringVariants, parties } from '@/db/schema';
+import { cartItems, carts, offerings, offeringVariants, parties } from '@/db/schema';
 import { CartDetailDto, CartDto, CartItemDto, type CartItemRow, StaffCartItemDto } from '../dto/entity/cart.dto';
 import { CartsDomainRepository } from '../repositories/carts.repository';
 
@@ -24,7 +24,7 @@ export class CartsDomainService {
 
   // What the items table may filter, search and sort on
   private static readonly ITEM_FIELD_MAP: FieldMap = {
-    name: { column: offeringVariants.name, type: 'string' },
+    name: { column: offerings.name, type: 'string' },
     code: { column: offeringVariants.code, type: 'string' },
     quantity: { column: cartItems.quantity, type: 'number' },
     createdAt: { column: cartItems.createdAt, type: 'string' },

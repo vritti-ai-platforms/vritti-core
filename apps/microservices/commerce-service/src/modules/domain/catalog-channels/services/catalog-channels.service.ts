@@ -4,7 +4,7 @@ import { and, asc, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { CatalogChannelTypeValues, CatalogFilterModeValues, offeringVariants } from '@/db/schema';
+import { CatalogChannelTypeValues, CatalogFilterModeValues, offerings, offeringVariants } from '@/db/schema';
 import {
   CatalogChannelDto,
   type CatalogChannelRow,
@@ -36,7 +36,7 @@ export class CatalogChannelsDomainService {
 
   private static readonly ITEM_FIELD_MAP: FieldMap = {
     code: { column: offeringVariants.code, type: 'string' },
-    variantName: { column: offeringVariants.name, type: 'string' },
+    offeringName: { column: offerings.name, type: 'string' },
   };
 
   constructor(private readonly repository: CatalogChannelsDomainRepository) {}

@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type InventoryItemMrp, inventoryItemMrps, inventoryItems, uom } from '@/db/schema';
+import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import type { FindForSelectConfig } from '@vritti/api-sdk/select';
+import {
+  catalogListings,
+  type InventoryItemMrp,
+  inventoryItemMrps,
+  inventoryItems,
+  offeringBom,
+  uom,
+} from '@/db/schema';
 
 export type InventoryItemMrpWithUom = InventoryItemMrp & { uomSymbol: string | null };
 
@@ -9,6 +17,44 @@ export type InventoryItemMrpWithUom = InventoryItemMrp & { uomSymbol: string | n
 export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemMrps> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemMrps);
+  }
+
+  // The MRPs a variant could be listed at: the recorded prices of whatever its bill of materials draws on,
+  // narrowed to one currency when the caller is pricing in one — a listing keyed to an MRP must be priced
+  // in that MRP's currency, so offering the others only leads to a refusal
+  findForVariantSelect(
+    variantId: string,
+    currencyCode: string | undefined,
+    catalogId: string | undefined,
+    config: Omit<FindForSelectConfig, 'conditions' | 'joins'>,
+  ) {
+    const conditions = [
+      // EXISTS rather than a join to offering_bom: a variant may draw on one item several times, and a
+      // join would then offer the same printed price once per BOM line
+      sql`exists (
+        select 1 from ${offeringBom}
+        where ${offeringBom.inventoryItemId} = ${inventoryItemMrps.inventoryItemId}
+          and ${offeringBom.variantId} = ${variantId}
+      )`,
+    ];
+    if (currencyCode) conditions.push(eq(inventoryItemMrps.currencyCode, currencyCode) as SQL);
+    // The same variant may be listed once per MRP but never twice at one, so a taken MRP is not offered
+    if (catalogId) {
+      conditions.push(
+        sql`not exists (
+        select 1 from ${catalogListings}
+        where ${catalogListings.inventoryItemMrpId} = ${inventoryItemMrps.id}
+          and ${catalogListings.offeringVariantId} = ${variantId}
+          and ${catalogListings.catalogId} = ${catalogId}
+      )` as SQL,
+      );
+    }
+
+    return this.findForSelect({
+      ...config,
+      joins: [{ table: uom, on: eq(uom.id, inventoryItemMrps.uomId), type: 'left' }],
+      conditions,
+    });
   }
 
   // Records an MRP observed at goods receipt and makes it current, keeping every prior amount

@@ -1,11 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
-import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { BOM_RULES, type FulfilmentType, FulfilmentTypeValues, offerings, workspaceScopeOf } from '@/db/schema';
+import {
+  BOM_RULES,
+  catalogListings,
+  type FulfilmentType,
+  FulfilmentTypeValues,
+  offerings,
+  offeringVariants,
+  workspaceScopeOf,
+} from '@/db/schema';
 import { OfferingDto, type OfferingTableRowDto } from '../dto/entity/offering.dto';
 import type { BulkSetOfferingStatusDto } from '../dto/request/bulk-set-offering-status.dto';
 import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
@@ -58,7 +66,7 @@ export class OfferingsDomainService {
   }
 
   // Offering options for select dropdowns, restricted to active offerings
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  findForSelect(query: SelectOptionsQueryDto & { catalogId?: string }): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
@@ -71,8 +79,28 @@ export class OfferingsDomainService {
       excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
-      conditions: [eq(offerings.isActive, true)],
+      conditions: [eq(offerings.isActive, true), ...this.listableInCatalog(query.catalogId)],
     });
+  }
+
+  // Hides an offering whose every active variant is already listed for any batch in this catalog —
+  // picking it would open a form with nothing left to choose
+  private listableInCatalog(catalogId?: string): SQL[] {
+    if (!catalogId) return [];
+    return [
+      sql`exists (
+        select 1 from ${offeringVariants} v
+        where v.offering_id = ${offerings.id}
+          and v.is_active
+          and v.is_offering_active
+          and not exists (
+            select 1 from ${catalogListings} cl
+            where cl.offering_variant_id = v.id
+              and cl.catalog_id = ${catalogId}
+              and cl.inventory_item_mrp_id is null
+          )
+      )` as SQL,
+    ];
   }
 
   // Flat rows for the file export.

@@ -146,6 +146,8 @@ export class OfferingDimensionsDomainService {
             sortOrder: index,
           })),
       );
+
+      await this.repository.refreshVariantDimensions(dimension.offeringId);
     });
 
     this.logger.log(`Set ${data.values.length} values on dimension ${dimension.code}`);
@@ -176,6 +178,8 @@ export class OfferingDimensionsDomainService {
       for (const [index, id] of dimensionIds.entries()) {
         await this.repository.update(id, { sortOrder: index });
       }
+      // The cached facets are ordered by this, so they are rebuilt rather than left in the old order
+      await this.repository.refreshVariantDimensions(offeringId);
     });
 
     this.logger.log(`Reordered ${dimensionIds.length} dimensions on offering ${offering.code}`);
@@ -184,8 +188,9 @@ export class OfferingDimensionsDomainService {
 
   // Renames the axis.
   async update(id: string, data: Omit<UpdateOfferingDimensionDto, 'id'>): Promise<SuccessResponseDto> {
-    await this.requireOwnedDimension(id);
+    const dimension = await this.requireOwnedDimension(id);
     await this.repository.update(id, { name: data.name, description: data.description });
+    await this.repository.refreshVariantDimensions(dimension.offeringId);
     return { success: true, message: `"${data.name}" updated.` };
   }
 

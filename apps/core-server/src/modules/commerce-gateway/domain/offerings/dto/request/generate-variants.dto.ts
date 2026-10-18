@@ -1,7 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Trim } from '@vritti/api-sdk/decorators';
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsUUID, ValidateNested } from 'class-validator';
 
 export class VariantCombinationInputDto {
   @ApiProperty({ type: [String], description: 'Exactly one value id per dimension on the offering' })
@@ -22,11 +21,4 @@ export class GenerateVariantsDto {
   @ValidateNested({ each: true })
   @Type(() => VariantCombinationInputDto)
   combinations: VariantCombinationInputDto[];
-
-  @Trim()
-  @ApiPropertyOptional({ nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  namePrefix?: string | null;
 }

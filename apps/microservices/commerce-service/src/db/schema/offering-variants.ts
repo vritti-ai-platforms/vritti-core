@@ -5,6 +5,7 @@ import {
   decimal,
   index,
   integer,
+  jsonb,
   text,
   timestamp,
   unique,
@@ -22,6 +23,15 @@ import { taxClasses } from './tax-classes';
 import { uom } from './uom';
 import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope';
 
+// A rendered copy of what offering_variant_values and offering_variant_attribute_values hold, so a row
+// that merely references a variant can show it without joining four tables. The junctions stay the truth;
+// refreshVariantFacets rewrites this whenever they, or the names they point at, change.
+export interface VariantFacet {
+  code: string;
+  label: string;
+  values: { code: string; value: string }[];
+}
+
 export const offeringVariants = commerceSchema.table(
   'offering_variants',
   {
@@ -32,7 +42,8 @@ export const offeringVariants = commerceSchema.table(
       .references(() => offerings.id, { onDelete: 'cascade' }),
     code: varchar('code', { length: 200 }).notNull(),
     externalSku: varchar('external_sku', { length: 100 }),
-    name: varchar('name', { length: 255 }).notNull(),
+    dimensions: jsonb('dimensions').$type<VariantFacet[]>().notNull().default([]),
+    attributes: jsonb('attributes').$type<VariantFacet[]>().notNull().default([]),
     salesUomId: uuid('sales_uom_id')
       .notNull()
       .references(() => uom.id),

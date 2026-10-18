@@ -7,10 +7,23 @@ type Money {
   value: String!
 }
 
+type VariantFacetValue {
+  code: String!
+  value: String!
+}
+
+type VariantFacet {
+  code: String!
+  label: String!
+  values: [VariantFacetValue!]!
+}
+
 type CatalogListing {
   id: ID!
   code: String!
   name: String!
+  dimensions: [VariantFacet!]!
+  attributes: [VariantFacet!]!
   price: Money!
 }
 

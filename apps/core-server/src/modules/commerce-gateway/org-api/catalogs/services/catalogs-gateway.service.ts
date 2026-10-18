@@ -1,13 +1,16 @@
 import type { CatalogChannelResponseDto } from '@commerce/catalog-channels/dto/response/catalog-channel-response.dto';
 import type { AddCatalogListingDto } from '@commerce/catalogs/dto/request/add-catalog-listing.dto';
+import type { AddCatalogListingsBatchDto } from '@commerce/catalogs/dto/request/add-catalog-listings-batch.dto';
+import type {
+  BulkRemoveCatalogListingsDto,
+  BulkSetCatalogListingAvailabilityDto,
+  BulkSetCatalogListingPriceDto,
+} from '@commerce/catalogs/dto/request/bulk-catalog-listings.dto';
 import type { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
 import type { SetCatalogListingPriceDto } from '@commerce/catalogs/dto/request/set-catalog-listing-price.dto';
 import type { UpdateCatalogDto } from '@commerce/catalogs/dto/request/update-catalog.dto';
 import type { CatalogCurrencyResponseDto } from '@commerce/catalogs/dto/response/catalog-currency-response.dto';
-import type {
-  CatalogListingMrpOptionResponseDto,
-  CatalogListingResponseDto,
-} from '@commerce/catalogs/dto/response/catalog-listing-response.dto';
+import type { CatalogListingResponseDto } from '@commerce/catalogs/dto/response/catalog-listing-response.dto';
 import type { CatalogListingTableResponseDto } from '@commerce/catalogs/dto/response/catalog-listing-table-response.dto';
 import type { CatalogResponseDto } from '@commerce/catalogs/dto/response/catalog-response.dto';
 import type { CatalogTableResponseDto } from '@commerce/catalogs/dto/response/catalog-table-response.dto';
@@ -25,7 +28,7 @@ export interface CatalogListingPayload {
   id: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  offeringName: string;
   isActive: boolean;
   prices: { price: { currency: string; value: string } }[];
 }
@@ -120,18 +123,21 @@ export class CatalogsGatewayService {
     return { result: await this.namePriceOwners(orgId, rows), count, state, activeViewId };
   }
 
-  // The MRP slices a variant can be listed at, for the add-listing picker
-  async findMrpOptions(offeringVariantId: string): Promise<CatalogListingMrpOptionResponseDto[]> {
-    this.logger.log(`org.catalogs.listings.mrpOptions — variantId: ${offeringVariantId}`);
-    return this.nats.send('commerce', 'org.catalogs.listings.mrpOptions', { offeringVariantId });
-  }
-
   async addListing(
     catalogId: string,
     dto: AddCatalogListingDto,
   ): Promise<CreateResponseDto<CatalogListingResponseDto>> {
     this.logger.log(`org.catalogs.listings.add — catalogId: ${catalogId}, variantId: ${dto.offeringVariantId}`);
     return this.nats.send('commerce', 'org.catalogs.listings.add', { catalogId, ...dto });
+  }
+
+  // Lists several variants at once — one call, because a loop of single adds half-applies on the first refusal
+  async addListings(
+    catalogId: string,
+    dto: AddCatalogListingsBatchDto,
+  ): Promise<CreateResponseDto<CatalogListingResponseDto[]>> {
+    this.logger.log(`org.catalogs.listings.addBatch — catalogId: ${catalogId}, items: ${dto.items.length}`);
+    return this.nats.send('commerce', 'org.catalogs.listings.addBatch', { catalogId, ...dto });
   }
 
   async setListingPrice(listingId: string, dto: SetCatalogListingPriceDto): Promise<SuccessResponseDto> {
@@ -163,6 +169,33 @@ export class CatalogsGatewayService {
       id: listingId,
       catalogChannelId: channelId,
       visible,
+    });
+  }
+
+  async bulkRemoveListings(catalogId: string, dto: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.catalogs.listings.bulkDelete — ${dto.ids.length} selected`);
+    return this.nats.send('commerce', 'org.catalogs.listings.bulkDelete', { catalogId, ids: dto.ids });
+  }
+
+  async bulkSetListingPrice(catalogId: string, dto: BulkSetCatalogListingPriceDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.catalogs.listings.bulkSetPrice — ${dto.ids.length} selected`);
+    return this.nats.send('commerce', 'org.catalogs.listings.bulkSetPrice', {
+      catalogId,
+      ids: dto.ids,
+      price: dto.price,
+    });
+  }
+
+  async bulkSetListingAvailability(
+    catalogId: string,
+    dto: BulkSetCatalogListingAvailabilityDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`org.catalogs.listings.bulkSetAvailability — ${dto.ids.length} selected`);
+    return this.nats.send('commerce', 'org.catalogs.listings.bulkSetAvailability', {
+      catalogId,
+      ids: dto.ids,
+      channelIds: dto.channelIds,
+      visible: dto.visible,
     });
   }
 

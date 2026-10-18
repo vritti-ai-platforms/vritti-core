@@ -5,6 +5,7 @@ import { CostCategoriesDomainService } from '@domain/cost-categories/services/co
 import { CustomersDomainService } from '@domain/customers/services/customers.service';
 import { DimensionTemplatesDomainService } from '@domain/dimension-templates/services/dimension-templates.service';
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
+import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemSerialsDomainService } from '@domain/inventory-item-serials/services/inventory-item-serials.service';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
@@ -30,11 +31,13 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { PartyTypeValues } from '@/db/schema';
 import { InventoryItemLotsSelectQueryDto } from './dto/request/inventory-item-lots-select-query.dto';
+import { InventoryItemMrpsSelectQueryDto } from './dto/request/inventory-item-mrps-select-query.dto';
 import { InventoryItemQuantsSelectQueryDto } from './dto/request/inventory-item-quants-select-query.dto';
 import { InventoryItemSerialsSelectQueryDto } from './dto/request/inventory-item-serials-select-query.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
 import { OfferingVariantsSelectQueryDto } from './dto/request/offering-variants-select-query.dto';
+import { OfferingsSelectQueryDto } from './dto/request/offerings-select-query.dto';
 import { PartyContactSelectQueryDto } from './dto/request/party-contact-select-query.dto';
 import { PartySelectQueryDto } from './dto/request/party-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from './dto/request/purchase-order-items-select-query.dto';
@@ -60,6 +63,7 @@ export class SelectController {
     private readonly customersService: CustomersDomainService,
     private readonly locationsService: LocationsDomainService,
     private readonly inventoryItemLotsService: InventoryItemLotsDomainService,
+    private readonly inventoryItemMrpsService: InventoryItemMrpsDomainService,
     private readonly inventoryItemQuantsService: InventoryItemQuantsDomainService,
     private readonly inventoryItemSerialsService: InventoryItemSerialsDomainService,
     private readonly posTerminalsService: PosTerminalsDomainService,
@@ -93,7 +97,7 @@ export class SelectController {
 
   // Returns paginated offering options for the select component
   @MessagePattern({ cmd: 'select.offerings' })
-  async offerings(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  async offerings(@Payload() query: OfferingsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.offerings');
     return this.offeringsService.findForSelect(query);
   }
@@ -103,7 +107,7 @@ export class SelectController {
   async offeringVariants(@Payload() data: OfferingVariantsSelectQueryDto): Promise<SelectQueryResult> {
     const { offeringId, ...query } = data;
     this.logger.log(`select.offeringVariants — offeringId: ${offeringId}`);
-    return this.offeringVariantsService.findForSelect(offeringId, query as SelectOptionsQueryDto);
+    return this.offeringVariantsService.findForSelect(offeringId, query);
   }
 
   // Returns paginated dimension template options for the select component
@@ -202,6 +206,13 @@ export class SelectController {
   async inventoryItemLots(@Payload() data: InventoryItemLotsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`select.inventoryItemLots — inventoryItemId: ${data.inventoryItemId ?? 'all'}`);
     return this.inventoryItemLotsService.findForSelect(data);
+  }
+
+  // Returns the MRPs one offering variant could be listed at, found through its bill of materials
+  @MessagePattern({ cmd: 'select.inventoryItemMrps' })
+  async inventoryItemMrps(@Payload() data: InventoryItemMrpsSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(`select.inventoryItemMrps — variantId: ${data.variantId}`);
+    return this.inventoryItemMrpsService.findForSelect(data);
   }
 
   // Returns paginated inventory item quant options for the select component

@@ -15,6 +15,7 @@ import { SetVariantAttributesDto } from '@domain/offering-variants/dto/request/s
 import { SetVariantFulfilmentDto } from '@domain/offering-variants/dto/request/set-variant-fulfilment.dto';
 import { SetVariantTaxClassDto } from '@domain/offering-variants/dto/request/set-variant-tax-class.dto';
 import { UpdateVariantDto } from '@domain/offering-variants/dto/request/update-variant.dto';
+import type { VariantOptionRow } from '@domain/offering-variants/repositories/offering-variants.repository';
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -60,7 +61,7 @@ export class SiteOfferingVariantsController {
   @MessagePattern({ cmd: 'site.offerings.variants.appOptions' })
   appOptions(
     @Payload() data: { search?: string; excludeIds?: string[]; limit?: number; offset?: number },
-  ): Promise<{ items: { id: string; code: string; name: string }[]; total: number }> {
+  ): Promise<{ items: VariantOptionRow[]; total: number }> {
     this.logger.log(`offerings.variants.appOptions — search: ${data.search ?? ''}`);
     return this.service.findOptions(data);
   }

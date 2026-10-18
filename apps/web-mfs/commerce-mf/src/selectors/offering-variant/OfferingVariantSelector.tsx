@@ -3,13 +3,15 @@ import { forwardRef } from 'react';
 
 export interface OfferingVariantSelectorProps extends SelectProps {
   offeringId: string;
+  // Drops the variants this catalog already lists for any batch — a second such listing is refused
+  catalogId?: string;
 }
 
 const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'code', descriptionKey: 'name' } as const;
 
 // Pre-configured Select for the variants of one offering, keyed by Code
 export const OfferingVariantSelector = forwardRef<HTMLButtonElement, OfferingVariantSelectorProps>(
-  ({ offeringId, fieldKeys, params, ...props }, ref) => (
+  ({ offeringId, catalogId, fieldKeys, params, ...props }, ref) => (
     <Select
       ref={ref}
       label="Variant"
@@ -17,7 +19,7 @@ export const OfferingVariantSelector = forwardRef<HTMLButtonElement, OfferingVar
       searchable
       optionsEndpoint="commerce-api/select-api/offering-variants"
       {...props}
-      params={{ ...params, offeringId }}
+      params={{ ...params, offeringId, ...(catalogId ? { catalogId } : {}) }}
       fieldKeys={{ ...DEFAULT_FIELD_KEYS, ...fieldKeys }}
     />
   ),

@@ -136,6 +136,8 @@ export class OfferingAttributesDomainService {
             sortOrder: index,
           })),
       );
+
+      await this.repository.refreshVariantAttributes(attribute.offeringId);
     });
 
     this.logger.log(`Set ${data.values.length} values on attribute ${attribute.code}`);
@@ -166,6 +168,8 @@ export class OfferingAttributesDomainService {
       for (const [index, id] of attributeIds.entries()) {
         await this.repository.update(id, { sortOrder: index });
       }
+      // The cached facets are ordered by this, so they are rebuilt rather than left in the old order
+      await this.repository.refreshVariantAttributes(offeringId);
     });
 
     this.logger.log(`Reordered ${attributeIds.length} attributes on offering ${offering.code}`);
@@ -174,8 +178,9 @@ export class OfferingAttributesDomainService {
 
   // Renames the attribute.
   async update(id: string, data: Omit<UpdateOfferingAttributeDto, 'id'>): Promise<SuccessResponseDto> {
-    await this.requireOwnedAttribute(id);
+    const attribute = await this.requireOwnedAttribute(id);
     await this.repository.update(id, { name: data.name, description: data.description });
+    await this.repository.refreshVariantAttributes(attribute.offeringId);
     return { success: true, message: `"${data.name}" updated.` };
   }
 

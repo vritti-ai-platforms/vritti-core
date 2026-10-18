@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { asc, eq, getColumns, inArray, notExists, sql } from '@vritti/api-sdk/drizzle-orm';
+import { dimensionsFacetSql } from '@/common/variant-facets';
 import {
   dimensionTemplates,
   dimensionTemplateValues,
@@ -10,6 +11,7 @@ import {
   offeringDimensions,
   offeringDimensionValues,
   offerings,
+  offeringVariants,
   offeringVariantValues,
   ownedByWorkspaceExpression,
 } from '@/db/schema';
@@ -181,5 +183,15 @@ export class OfferingDimensionsDomainRepository extends PrimaryBaseRepository<ty
       .from(offeringVariantValues)
       .where(eq(offeringVariantValues.dimensionId, dimensionId));
     return row?.n ?? 0;
+  }
+
+  // Renaming a dimension or one of its values changes what every variant of the offering says it is, and the
+  // variants carry a rendered copy of that. This rewrites the copy they own — the attributes column is the
+  // attributes module's to refresh.
+  async refreshVariantDimensions(offeringId: string): Promise<void> {
+    await this.db
+      .update(offeringVariants)
+      .set({ dimensions: dimensionsFacetSql() })
+      .where(eq(offeringVariants.offeringId, offeringId));
   }
 }

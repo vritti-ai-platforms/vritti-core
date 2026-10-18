@@ -1,6 +1,7 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField } from '@vritti/quantum-ui/zod';
+import type { VariantFacet } from './variant-facets';
 
 export const createCatalogSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255, 'Name must be at most 255 characters'),
@@ -22,20 +23,43 @@ export const addCatalogListingSchema = z.object({
   price: zodCurrencyField({ positive: true }).optional(),
 });
 
-export type AddCatalogListingFormData = z.infer<typeof addCatalogListingSchema>;
+export type AddCatalogListingItem = z.infer<typeof addCatalogListingSchema>;
 
-// The offering scopes the variant picker but is never submitted — variants carry their own offering
-export const addCatalogListingFormSchema = addCatalogListingSchema.extend({
-  offeringId: z.string().uuid('Offering is required'),
+// One row of the page: a variant, the MRPs it is being listed at, and a price slot for each of them.
+// An empty mrpIds means one listing covering any batch, which is what `rows` then holds a single entry for.
+export const addCatalogListingVariantSchema = z.object({
+  offeringVariantId: z.string().uuid(),
+  mrpIds: z.array(z.string().uuid()),
+  rows: z
+    .array(
+      z.object({
+        inventoryItemMrpId: z.string().uuid().nullable(),
+        price: zodCurrencyField({ positive: true }).optional(),
+      }),
+    )
+    .min(1),
 });
 
-export type AddCatalogListingFormShape = z.infer<typeof addCatalogListingFormSchema>;
+// Only the last step of the Add Listings wizard is a form. The offering, the variants and the currency are
+// choices the steps before it made — they decide which rows exist here, and are never submitted themselves.
+export const catalogListingPricesFormSchema = z.object({
+  variants: z.array(addCatalogListingVariantSchema).min(1, 'Pick at least one variant'),
+});
+
+export type CatalogListingPricesFormShape = z.infer<typeof catalogListingPricesFormSchema>;
 
 export const setCatalogListingPriceSchema = z.object({
   price: zodCurrencyField({ positive: true }),
 });
 
 export type SetCatalogListingPriceFormData = z.infer<typeof setCatalogListingPriceSchema>;
+
+export const bulkSetListingPriceSchema = z.object({
+  currencyCode: z.string().min(1, 'Currency is required'),
+  price: zodCurrencyField({ positive: true }),
+});
+
+export type BulkSetListingPriceFormData = z.infer<typeof bulkSetListingPriceSchema>;
 
 export const addCatalogCurrencySchema = z.object({
   currencyCode: z.string().min(1, 'Currency is required'),
@@ -76,7 +100,9 @@ export interface CatalogListingData {
   catalogId: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   isActive: boolean;
   availability: string;
   legalEntityId: string | null;

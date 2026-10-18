@@ -3,6 +3,7 @@ import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc, ne } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { variantLabel } from '@/common/variant-label';
 import {
   type Order,
   type OrderSource,
@@ -102,8 +103,7 @@ export class OrdersDomainService {
         orderId: entity.id,
         offeringId: item.offeringId,
         offeringVariantId: item.offeringVariantId,
-        itemName: item.itemName,
-        variantName: item.variantName,
+        name: item.name,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         taxRate: item.taxRate.toNumber(),
@@ -150,8 +150,7 @@ export class OrdersDomainService {
           orderId: order.id,
           offeringId: line.offeringId,
           offeringVariantId: line.offeringVariantId,
-          itemName: line.itemName,
-          variantName: line.variantName,
+          name: line.name,
           code: line.code,
           quantity: line.quantity,
           unitPrice: line.unitPrice,
@@ -345,8 +344,7 @@ export class OrdersDomainService {
     itemRows: {
       offeringId: string;
       offeringVariantId: string;
-      itemName: string;
-      variantName: string | null;
+      name: string;
       quantity: number;
       unitPrice: bigint;
       taxRate: Decimal;
@@ -361,8 +359,7 @@ export class OrdersDomainService {
     const itemRows: {
       offeringId: string;
       offeringVariantId: string;
-      itemName: string;
-      variantName: string | null;
+      name: string;
       quantity: number;
       unitPrice: bigint;
       taxRate: Decimal;
@@ -391,8 +388,7 @@ export class OrdersDomainService {
       itemRows.push({
         offeringId: variant.offeringId,
         offeringVariantId: item.offeringVariantId,
-        itemName: variant.offeringName,
-        variantName: variant.variantName,
+        name: variantLabel(variant.offeringName, variant.dimensions),
         quantity: item.quantity,
         unitPrice: 0n,
         taxRate,

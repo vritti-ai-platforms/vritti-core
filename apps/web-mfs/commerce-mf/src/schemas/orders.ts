@@ -9,8 +9,7 @@ export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMP
 
 export interface OrderItemData {
   id: string;
-  itemName: string;
-  variantName: string | null;
+  name: string;
   quantity: number;
   unitPrice: string;
   taxRate: number;

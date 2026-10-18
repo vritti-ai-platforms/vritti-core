@@ -8,6 +8,7 @@ import { Package } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { VariantFacetsLine } from '@/components/VariantFacetsLine';
 import type { ChannelPriceData } from '@/schemas/catalog-channels';
 import { currencyName } from '@/selectors/currency';
 import type { CatalogChannelsBinding } from './bindings';
@@ -33,7 +34,18 @@ export const ChannelPricesPage: React.FC<ChannelPricesPageProps> = ({ binding })
         cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
-      { accessorKey: 'variantName', header: 'Variant', enableSorting: false },
+      {
+        accessorKey: 'offeringName',
+        header: 'Variant',
+        // The offering names it; the facets under it are what tell this row from its siblings
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span>{row.original.offeringName}</span>
+            <VariantFacetsLine dimensions={row.original.dimensions} />
+          </div>
+        ),
+        enableSorting: false,
+      },
       {
         accessorKey: 'mrp',
         header: () => <div className="text-center">MRP</div>,
@@ -85,7 +97,7 @@ export const ChannelPricesPage: React.FC<ChannelPricesPageProps> = ({ binding })
                 tone={r.price === null ? 'warning' : 'success'}
                 activeLabel={r.price === null ? 'Not priced' : 'Available'}
                 inactiveLabel="Excluded"
-                permission={binding.permissions.visibility}
+                permission={binding.permissions.setAvailability}
                 // Excluded from the channel outright, or priced by nobody — neither is this switch's business, and
                 // flipping it on would not make the item available
                 disabled={r.excludedOutright || r.price === null}
@@ -134,7 +146,7 @@ export const ChannelPricesPage: React.FC<ChannelPricesPageProps> = ({ binding })
         searchConfig={{
           columns: [
             { id: 'code', label: 'Code' },
-            { id: 'variantName', label: 'Variant' },
+            { id: 'offeringName', label: 'Variant' },
           ],
           searchAll: true,
         }}

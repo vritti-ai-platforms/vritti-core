@@ -2,19 +2,19 @@ import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { CatalogListingData } from '@/schemas/catalogs';
-import { type AddCatalogListingPayload, addCatalogListing } from '@/services/legal-entity/catalogs.service';
+import { type AddCatalogListingsPayload, addCatalogListings } from '@/services/organization/catalogs.service';
 import { CATALOGS_KEY } from './keys';
 
-export function useAddCatalogListing(
+export function useAddCatalogListings(
   options?: Omit<
-    UseMutationOptions<CreateResponse<CatalogListingData>, AxiosError, AddCatalogListingPayload>,
+    UseMutationOptions<CreateResponse<CatalogListingData[]>, AxiosError, AddCatalogListingsPayload>,
     'mutationFn'
   >,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<CreateResponse<CatalogListingData>, AxiosError, AddCatalogListingPayload>({
+  return useMutation<CreateResponse<CatalogListingData[]>, AxiosError, AddCatalogListingsPayload>({
     ...options,
-    mutationFn: addCatalogListing,
+    mutationFn: addCatalogListings,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: CATALOGS_KEY });
       options?.onSuccess?.(...args);

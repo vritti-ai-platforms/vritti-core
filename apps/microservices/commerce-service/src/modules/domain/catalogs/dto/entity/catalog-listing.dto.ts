@@ -1,5 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
+import { type VariantFacet, type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export interface CatalogListingRow {
   id: string;
@@ -10,7 +10,9 @@ export interface CatalogListingRow {
   isOwned: boolean;
   inventoryItemMrpId: string | null;
   code: string;
-  variantName: string;
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   isVariantActive: boolean;
   isOfferingActive: boolean;
   mrpAmount: bigint | null;
@@ -56,7 +58,10 @@ export class CatalogListingDto {
   catalogId: string;
   offeringVariantId: string;
   code: string;
-  variantName: string;
+  // The offering's name — a variant has none of its own. What distinguishes it is in `dimensions`.
+  offeringName: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   isActive: boolean;
   availability: string;
   legalEntityId: string | null;
@@ -97,7 +102,9 @@ export class CatalogListingDto {
     dto.catalogId = row.catalogId;
     dto.offeringVariantId = row.offeringVariantId;
     dto.code = row.code;
-    dto.variantName = row.variantName;
+    dto.offeringName = row.offeringName;
+    dto.dimensions = row.dimensions;
+    dto.attributes = row.attributes;
     dto.isActive = row.isVariantActive && row.isOfferingActive;
     dto.availability = CatalogListingDto.availabilityOf(row, prices, excludedChannelIds, channelCount);
     dto.legalEntityId = row.legalEntityId ?? null;
@@ -113,30 +120,6 @@ export class CatalogListingDto {
     dto.prices = prices.map((price) => CatalogListingPriceDto.from(price));
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
-    return dto;
-  }
-}
-
-export interface MrpOptionRow {
-  id: string;
-  amount: bigint;
-  currencyCode: string;
-  uomSymbol: string | null;
-  isCurrent: boolean;
-}
-
-export class CatalogListingMrpOptionDto {
-  id: string;
-  mrp: CurrencyAmountDto;
-  uomSymbol: string | null;
-  isCurrent: boolean;
-
-  static from(row: MrpOptionRow): CatalogListingMrpOptionDto {
-    const dto = new CatalogListingMrpOptionDto();
-    dto.id = row.id;
-    dto.mrp = CurrencyAmountDto.from(row.amount, row.currencyCode);
-    dto.uomSymbol = row.uomSymbol ?? null;
-    dto.isCurrent = row.isCurrent;
     return dto;
   }
 }

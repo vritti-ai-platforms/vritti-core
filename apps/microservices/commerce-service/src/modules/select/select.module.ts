@@ -4,6 +4,7 @@ import { CostCategoriesDomainModule } from '@domain/cost-categories/cost-categor
 import { CustomersDomainModule } from '@domain/customers/customers.module';
 import { DimensionTemplatesDomainModule } from '@domain/dimension-templates/dimension-templates.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
+import { InventoryItemMrpsDomainModule } from '@domain/inventory-item-mrps/inventory-item-mrps.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemSerialsDomainModule } from '@domain/inventory-item-serials/inventory-item-serials.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
@@ -43,6 +44,7 @@ import { SelectController } from './select.controller';
     PartyBankAccountsDomainModule,
     PartyRelationshipsDomainModule,
     InventoryItemLotsDomainModule,
+    InventoryItemMrpsDomainModule,
     InventoryItemQuantsDomainModule,
     InventoryItemSerialsDomainModule,
     PosTerminalsDomainModule,

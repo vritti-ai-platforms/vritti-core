@@ -6,6 +6,7 @@ import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { Package } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
+import { VariantFacetsLine } from '@/components/VariantFacetsLine';
 import type { ChannelItemData } from '@/schemas/catalog-channels';
 import type { CatalogChannelsBinding } from '../bindings';
 
@@ -29,7 +30,18 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, channelId }) 
         cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
-      { accessorKey: 'variantName', header: 'Variant', enableSorting: false },
+      {
+        accessorKey: 'offeringName',
+        header: 'Variant',
+        // The offering names it; the facets under it are what tell this row from its siblings
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span>{row.original.offeringName}</span>
+            <VariantFacetsLine dimensions={row.original.dimensions} />
+          </div>
+        ),
+        enableSorting: false,
+      },
       {
         accessorKey: 'mrp',
         header: () => <div className="text-center">MRP</div>,
@@ -52,7 +64,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, channelId }) 
                 tone={purchasable ? 'success' : 'warning'}
                 activeLabel={purchasable ? 'Available' : 'Not priced'}
                 inactiveLabel="Excluded"
-                permission={binding.permissions.visibility}
+                permission={binding.permissions.setAvailability}
                 isLoading={visibilityMutation.isPending}
                 onCheckedChange={(availableHere) =>
                   visibilityMutation.mutate({ channelId, listingId: row.original.listingId, availableHere })
@@ -114,7 +126,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, channelId }) 
       searchConfig={{
         columns: [
           { id: 'code', label: 'Code' },
-          { id: 'variantName', label: 'Variant' },
+          { id: 'offeringName', label: 'Variant' },
         ],
         searchAll: true,
       }}

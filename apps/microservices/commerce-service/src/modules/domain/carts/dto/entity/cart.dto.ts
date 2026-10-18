@@ -1,4 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import type { VariantFacet } from '@/db/schema';
 
 export interface CartTableRow {
   id: string;
@@ -22,8 +23,9 @@ export interface CartItemRow {
   amount: bigint | null;
   currencyCode: string | null;
   code: string;
-  variantName: string;
   offeringName: string | null;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   listingActive: boolean;
   variantActive: boolean;
   offeringActive: boolean;
@@ -37,8 +39,11 @@ export class CartItemDto {
   // What a storefront joins its own product page on
   offeringVariantId: string;
   quantity: number;
+  // The offering's name — a variant has none of its own. What distinguishes it is in `dimensions`.
   name: string;
   code: string;
+  dimensions: VariantFacet[];
+  attributes: VariantFacet[];
   // Null when nothing in the catalogue prices this listing in the basket's currency
   unitPrice: CurrencyAmountDto | null;
   lineTotal: CurrencyAmountDto | null;
@@ -51,8 +56,10 @@ export class CartItemDto {
     dto.catalogListingId = row.catalogListingId;
     dto.offeringVariantId = row.offeringVariantId;
     dto.quantity = row.quantity;
-    dto.name = row.variantName;
+    dto.name = row.offeringName ?? row.code;
     dto.code = row.code;
+    dto.dimensions = row.dimensions;
+    dto.attributes = row.attributes;
 
     const priced = row.amount != null && row.currencyCode != null;
     dto.unitPrice = priced ? CurrencyAmountDto.from(row.amount as bigint, row.currencyCode as string) : null;

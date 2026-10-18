@@ -4,11 +4,8 @@ export class OrderItemResponseDto {
   @ApiProperty({ description: 'Order item ID' })
   id: string;
 
-  @ApiProperty({ description: 'Denormalized item name' })
-  itemName: string;
-
-  @ApiPropertyOptional({ description: 'Denormalized variant name', nullable: true })
-  variantName: string | null;
+  @ApiProperty({ description: 'Built when the order was placed — the offering’s name and the variant’s facets' })
+  name: string;
 
   @ApiProperty({ description: 'Quantity ordered' })
   quantity: number;

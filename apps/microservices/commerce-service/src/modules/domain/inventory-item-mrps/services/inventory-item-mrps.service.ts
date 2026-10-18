@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { majorToMinor } from '@vritti/api-sdk/money';
-import type { InventoryItemMrp } from '@/db/schema';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import { type InventoryItemMrp, uom } from '@/db/schema';
 import type { AddInventoryItemMrpDto } from '../dto/request/add-inventory-item-mrp.dto';
 import type { UpdateInventoryItemMrpDto } from '../dto/request/update-inventory-item-mrp.dto';
 import {
@@ -11,6 +13,44 @@ import {
 @Injectable()
 export class InventoryItemMrpsDomainService {
   constructor(private readonly repository: InventoryItemMrpsDomainRepository) {}
+
+  // The options the Add Listings form offers for one variant, labelled the way a pack is read
+  async findForSelect(
+    query: SelectOptionsQueryDto & { variantId: string; currencyCode?: string; catalogId?: string },
+  ): Promise<SelectQueryResult> {
+    const result = await this.repository.findForVariantSelect(query.variantId, query.currencyCode, query.catalogId, {
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'amount',
+      additionalKeys: ['currencyCode', 'isCurrent', 'uomId'],
+      additionalExpressions: { uomSymbol: sql`${uom.symbol}` },
+      values: query.values,
+      excludeIds: query.excludeIds,
+      limit: query.limit,
+      offset: query.offset,
+      orderByKey: query.orderByKey || 'amount',
+      orderDirection: query.orderDirection || 'asc',
+    });
+
+    // The label is built here rather than in the browser: an amount is minor units and a currency decides
+    // how many decimals it has, so formatting it anywhere else is a second place to get a pack's price wrong
+    return {
+      ...result,
+      options: result.options.map((option) => {
+        const currencyCode = String(option.additionals?.currencyCode ?? '') as CurrencyCode;
+        const symbol = option.additionals?.uomSymbol;
+        // The code rather than a symbol: a multi-select renders its options as plain strings, so there is
+        // no locale here to place a "₹" with — and the admin screens quote currencies by code anyway. It is
+        // dropped when the caller named a currency, since then every option is in it.
+        const major = minorToMajor(BigInt(String(option.label)), currencyCode);
+        const amount = query.currencyCode ? major : `${currencyCode} ${major}`;
+        return {
+          ...option,
+          label: symbol ? `${amount} / ${symbol}` : amount,
+          description: option.additionals?.isCurrent ? 'Currently printed' : 'Older stock',
+        };
+      }),
+    };
+  }
 
   // Records the latest suggested MRP for an (item, uom, currency); called when a goods receipt is published.
   upsert(

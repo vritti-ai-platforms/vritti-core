@@ -231,12 +231,8 @@ export const OrderDetailPage = () => {
                             <tr key={item.id} className="border-b last:border-0">
                               <td className="py-3 text-muted-foreground">{index + 1}</td>
                               <td className="py-3">
-                                <div>
-                                  <span className="font-medium">{item.itemName}</span>
-                                  {item.variantName && (
-                                    <span className="ml-1 text-muted-foreground">({item.variantName})</span>
-                                  )}
-                                </div>
+                                {/* Built when the order was placed, so it reads as it did then */}
+                                <span className="font-medium">{item.name}</span>
                                 {item.notes && <p className="mt-0.5 text-xs text-muted-foreground">{item.notes}</p>}
                               </td>
                               <td className="py-3 text-right font-mono">{item.quantity}</td>

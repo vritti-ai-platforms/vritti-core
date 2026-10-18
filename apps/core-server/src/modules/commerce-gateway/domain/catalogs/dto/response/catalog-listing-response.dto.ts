@@ -1,3 +1,4 @@
+import { VariantFacetResponseDto } from '@commerce/offerings/dto/response/variant-facet-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
@@ -23,7 +24,13 @@ export class CatalogListingResponseDto {
   @ApiProperty() catalogId: string;
   @ApiProperty() offeringVariantId: string;
   @ApiProperty() code: string;
-  @ApiProperty() variantName: string;
+  @ApiProperty({ description: 'The offering\u2019s name \u2014 a variant has none of its own' }) offeringName: string;
+
+  @ApiProperty({ type: [VariantFacetResponseDto], description: 'What tells this variant from its siblings' })
+  dimensions: VariantFacetResponseDto[];
+
+  @ApiProperty({ type: [VariantFacetResponseDto] })
+  attributes: VariantFacetResponseDto[];
 
   @ApiProperty({ description: 'False when the variant or its offering is deactivated — no channel can sell it' })
   isActive: boolean;
@@ -61,11 +68,4 @@ export class CatalogListingResponseDto {
   @ApiProperty({ type: [CatalogListingPriceResponseDto] }) prices: CatalogListingPriceResponseDto[];
   @ApiProperty() createdAt: string;
   @ApiProperty() updatedAt: string;
-}
-
-export class CatalogListingMrpOptionResponseDto {
-  @ApiProperty() id: string;
-  @ApiProperty({ type: CurrencyAmountDto }) mrp: CurrencyAmountDto;
-  @ApiPropertyOptional({ nullable: true }) uomSymbol: string | null;
-  @ApiProperty({ description: 'The MRP currently printed on new stock' }) isCurrent: boolean;
 }
