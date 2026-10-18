@@ -65,6 +65,7 @@ export type UseClearCatalogListingPrice = Mutation<SuccessResponse, ListingRef &
 export type BulkListingsRef = { catalogId: string; ids: string[] };
 export type UseBulkRemoveCatalogListings = Mutation<SuccessResponse, BulkListingsRef>;
 export type UseBulkSetCatalogListingPrice = Mutation<SuccessResponse, BulkListingsRef & { price: CurrencyValue }>;
+export type UseBulkClearCatalogListingPrices = Mutation<SuccessResponse, BulkListingsRef & { currencyCodes: string[] }>;
 export type UseBulkSetCatalogListingAvailability = Mutation<
   SuccessResponse,
   BulkListingsRef & { channelIds: string[]; visible: boolean }

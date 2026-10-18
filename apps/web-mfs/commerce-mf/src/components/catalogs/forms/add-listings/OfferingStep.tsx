@@ -18,7 +18,7 @@ export const OfferingStep: React.FC = () => {
           selectOffering(String(option?.value ?? ''), option?.label ?? '')
         }
         catalogId={catalogId}
-        description="Its variants are what you can list. One offering at a time."
+        description="Choose the product. You pick which of its variants to sell next."
       />
 
       <WizardFooter>

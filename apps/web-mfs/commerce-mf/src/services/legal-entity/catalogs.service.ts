@@ -151,6 +151,20 @@ export function bulkSetCatalogListingPrice({
   return axios.patch<SuccessResponse>(`${BASE}/${catalogId}/listings/prices`, { ids, price }).then((r) => r.data);
 }
 
+export function bulkClearCatalogListingPrices({
+  catalogId,
+  ids,
+  currencyCodes,
+}: {
+  catalogId: string;
+  ids: string[];
+  currencyCodes: string[];
+}): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`${BASE}/${catalogId}/listings/prices`, { data: { ids, currencyCodes } })
+    .then((r) => r.data);
+}
+
 export function bulkSetCatalogListingAvailability({
   catalogId,
   ids,

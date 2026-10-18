@@ -19093,6 +19093,48 @@
         "tags": [
           "Commerce - Catalogs"
         ]
+      },
+      "delete": {
+        "description": "Removes this workspace's own price in each named currency. Whatever a wider workspace charges applies again, or nothing if none of them priced it.",
+        "operationId": "CatalogsGatewayController_bulkClearListingPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkClearCatalogListingPricesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Prices cleared."
+          },
+          "404": {
+            "description": "None of them carry a price of this workspace’s own."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear prices across a selection",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
       }
     },
     "/commerce-api/org/catalogs/{id}/listings/availability": {
@@ -19955,6 +19997,48 @@
         "tags": [
           "Commerce - Catalogs"
         ]
+      },
+      "delete": {
+        "description": "Removes this workspace's own price in each named currency. Whatever a wider workspace charges applies again, or nothing if none of them priced it.",
+        "operationId": "LeCatalogsGatewayController_bulkClearListingPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkClearCatalogListingPricesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Prices cleared."
+          },
+          "404": {
+            "description": "None of them carry a price of this workspace’s own."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear prices across a selection",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
       }
     },
     "/commerce-api/le/catalogs/{id}/listings/availability": {
@@ -20814,6 +20898,48 @@
           }
         ],
         "summary": "Price a selection of listings the same",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "delete": {
+        "description": "Removes this workspace's own price in each named currency. Whatever a wider workspace charges applies again, or nothing if none of them priced it.",
+        "operationId": "SiteCatalogsGatewayController_bulkClearListingPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkClearCatalogListingPricesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Prices cleared."
+          },
+          "404": {
+            "description": "None of them carry a price of this workspace’s own."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear prices across a selection",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -46799,12 +46925,6 @@
               "$ref": "#/components/schemas/VariantFacetResponseDto"
             }
           },
-          "attributes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VariantFacetResponseDto"
-            }
-          },
           "mrp": {
             "nullable": true,
             "type": "object",
@@ -46832,7 +46952,6 @@
           "code",
           "offeringName",
           "dimensions",
-          "attributes",
           "availableHere",
           "availableCurrencyCodes"
         ]
@@ -46855,12 +46974,6 @@
           },
           "dimensions": {
             "description": "What tells this variant from its siblings",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VariantFacetResponseDto"
-            }
-          },
-          "attributes": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/VariantFacetResponseDto"
@@ -46922,7 +47035,6 @@
           "code",
           "offeringName",
           "dimensions",
-          "attributes",
           "priceOwnerName",
           "availableHere",
           "excludedOutright"
@@ -47130,12 +47242,6 @@
           "id": {
             "type": "string"
           },
-          "catalogId": {
-            "type": "string"
-          },
-          "offeringVariantId": {
-            "type": "string"
-          },
           "code": {
             "type": "string"
           },
@@ -47150,12 +47256,6 @@
               "$ref": "#/components/schemas/VariantFacetResponseDto"
             }
           },
-          "attributes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VariantFacetResponseDto"
-            }
-          },
           "isActive": {
             "type": "boolean",
             "description": "False when the variant or its offering is deactivated — no channel can sell it"
@@ -47164,6 +47264,14 @@
             "type": "string",
             "description": "Where the listing stands, ready to render: \"2 of 2\" channels, or what stops it",
             "example": "2 of 2"
+          },
+          "channelCount": {
+            "type": "number",
+            "description": "Channels this catalog reaches — the table reads it rather than fetching them"
+          },
+          "currencyCount": {
+            "type": "number",
+            "description": "Currencies this catalog declares — the denominator for how many priced it"
           },
           "legalEntityId": {
             "type": "object",
@@ -47186,18 +47294,9 @@
             "type": "string",
             "description": "Name of the owning workspace, resolved from core"
           },
-          "canEdit": {
-            "type": "boolean",
-            "description": "False when the listing belongs to a wider scope than this workspace"
-          },
           "canDelete": {
             "type": "boolean",
             "description": "False when the listing belongs to a wider scope than this workspace"
-          },
-          "inventoryItemMrpId": {
-            "type": "object",
-            "nullable": true,
-            "description": "MRP slice this listing covers"
           },
           "mrp": {
             "nullable": true,
@@ -47207,10 +47306,6 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
-          },
-          "mrpUomSymbol": {
-            "type": "object",
-            "nullable": true
           },
           "excludedChannelIds": {
             "description": "Channels this listing is excluded from; absent means available everywhere the catalog reaches",
@@ -47224,32 +47319,22 @@
             "items": {
               "$ref": "#/components/schemas/CatalogListingPriceResponseDto"
             }
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "updatedAt": {
-            "type": "string"
           }
         },
         "required": [
           "id",
-          "catalogId",
-          "offeringVariantId",
           "code",
           "offeringName",
           "dimensions",
-          "attributes",
           "isActive",
           "availability",
+          "channelCount",
+          "currencyCount",
           "ownerScope",
           "ownerName",
-          "canEdit",
           "canDelete",
           "excludedChannelIds",
-          "prices",
-          "createdAt",
-          "updatedAt"
+          "prices"
         ]
       },
       "CatalogListingTableResponseDto": {
@@ -47426,6 +47511,29 @@
         "required": [
           "ids",
           "price"
+        ]
+      },
+      "BulkClearCatalogListingPricesDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "description": "Refused outright unless every one of them is still in this catalog",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "currencyCodes": {
+            "description": "The currencies whose own prices are cleared; a wider workspace's price then applies in each",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ids",
+          "currencyCodes"
         ]
       },
       "BulkSetCatalogListingAvailabilityDto": {

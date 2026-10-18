@@ -1,8 +1,9 @@
 import type React from 'react';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { CatalogsBinding } from '@/components/catalogs/bindings';
+import type { WizardStepDef } from '@/components/wizardSteps';
 import type { CatalogCurrencyData } from '@/schemas/catalogs';
-import { LISTING_WIZARD_STEPS, type ListingWizardStep } from './wizardSteps';
+import { type ListingWizardStep, listingWizardSteps } from './wizardSteps';
 
 export interface VariantLabel {
   code: string;
@@ -14,6 +15,9 @@ export interface AddListingsWizard {
   catalogId: string;
   catalogName: string;
   currencies: CatalogCurrencyData[];
+  // False when the catalog declares no currency — the wizard then stops at the variants step
+  canPrice: boolean;
+  steps: WizardStepDef<ListingWizardStep>[];
 
   step: ListingWizardStep;
   position: number;
@@ -79,11 +83,13 @@ export const AddListingsProvider: React.FC<AddListingsProviderProps> = ({
     [],
   );
 
-  const position = LISTING_WIZARD_STEPS.findIndex((entry) => entry.key === step) + 1;
-  const isLast = position === LISTING_WIZARD_STEPS.length;
+  const canPrice = currencies.length > 0;
+  const steps = useMemo(() => listingWizardSteps(canPrice), [canPrice]);
+  const position = steps.findIndex((entry) => entry.key === step) + 1;
+  const isLast = position === steps.length;
 
-  const goNext = useCallback(() => setStep(LISTING_WIZARD_STEPS[position].key), [position]);
-  const goBack = useCallback(() => setStep(LISTING_WIZARD_STEPS[position - 2].key), [position]);
+  const goNext = useCallback(() => setStep(steps[position].key), [steps, position]);
+  const goBack = useCallback(() => setStep(steps[position - 2].key), [steps, position]);
 
   const value = useMemo<AddListingsWizard>(
     () => ({
@@ -91,6 +97,8 @@ export const AddListingsProvider: React.FC<AddListingsProviderProps> = ({
       catalogId,
       catalogName,
       currencies,
+      canPrice,
+      steps,
       step,
       position,
       isLast,
@@ -113,6 +121,8 @@ export const AddListingsProvider: React.FC<AddListingsProviderProps> = ({
       catalogId,
       catalogName,
       currencies,
+      canPrice,
+      steps,
       step,
       position,
       isLast,

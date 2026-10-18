@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import type React from 'react';
 import { type CatalogChannelData, CHANNEL_TYPE_META } from '@/schemas/catalog-channels';
@@ -19,7 +20,6 @@ interface ManageVisibilityDialogProps {
   binding: CatalogsBinding;
   catalogId: string;
   listing: CatalogListingData;
-  channels: CatalogChannelData[];
   onClose: () => void;
 }
 
@@ -27,10 +27,20 @@ export const ManageVisibilityDialog: React.FC<ManageVisibilityDialogProps> = ({
   binding,
   catalogId,
   listing,
-  channels,
   onClose,
 }) => {
+  // Fetched here rather than handed down: this is the only place the list is rendered
+  const { data: channels = [], isLoading } = binding.useChannelsForCatalog(catalogId);
   const visibilityMutation = binding.useSetListingChannelVisibility();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-3 px-6 py-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
 
   return (
     <>

@@ -230,7 +230,6 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         code: offeringVariants.code,
         offeringName: offerings.name,
         dimensions: offeringVariants.dimensions,
-        attributes: offeringVariants.attributes,
         mrpAmount: inventoryItemMrps.amount,
         mrpCurrencyCode: inventoryItemMrps.currencyCode,
         // Only an outright exclusion answers this; one naming a currency is shown on the Prices tab
@@ -301,7 +300,6 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         code: offeringVariants.code,
         offeringName: offerings.name,
         dimensions: offeringVariants.dimensions,
-        attributes: offeringVariants.attributes,
         mrpAmount: inventoryItemMrps.amount,
         mrpCurrencyCode: inventoryItemMrps.currencyCode,
         priceAmount: price.amount,

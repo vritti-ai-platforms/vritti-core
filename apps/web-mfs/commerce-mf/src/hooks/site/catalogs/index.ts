@@ -8,6 +8,7 @@ export {
 } from './keys';
 export { useAddCatalogCurrency } from './useAddCatalogCurrency';
 export { useAddCatalogListings } from './useAddCatalogListings';
+export { useBulkClearCatalogListingPrices } from './useBulkClearCatalogListingPrices';
 export { useBulkRemoveCatalogListings } from './useBulkRemoveCatalogListings';
 export { useBulkSetCatalogListingAvailability } from './useBulkSetCatalogListingAvailability';
 export { useBulkSetCatalogListingPrice } from './useBulkSetCatalogListingPrice';

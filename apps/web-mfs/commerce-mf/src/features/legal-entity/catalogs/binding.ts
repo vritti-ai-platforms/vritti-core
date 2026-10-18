@@ -7,6 +7,7 @@ import {
   CATALOGS_TABLE_KEY,
   useAddCatalogCurrency,
   useAddCatalogListings,
+  useBulkClearCatalogListingPrices,
   useBulkRemoveCatalogListings,
   useBulkSetCatalogListingAvailability,
   useBulkSetCatalogListingPrice,
@@ -49,6 +50,7 @@ export const leCatalogsBinding: CatalogsBinding = {
   useClearListingPrice: useClearCatalogListingPrice,
 
   useBulkRemoveListings: useBulkRemoveCatalogListings,
+  useBulkClearListingPrices: useBulkClearCatalogListingPrices,
   useBulkSetListingPrice: useBulkSetCatalogListingPrice,
   useBulkSetListingAvailability: useBulkSetCatalogListingAvailability,
 

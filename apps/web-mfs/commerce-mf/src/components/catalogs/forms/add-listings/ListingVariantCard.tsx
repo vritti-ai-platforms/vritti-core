@@ -99,7 +99,7 @@ export const ListingVariantCard: React.FC<ListingVariantCardProps> = ({
               currencyCode={currencyCode}
               catalogId={catalogId}
               onOptionsSelect={handleMrpOptions}
-              description="Leave empty to list this variant for any batch. Pick MRPs to list it once per printed price."
+              description="Leave empty to sell every batch at one price. Choose printed MRPs to price each one separately."
             />
           )}
         />

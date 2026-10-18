@@ -2,6 +2,7 @@ import type { CatalogChannelResponseDto } from '@commerce/catalog-channels/dto/r
 import type { AddCatalogListingDto } from '@commerce/catalogs/dto/request/add-catalog-listing.dto';
 import type { AddCatalogListingsBatchDto } from '@commerce/catalogs/dto/request/add-catalog-listings-batch.dto';
 import type {
+  BulkClearCatalogListingPricesDto,
   BulkRemoveCatalogListingsDto,
   BulkSetCatalogListingAvailabilityDto,
   BulkSetCatalogListingPriceDto,
@@ -167,6 +168,13 @@ export class LeCatalogsGatewayService {
       ids: dto.ids,
       price: dto.price,
     });
+  }
+
+  async bulkClearListingPrice(catalogId: string, dto: BulkClearCatalogListingPricesDto): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `le.catalogs.listings.bulkClearPrice — ${dto.ids.length} selected, ${dto.currencyCodes.join(', ')}`,
+    );
+    return this.nats.send('commerce', 'le.catalogs.listings.bulkClearPrice', { catalogId, ...dto });
   }
 
   async bulkSetListingAvailability(

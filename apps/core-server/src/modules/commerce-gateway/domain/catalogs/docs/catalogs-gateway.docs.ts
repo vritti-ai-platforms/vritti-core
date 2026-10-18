@@ -174,6 +174,19 @@ export function ApiBulkSetCatalogListingPrice() {
   );
 }
 
+export function ApiBulkClearCatalogListingPrices() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Clear prices across a selection',
+      description:
+        "Removes this workspace's own price in each named currency. Whatever a wider workspace charges applies again, or nothing if none of them priced it.",
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, description: 'Prices cleared.' }),
+    ApiResponse({ status: 404, description: 'None of them carry a price of this workspace’s own.' }),
+  );
+}
+
 export function ApiBulkSetCatalogListingAvailability() {
   return applyDecorators(
     ApiOperation({

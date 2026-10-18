@@ -25,6 +25,14 @@ export const addCatalogListingSchema = z.object({
 
 export type AddCatalogListingItem = z.infer<typeof addCatalogListingSchema>;
 
+// The offering and the currency only decide what the other fields may hold — neither is submitted
+export const addCatalogListingFormSchema = addCatalogListingSchema.extend({
+  offeringId: z.string().uuid('Offering is required'),
+  currencyCode: z.string().optional(),
+});
+
+export type AddCatalogListingFormShape = z.infer<typeof addCatalogListingFormSchema>;
+
 // One row of the page: a variant, the MRPs it is being listed at, and a price slot for each of them.
 // An empty mrpIds means one listing covering any batch, which is what `rows` then holds a single entry for.
 export const addCatalogListingVariantSchema = z.object({
@@ -60,6 +68,12 @@ export const bulkSetListingPriceSchema = z.object({
 });
 
 export type BulkSetListingPriceFormData = z.infer<typeof bulkSetListingPriceSchema>;
+
+export const bulkClearListingPricesSchema = z.object({
+  currencyCodes: z.array(z.string()).min(1, 'Choose at least one currency'),
+});
+
+export type BulkClearListingPricesFormData = z.infer<typeof bulkClearListingPricesSchema>;
 
 export const addCatalogCurrencySchema = z.object({
   currencyCode: z.string().min(1, 'Currency is required'),
@@ -97,27 +111,21 @@ export interface CatalogListingPriceData {
 
 export interface CatalogListingData {
   id: string;
-  catalogId: string;
-  offeringVariantId: string;
   code: string;
   offeringName: string;
   dimensions: VariantFacet[];
-  attributes: VariantFacet[];
   isActive: boolean;
   availability: string;
+  channelCount: number;
+  currencyCount: number;
   legalEntityId: string | null;
   siteId: string | null;
   ownerScope: CatalogOwnerScope;
   ownerName: string;
-  canEdit: boolean;
   canDelete: boolean;
-  inventoryItemMrpId: string | null;
   mrp: CurrencyValue | null;
-  mrpUomSymbol: string | null;
   excludedChannelIds: string[];
   prices: CatalogListingPriceData[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface CatalogCurrencyData {

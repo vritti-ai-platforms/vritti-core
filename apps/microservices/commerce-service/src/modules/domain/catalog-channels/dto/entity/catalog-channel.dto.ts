@@ -106,7 +106,6 @@ export interface ChannelItemRow {
   code: string;
   offeringName: string;
   dimensions: VariantFacet[];
-  attributes: VariantFacet[];
   mrpAmount: bigint | null;
   mrpCurrencyCode: string | null;
   availableHere: boolean;
@@ -119,7 +118,6 @@ export interface ChannelPriceRow {
   code: string;
   offeringName: string;
   dimensions: VariantFacet[];
-  attributes: VariantFacet[];
   mrpAmount: bigint | null;
   mrpCurrencyCode: string | null;
   priceAmount: bigint | null;
@@ -136,7 +134,6 @@ export class ChannelItemDto {
   code: string;
   offeringName: string;
   dimensions: VariantFacet[];
-  attributes: VariantFacet[];
   mrp: CurrencyAmountDto | null;
   // Whether the channel carries it at all. Prices and per-currency exclusions are the Prices tab.
   availableHere: boolean;
@@ -150,7 +147,6 @@ export class ChannelItemDto {
     dto.code = row.code;
     dto.offeringName = row.offeringName;
     dto.dimensions = row.dimensions;
-    dto.attributes = row.attributes;
     dto.mrp =
       row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;
     dto.availableHere = row.availableHere;
@@ -165,7 +161,6 @@ export class ChannelPriceDto {
   code: string;
   offeringName: string;
   dimensions: VariantFacet[];
-  attributes: VariantFacet[];
   mrp: CurrencyAmountDto | null;
   // Null when nobody priced it in this currency, which is why it is unavailable here
   price: CurrencyAmountDto | null;
@@ -183,7 +178,6 @@ export class ChannelPriceDto {
     dto.code = row.code;
     dto.offeringName = row.offeringName;
     dto.dimensions = row.dimensions;
-    dto.attributes = row.attributes;
     dto.mrp =
       row.mrpAmount != null && row.mrpCurrencyCode ? CurrencyAmountDto.from(row.mrpAmount, row.mrpCurrencyCode) : null;
     dto.price =

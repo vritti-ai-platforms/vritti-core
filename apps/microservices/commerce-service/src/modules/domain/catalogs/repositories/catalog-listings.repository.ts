@@ -14,7 +14,6 @@ import {
   offerings,
   offeringVariants,
   ownedByWorkspaceExpression,
-  uom,
 } from '@/db/schema';
 import type { CatalogListingPriceRow, CatalogListingRow } from '../dto/entity/catalog-listing.dto';
 
@@ -27,8 +26,6 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
   private selection() {
     return {
       id: catalogListings.id,
-      catalogId: catalogListings.catalogId,
-      offeringVariantId: catalogListings.offeringVariantId,
       legalEntityId: catalogListings.legalEntityId,
       siteId: catalogListings.siteId,
       isOwned: ownedByWorkspaceExpression(catalogListings),
@@ -36,14 +33,10 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
       code: offeringVariants.code,
       offeringName: offerings.name,
       dimensions: offeringVariants.dimensions,
-      attributes: offeringVariants.attributes,
       isVariantActive: offeringVariants.isActive,
       isOfferingActive: offeringVariants.isOfferingActive,
       mrpAmount: inventoryItemMrps.amount,
       mrpCurrencyCode: inventoryItemMrps.currencyCode,
-      mrpUomSymbol: uom.symbol,
-      createdAt: catalogListings.createdAt,
-      updatedAt: catalogListings.updatedAt,
     };
   }
 
@@ -55,12 +48,9 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
     ];
   }
 
-  // An MRP is optional, and its uom hangs off the MRP, so both are genuinely absent sometimes
+  // An MRP is optional, so a listing covering any batch simply has none
   private mrpJoins() {
-    return [
-      { table: inventoryItemMrps, on: eq(inventoryItemMrps.id, catalogListings.inventoryItemMrpId) },
-      { table: uom, on: eq(uom.id, inventoryItemMrps.uomId) },
-    ];
+    return [{ table: inventoryItemMrps, on: eq(inventoryItemMrps.id, catalogListings.inventoryItemMrpId) }];
   }
 
   // One page of a catalog's listings with the variant and MRP each one carries
@@ -324,6 +314,21 @@ export class CatalogListingsDomainRepository extends PrimaryBaseRepository<typeo
   }
 
   // Clears this workspace's own price, leaving any wider one to apply again.
+  // One statement, so a selection clears whole or not at all. RLS keeps it to the prices this workspace owns.
+  async deleteOwnPrices(catalogListingIds: string[], currencyCodes: string[]): Promise<number> {
+    if (catalogListingIds.length === 0 || currencyCodes.length === 0) return 0;
+    const rows = (await this.db
+      .delete(catalogListingPrices)
+      .where(
+        and(
+          inArray(catalogListingPrices.catalogListingId, catalogListingIds),
+          inArray(catalogListingPrices.currencyCode, currencyCodes),
+        ),
+      )
+      .returning({ id: catalogListingPrices.id })) as { id: string }[];
+    return rows.length;
+  }
+
   async deleteOwnPrice(catalogListingId: string, currencyCode: string): Promise<number> {
     const rows = (await this.db
       .delete(catalogListingPrices)

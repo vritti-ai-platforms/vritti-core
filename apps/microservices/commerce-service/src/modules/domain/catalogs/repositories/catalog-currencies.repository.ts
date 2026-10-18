@@ -10,6 +10,15 @@ export class CatalogCurrenciesDomainRepository extends PrimaryBaseRepository<typ
     super(database, catalogCurrencies);
   }
 
+  // How many currencies the catalog declares — the denominator the listings table prices against
+  async countForCatalog(catalogId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(catalogCurrencies)
+      .where(eq(catalogCurrencies.catalogId, catalogId));
+    return row?.n ?? 0;
+  }
+
   async findForCatalog(catalogId: string): Promise<CatalogCurrency[]> {
     return this.db
       .select()

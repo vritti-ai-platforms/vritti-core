@@ -102,7 +102,6 @@ export interface ChannelItemData {
   code: string;
   offeringName: string;
   dimensions: VariantFacet[];
-  attributes: VariantFacet[];
   mrp: CurrencyValue | null;
   availableHere: boolean;
   availableCurrencyCodes: string[];
@@ -114,7 +113,6 @@ export interface ChannelPriceData {
   code: string;
   offeringName: string;
   dimensions: VariantFacet[];
-  attributes: VariantFacet[];
   mrp: CurrencyValue | null;
   price: CurrencyValue | null;
   priceOwnerScope: CatalogChannelOwnerScope | null;

@@ -3,6 +3,7 @@ import {
   ApiAddCatalogCurrency,
   ApiAddCatalogListing,
   ApiAddCatalogListings,
+  ApiBulkClearCatalogListingPrices,
   ApiBulkRemoveCatalogListings,
   ApiBulkSetCatalogListingAvailability,
   ApiBulkSetCatalogListingPrice,
@@ -25,6 +26,7 @@ import { AddCatalogCurrencyDto } from '@commerce/catalogs/dto/request/add-catalo
 import { AddCatalogListingDto } from '@commerce/catalogs/dto/request/add-catalog-listing.dto';
 import { AddCatalogListingsBatchDto } from '@commerce/catalogs/dto/request/add-catalog-listings-batch.dto';
 import {
+  BulkClearCatalogListingPricesDto,
   BulkRemoveCatalogListingsDto,
   BulkSetCatalogListingAvailabilityDto,
   BulkSetCatalogListingPriceDto,
@@ -182,6 +184,18 @@ export class LeCatalogsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/catalogs/${id}/listings/prices — ${dto.ids.length} selected`);
     return this.service.bulkSetListingPrice(id, dto);
+  }
+
+  // Clears one currency's price across a selection, leaving a wider workspace's price to apply again
+  @Delete(':id/listings/prices')
+  @RequirePermission(LE_CATALOGS.prices.clear)
+  @ApiBulkClearCatalogListingPrices()
+  bulkClearListingPrice(
+    @Param('id') id: string,
+    @Body() dto: BulkClearCatalogListingPricesDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/catalogs/${id}/listings/prices — ${dto.ids.length} selected`);
+    return this.service.bulkClearListingPrice(id, dto);
   }
 
   @Patch(':id/listings/availability')

@@ -11,9 +11,6 @@ export class ChannelItemResponseDto {
 
   @ApiProperty({ type: [VariantFacetResponseDto], description: 'What tells this variant from its siblings' })
   dimensions: VariantFacetResponseDto[];
-
-  @ApiProperty({ type: [VariantFacetResponseDto] })
-  attributes: VariantFacetResponseDto[];
   @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true }) mrp: CurrencyAmountDto | null;
 
   @ApiProperty({ description: 'False when this channel does not carry the item at all' })
@@ -41,9 +38,6 @@ export class ChannelPriceResponseDto {
 
   @ApiProperty({ type: [VariantFacetResponseDto], description: 'What tells this variant from its siblings' })
   dimensions: VariantFacetResponseDto[];
-
-  @ApiProperty({ type: [VariantFacetResponseDto] })
-  attributes: VariantFacetResponseDto[];
   @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true }) mrp: CurrencyAmountDto | null;
 
   @ApiPropertyOptional({

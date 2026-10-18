@@ -1,25 +1,31 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
+import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
   CurrencyCell,
   DataTable,
+  getSelectionColumn,
   type RowAction,
   RowActions,
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Boxes, Coins, Eraser, Tag } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { VariantFacetsLine } from '@/components/VariantFacetsLine';
 import type { CatalogListingData } from '@/schemas/catalogs';
 import { currencyName } from '@/selectors/currency';
 import type { CatalogsBinding } from './bindings';
+import { BulkClearPriceDialog } from './forms/BulkClearPriceDialog';
+import { BulkSetPriceDialog } from './forms/BulkSetPriceDialog';
 import { SetListingPriceDialog } from './forms/SetListingPriceDialog';
 
 interface CatalogPricesPageProps {
@@ -41,6 +47,19 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
   const { data: response, isLoading } = binding.useCurrencyListingsTable(catalogId, currencyCode);
   const confirm = useConfirm();
   const clearMutation = binding.useClearListingPrice();
+  const bulkPriceDialog = useDialog();
+  const bulkClearPriceDialog = useDialog();
+  // Held while a dialog is open: the selection bar hands its rows to the click, not to the dialog
+  const [bulkIds, setBulkIds] = useState<string[]>([]);
+
+  const openBulk = useCallback(
+    (which: 'price' | 'clear-price', ids: string[]) => {
+      setBulkIds(ids);
+      if (which === 'price') bulkPriceDialog.open();
+      else bulkClearPriceDialog.open();
+    },
+    [bulkClearPriceDialog, bulkPriceDialog],
+  );
 
   const currency = currencies.find((entry) => entry.currencyCode === currencyCode);
 
@@ -59,6 +78,7 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
 
   const columns = useMemo<ColumnDef<CatalogListingData>[]>(
     () => [
+      getSelectionColumn<CatalogListingData>(),
       {
         accessorKey: 'code',
         header: 'Code',
@@ -170,7 +190,7 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
     slug: binding.pricesTableSlug(catalogId),
     label: 'price',
     serverState: response,
-    enableRowSelection: false,
+    enableRowSelection: true,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () =>
@@ -198,34 +218,95 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title={`${currencyCode} prices`}
-        description={`What "${catalog.name}" charges in ${currencyName(currencyCode)}.`}
-        titleSlot={
-          <Badge variant={priced === total && total > 0 ? 'success' : 'warning'}>
-            {`${priced} of ${total} priced`}
-          </Badge>
-        }
+    <>
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title={`${currencyCode} prices`}
+          description={`What "${catalog.name}" charges in ${currencyName(currencyCode)}.`}
+          titleSlot={
+            <Badge variant={priced === total && total > 0 ? 'success' : 'warning'}>
+              {`${priced} of ${total} priced`}
+            </Badge>
+          }
+        />
+
+        <DataTable
+          table={table}
+          isLoading={isLoading}
+          permission={binding.permissions.prices.view}
+          selectActions={(rows) => {
+            const ids = rows.map((row) => row.original.id);
+            return (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  permission={binding.permissions.prices.set}
+                  startAdornment={<Tag className="size-4" />}
+                  onClick={() => openBulk('price', ids)}
+                >
+                  Set Price
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  permission={binding.permissions.prices.clear}
+                  startAdornment={<Eraser className="size-4" />}
+                  onClick={() => openBulk('clear-price', ids)}
+                >
+                  Remove Price
+                </Button>
+              </>
+            );
+          }}
+          searchConfig={{
+            columns: [
+              { id: 'code', label: 'Code' },
+              { id: 'offeringName', label: 'Variant' },
+            ],
+            searchAll: true,
+          }}
+          emptyStateConfig={{
+            icon: Boxes,
+            title: 'Nothing listed yet',
+            description: 'Add listings on the Listings tab, then price them here.',
+          }}
+        />
+      </div>
+
+      <Dialog
+        handle={bulkPriceDialog}
+        icon={Tag}
+        title={`Set ${currencyCode} Price`}
+        description={`One price for ${pluralize('selected listing', bulkIds.length, true)}. A listing keyed to a printed MRP refuses a price above it.`}
+        content={(close) => (
+          <BulkSetPriceDialog
+            binding={binding}
+            catalogId={catalogId}
+            ids={bulkIds}
+            currencyCode={currencyCode}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
       />
 
-      <DataTable
-        table={table}
-        isLoading={isLoading}
-        permission={binding.permissions.prices.view}
-        searchConfig={{
-          columns: [
-            { id: 'code', label: 'Code' },
-            { id: 'offeringName', label: 'Variant' },
-          ],
-          searchAll: true,
-        }}
-        emptyStateConfig={{
-          icon: Boxes,
-          title: 'Nothing listed yet',
-          description: 'Add listings on the Listings tab, then price them here.',
-        }}
+      <Dialog
+        handle={bulkClearPriceDialog}
+        icon={Eraser}
+        title={`Remove ${currencyCode} Price`}
+        description={`Removes your ${currencyCode} price from ${pluralize('listing', bulkIds.length, true)}.`}
+        content={(close) => (
+          <BulkClearPriceDialog
+            binding={binding}
+            catalogId={catalogId}
+            ids={bulkIds}
+            currencyCode={currencyCode}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
       />
-    </div>
+    </>
   );
 };

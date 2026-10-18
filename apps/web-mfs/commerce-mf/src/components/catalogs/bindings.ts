@@ -2,6 +2,7 @@ import type {
   CatalogPermissions,
   UseAddCatalogCurrency,
   UseAddCatalogListings,
+  UseBulkClearCatalogListingPrices,
   UseBulkRemoveCatalogListings,
   UseBulkSetCatalogListingAvailability,
   UseBulkSetCatalogListingPrice,
@@ -46,6 +47,7 @@ export interface CatalogsBinding {
 
   useBulkRemoveListings: UseBulkRemoveCatalogListings;
   useBulkSetListingPrice: UseBulkSetCatalogListingPrice;
+  useBulkClearListingPrices: UseBulkClearCatalogListingPrices;
   useBulkSetListingAvailability: UseBulkSetCatalogListingAvailability;
 
   useCurrencies: UseCatalogCurrencies;

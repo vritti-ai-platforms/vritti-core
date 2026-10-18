@@ -2,9 +2,10 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Checkbox } from '@vritti/quantum-ui/Checkbox';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import type React from 'react';
 import { useState } from 'react';
-import { type CatalogChannelData, CHANNEL_TYPE_META } from '@/schemas/catalog-channels';
+import { CHANNEL_TYPE_META } from '@/schemas/catalog-channels';
 import type { CatalogsBinding } from '../bindings';
 import { channelLabel } from './ManageVisibilityDialog';
 
@@ -12,7 +13,6 @@ interface BulkAvailabilityDialogProps {
   binding: CatalogsBinding;
   catalogId: string;
   ids: string[];
-  channels: CatalogChannelData[];
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -21,10 +21,11 @@ export const BulkAvailabilityDialog: React.FC<BulkAvailabilityDialogProps> = ({
   binding,
   catalogId,
   ids,
-  channels,
   onSuccess,
   onCancel,
 }) => {
+  // Fetched here rather than handed down: this is the only place the list is rendered
+  const { data: channels = [], isLoading } = binding.useChannelsForCatalog(catalogId);
   const ownChannels = channels.filter((channel) => channel.isOwn);
   const [selected, setSelected] = useState<string[]>([]);
   const availabilityMutation = binding.useBulkSetListingAvailability({ onSuccess });
@@ -35,6 +36,15 @@ export const BulkAvailabilityDialog: React.FC<BulkAvailabilityDialogProps> = ({
     );
 
   const apply = (visible: boolean) => availabilityMutation.mutate({ catalogId, ids, channelIds: selected, visible });
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-3 px-6 py-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
 
   return (
     <>

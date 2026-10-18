@@ -2,6 +2,7 @@ import type { CatalogListingDto } from '@domain/catalogs/dto/entity/catalog-list
 import { AddCatalogListingDto } from '@domain/catalogs/dto/request/add-catalog-listing.dto';
 import { AddCatalogListingsBatchDto } from '@domain/catalogs/dto/request/add-catalog-listings-batch.dto';
 import {
+  BulkClearCatalogListingPricesDto,
   BulkRemoveCatalogListingsDto,
   BulkSetCatalogListingAvailabilityDto,
   BulkSetCatalogListingPriceDto,
@@ -82,6 +83,13 @@ export class LeCatalogListingsController {
   bulkSetListingPrice(@Payload() data: BulkSetCatalogListingPriceDto): Promise<SuccessResponseDto> {
     this.logger.log(`catalogs.listings.bulkSetPrice — ${data.ids.length} selected`);
     return this.listingsService.bulkSetPrice(data);
+  }
+
+  // Clears one currency's own price across a whole selection
+  @MessagePattern({ cmd: 'le.catalogs.listings.bulkClearPrice' })
+  bulkClearListingPrice(@Payload() data: BulkClearCatalogListingPricesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.listings.bulkClearPrice — ${data.ids.length} selected, ${data.currencyCodes.join(', ')}`);
+    return this.listingsService.bulkClearPrice(data);
   }
 
   // Shows or hides a whole selection on a set of channels

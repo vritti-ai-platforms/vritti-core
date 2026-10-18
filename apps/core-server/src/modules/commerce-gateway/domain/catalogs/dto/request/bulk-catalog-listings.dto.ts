@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
+import { CurrencyAmountDto, IsCurrency, IsCurrencyCode } from '@vritti/api-sdk/money';
 import { ArrayNotEmpty, IsArray, IsBoolean, IsUUID } from 'class-validator';
 
 export class BulkRemoveCatalogListingsDto {
@@ -20,6 +20,23 @@ export class BulkSetCatalogListingPriceDto {
   @ApiProperty({ type: CurrencyAmountDto, description: 'One price for all of them, in a currency the catalog carries' })
   @IsCurrency()
   price: CurrencyAmountDto;
+}
+
+export class BulkClearCatalogListingPricesDto {
+  @ApiProperty({ type: [String], description: 'Refused outright unless every one of them is still in this catalog' })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('7', { each: true })
+  ids: string[];
+
+  @ApiProperty({
+    type: [String],
+    description: "The currencies whose own prices are cleared; a wider workspace's price then applies in each",
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsCurrencyCode({ each: true })
+  currencyCodes: string[];
 }
 
 export class BulkSetCatalogListingAvailabilityDto {

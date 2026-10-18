@@ -10,11 +10,13 @@ import { CatalogListingDto, type CatalogListingRow } from '../dto/entity/catalog
 import type { AddCatalogListingDto } from '../dto/request/add-catalog-listing.dto';
 import type { AddCatalogListingsBatchDto } from '../dto/request/add-catalog-listings-batch.dto';
 import type {
+  BulkClearCatalogListingPricesDto,
   BulkRemoveCatalogListingsDto,
   BulkSetCatalogListingAvailabilityDto,
   BulkSetCatalogListingPriceDto,
 } from '../dto/request/bulk-catalog-listings.dto';
 import type { SetCatalogListingPriceDto } from '../dto/request/set-catalog-listing-price.dto';
+import { CatalogCurrenciesDomainRepository } from '../repositories/catalog-currencies.repository';
 import { CatalogListingsDomainRepository } from '../repositories/catalog-listings.repository';
 import { CatalogsDomainRepository } from '../repositories/catalogs.repository';
 
@@ -25,6 +27,7 @@ export class CatalogListingsDomainService {
   constructor(
     private readonly repository: CatalogListingsDomainRepository,
     private readonly catalogsRepository: CatalogsDomainRepository,
+    private readonly currenciesRepository: CatalogCurrenciesDomainRepository,
   ) {}
 
   // Returns one page of a catalog's listings, each with its prices.
@@ -44,8 +47,12 @@ export class CatalogListingsDomainService {
     const ids = rows.map((row) => row.id);
     const prices = await this.repository.findPrices(ids, currencyCode);
     const exclusions = await this.repository.findExclusions(ids);
-    // Reads the channels once for the page — every listing in a catalog shares them
-    const channelCount = (await this.catalogsRepository.findChannels(catalogId)).length;
+    // Read once for the page — every listing in a catalog shares both, and the table needs the counts to
+    // say "2 of 2 Currencies" without the tab fetching either list itself
+    const [channelCount, currencyCount] = await Promise.all([
+      this.catalogsRepository.findChannels(catalogId).then((channels) => channels.length),
+      this.currenciesRepository.countForCatalog(catalogId),
+    ]);
     return {
       result: rows.map((row) =>
         CatalogListingDto.from(
@@ -53,6 +60,7 @@ export class CatalogListingsDomainService {
           prices.filter((price) => price.catalogListingId === row.id),
           exclusions.filter((x) => x.catalogListingId === row.id).map((x) => x.catalogChannelId),
           channelCount,
+          currencyCount,
         ),
       ),
       count,
@@ -235,6 +243,26 @@ export class CatalogListingsDomainService {
     return {
       success: true,
       message: `${pluralize('listing', listings.length, true)} in "${catalog.name}" now priced at ${data.price.currency} ${data.price.value} in this workspace.`,
+    };
+  }
+
+  // Clears this workspace's own price on every selected listing, so a wider workspace's price applies again
+  async bulkClearPrice(data: BulkClearCatalogListingPricesDto): Promise<SuccessResponseDto> {
+    const { catalog, listings } = await this.requireBatch(data.catalogId, data.ids);
+    const cleared = await this.repository.deleteOwnPrices(
+      listings.map((listing) => listing.id),
+      data.currencyCodes,
+    );
+    const currencies = data.currencyCodes.join(', ');
+    if (cleared === 0) {
+      throw new NotFoundException({
+        label: 'Nothing To Clear',
+        detail: `None of them carry a price of this workspace's own in ${currencies}.`,
+      });
+    }
+    return {
+      success: true,
+      message: `${pluralize('price', cleared, true)} cleared in ${currencies} across "${catalog.name}".`,
     };
   }
 
