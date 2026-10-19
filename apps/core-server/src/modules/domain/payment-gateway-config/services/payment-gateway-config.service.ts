@@ -1,19 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
-import { and, eq } from '@vritti/api-sdk/drizzle-orm';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type PaymentGatewayConfig, type PaymentGatewayConfigType, paymentGatewayConfigs } from '@/db/schema';
+import { type PaymentGatewayConfig, PaymentGatewayConfigKindValues } from '@/db/schema';
 import { PaymentCredentialsCryptoService } from '@/services/payment-credentials-crypto.service';
 import { PaymentGatewayConfigDto } from '../dto/entity/payment-gateway-config.dto';
 import type { CreatePaymentGatewayConfigDto } from '../dto/request/create-payment-gateway-config.dto';
+import type { CreatePlatformPaymentGatewayConfigDto } from '../dto/request/create-platform-payment-gateway-config.dto';
 import type { UpdatePaymentGatewayConfigDto } from '../dto/request/update-payment-gateway-config.dto';
+import type { UpdatePlatformPaymentGatewayConfigDto } from '../dto/request/update-platform-payment-gateway-config.dto';
 import type { PaymentGatewayConfigVerificationResponseDto } from '../dto/response/payment-gateway-config-verification-response.dto';
-import type { PaymentGatewayConfigsPageResponseDto } from '../dto/response/payment-gateway-configs-page-response.dto';
 import { GATEWAY_CREDENTIAL_FIELDS, isSupportedGateway } from '../gateway-credential-fields';
-import type { PaymentGatewayConfigContext } from '../payment-gateway-config-context';
-import type { PaymentGatewayConfigScope } from '../payment-gateway-config-scope';
-import { PaymentGatewayConfigDomainRepository } from '../repositories/payment-gateway-config.repository';
+import {
+  PaymentGatewayConfigDomainRepository,
+  type PaymentGatewayConfigGroup,
+} from '../repositories/payment-gateway-config.repository';
 
 export interface DecryptedPaymentGatewayCredentials {
   gatewayCode: string;
@@ -24,7 +29,7 @@ export interface DecryptedPaymentGatewayCredentials {
 
 export interface PaymentWebhookTarget {
   id: string;
-  organizationId: string;
+  organizationId: string | null;
   gatewayCode: string;
   webhookSecret: string | null;
 }
@@ -34,169 +39,115 @@ interface ValidatedCredentials {
   credentials: Record<string, string>;
 }
 
+// Who is calling: an organization (its id) or cloud admin acting for the platform (null). An organization sees its
+// own ORG rows and every PLATFORM row; the platform caller sees PLATFORM rows only, which the RLS policy also
+// guarantees since it runs with no org context
+export type PaymentGatewayConfigScope = string | null;
+
+// Collectors: an organization's own gateway accounts (ORG) and Vritti's on this deployment (PLATFORM, no
+// organization, managed from cloud admin). A config only names an account — the payout account of a legal entity
+// or site picks which one a payment uses
 @Injectable()
 export class PaymentGatewayConfigDomainService {
   private readonly logger = new Logger(PaymentGatewayConfigDomainService.name);
-
-  private static readonly FIELD_MAP: FieldMap = {
-    legalEntityId: { column: paymentGatewayConfigs.legalEntityId, type: 'string' },
-    bankAccountId: { column: paymentGatewayConfigs.bankAccountId, type: 'string' },
-    siteId: { column: paymentGatewayConfigs.siteId, type: 'string' },
-    appId: { column: paymentGatewayConfigs.appId, type: 'string' },
-    type: { column: paymentGatewayConfigs.type, type: 'string' },
-    gatewayCode: { column: paymentGatewayConfigs.gatewayCode, type: 'string' },
-    label: { column: paymentGatewayConfigs.label, type: 'string' },
-    keyId: { column: paymentGatewayConfigs.keyId, type: 'string' },
-    providerMerchantId: { column: paymentGatewayConfigs.providerMerchantId, type: 'string' },
-    splitEnabled: { column: paymentGatewayConfigs.splitEnabled, type: 'boolean' },
-    verifiedAt: { column: paymentGatewayConfigs.verifiedAt, type: 'string' },
-    createdAt: { column: paymentGatewayConfigs.createdAt, type: 'string' },
-  };
 
   constructor(
     private readonly configRepository: PaymentGatewayConfigDomainRepository,
     private readonly crypto: PaymentCredentialsCryptoService,
   ) {}
 
-  // Returns a page of the organization's configs for the data table
-  async findForTable(orgId: string, state: TableViewState): Promise<PaymentGatewayConfigsPageResponseDto> {
-    const { filters, search, sort, pagination } = state;
-    const where = and(
-      eq(paymentGatewayConfigs.organizationId, orgId),
-      FilterProcessor.buildWhere(filters, PaymentGatewayConfigDomainService.FIELD_MAP),
-      FilterProcessor.buildSearch(search, PaymentGatewayConfigDomainService.FIELD_MAP),
-    );
-    const orderBy = FilterProcessor.buildOrderBy(sort, PaymentGatewayConfigDomainService.FIELD_MAP);
-
-    const { result, count } = await this.configRepository.findForTable({
-      where,
-      orderBy,
-      limit: pagination.limit,
-      offset: pagination.offset,
-    });
-
-    this.logger.log(`Fetched payment gateway configs table for org ${orgId} (${count} results)`);
-    return { result: result.map(PaymentGatewayConfigDto.from), count };
+  // Everything an organization may see: its own rows, then Vritti's with the key id withheld
+  async list(orgId: string): Promise<PaymentGatewayConfigDto[]> {
+    const [own, platform] = await Promise.all([
+      this.configRepository.findGroup(orgId),
+      this.configRepository.findGroup(null),
+    ]);
+    return [
+      ...own.map((row) => PaymentGatewayConfigDto.from(row)),
+      ...platform.map((row) => PaymentGatewayConfigDto.from(row, { tenantView: true })),
+    ];
   }
 
-  // Lists a legal entity's configs
-  async listByLegalEntity(orgId: string, legalEntityId: string): Promise<PaymentGatewayConfigDto[]> {
-    const rows = await this.configRepository.findByLegalEntity(orgId, legalEntityId);
-    return rows.map(PaymentGatewayConfigDto.from);
+  // The platform rows, as cloud admin sees them
+  async listPlatform(): Promise<PaymentGatewayConfigDto[]> {
+    const rows = await this.configRepository.findGroup(null);
+    return rows.map((row) => PaymentGatewayConfigDto.from(row));
   }
 
-  // Lists the configs that settle into one bank account
-  async listByBankAccount(orgId: string, bankAccountId: string): Promise<PaymentGatewayConfigDto[]> {
-    const rows = await this.configRepository.findByBankAccount(orgId, bankAccountId);
-    return rows.map(PaymentGatewayConfigDto.from);
+  // Returns a single config the caller may see
+  async findById(scope: PaymentGatewayConfigScope, id: string): Promise<PaymentGatewayConfigDto> {
+    const row = await this.requireVisible(scope, id);
+    return PaymentGatewayConfigDto.from(row, { tenantView: scope !== null });
   }
 
-  // Returns a single config
-  async findById(orgId: string, id: string, scope?: PaymentGatewayConfigScope): Promise<PaymentGatewayConfigDto> {
-    return PaymentGatewayConfigDto.from(await this.requireInScope(orgId, id, scope));
-  }
-
-  // Creates a config after validating the credential set and confirming the scope is free
+  // Connects one of the organization's own gateways
   async create(orgId: string, dto: CreatePaymentGatewayConfigDto): Promise<CreateResponseDto<PaymentGatewayConfigDto>> {
-    const validated = this.validateCredentials(dto.gatewayCode, dto.credentials);
-    const siteId = dto.siteId ?? null;
-    const appId = dto.appId ?? null;
-    await this.assertSlotFree(dto.legalEntityId, dto.type, siteId, appId);
-
-    const row = await this.configRepository.create({
-      organizationId: orgId,
-      legalEntityId: dto.legalEntityId,
-      type: dto.type,
-      siteId,
-      appId,
-      gatewayCode: dto.gatewayCode,
-      bankAccountId: dto.bankAccountId,
-      label: dto.label ?? null,
-      keyId: validated.keyId,
-      credentials: this.crypto.encrypt(JSON.stringify(validated.credentials)),
-      webhookSecret: dto.webhookSecret ? this.crypto.encrypt(dto.webhookSecret) : null,
-      providerMerchantId: dto.providerMerchantId ?? null,
-      splitEnabled: dto.splitEnabled ?? false,
-    });
-
-    this.logger.log(
-      `Created payment gateway config ${row.id} (${row.gatewayCode}) for legal entity ${row.legalEntityId}`,
-    );
+    const row = await this.insert(orgId, PaymentGatewayConfigKindValues.ORG, dto, {});
+    this.logger.log(`Connected payment gateway config ${row.id} (${row.gatewayCode}) for org ${orgId}`);
     return {
       success: true,
-      message: `Payment gateway config "${displayName(row)}" created successfully.`,
+      message: `Payment gateway "${row.label}" connected successfully.`,
       data: PaymentGatewayConfigDto.from(row),
     };
   }
 
-  // Updates a config; new credentials are re-validated and re-encrypted, absent ones are kept as stored.
-  async update(
-    orgId: string,
-    id: string,
-    dto: UpdatePaymentGatewayConfigDto,
-    scope?: PaymentGatewayConfigScope,
-  ): Promise<SuccessResponseDto> {
-    const existing = await this.requireInScope(orgId, id, scope);
-
-    const type = dto.type ?? existing.type;
-    const gatewayCode = dto.gatewayCode ?? existing.gatewayCode;
-    const siteId = dto.siteId === undefined ? existing.siteId : dto.siteId;
-    const appId = dto.appId === undefined ? existing.appId : dto.appId;
-
-    // A changed gateway invalidates the stored credential set, so it must arrive with a new one
-    if (gatewayCode !== existing.gatewayCode && dto.credentials === undefined) {
-      throw new BadRequestException({
-        label: 'Credentials Required',
-        detail: 'Changing the gateway replaces the credential fields, so send the new credentials with it.',
-        errors: [{ field: 'credentials', message: 'Required when the gateway changes' }],
-      });
-    }
-
-    const validated = dto.credentials !== undefined ? this.validateCredentials(gatewayCode, dto.credentials) : null;
-    const gatewayChanged = gatewayCode !== existing.gatewayCode;
-
-    const slotChanged = type !== existing.type || siteId !== existing.siteId || appId !== existing.appId;
-    if (slotChanged) {
-      await this.assertSlotFree(existing.legalEntityId, type, siteId, appId, existing.id);
-    }
-
-    const row = await this.configRepository.update(id, {
-      ...(dto.type !== undefined && { type: dto.type }),
-      ...(dto.siteId !== undefined && { siteId: dto.siteId }),
-      ...(dto.appId !== undefined && { appId: dto.appId }),
-      ...(dto.gatewayCode !== undefined && { gatewayCode: dto.gatewayCode }),
-      ...(dto.label !== undefined && { label: dto.label }),
-      ...(dto.splitEnabled !== undefined && { splitEnabled: dto.splitEnabled }),
-      ...(gatewayChanged && { providerMerchantId: null, webhookSecret: null }),
-      ...(dto.providerMerchantId !== undefined && { providerMerchantId: dto.providerMerchantId }),
-      ...(validated && {
-        keyId: validated.keyId,
-        credentials: this.crypto.encrypt(JSON.stringify(validated.credentials)),
-        verifiedAt: null,
-      }),
-      ...(dto.webhookSecret !== undefined && {
-        webhookSecret: dto.webhookSecret ? this.crypto.encrypt(dto.webhookSecret) : null,
-      }),
+  // Sets up one of Vritti's gateways on this deployment
+  async createPlatform(
+    dto: CreatePlatformPaymentGatewayConfigDto,
+  ): Promise<CreateResponseDto<PaymentGatewayConfigDto>> {
+    const row = await this.insert(null, PaymentGatewayConfigKindValues.PLATFORM, dto, {
+      platformFeeBps: dto.platformFeeBps ?? 0,
     });
-
-    this.logger.log(
-      `Updated payment gateway config ${id}${validated ? ' with new credentials; verification cleared' : ''}`,
-    );
-    return { success: true, message: `Payment gateway config "${displayName(row)}" updated successfully.` };
+    this.logger.log(`Set up platform payment gateway config ${row.id} (${row.gatewayCode})`);
+    return {
+      success: true,
+      message: `Platform payment gateway "${row.label}" set up successfully.`,
+      data: PaymentGatewayConfigDto.from(row),
+    };
   }
 
-  // Deletes a config
-  async delete(orgId: string, id: string, scope?: PaymentGatewayConfigScope): Promise<SuccessResponseDto> {
-    const existing = await this.requireInScope(orgId, id, scope);
+  // Updates a config the caller owns; new credentials are re-validated and re-encrypted, absent ones kept
+  async update(
+    scope: PaymentGatewayConfigScope,
+    id: string,
+    dto: UpdatePaymentGatewayConfigDto,
+  ): Promise<SuccessResponseDto> {
+    const existing = await this.requireWritable(scope, id);
+    const row = await this.configRepository.update(id, await this.updateFields(existing, dto));
+
+    this.logger.log(
+      `Updated payment gateway config ${id}${dto.credentials !== undefined ? ' with new credentials; verification cleared' : ''}`,
+    );
+    return { success: true, message: `Payment gateway "${row.label}" updated successfully.` };
+  }
+
+  // Updates a platform row: the shared fields plus Vritti's fee
+  async updatePlatform(id: string, dto: UpdatePlatformPaymentGatewayConfigDto): Promise<SuccessResponseDto> {
+    const existing = await this.requireWritable(null, id);
+    const row = await this.configRepository.update(id, {
+      ...(await this.updateFields(existing, dto)),
+      ...(dto.platformFeeBps !== undefined && { platformFeeBps: dto.platformFeeBps }),
+    });
+
+    this.logger.log(`Updated platform payment gateway config ${id}`);
+    return { success: true, message: `Platform payment gateway "${row.label}" updated successfully.` };
+  }
+
+  // Removes a config the caller owns
+  async delete(scope: PaymentGatewayConfigScope, id: string): Promise<SuccessResponseDto> {
+    const existing = await this.requireWritable(scope, id);
     await this.configRepository.delete(id);
 
     this.logger.log(`Deleted payment gateway config ${id}`);
-    return { success: true, message: `Payment gateway config "${displayName(existing)}" deleted successfully.` };
+    return { success: true, message: `Payment gateway "${existing.label}" removed successfully.` };
   }
 
   // Decrypts a config's secrets for a payment caller; never exposed over HTTP
-  async getDecryptedCredentials(orgId: string, id: string): Promise<DecryptedPaymentGatewayCredentials> {
-    const row = await this.requireInOrg(orgId, id);
+  async getDecryptedCredentials(
+    scope: PaymentGatewayConfigScope,
+    id: string,
+  ): Promise<DecryptedPaymentGatewayCredentials> {
+    const row = await this.requireVisible(scope, id);
     return {
       gatewayCode: row.gatewayCode,
       keyId: row.keyId,
@@ -207,11 +158,11 @@ export class PaymentGatewayConfigDomainService {
 
   // Records a provider check that passed, taking the merchant id it reported and keeping the stored one otherwise
   async markVerified(
-    orgId: string,
+    scope: PaymentGatewayConfigScope,
     id: string,
     providerMerchantId: string | null,
   ): Promise<PaymentGatewayConfigVerificationResponseDto> {
-    await this.requireInOrg(orgId, id);
+    await this.requireWritable(scope, id);
     const verifiedAt = new Date();
     const row = await this.configRepository.update(id, {
       verifiedAt,
@@ -223,27 +174,21 @@ export class PaymentGatewayConfigDomainService {
     );
     return {
       success: true,
-      message: `Payment gateway config "${displayName(row)}" verified successfully.`,
+      message: `Payment gateway "${row.label}" verified successfully.`,
       data: { verifiedAt: verifiedAt.toISOString(), providerMerchantId: row.providerMerchantId ?? null },
     };
   }
 
-  // Picks the config a payment routes through: outlet + app, then outlet, then app, then the legal entity default
-  async resolveForContext(orgId: string, context: PaymentGatewayConfigContext): Promise<PaymentGatewayConfig | null> {
-    const candidates = await this.configRepository.findCandidatesForContext(orgId, context);
-
-    // Candidates arrive newest first, so a strict comparison keeps the newest of equally specific configs
-    let best: PaymentGatewayConfig | null = null;
-    for (const candidate of candidates) {
-      if (!best || specificity(candidate) > specificity(best)) best = candidate;
-    }
-    return best;
+  // The gateway a payment of the organization collects through. The payout account of the legal entity or site
+  // picks it; payout accounts do not exist yet, so nothing resolves and online payments stay off until they ship
+  async resolveForPayment(_orgId: string): Promise<PaymentGatewayConfig | null> {
+    return null;
   }
 
-  // Resolves what a public webhook needs to be authenticated and forwarded.
+  // Resolves what a public webhook needs to be authenticated and forwarded
   async findWebhookTarget(orgId: string, id: string): Promise<PaymentWebhookTarget | undefined> {
     const row = await this.configRepository.findById(id);
-    if (!row || row.organizationId !== orgId) return undefined;
+    if (!row || !isVisibleTo(row, orgId)) return undefined;
     return {
       id: row.id,
       organizationId: row.organizationId,
@@ -252,25 +197,90 @@ export class PaymentGatewayConfigDomainService {
     };
   }
 
-  // Loads the config, hiding rows that belong to another organization behind the same 404
-  private async requireInOrg(orgId: string, id: string): Promise<PaymentGatewayConfig> {
-    return this.requireInScope(orgId, id);
+  // Validates and inserts a row into a group
+  private async insert(
+    group: PaymentGatewayConfigGroup,
+    kind: PaymentGatewayConfig['kind'],
+    dto: CreatePaymentGatewayConfigDto,
+    extra: Partial<Pick<PaymentGatewayConfig, 'platformFeeBps'>>,
+  ): Promise<PaymentGatewayConfig> {
+    const validated = this.validateCredentials(dto.gatewayCode, dto.credentials);
+    await this.assertLabelFree(group, dto.label);
+
+    return this.configRepository.create({
+      organizationId: group,
+      kind,
+      gatewayCode: dto.gatewayCode,
+      label: dto.label,
+      keyId: validated.keyId,
+      credentials: this.crypto.encrypt(JSON.stringify(validated.credentials)),
+      webhookSecret: dto.webhookSecret ? this.crypto.encrypt(dto.webhookSecret) : null,
+      providerMerchantId: dto.providerMerchantId ?? null,
+      ...extra,
+    });
   }
 
-  // Loads the config, hiding rows outside the organization or the caller's legal entity / bank account behind a 404
-  private async requireInScope(
-    orgId: string,
-    id: string,
-    scope?: PaymentGatewayConfigScope,
-  ): Promise<PaymentGatewayConfig> {
+  // The columns an update writes: a changed gateway must bring new credentials and drops what belonged to the old one
+  private async updateFields(
+    existing: PaymentGatewayConfig,
+    dto: UpdatePaymentGatewayConfigDto,
+  ): Promise<Partial<PaymentGatewayConfig>> {
+    const gatewayCode = dto.gatewayCode ?? existing.gatewayCode;
+    const gatewayChanged = gatewayCode !== existing.gatewayCode;
+    if (gatewayChanged && dto.credentials === undefined) {
+      throw new BadRequestException({
+        label: 'Credentials Required',
+        detail: 'Changing the gateway replaces the credential fields, so send the new credentials with it.',
+        errors: [{ field: 'credentials', message: 'Required when the gateway changes' }],
+      });
+    }
+    const validated = dto.credentials !== undefined ? this.validateCredentials(gatewayCode, dto.credentials) : null;
+    if (dto.label !== undefined && dto.label !== existing.label) {
+      await this.assertLabelFree(existing.organizationId, dto.label, existing.id);
+    }
+
+    return {
+      ...(dto.gatewayCode !== undefined && { gatewayCode: dto.gatewayCode }),
+      ...(dto.label !== undefined && { label: dto.label }),
+      ...(gatewayChanged && { providerMerchantId: null, webhookSecret: null }),
+      ...(dto.providerMerchantId !== undefined && { providerMerchantId: dto.providerMerchantId }),
+      ...(validated && {
+        keyId: validated.keyId,
+        credentials: this.crypto.encrypt(JSON.stringify(validated.credentials)),
+        verifiedAt: null,
+      }),
+      ...(dto.webhookSecret !== undefined && {
+        webhookSecret: dto.webhookSecret ? this.crypto.encrypt(dto.webhookSecret) : null,
+      }),
+    };
+  }
+
+  // Labels tell a group's rows apart, so two rows cannot share one
+  private async assertLabelFree(group: PaymentGatewayConfigGroup, label: string, excludeId?: string): Promise<void> {
+    const taken = await this.configRepository.findByLabel(group, label, excludeId);
+    if (!taken) return;
+    throw new ConflictException({
+      label: 'Label In Use',
+      detail: `"${label}" already names another gateway here. Pick a label that tells them apart.`,
+      errors: [{ field: 'label', message: 'Already in use' }],
+    });
+  }
+
+  // Loads a config the caller may see, hiding the rest behind the same 404
+  private async requireVisible(scope: PaymentGatewayConfigScope, id: string): Promise<PaymentGatewayConfig> {
     const row = await this.configRepository.findById(id);
-    if (
-      !row ||
-      row.organizationId !== orgId ||
-      (scope?.legalEntityId !== undefined && row.legalEntityId !== scope.legalEntityId) ||
-      (scope?.bankAccountId !== undefined && row.bankAccountId !== scope.bankAccountId)
-    ) {
-      throw new NotFoundException('Payment gateway config not found.');
+    if (!row || !isVisibleTo(row, scope)) throw new NotFoundException('Payment gateway config not found.');
+    return row;
+  }
+
+  // Loads a config the caller may change: an organization its own rows, the platform caller the platform rows
+  private async requireWritable(scope: PaymentGatewayConfigScope, id: string): Promise<PaymentGatewayConfig> {
+    const row = await this.requireVisible(scope, id);
+    if (scope !== null && row.kind !== PaymentGatewayConfigKindValues.ORG) {
+      throw new ForbiddenException({
+        label: 'Managed By Vritti',
+        detail: "Vritti's gateways cannot be changed, verified or removed from here.",
+      });
     }
     return row;
   }
@@ -313,40 +323,11 @@ export class PaymentGatewayConfigDomainService {
 
     return { keyId: clean[spec.keyIdField], credentials: clean };
   }
-
-  // Rejects a slot (legal entity, type, site, app) another config already occupies.
-  private async assertSlotFree(
-    legalEntityId: string,
-    type: PaymentGatewayConfigType,
-    siteId: string | null,
-    appId: string | null,
-    excludeId?: string,
-  ): Promise<void> {
-    const occupant = await this.configRepository.findSlotOccupant(legalEntityId, type, siteId, appId, excludeId);
-    if (occupant) {
-      throw new ConflictException({
-        label: 'Slot Already Configured',
-        detail: `This ${scopeName(siteId, appId)} already routes ${type} payments through ${displayName(occupant)}. Change or remove that configuration first.`,
-        errors: [{ field: 'gatewayCode', message: 'Already configured for this scope' }],
-      });
-    }
-  }
 }
 
-// Shows the label when set, otherwise the gateway code
-function displayName(row: Pick<PaymentGatewayConfig, 'label' | 'gatewayCode'>): string {
-  return row.label ?? row.gatewayCode;
-}
-
-// Names the narrowest scope a config is pinned to
-function scopeName(siteId: string | null, appId: string | null): string {
-  if (siteId && appId) return 'outlet and app';
-  if (siteId) return 'outlet';
-  if (appId) return 'app';
-  return 'legal entity';
-}
-
-// Ranks how narrowly a config is pinned: a site outranks an app, and both outrank the legal entity default
-function specificity(row: Pick<PaymentGatewayConfig, 'siteId' | 'appId'>): number {
-  return (row.siteId ? 2 : 0) + (row.appId ? 1 : 0);
+// A PLATFORM row is visible to everyone; an ORG row only to its organization. The platform caller (no org) sees
+// PLATFORM rows only
+function isVisibleTo(row: PaymentGatewayConfig, scope: PaymentGatewayConfigScope): boolean {
+  if (row.kind === PaymentGatewayConfigKindValues.PLATFORM) return true;
+  return scope !== null && row.organizationId === scope;
 }

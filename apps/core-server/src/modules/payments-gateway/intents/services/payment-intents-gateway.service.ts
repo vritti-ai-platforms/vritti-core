@@ -7,7 +7,7 @@ import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptio
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { isEmail } from 'class-validator';
-import type { PaymentGatewayConfigType } from '@/db/schema';
+import type { PaymentGatewayConfig, PaymentGatewayConfigType } from '@/db/schema';
 import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 import { isDefinitiveRejection } from '../../events/payment-rejection';
 import { COMMERCE_ORDER_REFERENCE_TYPE } from '../../events/services/commerce-order-payment-handler.service';
@@ -69,7 +69,7 @@ export class PaymentIntentsGatewayService {
     private readonly appService: AppDomainService,
   ) {}
 
-  // Opens an intent against the gateway config resolved for the caller's legal entity, site, app and channel
+  // Opens an intent against the organization's collector, scoped to the caller's legal entity, site, app and channel
   async create(caller: PaymentCallerContext, input: CreatePaymentIntentInput): Promise<PaymentIntent> {
     // Reference types under commerce. are settled by core's own handlers, so an app may not open one directly
     if (input.reference.type.startsWith(RESERVED_REFERENCE_PREFIX)) {
@@ -153,7 +153,7 @@ export class PaymentIntentsGatewayService {
     }
     const currencyCode = checkoutCurrency(scope, input.currencyCode);
     const urls = await this.requireAllowedUrls(caller, input);
-    await this.requireConfig(caller, scope, PaymentChannel.APP);
+    await this.requireConfig(caller);
 
     this.logger.log(`site.orders.createFromCart — party: ${partyId}, currency: ${currencyCode}`);
     const order = await this.nats.send<CheckoutOrderResponseDto>('commerce', 'site.orders.createFromCart', {
@@ -205,7 +205,7 @@ export class PaymentIntentsGatewayService {
       });
     }
 
-    const config = await this.requireConfig(caller, scope, request.channel);
+    const config = await this.requireConfig(caller);
     const { credentials } = await this.configService.getDecryptedCredentials(caller.orgId, config.id);
 
     this.logger.log(
@@ -218,7 +218,6 @@ export class PaymentIntentsGatewayService {
       ...(caller.partyId ? { partyId: caller.partyId } : {}),
       configId: config.id,
       gatewayCode: config.gatewayCode,
-      bankAccountId: config.bankAccountId,
       type: request.channel,
       credentials,
       amount: request.amountMinor.toString(),
@@ -234,19 +233,15 @@ export class PaymentIntentsGatewayService {
     });
   }
 
-  // The gateway config a payment in this scope routes through, or a 400 naming what is missing
-  private async requireConfig(caller: PaymentCallerContext, scope: ResolvedScope, channel: PaymentGatewayConfigType) {
-    const config = await this.configService.resolveForContext(caller.orgId, {
-      legalEntityId: scope.legalEntityId,
-      type: channel,
-      siteId: scope.siteId ?? null,
-      appId: caller.appId,
-    });
+  // The gateway a payment collects through, picked by the payout account of the legal entity or site; a 400 until
+  // one exists. Gateway configs alone only name accounts
+  private async requireConfig(caller: PaymentCallerContext): Promise<PaymentGatewayConfig> {
+    const config = await this.configService.resolveForPayment(caller.orgId);
     if (!config) {
       throw new BadRequestException({
-        label: 'No Payment Gateway',
-        detail: `No ${channel} payment gateway is configured for this legal entity. Ask an administrator to connect one.`,
-        errors: [{ field: 'channel', message: 'No gateway configured' }],
+        label: 'Payments Not Set Up',
+        detail:
+          'Online payments start once a payout account is added for this legal entity or site in Vritti Cloud. Payout accounts arrive in the next release.',
       });
     }
     return config;

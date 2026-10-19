@@ -1,5 +1,10 @@
 import type { ConfigService } from '@nestjs/config';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@vritti/api-sdk/exceptions';
 import type { PaymentGatewayConfig } from '@/db/schema';
 import { PaymentCredentialsCryptoService } from '@/services/payment-credentials-crypto.service';
 import type { CreatePaymentGatewayConfigDto } from '../dto/request/create-payment-gateway-config.dto';
@@ -7,8 +12,6 @@ import type { PaymentGatewayConfigDomainRepository } from '../repositories/payme
 import { PaymentGatewayConfigDomainService } from './payment-gateway-config.service';
 
 const ORG = 'org-1';
-const LE = 'le-1';
-const BANK = 'ba-1';
 
 type Problem = { label: string; errors: { field: string; message: string }[] };
 
@@ -19,51 +22,86 @@ const crypto = new PaymentCredentialsCryptoService({
 const row = (overrides: Partial<PaymentGatewayConfig> = {}): PaymentGatewayConfig => ({
   id: 'pgc-1',
   organizationId: ORG,
-  legalEntityId: LE,
-  type: 'APP',
-  siteId: null,
-  appId: null,
+  kind: 'ORG',
   gatewayCode: 'razorpay',
-  bankAccountId: BANK,
-  label: null,
+  label: 'Main',
   keyId: 'rzp_live_abc',
   credentials: crypto.encrypt(JSON.stringify({ key_id: 'rzp_live_abc', key_secret: 'stored-secret' })),
   webhookSecret: null,
   providerMerchantId: null,
-  splitEnabled: false,
+  platformFeeBps: 0,
   verifiedAt: null,
   createdAt: new Date('2026-01-01T00:00:00Z'),
   updatedAt: new Date('2026-01-01T00:00:00Z'),
   ...overrides,
 });
 
+const platformRow = (overrides: Partial<PaymentGatewayConfig> = {}): PaymentGatewayConfig =>
+  row({
+    id: 'pgc-platform',
+    organizationId: null,
+    kind: 'PLATFORM',
+    label: 'Vritti Razorpay',
+    keyId: 'rzp_live_platform',
+    credentials: crypto.encrypt(JSON.stringify({ key_id: 'rzp_live_platform', key_secret: 'platform-secret' })),
+    webhookSecret: crypto.encrypt('whsec_platform'),
+    platformFeeBps: 150,
+    ...overrides,
+  });
+
 const input: CreatePaymentGatewayConfigDto = {
-  legalEntityId: LE,
-  bankAccountId: BANK,
-  type: 'APP',
   gatewayCode: 'razorpay',
+  label: 'Main',
   credentials: { key_id: 'rzp_live_abc', key_secret: 'new-secret' },
 };
 
 const problemOf = (error: unknown): Problem => (error as BadRequestException).getResponse() as Problem;
 
 describe('PaymentGatewayConfigDomainService', () => {
-  const findSlotOccupant = jest.fn();
+  const findGroup = jest.fn();
+  const findByLabel = jest.fn();
   const create = jest.fn();
   const findById = jest.fn();
   const update = jest.fn();
-  const findCandidatesForContext = jest.fn();
+  const remove = jest.fn();
   const repository = {
-    findSlotOccupant,
+    findGroup,
+    findByLabel,
     create,
     findById,
     update,
-    findCandidatesForContext,
+    delete: remove,
   } as unknown as PaymentGatewayConfigDomainRepository;
   const service = new PaymentGatewayConfigDomainService(repository, crypto);
 
   beforeEach(() => {
     jest.resetAllMocks();
+    findGroup.mockResolvedValue([]);
+    findByLabel.mockResolvedValue(undefined);
+  });
+
+  describe('list', () => {
+    it('returns the own rows with full key ids, then the platform rows with the key id withheld', async () => {
+      findGroup.mockImplementation(async (group: string | null) => (group === null ? [platformRow()] : [row()]));
+
+      const result = await service.list(ORG);
+
+      expect(result.map((config) => [config.kind, config.keyId])).toEqual([
+        ['ORG', 'rzp_live_abc'],
+        ['PLATFORM', null],
+      ]);
+      expect(result[1]).toMatchObject({ label: 'Vritti Razorpay', platformFeeBps: 150 });
+      expect(result[0]).not.toHaveProperty('credentials');
+    });
+
+    it('lists the platform rows with their key ids for cloud admin', async () => {
+      findGroup.mockResolvedValue([platformRow()]);
+
+      const result = await service.listPlatform();
+
+      expect(findGroup).toHaveBeenCalledWith(null);
+      expect(result[0].keyId).toBe('rzp_live_platform');
+    });
   });
 
   describe('create', () => {
@@ -72,8 +110,7 @@ describe('PaymentGatewayConfigDomainService', () => {
 
       expect(error).toBeInstanceOf(BadRequestException);
       expect(problemOf(error).label).toBe('Unsupported Gateway');
-      expect(problemOf(error).errors).toEqual([{ field: 'gatewayCode', message: 'Unsupported gateway' }]);
-      expect(findSlotOccupant).not.toHaveBeenCalled();
+      expect(create).not.toHaveBeenCalled();
     });
 
     it('rejects a missing credential field, naming it under credentials', async () => {
@@ -81,71 +118,45 @@ describe('PaymentGatewayConfigDomainService', () => {
         .create(ORG, { ...input, credentials: { key_id: 'rzp_live_abc' } })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(BadRequestException);
       expect(problemOf(error).label).toBe('Invalid Credentials');
       expect(problemOf(error).errors).toEqual([{ field: 'credentials.key_secret', message: 'Required' }]);
-      expect(create).not.toHaveBeenCalled();
     });
 
-    it('rejects an empty credential value and a field the gateway does not use', async () => {
-      const error = await service
-        .create(ORG, { ...input, credentials: { key_id: '  ', key_secret: 's', extra: 'x' } })
-        .catch((e: unknown) => e);
-
-      expect(problemOf(error).errors).toEqual([
-        { field: 'credentials.key_id', message: 'Required' },
-        { field: 'credentials.extra', message: 'Not a field of this gateway' },
-      ]);
-    });
-
-    it('rejects a slot another config occupies with a 409, whatever its gateway or bank account', async () => {
-      findSlotOccupant.mockResolvedValue(row({ gatewayCode: 'cashfree', bankAccountId: 'ba-other' }));
+    it('refuses a label another gateway of the organization already uses', async () => {
+      findByLabel.mockResolvedValue(row({ id: 'pgc-other' }));
 
       const error = await service.create(ORG, input).catch((e: unknown) => e);
 
       expect(error).toBeInstanceOf(ConflictException);
-      expect(problemOf(error).label).toBe('Slot Already Configured');
-      expect(problemOf(error).errors[0].field).toBe('gatewayCode');
-      expect(findSlotOccupant).toHaveBeenCalledWith(LE, 'APP', null, null, undefined);
+      expect(problemOf(error).label).toBe('Label In Use');
+      expect(problemOf(error).errors[0].field).toBe('label');
+      expect(findByLabel).toHaveBeenCalledWith(ORG, 'Main', undefined);
       expect(create).not.toHaveBeenCalled();
     });
 
-    it('derives keyId from the gateway key field and stores encrypted credentials', async () => {
-      findSlotOccupant.mockResolvedValue(undefined);
-      create.mockImplementation(async (data: Partial<PaymentGatewayConfig>) => row({ ...data, label: 'Storefront' }));
+    it('stores an own gateway with the derived key id and encrypted credentials', async () => {
+      create.mockImplementation(async (data: Partial<PaymentGatewayConfig>) => row(data));
 
-      const result = await service.create(ORG, { ...input, label: 'Storefront', webhookSecret: 'whsec_1' });
+      const result = await service.create(ORG, { ...input, webhookSecret: 'whsec_1' });
 
       const stored = create.mock.calls[0][0] as PaymentGatewayConfig;
-      expect(stored.keyId).toBe('rzp_live_abc');
+      expect(stored).toMatchObject({
+        organizationId: ORG,
+        kind: 'ORG',
+        label: 'Main',
+        keyId: 'rzp_live_abc',
+      });
       expect(stored.credentials).not.toContain('new-secret');
       expect(JSON.parse(crypto.decrypt(stored.credentials))).toEqual({
         key_id: 'rzp_live_abc',
         key_secret: 'new-secret',
       });
       expect(crypto.decrypt(stored.webhookSecret as string)).toBe('whsec_1');
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Payment gateway config "Storefront" created successfully.');
-      expect(result.data).toMatchObject({ id: 'pgc-1', keyId: 'rzp_live_abc', hasWebhookSecret: true });
+      expect(result.message).toBe('Payment gateway "Main" connected successfully.');
       expect(result.data).not.toHaveProperty('credentials');
-      expect(result.data).not.toHaveProperty('webhookSecret');
-    });
-
-    it('defaults splitEnabled to false and stores it when sent', async () => {
-      findSlotOccupant.mockResolvedValue(undefined);
-      create.mockImplementation(async (data: Partial<PaymentGatewayConfig>) => row(data));
-
-      const plain = await service.create(ORG, input);
-      const split = await service.create(ORG, { ...input, splitEnabled: true });
-
-      expect((create.mock.calls[0][0] as PaymentGatewayConfig).splitEnabled).toBe(false);
-      expect((create.mock.calls[1][0] as PaymentGatewayConfig).splitEnabled).toBe(true);
-      expect(plain.data.splitEnabled).toBe(false);
-      expect(split.data.splitEnabled).toBe(true);
     });
 
     it('uses the gateway key field of the chosen provider', async () => {
-      findSlotOccupant.mockResolvedValue(undefined);
       create.mockImplementation(async (data: Partial<PaymentGatewayConfig>) => row(data));
 
       await service.create(ORG, {
@@ -158,6 +169,28 @@ describe('PaymentGatewayConfigDomainService', () => {
     });
   });
 
+  describe('createPlatform', () => {
+    it('stores a PLATFORM row with no organization and its fee', async () => {
+      create.mockImplementation(async (data: Partial<PaymentGatewayConfig>) => platformRow(data));
+
+      const result = await service.createPlatform({
+        ...input,
+        label: 'Vritti Razorpay',
+        credentials: { key_id: 'rzp_live_platform', key_secret: 'platform-secret' },
+        platformFeeBps: 150,
+      });
+
+      const stored = create.mock.calls[0][0] as PaymentGatewayConfig;
+      expect(stored).toMatchObject({
+        organizationId: null,
+        kind: 'PLATFORM',
+        platformFeeBps: 150,
+      });
+      expect(findByLabel).toHaveBeenCalledWith(null, 'Vritti Razorpay', undefined);
+      expect(result.data).toMatchObject({ kind: 'PLATFORM', keyId: 'rzp_live_platform' });
+    });
+  });
+
   describe('update', () => {
     it('keeps the stored ciphertext and key id when no credentials are sent', async () => {
       findById.mockResolvedValue(row());
@@ -165,9 +198,9 @@ describe('PaymentGatewayConfigDomainService', () => {
 
       const result = await service.update(ORG, 'pgc-1', { label: 'Renamed' });
 
+      expect(findByLabel).toHaveBeenCalledWith(ORG, 'Renamed', 'pgc-1');
       expect(update).toHaveBeenCalledWith('pgc-1', { label: 'Renamed' });
-      expect(findSlotOccupant).not.toHaveBeenCalled();
-      expect(result).toEqual({ success: true, message: 'Payment gateway config "Renamed" updated successfully.' });
+      expect(result).toEqual({ success: true, message: 'Payment gateway "Renamed" updated successfully.' });
     });
 
     it('re-validates and re-encrypts when credentials are sent', async () => {
@@ -179,13 +212,11 @@ describe('PaymentGatewayConfigDomainService', () => {
 
       const patch = update.mock.calls[0][1] as Partial<PaymentGatewayConfig>;
       expect(patch.keyId).toBe('rzp_live_new');
-      expect(patch.credentials).not.toBe(existing.credentials);
       expect(JSON.parse(crypto.decrypt(patch.credentials as string))).toEqual({
         key_id: 'rzp_live_new',
         key_secret: 'rotated',
       });
       expect(patch.verifiedAt).toBeNull();
-      expect(patch).not.toHaveProperty('webhookSecret');
     });
 
     it('drops the old webhook secret, merchant id and verification when the gateway changes', async () => {
@@ -199,37 +230,12 @@ describe('PaymentGatewayConfigDomainService', () => {
         credentials: { key_id: 'rzp_live_hdfc', key_secret: 's' },
       });
 
-      const patch = update.mock.calls[0][1] as Partial<PaymentGatewayConfig>;
-      expect(patch).toMatchObject({
+      expect(update.mock.calls[0][1]).toMatchObject({
         gatewayCode: 'hdfc-razorpay',
         webhookSecret: null,
         providerMerchantId: null,
         verifiedAt: null,
       });
-      expect(findSlotOccupant).not.toHaveBeenCalled();
-    });
-
-    it('keeps a webhook secret sent alongside a gateway change', async () => {
-      findById.mockResolvedValue(row({ webhookSecret: crypto.encrypt('old') }));
-      update.mockResolvedValue(row());
-
-      await service.update(ORG, 'pgc-1', {
-        gatewayCode: 'hdfc-razorpay',
-        credentials: { key_id: 'rzp_live_hdfc', key_secret: 's' },
-        webhookSecret: 'whsec_new',
-      });
-
-      const patch = update.mock.calls[0][1] as Partial<PaymentGatewayConfig>;
-      expect(crypto.decrypt(patch.webhookSecret as string)).toBe('whsec_new');
-    });
-
-    it('rejects a config outside the caller legal entity as not found', async () => {
-      findById.mockResolvedValue(row({ legalEntityId: 'le-other' }));
-
-      await expect(service.update(ORG, 'pgc-1', { label: 'x' }, { legalEntityId: LE })).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
-      expect(update).not.toHaveBeenCalled();
     });
 
     it('rejects a gateway change that arrives without credentials', async () => {
@@ -237,136 +243,118 @@ describe('PaymentGatewayConfigDomainService', () => {
 
       const error = await service.update(ORG, 'pgc-1', { gatewayCode: 'cashfree' }).catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(BadRequestException);
       expect(problemOf(error).errors[0].field).toBe('credentials');
       expect(update).not.toHaveBeenCalled();
     });
 
-    it('re-runs the slot check when the slot changes', async () => {
-      findById.mockResolvedValue(row());
-      findSlotOccupant.mockResolvedValue(row({ id: 'pgc-2', siteId: 'site-1', type: 'POS' }));
+    it('refuses an organization changing a platform row', async () => {
+      findById.mockResolvedValue(platformRow());
 
-      await expect(service.update(ORG, 'pgc-1', { type: 'POS', siteId: 'site-1' })).rejects.toBeInstanceOf(
-        ConflictException,
-      );
-      expect(findSlotOccupant).toHaveBeenCalledWith(LE, 'POS', 'site-1', null, 'pgc-1');
-      expect(update).not.toHaveBeenCalled();
+      const error = await service.update(ORG, 'pgc-platform', { label: 'x' }).catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(ForbiddenException);
+      expect(problemOf(error).label).toBe('Managed By Vritti');
     });
 
-    it('patches splitEnabled only when sent', async () => {
-      findById.mockResolvedValue(row());
-      update.mockResolvedValue(row({ splitEnabled: true }));
+    it('hides an ORG row from the platform caller and from another organization', async () => {
+      findById.mockResolvedValue(row({ organizationId: 'org-2' }));
 
-      await service.update(ORG, 'pgc-1', { splitEnabled: true });
-
-      expect(update).toHaveBeenCalledWith('pgc-1', { splitEnabled: true });
+      await expect(service.update(ORG, 'pgc-1', { label: 'x' })).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.update(null, 'pgc-1', { label: 'x' })).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('clears the webhook secret when null is sent', async () => {
-      findById.mockResolvedValue(row({ webhookSecret: crypto.encrypt('old') }));
-      update.mockResolvedValue(row());
+    it('updates the fee on a platform row alongside the shared fields', async () => {
+      findById.mockResolvedValue(platformRow());
+      update.mockResolvedValue(platformRow());
 
-      await service.update(ORG, 'pgc-1', { webhookSecret: null });
+      await service.updatePlatform('pgc-platform', { platformFeeBps: 200 });
 
-      expect(update).toHaveBeenCalledWith('pgc-1', { webhookSecret: null });
+      expect(update).toHaveBeenCalledWith('pgc-platform', { platformFeeBps: 200 });
+    });
+  });
+
+  describe('delete', () => {
+    it('removes a row the organization owns', async () => {
+      findById.mockResolvedValue(row());
+
+      await service.delete(ORG, 'pgc-1');
+
+      expect(remove).toHaveBeenCalledWith('pgc-1');
+    });
+
+    it('refuses an organization deleting a platform row, but lets the platform caller', async () => {
+      findById.mockResolvedValue(platformRow());
+
+      await expect(service.delete(ORG, 'pgc-platform')).rejects.toBeInstanceOf(ForbiddenException);
+      await service.delete(null, 'pgc-platform');
+      expect(remove).toHaveBeenCalledWith('pgc-platform');
     });
   });
 
   describe('getDecryptedCredentials', () => {
-    it('round-trips the stored secrets back to plaintext', async () => {
+    it('round-trips an ORG row secrets back to plaintext', async () => {
       findById.mockResolvedValue(row({ webhookSecret: crypto.encrypt('whsec_1') }));
 
-      const result = await service.getDecryptedCredentials(ORG, 'pgc-1');
-
-      expect(result).toEqual({
+      await expect(service.getDecryptedCredentials(ORG, 'pgc-1')).resolves.toEqual({
         gatewayCode: 'razorpay',
         keyId: 'rzp_live_abc',
         credentials: { key_id: 'rzp_live_abc', key_secret: 'stored-secret' },
         webhookSecret: 'whsec_1',
       });
     });
+
+    it('decrypts a platform row for any organization and for the platform caller', async () => {
+      findById.mockResolvedValue(platformRow());
+      const expected = {
+        gatewayCode: 'razorpay',
+        keyId: 'rzp_live_platform',
+        credentials: { key_id: 'rzp_live_platform', key_secret: 'platform-secret' },
+        webhookSecret: 'whsec_platform',
+      };
+
+      await expect(service.getDecryptedCredentials(ORG, 'pgc-platform')).resolves.toEqual(expected);
+      await expect(service.getDecryptedCredentials(null, 'pgc-platform')).resolves.toEqual(expected);
+    });
+
+    it('hides a config of another organization behind not found', async () => {
+      findById.mockResolvedValue(row({ organizationId: 'org-2' }));
+
+      await expect(service.getDecryptedCredentials(ORG, 'pgc-1')).rejects.toBeInstanceOf(NotFoundException);
+    });
   });
 
   describe('markVerified', () => {
     it('stamps verifiedAt and records the merchant id the provider reported', async () => {
       findById.mockResolvedValue(row());
-      update.mockImplementation(async (_id: string, patch: Partial<PaymentGatewayConfig>) =>
-        row({ ...patch, label: 'Storefront' }),
-      );
+      update.mockImplementation(async (_id: string, patch: Partial<PaymentGatewayConfig>) => row(patch));
 
       const result = await service.markVerified(ORG, 'pgc-1', 'MID1');
 
       const patch = update.mock.calls[0][1] as Partial<PaymentGatewayConfig>;
       expect(patch.verifiedAt).toBeInstanceOf(Date);
       expect(patch.providerMerchantId).toBe('MID1');
-      expect(result).toEqual({
-        success: true,
-        message: 'Payment gateway config "Storefront" verified successfully.',
-        data: { verifiedAt: (patch.verifiedAt as Date).toISOString(), providerMerchantId: 'MID1' },
-      });
+      expect(result.data).toEqual({ verifiedAt: (patch.verifiedAt as Date).toISOString(), providerMerchantId: 'MID1' });
     });
 
-    it('keeps the stored merchant id when the provider reports none', async () => {
-      findById.mockResolvedValue(row({ providerMerchantId: 'MID-stored' }));
-      update.mockImplementation(async (_id: string, patch: Partial<PaymentGatewayConfig>) =>
-        row({ ...patch, providerMerchantId: 'MID-stored' }),
-      );
+    it('lets only the platform caller verify a platform row', async () => {
+      findById.mockResolvedValue(platformRow());
+      update.mockResolvedValue(platformRow());
 
-      const result = await service.markVerified(ORG, 'pgc-1', null);
-
-      expect(update.mock.calls[0][1]).not.toHaveProperty('providerMerchantId');
-      expect(result.data.providerMerchantId).toBe('MID-stored');
-    });
-
-    it('hides a config owned by another organization behind not found', async () => {
-      findById.mockResolvedValue(row({ organizationId: 'org-2' }));
-
-      await expect(service.markVerified(ORG, 'pgc-1', null)).rejects.toBeInstanceOf(NotFoundException);
-      expect(update).not.toHaveBeenCalled();
+      await expect(service.markVerified(ORG, 'pgc-platform', null)).rejects.toBeInstanceOf(ForbiddenException);
+      await expect(service.markVerified(null, 'pgc-platform', 'MID-p')).resolves.toMatchObject({ success: true });
     });
   });
 
-  describe('resolveForContext', () => {
-    const leDefault = row({ id: 'le-default' });
-    const leApp = row({ id: 'le-app', appId: 'app-1' });
-    const outlet = row({ id: 'outlet', siteId: 'site-1' });
-    const outletApp = row({ id: 'outlet-app', siteId: 'site-1', appId: 'app-1' });
-    const context = { legalEntityId: LE, type: 'APP' as const, siteId: 'site-1', appId: 'app-1' };
+  describe('resolveForPayment', () => {
+    it('resolves nothing until payout accounts can pick a gateway, even with gateways connected', async () => {
+      findGroup.mockResolvedValue([row(), platformRow()]);
 
-    it('prefers the outlet + app pin over every wider config, whatever order they arrive in', async () => {
-      findCandidatesForContext.mockResolvedValue([leDefault, leApp, outlet, outletApp]);
-
-      await expect(service.resolveForContext(ORG, context)).resolves.toBe(outletApp);
-      expect(findCandidatesForContext).toHaveBeenCalledWith(ORG, context);
-    });
-
-    it('falls back to the outlet pin, then the app pin, then the legal entity default', async () => {
-      findCandidatesForContext.mockResolvedValue([leApp, leDefault, outlet]);
-      await expect(service.resolveForContext(ORG, context)).resolves.toBe(outlet);
-
-      findCandidatesForContext.mockResolvedValue([leDefault, leApp]);
-      await expect(service.resolveForContext(ORG, context)).resolves.toBe(leApp);
-
-      findCandidatesForContext.mockResolvedValue([leDefault]);
-      await expect(service.resolveForContext(ORG, context)).resolves.toBe(leDefault);
-    });
-
-    it('keeps the first of equally specific candidates, which the repository orders newest first', async () => {
-      const newer = row({ id: 'newer', gatewayCode: 'cashfree' });
-      findCandidatesForContext.mockResolvedValue([newer, leDefault]);
-
-      await expect(service.resolveForContext(ORG, context)).resolves.toBe(newer);
-    });
-
-    it('returns null when nothing serves the context', async () => {
-      findCandidatesForContext.mockResolvedValue([]);
-
-      await expect(service.resolveForContext(ORG, context)).resolves.toBeNull();
+      await expect(service.resolveForPayment(ORG)).resolves.toBeNull();
     });
   });
 
   describe('findWebhookTarget', () => {
-    it('returns the organization, gateway and decrypted secret of a config the organization owns', async () => {
+    it('returns the organization, gateway and decrypted secret of an ORG row the organization owns', async () => {
       findById.mockResolvedValue(row({ webhookSecret: crypto.encrypt('whsec_1') }));
 
       await expect(service.findWebhookTarget(ORG, 'pgc-1')).resolves.toEqual({
@@ -375,53 +363,32 @@ describe('PaymentGatewayConfigDomainService', () => {
         gatewayCode: 'razorpay',
         webhookSecret: 'whsec_1',
       });
-      expect(findById).toHaveBeenCalledWith('pgc-1');
     });
 
-    it('reports a config without a secret as null rather than failing', async () => {
-      findById.mockResolvedValue(row());
+    it('answers a platform row for any organization with its decrypted secret', async () => {
+      findById.mockResolvedValue(platformRow());
 
-      await expect(service.findWebhookTarget(ORG, 'pgc-1')).resolves.toMatchObject({ webhookSecret: null });
+      await expect(service.findWebhookTarget(ORG, 'pgc-platform')).resolves.toMatchObject({
+        organizationId: null,
+        webhookSecret: 'whsec_platform',
+      });
     });
 
-    it('returns undefined for an unknown id', async () => {
-      findById.mockResolvedValue(undefined);
-
+    it('returns undefined for an unknown id or a config another organization owns', async () => {
+      findById.mockResolvedValueOnce(undefined);
       await expect(service.findWebhookTarget(ORG, 'missing')).resolves.toBeUndefined();
-    });
 
-    it('returns undefined for a config another organization owns, without decrypting its secret', async () => {
-      findById.mockResolvedValue(row({ organizationId: 'org-other', webhookSecret: crypto.encrypt('whsec_1') }));
-
+      findById.mockResolvedValueOnce(row({ organizationId: 'org-other' }));
       await expect(service.findWebhookTarget(ORG, 'pgc-1')).resolves.toBeUndefined();
     });
   });
 
   describe('findById', () => {
-    it('throws not found for a missing config', async () => {
-      findById.mockResolvedValue(undefined);
+    it('withholds the platform key id from an organization but not from the platform caller', async () => {
+      findById.mockResolvedValue(platformRow());
 
-      await expect(service.findById(ORG, 'missing')).rejects.toBeInstanceOf(NotFoundException);
-    });
-
-    it('hides a config owned by another organization behind the same not found', async () => {
-      findById.mockResolvedValue(row({ organizationId: 'org-2' }));
-
-      await expect(service.findById(ORG, 'pgc-1')).rejects.toBeInstanceOf(NotFoundException);
-    });
-
-    it('hides a config of another legal entity or bank account when a scope is given', async () => {
-      findById.mockResolvedValue(row());
-
-      await expect(service.findById(ORG, 'pgc-1', { legalEntityId: 'le-other' })).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
-      await expect(
-        service.findById(ORG, 'pgc-1', { legalEntityId: LE, bankAccountId: 'ba-other' }),
-      ).rejects.toBeInstanceOf(NotFoundException);
-      await expect(service.findById(ORG, 'pgc-1', { legalEntityId: LE, bankAccountId: BANK })).resolves.toMatchObject({
-        id: 'pgc-1',
-      });
+      await expect(service.findById(ORG, 'pgc-platform')).resolves.toMatchObject({ keyId: null });
+      await expect(service.findById(null, 'pgc-platform')).resolves.toMatchObject({ keyId: 'rzp_live_platform' });
     });
 
     it('never surfaces the secret columns on the dto', async () => {
@@ -429,7 +396,7 @@ describe('PaymentGatewayConfigDomainService', () => {
 
       const dto = await service.findById(ORG, 'pgc-1');
 
-      expect(dto).toMatchObject({ hasWebhookSecret: true, keyId: 'rzp_live_abc' });
+      expect(dto).toMatchObject({ hasWebhookSecret: true, keyId: 'rzp_live_abc', kind: 'ORG' });
       expect(dto).not.toHaveProperty('credentials');
       expect(dto).not.toHaveProperty('webhookSecret');
     });

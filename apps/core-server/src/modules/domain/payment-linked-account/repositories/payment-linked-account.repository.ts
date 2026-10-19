@@ -1,18 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, lte, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, lte, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type BankAccount,
   bankAccounts,
   type PaymentLinkedAccount,
   PaymentLinkedAccountStatusValues,
-  paymentGatewayConfigs,
   paymentLinkedAccounts,
 } from '@/db/schema';
 
 export interface PaymentLinkedAccountWithScope {
   account: PaymentLinkedAccount;
-  collectorLegalEntityId: string;
   recipientLegalEntityId: string;
 }
 
@@ -22,7 +20,7 @@ export class PaymentLinkedAccountDomainRepository extends PrimaryBaseRepository<
     super(database, paymentLinkedAccounts);
   }
 
-  // Finds a collector's linked accounts with the legal entities on both sides, newest first
+  // Finds a collector's linked accounts with the recipient legal entity, newest first
   async findByCollector(orgId: string, collectorConfigId: string): Promise<PaymentLinkedAccountWithScope[]> {
     return this.selectWithScope(
       and(
@@ -32,7 +30,7 @@ export class PaymentLinkedAccountDomainRepository extends PrimaryBaseRepository<
     );
   }
 
-  // Finds one linked account with the legal entities on both sides
+  // Finds one linked account with the recipient legal entity
   async findWithScopeById(id: string): Promise<PaymentLinkedAccountWithScope | undefined> {
     const [row] = await this.selectWithScope(eq(paymentLinkedAccounts.id, id));
     return row;
@@ -71,6 +69,15 @@ export class PaymentLinkedAccountDomainRepository extends PrimaryBaseRepository<
     return row;
   }
 
+  // Counts the linked accounts registered under a collector
+  async countByCollector(collectorConfigId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(paymentLinkedAccounts)
+      .where(eq(paymentLinkedAccounts.collectorConfigId, collectorConfigId));
+    return Number(row?.count ?? 0);
+  }
+
   // Finds a bank account of the organization, whichever legal entity holds it
   async findBankAccountInOrg(orgId: string, bankAccountId: string): Promise<BankAccount | undefined> {
     const [row] = await this.db
@@ -81,16 +88,14 @@ export class PaymentLinkedAccountDomainRepository extends PrimaryBaseRepository<
     return row;
   }
 
-  // Selects linked accounts joined to their collector config and bank account for the legal entity on each side
+  // Selects linked accounts joined to their bank account for the legal entity that receives the payout
   private async selectWithScope(where: SQL | undefined): Promise<PaymentLinkedAccountWithScope[]> {
     return this.db
       .select({
         account: paymentLinkedAccounts,
-        collectorLegalEntityId: paymentGatewayConfigs.legalEntityId,
         recipientLegalEntityId: bankAccounts.legalEntityId,
       })
       .from(paymentLinkedAccounts)
-      .innerJoin(paymentGatewayConfigs, eq(paymentGatewayConfigs.id, paymentLinkedAccounts.collectorConfigId))
       .innerJoin(bankAccounts, eq(bankAccounts.id, paymentLinkedAccounts.bankAccountId))
       .where(where)
       .orderBy(desc(paymentLinkedAccounts.createdAt));

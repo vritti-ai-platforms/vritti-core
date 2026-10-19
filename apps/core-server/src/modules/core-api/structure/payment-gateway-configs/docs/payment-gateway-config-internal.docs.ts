@@ -1,14 +1,15 @@
 import { PaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/entity/payment-gateway-config.dto';
 import { CreatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-payment-gateway-config.dto';
+import { CreatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-platform-payment-gateway-config.dto';
 import { UpdatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-payment-gateway-config.dto';
+import { UpdatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-platform-payment-gateway-config.dto';
 import { PaymentGatewayConfigVerificationResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-config-verification-response.dto';
-import { PaymentGatewayConfigsPageResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-configs-page-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PaymentGatewayOptionDto } from '@/modules/payments-gateway/gateways/dto/response/payment-gateway-option.dto';
 
-const ID = { name: 'id', description: 'Payment gateway config ID' };
+const ID = ApiParam({ name: 'id', description: 'Payment gateway config ID' });
 
 const SIGNATURE_HEADERS = [
   ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
@@ -17,23 +18,34 @@ const SIGNATURE_HEADERS = [
     description: 'Ed25519 signature of the canonical request (base64)',
     required: true,
   }),
+];
+const ORG_HEADERS = [
+  ...SIGNATURE_HEADERS,
   ApiHeader({ name: 'x-org-id', description: 'Organization ID scoping the request', required: true }),
 ];
 
-export function ApiFindForTablePaymentGatewayConfigsInternal() {
+const UNAUTHORIZED = ApiResponse({ status: 401, description: 'Invalid or missing request signature.' });
+const NOT_FOUND = ApiResponse({ status: 404, description: 'Payment gateway config not found.' });
+const MANAGED = ApiResponse({ status: 403, description: "Vritti's gateways cannot be changed from here." });
+const IN_USE = ApiResponse({ status: 409, description: 'Linked accounts are registered under this gateway.' });
+
+const PLATFORM_NOTE =
+  "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header.";
+
+export function ApiListPaymentGatewayConfigsInternal() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Payment gateway configs table',
+      summary: "List the organization's payment gateway configs",
       description:
-        "Resolves one page of the organization's payment gateway configs from a serialized view state (filters, search, sort, pagination) that cloud holds. Secrets are never included. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "The organization's own gateways (ORG) followed by Vritti's (PLATFORM) with the key id withheld. Secrets are never included.",
     }),
-    ...SIGNATURE_HEADERS,
+    ...ORG_HEADERS,
     ApiResponse({
       status: 200,
-      description: 'Payment gateway configs page retrieved successfully.',
-      type: PaymentGatewayConfigsPageResponseDto,
+      description: 'Payment gateway configs retrieved successfully.',
+      type: [PaymentGatewayConfigDto],
     }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+    UNAUTHORIZED,
   );
 }
 
@@ -50,61 +62,23 @@ export function ApiListPaymentGatewaysInternal() {
       description: 'Payment gateways retrieved successfully.',
       type: [PaymentGatewayOptionDto],
     }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-  );
-}
-
-export function ApiListPaymentGatewayConfigsInternal() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'List payment gateway configs of a legal entity',
-      description: 'Returns every payment gateway config of the legal entity, newest first.',
-    }),
-    ...SIGNATURE_HEADERS,
-    ApiParam({ name: 'legalEntityId', description: 'Legal entity ID' }),
-    ApiResponse({
-      status: 200,
-      description: 'Payment gateway configs retrieved successfully.',
-      type: [PaymentGatewayConfigDto],
-    }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-  );
-}
-
-export function ApiListPaymentGatewayConfigsByBankAccountInternal() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'List payment gateway configs settling into a bank account',
-      description: 'Returns every payment gateway config that settles into the bank account, newest first.',
-    }),
-    ...SIGNATURE_HEADERS,
-    ApiParam({ name: 'bankAccountId', description: 'Bank account ID' }),
-    ApiResponse({
-      status: 200,
-      description: 'Payment gateway configs retrieved successfully.',
-      type: [PaymentGatewayConfigDto],
-    }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+    UNAUTHORIZED,
   );
 }
 
 export function ApiCreatePaymentGatewayConfigInternal() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Create payment gateway config',
+      summary: "Connect one of the organization's own payment gateways",
       description:
-        'Adds a payment gateway config to a legal entity of the organization. Credentials are validated against the gateway field list, encrypted at rest and never returned. One config per legal entity, type, gateway, site and app.',
+        "Credentials are validated against the gateway field list, encrypted at rest and never returned. The label must be unique among the organization's gateways.",
     }),
-    ...SIGNATURE_HEADERS,
+    ...ORG_HEADERS,
     ApiBody({ type: CreatePaymentGatewayConfigDto }),
     ApiResponse({ status: 201, description: 'Payment gateway config created successfully.', type: CreateResponseDto }),
-    ApiResponse({
-      status: 400,
-      description:
-        'Invalid input, unsupported gateway, incomplete credentials, or a reference outside the legal entity.',
-    }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-    ApiResponse({ status: 409, description: 'A config already occupies this scope.' }),
+    ApiResponse({ status: 400, description: 'Invalid input, unsupported gateway or incomplete credentials.' }),
+    UNAUTHORIZED,
+    ApiResponse({ status: 409, description: 'The label already names another gateway.' }),
   );
 }
 
@@ -114,15 +88,15 @@ export function ApiGetPaymentGatewayConfigInternal() {
       summary: 'Get payment gateway config',
       description: 'Returns a single payment gateway config by ID, without its secrets.',
     }),
-    ...SIGNATURE_HEADERS,
-    ApiParam(ID),
+    ...ORG_HEADERS,
+    ID,
     ApiResponse({
       status: 200,
       description: 'Payment gateway config retrieved successfully.',
       type: PaymentGatewayConfigDto,
     }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-    ApiResponse({ status: 404, description: 'Payment gateway config not found.' }),
+    UNAUTHORIZED,
+    NOT_FOUND,
   );
 }
 
@@ -131,16 +105,20 @@ export function ApiUpdatePaymentGatewayConfigInternal() {
     ApiOperation({
       summary: 'Update payment gateway config',
       description:
-        'Updates a payment gateway config. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext.',
+        "Updates one of the organization's own gateways. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext. The gateway cannot change while linked accounts are registered under it.",
     }),
-    ...SIGNATURE_HEADERS,
-    ApiParam(ID),
+    ...ORG_HEADERS,
+    ID,
     ApiBody({ type: UpdatePaymentGatewayConfigDto }),
     ApiResponse({ status: 200, description: 'Payment gateway config updated successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 400, description: 'Invalid input, unsupported gateway or incomplete credentials.' }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-    ApiResponse({ status: 404, description: 'Payment gateway config not found.' }),
-    ApiResponse({ status: 409, description: 'A config already occupies this scope.' }),
+    UNAUTHORIZED,
+    MANAGED,
+    NOT_FOUND,
+    ApiResponse({
+      status: 409,
+      description: 'Linked accounts are registered under this gateway, or the label is taken.',
+    }),
   );
 }
 
@@ -151,8 +129,8 @@ export function ApiVerifyPaymentGatewayConfigInternal() {
       description:
         'Has the provider check the stored credentials. A pass records verifiedAt and the merchant id the provider reports; a rejection names the credential field at fault.',
     }),
-    ...SIGNATURE_HEADERS,
-    ApiParam(ID),
+    ...ORG_HEADERS,
+    ID,
     ApiResponse({
       status: 200,
       description: 'Payment gateway config verified successfully.',
@@ -162,18 +140,96 @@ export function ApiVerifyPaymentGatewayConfigInternal() {
       status: 400,
       description: 'The provider rejected the credentials, or the gateway is not supported.',
     }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-    ApiResponse({ status: 404, description: 'Payment gateway config not found.' }),
+    UNAUTHORIZED,
+    MANAGED,
+    NOT_FOUND,
   );
 }
 
 export function ApiDeletePaymentGatewayConfigInternal() {
   return applyDecorators(
-    ApiOperation({ summary: 'Delete payment gateway config', description: 'Deletes a payment gateway config.' }),
-    ...SIGNATURE_HEADERS,
-    ApiParam(ID),
+    ApiOperation({
+      summary: 'Delete payment gateway config',
+      description: "Removes one of the organization's own gateways, unless linked accounts still depend on it.",
+    }),
+    ...ORG_HEADERS,
+    ID,
     ApiResponse({ status: 200, description: 'Payment gateway config deleted successfully.', type: SuccessResponseDto }),
-    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
-    ApiResponse({ status: 404, description: 'Payment gateway config not found.' }),
+    UNAUTHORIZED,
+    MANAGED,
+    NOT_FOUND,
+    IN_USE,
+  );
+}
+
+export function ApiListPlatformPaymentGatewayConfigsInternal() {
+  return applyDecorators(
+    ApiOperation({ summary: 'List the platform payment gateways', description: PLATFORM_NOTE }),
+    ...SIGNATURE_HEADERS,
+    ApiResponse({ status: 200, description: 'Platform gateways retrieved.', type: [PaymentGatewayConfigDto] }),
+    UNAUTHORIZED,
+  );
+}
+
+export function ApiCreatePlatformPaymentGatewayConfigInternal() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Set up a platform payment gateway',
+      description: PLATFORM_NOTE,
+    }),
+    ...SIGNATURE_HEADERS,
+    ApiBody({ type: CreatePlatformPaymentGatewayConfigDto }),
+    ApiResponse({ status: 201, description: 'Platform gateway set up successfully.', type: CreateResponseDto }),
+    ApiResponse({ status: 400, description: 'Invalid input, unsupported gateway or incomplete credentials.' }),
+    UNAUTHORIZED,
+    ApiResponse({ status: 409, description: 'The label already names another platform gateway.' }),
+  );
+}
+
+export function ApiUpdatePlatformPaymentGatewayConfigInternal() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Update a platform payment gateway',
+      description: `${PLATFORM_NOTE} Credentials, label and fee; the gateway itself cannot change once set up.`,
+    }),
+    ...SIGNATURE_HEADERS,
+    ID,
+    ApiBody({ type: UpdatePlatformPaymentGatewayConfigDto }),
+    ApiResponse({ status: 200, description: 'Platform gateway updated successfully.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'Invalid input or incomplete credentials.' }),
+    UNAUTHORIZED,
+    NOT_FOUND,
+    ApiResponse({ status: 409, description: 'The gateway cannot change once set up, or the label is taken.' }),
+  );
+}
+
+export function ApiVerifyPlatformPaymentGatewayConfigInternal() {
+  return applyDecorators(
+    ApiOperation({ summary: 'Verify a platform payment gateway', description: PLATFORM_NOTE }),
+    ...SIGNATURE_HEADERS,
+    ID,
+    ApiResponse({
+      status: 200,
+      description: 'Platform gateway verified successfully.',
+      type: PaymentGatewayConfigVerificationResponseDto,
+    }),
+    ApiResponse({ status: 400, description: 'The provider rejected the credentials.' }),
+    UNAUTHORIZED,
+    NOT_FOUND,
+  );
+}
+
+export function ApiDeletePlatformPaymentGatewayConfigInternal() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Remove a platform payment gateway',
+      description: `${PLATFORM_NOTE} Refused while any organization's linked accounts reference it.`,
+    }),
+    ...SIGNATURE_HEADERS,
+    ID,
+    ApiResponse({ status: 200, description: 'Platform gateway removed successfully.', type: SuccessResponseDto }),
+    UNAUTHORIZED,
+    NOT_FOUND,
+    IN_USE,
   );
 }

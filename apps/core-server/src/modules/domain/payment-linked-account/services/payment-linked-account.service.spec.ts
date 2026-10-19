@@ -32,12 +32,8 @@ const linked = (overrides: Partial<PaymentLinkedAccount> = {}): PaymentLinkedAcc
   ...overrides,
 });
 
-const withScope = (
-  overrides: Partial<PaymentLinkedAccount> = {},
-  collectorLegalEntityId = LE,
-): PaymentLinkedAccountWithScope => ({
+const withScope = (overrides: Partial<PaymentLinkedAccount> = {}): PaymentLinkedAccountWithScope => ({
   account: linked(overrides),
-  collectorLegalEntityId,
   recipientLegalEntityId: 'le-2',
 });
 
@@ -68,8 +64,7 @@ describe('PaymentLinkedAccountDomainService', () => {
     gatewayConfigService,
   );
 
-  const collector = (splitEnabled: boolean) =>
-    ({ id: COLLECTOR, legalEntityId: LE, splitEnabled }) as PaymentGatewayConfigDto;
+  const collector = () => ({ id: COLLECTOR, kind: 'ORG', gatewayCode: 'razorpay' }) as PaymentGatewayConfigDto;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -79,14 +74,14 @@ describe('PaymentLinkedAccountDomainService', () => {
     const dto = { collectorConfigId: COLLECTOR, bankAccountId: BANK };
 
     it('inserts a PENDING row and returns the bank details from the bank account row', async () => {
-      configFindById.mockResolvedValue(collector(true));
+      configFindById.mockResolvedValue(collector());
       repository.findBankAccountInOrg.mockResolvedValue(bankAccount);
       repository.findByCollectorAndBankAccount.mockResolvedValue(undefined);
       repository.create.mockResolvedValue(linked());
 
       const reservation = await service.reserve(ORG, { legalEntityId: LE }, dto);
 
-      expect(configFindById).toHaveBeenCalledWith(ORG, COLLECTOR, { legalEntityId: LE });
+      expect(configFindById).toHaveBeenCalledWith(ORG, COLLECTOR);
       expect(repository.create).toHaveBeenCalledWith({
         organizationId: ORG,
         collectorConfigId: COLLECTOR,
@@ -102,7 +97,7 @@ describe('PaymentLinkedAccountDomainService', () => {
     });
 
     it('reuses a FAILED attempt that already reached the gateway so its setup resumes', async () => {
-      configFindById.mockResolvedValue(collector(true));
+      configFindById.mockResolvedValue(collector());
       repository.findBankAccountInOrg.mockResolvedValue(bankAccount);
       repository.findByCollectorAndBankAccount.mockResolvedValue(
         linked({
@@ -125,7 +120,7 @@ describe('PaymentLinkedAccountDomainService', () => {
     });
 
     it('reuses the id of a FAILED attempt that never reached the gateway instead of inserting a new row', async () => {
-      configFindById.mockResolvedValue(collector(true));
+      configFindById.mockResolvedValue(collector());
       repository.findBankAccountInOrg.mockResolvedValue(bankAccount);
       repository.findByCollectorAndBankAccount.mockResolvedValue(linked({ id: 'pla-old', status: 'FAILED' }));
 
@@ -138,7 +133,7 @@ describe('PaymentLinkedAccountDomainService', () => {
     });
 
     it('answers 409 Already Registered when a concurrent registration wins the insert', async () => {
-      configFindById.mockResolvedValue(collector(true));
+      configFindById.mockResolvedValue(collector());
       repository.findBankAccountInOrg.mockResolvedValue(bankAccount);
       repository.findByCollectorAndBankAccount.mockResolvedValue(undefined);
       repository.create.mockRejectedValue(
@@ -155,7 +150,7 @@ describe('PaymentLinkedAccountDomainService', () => {
       ['an account number the gateway rejects', { accountNumber: 'AB12345' }],
       ['an account holder name over 120 characters', { accountHolderName: 'x'.repeat(121) }],
     ])('rejects %s as a 400 on bankAccountId before reserving', async (_name, overrides) => {
-      configFindById.mockResolvedValue(collector(true));
+      configFindById.mockResolvedValue(collector());
       repository.findBankAccountInOrg.mockResolvedValue({ ...bankAccount, ...overrides });
 
       const error = await service.reserve(ORG, {}, dto).catch((e: unknown) => e);
@@ -168,7 +163,7 @@ describe('PaymentLinkedAccountDomainService', () => {
     });
 
     it('rejects a bank account already linked to the collector with a 409', async () => {
-      configFindById.mockResolvedValue(collector(true));
+      configFindById.mockResolvedValue(collector());
       repository.findBankAccountInOrg.mockResolvedValue(bankAccount);
       repository.findByCollectorAndBankAccount.mockResolvedValue(linked({ status: 'IN_REVIEW' }));
 
@@ -181,19 +176,8 @@ describe('PaymentLinkedAccountDomainService', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
-    it('rejects a collector with split payments off, attributed to collectorConfigId', async () => {
-      configFindById.mockResolvedValue(collector(false));
-
-      const error = await service.reserve(ORG, {}, dto).catch((e: unknown) => e);
-
-      expect(error).toBeInstanceOf(BadRequestException);
-      expect(problemOf(error).label).toBe('Split Payments Off');
-      expect(problemOf(error).errors[0].field).toBe('collectorConfigId');
-      expect(repository.create).not.toHaveBeenCalled();
-    });
-
     it('rejects a bank account outside the organization, attributed to bankAccountId', async () => {
-      configFindById.mockResolvedValue(collector(true));
+      configFindById.mockResolvedValue(collector());
       repository.findBankAccountInOrg.mockResolvedValue(undefined);
 
       const error = await service.reserve(ORG, {}, dto).catch((e: unknown) => e);
@@ -203,10 +187,10 @@ describe('PaymentLinkedAccountDomainService', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
-    it('surfaces a collector outside the caller scope as not found', async () => {
+    it('surfaces a collector of another organization as not found', async () => {
       configFindById.mockRejectedValue(new NotFoundException('Payment gateway config not found.'));
 
-      await expect(service.reserve(ORG, { legalEntityId: 'le-other' }, dto)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.reserve(ORG, {}, dto)).rejects.toBeInstanceOf(NotFoundException);
       expect(repository.create).not.toHaveBeenCalled();
     });
   });
@@ -280,14 +264,6 @@ describe('PaymentLinkedAccountDomainService', () => {
   });
 
   describe('scope', () => {
-    it('hides a linked account whose collector belongs to another legal entity behind a 404', async () => {
-      repository.findWithScopeById.mockResolvedValue(withScope({}, 'le-other'));
-
-      await expect(service.delete(ORG, 'pla-1', { legalEntityId: LE })).rejects.toBeInstanceOf(NotFoundException);
-      await expect(service.findInScope(ORG, 'pla-1', { legalEntityId: LE })).rejects.toBeInstanceOf(NotFoundException);
-      expect(repository.delete).not.toHaveBeenCalled();
-    });
-
     it('hides a linked account of another organization behind a 404', async () => {
       repository.findWithScopeById.mockResolvedValue(withScope({ organizationId: 'org-other' }));
 
@@ -306,12 +282,12 @@ describe('PaymentLinkedAccountDomainService', () => {
 
   describe('listByCollector', () => {
     it('checks the collector is in scope before listing', async () => {
-      configFindById.mockResolvedValue(collector(true));
+      configFindById.mockResolvedValue(collector());
       repository.findByCollector.mockResolvedValue([withScope()]);
 
       const result = await service.listByCollector(ORG, COLLECTOR, { legalEntityId: LE });
 
-      expect(configFindById).toHaveBeenCalledWith(ORG, COLLECTOR, { legalEntityId: LE });
+      expect(configFindById).toHaveBeenCalledWith(ORG, COLLECTOR);
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({ collectorConfigId: COLLECTOR, recipientLegalEntityId: 'le-2' });
     });

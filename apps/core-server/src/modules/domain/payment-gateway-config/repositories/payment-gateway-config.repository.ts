@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, isNull, ne, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type PaymentGatewayConfig, type PaymentGatewayConfigType, paymentGatewayConfigs } from '@/db/schema';
-import type { PaymentGatewayConfigContext } from '../payment-gateway-config-context';
+import { and, desc, eq, isNull, ne, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { type PaymentGatewayConfig, PaymentGatewayConfigKindValues, paymentGatewayConfigs } from '@/db/schema';
+
+// The group a row belongs to: an organization's own rows, or the platform rows (no organization)
+export type PaymentGatewayConfigGroup = string | null;
 
 @Injectable()
 export class PaymentGatewayConfigDomainRepository extends PrimaryBaseRepository<typeof paymentGatewayConfigs> {
@@ -10,44 +12,19 @@ export class PaymentGatewayConfigDomainRepository extends PrimaryBaseRepository<
     super(database, paymentGatewayConfigs);
   }
 
-  // Finds a page of configs with its total, newest first unless the caller sorts
-  async findForTable(params: {
-    where: SQL | undefined;
-    orderBy: SQL[];
-    limit: number;
-    offset: number;
-  }): Promise<{ result: PaymentGatewayConfig[]; count: number }> {
-    return this.findAllAndCount({
-      where: params.where,
-      orderBy: params.orderBy.length > 0 ? params.orderBy : [desc(paymentGatewayConfigs.createdAt)],
-      limit: params.limit,
-      offset: params.offset,
-    });
+  // Finds a group's rows, newest first
+  async findGroup(group: PaymentGatewayConfigGroup): Promise<PaymentGatewayConfig[]> {
+    return this.db
+      .select()
+      .from(paymentGatewayConfigs)
+      .where(groupWhere(group))
+      .orderBy(desc(paymentGatewayConfigs.createdAt));
   }
 
-  // Finds a legal entity's configs, newest first
-  async findByLegalEntity(orgId: string, legalEntityId: string): Promise<PaymentGatewayConfig[]> {
-    return this.model.findMany({
-      where: { organizationId: orgId, legalEntityId },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  // Finds the configs that settle into one bank account, newest first
-  async findByBankAccount(orgId: string, bankAccountId: string): Promise<PaymentGatewayConfig[]> {
-    return this.model.findMany({
-      where: { organizationId: orgId, bankAccountId },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  // Finds the config already occupying a slot, whatever its gateway or bank account; a null site or app matches only a
-  // null column, and excludeId skips the row being updated
-  async findSlotOccupant(
-    legalEntityId: string,
-    type: PaymentGatewayConfigType,
-    siteId: string | null,
-    appId: string | null,
+  // Finds the row that already holds a label in the group, skipping the row being updated
+  async findByLabel(
+    group: PaymentGatewayConfigGroup,
+    label: string,
     excludeId?: string,
   ): Promise<PaymentGatewayConfig | undefined> {
     const [row] = await this.db
@@ -55,37 +32,25 @@ export class PaymentGatewayConfigDomainRepository extends PrimaryBaseRepository<
       .from(paymentGatewayConfigs)
       .where(
         and(
-          eq(paymentGatewayConfigs.legalEntityId, legalEntityId),
-          eq(paymentGatewayConfigs.type, type),
-          siteId ? eq(paymentGatewayConfigs.siteId, siteId) : isNull(paymentGatewayConfigs.siteId),
-          appId ? eq(paymentGatewayConfigs.appId, appId) : isNull(paymentGatewayConfigs.appId),
+          groupWhere(group),
+          eq(paymentGatewayConfigs.label, label),
           excludeId ? ne(paymentGatewayConfigs.id, excludeId) : undefined,
         ),
       )
       .limit(1);
     return row;
   }
+}
 
-  // Finds every config that could serve a context — the legal entity defaults plus any pinned to its site or app —
-  // newest first, so the service's specificity ranking breaks ties deterministically
-  async findCandidatesForContext(orgId: string, context: PaymentGatewayConfigContext): Promise<PaymentGatewayConfig[]> {
-    const { siteId, appId } = context;
-    return this.db
-      .select()
-      .from(paymentGatewayConfigs)
-      .where(
-        and(
-          eq(paymentGatewayConfigs.organizationId, orgId),
-          eq(paymentGatewayConfigs.legalEntityId, context.legalEntityId),
-          eq(paymentGatewayConfigs.type, context.type),
-          siteId
-            ? or(isNull(paymentGatewayConfigs.siteId), eq(paymentGatewayConfigs.siteId, siteId))
-            : isNull(paymentGatewayConfigs.siteId),
-          appId
-            ? or(isNull(paymentGatewayConfigs.appId), eq(paymentGatewayConfigs.appId, appId))
-            : isNull(paymentGatewayConfigs.appId),
-        ),
+// An organization's own rows, or the platform rows
+function groupWhere(group: PaymentGatewayConfigGroup): SQL | undefined {
+  return group === null
+    ? and(
+        isNull(paymentGatewayConfigs.organizationId),
+        eq(paymentGatewayConfigs.kind, PaymentGatewayConfigKindValues.PLATFORM),
       )
-      .orderBy(desc(paymentGatewayConfigs.createdAt));
-  }
+    : and(
+        eq(paymentGatewayConfigs.organizationId, group),
+        eq(paymentGatewayConfigs.kind, PaymentGatewayConfigKindValues.ORG),
+      );
 }

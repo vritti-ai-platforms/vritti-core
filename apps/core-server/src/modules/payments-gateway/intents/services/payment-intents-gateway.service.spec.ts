@@ -19,7 +19,7 @@ const OTHER_APP = 'app-2';
 const SITE = 'site-1';
 const LE = 'le-1';
 
-const config = { id: 'cfg-1', gatewayCode: 'razorpay', bankAccountId: 'ba-1', splitEnabled: false };
+const config = { id: 'cfg-1', kind: 'ORG', gatewayCode: 'razorpay' };
 const credentials = { key_id: 'rzp_test_1', key_secret: 'secret' };
 
 function intentOf(overrides: Partial<PaymentIntentResponseDto> = {}): PaymentIntentResponseDto {
@@ -33,7 +33,7 @@ function intentOf(overrides: Partial<PaymentIntentResponseDto> = {}): PaymentInt
     description: null,
     configId: 'cfg-1',
     gatewayCode: 'razorpay',
-    bankAccountId: 'ba-1',
+    bankAccountId: null,
     type: 'APP',
     idempotencyKey: 'idem-1',
     receipt: 'rcpt-1',
@@ -59,7 +59,7 @@ function intentOf(overrides: Partial<PaymentIntentResponseDto> = {}): PaymentInt
 
 describe('PaymentIntentsGatewayService', () => {
   const send = jest.fn();
-  const resolveForContext = jest.fn();
+  const resolveForPayment = jest.fn();
   const getDecryptedCredentials = jest.fn();
   const resolveSite = jest.fn();
   const dispatch = jest.fn();
@@ -67,7 +67,7 @@ describe('PaymentIntentsGatewayService', () => {
 
   const service = new PaymentIntentsGatewayService(
     { send } as unknown as NatsClientService,
-    { resolveForContext, getDecryptedCredentials } as unknown as PaymentGatewayConfigDomainService,
+    { resolveForPayment, getDecryptedCredentials } as unknown as PaymentGatewayConfigDomainService,
     { resolve: resolveSite } as unknown as SiteContextResolverService,
     { dispatch } as unknown as PaymentEventDispatcherService,
     { findInOrg } as unknown as AppDomainService,
@@ -81,7 +81,7 @@ describe('PaymentIntentsGatewayService', () => {
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
     resolveSite.mockResolvedValue({ legalEntityId: LE, siteTimezone: 'Asia/Kolkata', siteCurrencyCode: 'INR' });
-    resolveForContext.mockResolvedValue(config);
+    resolveForPayment.mockResolvedValue(config);
     getDecryptedCredentials.mockResolvedValue({ gatewayCode: 'razorpay', keyId: 'rzp_test_1', credentials });
   });
 
@@ -95,12 +95,12 @@ describe('PaymentIntentsGatewayService', () => {
       metadata: [{ key: 'slot', value: 'morning' }],
     };
 
-    it('resolves the config for the site legal entity and sends the amount in minor units', async () => {
+    it('resolves the organization collector and sends the amount in minor units', async () => {
       send.mockResolvedValue(intentOf());
 
       await service.create(caller, input);
 
-      expect(resolveForContext).toHaveBeenCalledWith(ORG, { legalEntityId: LE, type: 'APP', siteId: SITE, appId: APP });
+      expect(resolveForPayment).toHaveBeenCalledWith(ORG);
       expect(getDecryptedCredentials).toHaveBeenCalledWith(ORG, 'cfg-1');
       expect(send).toHaveBeenCalledWith(
         'payments',
@@ -112,7 +112,6 @@ describe('PaymentIntentsGatewayService', () => {
           partyId: 'party-1',
           configId: 'cfg-1',
           gatewayCode: 'razorpay',
-          bankAccountId: 'ba-1',
           type: 'APP',
           credentials,
           amount: '1234',
@@ -148,7 +147,7 @@ describe('PaymentIntentsGatewayService', () => {
       const body = JSON.stringify((error as BadRequestException).getResponse());
       expect(body).toContain('Reserved Reference Type');
       expect(body).toContain('reference.type');
-      expect(resolveForContext).not.toHaveBeenCalled();
+      expect(resolveForPayment).not.toHaveBeenCalled();
       expect(send).not.toHaveBeenCalled();
     });
 
@@ -166,24 +165,21 @@ describe('PaymentIntentsGatewayService', () => {
       await service.create({ orgId: ORG, appId: APP, legalEntityId: 'le-9' }, { ...input, channel: undefined });
 
       expect(resolveSite).not.toHaveBeenCalled();
-      expect(resolveForContext).toHaveBeenCalledWith(ORG, {
-        legalEntityId: 'le-9',
-        type: 'APP',
-        siteId: null,
-        appId: APP,
-      });
+      expect(resolveForPayment).toHaveBeenCalledWith(ORG);
       const payload = send.mock.calls[0][2];
+      expect(payload.legalEntityId).toBe('le-9');
+      expect(payload).not.toHaveProperty('bankAccountId');
       expect(payload.siteId).toBeUndefined();
       expect(payload.partyId).toBeUndefined();
     });
 
-    it('answers 400 No Payment Gateway when nothing is configured, before decrypting anything', async () => {
-      resolveForContext.mockResolvedValue(null);
+    it('answers 400 Payments Not Set Up when nothing is configured, before decrypting anything', async () => {
+      resolveForPayment.mockResolvedValue(null);
 
       const error = await service.create(caller, input).catch((e: unknown) => e);
 
       expect(error).toBeInstanceOf(BadRequestException);
-      expect(JSON.stringify((error as BadRequestException).getResponse())).toContain('No Payment Gateway');
+      expect(JSON.stringify((error as BadRequestException).getResponse())).toContain('Payments Not Set Up');
       expect(getDecryptedCredentials).not.toHaveBeenCalled();
       expect(send).not.toHaveBeenCalled();
     });
@@ -495,8 +491,8 @@ describe('PaymentIntentsGatewayService', () => {
       await expect(service.startCheckoutFromCart(caller, input)).rejects.toBe(rejection);
     });
 
-    it('creates no order when the site has no gateway', async () => {
-      resolveForContext.mockResolvedValue(null);
+    it('creates no order when the organization has no gateway', async () => {
+      resolveForPayment.mockResolvedValue(null);
 
       await expect(service.startCheckoutFromCart(caller, input)).rejects.toBeInstanceOf(BadRequestException);
       expect(send).not.toHaveBeenCalled();

@@ -1,35 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEnum, IsObject, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
-import { type PaymentGatewayConfigType, PaymentGatewayConfigTypeValues } from '@/db/schema';
+import { IsObject, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreatePaymentGatewayConfigDto {
-  @ApiProperty({ description: 'Owning legal entity ID', example: 'uuid-here' })
-  @IsUUID()
-  legalEntityId: string;
-
-  @ApiProperty({ description: 'Bank account the gateway settles into', example: 'uuid-here' })
-  @IsUUID()
-  bankAccountId: string;
-
-  @ApiProperty({
-    description: 'Where the gateway is used',
-    enum: Object.values(PaymentGatewayConfigTypeValues),
-    example: 'APP',
-  })
-  @IsEnum(PaymentGatewayConfigTypeValues)
-  type: PaymentGatewayConfigType;
-
-  @ApiPropertyOptional({ description: 'Site the config is pinned to', example: 'uuid-here' })
-  @IsOptional()
-  @IsUUID()
-  siteId?: string | null;
-
-  @ApiPropertyOptional({ description: 'App the config is pinned to (type must be APP)', example: 'uuid-here' })
-  @IsOptional()
-  @IsUUID()
-  appId?: string | null;
-
   @ApiProperty({ description: 'Gateway provider code', example: 'razorpay' })
   @Trim({ nullify: false })
   @IsString()
@@ -38,12 +11,15 @@ export class CreatePaymentGatewayConfigDto {
   @IsCode()
   gatewayCode: string;
 
-  @ApiPropertyOptional({ description: 'Display label for the config', example: 'Storefront Razorpay' })
-  @Trim()
-  @IsOptional()
+  @ApiProperty({
+    description: 'Tells this gateway apart from the others; unique within its group',
+    example: 'Main Razorpay',
+  })
+  @Trim({ nullify: false })
   @IsString()
+  @MinLength(1)
   @MaxLength(100)
-  label?: string | null;
+  label: string;
 
   @ApiProperty({
     description: 'Provider credentials keyed by field name; the required keys depend on gatewayCode',
@@ -64,13 +40,4 @@ export class CreatePaymentGatewayConfigDto {
   @IsString()
   @MaxLength(100)
   providerMerchantId?: string | null;
-
-  @ApiPropertyOptional({
-    description:
-      'Collect payments through this config and split them to linked accounts; the gateway must support splits',
-    example: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  splitEnabled?: boolean;
 }

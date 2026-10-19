@@ -1,4 +1,3 @@
-import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { ScopedNatsClientService } from '@/services/scoped-nats-client.service';
@@ -10,20 +9,17 @@ import type { PaymentEventHandler } from '../payment-event-handler';
 
 export const COMMERCE_ORDER_REFERENCE_TYPE = 'commerce.order';
 
-// Settles a commerce order from its payment: a success marks it paid (and releases split transfers when the config
-// collects for linked accounts), an expiry or a cancellation cancels the unpaid order, a failure leaves it open for
-// another attempt
+// Settles a commerce order from its payment: a success marks it paid, an expiry or a cancellation cancels the unpaid
+// order, a failure leaves it open for another attempt. Split transfers return with the org checkout, once intents
+// carry payout legs again
 @Injectable()
 export class CommerceOrderPaymentHandlerService implements PaymentEventHandler {
   readonly referenceType = COMMERCE_ORDER_REFERENCE_TYPE;
   private readonly logger = new Logger(CommerceOrderPaymentHandlerService.name);
 
-  constructor(
-    private readonly nats: ScopedNatsClientService,
-    private readonly configService: PaymentGatewayConfigDomainService,
-  ) {}
+  constructor(private readonly nats: ScopedNatsClientService) {}
 
-  // Routes one event by type; every branch is idempotent on the commerce and payments side
+  // Routes one event by type; every branch is idempotent on the commerce side
   async handle(orgId: string, event: PaymentEventResponseDto): Promise<void> {
     if (event.type === PaymentEventTypeValues.SUCCEEDED) return this.markPaid(orgId, event);
     if (event.type === PaymentEventTypeValues.EXPIRED) {
@@ -48,16 +44,6 @@ export class CommerceOrderPaymentHandlerService implements PaymentEventHandler {
       amountMinor,
       currency: payload.amount.currency,
       paidAt: payload.paidAt,
-    });
-
-    const config = await this.configService.findById(orgId, payload.configId);
-    if (!config.splitEnabled) return;
-
-    const { credentials } = await this.configService.getDecryptedCredentials(orgId, payload.configId);
-    this.logger.log(`payments.intents.executeTransfers — intent: ${payload.paymentIntentId}`);
-    await this.nats.send({ orgId }, 'payments', 'payments.intents.executeTransfers', {
-      paymentIntentId: payload.paymentIntentId,
-      credentials,
     });
   }
 

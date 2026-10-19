@@ -1,0 +1,1 @@
+ALTER TABLE "payments"."payment_intents" ALTER COLUMN "bank_account_id" DROP NOT NULL;

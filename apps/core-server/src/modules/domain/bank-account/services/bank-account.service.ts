@@ -111,18 +111,14 @@ export class BankAccountDomainService {
     return { success: true, message: `Bank account "${displayName(row)}" updated successfully.` };
   }
 
-  // Deletes a bank account nothing settles into; one a gateway config or linked account still uses is a 409
+  // Deletes a bank account nothing settles into; one a linked account still uses is a 409
   async delete(orgId: string, id: string, scope?: BankAccountScope): Promise<SuccessResponseDto> {
     const existing = await this.requireInScope(orgId, id, scope);
-    const { gatewayConfigs, linkedAccounts } = await this.bankAccountRepository.countReferences(id);
-    if (gatewayConfigs > 0 || linkedAccounts > 0) {
-      const uses = [
-        gatewayConfigs > 0 && pluralize('payment gateway config', gatewayConfigs, true),
-        linkedAccounts > 0 && pluralize('linked account', linkedAccounts, true),
-      ].filter(Boolean);
+    const { linkedAccounts } = await this.bankAccountRepository.countReferences(id);
+    if (linkedAccounts > 0) {
       throw new ConflictException({
         label: 'Bank Account In Use',
-        detail: `This bank account is used by ${uses.join(' and ')}. Move or remove them before deleting it.`,
+        detail: `This bank account is used by ${pluralize('linked account', linkedAccounts, true)}. Move or remove them before deleting it.`,
       });
     }
     await this.bankAccountRepository.delete(id);

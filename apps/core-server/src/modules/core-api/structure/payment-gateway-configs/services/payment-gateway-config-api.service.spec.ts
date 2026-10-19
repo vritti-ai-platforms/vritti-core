@@ -1,114 +1,127 @@
-import type { AppDomainRepository } from '@domain/app/repositories/app.repository';
-import type { BankAccountDomainRepository } from '@domain/bank-account/repositories/bank-account.repository';
-import type { CreatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-payment-gateway-config.dto';
 import type { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
-import type { SiteDomainRepository } from '@domain/site/repositories/site.repository';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import type { PaymentLinkedAccountDomainRepository } from '@domain/payment-linked-account/repositories/payment-linked-account.repository';
+import { ConflictException, ForbiddenException } from '@vritti/api-sdk/exceptions';
 import type { PaymentGatewaysGatewayService } from '@/modules/payments-gateway/gateways/services/payment-gateways-gateway.service';
 import { PaymentGatewayConfigService } from './payment-gateway-config-api.service';
 
 const ORG = 'org-1';
-const LE = 'le-1';
 
-type Problem = { label: string; errors: { field: string; message: string }[] };
+type Problem = { label: string; detail: string };
 
-const problemOf = (error: unknown): Problem => (error as BadRequestException).getResponse() as Problem;
+const problemOf = (error: unknown): Problem => (error as ConflictException).getResponse() as Problem;
 
-const input: CreatePaymentGatewayConfigDto = {
-  legalEntityId: LE,
-  bankAccountId: 'ba-1',
-  type: 'APP',
-  gatewayCode: 'razorpay',
-  credentials: { key_id: 'rzp_live_abc', key_secret: 's' },
-};
+const own = { id: 'pgc-1', kind: 'ORG', gatewayCode: 'razorpay' };
+const platform = { id: 'pgc-platform', kind: 'PLATFORM', gatewayCode: 'razorpay' };
 
-const GATEWAYS = [
-  { code: 'razorpay', credentialFields: ['key_id', 'key_secret'], supportsSplit: true },
-  { code: 'cashfree', credentialFields: ['app_id', 'secret_key'], supportsSplit: false },
-];
-
-describe('PaymentGatewayConfigService split payments', () => {
-  const domain = { create: jest.fn(), update: jest.fn(), findById: jest.fn() };
-  const bankAccounts = { findById: jest.fn() };
-  const gateways = { listGateways: jest.fn() };
+describe('PaymentGatewayConfigService', () => {
+  const domain = {
+    findById: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    updatePlatform: jest.fn(),
+  };
+  const linkedAccounts = { countByCollector: jest.fn() };
+  const gateways = { verifyConfig: jest.fn(), listGateways: jest.fn() };
   const service = new PaymentGatewayConfigService(
     domain as unknown as PaymentGatewayConfigDomainService,
-    bankAccounts as unknown as BankAccountDomainRepository,
-    {} as SiteDomainRepository,
-    {} as AppDomainRepository,
+    linkedAccounts as unknown as PaymentLinkedAccountDomainRepository,
     gateways as unknown as PaymentGatewaysGatewayService,
   );
 
   beforeEach(() => {
     jest.resetAllMocks();
-    bankAccounts.findById.mockResolvedValue({ id: 'ba-1', organizationId: ORG, legalEntityId: LE });
-    gateways.listGateways.mockResolvedValue(GATEWAYS);
+    domain.findById.mockResolvedValue(own);
+    linkedAccounts.countByCollector.mockResolvedValue(0);
+    domain.delete.mockResolvedValue({ success: true, message: 'deleted' });
   });
 
-  describe('create', () => {
-    it.each([
-      ['a gateway that supports splitting', 'razorpay'],
-      ['a gateway that cannot split', 'cashfree'],
-    ])('refuses split payments on %s while they are not wired end to end', async (_name, gatewayCode) => {
-      const error = await service.create(ORG, { ...input, gatewayCode, splitEnabled: true }).catch((e: unknown) => e);
+  describe('own gateways', () => {
+    it('refuses deleting a gateway that still has linked accounts, naming how many', async () => {
+      linkedAccounts.countByCollector.mockResolvedValue(2);
 
-      expect(error).toBeInstanceOf(BadRequestException);
-      expect(problemOf(error).label).toBe('Split Payments Not Available');
-      expect(problemOf(error).errors).toEqual([{ field: 'splitEnabled', message: 'Not available yet' }]);
-      expect(gateways.listGateways).not.toHaveBeenCalled();
-      expect(domain.create).not.toHaveBeenCalled();
+      const error = await service.delete(ORG, 'pgc-1').catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(ConflictException);
+      expect(problemOf(error).label).toBe('Gateway In Use');
+      expect(problemOf(error).detail).toContain('2 linked accounts are');
+      expect(domain.delete).not.toHaveBeenCalled();
     });
 
-    it('does not consult payments-service when split payments stay off', async () => {
-      await service.create(ORG, { ...input, gatewayCode: 'cashfree' });
+    it('deletes a gateway nothing depends on, mapping a foreign-key refusal to the same 409', async () => {
+      await service.delete(ORG, 'pgc-1');
+      expect(domain.delete).toHaveBeenCalledWith(ORG, 'pgc-1');
 
-      expect(gateways.listGateways).not.toHaveBeenCalled();
-      expect(domain.create).toHaveBeenCalled();
+      domain.delete.mockRejectedValue(Object.assign(new Error('fk'), { cause: { code: '23503' } }));
+      await expect(service.delete(ORG, 'pgc-1')).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('refuses changing the gateway behind registered linked accounts, but allows other edits', async () => {
+      linkedAccounts.countByCollector.mockResolvedValue(1);
+
+      await expect(service.update(ORG, 'pgc-1', { gatewayCode: 'cashfree' })).rejects.toBeInstanceOf(ConflictException);
+      expect(domain.update).not.toHaveBeenCalled();
+
+      await service.update(ORG, 'pgc-1', { label: 'Main', gatewayCode: 'razorpay' });
+      expect(domain.update).toHaveBeenCalledWith(ORG, 'pgc-1', { label: 'Main', gatewayCode: 'razorpay' });
+    });
+
+    it.each([
+      'update',
+      'delete',
+      'verify',
+    ] as const)('refuses %s on a platform row from an organization', async (action) => {
+      domain.findById.mockResolvedValue(platform);
+
+      const call =
+        action === 'update'
+          ? service.update(ORG, 'pgc-platform', { label: 'x' })
+          : action === 'delete'
+            ? service.delete(ORG, 'pgc-platform')
+            : service.verify(ORG, 'pgc-platform');
+
+      await expect(call).rejects.toBeInstanceOf(ForbiddenException);
+      expect(gateways.verifyConfig).not.toHaveBeenCalled();
+    });
+
+    it('verifies an own gateway through payments-service', async () => {
+      gateways.verifyConfig.mockResolvedValue({ success: true });
+
+      await service.verify(ORG, 'pgc-1');
+
+      expect(gateways.verifyConfig).toHaveBeenCalledWith(ORG, 'pgc-1');
     });
   });
 
-  describe('update', () => {
-    it.each([
-      ['razorpay'],
-      ['cashfree'],
-    ])('refuses switching split payments on for %s while they are not wired end to end', async (gatewayCode) => {
-      domain.findById.mockResolvedValue({ legalEntityId: LE, gatewayCode, splitEnabled: false });
-
-      const error = await service
-        .update(ORG, 'pgc-1', { splitEnabled: true }, { legalEntityId: LE })
-        .catch((e: unknown) => e);
-
-      expect(error).toBeInstanceOf(BadRequestException);
-      expect(problemOf(error).label).toBe('Split Payments Not Available');
-      expect(problemOf(error).errors[0].field).toBe('splitEnabled');
-      expect(domain.update).not.toHaveBeenCalled();
+  describe('platform gateways', () => {
+    beforeEach(() => {
+      domain.findById.mockResolvedValue(platform);
     });
 
-    it('rejects a gateway change that cannot split while split payments are on', async () => {
-      domain.findById.mockResolvedValue({ legalEntityId: LE, gatewayCode: 'razorpay', splitEnabled: true });
+    it('updates the fee on a platform row with the platform scope', async () => {
+      await service.updatePlatform('pgc-platform', { platformFeeBps: 150 });
 
-      await expect(
-        service.update(ORG, 'pgc-1', { gatewayCode: 'cashfree' }, { legalEntityId: LE }),
-      ).rejects.toBeInstanceOf(BadRequestException);
-      expect(domain.update).not.toHaveBeenCalled();
+      expect(domain.findById).toHaveBeenCalledWith(null, 'pgc-platform');
+      expect(domain.updatePlatform).toHaveBeenCalledWith('pgc-platform', { platformFeeBps: 150 });
     });
 
-    it('leaves an unrelated edit of a split config unchecked', async () => {
-      domain.findById.mockResolvedValue({ legalEntityId: LE, gatewayCode: 'razorpay', splitEnabled: true });
+    it('refuses changing the gateway of a platform row once set up', async () => {
+      const error = await service.updatePlatform('pgc-platform', { gatewayCode: 'cashfree' }).catch((e: unknown) => e);
 
-      await service.update(ORG, 'pgc-1', { label: 'Storefront' }, { legalEntityId: LE });
-
-      expect(gateways.listGateways).not.toHaveBeenCalled();
-      expect(domain.update).toHaveBeenCalled();
+      expect(error).toBeInstanceOf(ConflictException);
+      expect(problemOf(error).label).toBe('Gateway Cannot Change');
+      expect(domain.updatePlatform).not.toHaveBeenCalled();
     });
 
-    it('allows switching split payments off on any gateway', async () => {
-      domain.findById.mockResolvedValue({ legalEntityId: LE, gatewayCode: 'cashfree', splitEnabled: true });
+    it('verifies and deletes with the platform scope, mapping a foreign-key refusal to 409', async () => {
+      gateways.verifyConfig.mockResolvedValue({ success: true });
+      await service.verifyPlatform('pgc-platform');
+      expect(gateways.verifyConfig).toHaveBeenCalledWith(null, 'pgc-platform');
 
-      await service.update(ORG, 'pgc-1', { splitEnabled: false }, { legalEntityId: LE });
+      await service.deletePlatform('pgc-platform');
+      expect(domain.delete).toHaveBeenCalledWith(null, 'pgc-platform');
 
-      expect(gateways.listGateways).not.toHaveBeenCalled();
-      expect(domain.update).toHaveBeenCalled();
+      domain.delete.mockRejectedValue({ code: '23503' });
+      await expect(service.deletePlatform('pgc-platform')).rejects.toBeInstanceOf(ConflictException);
     });
   });
 });

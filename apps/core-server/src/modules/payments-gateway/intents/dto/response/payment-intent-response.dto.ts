@@ -26,7 +26,7 @@ export interface PaymentIntentResponseDto {
   description: string | null;
   configId: string;
   gatewayCode: string;
-  bankAccountId: string;
+  bankAccountId: string | null;
   type: PaymentGatewayConfigType;
   idempotencyKey: string;
   receipt: string;

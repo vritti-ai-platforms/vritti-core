@@ -1,4 +1,3 @@
-import type { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { Logger } from '@nestjs/common';
 import type { ScopedNatsClientService } from '@/services/scoped-nats-client.service';
 import type { PaymentEventResponseDto } from '../../intents/dto/response/payment-event-response.dto';
@@ -32,12 +31,7 @@ function eventOf(type: string, siteId: string | null = 'site-1'): PaymentEventRe
 
 describe('CommerceOrderPaymentHandlerService', () => {
   const send = jest.fn();
-  const findById = jest.fn();
-  const getDecryptedCredentials = jest.fn();
-  const handler = new CommerceOrderPaymentHandlerService(
-    { send } as unknown as ScopedNatsClientService,
-    { findById, getDecryptedCredentials } as unknown as PaymentGatewayConfigDomainService,
-  );
+  const handler = new CommerceOrderPaymentHandlerService({ send } as unknown as ScopedNatsClientService);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -49,8 +43,6 @@ describe('CommerceOrderPaymentHandlerService', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('marks the order paid under the intent site, with the amount in minor units', async () => {
-    findById.mockResolvedValue({ splitEnabled: false });
-
     await handler.handle(ORG, eventOf('payment_intent.succeeded'));
 
     expect(send).toHaveBeenCalledWith({ orgId: ORG, siteId: 'site-1' }, 'commerce', 'site.orders.markPaid', {
@@ -63,27 +55,12 @@ describe('CommerceOrderPaymentHandlerService', () => {
       paidAt: '2026-10-09T11:50:00.000Z',
     });
     expect(send).toHaveBeenCalledTimes(1);
-    expect(getDecryptedCredentials).not.toHaveBeenCalled();
   });
 
-  it('releases split transfers after marking paid when the config collects for linked accounts', async () => {
-    findById.mockResolvedValue({ splitEnabled: true });
-    getDecryptedCredentials.mockResolvedValue({ credentials: { key_id: 'k', key_secret: 's' } });
-
-    await handler.handle(ORG, eventOf('payment_intent.succeeded'));
-
-    expect(findById).toHaveBeenCalledWith(ORG, 'cfg-1');
-    expect(send).toHaveBeenLastCalledWith({ orgId: ORG }, 'payments', 'payments.intents.executeTransfers', {
-      paymentIntentId: 'pi-1',
-      credentials: { key_id: 'k', key_secret: 's' },
-    });
-  });
-
-  it('does not release transfers when marking the order paid failed', async () => {
+  it('surfaces a commerce failure so the event is retried', async () => {
     send.mockRejectedValue(new Error('commerce down'));
 
     await expect(handler.handle(ORG, eventOf('payment_intent.succeeded'))).rejects.toThrow('commerce down');
-    expect(findById).not.toHaveBeenCalled();
   });
 
   it('cancels the unpaid order when the intent expires', async () => {

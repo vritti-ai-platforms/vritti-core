@@ -6531,177 +6531,12 @@
         ]
       }
     },
-    "/payment-gateway-configs/internal/table": {
+    "/payment-gateway-configs/internal": {
       "get": {
-        "description": "Resolves one page of the organization's payment gateway configs from a serialized view state (filters, search, sort, pagination) that cloud holds. Secrets are never included. Requires Ed25519 signature headers (x-timestamp, x-signature).",
-        "operationId": "PaymentGatewayConfigInternalController_findForTable",
-        "parameters": [
-          {
-            "name": "filters",
-            "required": false,
-            "in": "query",
-            "description": "JSON-stringified FilterCondition[]",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "description": "JSON-stringified SearchState",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "required": false,
-            "in": "query",
-            "description": "JSON-stringified SortCondition[]",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 0,
-              "type": "number"
-            }
-          },
-          {
-            "name": "x-timestamp",
-            "in": "header",
-            "description": "Unix seconds when the request was signed",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-signature",
-            "in": "header",
-            "description": "Ed25519 signature of the canonical request (base64)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-org-id",
-            "in": "header",
-            "description": "Organization ID scoping the request",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Payment gateway configs page retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaymentGatewayConfigsPageResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or missing request signature."
-          }
-        },
-        "summary": "Payment gateway configs table",
-        "tags": [
-          "Structure - Payment Gateway Configs (internal)"
-        ]
-      }
-    },
-    "/payment-gateway-configs/internal/gateways": {
-      "get": {
-        "description": "The gateways payments-service can charge through, with the credential fields each one takes. Intersect with the catalog to offer only what the deployment is entitled to.",
-        "operationId": "PaymentGatewayConfigInternalController_listGateways",
-        "parameters": [
-          {
-            "name": "x-timestamp",
-            "in": "header",
-            "description": "Unix seconds when the request was signed",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-signature",
-            "in": "header",
-            "description": "Ed25519 signature of the canonical request (base64)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-org-id",
-            "in": "header",
-            "description": "Organization ID scoping the request",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Payment gateways retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PaymentGatewayOptionDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or missing request signature."
-          }
-        },
-        "summary": "List supported payment gateways",
-        "tags": [
-          "Structure - Payment Gateway Configs (internal)"
-        ]
-      }
-    },
-    "/payment-gateway-configs/internal/legal-entity/{legalEntityId}": {
-      "get": {
-        "description": "Returns every payment gateway config of the legal entity, newest first.",
+        "description": "The organization's own gateways (ORG) followed by Vritti's (PLATFORM) with the key id withheld. Secrets are never included.",
         "operationId": "PaymentGatewayConfigInternalController_list",
         "parameters": [
           {
-            "name": "legalEntityId",
-            "required": true,
-            "in": "path",
-            "description": "Legal entity ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "x-timestamp",
             "in": "header",
             "description": "Unix seconds when the request was signed",
@@ -6747,81 +6582,13 @@
             "description": "Invalid or missing request signature."
           }
         },
-        "summary": "List payment gateway configs of a legal entity",
+        "summary": "List the organization's payment gateway configs",
         "tags": [
           "Structure - Payment Gateway Configs (internal)"
         ]
-      }
-    },
-    "/payment-gateway-configs/internal/bank-account/{bankAccountId}": {
-      "get": {
-        "description": "Returns every payment gateway config that settles into the bank account, newest first.",
-        "operationId": "PaymentGatewayConfigInternalController_listByBankAccount",
-        "parameters": [
-          {
-            "name": "bankAccountId",
-            "required": true,
-            "in": "path",
-            "description": "Bank account ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-timestamp",
-            "in": "header",
-            "description": "Unix seconds when the request was signed",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-signature",
-            "in": "header",
-            "description": "Ed25519 signature of the canonical request (base64)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-org-id",
-            "in": "header",
-            "description": "Organization ID scoping the request",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Payment gateway configs retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PaymentGatewayConfigDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or missing request signature."
-          }
-        },
-        "summary": "List payment gateway configs settling into a bank account",
-        "tags": [
-          "Structure - Payment Gateway Configs (internal)"
-        ]
-      }
-    },
-    "/payment-gateway-configs/internal": {
+      },
       "post": {
-        "description": "Adds a payment gateway config to a legal entity of the organization. Credentials are validated against the gateway field list, encrypted at rest and never returned. One config per legal entity, type, gateway, site and app.",
+        "description": "Credentials are validated against the gateway field list, encrypted at rest and never returned. The label must be unique among the organization's gateways.",
         "operationId": "PaymentGatewayConfigInternalController_create",
         "parameters": [
           {
@@ -6874,16 +6641,362 @@
             }
           },
           "400": {
-            "description": "Invalid input, unsupported gateway, incomplete credentials, or a reference outside the legal entity."
+            "description": "Invalid input, unsupported gateway or incomplete credentials."
           },
           "401": {
             "description": "Invalid or missing request signature."
           },
           "409": {
-            "description": "A config already occupies this scope."
+            "description": "The label already names another gateway."
           }
         },
-        "summary": "Create payment gateway config",
+        "summary": "Connect one of the organization's own payment gateways",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/gateways": {
+      "get": {
+        "description": "The gateways payments-service can charge through, with the credential fields each one takes. Intersect with the catalog to offer only what the deployment is entitled to.",
+        "operationId": "PaymentGatewayConfigInternalController_listGateways",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateways retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentGatewayOptionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List supported payment gateways",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/platform": {
+      "get": {
+        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header.",
+        "operationId": "PaymentGatewayConfigInternalController_listPlatform",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform gateways retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentGatewayConfigDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List the platform payment gateways",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      },
+      "post": {
+        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header.",
+        "operationId": "PaymentGatewayConfigInternalController_createPlatform",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlatformPaymentGatewayConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Platform gateway set up successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, unsupported gateway or incomplete credentials."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "409": {
+            "description": "The label already names another platform gateway."
+          }
+        },
+        "summary": "Set up a platform payment gateway",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/platform/{id}": {
+      "patch": {
+        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header. Credentials, label and fee; the gateway itself cannot change once set up.",
+        "operationId": "PaymentGatewayConfigInternalController_updatePlatform",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlatformPaymentGatewayConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Platform gateway updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or incomplete credentials."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          },
+          "409": {
+            "description": "The gateway cannot change once set up, or the label is taken."
+          }
+        },
+        "summary": "Update a platform payment gateway",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      },
+      "delete": {
+        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header. Refused while any organization's linked accounts reference it.",
+        "operationId": "PaymentGatewayConfigInternalController_deletePlatform",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform gateway removed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          },
+          "409": {
+            "description": "Linked accounts are registered under this gateway."
+          }
+        },
+        "summary": "Remove a platform payment gateway",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/platform/{id}/verify": {
+      "post": {
+        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header.",
+        "operationId": "PaymentGatewayConfigInternalController_verifyPlatform",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform gateway verified successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentGatewayConfigVerificationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The provider rejected the credentials."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payment gateway config not found."
+          }
+        },
+        "summary": "Verify a platform payment gateway",
         "tags": [
           "Structure - Payment Gateway Configs (internal)"
         ]
@@ -6900,26 +7013,6 @@
             "in": "path",
             "description": "Payment gateway config ID",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "legalEntityId",
-            "required": false,
-            "in": "query",
-            "description": "Legal entity the config must belong to",
-            "schema": {
-              "example": "uuid-here",
-              "type": "string"
-            }
-          },
-          {
-            "name": "bankAccountId",
-            "required": false,
-            "in": "query",
-            "description": "Bank account the config must settle into",
-            "schema": {
-              "example": "uuid-here",
               "type": "string"
             }
           },
@@ -6975,7 +7068,7 @@
         ]
       },
       "patch": {
-        "description": "Updates a payment gateway config. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext.",
+        "description": "Updates one of the organization's own gateways. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext. The gateway cannot change while linked accounts are registered under it.",
         "operationId": "PaymentGatewayConfigInternalController_update",
         "parameters": [
           {
@@ -6984,26 +7077,6 @@
             "in": "path",
             "description": "Payment gateway config ID",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "legalEntityId",
-            "required": false,
-            "in": "query",
-            "description": "Legal entity the config must belong to",
-            "schema": {
-              "example": "uuid-here",
-              "type": "string"
-            }
-          },
-          {
-            "name": "bankAccountId",
-            "required": false,
-            "in": "query",
-            "description": "Bank account the config must settle into",
-            "schema": {
-              "example": "uuid-here",
               "type": "string"
             }
           },
@@ -7062,11 +7135,14 @@
           "401": {
             "description": "Invalid or missing request signature."
           },
+          "403": {
+            "description": "Vritti's gateways cannot be changed from here."
+          },
           "404": {
             "description": "Payment gateway config not found."
           },
           "409": {
-            "description": "A config already occupies this scope."
+            "description": "Linked accounts are registered under this gateway, or the label is taken."
           }
         },
         "summary": "Update payment gateway config",
@@ -7075,7 +7151,7 @@
         ]
       },
       "delete": {
-        "description": "Deletes a payment gateway config.",
+        "description": "Removes one of the organization's own gateways, unless linked accounts still depend on it.",
         "operationId": "PaymentGatewayConfigInternalController_delete",
         "parameters": [
           {
@@ -7084,26 +7160,6 @@
             "in": "path",
             "description": "Payment gateway config ID",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "legalEntityId",
-            "required": false,
-            "in": "query",
-            "description": "Legal entity the config must belong to",
-            "schema": {
-              "example": "uuid-here",
-              "type": "string"
-            }
-          },
-          {
-            "name": "bankAccountId",
-            "required": false,
-            "in": "query",
-            "description": "Bank account the config must settle into",
-            "schema": {
-              "example": "uuid-here",
               "type": "string"
             }
           },
@@ -7149,8 +7205,14 @@
           "401": {
             "description": "Invalid or missing request signature."
           },
+          "403": {
+            "description": "Vritti's gateways cannot be changed from here."
+          },
           "404": {
             "description": "Payment gateway config not found."
+          },
+          "409": {
+            "description": "Linked accounts are registered under this gateway."
           }
         },
         "summary": "Delete payment gateway config",
@@ -7170,26 +7232,6 @@
             "in": "path",
             "description": "Payment gateway config ID",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "legalEntityId",
-            "required": false,
-            "in": "query",
-            "description": "Legal entity the config must belong to",
-            "schema": {
-              "example": "uuid-here",
-              "type": "string"
-            }
-          },
-          {
-            "name": "bankAccountId",
-            "required": false,
-            "in": "query",
-            "description": "Bank account the config must settle into",
-            "schema": {
-              "example": "uuid-here",
               "type": "string"
             }
           },
@@ -7237,6 +7279,9 @@
           },
           "401": {
             "description": "Invalid or missing request signature."
+          },
+          "403": {
+            "description": "Vritti's gateways cannot be changed from here."
           },
           "404": {
             "description": "Payment gateway config not found."
@@ -43125,46 +43170,29 @@
             "type": "string",
             "example": "uuid-here"
           },
-          "legalEntityId": {
+          "kind": {
             "type": "string",
-            "example": "uuid-here"
-          },
-          "bankAccountId": {
-            "type": "string",
-            "example": "uuid-here"
-          },
-          "type": {
-            "type": "string",
+            "description": "PLATFORM is one of Vritti's gateways on this deployment; ORG is the organization's own account",
             "enum": [
-              "APP",
-              "POS",
-              "B2B"
+              "PLATFORM",
+              "ORG"
             ],
-            "example": "APP"
-          },
-          "siteId": {
-            "type": "object",
-            "example": "uuid-here",
-            "nullable": true
-          },
-          "appId": {
-            "type": "object",
-            "example": "uuid-here",
-            "nullable": true
+            "example": "ORG"
           },
           "gatewayCode": {
             "type": "string",
             "example": "razorpay"
           },
           "label": {
-            "type": "object",
-            "example": "Storefront Razorpay",
-            "nullable": true
+            "type": "string",
+            "description": "Tells the rows of a group apart; unique within it",
+            "example": "Main Razorpay"
           },
           "keyId": {
-            "type": "string",
-            "description": "The public half of the credential pair",
-            "example": "rzp_live_AbCdEf123456"
+            "type": "object",
+            "description": "The public half of the credential pair; withheld from organizations on PLATFORM rows",
+            "example": "rzp_live_AbCdEf123456",
+            "nullable": true
           },
           "hasWebhookSecret": {
             "type": "boolean",
@@ -43176,10 +43204,10 @@
             "example": "MID12345",
             "nullable": true
           },
-          "splitEnabled": {
-            "type": "boolean",
-            "description": "Whether this config collects payments that are split to linked accounts",
-            "example": false
+          "platformFeeBps": {
+            "type": "number",
+            "description": "Vritti's fee in basis points, applied on a PLATFORM row only",
+            "example": 150
           },
           "verifiedAt": {
             "type": "object",
@@ -43198,33 +43226,13 @@
         },
         "required": [
           "id",
-          "legalEntityId",
-          "bankAccountId",
-          "type",
+          "kind",
           "gatewayCode",
-          "keyId",
+          "label",
           "hasWebhookSecret",
-          "splitEnabled",
+          "platformFeeBps",
           "createdAt",
           "updatedAt"
-        ]
-      },
-      "PaymentGatewayConfigsPageResponseDto": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PaymentGatewayConfigDto"
-            }
-          },
-          "count": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "result",
-          "count"
         ]
       },
       "PaymentGatewayOptionDto": {
@@ -43257,48 +43265,18 @@
           "supportsSplit"
         ]
       },
-      "CreatePaymentGatewayConfigDto": {
+      "CreatePlatformPaymentGatewayConfigDto": {
         "type": "object",
         "properties": {
-          "legalEntityId": {
-            "type": "string",
-            "description": "Owning legal entity ID",
-            "example": "uuid-here"
-          },
-          "bankAccountId": {
-            "type": "string",
-            "description": "Bank account the gateway settles into",
-            "example": "uuid-here"
-          },
-          "type": {
-            "type": "string",
-            "description": "Where the gateway is used",
-            "enum": [
-              "APP",
-              "POS",
-              "B2B"
-            ],
-            "example": "APP"
-          },
-          "siteId": {
-            "type": "object",
-            "description": "Site the config is pinned to",
-            "example": "uuid-here"
-          },
-          "appId": {
-            "type": "object",
-            "description": "App the config is pinned to (type must be APP)",
-            "example": "uuid-here"
-          },
           "gatewayCode": {
             "type": "string",
             "description": "Gateway provider code",
             "example": "razorpay"
           },
           "label": {
-            "type": "object",
-            "description": "Display label for the config",
-            "example": "Storefront Razorpay"
+            "type": "string",
+            "description": "Tells this gateway apart from the others; unique within its group",
+            "example": "Main Razorpay"
           },
           "credentials": {
             "type": "object",
@@ -43317,52 +43295,30 @@
             "description": "Merchant ID assigned by the provider",
             "example": "MID12345"
           },
-          "splitEnabled": {
-            "type": "boolean",
-            "description": "Collect payments through this config and split them to linked accounts; the gateway must support splits",
-            "example": false
+          "platformFeeBps": {
+            "type": "number",
+            "description": "Vritti's fee in basis points on payments it collects",
+            "example": 150
           }
         },
         "required": [
-          "legalEntityId",
-          "bankAccountId",
-          "type",
           "gatewayCode",
+          "label",
           "credentials"
         ]
       },
-      "UpdatePaymentGatewayConfigDto": {
+      "UpdatePlatformPaymentGatewayConfigDto": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "description": "Where the gateway is used",
-            "enum": [
-              "APP",
-              "POS",
-              "B2B"
-            ],
-            "example": "APP"
-          },
-          "siteId": {
-            "type": "object",
-            "description": "Site the config is pinned to",
-            "example": "uuid-here"
-          },
-          "appId": {
-            "type": "object",
-            "description": "App the config is pinned to (type must be APP)",
-            "example": "uuid-here"
-          },
           "gatewayCode": {
             "type": "string",
             "description": "Gateway provider code",
             "example": "razorpay"
           },
           "label": {
-            "type": "object",
-            "description": "Display label for the config",
-            "example": "Storefront Razorpay"
+            "type": "string",
+            "description": "Tells this gateway apart from the others; unique within its group",
+            "example": "Main Razorpay"
           },
           "credentials": {
             "type": "object",
@@ -43381,10 +43337,10 @@
             "description": "Merchant ID assigned by the provider",
             "example": "MID12345"
           },
-          "splitEnabled": {
-            "type": "boolean",
-            "description": "Collect payments through this config and split them to linked accounts; the gateway must support splits",
-            "example": false
+          "platformFeeBps": {
+            "type": "number",
+            "description": "Vritti's fee in basis points on payments it collects",
+            "example": 150
           }
         }
       },
@@ -43427,6 +43383,75 @@
           "message",
           "data"
         ]
+      },
+      "CreatePaymentGatewayConfigDto": {
+        "type": "object",
+        "properties": {
+          "gatewayCode": {
+            "type": "string",
+            "description": "Gateway provider code",
+            "example": "razorpay"
+          },
+          "label": {
+            "type": "string",
+            "description": "Tells this gateway apart from the others; unique within its group",
+            "example": "Main Razorpay"
+          },
+          "credentials": {
+            "type": "object",
+            "description": "Provider credentials keyed by field name; the required keys depend on gatewayCode",
+            "example": {
+              "key_id": "rzp_live_AbCdEf123456",
+              "key_secret": "xxxxxxxxxxxxxxxx"
+            }
+          },
+          "webhookSecret": {
+            "type": "object",
+            "description": "Webhook signing secret issued by the provider"
+          },
+          "providerMerchantId": {
+            "type": "object",
+            "description": "Merchant ID assigned by the provider",
+            "example": "MID12345"
+          }
+        },
+        "required": [
+          "gatewayCode",
+          "label",
+          "credentials"
+        ]
+      },
+      "UpdatePaymentGatewayConfigDto": {
+        "type": "object",
+        "properties": {
+          "gatewayCode": {
+            "type": "string",
+            "description": "Gateway provider code",
+            "example": "razorpay"
+          },
+          "label": {
+            "type": "string",
+            "description": "Tells this gateway apart from the others; unique within its group",
+            "example": "Main Razorpay"
+          },
+          "credentials": {
+            "type": "object",
+            "description": "Provider credentials keyed by field name; the required keys depend on gatewayCode",
+            "example": {
+              "key_id": "rzp_live_AbCdEf123456",
+              "key_secret": "xxxxxxxxxxxxxxxx"
+            }
+          },
+          "webhookSecret": {
+            "type": "object",
+            "description": "Webhook signing secret issued by the provider"
+          },
+          "providerMerchantId": {
+            "type": "object",
+            "description": "Merchant ID assigned by the provider",
+            "example": "MID12345"
+          }
+        }
       },
       "PaymentLinkedAccountDto": {
         "type": "object",

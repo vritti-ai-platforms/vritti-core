@@ -143,21 +143,20 @@ describe('BankAccountDomainService', () => {
   describe('delete', () => {
     it('refuses with 409 Bank Account In Use naming what still settles into it', async () => {
       findById.mockResolvedValue(row());
-      countReferences.mockResolvedValue({ gatewayConfigs: 2, linkedAccounts: 1 });
+      countReferences.mockResolvedValue({ linkedAccounts: 2 });
 
       const error = await service.delete(ORG, 'ba-1').catch((e: unknown) => e);
 
       expect(error).toBeInstanceOf(ConflictException);
       const body = (error as ConflictException).getResponse() as { label: string; detail: string };
       expect(body.label).toBe('Bank Account In Use');
-      expect(body.detail).toContain('2 payment gateway configs');
-      expect(body.detail).toContain('1 linked account');
+      expect(body.detail).toContain('2 linked accounts');
       expect(deleteRow).not.toHaveBeenCalled();
     });
 
     it('deletes an account nothing references', async () => {
       findById.mockResolvedValue(row());
-      countReferences.mockResolvedValue({ gatewayConfigs: 0, linkedAccounts: 0 });
+      countReferences.mockResolvedValue({ linkedAccounts: 0 });
 
       await expect(service.delete(ORG, 'ba-1')).resolves.toMatchObject({ success: true });
       expect(deleteRow).toHaveBeenCalledWith('ba-1');

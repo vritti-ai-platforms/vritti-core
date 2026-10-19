@@ -38,13 +38,13 @@ export class PaymentLinkedAccountDomainService {
     private readonly gatewayConfigService: PaymentGatewayConfigDomainService,
   ) {}
 
-  // Lists a collector's linked accounts, provided the collector sits in the caller's scope
+  // Lists a collector's linked accounts, provided the collector belongs to the organization
   async listByCollector(
     orgId: string,
     collectorConfigId: string,
-    scope: PaymentLinkedAccountScope,
+    _scope: PaymentLinkedAccountScope,
   ): Promise<PaymentLinkedAccountDto[]> {
-    await this.gatewayConfigService.findById(orgId, collectorConfigId, { legalEntityId: scope.legalEntityId });
+    await this.gatewayConfigService.findById(orgId, collectorConfigId);
     const rows = await this.linkedAccountRepository.findByCollector(orgId, collectorConfigId);
     return rows.map(toDto);
   }
@@ -52,19 +52,10 @@ export class PaymentLinkedAccountDomainService {
   // Validates a registration and records it as PENDING, returning what the provider call needs.
   async reserve(
     orgId: string,
-    scope: PaymentLinkedAccountScope,
+    _scope: PaymentLinkedAccountScope,
     dto: Pick<RegisterPaymentLinkedAccountDto, 'collectorConfigId' | 'bankAccountId'>,
   ): Promise<PaymentLinkedAccountReservation> {
-    const collector = await this.gatewayConfigService.findById(orgId, dto.collectorConfigId, {
-      legalEntityId: scope.legalEntityId,
-    });
-    if (!collector.splitEnabled) {
-      throw new BadRequestException({
-        label: 'Split Payments Off',
-        detail: 'Turn on split payments for this gateway config before registering linked accounts against it.',
-        errors: [{ field: 'collectorConfigId', message: 'Split payments disabled' }],
-      });
-    }
+    await this.gatewayConfigService.findById(orgId, dto.collectorConfigId);
 
     const bankAccount = await this.linkedAccountRepository.findBankAccountInOrg(orgId, dto.bankAccountId);
     if (!bankAccount) {
@@ -211,18 +202,15 @@ export class PaymentLinkedAccountDomainService {
     return toDto(row);
   }
 
-  // Loads a linked account, hiding rows outside the organization or the collector's legal entity behind a 404
+  // Loads a linked account, hiding rows outside the organization behind a 404. Collectors are org-level now, so
+  // the caller's legal entity no longer narrows what it may see
   private async requireInScope(
     orgId: string,
     id: string,
-    scope: PaymentLinkedAccountScope,
+    _scope: PaymentLinkedAccountScope,
   ): Promise<PaymentLinkedAccountWithScope> {
     const row = await this.linkedAccountRepository.findWithScopeById(id);
-    if (
-      !row ||
-      row.account.organizationId !== orgId ||
-      (scope.legalEntityId !== undefined && row.collectorLegalEntityId !== scope.legalEntityId)
-    ) {
+    if (!row || row.account.organizationId !== orgId) {
       throw new NotFoundException('Linked account not found.');
     }
     return row;

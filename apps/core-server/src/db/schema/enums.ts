@@ -104,6 +104,13 @@ export const PaymentGatewayConfigTypeValues = {
   B2B: 'B2B' as const,
 };
 
+export const paymentGatewayConfigKindEnum = coreSchema.enum('payment_gateway_config_kind', ['PLATFORM', 'ORG']);
+export type PaymentGatewayConfigKind = (typeof paymentGatewayConfigKindEnum.enumValues)[number];
+export const PaymentGatewayConfigKindValues = {
+  PLATFORM: 'PLATFORM' as const,
+  ORG: 'ORG' as const,
+};
+
 export const paymentLinkedAccountStatusEnum = coreSchema.enum('payment_linked_account_status', [
   'PENDING',
   'IN_REVIEW',

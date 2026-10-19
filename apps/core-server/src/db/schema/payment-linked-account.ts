@@ -15,7 +15,7 @@ export const paymentLinkedAccounts = coreSchema.table(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     collectorConfigId: uuid('collector_config_id')
       .notNull()
-      .references(() => paymentGatewayConfigs.id, { onDelete: 'cascade' }),
+      .references(() => paymentGatewayConfigs.id, { onDelete: 'restrict' }),
     bankAccountId: uuid('bank_account_id')
       .notNull()
       .references(() => bankAccounts.id, { onDelete: 'restrict' }),

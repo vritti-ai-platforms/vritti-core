@@ -22,7 +22,7 @@ export const paymentIntents = paymentsSchema.table(
     partyId: uuid('party_id'),
     configId: uuid('config_id').notNull(),
     gatewayCode: varchar('gateway_code', { length: 100 }).notNull(),
-    bankAccountId: uuid('bank_account_id').notNull(),
+    bankAccountId: uuid('bank_account_id'),
     type: paymentChannelTypeEnum('type').notNull(),
     // What is being paid for, as the caller names it — an order, a booking, a donation. Opaque to payments:
     // it is handed back on every event so the owner can act on it

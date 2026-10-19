@@ -371,7 +371,7 @@ export class PaymentLifecycleService {
         partyId: dto.partyId ?? null,
         configId: dto.configId,
         gatewayCode: dto.gatewayCode,
-        bankAccountId: dto.bankAccountId,
+        bankAccountId: dto.bankAccountId ?? null,
         type: dto.type,
         referenceType: dto.referenceType,
         referenceId: dto.referenceId,

@@ -1,5 +1,8 @@
 import type { PaymentGatewayConfigVerificationResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-config-verification-response.dto';
-import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
+import {
+  PaymentGatewayConfigDomainService,
+  type PaymentGatewayConfigScope,
+} from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { PaymentGatewayOptionDto } from '../dto/response/payment-gateway-option.dto';
@@ -29,8 +32,12 @@ export class PaymentGatewaysGatewayService {
     return gateways;
   }
 
-  // Has the provider check a config's stored credentials, then records the pass on the config
-  async verifyConfig(orgId: string, configId: string): Promise<PaymentGatewayConfigVerificationResponseDto> {
+  // Has the provider check a config's stored credentials, then records the pass on the config. `orgId` null is the
+  // platform scope (cloud admin verifying Vritti's gateway)
+  async verifyConfig(
+    orgId: PaymentGatewayConfigScope,
+    configId: string,
+  ): Promise<PaymentGatewayConfigVerificationResponseDto> {
     const { gatewayCode, credentials } = await this.configService.getDecryptedCredentials(orgId, configId);
 
     this.logger.log(`payments.gateways.verifyCredentials — config: ${configId} gateway: ${gatewayCode}`);

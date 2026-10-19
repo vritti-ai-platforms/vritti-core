@@ -91,8 +91,9 @@ export class CreatePaymentIntentDto {
   @MaxLength(100)
   gatewayCode: string;
 
+  @IsOptional()
   @IsUUID()
-  bankAccountId: string;
+  bankAccountId?: string;
 
   @IsEnum(PaymentChannelTypeValues)
   type: PaymentChannelType;

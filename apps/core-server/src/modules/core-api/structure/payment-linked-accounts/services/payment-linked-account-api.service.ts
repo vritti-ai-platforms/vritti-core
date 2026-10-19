@@ -34,6 +34,7 @@ export class PaymentLinkedAccountService {
     scope: PaymentLinkedAccountScope,
     dto: RegisterPaymentLinkedAccountDto,
   ): Promise<CreateResponseDto<PaymentLinkedAccountDto>> {
+    assertPayoutAccountsAvailable();
     const reservation = await this.linkedAccountService.reserve(orgId, scope, dto);
 
     let result: CreateLinkedAccountResult;
@@ -126,6 +127,19 @@ export class PaymentLinkedAccountService {
   async delete(orgId: string, id: string, scope: PaymentLinkedAccountScope): Promise<SuccessResponseDto> {
     return this.linkedAccountService.delete(orgId, id, scope);
   }
+}
+
+// Linked accounts are being replaced by payout accounts (per legal entity, under the organization's collector);
+// until those ship no new registration is taken, so nothing is onboarded at a gateway that the next model moves
+const PAYOUT_ACCOUNTS_AVAILABLE = false;
+
+// Refuses a registration until payout accounts are wired end to end
+function assertPayoutAccountsAvailable(): void {
+  if (PAYOUT_ACCOUNTS_AVAILABLE) return;
+  throw new BadRequestException({
+    label: 'Not Available Yet',
+    detail: 'Payout accounts arrive in the next release. Existing linked accounts keep working until then.',
+  });
 }
 
 // Pulls the RFC 9457 detail out of a NATS rejection or thrown error for storage on the failed row

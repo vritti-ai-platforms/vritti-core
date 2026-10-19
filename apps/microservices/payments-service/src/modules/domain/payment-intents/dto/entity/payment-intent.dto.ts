@@ -11,7 +11,7 @@ export class PaymentIntentDto {
   description: string | null;
   configId: string;
   gatewayCode: string;
-  bankAccountId: string;
+  bankAccountId: string | null;
   type: PaymentChannelType;
   idempotencyKey: string;
   receipt: string;
@@ -46,7 +46,7 @@ export class PaymentIntentDto {
     dto.description = entity.description ?? null;
     dto.configId = entity.configId;
     dto.gatewayCode = entity.gatewayCode;
-    dto.bankAccountId = entity.bankAccountId;
+    dto.bankAccountId = entity.bankAccountId ?? null;
     dto.type = entity.type;
     dto.idempotencyKey = entity.idempotencyKey;
     dto.receipt = entity.receipt;
