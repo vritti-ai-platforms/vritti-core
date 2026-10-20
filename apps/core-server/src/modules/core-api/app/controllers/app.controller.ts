@@ -61,6 +61,7 @@ export class AppController {
 
     if (dto.name !== undefined) await this.appService.rename(id, dto.name);
     if (dto.permissions !== undefined) await this.appService.setPermissions(id, dto.permissions);
+    if (dto.baseUrl !== undefined) await this.appService.setBaseUrl(id, dto.baseUrl);
     if (dto.allowedOrigins !== undefined) await this.appService.setAllowedOrigins(id, dto.allowedOrigins);
     const app =
       dto.isActive !== undefined ? await this.appService.setActive(id, dto.isActive) : await this.requireApp(id, orgId);

@@ -11,6 +11,7 @@ export class AppResponseDto {
   @ApiProperty() isActive: boolean;
   // Returned so the cloud editor opens on what is currently granted
   @ApiProperty() permissions: FeatureUnlocks;
+  @ApiPropertyOptional({ nullable: true }) baseUrl: string | null;
   @ApiProperty({ type: [String] }) allowedOrigins: string[];
   @ApiPropertyOptional({ nullable: true }) lastUsedAt: string | null;
   @ApiPropertyOptional({ nullable: true }) revokedAt: string | null;
@@ -19,6 +20,7 @@ export class AppResponseDto {
   constructor(app: App) {
     this.id = app.id;
     this.clientId = app.clientId;
+    this.baseUrl = app.baseUrl ?? null;
     this.name = app.name;
     this.type = app.type;
     this.signingPublicKey = app.signingPublicKey;

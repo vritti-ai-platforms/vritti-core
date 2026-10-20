@@ -1,4 +1,4 @@
-import { allowedOriginOf } from '@domain/app/allowed-origins';
+import { allowedOriginOf, effectiveOrigins } from '@domain/app/allowed-origins';
 import { AppDomainService } from '@domain/app/services/app.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
@@ -195,7 +195,7 @@ export class CheckoutCallbackService {
       );
       return { kind: 'page', html: fallback };
     }
-    if (!allowedOriginOf(target, app.allowedOrigins ?? [])) {
+    if (!allowedOriginOf(target, effectiveOrigins(app))) {
       this.logger.warn(`[checkout-callback] intent=${intentId} target origin no longer allowed for app ${app.id}`);
       return { kind: 'page', html: fallback };
     }

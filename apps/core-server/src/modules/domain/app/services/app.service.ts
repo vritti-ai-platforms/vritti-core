@@ -103,6 +103,14 @@ export class AppDomainService {
   }
 
   // Replaces the storefront origins the hosted checkout may redirect a shopper to
+  // Where the website using this credential lives. Null unlinks it, which also drops its origin from the
+  // checkout allow-list — nothing else to clean up, because the origin was never copied anywhere.
+  async setBaseUrl(id: string, baseUrl: string | null): Promise<App> {
+    const app = await this.repository.update(id, { baseUrl: baseUrl?.trim() || null });
+    this.logger.log(`Set base url on app ${app.clientId}: ${app.baseUrl ?? 'none'}`);
+    return app;
+  }
+
   async setAllowedOrigins(id: string, allowedOrigins: string[]): Promise<App> {
     const app = await this.repository.update(id, { allowedOrigins: normalizeOrigins(allowedOrigins) });
     this.logger.log(`Set allowed origins on app ${app.clientId}: ${app.allowedOrigins.join(', ') || 'none'}`);

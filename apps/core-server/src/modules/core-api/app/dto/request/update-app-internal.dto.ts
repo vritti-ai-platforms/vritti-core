@@ -1,4 +1,4 @@
-import { IsStorefrontOrigin, MAX_ALLOWED_ORIGINS } from '@domain/app/allowed-origins';
+import { IsStorefrontOrigin, IsStorefrontUrl, MAX_ALLOWED_ORIGINS } from '@domain/app/allowed-origins';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
 import {
@@ -35,7 +35,17 @@ export class UpdateAppInternalDto {
 
   @ApiPropertyOptional({
     description:
-      'Storefront origins the hosted checkout may send a shopper back to — scheme, host and optional port only (https, or http on localhost). Replaces the whole list.',
+      'Where the website using this credential lives. Null unlinks it. Its origin is allowed for checkout redirects without being listed below.',
+    nullable: true,
+    example: 'https://www.desitaakat.in',
+  })
+  @IsOptional()
+  @IsStorefrontUrl()
+  baseUrl?: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Extra storefront origins the hosted checkout may send a shopper back to — scheme, host and optional port only (https, or http on localhost). Replaces the whole list.',
     type: [String],
     example: ['https://shop.example', 'http://localhost:3000'],
   })

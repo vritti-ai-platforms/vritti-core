@@ -40,9 +40,17 @@ services:
 
   # NATS — the commerce microservice talks to core-server over NATS (no HTTP).
   nats:
-    image: nats:2.11-alpine
+    # Same tag the agent deploys, so local matches production. Deliberately NOT the alpine variant:
+    # this one is distroless (no shell, no wget), which is what makes a container-side healthcheck
+    # impossible — a difference worth meeting here rather than in production.
+    image: nats:2
     container_name: vritti-core-nats
     restart: unless-stopped
+    # JetStream on, stored on a volume so streams and consumer positions survive a recreate.
+    # -m restores the monitoring port, which the image's default config served before this override.
+    command: ["-js", "-sd", "/data", "-m", "8222"]
+    volumes:
+      - natsdata:/data
     ports:
       - "4222:4222" # client connections
       - "8222:8222" # http monitoring
@@ -91,3 +99,4 @@ services:
 volumes:
   pgdata:
   giteadata:
+  natsdata:

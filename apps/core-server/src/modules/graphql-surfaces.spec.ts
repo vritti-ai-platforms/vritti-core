@@ -7,6 +7,7 @@ const APP_SURFACE_MODULES = [
   'commerce-app-gateway.module.ts',
   'communications-app-gateway.module.ts',
   'payments-app-gateway.module.ts',
+  'structure-app-gateway.module.ts',
 ];
 
 // Anything named like an app surface must be listed above, or the closure check silently skips it

@@ -41,7 +41,10 @@ export const apps = coreSchema.table(
     permissions: jsonb('permissions').$type<FeatureUnlocks>().notNull().default({}),
     whatsappOtpConfig: jsonb('whatsapp_otp_config').$type<AppWhatsappOtpConfig>(),
     smsOtpConfig: jsonb('sms_otp_config').$type<AppSmsOtpConfig>(),
-    // Storefront origins (scheme + host + port) the hosted checkout may send a shopper back to
+    // Where the website using this credential lives, set by cloud when a website is linked to it. Null for a
+    // credential that is not a website, and the reason no webhook URL is configured anywhere: core derives it
+    baseUrl: varchar('base_url', { length: 2000 }),
+    // Extra storefront origins the hosted checkout may send a shopper back to, on top of baseUrl's own
     allowedOrigins: text('allowed_origins').array().notNull().default(sql`'{}'::text[]`),
     // Ed25519 private key, base64 pkcs8 DER. Goes in the client's environment
     signingKey: text('signing_key').notNull(),

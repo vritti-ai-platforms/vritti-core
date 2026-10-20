@@ -40299,8 +40299,14 @@
             "type": "object",
             "description": "What the credential may do, keyed by bare feature code — e.g. {\"people\":{\"graphql\":[\"view\",\"add\"]}}. Replaces the whole set."
           },
+          "baseUrl": {
+            "type": "object",
+            "description": "Where the website using this credential lives. Null unlinks it. Its origin is allowed for checkout redirects without being listed below.",
+            "nullable": true,
+            "example": "https://www.desitaakat.in"
+          },
           "allowedOrigins": {
-            "description": "Storefront origins the hosted checkout may send a shopper back to — scheme, host and optional port only (https, or http on localhost). Replaces the whole list.",
+            "description": "Extra storefront origins the hosted checkout may send a shopper back to — scheme, host and optional port only (https, or http on localhost). Replaces the whole list.",
             "example": [
               "https://shop.example",
               "http://localhost:3000"

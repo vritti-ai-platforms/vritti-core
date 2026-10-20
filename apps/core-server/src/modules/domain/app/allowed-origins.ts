@@ -35,11 +35,36 @@ export function normalizeOrigins(values: readonly string[]): string[] {
   return [...new Set(origins)];
 }
 
+// Every origin a credential may send a shopper back to: its website's own, plus the manual list. Derived at
+// read time rather than copied into the column, so unlinking a website takes its origin with it.
+export function effectiveOrigins(app: {
+  baseUrl?: string | null;
+  allowedOrigins?: readonly string[] | null;
+}): string[] {
+  const fromBaseUrl = app.baseUrl ? parseStorefrontUrl(app.baseUrl)?.origin : undefined;
+  return [...new Set([...(fromBaseUrl ? [fromBaseUrl] : []), ...normalizeOrigins(app.allowedOrigins ?? [])])];
+}
+
 // The origin of a storefront URL when it is one of the allowed origins, otherwise null
 export function allowedOriginOf(value: string, allowedOrigins: readonly string[]): string | null {
   const url = parseStorefrontUrl(value);
   if (!url) return null;
   return allowedOrigins.includes(url.origin) ? url.origin : null;
+}
+
+// Validates a storefront URL — unlike an origin it may carry a path, for a site mounted under one
+export function IsStorefrontUrl(options?: ValidationOptions): PropertyDecorator {
+  return ValidateBy(
+    {
+      name: 'isStorefrontUrl',
+      validator: {
+        validate: (value: unknown) =>
+          value === null || (typeof value === 'string' && parseStorefrontUrl(value.trim()) !== null),
+        defaultMessage: () => 'Must be an https URL (or http on localhost), e.g. https://www.desitaakat.in',
+      },
+    },
+    options,
+  );
 }
 
 // Validates that a string is a bare storefront origin — see normalizeOrigin

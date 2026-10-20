@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { allowedOriginOf, parseStorefrontUrl } from '@domain/app/allowed-origins';
+import { allowedOriginOf, effectiveOrigins, parseStorefrontUrl } from '@domain/app/allowed-origins';
 import { AppDomainService } from '@domain/app/services/app.service';
 import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -252,7 +252,7 @@ export class PaymentIntentsGatewayService {
   private async requireAllowedUrls(caller: PaymentCallerContext, input: StorefrontUrls): Promise<StorefrontUrls> {
     if (!input.returnUrl && !input.checkoutUrl) return {};
     const app = await this.appService.findInOrg(caller.appId, caller.orgId);
-    const allowedOrigins = app?.allowedOrigins ?? [];
+    const allowedOrigins = app ? effectiveOrigins(app) : [];
     for (const field of ['returnUrl', 'checkoutUrl'] as const) {
       const value = input[field];
       if (value && !allowedOriginOf(value, allowedOrigins)) {

@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { DatabaseModule, type DatabaseModuleOptions } from '@vritti/api-sdk/database';
+import { DatabaseModule, type DatabaseModuleOptions, PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import { JetStreamModule } from '@vritti/api-sdk/jetstream';
 import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { DB_SCHEMA } from '@/db/schema/communications-schema';
 import { relations } from '@/db/schema/relations';
@@ -58,6 +59,16 @@ import { OrgWhatsappOtpsModule } from './modules/organization/whatsapp-otps/what
         };
         return options;
       },
+    }),
+    // JetStream — publish from anywhere, and one durable consumer per @OnEvent handler
+    JetStreamModule.forRootAsync({
+      inject: [ConfigService, PrimaryDatabaseService],
+      useFactory: (config: ConfigService, db: PrimaryDatabaseService) => ({
+        service: 'communications',
+        natsUrl: config.get<string>('NATS_URL', 'nats://localhost:4222'),
+        // An event is not a NATS request, so no interceptor set the tenant — it comes off the envelope instead
+        runInOrgContext: <T>(orgId: string, run: () => Promise<T>) => db.runWithRlsContext({ orgId }, run),
+      }),
     }),
     OrgSmsOtpsModule,
     OrgSmsProvidersModule,

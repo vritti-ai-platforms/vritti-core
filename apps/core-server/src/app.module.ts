@@ -7,8 +7,9 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AuthConfigModule, type TokenExpiryString } from '@vritti/api-sdk/auth';
 import { DataTableModule } from '@vritti/api-sdk/data-table';
-import { DatabaseModule, type DatabaseModuleOptions } from '@vritti/api-sdk/database';
+import { DatabaseModule, type DatabaseModuleOptions, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { EmailModule } from '@vritti/api-sdk/email';
+import { JetStreamModule } from '@vritti/api-sdk/jetstream';
 import { UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import { createGraphqlFormatError } from '@vritti/api-sdk/filters';
 import { getCorrelationContext, LoggerModule } from '@vritti/api-sdk/logger';
@@ -278,6 +279,16 @@ const graphqlBaseOptions = {
     UserRoleDomainModule,
     UserPermissionsDomainModule,
 
+    // JetStream — publish from anywhere, and one durable consumer per @OnEvent handler
+    JetStreamModule.forRootAsync({
+      inject: [ConfigService, PrimaryDatabaseService],
+      useFactory: (config: ConfigService, db: PrimaryDatabaseService) => ({
+        service: 'core',
+        natsUrl: config.get<string>('NATS_URL', 'nats://localhost:4222'),
+        // An event arrives outside any request, so the tenant comes off the envelope rather than the guard
+        runInOrgContext: <T>(orgId: string, run: () => Promise<T>) => db.runWithRlsContext({ orgId }, run),
+      }),
+    }),
     // NATS client (gateway mode) — resolves the workspace context from request.auth (site context derives its LE)
     NatsClientModule.forRoot({
       imports: [SiteContextModule, SiteGroupContextModule],
