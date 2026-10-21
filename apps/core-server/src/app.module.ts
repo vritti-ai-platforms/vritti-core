@@ -51,7 +51,8 @@ import { CatalogDomainModule } from './modules/domain/catalog/catalog.module';
 import { LegalEntityDomainModule } from './modules/domain/legal-entity/legal-entity.module';
 import { OrganizationDomainModule } from './modules/domain/organization/organization.module';
 import { PaymentGatewayConfigDomainModule } from './modules/domain/payment-gateway-config/payment-gateway-config.module';
-import { PaymentLinkedAccountDomainModule } from './modules/domain/payment-linked-account/payment-linked-account.module';
+import { PayoutAccountDomainModule } from './modules/domain/payout-account/payout-account.module';
+import { PayoutChannelDomainModule } from './modules/domain/payout-channel/payout-channel.module';
 import { SessionDomainModule } from './modules/domain/session/session.module';
 import { SiteDomainModule } from './modules/domain/site/site.module';
 import { SiteGroupDomainModule } from './modules/domain/site-group/site-group.module';
@@ -270,7 +271,8 @@ const graphqlBaseOptions = {
     LegalEntityDomainModule,
     BankAccountDomainModule,
     PaymentGatewayConfigDomainModule,
-    PaymentLinkedAccountDomainModule,
+    PayoutAccountDomainModule,
+    PayoutChannelDomainModule,
     SiteDomainModule,
     SiteGroupDomainModule,
     CatalogDomainModule,

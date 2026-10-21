@@ -3,7 +3,8 @@ import { BankAccountDomainModule } from '@domain/bank-account/bank-account.modul
 import { LegalEntityDomainModule } from '@domain/legal-entity/legal-entity.module';
 import { OrganizationDomainModule } from '@domain/organization/organization.module';
 import { PaymentGatewayConfigDomainModule } from '@domain/payment-gateway-config/payment-gateway-config.module';
-import { PaymentLinkedAccountDomainModule } from '@domain/payment-linked-account/payment-linked-account.module';
+import { PayoutAccountDomainModule } from '@domain/payout-account/payout-account.module';
+import { PayoutChannelDomainModule } from '@domain/payout-channel/payout-channel.module';
 import { SiteDomainModule } from '@domain/site/site.module';
 import { SiteGroupDomainModule } from '@domain/site-group/site-group.module';
 import { UserRoleDomainModule } from '@domain/user-role/user-role.module';
@@ -13,7 +14,8 @@ import { PaymentsGatewayServicesModule } from '@/modules/payments-gateway/paymen
 import { BankAccountService } from './bank-accounts/services/bank-account-api.service';
 import { LegalEntityService } from './legal-entities/services/legal-entity-api.service';
 import { PaymentGatewayConfigService } from './payment-gateway-configs/services/payment-gateway-config-api.service';
-import { PaymentLinkedAccountService } from './payment-linked-accounts/services/payment-linked-account-api.service';
+import { PayoutAccountService } from './payout-accounts/services/payout-account-api.service';
+import { PayoutChannelService } from './payout-channels/services/payout-channel-api.service';
 import { StructureService } from './root/services/structure-api.service';
 import { SiteGroupService } from './site-groups/services/site-group-api.service';
 import { SiteService } from './sites/services/site-api.service';
@@ -25,7 +27,8 @@ const services = [
   SiteGroupService,
   BankAccountService,
   PaymentGatewayConfigService,
-  PaymentLinkedAccountService,
+  PayoutAccountService,
+  PayoutChannelService,
 ];
 
 // Structure services, and nothing else
@@ -35,7 +38,8 @@ const services = [
     PaymentsGatewayServicesModule,
     BankAccountDomainModule,
     PaymentGatewayConfigDomainModule,
-    PaymentLinkedAccountDomainModule,
+    PayoutAccountDomainModule,
+    PayoutChannelDomainModule,
     AppDomainModule,
     LegalEntityDomainModule,
     SiteDomainModule,

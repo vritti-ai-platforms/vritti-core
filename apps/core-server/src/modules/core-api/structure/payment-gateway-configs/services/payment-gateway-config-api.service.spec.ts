@@ -1,5 +1,5 @@
 import type { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
-import type { PaymentLinkedAccountDomainRepository } from '@domain/payment-linked-account/repositories/payment-linked-account.repository';
+import type { PayoutAccountDomainRepository } from '@domain/payout-account/repositories/payout-account.repository';
 import { ConflictException, ForbiddenException } from '@vritti/api-sdk/exceptions';
 import type { PaymentGatewaysGatewayService } from '@/modules/payments-gateway/gateways/services/payment-gateways-gateway.service';
 import { PaymentGatewayConfigService } from './payment-gateway-config-api.service';
@@ -19,31 +19,39 @@ describe('PaymentGatewayConfigService', () => {
     update: jest.fn(),
     delete: jest.fn(),
     updatePlatform: jest.fn(),
+    createPlatform: jest.fn(),
   };
-  const linkedAccounts = { countByCollector: jest.fn() };
-  const gateways = { verifyConfig: jest.fn(), listGateways: jest.fn() };
+  const payoutAccounts = {
+    countByConfig: jest.fn(),
+    findLegalEntitiesNaming: jest.fn(),
+    remarkMainAccount: jest.fn(),
+    moveToMainAccount: jest.fn(),
+  };
+  const gateways = { verifyConfig: jest.fn(), listGateways: jest.fn(), supportsSplit: jest.fn() };
   const service = new PaymentGatewayConfigService(
     domain as unknown as PaymentGatewayConfigDomainService,
-    linkedAccounts as unknown as PaymentLinkedAccountDomainRepository,
+    payoutAccounts as unknown as PayoutAccountDomainRepository,
     gateways as unknown as PaymentGatewaysGatewayService,
   );
 
   beforeEach(() => {
     jest.resetAllMocks();
     domain.findById.mockResolvedValue(own);
-    linkedAccounts.countByCollector.mockResolvedValue(0);
+    payoutAccounts.countByConfig.mockResolvedValue(0);
+    payoutAccounts.findLegalEntitiesNaming.mockResolvedValue([]);
+    gateways.supportsSplit.mockResolvedValue(true);
     domain.delete.mockResolvedValue({ success: true, message: 'deleted' });
   });
 
   describe('own gateways', () => {
-    it('refuses deleting a gateway that still has linked accounts, naming how many', async () => {
-      linkedAccounts.countByCollector.mockResolvedValue(2);
+    it('refuses deleting a gateway that still has payout accounts, naming how many', async () => {
+      payoutAccounts.countByConfig.mockResolvedValue(2);
 
       const error = await service.delete(ORG, 'pgc-1').catch((e: unknown) => e);
 
       expect(error).toBeInstanceOf(ConflictException);
       expect(problemOf(error).label).toBe('Gateway In Use');
-      expect(problemOf(error).detail).toContain('2 linked accounts are');
+      expect(problemOf(error).detail).toContain('2 payout accounts pay');
       expect(domain.delete).not.toHaveBeenCalled();
     });
 
@@ -55,8 +63,8 @@ describe('PaymentGatewayConfigService', () => {
       await expect(service.delete(ORG, 'pgc-1')).rejects.toBeInstanceOf(ConflictException);
     });
 
-    it('refuses changing the gateway behind registered linked accounts, but allows other edits', async () => {
-      linkedAccounts.countByCollector.mockResolvedValue(1);
+    it('refuses changing the gateway behind payout accounts, but allows other edits', async () => {
+      payoutAccounts.countByConfig.mockResolvedValue(1);
 
       await expect(service.update(ORG, 'pgc-1', { gatewayCode: 'cashfree' })).rejects.toBeInstanceOf(ConflictException);
       expect(domain.update).not.toHaveBeenCalled();
@@ -92,9 +100,58 @@ describe('PaymentGatewayConfigService', () => {
     });
   });
 
+  describe('main account changes', () => {
+    beforeEach(() => {
+      domain.findById.mockResolvedValue({ ...own, gatewayAccountId: 'acc_old' });
+      domain.update.mockResolvedValue({ success: true });
+    });
+
+    it('re-marks the payout accounts of a gateway that splits', async () => {
+      await service.update(ORG, 'pgc-1', { gatewayAccountId: 'acc_new' });
+
+      expect(payoutAccounts.remarkMainAccount).toHaveBeenCalledWith('pgc-1', 'acc_new');
+      expect(payoutAccounts.moveToMainAccount).not.toHaveBeenCalled();
+    });
+
+    it('moves every payout account of a gateway that cannot split onto the new main account', async () => {
+      gateways.supportsSplit.mockResolvedValue(false);
+
+      await service.update(ORG, 'pgc-1', { gatewayAccountId: 'acc_new' });
+
+      expect(payoutAccounts.moveToMainAccount).toHaveBeenCalledWith('pgc-1', 'acc_new');
+    });
+
+    it('refuses a main account that payout accounts of two legal entities already name', async () => {
+      payoutAccounts.findLegalEntitiesNaming.mockResolvedValue(['le-1', 'le-2']);
+
+      await expect(service.update(ORG, 'pgc-1', { gatewayAccountId: 'acc_new' })).rejects.toBeInstanceOf(
+        ConflictException,
+      );
+      expect(domain.update).not.toHaveBeenCalled();
+    });
+
+    it('leaves the payout accounts alone when the main account does not change', async () => {
+      await service.update(ORG, 'pgc-1', { label: 'Renamed', gatewayAccountId: 'acc_old' });
+
+      expect(payoutAccounts.remarkMainAccount).not.toHaveBeenCalled();
+      expect(gateways.supportsSplit).not.toHaveBeenCalled();
+    });
+  });
+
   describe('platform gateways', () => {
     beforeEach(() => {
       domain.findById.mockResolvedValue(platform);
+    });
+
+    it("refuses a gateway that cannot split as one of Vritti's", async () => {
+      gateways.supportsSplit.mockResolvedValue(false);
+
+      const error = await service
+        .createPlatform({ gatewayCode: 'hdfc-razorpay', label: 'x', gatewayAccountId: 'acc_v', credentials: {} })
+        .catch((e: unknown) => e);
+
+      expect(problemOf(error).label).toBe('Split Payments Required');
+      expect(domain.createPlatform).not.toHaveBeenCalled();
     });
 
     it('updates the fee on a platform row with the platform scope', async () => {

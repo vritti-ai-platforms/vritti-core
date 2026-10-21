@@ -6,12 +6,14 @@ import { AppTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { AppId, LegalEntityId, OptionalPartyId, OrgId, PartyId, SiteId } from '@/security/decorators';
 import {
+  CheckoutPaymentGatewaysInput,
   ConfirmPaymentInput,
   CreatePaymentIntentInput,
+  PaymentChannel,
   PaymentIntentRefInput,
   StartCheckoutInput,
 } from './graphql/payment-intent.input';
-import { CheckoutSession, PaymentIntent } from './graphql/payment-intent.type';
+import { CheckoutPaymentGateway, CheckoutSession, PaymentIntent } from './graphql/payment-intent.type';
 import { PaymentIntentsGatewayService } from './services/payment-intents-gateway.service';
 
 @Resolver()
@@ -22,7 +24,24 @@ export class PaymentIntentsAppResolver {
 
   constructor(private readonly service: PaymentIntentsGatewayService) {}
 
-  // Opens a payment for anything the app sells, through the gateway configured for its site or legal entity
+  // The gateways the payment page can offer: those with a payout account for this store, app and channel
+  @Query(() => [CheckoutPaymentGateway], { name: 'checkoutPaymentGateways' })
+  @RequirePermission(SITE_PAYMENTS.create)
+  checkoutPaymentGateways(
+    @OrgId() orgId: string,
+    @AppId() appId: string,
+    @SiteId() siteId: string | undefined,
+    @LegalEntityId() legalEntityId: string | undefined,
+    @Args('input', { nullable: true }) input?: CheckoutPaymentGatewaysInput,
+  ): Promise<CheckoutPaymentGateway[]> {
+    this.logger.log('QUERY checkoutPaymentGateways');
+    return this.service.listCheckoutGateways(
+      { orgId, appId, siteId, legalEntityId },
+      input?.channel ?? PaymentChannel.APP,
+    );
+  }
+
+  // Opens a payment for anything the app sells, through the gateway the shopper picked
   @Mutation(() => PaymentIntent, { name: 'createPaymentIntent' })
   @RequirePermission(SITE_PAYMENTS.create)
   createPaymentIntent(

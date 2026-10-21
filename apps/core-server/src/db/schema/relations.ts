@@ -86,7 +86,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.bankAccounts.legalEntityId,
       to: r.legalEntities.id,
     }),
-    paymentLinkedAccounts: r.many.paymentLinkedAccounts(),
+    payoutAccounts: r.many.payoutAccounts(),
   },
 
   // Payment gateway config relations
@@ -95,17 +95,26 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.paymentGatewayConfigs.organizationId,
       to: r.organizations.id,
     }),
-    linkedAccounts: r.many.paymentLinkedAccounts(),
+    payoutAccounts: r.many.payoutAccounts(),
   },
 
-  // Payment linked account relations
-  paymentLinkedAccounts: {
-    collectorConfig: r.one.paymentGatewayConfigs({
-      from: r.paymentLinkedAccounts.collectorConfigId,
+  // Payout channel relations
+  payoutChannels: {
+    payoutAccount: r.one.payoutAccounts({
+      from: r.payoutChannels.payoutAccountId,
+      to: r.payoutAccounts.id,
+    }),
+  },
+
+  // Payout account relations
+  payoutAccounts: {
+    channels: r.many.payoutChannels(),
+    paymentGatewayConfig: r.one.paymentGatewayConfigs({
+      from: r.payoutAccounts.paymentGatewayConfigId,
       to: r.paymentGatewayConfigs.id,
     }),
     bankAccount: r.one.bankAccounts({
-      from: r.paymentLinkedAccounts.bankAccountId,
+      from: r.payoutAccounts.bankAccountId,
       to: r.bankAccounts.id,
     }),
   },

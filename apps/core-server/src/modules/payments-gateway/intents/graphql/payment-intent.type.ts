@@ -110,3 +110,16 @@ export class CheckoutSession {
   @Field(() => PaymentIntent)
   paymentIntent: PaymentIntent;
 }
+
+// A gateway the shopper can pay through here: one with a payout account for the store's legal entity
+@ObjectType()
+export class CheckoutPaymentGateway {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => String, { description: 'Gateway provider code, e.g. razorpay' })
+  gatewayCode: string;
+
+  @Field(() => String)
+  label: string;
+}

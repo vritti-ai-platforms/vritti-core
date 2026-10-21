@@ -29,6 +29,8 @@ export {
 export {
   type CheckoutOperations,
   type CheckoutOrder,
+  type CheckoutPaymentChannel,
+  type CheckoutPaymentGateway,
   type CheckoutSession,
   createCheckoutOperations,
   type StartCheckoutInput,

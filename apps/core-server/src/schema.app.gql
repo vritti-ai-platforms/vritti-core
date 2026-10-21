@@ -527,7 +527,16 @@ type CheckoutSession {
   paymentIntent: PaymentIntent!
 }
 
+type CheckoutPaymentGateway {
+  id: ID!
+
+  """Gateway provider code, e.g. razorpay"""
+  gatewayCode: String!
+  label: String!
+}
+
 type Query {
+  checkoutPaymentGateways(input: CheckoutPaymentGatewaysInput): [CheckoutPaymentGateway!]!
   paymentIntent(input: PaymentIntentRefInput!): PaymentIntent!
   appSites(types: [AppSiteType!]): [AppSite!]!
   appLegalEntities: [AppLegalEntity!]!
@@ -551,6 +560,16 @@ type Query {
   siteCatalogListingByCode(code: String!, currencyCode: String!): CatalogListingDetail
   siteCatalogListingsByCodes(codes: [String!]!, currencyCode: String!, filters: [FilterInput!]): [CatalogListing!]!
   siteOfferingVariants(search: String, excludeIds: [ID!], limit: Int, offset: Int): OfferingVariantOptions!
+}
+
+input CheckoutPaymentGatewaysInput {
+  channel: PaymentChannel = APP
+}
+
+enum PaymentChannel {
+  APP
+  POS
+  B2B
 }
 
 input PaymentIntentRefInput {
@@ -615,6 +634,11 @@ input CreatePaymentIntentInput {
   channel: PaymentChannel = APP
 
   """
+  The payment gateway the shopper picked; one of checkoutPaymentGateways.
+  """
+  paymentGatewayConfigId: ID!
+
+  """
   Where the hosted checkout sends the shopper once paid. Its origin must be one of the app's allowed origins.
   """
   returnUrl: String
@@ -646,12 +670,6 @@ input KeyValueInput {
   value: String!
 }
 
-enum PaymentChannel {
-  APP
-  POS
-  B2B
-}
-
 input ConfirmPaymentInput {
   paymentIntentId: ID!
   gatewayResponse: GatewayResponseInput!
@@ -666,6 +684,11 @@ input GatewayResponseInput {
 input StartCheckoutInput {
   """Optional. The site's currency is used; a different value is refused."""
   currencyCode: String
+
+  """
+  The payment gateway the shopper picked; one of checkoutPaymentGateways.
+  """
+  paymentGatewayConfigId: ID!
   addressId: ID
   notes: String
   idempotencyKey: String!

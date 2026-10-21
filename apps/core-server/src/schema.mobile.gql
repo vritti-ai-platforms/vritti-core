@@ -672,6 +672,14 @@ type CheckoutSession {
   paymentIntent: PaymentIntent!
 }
 
+type CheckoutPaymentGateway {
+  id: ID!
+
+  """Gateway provider code, e.g. razorpay"""
+  gatewayCode: String!
+  label: String!
+}
+
 type Query {
   inventoryItems(first: Int, after: String, filters: [FeedFilterInput!], search: FeedSearchInput, sort: [FeedSortInput!]): InventoryItemConnection!
   inventoryItem(id: ID!): InventoryItem!

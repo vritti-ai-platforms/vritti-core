@@ -102,14 +102,33 @@ export class PaymentLifecycleService {
     if (intent.providerOrderId) return PaymentIntentDto.from(intent);
 
     // The intent is saved before the gateway is called, so a timeout here leaves a row a retry can resume rather
-    // than a gateway order nobody recorded
+    // than a gateway order nobody recorded. Its split legs travel with the order: the gateway splits the payment
+    // itself once it is captured, so there is no transfer call to make afterwards
+    const legs = await this.transfers.findUnsentByIntent(intent.id);
     const order = await transport.createOrder(dto.credentials, {
       amount,
       currency: intent.currency,
       receipt: intent.receipt,
       notes: { payment_intent_id: intent.id, reference: `${intent.referenceType}:${intent.referenceId}` },
       ...(dto.customer && { customer: dto.customer }),
+      ...(legs.length > 0 && {
+        transfers: legs.map((leg) => ({
+          providerAccountId: leg.providerAccountId,
+          amount: leg.amount,
+          currency: leg.currency,
+          onHold: leg.onHold,
+          onHoldUntil: leg.onHoldUntil,
+          notes: { payment_intent_id: intent.id, transfer_id: leg.id },
+        })),
+      }),
     });
+
+    // The gateway answers one transfer per leg, in the order they were sent; stamping them lets transfer webhooks
+    // find their rows
+    for (const [index, leg] of legs.entries()) {
+      const created = order.transfers[index];
+      if (created) await this.transfersService.markCreated(leg.id, created.providerTransferId, created.status);
+    }
 
     const updated = await this.intents.update(intent.id, {
       providerOrderId: order.providerOrderId,

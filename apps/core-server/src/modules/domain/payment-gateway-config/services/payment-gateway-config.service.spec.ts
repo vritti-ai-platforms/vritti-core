@@ -28,7 +28,7 @@ const row = (overrides: Partial<PaymentGatewayConfig> = {}): PaymentGatewayConfi
   keyId: 'rzp_live_abc',
   credentials: crypto.encrypt(JSON.stringify({ key_id: 'rzp_live_abc', key_secret: 'stored-secret' })),
   webhookSecret: null,
-  providerMerchantId: null,
+  gatewayAccountId: 'acc_main',
   platformFeeBps: 0,
   verifiedAt: null,
   createdAt: new Date('2026-01-01T00:00:00Z'),
@@ -52,6 +52,7 @@ const platformRow = (overrides: Partial<PaymentGatewayConfig> = {}): PaymentGate
 const input: CreatePaymentGatewayConfigDto = {
   gatewayCode: 'razorpay',
   label: 'Main',
+  gatewayAccountId: 'acc_main',
   credentials: { key_id: 'rzp_live_abc', key_secret: 'new-secret' },
 };
 
@@ -219,10 +220,8 @@ describe('PaymentGatewayConfigDomainService', () => {
       expect(patch.verifiedAt).toBeNull();
     });
 
-    it('drops the old webhook secret, merchant id and verification when the gateway changes', async () => {
-      findById.mockResolvedValue(
-        row({ webhookSecret: crypto.encrypt('old'), providerMerchantId: 'MID1', verifiedAt: new Date() }),
-      );
+    it('drops the old webhook secret and verification when the gateway changes', async () => {
+      findById.mockResolvedValue(row({ webhookSecret: crypto.encrypt('old'), verifiedAt: new Date() }));
       update.mockResolvedValue(row());
 
       await service.update(ORG, 'pgc-1', {
@@ -233,7 +232,6 @@ describe('PaymentGatewayConfigDomainService', () => {
       expect(update.mock.calls[0][1]).toMatchObject({
         gatewayCode: 'hdfc-razorpay',
         webhookSecret: null,
-        providerMerchantId: null,
         verifiedAt: null,
       });
     });
@@ -324,32 +322,26 @@ describe('PaymentGatewayConfigDomainService', () => {
   });
 
   describe('markVerified', () => {
-    it('stamps verifiedAt and records the merchant id the provider reported', async () => {
+    it('stamps verifiedAt and answers with the main account on file', async () => {
       findById.mockResolvedValue(row());
       update.mockImplementation(async (_id: string, patch: Partial<PaymentGatewayConfig>) => row(patch));
 
-      const result = await service.markVerified(ORG, 'pgc-1', 'MID1');
+      const result = await service.markVerified(ORG, 'pgc-1');
 
       const patch = update.mock.calls[0][1] as Partial<PaymentGatewayConfig>;
-      expect(patch.verifiedAt).toBeInstanceOf(Date);
-      expect(patch.providerMerchantId).toBe('MID1');
-      expect(result.data).toEqual({ verifiedAt: (patch.verifiedAt as Date).toISOString(), providerMerchantId: 'MID1' });
+      expect(patch).toEqual({ verifiedAt: expect.any(Date) });
+      expect(result.data).toEqual({
+        verifiedAt: (patch.verifiedAt as Date).toISOString(),
+        gatewayAccountId: 'acc_main',
+      });
     });
 
     it('lets only the platform caller verify a platform row', async () => {
       findById.mockResolvedValue(platformRow());
       update.mockResolvedValue(platformRow());
 
-      await expect(service.markVerified(ORG, 'pgc-platform', null)).rejects.toBeInstanceOf(ForbiddenException);
-      await expect(service.markVerified(null, 'pgc-platform', 'MID-p')).resolves.toMatchObject({ success: true });
-    });
-  });
-
-  describe('resolveForPayment', () => {
-    it('resolves nothing until payout accounts can pick a gateway, even with gateways connected', async () => {
-      findGroup.mockResolvedValue([row(), platformRow()]);
-
-      await expect(service.resolveForPayment(ORG)).resolves.toBeNull();
+      await expect(service.markVerified(ORG, 'pgc-platform')).rejects.toBeInstanceOf(ForbiddenException);
+      await expect(service.markVerified(null, 'pgc-platform')).resolves.toMatchObject({ success: true });
     });
   });
 

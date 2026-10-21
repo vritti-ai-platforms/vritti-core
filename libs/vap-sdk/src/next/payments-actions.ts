@@ -1,6 +1,7 @@
 'use server';
 
 import {
+  type CheckoutPaymentGateway,
   checkoutRetryUrl,
   type GatewayResponse,
   type PaymentCheckout,
@@ -54,6 +55,8 @@ export async function startCheckoutAction(
     return { error: 'This checkout could not be started. Reload the page and try again.' };
   }
 
+  // The gateway the shopper picked on the payment page; left out, the store's only gateway is used
+  const paymentGatewayConfigId = formField(formData, 'paymentGatewayConfigId') || undefined;
   const addressId = formField(formData, 'addressId') || undefined;
   const notes = formField(formData, 'notes') || undefined;
 
@@ -66,6 +69,7 @@ export async function startCheckoutAction(
   const payload = await resolvePayload();
   const state = await withPartyErrors<CheckoutActionState>(payload, async () => {
     const session = await (await vapSdk(payload, { partyId: party.partyId })).checkout.startFromCart({
+      paymentGatewayConfigId,
       addressId,
       notes,
       idempotencyKey,
@@ -81,6 +85,22 @@ export async function startCheckoutAction(
   });
   // The key travels with every answer, failures included, so pressing Pay again stays on this attempt
   return { ...state, idempotencyKey };
+}
+
+export type CheckoutGatewaysActionState = {
+  error?: string;
+  gateways?: CheckoutPaymentGateway[];
+};
+
+// The gateways the payment page can offer the signed-in party — render a choice when there is more than one.
+export async function listCheckoutGatewaysAction(): Promise<CheckoutGatewaysActionState> {
+  const party = await getCurrentParty();
+  const payload = await resolvePayload();
+  return withPartyErrors<CheckoutGatewaysActionState>(payload, async () => ({
+    gateways: await (
+      await vapSdk(payload, party?.partyId ? { partyId: party.partyId } : {})
+    ).checkout.paymentGateways(),
+  }));
 }
 
 // Hands what the gateway's modal resolved to core and answers the intent's status.

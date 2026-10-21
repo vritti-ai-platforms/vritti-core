@@ -16,3 +16,13 @@ export const START_CHECKOUT_FROM_CART = graphql(`
     }
   }
 `);
+
+export const CHECKOUT_PAYMENT_GATEWAYS = graphql(`
+  query CheckoutPaymentGateways($input: CheckoutPaymentGatewaysInput) {
+    checkoutPaymentGateways(input: $input) {
+      id
+      gatewayCode
+      label
+    }
+  }
+`);

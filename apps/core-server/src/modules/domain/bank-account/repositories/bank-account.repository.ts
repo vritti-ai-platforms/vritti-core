@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { count, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type BankAccount, bankAccounts, paymentLinkedAccounts } from '@/db/schema';
+import { type BankAccount, bankAccounts, payoutAccounts } from '@/db/schema';
 
 @Injectable()
 export class BankAccountDomainRepository extends PrimaryBaseRepository<typeof bankAccounts> {
@@ -43,12 +43,12 @@ export class BankAccountDomainRepository extends PrimaryBaseRepository<typeof ba
     });
   }
 
-  // Counts the linked accounts that settle into the bank account
-  async countReferences(id: string): Promise<{ linkedAccounts: number }> {
+  // Counts the payout accounts that pay into the bank account
+  async countReferences(id: string): Promise<{ payoutAccounts: number }> {
     const [linked] = await this.db
       .select({ value: count() })
-      .from(paymentLinkedAccounts)
-      .where(eq(paymentLinkedAccounts.bankAccountId, id));
-    return { linkedAccounts: Number(linked?.value ?? 0) };
+      .from(payoutAccounts)
+      .where(eq(payoutAccounts.bankAccountId, id));
+    return { payoutAccounts: Number(linked?.value ?? 0) };
   }
 }

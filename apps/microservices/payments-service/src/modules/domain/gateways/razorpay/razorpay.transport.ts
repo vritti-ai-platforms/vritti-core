@@ -31,6 +31,7 @@ interface RazorpayOrder {
   currency: string;
   receipt?: string | null;
   status?: string;
+  transfers?: RazorpayTransfer[];
 }
 
 interface RazorpayPayment {
@@ -64,19 +65,17 @@ const PAYMENT_STATUSES: ReadonlySet<NormalizedPaymentStatus> = new Set([
   'failed',
 ]);
 
-// The stock Razorpay gateway, and the protocol base for the bank white-labels of it (see
-// HdfcRazorpayTransport): a bank edition keeps its own code, host and versioning by extending this
-// class, so a change on the bank's side never reaches merchants on plain Razorpay
+// The stock Razorpay gateway. HDFC's edition is a separate copy (HdfcRazorpayTransport) over its own client, so a
+// change on either side never reaches the other
 export class RazorpayTransport implements PaymentGatewayTransport {
   readonly credentialFields = [KEY_ID_FIELD, KEY_SECRET_FIELD] as const;
   readonly split: GatewaySplitCapability;
   protected readonly logger: Logger;
   protected readonly route: RazorpaySplit;
 
-  constructor(
-    protected readonly http: RazorpayHttpService,
-    readonly code: string = GatewayCodeValues.RAZORPAY,
-  ) {
+  readonly code = GatewayCodeValues.RAZORPAY;
+
+  constructor(protected readonly http: RazorpayHttpService) {
     this.logger = new Logger(this.constructor.name);
     this.route = this.createRoute();
     this.split = this.route;
@@ -103,6 +102,10 @@ export class RazorpayTransport implements PaymentGatewayTransport {
       receipt: input.receipt,
       payment_capture: 1,
       ...(input.notes ? { notes: input.notes } : {}),
+      // Route splits the captured payment by these transfers; the main account keeps what they leave over
+      ...(input.transfers?.length
+        ? { transfers: input.transfers.map((transfer, index) => this.route.transferBody(transfer, index)) }
+        : {}),
     });
 
     this.logger.log(`Created order ${order.id} for receipt ${input.receipt}`);
@@ -117,6 +120,9 @@ export class RazorpayTransport implements PaymentGatewayTransport {
           ? { prefill: { name: input.customer.name, email: input.customer.email, contact: input.customer.phone } }
           : {}),
       },
+      transfers: (order.transfers ?? []).map((item, index) =>
+        this.route.toTransferResult(item, input.transfers?.[index]),
+      ),
     };
   }
 
@@ -170,8 +176,7 @@ export class RazorpayTransport implements PaymentGatewayTransport {
     ];
   }
 
-  // Builds the Route (split payment) capability over this transport's own client — a bank edition
-  // inherits it as-is, or overrides this to swap in its own
+  // Builds the Route (split payment) capability over this transport's own client
   protected createRoute(): RazorpaySplit {
     return new RazorpaySplit(this.http, (credentials) => this.auth(credentials), this.logger);
   }

@@ -5,9 +5,9 @@ import type { UpdatePaymentGatewayConfigDto } from '@domain/payment-gateway-conf
 import type { UpdatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-platform-payment-gateway-config.dto';
 import type { PaymentGatewayConfigVerificationResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-config-verification-response.dto';
 import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
-import { PaymentLinkedAccountDomainRepository } from '@domain/payment-linked-account/repositories/payment-linked-account.repository';
+import { PayoutAccountDomainRepository } from '@domain/payout-account/repositories/payout-account.repository';
 import { Injectable } from '@nestjs/common';
-import { ConflictException, ForbiddenException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, ConflictException, ForbiddenException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PaymentGatewayConfigKindValues } from '@/db/schema';
@@ -20,7 +20,7 @@ const PG_FOREIGN_KEY_VIOLATION = '23503';
 export class PaymentGatewayConfigService {
   constructor(
     private readonly gatewayConfigService: PaymentGatewayConfigDomainService,
-    private readonly linkedAccountRepository: PaymentLinkedAccountDomainRepository,
+    private readonly payoutAccountRepository: PayoutAccountDomainRepository,
     private readonly paymentGatewaysGatewayService: PaymentGatewaysGatewayService,
   ) {}
 
@@ -43,19 +43,43 @@ export class PaymentGatewayConfigService {
     return this.gatewayConfigService.findById(orgId, id);
   }
 
-  // A change of gateway is refused while linked accounts were registered under the old one, since their provider
-  // ids only exist at that gateway
+  // A change of gateway is refused while payout accounts name it, since their gateway account ids only exist at the
+  // old gateway. A new main account id re-marks the payout accounts: on a gateway that splits, the rows naming the
+  // new id keep their share there (one legal entity at most); on one that cannot, every row follows the main account
   async update(orgId: string, id: string, dto: UpdatePaymentGatewayConfigDto): Promise<SuccessResponseDto> {
     const existing = await this.requireOwn(orgId, id);
     if (dto.gatewayCode !== undefined && dto.gatewayCode !== existing.gatewayCode) {
-      await this.assertNoLinkedAccounts(id);
+      await this.assertNoPayoutAccounts(id);
     }
-    return this.gatewayConfigService.update(orgId, id, dto);
+    const mainAccountId =
+      dto.gatewayAccountId !== undefined && dto.gatewayAccountId !== existing.gatewayAccountId
+        ? dto.gatewayAccountId
+        : null;
+    const splits = mainAccountId
+      ? await this.paymentGatewaysGatewayService.supportsSplit(dto.gatewayCode ?? existing.gatewayCode)
+      : false;
+    if (mainAccountId && splits) {
+      const legalEntities = await this.payoutAccountRepository.findLegalEntitiesNaming(id, mainAccountId);
+      if (legalEntities.length > 1) {
+        throw new ConflictException({
+          label: 'Main Account In Use',
+          detail: `Payout accounts of ${legalEntities.length} legal entities name ${mainAccountId}; a main account pays out for one legal entity only. Change those payout accounts first.`,
+          errors: [{ field: 'gatewayAccountId', message: 'Named by several legal entities' }],
+        });
+      }
+    }
+
+    const result = await this.gatewayConfigService.update(orgId, id, dto);
+    if (mainAccountId) {
+      if (splits) await this.payoutAccountRepository.remarkMainAccount(id, mainAccountId);
+      else await this.payoutAccountRepository.moveToMainAccount(id, mainAccountId);
+    }
+    return result;
   }
 
   async delete(orgId: string, id: string): Promise<SuccessResponseDto> {
     await this.requireOwn(orgId, id);
-    await this.assertNoLinkedAccounts(id);
+    await this.assertNoPayoutAccounts(id);
     return this.deleteGuarded(orgId, id);
   }
 
@@ -70,14 +94,23 @@ export class PaymentGatewayConfigService {
     return this.gatewayConfigService.listPlatform();
   }
 
+  // Vritti collects for organizations and pays each its share, so its gateways must be able to split
   async createPlatform(
     dto: CreatePlatformPaymentGatewayConfigDto,
   ): Promise<CreateResponseDto<PaymentGatewayConfigDto>> {
+    if (!(await this.paymentGatewaysGatewayService.supportsSplit(dto.gatewayCode))) {
+      throw new BadRequestException({
+        label: 'Split Payments Required',
+        detail:
+          "Vritti's gateways pay each organization its share, so they need a gateway that can split payments. This one cannot.",
+        errors: [{ field: 'gatewayCode', message: 'Cannot split payments' }],
+      });
+    }
     return this.gatewayConfigService.createPlatform(dto);
   }
 
-  // Linked accounts under a platform row belong to organizations and are invisible without an org context, so a
-  // change of gateway is refused outright
+  // Payout accounts under a platform row belong to organizations and are invisible without an org context, so a
+  // change of gateway is refused outright. They never name Vritti's main account, so a new one leaves them as they are
   async updatePlatform(id: string, dto: UpdatePlatformPaymentGatewayConfigDto): Promise<SuccessResponseDto> {
     const existing = await this.gatewayConfigService.findById(null, id);
     if (dto.gatewayCode !== undefined && dto.gatewayCode !== existing.gatewayCode) {
@@ -114,14 +147,14 @@ export class PaymentGatewayConfigService {
     return config;
   }
 
-  // Linked accounts are registered at the gateway behind a config; removing or re-pointing the config would orphan them
-  private async assertNoLinkedAccounts(id: string): Promise<void> {
-    const count = await this.linkedAccountRepository.countByCollector(id);
+  // Payout accounts name receiving accounts at the gateway behind a config; removing or re-pointing it would orphan them
+  private async assertNoPayoutAccounts(id: string): Promise<void> {
+    const count = await this.payoutAccountRepository.countByConfig(id);
     if (count === 0) return;
     throw gatewayInUse(count);
   }
 
-  // Deletes, turning the foreign-key refusal into the same 409 — the backstop for linked accounts the caller cannot
+  // Deletes, turning the foreign-key refusal into the same 409 — the backstop for payout accounts the caller cannot
   // see, which is every organization's under a platform row
   private async deleteGuarded(scope: string | null, id: string): Promise<SuccessResponseDto> {
     try {
@@ -138,8 +171,8 @@ function gatewayInUse(count?: number): ConflictException {
     label: 'Gateway In Use',
     detail:
       count === undefined
-        ? 'Linked accounts are registered under this gateway. Remove them first.'
-        : `${pluralize('linked account', count, true)} ${count === 1 ? 'is' : 'are'} registered under this gateway. Remove them first.`,
+        ? 'Payout accounts pay out through this gateway. Remove them first.'
+        : `${pluralize('payout account', count, true)} ${count === 1 ? 'pays' : 'pay'} out through this gateway. Remove ${count === 1 ? 'it' : 'them'} first.`,
   });
 }
 

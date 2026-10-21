@@ -6884,7 +6884,7 @@
         ]
       },
       "delete": {
-        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header. Refused while any organization's linked accounts reference it.",
+        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header. Refused while any organization's payout accounts reference it.",
         "operationId": "PaymentGatewayConfigInternalController_deletePlatform",
         "parameters": [
           {
@@ -6933,7 +6933,7 @@
             "description": "Payment gateway config not found."
           },
           "409": {
-            "description": "Linked accounts are registered under this gateway."
+            "description": "Payout accounts pay out through this gateway."
           }
         },
         "summary": "Remove a platform payment gateway",
@@ -7068,7 +7068,7 @@
         ]
       },
       "patch": {
-        "description": "Updates one of the organization's own gateways. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext. The gateway cannot change while linked accounts are registered under it.",
+        "description": "Updates one of the organization's own gateways. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext. The gateway cannot change while payout accounts are registered under it.",
         "operationId": "PaymentGatewayConfigInternalController_update",
         "parameters": [
           {
@@ -7142,7 +7142,7 @@
             "description": "Payment gateway config not found."
           },
           "409": {
-            "description": "Linked accounts are registered under this gateway, or the label is taken."
+            "description": "Payout accounts are registered under this gateway, or the label is taken."
           }
         },
         "summary": "Update payment gateway config",
@@ -7151,7 +7151,7 @@
         ]
       },
       "delete": {
-        "description": "Removes one of the organization's own gateways, unless linked accounts still depend on it.",
+        "description": "Removes one of the organization's own gateways, unless payout accounts still depend on it.",
         "operationId": "PaymentGatewayConfigInternalController_delete",
         "parameters": [
           {
@@ -7212,7 +7212,7 @@
             "description": "Payment gateway config not found."
           },
           "409": {
-            "description": "Linked accounts are registered under this gateway."
+            "description": "Payout accounts pay out through this gateway."
           }
         },
         "summary": "Delete payment gateway config",
@@ -7293,28 +7293,26 @@
         ]
       }
     },
-    "/payment-linked-accounts/internal": {
+    "/payout-accounts/internal": {
       "get": {
-        "description": "Every linked account registered against a split-enabled gateway config, newest first. Pass legalEntityId to require the collector to belong to that legal entity. Requires Ed25519 signature headers (x-timestamp, x-signature).",
-        "operationId": "PaymentLinkedAccountInternalController_list",
+        "description": "The payout accounts of a bank account, or every one of a legal entity, with the gateway and bank each names. Only the last four digits of an account number are returned.",
+        "operationId": "PayoutAccountInternalController_list",
         "parameters": [
           {
-            "name": "legalEntityId",
+            "name": "bankAccountId",
             "required": false,
             "in": "query",
-            "description": "Legal entity the collector config must belong to",
+            "description": "The bank account whose payout accounts are listed",
             "schema": {
-              "example": "uuid-here",
               "type": "string"
             }
           },
           {
-            "name": "collectorConfigId",
-            "required": true,
+            "name": "legalEntityId",
+            "required": false,
             "in": "query",
-            "description": "Collector gateway config whose linked accounts to list",
+            "description": "The legal entity whose payout accounts are listed, across its bank accounts",
             "schema": {
-              "example": "uuid-here",
               "type": "string"
             }
           },
@@ -7348,13 +7346,13 @@
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Payout accounts retrieved.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/PaymentLinkedAccountDto"
+                    "$ref": "#/components/schemas/PayoutAccountDto"
                   }
                 }
               }
@@ -7364,25 +7362,97 @@
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Payment gateway config not found."
+            "description": "Legal entity not found."
           }
         },
-        "summary": "Linked accounts of a collector",
+        "summary": "List payout accounts",
         "tags": [
-          "Structure - Payment Linked Accounts (internal)"
+          "Structure - Payout Accounts (internal)"
         ]
       },
       "post": {
-        "description": "Opens a linked account at the collector's gateway for a bank account of the organization (any legal entity). Business details are forwarded to the gateway and not stored. Transfers open 24 hours after registration. Requires Ed25519 signature headers (x-timestamp, x-signature).",
-        "operationId": "PaymentLinkedAccountInternalController_register",
+        "description": "Adds a gateway account to a bank account. The id is stored as entered; it is marked as the gateway's main account when it equals the gateway's own id. A gateway account is one payout account.",
+        "operationId": "PayoutAccountInternalController_create",
         "parameters": [
           {
-            "name": "legalEntityId",
-            "required": false,
-            "in": "query",
-            "description": "Legal entity the collector config must belong to",
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
             "schema": {
-              "example": "uuid-here",
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePayoutAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payout account added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid gateway, or an account a gateway without split payments cannot pay into."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Bank account not found."
+          },
+          "409": {
+            "description": "The gateway account is already a payout account."
+          }
+        },
+        "summary": "Add a payout account",
+        "tags": [
+          "Structure - Payout Accounts (internal)"
+        ]
+      }
+    },
+    "/payout-accounts/internal/{id}": {
+      "patch": {
+        "description": "Changes the gateway account id; the bank account and gateway are fixed.",
+        "operationId": "PayoutAccountInternalController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payout account ID",
+            "schema": {
               "type": "string"
             }
           },
@@ -7419,141 +7489,50 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterPaymentLinkedAccountDto"
+                "$ref": "#/components/schemas/UpdatePayoutAccountDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": "Linked account registered.",
+          "200": {
+            "description": "Payout account updated.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateResponseDto"
+                  "$ref": "#/components/schemas/SuccessResponseDto"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid input, split payments off, or an unknown bank account."
+            "description": "An account the gateway cannot pay into."
           },
           "401": {
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Payment gateway config not found."
+            "description": "Payout account not found."
           },
           "409": {
-            "description": "The bank account is already linked to this collector."
+            "description": "Payout channels use this payout account."
           }
         },
-        "summary": "Register a linked account",
+        "summary": "Change a payout account",
         "tags": [
-          "Structure - Payment Linked Accounts (internal)"
+          "Structure - Payout Accounts (internal)"
         ]
-      }
-    },
-    "/payment-linked-accounts/internal/{id}/refresh": {
-      "post": {
-        "description": "Pulls the linked account's activation status from the gateway and records it. Requires Ed25519 signature headers (x-timestamp, x-signature).",
-        "operationId": "PaymentLinkedAccountInternalController_refresh",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Payment linked account ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "legalEntityId",
-            "required": false,
-            "in": "query",
-            "description": "Legal entity the collector config must belong to",
-            "schema": {
-              "example": "uuid-here",
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-timestamp",
-            "in": "header",
-            "description": "Unix seconds when the request was signed",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-signature",
-            "in": "header",
-            "description": "Ed25519 signature of the canonical request (base64)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-org-id",
-            "in": "header",
-            "description": "Organization ID scoping the request",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Status refreshed; data carries the linked account.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The account was never created at the gateway."
-          },
-          "401": {
-            "description": "Invalid or missing request signature."
-          },
-          "404": {
-            "description": "Linked account not found."
-          }
-        },
-        "summary": "Refresh a linked account status",
-        "tags": [
-          "Structure - Payment Linked Accounts (internal)"
-        ]
-      }
-    },
-    "/payment-linked-accounts/internal/{id}": {
+      },
       "delete": {
-        "description": "Removes the local linked-account record; the account at the gateway is left in place. Requires Ed25519 signature headers (x-timestamp, x-signature).",
-        "operationId": "PaymentLinkedAccountInternalController_delete",
+        "description": "Refused while payout channels use it.",
+        "operationId": "PayoutAccountInternalController_delete",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Payment linked account ID",
+            "description": "Payout account ID",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "legalEntityId",
-            "required": false,
-            "in": "query",
-            "description": "Legal entity the collector config must belong to",
-            "schema": {
-              "example": "uuid-here",
               "type": "string"
             }
           },
@@ -7587,7 +7566,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Linked account removed.",
+            "description": "Payout account removed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7600,12 +7579,298 @@
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Linked account not found."
+            "description": "Payout account not found."
+          },
+          "409": {
+            "description": "Payout channels use this payout account."
           }
         },
-        "summary": "Remove a linked account",
+        "summary": "Remove a payout account",
         "tags": [
-          "Structure - Payment Linked Accounts (internal)"
+          "Structure - Payout Accounts (internal)"
+        ]
+      }
+    },
+    "/payout-channels/internal": {
+      "get": {
+        "description": "Every payout channel of the legal entity, its sites' included, with the payout account, gateway and bank account each uses.",
+        "operationId": "PayoutChannelInternalController_list",
+        "parameters": [
+          {
+            "name": "legalEntityId",
+            "required": true,
+            "in": "query",
+            "description": "The legal entity whose payout channels, its sites included, are listed",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payout channels retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayoutChannelDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Legal entity not found."
+          }
+        },
+        "summary": "List a legal entity's payout channels",
+        "tags": [
+          "Structure - Payout Channels (internal)"
+        ]
+      },
+      "post": {
+        "description": "Points the legal entity, one of its sites, an app or a sales channel at one of the legal entity's payout accounts. A scope has at most one payout channel per gateway.",
+        "operationId": "PayoutChannelInternalController_create",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePayoutChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payout channel added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payout account, site or app."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "409": {
+            "description": "This scope already pays out through that gateway."
+          }
+        },
+        "summary": "Add a payout channel",
+        "tags": [
+          "Structure - Payout Channels (internal)"
+        ]
+      }
+    },
+    "/payout-channels/internal/{id}": {
+      "patch": {
+        "description": "Points the channel at another payout account of the same legal entity; its scope is fixed.",
+        "operationId": "PayoutChannelInternalController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payout channel ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePayoutChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payout channel updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A payout account of another legal entity."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payout channel not found."
+          },
+          "409": {
+            "description": "This scope already pays out through that gateway."
+          }
+        },
+        "summary": "Change a payout channel",
+        "tags": [
+          "Structure - Payout Channels (internal)"
+        ]
+      },
+      "delete": {
+        "description": "Payments it covered fall back to the next payout channel that fits, or stop.",
+        "operationId": "PayoutChannelInternalController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payout channel ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payout channel removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payout channel not found."
+          }
+        },
+        "summary": "Remove a payout channel",
+        "tags": [
+          "Structure - Payout Channels (internal)"
         ]
       }
     },
@@ -43205,10 +43470,10 @@
             "description": "Whether a webhook signing secret is on file",
             "example": true
           },
-          "providerMerchantId": {
-            "type": "object",
-            "example": "MID12345",
-            "nullable": true
+          "gatewayAccountId": {
+            "type": "string",
+            "description": "The main account's id at the gateway",
+            "example": "acc_Tpmw33BnyMhFUf"
           },
           "platformFeeBps": {
             "type": "number",
@@ -43236,6 +43501,7 @@
           "gatewayCode",
           "label",
           "hasWebhookSecret",
+          "gatewayAccountId",
           "platformFeeBps",
           "createdAt",
           "updatedAt"
@@ -43296,10 +43562,10 @@
             "type": "object",
             "description": "Webhook signing secret issued by the provider"
           },
-          "providerMerchantId": {
-            "type": "object",
-            "description": "Merchant ID assigned by the provider",
-            "example": "MID12345"
+          "gatewayAccountId": {
+            "type": "string",
+            "description": "The main account's id at the gateway",
+            "example": "acc_Tpmw33BnyMhFUf"
           },
           "platformFeeBps": {
             "type": "number",
@@ -43310,7 +43576,8 @@
         "required": [
           "gatewayCode",
           "label",
-          "credentials"
+          "credentials",
+          "gatewayAccountId"
         ]
       },
       "UpdatePlatformPaymentGatewayConfigDto": {
@@ -43338,10 +43605,10 @@
             "type": "object",
             "description": "Webhook signing secret issued by the provider"
           },
-          "providerMerchantId": {
-            "type": "object",
-            "description": "Merchant ID assigned by the provider",
-            "example": "MID12345"
+          "gatewayAccountId": {
+            "type": "string",
+            "description": "The main account's id at the gateway",
+            "example": "acc_Tpmw33BnyMhFUf"
           },
           "platformFeeBps": {
             "type": "number",
@@ -43358,15 +43625,15 @@
             "description": "When the provider accepted the stored credentials",
             "example": "2024-01-15T10:30:00Z"
           },
-          "providerMerchantId": {
-            "type": "object",
-            "description": "Merchant id the provider reported, or the one already on file when it reports none",
-            "example": "MID12345",
-            "nullable": true
+          "gatewayAccountId": {
+            "type": "string",
+            "description": "The main account's id on file",
+            "example": "acc_Tpmw33BnyMhFUf"
           }
         },
         "required": [
-          "verifiedAt"
+          "verifiedAt",
+          "gatewayAccountId"
         ]
       },
       "PaymentGatewayConfigVerificationResponseDto": {
@@ -43415,16 +43682,17 @@
             "type": "object",
             "description": "Webhook signing secret issued by the provider"
           },
-          "providerMerchantId": {
-            "type": "object",
-            "description": "Merchant ID assigned by the provider",
-            "example": "MID12345"
+          "gatewayAccountId": {
+            "type": "string",
+            "description": "The main account's id at the gateway",
+            "example": "acc_Tpmw33BnyMhFUf"
           }
         },
         "required": [
           "gatewayCode",
           "label",
-          "credentials"
+          "credentials",
+          "gatewayAccountId"
         ]
       },
       "UpdatePaymentGatewayConfigDto": {
@@ -43452,62 +43720,98 @@
             "type": "object",
             "description": "Webhook signing secret issued by the provider"
           },
-          "providerMerchantId": {
-            "type": "object",
-            "description": "Merchant ID assigned by the provider",
-            "example": "MID12345"
+          "gatewayAccountId": {
+            "type": "string",
+            "description": "The main account's id at the gateway",
+            "example": "acc_Tpmw33BnyMhFUf"
           }
         }
       },
-      "PaymentLinkedAccountDto": {
+      "PayoutAccountGatewayDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "example": "uuid-here"
           },
-          "collectorConfigId": {
-            "type": "string",
-            "description": "Split-enabled gateway config that collects the payments",
-            "example": "uuid-here"
-          },
-          "bankAccountId": {
-            "type": "string",
-            "description": "Bank account the linked account settles into",
-            "example": "uuid-here"
-          },
-          "recipientLegalEntityId": {
-            "type": "string",
-            "description": "Legal entity that holds the recipient bank account",
-            "example": "uuid-here"
-          },
-          "providerAccountId": {
-            "type": "object",
-            "example": "acc_00000000000001",
-            "nullable": true
-          },
-          "status": {
+          "kind": {
             "type": "string",
             "enum": [
-              "PENDING",
-              "IN_REVIEW",
-              "ACTION_REQUIRED",
-              "ACTIVE",
-              "SUSPENDED",
-              "FAILED"
+              "PLATFORM",
+              "ORG"
             ],
-            "example": "IN_REVIEW"
+            "example": "PLATFORM"
           },
-          "transfersAllowedAt": {
+          "gatewayCode": {
+            "type": "string",
+            "example": "razorpay"
+          },
+          "label": {
+            "type": "string",
+            "example": "Vritti Razorpay"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "gatewayCode",
+          "label"
+        ]
+      },
+      "PayoutAccountBankDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "label": {
             "type": "object",
-            "description": "When the provider starts accepting transfers to this account",
-            "example": "2024-01-16T10:30:00Z",
+            "example": "Main current account",
             "nullable": true
           },
-          "lastError": {
-            "type": "object",
-            "description": "Why the last registration attempt failed",
-            "nullable": true
+          "bankName": {
+            "type": "string",
+            "example": "HDFC Bank"
+          },
+          "accountNumberLast4": {
+            "type": "string",
+            "description": "Last four digits of the account number",
+            "example": "1234"
+          }
+        },
+        "required": [
+          "id",
+          "bankName",
+          "accountNumberLast4"
+        ]
+      },
+      "PayoutAccountDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "paymentGatewayConfig": {
+            "$ref": "#/components/schemas/PayoutAccountGatewayDto"
+          },
+          "bankAccount": {
+            "$ref": "#/components/schemas/PayoutAccountBankDto"
+          },
+          "gatewayAccountId": {
+            "type": "string",
+            "description": "The receiving account's id at the gateway",
+            "example": "acc_Hx81aBcDeF"
+          },
+          "isMainAccount": {
+            "type": "boolean",
+            "description": "True when gatewayAccountId is the gateway's own main account, so the share stays there; false when it is a linked account the share is transferred to",
+            "example": false
           },
           "createdAt": {
             "type": "string",
@@ -43520,116 +43824,235 @@
         },
         "required": [
           "id",
-          "collectorConfigId",
-          "bankAccountId",
-          "recipientLegalEntityId",
-          "status",
+          "legalEntityId",
+          "paymentGatewayConfig",
+          "bankAccount",
+          "gatewayAccountId",
+          "isMainAccount",
           "createdAt",
           "updatedAt"
         ]
       },
-      "PaymentLinkedAccountAddressDto": {
+      "CreatePayoutAccountDto": {
         "type": "object",
         "properties": {
-          "street1": {
-            "type": "string",
-            "example": "12 MG Road"
-          },
-          "street2": {
-            "type": "string",
-            "example": "Indiranagar"
-          },
-          "city": {
-            "type": "string",
-            "example": "Bengaluru"
-          },
-          "state": {
-            "type": "string",
-            "example": "Karnataka"
-          },
-          "postalCode": {
-            "type": "string",
-            "example": "560038"
-          },
-          "country": {
-            "type": "string",
-            "description": "ISO 3166-1 alpha-2 country code",
-            "example": "IN"
-          }
-        },
-        "required": [
-          "street1",
-          "city",
-          "state",
-          "postalCode",
-          "country"
-        ]
-      },
-      "RegisterPaymentLinkedAccountDto": {
-        "type": "object",
-        "properties": {
-          "collectorConfigId": {
-            "type": "string",
-            "description": "Split-enabled gateway config that collects the payments",
-            "example": "uuid-here"
-          },
           "bankAccountId": {
             "type": "string",
-            "description": "Bank account the linked account settles into",
+            "description": "The bank account the money is paid into",
             "example": "uuid-here"
           },
-          "email": {
+          "paymentGatewayConfigId": {
             "type": "string",
-            "example": "accounts@acme.example"
+            "description": "The organization's own gateway config or one of Vritti's",
+            "example": "uuid-here"
           },
-          "phone": {
+          "gatewayAccountId": {
             "type": "string",
-            "example": "9876543210"
-          },
-          "legalBusinessName": {
-            "type": "string",
-            "example": "Acme Foods Private Limited"
-          },
-          "businessType": {
-            "type": "string",
-            "description": "Provider business type",
-            "example": "private_limited"
-          },
-          "contactName": {
-            "type": "string",
-            "example": "Asha Rao"
-          },
-          "category": {
-            "type": "string",
-            "description": "Provider business category; required by some providers (e.g. Razorpay)",
-            "example": "food"
-          },
-          "subcategory": {
-            "type": "string",
-            "description": "Provider business subcategory; required by some providers (e.g. Razorpay)",
-            "example": "restaurant"
-          },
-          "address": {
-            "$ref": "#/components/schemas/PaymentLinkedAccountAddressDto"
-          },
-          "pan": {
-            "type": "string",
-            "example": "ABCDE1234F"
-          },
-          "gst": {
-            "type": "string",
-            "example": "29ABCDE1234F1Z5"
+            "description": "The account's id at the gateway: a linked account, or the gateway's main account",
+            "example": "acc_Hx81aBcDeF"
           }
         },
         "required": [
-          "collectorConfigId",
           "bankAccountId",
-          "email",
-          "phone",
-          "legalBusinessName",
-          "businessType",
-          "contactName",
-          "address"
+          "paymentGatewayConfigId",
+          "gatewayAccountId"
+        ]
+      },
+      "UpdatePayoutAccountDto": {
+        "type": "object",
+        "properties": {
+          "gatewayAccountId": {
+            "type": "string",
+            "description": "The account's id at the gateway: a linked account, or the gateway's main account",
+            "example": "acc_Hx81aBcDeF"
+          }
+        }
+      },
+      "PayoutChannelGatewayDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "PLATFORM",
+              "ORG"
+            ],
+            "example": "PLATFORM"
+          },
+          "gatewayCode": {
+            "type": "string",
+            "example": "razorpay"
+          },
+          "label": {
+            "type": "string",
+            "example": "Vritti Razorpay"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "gatewayCode",
+          "label"
+        ]
+      },
+      "PayoutChannelBankDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "label": {
+            "type": "object",
+            "example": "Main current account",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "string",
+            "example": "HDFC Bank"
+          },
+          "accountNumberLast4": {
+            "type": "string",
+            "description": "Last four digits of the account number",
+            "example": "1234"
+          }
+        },
+        "required": [
+          "id",
+          "bankName",
+          "accountNumberLast4"
+        ]
+      },
+      "PayoutChannelAccountDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "gatewayAccountId": {
+            "type": "string",
+            "example": "acc_Hx81aBcDeF"
+          },
+          "isMainAccount": {
+            "type": "boolean",
+            "description": "True when the account is the gateway's own main account",
+            "example": false
+          },
+          "paymentGatewayConfig": {
+            "$ref": "#/components/schemas/PayoutChannelGatewayDto"
+          },
+          "bankAccount": {
+            "$ref": "#/components/schemas/PayoutChannelBankDto"
+          }
+        },
+        "required": [
+          "id",
+          "gatewayAccountId",
+          "isMainAccount",
+          "paymentGatewayConfig",
+          "bankAccount"
+        ]
+      },
+      "PayoutChannelDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "siteId": {
+            "type": "object",
+            "description": "Set when the channel covers one site only",
+            "nullable": true
+          },
+          "appId": {
+            "type": "object",
+            "description": "Set when the channel covers one app only",
+            "nullable": true
+          },
+          "channel": {
+            "type": "string",
+            "description": "Set when the channel covers one sales channel only",
+            "enum": [
+              "APP",
+              "POS",
+              "B2B"
+            ],
+            "nullable": true
+          },
+          "payoutAccount": {
+            "$ref": "#/components/schemas/PayoutChannelAccountDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "legalEntityId",
+          "payoutAccount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreatePayoutChannelDto": {
+        "type": "object",
+        "properties": {
+          "payoutAccountId": {
+            "type": "string",
+            "description": "The payout account this scope pays out to",
+            "example": "uuid-here"
+          },
+          "siteId": {
+            "type": "string",
+            "description": "Narrows the channel to one site of the legal entity",
+            "example": "uuid-here"
+          },
+          "appId": {
+            "type": "string",
+            "description": "Narrows the channel to one app; requires channel APP",
+            "example": "uuid-here"
+          },
+          "channel": {
+            "type": "string",
+            "description": "Narrows the channel to one sales channel",
+            "enum": [
+              "APP",
+              "POS",
+              "B2B"
+            ],
+            "example": "APP"
+          }
+        },
+        "required": [
+          "payoutAccountId"
+        ]
+      },
+      "UpdatePayoutChannelDto": {
+        "type": "object",
+        "properties": {
+          "payoutAccountId": {
+            "type": "string",
+            "description": "The payout account this scope pays out to",
+            "example": "uuid-here"
+          }
+        },
+        "required": [
+          "payoutAccountId"
         ]
       },
       "ReceiveCatalogInternalDto": {

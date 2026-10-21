@@ -21,8 +21,8 @@ const RAZORPAY_API_HOST = 'https://api.razorpay.com';
 const DEFAULT_API_VERSION: RazorpayApiVersion = 'v1';
 const UNREACHABLE_DETAIL = 'Unable to reach Razorpay. Please try again later.';
 
-// HTTP client for the stock Razorpay REST API, and the protocol base for the bank editions of it
-// (see HdfcRazorpayHttpService). Owns transport concerns only — which host, how long to wait, how a
+// HTTP client for the stock Razorpay REST API. HDFC's edition has its own copy under gateways/hdfc-razorpay, so a
+// change here never reaches it. Owns transport concerns only — which host, how long to wait, how a
 // failure maps to a problem — and stores no merchant credentials: the key pair arrives per call and
 // is bound to that one request as basic auth, never to an interceptor, never to a log line.
 @Injectable()
@@ -81,7 +81,7 @@ export class RazorpayHttpService {
     }
   }
 
-  // This gateway's host, fixed in code; a bank edition points at its own
+  // This gateway's host, fixed in code
   protected host(): string {
     return RAZORPAY_API_HOST;
   }
@@ -99,7 +99,7 @@ export class RazorpayHttpService {
     };
   }
 
-  // Maps a failed call to an RFC 9457 problem; a bank edition with its own error codes overrides this
+  // Maps a failed call to an RFC 9457 problem
   protected rethrow(error: unknown, options?: RazorpayRequestOptions): never {
     rethrowRazorpayError(error, this.errorContext(options));
   }

@@ -9,7 +9,6 @@ import type { PaymentGatewayOptionDto } from '../dto/response/payment-gateway-op
 
 interface VerifyCredentialsResult {
   ok: true;
-  providerMerchantId: string | null;
 }
 
 @Injectable()
@@ -20,6 +19,12 @@ export class PaymentGatewaysGatewayService {
     private readonly nats: NatsClientService,
     private readonly configService: PaymentGatewayConfigDomainService,
   ) {}
+
+  // Whether a gateway can split a payment across linked accounts, as payments-service reports it
+  async supportsSplit(gatewayCode: string): Promise<boolean> {
+    const gateways = await this.listGateways();
+    return gateways.some((gateway) => gateway.code === gatewayCode && gateway.supportsSplit);
+  }
 
   // The gateways payments-service can actually charge through, with the credential fields each one takes
   async listGateways(): Promise<PaymentGatewayOptionDto[]> {
@@ -41,11 +46,11 @@ export class PaymentGatewaysGatewayService {
     const { gatewayCode, credentials } = await this.configService.getDecryptedCredentials(orgId, configId);
 
     this.logger.log(`payments.gateways.verifyCredentials — config: ${configId} gateway: ${gatewayCode}`);
-    const result = await this.nats.send<VerifyCredentialsResult>('payments', 'payments.gateways.verifyCredentials', {
+    await this.nats.send<VerifyCredentialsResult>('payments', 'payments.gateways.verifyCredentials', {
       gatewayCode,
       credentials,
     });
 
-    return this.configService.markVerified(orgId, configId, result.providerMerchantId);
+    return this.configService.markVerified(orgId, configId);
   }
 }

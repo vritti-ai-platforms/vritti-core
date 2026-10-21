@@ -60,11 +60,15 @@ export interface CreateOrderInput {
   receipt: string;
   notes?: Record<string, string>;
   customer?: GatewayCustomer;
+  // Shares the gateway splits off once the payment is captured; only a gateway with split support takes them
+  transfers?: CreateTransferInput[];
 }
 
 export interface CreateOrderResult {
   providerOrderId: string;
   checkout: Record<string, unknown>;
+  // The transfers the gateway created with the order, in the order they were asked for
+  transfers: CreateTransferResult[];
 }
 
 export interface VerifyCheckoutSignatureInput {

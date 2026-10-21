@@ -27,7 +27,7 @@ const ORG_HEADERS = [
 const UNAUTHORIZED = ApiResponse({ status: 401, description: 'Invalid or missing request signature.' });
 const NOT_FOUND = ApiResponse({ status: 404, description: 'Payment gateway config not found.' });
 const MANAGED = ApiResponse({ status: 403, description: "Vritti's gateways cannot be changed from here." });
-const IN_USE = ApiResponse({ status: 409, description: 'Linked accounts are registered under this gateway.' });
+const IN_USE = ApiResponse({ status: 409, description: 'Payout accounts pay out through this gateway.' });
 
 const PLATFORM_NOTE =
   "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header.";
@@ -105,7 +105,7 @@ export function ApiUpdatePaymentGatewayConfigInternal() {
     ApiOperation({
       summary: 'Update payment gateway config',
       description:
-        "Updates one of the organization's own gateways. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext. The gateway cannot change while linked accounts are registered under it.",
+        "Updates one of the organization's own gateways. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext. The gateway cannot change while payout accounts are registered under it.",
     }),
     ...ORG_HEADERS,
     ID,
@@ -117,7 +117,7 @@ export function ApiUpdatePaymentGatewayConfigInternal() {
     NOT_FOUND,
     ApiResponse({
       status: 409,
-      description: 'Linked accounts are registered under this gateway, or the label is taken.',
+      description: 'Payout accounts are registered under this gateway, or the label is taken.',
     }),
   );
 }
@@ -150,7 +150,7 @@ export function ApiDeletePaymentGatewayConfigInternal() {
   return applyDecorators(
     ApiOperation({
       summary: 'Delete payment gateway config',
-      description: "Removes one of the organization's own gateways, unless linked accounts still depend on it.",
+      description: "Removes one of the organization's own gateways, unless payout accounts still depend on it.",
     }),
     ...ORG_HEADERS,
     ID,
@@ -223,7 +223,7 @@ export function ApiDeletePlatformPaymentGatewayConfigInternal() {
   return applyDecorators(
     ApiOperation({
       summary: 'Remove a platform payment gateway',
-      description: `${PLATFORM_NOTE} Refused while any organization's linked accounts reference it.`,
+      description: `${PLATFORM_NOTE} Refused while any organization's payout accounts reference it.`,
     }),
     ...SIGNATURE_HEADERS,
     ID,

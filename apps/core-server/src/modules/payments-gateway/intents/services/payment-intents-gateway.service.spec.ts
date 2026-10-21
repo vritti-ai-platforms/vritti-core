@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { AppDomainService } from '@domain/app/services/app.service';
 import type { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
+import type { PayoutChannelDomainService } from '@domain/payout-channel/services/payout-channel.service';
 import { Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { NatsClientService } from '@vritti/api-sdk/nats';
@@ -19,7 +20,14 @@ const OTHER_APP = 'app-2';
 const SITE = 'site-1';
 const LE = 'le-1';
 
-const config = { id: 'cfg-1', kind: 'ORG', gatewayCode: 'razorpay' };
+const payout = {
+  id: 'pa-1',
+  organizationId: ORG,
+  paymentGatewayConfigId: 'cfg-1',
+  bankAccountId: 'bank-1',
+  gatewayAccountId: 'acc_main',
+  isMainAccount: true,
+};
 const credentials = { key_id: 'rzp_test_1', key_secret: 'secret' };
 
 function intentOf(overrides: Partial<PaymentIntentResponseDto> = {}): PaymentIntentResponseDto {
@@ -59,7 +67,10 @@ function intentOf(overrides: Partial<PaymentIntentResponseDto> = {}): PaymentInt
 
 describe('PaymentIntentsGatewayService', () => {
   const send = jest.fn();
-  const resolveForPayment = jest.fn();
+  const resolvePayout = jest.fn();
+  const findPayableConfigIds = jest.fn();
+  const listConfigs = jest.fn();
+  const findConfig = jest.fn();
   const getDecryptedCredentials = jest.fn();
   const resolveSite = jest.fn();
   const dispatch = jest.fn();
@@ -67,7 +78,12 @@ describe('PaymentIntentsGatewayService', () => {
 
   const service = new PaymentIntentsGatewayService(
     { send } as unknown as NatsClientService,
-    { resolveForPayment, getDecryptedCredentials } as unknown as PaymentGatewayConfigDomainService,
+    {
+      getDecryptedCredentials,
+      list: listConfigs,
+      findById: findConfig,
+    } as unknown as PaymentGatewayConfigDomainService,
+    { resolve: resolvePayout, findPayableConfigIds } as unknown as PayoutChannelDomainService,
     { resolve: resolveSite } as unknown as SiteContextResolverService,
     { dispatch } as unknown as PaymentEventDispatcherService,
     { findInOrg } as unknown as AppDomainService,
@@ -81,11 +97,51 @@ describe('PaymentIntentsGatewayService', () => {
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
     resolveSite.mockResolvedValue({ legalEntityId: LE, siteTimezone: 'Asia/Kolkata', siteCurrencyCode: 'INR' });
-    resolveForPayment.mockResolvedValue(config);
+    resolvePayout.mockResolvedValue(payout);
     getDecryptedCredentials.mockResolvedValue({ gatewayCode: 'razorpay', keyId: 'rzp_test_1', credentials });
   });
 
   afterEach(() => jest.restoreAllMocks());
+
+  describe('split at order creation', () => {
+    const input = {
+      amount: { currency: 'INR', value: '1000.00' },
+      reference: { type: 'booking', id: 'bk-1' },
+      idempotencyKey: 'idem-split',
+      paymentGatewayConfigId: 'cfg-1',
+    };
+
+    it('sends no transfers when the payout account is the main account', async () => {
+      send.mockResolvedValue(intentOf());
+
+      await service.create(caller, input);
+
+      expect(send.mock.calls[0][2]).not.toHaveProperty('transfers');
+      expect(findConfig).not.toHaveBeenCalled();
+    });
+
+    it("transfers a linked account the payment less Vritti's fee", async () => {
+      resolvePayout.mockResolvedValue({ ...payout, gatewayAccountId: 'acc_linked', isMainAccount: false });
+      findConfig.mockResolvedValue({ id: 'cfg-1', platformFeeBps: 150 });
+      send.mockResolvedValue(intentOf());
+
+      await service.create(caller, input);
+
+      expect(send.mock.calls[0][2].transfers).toEqual([
+        { linkedAccountId: 'pa-1', providerAccountId: 'acc_linked', amount: '98500' },
+      ]);
+    });
+
+    it('refuses a payment too small to leave a transfer of at least 100 paise', async () => {
+      resolvePayout.mockResolvedValue({ ...payout, gatewayAccountId: 'acc_linked', isMainAccount: false });
+      findConfig.mockResolvedValue({ id: 'cfg-1', platformFeeBps: 150 });
+
+      await expect(
+        service.create(caller, { ...input, amount: { currency: 'INR', value: '1.00' } }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(send).not.toHaveBeenCalled();
+    });
+  });
 
   describe('create', () => {
     const input = {
@@ -93,14 +149,19 @@ describe('PaymentIntentsGatewayService', () => {
       reference: { type: 'booking', id: 'bk-1' },
       idempotencyKey: 'idem-1',
       metadata: [{ key: 'slot', value: 'morning' }],
+      paymentGatewayConfigId: 'cfg-1',
     };
 
-    it('resolves the organization collector and sends the amount in minor units', async () => {
+    it('pays out through the payout account of the picked gateway and sends the amount in minor units', async () => {
       send.mockResolvedValue(intentOf());
 
       await service.create(caller, input);
 
-      expect(resolveForPayment).toHaveBeenCalledWith(ORG);
+      expect(resolvePayout).toHaveBeenCalledWith(
+        ORG,
+        { legalEntityId: LE, siteId: SITE, appId: APP, channel: 'APP' },
+        'cfg-1',
+      );
       expect(getDecryptedCredentials).toHaveBeenCalledWith(ORG, 'cfg-1');
       expect(send).toHaveBeenCalledWith(
         'payments',
@@ -112,6 +173,7 @@ describe('PaymentIntentsGatewayService', () => {
           partyId: 'party-1',
           configId: 'cfg-1',
           gatewayCode: 'razorpay',
+          bankAccountId: 'bank-1',
           type: 'APP',
           credentials,
           amount: '1234',
@@ -147,7 +209,7 @@ describe('PaymentIntentsGatewayService', () => {
       const body = JSON.stringify((error as BadRequestException).getResponse());
       expect(body).toContain('Reserved Reference Type');
       expect(body).toContain('reference.type');
-      expect(resolveForPayment).not.toHaveBeenCalled();
+      expect(resolvePayout).not.toHaveBeenCalled();
       expect(send).not.toHaveBeenCalled();
     });
 
@@ -165,16 +227,19 @@ describe('PaymentIntentsGatewayService', () => {
       await service.create({ orgId: ORG, appId: APP, legalEntityId: 'le-9' }, { ...input, channel: undefined });
 
       expect(resolveSite).not.toHaveBeenCalled();
-      expect(resolveForPayment).toHaveBeenCalledWith(ORG);
+      expect(resolvePayout).toHaveBeenCalledWith(
+        ORG,
+        { legalEntityId: 'le-9', siteId: undefined, appId: APP, channel: 'APP' },
+        'cfg-1',
+      );
       const payload = send.mock.calls[0][2];
       expect(payload.legalEntityId).toBe('le-9');
-      expect(payload).not.toHaveProperty('bankAccountId');
       expect(payload.siteId).toBeUndefined();
       expect(payload.partyId).toBeUndefined();
     });
 
-    it('answers 400 Payments Not Set Up when nothing is configured, before decrypting anything', async () => {
-      resolveForPayment.mockResolvedValue(null);
+    it('answers 400 Payments Not Set Up when the picked gateway has no payout account here, before decrypting', async () => {
+      resolvePayout.mockResolvedValue(undefined);
 
       const error = await service.create(caller, input).catch((e: unknown) => e);
 
@@ -348,8 +413,35 @@ describe('PaymentIntentsGatewayService', () => {
     });
   });
 
+  describe('listCheckoutGateways', () => {
+    it('offers only the gateways with a payout account that fits the store, app and channel', async () => {
+      findPayableConfigIds.mockResolvedValue(['cfg-1']);
+      listConfigs.mockResolvedValue([
+        { id: 'cfg-1', gatewayCode: 'razorpay', label: 'Vritti Razorpay' },
+        { id: 'cfg-2', gatewayCode: 'razorpay', label: 'Unused' },
+      ]);
+
+      const result = await service.listCheckoutGateways(caller, 'POS');
+
+      expect(findPayableConfigIds).toHaveBeenCalledWith(ORG, {
+        legalEntityId: LE,
+        siteId: SITE,
+        appId: APP,
+        channel: 'POS',
+      });
+      expect(result).toEqual([{ id: 'cfg-1', gatewayCode: 'razorpay', label: 'Vritti Razorpay' }]);
+    });
+
+    it('answers an empty list without reading the configs when nothing pays out here', async () => {
+      findPayableConfigIds.mockResolvedValue([]);
+
+      await expect(service.listCheckoutGateways(caller, 'APP')).resolves.toEqual([]);
+      expect(listConfigs).not.toHaveBeenCalled();
+    });
+  });
+
   describe('startCheckoutFromCart', () => {
-    const input = { idempotencyKey: 'chk-1' };
+    const input = { idempotencyKey: 'chk-1', paymentGatewayConfigId: 'cfg-1' };
     const order = {
       orderId: 'ord-1',
       orderNumber: 'SO-0001',
@@ -491,8 +583,8 @@ describe('PaymentIntentsGatewayService', () => {
       await expect(service.startCheckoutFromCart(caller, input)).rejects.toBe(rejection);
     });
 
-    it('creates no order when the organization has no gateway', async () => {
-      resolveForPayment.mockResolvedValue(null);
+    it('creates no order when the picked gateway has no payout account here', async () => {
+      resolvePayout.mockResolvedValue(undefined);
 
       await expect(service.startCheckoutFromCart(caller, input)).rejects.toBeInstanceOf(BadRequestException);
       expect(send).not.toHaveBeenCalled();
@@ -518,6 +610,7 @@ describe('PaymentIntentsGatewayService', () => {
       amount: { currency: 'INR', value: '12.34' },
       reference: { type: 'booking', id: 'bk-1' },
       idempotencyKey: 'idem-1',
+      paymentGatewayConfigId: 'cfg-1',
     };
     const allowing = (...allowedOrigins: string[]) => findInOrg.mockResolvedValue({ id: APP, allowedOrigins });
 
@@ -617,7 +710,11 @@ describe('PaymentIntentsGatewayService', () => {
       allowing('https://shop.example');
 
       await expect(
-        service.startCheckoutFromCart(caller, { idempotencyKey: 'chk-1', returnUrl: 'https://evil.example/' }),
+        service.startCheckoutFromCart(caller, {
+          idempotencyKey: 'chk-1',
+          paymentGatewayConfigId: 'cfg-1',
+          returnUrl: 'https://evil.example/',
+        }),
       ).rejects.toBeInstanceOf(BadRequestException);
       expect(send).not.toHaveBeenCalled();
     });

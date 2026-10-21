@@ -12,6 +12,44 @@ const sha256 = (body: string) => createHash('sha256').update(body).digest('hex')
 describe('RazorpayTransport', () => {
   const transport = new RazorpayTransport({} as RazorpayHttpService);
 
+  describe('createOrder', () => {
+    it('sends the transfers with the order and returns the ones Razorpay created, in order', async () => {
+      const post = jest.fn().mockResolvedValue({
+        id: 'order_1',
+        amount: 100000,
+        currency: 'INR',
+        transfers: [{ id: 'trf_1', recipient: 'acc_seller', amount: 98500, status: 'created' }],
+      });
+      const withHttp = new RazorpayTransport({ post } as unknown as RazorpayHttpService);
+
+      const result = await withHttp.createOrder(CREDENTIALS, {
+        amount: 100000n,
+        currency: 'INR',
+        receipt: 'r-1',
+        transfers: [{ providerAccountId: 'acc_seller', amount: 98500n, currency: 'INR', onHold: false }],
+      });
+
+      expect(post.mock.calls[0][1]).toBe('/orders');
+      expect(post.mock.calls[0][2]).toMatchObject({
+        amount: 100000,
+        transfers: [{ account: 'acc_seller', amount: 98500, currency: 'INR', on_hold: false }],
+      });
+      expect(result.transfers).toEqual([
+        { providerTransferId: 'trf_1', providerAccountId: 'acc_seller', amount: 98500n, status: 'CREATED' },
+      ]);
+    });
+
+    it('sends no transfers key for an order that is not split', async () => {
+      const post = jest.fn().mockResolvedValue({ id: 'order_2', amount: 1000, currency: 'INR' });
+      const withHttp = new RazorpayTransport({ post } as unknown as RazorpayHttpService);
+
+      const result = await withHttp.createOrder(CREDENTIALS, { amount: 1000n, currency: 'INR', receipt: 'r-2' });
+
+      expect(post.mock.calls[0][2]).not.toHaveProperty('transfers');
+      expect(result.transfers).toEqual([]);
+    });
+  });
+
   describe('verifyWebhook', () => {
     const body = JSON.stringify({ event: 'payment.captured' });
 

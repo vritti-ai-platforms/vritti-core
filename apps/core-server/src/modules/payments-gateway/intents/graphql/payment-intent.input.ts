@@ -135,6 +135,11 @@ export class CreatePaymentIntentInput {
   @IsEnum(PaymentChannel)
   channel?: PaymentChannel;
 
+  // The gateway the shopper picked on the payment page, one of checkoutPaymentGateways
+  @Field(() => ID, { description: 'The payment gateway the shopper picked; one of checkoutPaymentGateways.' })
+  @IsUUID()
+  paymentGatewayConfigId: string;
+
   @Field(() => String, { nullable: true, description: RETURN_URL_DESCRIPTION })
   @IsOptional()
   @IsUrl(STOREFRONT_URL, { message: 'returnUrl must be an http(s) URL' })
@@ -199,6 +204,11 @@ export class StartCheckoutInput {
   @Matches(/^[A-Z]{3}$/, { message: 'currencyCode must be an ISO 4217 code' })
   currencyCode?: string;
 
+  // The gateway the shopper picked on the payment page, one of checkoutPaymentGateways
+  @Field(() => ID, { description: 'The payment gateway the shopper picked; one of checkoutPaymentGateways.' })
+  @IsUUID()
+  paymentGatewayConfigId: string;
+
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
@@ -227,4 +237,12 @@ export class StartCheckoutInput {
   @IsUrl(STOREFRONT_URL, { message: 'checkoutUrl must be an http(s) URL' })
   @MaxLength(2048)
   checkoutUrl?: string;
+}
+
+@InputType()
+export class CheckoutPaymentGatewaysInput {
+  @Field(() => PaymentChannel, { nullable: true, defaultValue: PaymentChannel.APP })
+  @IsOptional()
+  @IsEnum(PaymentChannel)
+  channel?: PaymentChannel;
 }

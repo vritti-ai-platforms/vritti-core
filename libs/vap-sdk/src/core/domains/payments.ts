@@ -53,6 +53,8 @@ export type CreatePaymentIntentInput = {
   idempotencyKey: string;
   metadata?: Record<string, string>;
   channel?: PaymentChannel;
+  // The gateway the shopper picked, one of `checkout.paymentGateways()`
+  paymentGatewayConfigId: string;
   returnUrl?: string;
   checkoutUrl?: string;
 };
@@ -137,6 +139,7 @@ export function createPaymentsOperations(client: ApolloClient, context: RequestC
                 idempotencyKey: input.idempotencyKey,
                 metadata: toKeyValues(input.metadata),
                 channel: input.channel,
+                paymentGatewayConfigId: input.paymentGatewayConfigId,
                 returnUrl: input.returnUrl,
                 checkoutUrl: input.checkoutUrl,
               },

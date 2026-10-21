@@ -45,8 +45,8 @@ interface ValidatedCredentials {
 export type PaymentGatewayConfigScope = string | null;
 
 // Collectors: an organization's own gateway accounts (ORG) and Vritti's on this deployment (PLATFORM, no
-// organization, managed from cloud admin). A config only names an account — the payout account of a legal entity
-// or site picks which one a payment uses
+// organization, managed from cloud admin). A config only names an account — the shopper picks the gateway and the
+// payout account of the legal entity, site or app decides where the money goes
 @Injectable()
 export class PaymentGatewayConfigDomainService {
   private readonly logger = new Logger(PaymentGatewayConfigDomainService.name);
@@ -156,33 +156,21 @@ export class PaymentGatewayConfigDomainService {
     };
   }
 
-  // Records a provider check that passed, taking the merchant id it reported and keeping the stored one otherwise
+  // Records a provider check that passed
   async markVerified(
     scope: PaymentGatewayConfigScope,
     id: string,
-    providerMerchantId: string | null,
   ): Promise<PaymentGatewayConfigVerificationResponseDto> {
     await this.requireWritable(scope, id);
     const verifiedAt = new Date();
-    const row = await this.configRepository.update(id, {
-      verifiedAt,
-      ...(providerMerchantId !== null && { providerMerchantId }),
-    });
+    const row = await this.configRepository.update(id, { verifiedAt });
 
-    this.logger.log(
-      `Verified payment gateway config ${id}${providerMerchantId ? ` (merchant ${providerMerchantId})` : ''}`,
-    );
+    this.logger.log(`Verified payment gateway config ${id}`);
     return {
       success: true,
       message: `Payment gateway "${row.label}" verified successfully.`,
-      data: { verifiedAt: verifiedAt.toISOString(), providerMerchantId: row.providerMerchantId ?? null },
+      data: { verifiedAt: verifiedAt.toISOString(), gatewayAccountId: row.gatewayAccountId },
     };
-  }
-
-  // The gateway a payment of the organization collects through. The payout account of the legal entity or site
-  // picks it; payout accounts do not exist yet, so nothing resolves and online payments stay off until they ship
-  async resolveForPayment(_orgId: string): Promise<PaymentGatewayConfig | null> {
-    return null;
   }
 
   // Resolves what a public webhook needs to be authenticated and forwarded
@@ -215,7 +203,7 @@ export class PaymentGatewayConfigDomainService {
       keyId: validated.keyId,
       credentials: this.crypto.encrypt(JSON.stringify(validated.credentials)),
       webhookSecret: dto.webhookSecret ? this.crypto.encrypt(dto.webhookSecret) : null,
-      providerMerchantId: dto.providerMerchantId ?? null,
+      gatewayAccountId: dto.gatewayAccountId,
       ...extra,
     });
   }
@@ -242,8 +230,8 @@ export class PaymentGatewayConfigDomainService {
     return {
       ...(dto.gatewayCode !== undefined && { gatewayCode: dto.gatewayCode }),
       ...(dto.label !== undefined && { label: dto.label }),
-      ...(gatewayChanged && { providerMerchantId: null, webhookSecret: null }),
-      ...(dto.providerMerchantId !== undefined && { providerMerchantId: dto.providerMerchantId }),
+      ...(gatewayChanged && { webhookSecret: null }),
+      ...(dto.gatewayAccountId !== undefined && { gatewayAccountId: dto.gatewayAccountId }),
       ...(validated && {
         keyId: validated.keyId,
         credentials: this.crypto.encrypt(JSON.stringify(validated.credentials)),

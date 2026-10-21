@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { index, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { index, pgPolicy, timestamp, unique, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { legalEntities } from './legal-entity';
 import { organizations } from './organizations';
@@ -27,6 +27,8 @@ export const bankAccounts = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    // Lets payout accounts require, through one composite key, that their bank account is the legal entity's own
+    unique('uq_bank_accounts_id_le').on(table.id, table.legalEntityId),
     uniqueIndex('uq_bank_accounts_le_number').on(table.legalEntityId, table.accountNumber, table.ifscCode),
     index('idx_bank_accounts_le').on(table.legalEntityId),
     pgPolicy('org_isolation', {

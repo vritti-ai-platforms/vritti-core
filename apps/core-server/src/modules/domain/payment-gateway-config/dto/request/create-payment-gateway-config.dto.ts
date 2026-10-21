@@ -34,10 +34,10 @@ export class CreatePaymentGatewayConfigDto {
   @IsString()
   webhookSecret?: string | null;
 
-  @ApiPropertyOptional({ description: 'Merchant ID assigned by the provider', example: 'MID12345' })
-  @Trim()
-  @IsOptional()
+  @ApiProperty({ description: "The main account's id at the gateway", example: 'acc_Tpmw33BnyMhFUf' })
+  @Trim({ nullify: false })
   @IsString()
+  @MinLength(1)
   @MaxLength(100)
-  providerMerchantId?: string | null;
+  gatewayAccountId: string;
 }

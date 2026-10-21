@@ -130,6 +130,7 @@ describe('PaymentLifecycleService', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     runInTransaction.mockImplementation(<T>(fn: () => Promise<T>) => fn());
+    transfers.findUnsentByIntent.mockResolvedValue([]);
     // An update answers with the row as it now stands
     intents.update.mockImplementation(async (_id: string, data: Partial<PaymentIntent>) => ({
       ...(intents.lockById.mock.results[0]?.value ? await intents.lockById.mock.results[0].value : intent()),
@@ -171,6 +172,44 @@ describe('PaymentLifecycleService', () => {
         status: 'REQUIRES_ACTION',
       });
       expect(result.reference).toEqual({ type: 'commerce.order', id: 'ORD-1001' });
+    });
+
+    it('sends the split legs with the gateway order and stamps the transfers it created', async () => {
+      const leg = {
+        id: 'pt-1',
+        providerAccountId: 'acc_seller',
+        amount: 49250n,
+        currency: 'INR',
+        onHold: false,
+        onHoldUntil: null,
+      };
+      intents.findByIdempotencyKey.mockResolvedValue(undefined);
+      intents.create.mockResolvedValue(intent({ status: 'CREATED', providerOrderId: null, checkout: null }));
+      transfers.findUnsentByIntent.mockResolvedValue([leg]);
+      transport.createOrder.mockResolvedValue({
+        providerOrderId: 'order_1',
+        checkout: {},
+        transfers: [
+          { providerTransferId: 'trf_1', providerAccountId: 'acc_seller', amount: 49250n, status: 'CREATED' },
+        ],
+      });
+
+      await service.create(createDto);
+
+      expect(transport.createOrder).toHaveBeenCalledWith(
+        createDto.credentials,
+        expect.objectContaining({
+          transfers: [
+            expect.objectContaining({
+              providerAccountId: 'acc_seller',
+              amount: 49250n,
+              currency: 'INR',
+              onHold: false,
+            }),
+          ],
+        }),
+      );
+      expect(transfersService.markCreated).toHaveBeenCalledWith('pt-1', 'trf_1', 'CREATED');
     });
 
     it('returns the intent already opened under the same key without calling the gateway', async () => {

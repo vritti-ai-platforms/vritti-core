@@ -2,12 +2,13 @@ import { createHash } from 'node:crypto';
 import { allowedOriginOf, effectiveOrigins, parseStorefrontUrl } from '@domain/app/allowed-origins';
 import { AppDomainService } from '@domain/app/services/app.service';
 import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
+import { PayoutChannelDomainService } from '@domain/payout-channel/services/payout-channel.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { isEmail } from 'class-validator';
-import type { PaymentGatewayConfig, PaymentGatewayConfigType } from '@/db/schema';
+import type { PaymentChannelType, PayoutAccount } from '@/db/schema';
 import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 import { isDefinitiveRejection } from '../../events/payment-rejection';
 import { COMMERCE_ORDER_REFERENCE_TYPE } from '../../events/services/commerce-order-payment-handler.service';
@@ -23,7 +24,12 @@ import type {
   StartCheckoutInput,
 } from '../graphql/payment-intent.input';
 import { PaymentChannel } from '../graphql/payment-intent.input';
-import type { CheckoutSession, PaymentIntent, PaymentIntentStatus } from '../graphql/payment-intent.type';
+import type {
+  CheckoutPaymentGateway,
+  CheckoutSession,
+  PaymentIntent,
+  PaymentIntentStatus,
+} from '../graphql/payment-intent.type';
 
 export interface PaymentCallerContext {
   orgId: string;
@@ -41,7 +47,8 @@ interface IntentRequest {
   customer?: PaymentCustomerInput;
   metadata?: Record<string, string>;
   idempotencyKey: string;
-  channel: PaymentGatewayConfigType;
+  channel: PaymentChannelType;
+  paymentGatewayConfigId: string;
   urls: StorefrontUrls;
 }
 
@@ -56,6 +63,11 @@ interface ResolvedScope {
   currencyCode?: string;
 }
 
+// Fees are kept in basis points: 10000 is the whole payment
+const BASIS_POINTS = 10000n;
+// Razorpay refuses a transfer under 100 paise
+const MIN_TRANSFER_MINOR = 100n;
+
 // The storefront's payment surface.
 @Injectable()
 export class PaymentIntentsGatewayService {
@@ -64,6 +76,7 @@ export class PaymentIntentsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly configService: PaymentGatewayConfigDomainService,
+    private readonly payoutChannelService: PayoutChannelDomainService,
     private readonly siteContextResolver: SiteContextResolverService,
     private readonly dispatcher: PaymentEventDispatcherService,
     private readonly appService: AppDomainService,
@@ -90,6 +103,7 @@ export class PaymentIntentsGatewayService {
       metadata: toMetadata(input.metadata),
       idempotencyKey: input.idempotencyKey,
       channel: input.channel ?? PaymentChannel.APP,
+      paymentGatewayConfigId: input.paymentGatewayConfigId,
       urls,
     });
     return toPaymentIntent(intent, caller.orgId);
@@ -153,7 +167,7 @@ export class PaymentIntentsGatewayService {
     }
     const currencyCode = checkoutCurrency(scope, input.currencyCode);
     const urls = await this.requireAllowedUrls(caller, input);
-    await this.requireConfig(caller);
+    await this.requirePayoutAccount(caller, scope, PaymentChannel.APP, input.paymentGatewayConfigId);
 
     this.logger.log(`site.orders.createFromCart — party: ${partyId}, currency: ${currencyCode}`);
     const order = await this.nats.send<CheckoutOrderResponseDto>('commerce', 'site.orders.createFromCart', {
@@ -177,6 +191,7 @@ export class PaymentIntentsGatewayService {
         // A retried checkout reuses the order this key already opened, so the payment below is the same payment
         idempotencyKey: input.idempotencyKey,
         channel: PaymentChannel.APP,
+        paymentGatewayConfigId: input.paymentGatewayConfigId,
         urls,
         ...(customer && { customer }),
       });
@@ -205,19 +220,23 @@ export class PaymentIntentsGatewayService {
       });
     }
 
-    const config = await this.requireConfig(caller);
-    const { credentials } = await this.configService.getDecryptedCredentials(caller.orgId, config.id);
+    const payout = await this.requirePayoutAccount(caller, scope, request.channel, request.paymentGatewayConfigId);
+    const configId = payout.paymentGatewayConfigId;
+    const { gatewayCode, credentials } = await this.configService.getDecryptedCredentials(caller.orgId, configId);
+    const transfers = await this.transfersFor(caller.orgId, payout, request.amountMinor);
 
     this.logger.log(
-      `payments.intents.create — ${request.reference.type}:${request.reference.id} app: ${caller.appId} config: ${config.id}`,
+      `payments.intents.create — ${request.reference.type}:${request.reference.id} app: ${caller.appId} config: ${configId} payout: ${payout.id}`,
     );
     return this.nats.send<PaymentIntentResponseDto>('payments', 'payments.intents.create', {
       legalEntityId: scope.legalEntityId,
       ...(scope.siteId ? { siteId: scope.siteId } : {}),
       appId: caller.appId,
       ...(caller.partyId ? { partyId: caller.partyId } : {}),
-      configId: config.id,
-      gatewayCode: config.gatewayCode,
+      configId,
+      gatewayCode,
+      bankAccountId: payout.bankAccountId,
+      ...(transfers.length > 0 && { transfers }),
       type: request.channel,
       credentials,
       amount: request.amountMinor.toString(),
@@ -233,18 +252,73 @@ export class PaymentIntentsGatewayService {
     });
   }
 
-  // The gateway a payment collects through, picked by the payout account of the legal entity or site; a 400 until
-  // one exists. Gateway configs alone only name accounts
-  private async requireConfig(caller: PaymentCallerContext): Promise<PaymentGatewayConfig> {
-    const config = await this.configService.resolveForPayment(caller.orgId);
-    if (!config) {
+  // The payout account a payment goes to through the gateway the shopper picked: the most specific one of the
+  // payment's legal entity that fits its site, app and channel. A 400 when that gateway pays out nowhere here
+  private async requirePayoutAccount(
+    caller: PaymentCallerContext,
+    scope: ResolvedScope,
+    channel: PaymentChannelType,
+    paymentGatewayConfigId: string,
+  ): Promise<PayoutAccount> {
+    const payout = await this.payoutChannelService.resolve(
+      caller.orgId,
+      { legalEntityId: scope.legalEntityId, siteId: scope.siteId, appId: caller.appId, channel },
+      paymentGatewayConfigId,
+    );
+    if (!payout) {
       throw new BadRequestException({
         label: 'Payments Not Set Up',
         detail:
-          'Online payments start once a payout account is added for this legal entity or site in Vritti Cloud. Payout accounts arrive in the next release.',
+          'This payment gateway has no payout account for this store. Pick one of checkoutPaymentGateways, or add a payout account in Vritti Cloud.',
+        errors: [{ field: 'paymentGatewayConfigId', message: 'Not available here' }],
       });
     }
-    return config;
+    return payout;
+  }
+
+  // The split the gateway makes once the payment is captured. A payout account on the gateway's main account keeps
+  // the whole payment there, so nothing is transferred; a linked account receives the payment less Vritti's fee
+  // (platform gateways only — an organization's own gateway carries no fee), and the main account keeps the fee
+  private async transfersFor(
+    orgId: string,
+    payout: PayoutAccount,
+    amountMinor: bigint,
+  ): Promise<{ linkedAccountId: string; providerAccountId: string; amount: string }[]> {
+    if (payout.isMainAccount) return [];
+
+    const config = await this.configService.findById(orgId, payout.paymentGatewayConfigId);
+    const fee = (amountMinor * BigInt(config.platformFeeBps)) / BASIS_POINTS;
+    const share = amountMinor - fee;
+    if (share < MIN_TRANSFER_MINOR) {
+      throw new BadRequestException({
+        label: 'Amount Too Small To Split',
+        detail:
+          'After the platform fee this payment leaves less than ₹1 to pay out, the least a split transfer can carry.',
+        errors: [{ field: 'amount.value', message: 'Too small to split' }],
+      });
+    }
+    return [{ linkedAccountId: payout.id, providerAccountId: payout.gatewayAccountId, amount: share.toString() }];
+  }
+
+  // The gateways the shopper can pick from: those with a payout account that fits this store, app and channel
+  async listCheckoutGateways(
+    caller: PaymentCallerContext,
+    channel: PaymentChannelType,
+  ): Promise<CheckoutPaymentGateway[]> {
+    const scope = await this.resolveScope(caller);
+    const payable = new Set(
+      await this.payoutChannelService.findPayableConfigIds(caller.orgId, {
+        legalEntityId: scope.legalEntityId,
+        siteId: scope.siteId,
+        appId: caller.appId,
+        channel,
+      }),
+    );
+    if (payable.size === 0) return [];
+    const configs = await this.configService.list(caller.orgId);
+    return configs
+      .filter((config) => payable.has(config.id))
+      .map((config) => ({ id: config.id, gatewayCode: config.gatewayCode, label: config.label }));
   }
 
   // The storefront urls the hosted checkout may redirect to, each refused unless its origin is one the calling app

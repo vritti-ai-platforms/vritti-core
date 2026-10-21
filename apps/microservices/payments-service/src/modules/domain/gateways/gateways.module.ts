@@ -8,8 +8,8 @@ import { HdfcRazorpayTransport } from './hdfc-razorpay/hdfc-razorpay.transport';
 import { RazorpayTransport } from './razorpay/razorpay.transport';
 
 // The registry is built from one factory so the transports are plain instances keyed by code. Every
-// gateway is its own class over its own client, bank editions included: adding one means a folder
-// here, a folder under gateways, and a line below.
+// gateway is its own standalone class over its own client, bank editions included — HDFC's Razorpay is a copy,
+// not a subclass, so it can move apart. Adding one means a folder here, a folder under gateways, and a line below.
 @Module({
   imports: [RazorpayModule, HdfcRazorpayModule],
   providers: [

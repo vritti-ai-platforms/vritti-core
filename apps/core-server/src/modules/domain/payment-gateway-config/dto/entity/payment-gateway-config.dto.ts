@@ -28,8 +28,8 @@ export class PaymentGatewayConfigDto {
   @ApiProperty({ description: 'Whether a webhook signing secret is on file', example: true })
   hasWebhookSecret: boolean;
 
-  @ApiPropertyOptional({ example: 'MID12345', nullable: true })
-  providerMerchantId: string | null;
+  @ApiProperty({ description: "The main account's id at the gateway", example: 'acc_Tpmw33BnyMhFUf' })
+  gatewayAccountId: string;
 
   @ApiProperty({ description: "Vritti's fee in basis points, applied on a PLATFORM row only", example: 150 })
   platformFeeBps: number;
@@ -57,7 +57,7 @@ export class PaymentGatewayConfigDto {
     dto.label = row.label;
     dto.keyId = options.tenantView && row.kind === PaymentGatewayConfigKindValues.PLATFORM ? null : row.keyId;
     dto.hasWebhookSecret = row.webhookSecret !== null;
-    dto.providerMerchantId = row.providerMerchantId ?? null;
+    dto.gatewayAccountId = row.gatewayAccountId;
     dto.platformFeeBps = row.platformFeeBps;
     dto.verifiedAt = row.verifiedAt?.toISOString() ?? null;
     dto.createdAt = row.createdAt.toISOString();

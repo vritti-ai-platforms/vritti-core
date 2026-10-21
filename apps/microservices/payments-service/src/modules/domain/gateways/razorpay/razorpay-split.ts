@@ -24,6 +24,7 @@ const PAYMENT_ID_PREFIX = 'pay_';
 export interface RazorpayLinkedAccount {
   id: string;
   status?: string;
+  legal_business_name?: string;
 }
 
 export interface RazorpayStakeholder {
@@ -129,8 +130,7 @@ const TRANSFER_STATUSES: Readonly<Record<string, TransferStatus>> = {
 };
 
 // Razorpay Route — linked accounts (v2 account APIs) and transfers off a captured payment (v1). Holds
-// no state and no secrets: the transport hands it the per-call key pair resolver and its logger, so a
-// bank edition that extends RazorpayTransport inherits this unchanged over its own client.
+// no state and no secrets: the transport hands it the per-call key pair resolver and its logger.
 export class RazorpaySplit implements GatewaySplitCapability {
   constructor(
     private readonly http: RazorpayHttpService,
@@ -276,12 +276,17 @@ export class RazorpaySplit implements GatewaySplitCapability {
 
     const items = response.items ?? [];
     this.logger.log(`Created ${items.length} transfer(s) on payment ${providerPaymentId}`);
-    return items.map((item, index) => ({
+    return items.map((item, index) => this.toTransferResult(item, transfers[index]));
+  }
+
+  // Maps a transfer Razorpay created onto the result shape, falling back to the account it was asked for
+  toTransferResult(item: RazorpayTransfer, requested?: CreateTransferInput): CreateTransferResult {
+    return {
       providerTransferId: item.id,
-      providerAccountId: item.recipient ?? transfers[index]?.providerAccountId ?? '',
+      providerAccountId: item.recipient ?? requested?.providerAccountId ?? '',
       amount: BigInt(item.amount),
       status: this.normalizeTransferStatus(item.status),
-    }));
+    };
   }
 
   // Maps a Razorpay transfer entity (API response or webhook payload) onto the gateway-neutral shape
@@ -345,7 +350,7 @@ export class RazorpaySplit implements GatewaySplitCapability {
   }
 
   // Builds one entry of the POST /v1/payments/{id}/transfers body; on_hold_until is unix seconds
-  private transferBody(transfer: CreateTransferInput, index: number): Record<string, unknown> {
+  transferBody(transfer: CreateTransferInput, index: number): Record<string, unknown> {
     return {
       account: transfer.providerAccountId,
       amount: toMinorUnitsNumber(transfer.amount, `transfers.${index}.amount`),

@@ -30,7 +30,8 @@ export const paymentGatewayConfigs = coreSchema.table(
     keyId: varchar('key_id', { length: 255 }).notNull(),
     credentials: text('credentials').notNull(),
     webhookSecret: text('webhook_secret'),
-    providerMerchantId: varchar('provider_merchant_id', { length: 100 }),
+    // The main account's id at the gateway (a Razorpay acc_…). A payout account that names it keeps its share there
+    gatewayAccountId: varchar('gateway_account_id', { length: 100 }).notNull(),
     platformFeeBps: integer('platform_fee_bps').notNull().default(0),
     verifiedAt: timestamp('verified_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

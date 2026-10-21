@@ -114,11 +114,11 @@ export class BankAccountDomainService {
   // Deletes a bank account nothing settles into; one a linked account still uses is a 409
   async delete(orgId: string, id: string, scope?: BankAccountScope): Promise<SuccessResponseDto> {
     const existing = await this.requireInScope(orgId, id, scope);
-    const { linkedAccounts } = await this.bankAccountRepository.countReferences(id);
-    if (linkedAccounts > 0) {
+    const { payoutAccounts } = await this.bankAccountRepository.countReferences(id);
+    if (payoutAccounts > 0) {
       throw new ConflictException({
         label: 'Bank Account In Use',
-        detail: `This bank account is used by ${pluralize('linked account', linkedAccounts, true)}. Move or remove them before deleting it.`,
+        detail: `This bank account is used by ${pluralize('payout account', payoutAccounts, true)}. Change or remove them before deleting it.`,
       });
     }
     await this.bankAccountRepository.delete(id);

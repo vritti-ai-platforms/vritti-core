@@ -1,4 +1,4 @@
-import type { PaymentGatewayConfigType } from '@/db/schema';
+import type { PaymentChannelType } from '@/db/schema';
 
 export const PaymentIntentStatusValues = {
   CREATED: 'CREATED',
@@ -27,7 +27,7 @@ export interface PaymentIntentResponseDto {
   configId: string;
   gatewayCode: string;
   bankAccountId: string | null;
-  type: PaymentGatewayConfigType;
+  type: PaymentChannelType;
   idempotencyKey: string;
   receipt: string;
   amount: PaymentMoneyResponseDto;
