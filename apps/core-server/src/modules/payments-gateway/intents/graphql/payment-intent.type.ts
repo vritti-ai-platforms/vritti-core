@@ -122,4 +122,10 @@ export class CheckoutPaymentGateway {
 
   @Field(() => String)
   label: string;
+
+  @Field(() => String, { nullable: true, description: "The gateway's logo for light backgrounds" })
+  logoLightUrl: string | null;
+
+  @Field(() => String, { nullable: true, description: "The gateway's logo for dark backgrounds" })
+  logoDarkUrl: string | null;
 }

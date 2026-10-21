@@ -204,6 +204,8 @@ export class PaymentGatewayConfigDomainService {
       credentials: this.crypto.encrypt(JSON.stringify(validated.credentials)),
       webhookSecret: dto.webhookSecret ? this.crypto.encrypt(dto.webhookSecret) : null,
       gatewayAccountId: dto.gatewayAccountId,
+      logoLightUrl: dto.logoLightUrl ?? null,
+      logoDarkUrl: dto.logoDarkUrl ?? null,
       ...extra,
     });
   }
@@ -230,7 +232,9 @@ export class PaymentGatewayConfigDomainService {
     return {
       ...(dto.gatewayCode !== undefined && { gatewayCode: dto.gatewayCode }),
       ...(dto.label !== undefined && { label: dto.label }),
-      ...(gatewayChanged && { webhookSecret: null }),
+      ...(gatewayChanged && { webhookSecret: null, logoLightUrl: null, logoDarkUrl: null }),
+      ...(dto.logoLightUrl !== undefined && { logoLightUrl: dto.logoLightUrl }),
+      ...(dto.logoDarkUrl !== undefined && { logoDarkUrl: dto.logoDarkUrl }),
       ...(dto.gatewayAccountId !== undefined && { gatewayAccountId: dto.gatewayAccountId }),
       ...(validated && {
         keyId: validated.keyId,

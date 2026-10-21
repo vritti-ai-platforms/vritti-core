@@ -417,8 +417,14 @@ describe('PaymentIntentsGatewayService', () => {
     it('offers only the gateways with a payout account that fits the store, app and channel', async () => {
       findPayableConfigIds.mockResolvedValue(['cfg-1']);
       listConfigs.mockResolvedValue([
-        { id: 'cfg-1', gatewayCode: 'razorpay', label: 'Vritti Razorpay' },
-        { id: 'cfg-2', gatewayCode: 'razorpay', label: 'Unused' },
+        {
+          id: 'cfg-1',
+          gatewayCode: 'razorpay',
+          label: 'Vritti Razorpay',
+          logoLightUrl: 'https://cdn/rzp.svg',
+          logoDarkUrl: null,
+        },
+        { id: 'cfg-2', gatewayCode: 'razorpay', label: 'Unused', logoLightUrl: null, logoDarkUrl: null },
       ]);
 
       const result = await service.listCheckoutGateways(caller, 'POS');
@@ -429,7 +435,15 @@ describe('PaymentIntentsGatewayService', () => {
         appId: APP,
         channel: 'POS',
       });
-      expect(result).toEqual([{ id: 'cfg-1', gatewayCode: 'razorpay', label: 'Vritti Razorpay' }]);
+      expect(result).toEqual([
+        {
+          id: 'cfg-1',
+          gatewayCode: 'razorpay',
+          label: 'Vritti Razorpay',
+          logoLightUrl: 'https://cdn/rzp.svg',
+          logoDarkUrl: null,
+        },
+      ]);
     });
 
     it('answers an empty list without reading the configs when nothing pays out here', async () => {

@@ -678,6 +678,12 @@ type CheckoutPaymentGateway {
   """Gateway provider code, e.g. razorpay"""
   gatewayCode: String!
   label: String!
+
+  """The gateway's logo for light backgrounds"""
+  logoLightUrl: String
+
+  """The gateway's logo for dark backgrounds"""
+  logoDarkUrl: String
 }
 
 type Query {

@@ -43480,6 +43480,16 @@
             "description": "Vritti's fee in basis points, applied on a PLATFORM row only",
             "example": 150
           },
+          "logoLightUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for light backgrounds",
+            "nullable": true
+          },
+          "logoDarkUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for dark backgrounds",
+            "nullable": true
+          },
           "verifiedAt": {
             "type": "object",
             "description": "When the stored credentials last passed the provider check",
@@ -43567,6 +43577,14 @@
             "description": "The main account's id at the gateway",
             "example": "acc_Tpmw33BnyMhFUf"
           },
+          "logoLightUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for light backgrounds, set by Vritti Cloud"
+          },
+          "logoDarkUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for dark backgrounds, set by Vritti Cloud"
+          },
           "platformFeeBps": {
             "type": "number",
             "description": "Vritti's fee in basis points on payments it collects",
@@ -43609,6 +43627,14 @@
             "type": "string",
             "description": "The main account's id at the gateway",
             "example": "acc_Tpmw33BnyMhFUf"
+          },
+          "logoLightUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for light backgrounds, set by Vritti Cloud"
+          },
+          "logoDarkUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for dark backgrounds, set by Vritti Cloud"
           },
           "platformFeeBps": {
             "type": "number",
@@ -43686,6 +43712,14 @@
             "type": "string",
             "description": "The main account's id at the gateway",
             "example": "acc_Tpmw33BnyMhFUf"
+          },
+          "logoLightUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for light backgrounds, set by Vritti Cloud"
+          },
+          "logoDarkUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for dark backgrounds, set by Vritti Cloud"
           }
         },
         "required": [
@@ -43724,6 +43758,14 @@
             "type": "string",
             "description": "The main account's id at the gateway",
             "example": "acc_Tpmw33BnyMhFUf"
+          },
+          "logoLightUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for light backgrounds, set by Vritti Cloud"
+          },
+          "logoDarkUrl": {
+            "type": "object",
+            "description": "The catalog gateway's logo for dark backgrounds, set by Vritti Cloud"
           }
         }
       },

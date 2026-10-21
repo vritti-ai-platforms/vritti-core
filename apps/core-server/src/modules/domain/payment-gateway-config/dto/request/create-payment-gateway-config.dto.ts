@@ -40,4 +40,16 @@ export class CreatePaymentGatewayConfigDto {
   @MinLength(1)
   @MaxLength(100)
   gatewayAccountId: string;
+
+  @ApiPropertyOptional({ description: "The catalog gateway's logo for light backgrounds, set by Vritti Cloud" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  logoLightUrl?: string | null;
+
+  @ApiPropertyOptional({ description: "The catalog gateway's logo for dark backgrounds, set by Vritti Cloud" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  logoDarkUrl?: string | null;
 }

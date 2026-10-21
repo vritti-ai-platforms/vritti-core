@@ -30,6 +30,8 @@ const row = (overrides: Partial<PaymentGatewayConfig> = {}): PaymentGatewayConfi
   webhookSecret: null,
   gatewayAccountId: 'acc_main',
   platformFeeBps: 0,
+  logoLightUrl: null,
+  logoDarkUrl: null,
   verifiedAt: null,
   createdAt: new Date('2026-01-01T00:00:00Z'),
   updatedAt: new Date('2026-01-01T00:00:00Z'),
@@ -232,6 +234,8 @@ describe('PaymentGatewayConfigDomainService', () => {
       expect(update.mock.calls[0][1]).toMatchObject({
         gatewayCode: 'hdfc-razorpay',
         webhookSecret: null,
+        logoLightUrl: null,
+        logoDarkUrl: null,
         verifiedAt: null,
       });
     });

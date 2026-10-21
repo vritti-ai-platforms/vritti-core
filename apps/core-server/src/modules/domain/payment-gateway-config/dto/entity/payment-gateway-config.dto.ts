@@ -34,6 +34,12 @@ export class PaymentGatewayConfigDto {
   @ApiProperty({ description: "Vritti's fee in basis points, applied on a PLATFORM row only", example: 150 })
   platformFeeBps: number;
 
+  @ApiPropertyOptional({ description: "The catalog gateway's logo for light backgrounds", nullable: true })
+  logoLightUrl: string | null;
+
+  @ApiPropertyOptional({ description: "The catalog gateway's logo for dark backgrounds", nullable: true })
+  logoDarkUrl: string | null;
+
   @ApiPropertyOptional({
     description: 'When the stored credentials last passed the provider check',
     example: '2024-01-15T10:30:00Z',
@@ -59,6 +65,8 @@ export class PaymentGatewayConfigDto {
     dto.hasWebhookSecret = row.webhookSecret !== null;
     dto.gatewayAccountId = row.gatewayAccountId;
     dto.platformFeeBps = row.platformFeeBps;
+    dto.logoLightUrl = row.logoLightUrl ?? null;
+    dto.logoDarkUrl = row.logoDarkUrl ?? null;
     dto.verifiedAt = row.verifiedAt?.toISOString() ?? null;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();

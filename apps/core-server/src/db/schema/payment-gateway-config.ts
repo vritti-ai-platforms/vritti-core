@@ -17,8 +17,8 @@ import { organizations } from './organizations';
 // A collector: an organization's own gateway account (ORG) or one of Vritti's on this deployment (PLATFORM, no
 // organization). The org id is the visibility mechanism: NULL means platform, readable by every organization and
 // written only by cloud admin calls, which run with no org context and can therefore reach nothing else. A config
-// only names a gateway account; which one a payment uses is decided by the payout account of the legal entity or
-// site, so nothing here marks a row as default or live.
+// only names a gateway account; which one a payment uses is decided by the payout channel of the legal entity, site
+// or app, so nothing here marks a row as default or live.
 export const paymentGatewayConfigs = coreSchema.table(
   'payment_gateway_configs',
   {
@@ -33,6 +33,9 @@ export const paymentGatewayConfigs = coreSchema.table(
     // The main account's id at the gateway (a Razorpay acc_…). A payout account that names it keeps its share there
     gatewayAccountId: varchar('gateway_account_id', { length: 100 }).notNull(),
     platformFeeBps: integer('platform_fee_bps').notNull().default(0),
+    // The catalog gateway's logos, copied from Vritti Cloud whenever the config is saved, for checkout to show
+    logoLightUrl: varchar('logo_light_url', { length: 1000 }),
+    logoDarkUrl: varchar('logo_dark_url', { length: 1000 }),
     verifiedAt: timestamp('verified_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')

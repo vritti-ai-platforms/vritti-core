@@ -10,7 +10,14 @@ export type CheckoutOrder = { id: string; orderNumber: string; total: Money };
 export type CheckoutSession = { order: CheckoutOrder; paymentIntent: PaymentIntent };
 
 // A gateway the payment page can offer: one with a payout channel for this store, app and sales channel
-export type CheckoutPaymentGateway = { id: string; gatewayCode: string; label: string };
+export type CheckoutPaymentGateway = {
+  id: string;
+  gatewayCode: string;
+  label: string;
+  // The catalog logos from Vritti Cloud admin; null until the gateway config is saved after they were added
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
+};
 
 export type CheckoutPaymentChannel = 'APP' | 'POS' | 'B2B';
 
@@ -54,6 +61,8 @@ export function createCheckoutOperations(
             id: gateway.id,
             gatewayCode: gateway.gatewayCode,
             label: gateway.label,
+            logoLightUrl: gateway.logoLightUrl ?? null,
+            logoDarkUrl: gateway.logoDarkUrl ?? null,
           })),
         ),
     );
@@ -65,11 +74,7 @@ export function createCheckoutOperations(
     const available = await paymentGateways('APP');
     if (available.length === 1) return available[0].id;
     if (available.length === 0) {
-      throw new VapError(
-        'Online payments are not set up for this store yet.',
-        'Payments Not Set Up',
-        400,
-      );
+      throw new VapError('Online payments are not set up for this store yet.', 'Payments Not Set Up', 400);
     }
     throw new VapError('Choose how you want to pay.', 'Payment Gateway Required', 400);
   }

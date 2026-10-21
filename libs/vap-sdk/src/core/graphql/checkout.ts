@@ -23,6 +23,8 @@ export const CHECKOUT_PAYMENT_GATEWAYS = graphql(`
       id
       gatewayCode
       label
+      logoLightUrl
+      logoDarkUrl
     }
   }
 `);

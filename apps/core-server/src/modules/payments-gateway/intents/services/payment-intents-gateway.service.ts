@@ -318,7 +318,13 @@ export class PaymentIntentsGatewayService {
     const configs = await this.configService.list(caller.orgId);
     return configs
       .filter((config) => payable.has(config.id))
-      .map((config) => ({ id: config.id, gatewayCode: config.gatewayCode, label: config.label }));
+      .map((config) => ({
+        id: config.id,
+        gatewayCode: config.gatewayCode,
+        label: config.label,
+        logoLightUrl: config.logoLightUrl,
+        logoDarkUrl: config.logoDarkUrl,
+      }));
   }
 
   // The storefront urls the hosted checkout may redirect to, each refused unless its origin is one the calling app
