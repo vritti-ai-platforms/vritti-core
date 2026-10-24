@@ -89,6 +89,18 @@ type CatalogListingDetail {
   axes: [VariantAxis!]!
 }
 
+type OfferingVariantOption {
+  id: ID!
+  code: String!
+}
+
+type OfferingVariantOptions {
+  items: [OfferingVariantOption!]!
+
+  """Matching variants across every page, after excludeIds"""
+  total: Int!
+}
+
 type PartyAddress {
   id: ID!
   line1: String!
@@ -154,19 +166,6 @@ type Cart {
 type CartQuantity {
   code: String!
   quantity: Int!
-}
-
-type OfferingVariantOption {
-  id: ID!
-  code: String!
-  name: String!
-}
-
-type OfferingVariantOptions {
-  items: [OfferingVariantOption!]!
-
-  """Matching variants across every page, after excludeIds"""
-  total: Int!
 }
 
 type TaxRate {
@@ -565,7 +564,7 @@ type Query {
   siteCatalogListings(currencyCode: String!, filters: [FilterInput!], page: Int, perPage: Int, sort: ListingSort): CatalogListings!
   siteCatalogListingByCode(code: String!, currencyCode: String!): CatalogListingDetail
   siteCatalogListingsByCodes(codes: [String!]!, currencyCode: String!, filters: [FilterInput!]): [CatalogListing!]!
-  siteOfferingVariants(search: String, excludeIds: [ID!], limit: Int, offset: Int): OfferingVariantOptions!
+  offeringVariants(search: String, excludeIds: [ID!], limit: Int, offset: Int): OfferingVariantOptions!
 }
 
 input CheckoutPaymentGatewaysInput {

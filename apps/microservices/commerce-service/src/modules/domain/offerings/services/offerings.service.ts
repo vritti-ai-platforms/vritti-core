@@ -7,6 +7,8 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   BOM_RULES,
+  type CatalogChannelType,
+  CatalogChannelTypeValues,
   catalogListings,
   type FulfilmentType,
   FulfilmentTypeValues,
@@ -22,8 +24,12 @@ import type { SetOfferingStatusDto } from '../dto/request/set-offering-status.dt
 import type { SetOfferingTaxClassDto } from '../dto/request/set-offering-tax-class.dto';
 import type { UpdateOfferingDto } from '../dto/request/update-offering.dto';
 import {
+  type ChannelSlotRow,
+  type ChannelTarget,
+  type OfferingExclusionRow,
   OfferingsDomainRepository,
   type OfferingTableRow,
+  type OfferingTargetRow,
   type OfferingWithOwnership,
 } from '../repositories/offerings.repository';
 
@@ -122,6 +128,97 @@ export class OfferingsDomainService {
     const row = await this.repository.findDetailById(id);
     if (!row) throw new NotFoundException('Offering not found.');
     return this.toDto(row);
+  }
+
+  // Where this offering sells, a row per target rather than per channel.
+  //
+  // A channel naming no target is the default every target of its kind inherits, so the row an operator acts
+  // on is the target: one app, one till. Each target's channel is the most specific one that covers it, ranked
+  // the way channelSpecificity ranks them — its own override first, then the narrowest default in reach.
+  // Targets whose catalog carries nothing of this offering are left out; there is nothing to say about them.
+  async findTargetsForOffering(offeringId: string, appIds: string[]): Promise<OfferingTargetRow[]> {
+    await this.findById(offeringId);
+
+    const [slots, listedCounts, exclusions, variants, terminals] = await Promise.all([
+      this.repository.findChannelSlots(),
+      this.repository.findListedCountsByChannel(offeringId),
+      this.repository.findOfferingExclusions(offeringId),
+      this.repository.countVariants(offeringId),
+      this.repository.findPosTerminals(),
+    ]);
+
+    const listedBy = new Map(listedCounts.map((row) => [row.channelId, row.listed]));
+    const rows: OfferingTargetRow[] = [];
+
+    for (const [type, targets] of OfferingsDomainService.targetsByType(appIds, terminals)) {
+      for (const target of targets) {
+        const channel = OfferingsDomainService.channelFor(slots, type, target);
+        if (!channel) continue;
+
+        const listed = listedBy.get(channel.channelId) ?? 0;
+        if (listed === 0) continue;
+
+        rows.push({
+          type,
+          targetId: target.id,
+          targetName: target.name,
+          targetKind: target.kind,
+          channelId: channel.channelId,
+          catalogId: channel.catalogId,
+          catalogName: channel.catalogName,
+          // An override is this target's own channel; anything else is the default it inherits
+          isAssigned: channel.appId === target.id || channel.terminalId === target.id,
+          isOwn: channel.isOwn,
+          variants,
+          listed,
+          available: listed - OfferingsDomainService.excludedCount(exclusions, channel.channelId, target),
+        });
+      }
+    }
+
+    return rows;
+  }
+
+  // An app is a target of both storefront types; a till is a target of POS alone
+  private static targetsByType(
+    appIds: string[],
+    terminals: { id: string; name: string }[],
+  ): [CatalogChannelType, ChannelTarget[]][] {
+    const apps = appIds.map((id) => ({ id, name: '', kind: 'APP' as const }));
+    const tills = terminals.map((terminal) => ({ ...terminal, kind: 'TERMINAL' as const }));
+    return [
+      [CatalogChannelTypeValues.APP, apps],
+      [CatalogChannelTypeValues.B2B, apps],
+      [CatalogChannelTypeValues.POS, tills],
+    ];
+  }
+
+  // The channel serving one target: its own override if it has one, else the narrowest default in reach.
+  // The slots arrive ranked by specificity, so the first match is the winner.
+  private static channelFor(
+    slots: ChannelSlotRow[],
+    type: CatalogChannelType,
+    target: ChannelTarget,
+  ): ChannelSlotRow | undefined {
+    return slots.find((slot) => {
+      if (slot.type !== type) return false;
+      const named = target.kind === 'APP' ? slot.appId : slot.terminalId;
+      const other = target.kind === 'APP' ? slot.terminalId : slot.appId;
+      return other === null && (named === null || named === target.id);
+    });
+  }
+
+  // Variants this target cannot be offered: the channel's own exclusions plus the ones naming this target
+  private static excludedCount(exclusions: OfferingExclusionRow[], channelId: string, target: ChannelTarget): number {
+    const hit = new Set<string>();
+    for (const exclusion of exclusions) {
+      if (exclusion.channelId !== channelId) continue;
+
+      const forChannel = exclusion.appId === null && exclusion.terminalId === null;
+      const forTarget = target.kind === 'APP' ? exclusion.appId === target.id : exclusion.terminalId === target.id;
+      if (forChannel || forTarget) hit.add(exclusion.variantId);
+    }
+    return hit.size;
   }
 
   // Creates an offering owned by the calling workspace; the database stamps the owner from its GUCs

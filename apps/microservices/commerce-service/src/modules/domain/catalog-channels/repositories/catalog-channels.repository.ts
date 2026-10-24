@@ -50,6 +50,10 @@ export interface StorefrontChannel {
   id: string;
   catalogId: string;
   catalogFilterMode: CatalogFilterMode;
+  // The target this channel was resolved for, so a read sees the exclusions meant for it as well as the
+  // channel's own. Absent when the channel was fetched by id, which is the channel's own view of itself.
+  askingAppId?: string | null;
+  askingTerminalId?: string | null;
 }
 
 export interface VariantSiblingRow {
@@ -207,7 +211,12 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       )
       .orderBy(desc(channelSpecificity))
       .limit(1);
-    return row as CatalogChannelRow | undefined;
+    if (!row) return undefined;
+
+    // A catch-all channel serves every target, so the row carries the one that asked for it
+    return { ...row, askingAppId: context.appId ?? null, askingTerminalId: context.terminalId ?? null } as
+      | CatalogChannelRow
+      | undefined;
   }
 
   // Returns the catalog's active listings, each flagged with whether this channel carries it at all.
@@ -232,11 +241,14 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         dimensions: offeringVariants.dimensions,
         mrpAmount: inventoryItemMrps.amount,
         mrpCurrencyCode: inventoryItemMrps.currencyCode,
-        // Only an outright exclusion answers this; one naming a currency is shown on the Prices tab
+        // Only an outright exclusion answers this; one naming a currency is shown on the Prices tab, and one
+        // naming a target belongs to that target rather than to the channel every target inherits
         availableHere: sql<boolean>`not exists (
           select 1 from ${catalogListingChannelExclusions}
           where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
             and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+            and ${catalogListingChannelExclusions.appId} is null
+            and ${catalogListingChannelExclusions.terminalId} is null
             and ${catalogListingChannelExclusions.currencyCode} is null
         )`,
         availableCurrencyCodes: sql<string[]>`coalesce((
@@ -306,11 +318,14 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         priceCurrencyCode: price.currencyCode,
         priceLegalEntityId: price.legalEntityId,
         priceSiteId: price.siteId,
-        // Both exclusions bite here: excluded outright, or excluded from this currency
+        // Both of the channel's own exclusions bite here: excluded outright, or excluded from this currency.
+        // One naming a target is that target's, not the channel's.
         availableHere: sql<boolean>`not exists (
           select 1 from ${catalogListingChannelExclusions}
           where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
             and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+            and ${catalogListingChannelExclusions.appId} is null
+            and ${catalogListingChannelExclusions.terminalId} is null
             and (${catalogListingChannelExclusions.currencyCode} is null
                  or ${catalogListingChannelExclusions.currencyCode} = ${currencyCode})
         )`,
@@ -355,7 +370,8 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return row;
   }
 
-  // A null currency excludes the listing outright, a code excludes it from that currency only.
+  // A null currency excludes the listing outright, a code excludes it from that currency only. Naming no
+  // target makes it the channel's own, which every target inheriting the channel reads.
   async addExclusion(catalogListingId: string, catalogChannelId: string, currencyCode: string | null): Promise<void> {
     await this.db
       .insert(catalogListingChannelExclusions)
@@ -382,6 +398,8 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
         and(
           eq(catalogListingChannelExclusions.catalogListingId, catalogListingId),
           eq(catalogListingChannelExclusions.catalogChannelId, catalogChannelId),
+          isNull(catalogListingChannelExclusions.appId),
+          isNull(catalogListingChannelExclusions.terminalId),
           currencyCode
             ? eq(catalogListingChannelExclusions.currencyCode, currencyCode)
             : isNull(catalogListingChannelExclusions.currencyCode),
@@ -390,18 +408,31 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
   }
 
   // Limits a read to a live variant on a live offering that this channel does not exclude.
-  private availableOnChannel(channelId: string, currencyCode?: string): SQL {
+  private availableOnChannel(channel: StorefrontChannel, currencyCode?: string): SQL {
     const inThisCurrency = currencyCode
       ? sql`and (${catalogListingChannelExclusions.currencyCode} is null
                  or ${catalogListingChannelExclusions.currencyCode} = ${currencyCode})`
       : sql`and ${catalogListingChannelExclusions.currencyCode} is null`;
+
+    // An exclusion naming neither a target nor a till is the channel's own, so it bites every caller. One
+    // naming a target bites only that caller, which is how two apps share a catalog and offer different parts
+    // of it. A read that did not come through a target sees only the channel's own.
+    const forThisTarget = channel.askingAppId
+      ? sql`or ${catalogListingChannelExclusions.appId} = ${channel.askingAppId}`
+      : channel.askingTerminalId
+        ? sql`or ${catalogListingChannelExclusions.terminalId} = ${channel.askingTerminalId}`
+        : sql``;
+
     return and(
       eq(offeringVariants.isActive, true),
       eq(offeringVariants.isOfferingActive, true),
       sql`not exists (
         select 1 from ${catalogListingChannelExclusions}
         where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
-          and ${catalogListingChannelExclusions.catalogChannelId} = ${channelId}
+          and ${catalogListingChannelExclusions.catalogChannelId} = ${channel.id}
+          and ((${catalogListingChannelExclusions.appId} is null
+                and ${catalogListingChannelExclusions.terminalId} is null)
+               ${forThisTarget})
           ${inThisCurrency}
       )`,
     ) as SQL;
@@ -511,7 +542,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
   ): Promise<{ rows: StorefrontListingRow[]; total: number }> {
     const where = and(
       eq(catalogListings.catalogId, channel.catalogId),
-      this.availableOnChannel(channel.id, currencyCode),
+      this.availableOnChannel(channel, currencyCode),
       CatalogChannelsDomainRepository.filtersWhere(query.filters),
     ) as SQL;
     const price = this.priceLateral(currencyCode);
@@ -555,7 +586,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .where(
         and(
           eq(catalogListings.catalogId, channel.catalogId),
-          this.availableOnChannel(channel.id, currencyCode),
+          this.availableOnChannel(channel, currencyCode),
           eq(offeringVariants.code, code),
         ) as SQL,
       )
@@ -589,7 +620,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .where(
         and(
           eq(catalogListings.catalogId, channel.catalogId),
-          this.availableOnChannel(channel.id, currencyCode),
+          this.availableOnChannel(channel, currencyCode),
           eq(offeringVariants.offeringId, offeringId),
         ) as SQL,
       )
@@ -614,7 +645,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .innerJoin(offeringVariantValues, eq(offeringVariantValues.variantId, offeringVariants.id))
       .innerJoin(offeringDimensions, eq(offeringDimensions.id, offeringVariantValues.dimensionId))
       .innerJoin(offeringDimensionValues, eq(offeringDimensionValues.id, offeringVariantValues.valueId))
-      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.availableOnChannel(channel.id), where) as SQL)
+      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.availableOnChannel(channel), where) as SQL)
       .groupBy(offeringDimensions.code, offeringDimensionValues.code)
       .orderBy(
         sql`min(${offeringDimensions.sortOrder})`,
@@ -642,7 +673,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .innerJoin(offeringVariantAttributeValues, eq(offeringVariantAttributeValues.variantId, offeringVariants.id))
       .innerJoin(offeringAttributes, eq(offeringAttributes.id, offeringVariantAttributeValues.attributeId))
       .innerJoin(offeringAttributeValues, eq(offeringAttributeValues.id, offeringVariantAttributeValues.valueId))
-      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.availableOnChannel(channel.id), where) as SQL)
+      .where(and(eq(catalogListings.catalogId, channel.catalogId), this.availableOnChannel(channel), where) as SQL)
       .groupBy(offeringAttributes.code, offeringAttributeValues.code)
       .orderBy(
         sql`min(${offeringAttributes.sortOrder})`,
@@ -673,7 +704,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       .where(
         and(
           eq(catalogListings.catalogId, channel.catalogId),
-          this.availableOnChannel(channel.id, currencyCode),
+          this.availableOnChannel(channel, currencyCode),
           inArray(offeringVariants.code, codes),
           CatalogChannelsDomainRepository.filtersWhere(filters),
         ) as SQL,

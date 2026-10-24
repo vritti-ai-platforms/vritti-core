@@ -13,6 +13,7 @@ import type { OfferingsBinding } from './bindings';
 import { EditOfferingDialog } from './forms/EditOfferingDialog';
 import { SetTaxClassDialog } from './forms/SetTaxClassDialog';
 import { AttributesTab } from './tabs/AttributesTab';
+import { ChannelsTab } from './tabs/ChannelsTab';
 import { DimensionsTab } from './tabs/DimensionsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { VariantsTab } from './tabs/VariantsTab';
@@ -154,6 +155,12 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
                 exportEndpoint={binding.variantsExportEndpoint(offering.id)}
               />
             ),
+          },
+          {
+            value: 'channels',
+            label: 'Channels',
+            permission: PERMISSIONS.channels.view,
+            content: <ChannelsTab offeringId={offering.id} useOfferingChannels={binding.useOfferingChannels} />,
           },
         ]}
       />

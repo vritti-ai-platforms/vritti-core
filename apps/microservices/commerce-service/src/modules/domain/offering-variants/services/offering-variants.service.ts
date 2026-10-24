@@ -30,6 +30,7 @@ import type { SetVariantFulfilmentDto } from '../dto/request/set-variant-fulfilm
 import type { SetVariantTaxClassDto } from '../dto/request/set-variant-tax-class.dto';
 import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
 import {
+  type ChannelExclusionTarget,
   type DimensionValueRow,
   type OfferingRef,
   OfferingVariantsDomainRepository,
@@ -58,9 +59,11 @@ export class OfferingVariantsDomainService {
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
 
   // Returns paginated, filtered, sorted variants of one offering for the data table
+  // `channelId` asks for each row's state on that channel as part of the same page read
   async findForTable(
     offeringId: string,
     state: TableViewState,
+    channelId?: string,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
     await this.requireReachableOffering(offeringId);
 
@@ -78,12 +81,44 @@ export class OfferingVariantsDomainService {
       orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
       limit,
       offset,
+      channelId,
     });
 
     return { result: rows.map((row) => this.toTableRow(row)), count };
   }
 
-  // Variant options for a storefront's own picker — which variant a product page is about.
+  // Sets whether one variant is available on one target — one app, one till. The exclusion names that target,
+  // so a sibling inheriting the same channel is untouched. A channel this workspace does not own is refused:
+  // its exclusions belong to the workspace that set it, which is what the row's own policies enforce too.
+  async setTargetAvailability(
+    channelId: string,
+    target: ChannelExclusionTarget,
+    variantId: string,
+    availableHere: boolean,
+  ): Promise<SuccessResponseDto> {
+    const channel = await this.repository.findChannelForWrite(channelId);
+    if (!channel) throw new NotFoundException('Channel not found.');
+
+    if (!channel.isOwn) {
+      throw new ConflictException({
+        label: 'Inherited Channel',
+        detail: 'This channel is set by a wider scope. Change what it carries where it was set.',
+      });
+    }
+
+    const listingIds = await this.repository.findListingIdsForVariant(channel.catalogId, variantId);
+    if (listingIds.length === 0) {
+      throw new NotFoundException('That variant is not listed in this channel’s catalog.');
+    }
+
+    await this.repository.setTargetAvailability(channelId, target, listingIds, availableHere);
+    return {
+      success: true,
+      message: availableHere ? 'Variant is now available here.' : 'Variant is now unavailable here.',
+    };
+  }
+
+  // Variant options for a storefront's own picker — which variant a product page is about
   findOptions(query: {
     search?: string;
     excludeIds?: string[];
@@ -621,6 +656,8 @@ export class OfferingVariantsDomainService {
   // detail view
   private toTableRow(variant: OfferingVariantTableRow): OfferingVariantTableRowDto {
     return OfferingVariantDto.fromTableRow(variant, {
+      listed: variant.listed,
+      availableHere: variant.availableHere,
       values: variant.values,
       attributeValues: variant.attributeValues,
       bomLineCount: variant.bomLineCount,

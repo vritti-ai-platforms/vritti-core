@@ -1,11 +1,13 @@
-import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
+import type { UseMutationOptions, UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type {
   AddBomLineData,
   BulkSetVariantsAttributeData,
+  ChannelVariantsTableResponse,
   CreateAttributeData,
   CreateAttributeFromTemplateData,
+  CreateChannelPagesData,
   CreateDimensionData,
   CreateDimensionFromTemplateData,
   CreateOfferingData,
@@ -13,6 +15,7 @@ import type {
   DeleteBomLineData,
   GenerateVariantsData,
   OfferingAttributeData,
+  OfferingChannelTypeData,
   OfferingData,
   OfferingDimensionData,
   OfferingsTableResponse,
@@ -23,6 +26,7 @@ import type {
   ReorderDimensionsData,
   SetOfferingFulfilmentData,
   SetOfferingTaxClassData,
+  SetTargetAvailabilityData,
   SetVariantAttributesData,
   SetVariantFulfilmentData,
   SetVariantTaxClassData,
@@ -45,6 +49,7 @@ export interface OfferingPermissions {
   toggle: string;
   setTaxClass: string;
   export: string;
+  channels: { view: string; createPage: string; setAvailability: string };
   dimensions: { view: string; add: string; addFromTemplate: string; edit: string; delete: string };
   attributes: { view: string; add: string; addFromTemplate: string; edit: string; delete: string };
   variants: {
@@ -145,3 +150,16 @@ export type UseDeleteBomLine = MutationHook<SuccessResponse, DeleteBomLineData>;
 export type UseAddSuggestedComponent = MutationHook<SuccessResponse, string>;
 export type UseDeleteVariant = MutationHook<SuccessResponse, string>;
 export type UseDeleteOffering = MutationHook<SuccessResponse, string>;
+
+export type UseOfferingChannels = (offeringId: string) => UseQueryResult<OfferingChannelTypeData[], AxiosError>;
+export type UseChannelVariantsTable = (
+  offeringId: string,
+  targetId: string,
+) => UseQueryResult<ChannelVariantsTableResponse, AxiosError>;
+export type UseCreateChannelPages = (options?: {
+  onSuccess?: () => void;
+}) => UseMutationResult<SuccessResponse, AxiosError, CreateChannelPagesData>;
+
+export type UseSetTargetAvailability = (options?: {
+  onSuccess?: () => void;
+}) => UseMutationResult<SuccessResponse, AxiosError, SetTargetAvailabilityData>;

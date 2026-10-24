@@ -38,11 +38,10 @@ const resolvedPrice = (listing: CatalogListingData) => listing.prices[0];
 
 // What one catalog charges in one currency — the drill-in behind a card on the Prices tab
 export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding }) => {
-  const { id: catalogId } = useSlugParams('slug');
+  const { id: catalogId, name: catalogName } = useSlugParams('slug');
   const { currencyCode = '' } = useParams();
   const queryClient = useQueryClient();
 
-  const { data: catalog } = binding.useCatalog(catalogId);
   const { data: currencies = [], isLoading: currenciesLoading } = binding.useCurrencies(catalogId);
   const { data: response, isLoading } = binding.useCurrencyListingsTable(catalogId, currencyCode);
   const confirm = useConfirm();
@@ -206,7 +205,7 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
       <div className="flex flex-col gap-6">
         <PageHeader
           title={`${currencyCode} prices`}
-          description={`"${catalog.name}" does not price in ${currencyCode}.`}
+          description={`"${catalogName}" does not price in ${currencyCode}.`}
         />
         <Empty
           icon={<Coins />}
@@ -222,7 +221,7 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
       <div className="flex flex-col gap-6">
         <PageHeader
           title={`${currencyCode} prices`}
-          description={`What "${catalog.name}" charges in ${currencyName(currencyCode)}.`}
+          description={`What "${catalogName}" charges in ${currencyName(currencyCode)}.`}
           titleSlot={
             <Badge variant={priced === total && total > 0 ? 'success' : 'warning'}>
               {`${priced} of ${total} priced`}

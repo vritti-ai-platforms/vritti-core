@@ -1,7 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk/database';
-import { and, asc, eq, getColumns, inArray, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  and,
+  asc,
+  countDistinct,
+  desc,
+  eq,
+  getColumns,
+  inArray,
+  isNull,
+  notExists,
+  or,
+  type SQL,
+  sql,
+} from '@vritti/api-sdk/drizzle-orm';
+import {
+  type CatalogChannelType,
+  catalogChannels,
+  catalogListingChannelExclusions,
+  catalogListings,
+  catalogs,
+  channelSpecificity,
   type FulfilmentType,
   type Offering,
   offeringBom,
@@ -9,6 +28,7 @@ import {
   offerings,
   offeringVariants,
   ownedByWorkspaceExpression,
+  posTerminals,
 } from '@/db/schema';
 
 export interface ExportOfferingRow {
@@ -28,6 +48,52 @@ export type OfferingTableRow = Offering & {
   dimensionCount: number;
   variantCount: number;
 };
+
+export interface ChannelSlotRow {
+  channelId: string;
+  type: CatalogChannelType;
+  appId: string | null;
+  terminalId: string | null;
+  terminalName: string | null;
+  catalogId: string;
+  catalogName: string;
+  isOwn: boolean;
+  legalEntityId: string | null;
+  siteId: string | null;
+}
+
+export interface ChannelTarget {
+  id: string;
+  name: string;
+  kind: 'APP' | 'TERMINAL';
+}
+
+export interface OfferingTargetRow {
+  type: CatalogChannelType;
+  targetId: string;
+  targetName: string;
+  targetKind: 'APP' | 'TERMINAL';
+  channelId: string;
+  catalogId: string;
+  catalogName: string;
+  isAssigned: boolean;
+  isOwn: boolean;
+  variants: number;
+  listed: number;
+  available: number;
+}
+
+export interface ChannelListedCountRow {
+  channelId: string;
+  listed: number;
+}
+
+export interface OfferingExclusionRow {
+  channelId: string;
+  appId: string | null;
+  terminalId: string | null;
+  variantId: string;
+}
 
 export type OfferingWithOwnership = OfferingTableRow & {
   variantsFollowingTaxClass: number;
@@ -166,6 +232,88 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
 
   // The variants that would break a fulfilment type's bill-of-materials rule if it were applied to them — checked
   // before a cascade writes anything, so the offering never half-moves.
+  // Every channel this workspace can reach, with the catalog it carries. Small by nature — one row per type
+  // per target per level — so the ranking that picks a target's channel is done over these in the service.
+  async findChannelSlots(): Promise<ChannelSlotRow[]> {
+    return this.db
+      .select({
+        channelId: catalogChannels.id,
+        type: catalogChannels.type,
+        appId: catalogChannels.appId,
+        terminalId: catalogChannels.terminalId,
+        terminalName: posTerminals.name,
+        catalogId: catalogChannels.catalogId,
+        catalogName: catalogs.name,
+        isOwn: ownedByWorkspaceExpression(catalogChannels),
+        legalEntityId: catalogChannels.legalEntityId,
+        siteId: catalogChannels.siteId,
+      })
+      .from(catalogChannels)
+      .innerJoin(catalogs, eq(catalogs.id, catalogChannels.catalogId))
+      .leftJoin(posTerminals, eq(posTerminals.id, catalogChannels.terminalId))
+      .orderBy(desc(channelSpecificity));
+  }
+
+  // The tills this workspace can see, which are POS targets the way apps are storefront targets
+  async findPosTerminals(): Promise<{ id: string; name: string }[]> {
+    return this.db
+      .select({ id: posTerminals.id, name: posTerminals.name })
+      .from(posTerminals)
+      .orderBy(asc(posTerminals.name));
+  }
+
+  // How many live variants of this offering each channel's catalog carries
+  async findListedCountsByChannel(offeringId: string): Promise<ChannelListedCountRow[]> {
+    return this.db
+      .select({
+        channelId: catalogChannels.id,
+        listed: countDistinct(offeringVariants.id),
+      })
+      .from(catalogChannels)
+      .innerJoin(catalogListings, eq(catalogListings.catalogId, catalogChannels.catalogId))
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(
+        and(
+          eq(offeringVariants.offeringId, offeringId),
+          eq(offeringVariants.isActive, true),
+          eq(offeringVariants.isOfferingActive, true),
+        ),
+      )
+      .groupBy(catalogChannels.id);
+  }
+
+  // The outright exclusions standing against this offering, each naming the channel and the target it is for.
+  // One naming no target is the channel's own and so counts against every target that inherits it.
+  async findOfferingExclusions(offeringId: string): Promise<OfferingExclusionRow[]> {
+    return this.db
+      .select({
+        channelId: catalogListingChannelExclusions.catalogChannelId,
+        appId: catalogListingChannelExclusions.appId,
+        terminalId: catalogListingChannelExclusions.terminalId,
+        variantId: offeringVariants.id,
+      })
+      .from(catalogListingChannelExclusions)
+      .innerJoin(catalogListings, eq(catalogListings.id, catalogListingChannelExclusions.catalogListingId))
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(
+        and(
+          eq(offeringVariants.offeringId, offeringId),
+          eq(offeringVariants.isActive, true),
+          eq(offeringVariants.isOfferingActive, true),
+          isNull(catalogListingChannelExclusions.currencyCode),
+        ),
+      );
+  }
+
+  // How many variants this offering has at all, the denominator every target's counts read against
+  async countVariants(offeringId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: countDistinct(offeringVariants.id) })
+      .from(offeringVariants)
+      .where(eq(offeringVariants.offeringId, offeringId));
+    return row?.count ?? 0;
+  }
+
   async findVariantsBreachingBomRule(offeringId: string, max: number, min: number): Promise<string[]> {
     const lineCount = this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id));
     const rows = await this.db

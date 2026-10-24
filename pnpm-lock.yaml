@@ -431,8 +431,8 @@ importers:
         specifier: 5.104.0
         version: 5.104.0(react@19.2.3)
       '@vritti/quantum-ui':
-        specifier: 0.5.4
-        version: 0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
+        specifier: 0.5.6
+        version: 0.5.6(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -922,8 +922,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/commerce-permissions
       '@vritti/quantum-ui':
-        specifier: 0.5.4
-        version: 0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
+        specifier: 0.5.6
+        version: 0.5.6(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -998,8 +998,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/communications-permissions
       '@vritti/quantum-ui':
-        specifier: 0.5.4
-        version: 0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
+        specifier: 0.5.6
+        version: 0.5.6(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -1071,8 +1071,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/gitea-permissions
       '@vritti/quantum-ui':
-        specifier: 0.5.4
-        version: 0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
+        specifier: 0.5.6
+        version: 0.5.6(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)
       axios:
         specifier: ^1.20.0
         version: 1.20.0
@@ -7556,13 +7556,13 @@ packages:
       react-native-mmkv:
         optional: true
 
-  '@vritti/quantum-ui@0.5.4':
-    resolution: {integrity: sha512-rKDEB/vZVMxG6+0+deRtizhI3qRl3zUUuWL1vkj9ohEzhTp+0nI7FGjjaLPsBiX/MD1XZi1QzxQzerWJgJ2VKg==}
+  '@vritti/quantum-ui@0.5.6':
+    resolution: {integrity: sha512-jZMZ4OHLyXck3r4o4YTGSNavADf8rnZF7fSZn5UGTZphPy3br7IhTrHkm1/soKIfq6devEfS4Y8dFqgwHfQ4lw==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
-      react-hook-form: ^7.71.0
+      react-hook-form: ^7.87.0
       react-router-dom: ^6.0.0 || ^7.0.0
     peerDependenciesMeta:
       '@tanstack/react-query':
@@ -21896,7 +21896,7 @@ snapshots:
       - react-native-web
       - use-sync-external-store
 
-  '@vritti/quantum-ui@0.5.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)':
+  '@vritti/quantum-ui@0.5.6(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(immer@11.1.18)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.2.4)(react-router-dom@7.18.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.6.0(react@19.2.3))(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(yjs@13.6.33)':
     dependencies:
       '@dagrejs/dagre': 3.1.1
       '@date-fns/tz': 1.5.0

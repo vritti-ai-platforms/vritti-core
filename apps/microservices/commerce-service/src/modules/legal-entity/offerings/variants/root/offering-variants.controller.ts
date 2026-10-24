@@ -39,6 +39,36 @@ export class LeOfferingVariantsController {
     this.logger.log(`offerings.variants.table — offeringId: ${offeringId}`);
     return this.service.findForTable(offeringId, state as TableViewState);
   }
+  // The same page of variants as the table above, plus how one channel sees each row
+  @MessagePattern({ cmd: 'le.offerings.variants.channelTable' })
+  findForChannelTable(
+    @Payload() data: { offeringId: string; channelId: string } & TableViewState,
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
+    const { offeringId, channelId, ...state } = data;
+    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, channel: ${channelId}`);
+    return this.service.findForTable(offeringId, state as TableViewState, channelId);
+  }
+
+  // Sets whether one variant is available on one target of one channel
+  @MessagePattern({ cmd: 'le.offerings.variants.setTargetAvailability' })
+  setTargetAvailability(
+    @Payload()
+    data: {
+      channelId: string;
+      targetId: string;
+      targetKind: 'APP' | 'TERMINAL';
+      variantId: string;
+      availableHere: boolean;
+    },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.setTargetAvailability — target: ${data.targetId}, variant: ${data.variantId}`);
+    return this.service.setTargetAvailability(
+      data.channelId,
+      { id: data.targetId, kind: data.targetKind },
+      data.variantId,
+      data.availableHere,
+    );
+  }
 
   // Every combination the selected values produce, flagged with the ones that already exist
   @MessagePattern({ cmd: 'le.offerings.variants.combinations' })

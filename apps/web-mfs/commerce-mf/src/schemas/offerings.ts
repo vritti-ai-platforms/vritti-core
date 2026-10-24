@@ -509,3 +509,55 @@ export function deriveCode(offeringCode: string, dimensions: OfferingDimensionDa
   });
   return [offeringCode, ...codes.filter(Boolean)].join('-');
 }
+
+export interface OfferingChannelTargetData {
+  targetId: string;
+  targetKind: 'APP' | 'TERMINAL';
+  name: string;
+  channelId: string;
+  catalogId: string;
+  catalogName: string;
+  isAssigned: boolean;
+  isOwn: boolean;
+  storefront: boolean;
+  variants: number;
+  listed: number;
+  available: number;
+}
+
+export interface OfferingChannelTypeData {
+  type: 'APP' | 'POS' | 'B2B';
+  targets: OfferingChannelTargetData[];
+}
+
+export interface ChannelVariantData extends OfferingVariantData {
+  listed: boolean;
+  availableHere: boolean;
+  exists: boolean | null;
+  metadataComplete: boolean | null;
+}
+
+export type ChannelVariantsTableResponse = TableResponse<ChannelVariantData> & {
+  storefront: boolean;
+  catalogName: string;
+  isOwn: boolean;
+};
+
+export interface CreateChannelPagesData {
+  offeringId: string;
+  targetId: string;
+  variantCodes: string[];
+}
+
+export interface SetTargetAvailabilityData {
+  offeringId: string;
+  targetId: string;
+  variantId: string;
+  availableHere: boolean;
+}
+
+export const addStorefrontPagesSchema = z.object({
+  variantCodes: z.array(z.string()).min(1, 'Choose at least one variant'),
+});
+
+export type AddStorefrontPagesFormData = z.infer<typeof addStorefrontPagesSchema>;

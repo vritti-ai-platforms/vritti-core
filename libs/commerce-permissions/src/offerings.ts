@@ -8,6 +8,12 @@ export const ORG_OFFERINGS = {
   setFulfilment: 'org.offerings.set-fulfilment',
   toggle: 'org.offerings.toggle',
   export: 'org.offerings.export',
+  // Where this offering sells: its channels, what each carries, and the storefront pages behind them
+  channels: {
+    view: 'org.offerings.channels.view',
+    createPage: 'org.offerings.channels.create-page',
+    setAvailability: 'org.offerings.channels.set-availability',
+  },
   dimensions: {
     view: 'org.offerings.dimensions.view',
     add: 'org.offerings.dimensions.add',
@@ -22,6 +28,7 @@ export const ORG_OFFERINGS = {
     edit: 'org.offerings.attributes.edit',
     delete: 'org.offerings.attributes.delete',
   },
+  variantOptions: 'org.offerings.variant-options',
   variants: {
     view: 'org.offerings.variants.view',
     add: 'org.offerings.variants.add',
@@ -53,6 +60,12 @@ export const LE_OFFERINGS = {
   setFulfilment: 'le.offerings.set-fulfilment',
   toggle: 'le.offerings.toggle',
   export: 'le.offerings.export',
+  // Where this offering sells: its channels, what each carries, and the storefront pages behind them
+  channels: {
+    view: 'le.offerings.channels.view',
+    createPage: 'le.offerings.channels.create-page',
+    setAvailability: 'le.offerings.channels.set-availability',
+  },
   dimensions: {
     view: 'le.offerings.dimensions.view',
     add: 'le.offerings.dimensions.add',
@@ -81,7 +94,6 @@ export const LE_OFFERINGS = {
       add: 'le.offerings.variants.bom.add',
       edit: 'le.offerings.variants.bom.edit',
       delete: 'le.offerings.variants.bom.delete',
-      // Linking the item that already carries the variant's SKU, without naming it
       addFromSuggestion: 'le.offerings.variants.bom.add-from-suggestion',
     },
   },
@@ -97,6 +109,12 @@ export const SITE_OFFERINGS = {
   setFulfilment: 'site.offerings.set-fulfilment',
   toggle: 'site.offerings.toggle',
   export: 'site.offerings.export',
+  // Where this offering sells: its channels, what each carries, and the storefront pages behind them
+  channels: {
+    view: 'site.offerings.channels.view',
+    createPage: 'site.offerings.channels.create-page',
+    setAvailability: 'site.offerings.channels.set-availability',
+  },
   dimensions: {
     view: 'site.offerings.dimensions.view',
     add: 'site.offerings.dimensions.add',
@@ -111,7 +129,6 @@ export const SITE_OFFERINGS = {
     edit: 'site.offerings.attributes.edit',
     delete: 'site.offerings.attributes.delete',
   },
-  variantOptions: 'site.offerings.variant-options',
   variants: {
     view: 'site.offerings.variants.view',
     add: 'site.offerings.variants.add',

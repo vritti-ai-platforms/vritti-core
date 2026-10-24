@@ -6,8 +6,10 @@ import {
   ApiBulkSetVariantsAttribute,
   ApiBulkSetVariantsStatus,
   ApiBulkSetVariantsTaxClass,
+  ApiChannelVariants,
   ApiClearVariantFulfilment,
   ApiClearVariantTaxClass,
+  ApiCreateChannelPages,
   ApiCreateOffering,
   ApiCreateOfferingAttribute,
   ApiCreateOfferingAttributeWithValuesAndTemplate,
@@ -27,6 +29,7 @@ import {
   ApiGetOfferingVariant,
   ApiListOfferingAttributes,
   ApiListOfferingDimensions,
+  ApiOfferingChannels,
   ApiOfferingsTable,
   ApiOfferingVariantsTable,
   ApiPreviewOfferingVariantCombinations,
@@ -35,6 +38,7 @@ import {
   ApiSetOfferingFulfilment,
   ApiSetOfferingStatus,
   ApiSetOfferingTaxClass,
+  ApiSetTargetAvailability,
   ApiSetVariantAttributes,
   ApiSetVariantFulfilment,
   ApiSetVariantTaxClass,
@@ -58,6 +62,7 @@ import { CreateOfferingAttributeDto } from '@commerce/offerings/dto/request/crea
 import { CreateOfferingAttributeWithValuesAndTemplateDto } from '@commerce/offerings/dto/request/create-offering-attribute-with-values-and-template.dto';
 import { CreateOfferingDimensionDto } from '@commerce/offerings/dto/request/create-offering-dimension.dto';
 import { CreateOfferingDimensionWithValuesAndTemplateDto } from '@commerce/offerings/dto/request/create-offering-dimension-with-values-and-template.dto';
+import { CreateStorefrontPagesDto } from '@commerce/offerings/dto/request/create-storefront-pages.dto';
 import { CreateVariantDto } from '@commerce/offerings/dto/request/create-variant.dto';
 import { CreateVariantInventoryItemDto } from '@commerce/offerings/dto/request/create-variant-inventory-item.dto';
 import { GenerateVariantsDto } from '@commerce/offerings/dto/request/generate-variants.dto';
@@ -65,6 +70,7 @@ import { ReorderOfferingAttributesDto } from '@commerce/offerings/dto/request/re
 import { ReorderOfferingDimensionsDto } from '@commerce/offerings/dto/request/reorder-offering-dimensions.dto';
 import { SetFulfilmentDto } from '@commerce/offerings/dto/request/set-fulfilment.dto';
 import { SetOfferingStatusDto } from '@commerce/offerings/dto/request/set-offering-status.dto';
+import { SetTargetAvailabilityDto } from '@commerce/offerings/dto/request/set-target-availability.dto';
 import { SetTaxClassDto } from '@commerce/offerings/dto/request/set-tax-class.dto';
 import { SetVariantAttributesDto } from '@commerce/offerings/dto/request/set-variant-attributes.dto';
 import { UpdateOfferingDto } from '@commerce/offerings/dto/request/update-offering.dto';
@@ -74,6 +80,10 @@ import { UpdateVariantDto } from '@commerce/offerings/dto/request/update-variant
 import { UpsertOfferingAttributeValuesDto } from '@commerce/offerings/dto/request/upsert-offering-attribute-values.dto';
 import { UpsertOfferingDimensionValuesDto } from '@commerce/offerings/dto/request/upsert-offering-dimension-values.dto';
 import type { OfferingAttributeResponseDto } from '@commerce/offerings/dto/response/offering-attribute-response.dto';
+import type {
+  ChannelVariantPagesTableResponseDto,
+  OfferingChannelTypeResponseDto,
+} from '@commerce/offerings/dto/response/offering-channel-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
@@ -589,6 +599,59 @@ export class OrgOfferingsGatewayController {
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/org/offerings/${id}`);
     return this.service.delete(id);
+  }
+
+  // Where this offering sells, a row per channel
+  @Get(':id/channels')
+  @RequirePermission(ORG_OFFERINGS.channels.view)
+  @ApiOfferingChannels()
+  getChannels(@OrgId() orgId: string, @Param('id') id: string): Promise<OfferingChannelTypeResponseDto[]> {
+    this.logger.log(`GET /commerce-api/org/offerings/${id}/channels`);
+    return this.service.offeringChannels(orgId, id);
+  }
+
+  // This offering's variants as one channel sees them
+  @Get(':id/channels/:targetId/variants/table')
+  @RequirePermission(ORG_OFFERINGS.channels.view)
+  @ApiChannelVariants()
+  getChannelVariants(
+    @OrgId() orgId: string,
+    @UserId() userId: string,
+    @Param('id') id: string,
+    @Param('targetId') targetId: string,
+  ): Promise<ChannelVariantPagesTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/offerings/${id}/channels/${targetId}/variants/table`);
+    return this.service.channelVariantPages(orgId, userId, id, targetId);
+  }
+
+  // Sets whether one variant is available on one channel
+  @Patch(':id/channels/:targetId/variants/:variantId/availability')
+  @RequirePermission(ORG_OFFERINGS.channels.setAvailability)
+  @ApiSetTargetAvailability()
+  setTargetAvailability(
+    @OrgId() orgId: string,
+    @Param('id') id: string,
+    @Param('targetId') targetId: string,
+    @Param('variantId') variantId: string,
+    @Body() dto: SetTargetAvailabilityDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/offerings/${id}/channels/${targetId}/variants/${variantId}`);
+    return this.service.setTargetAvailability(orgId, id, targetId, variantId, dto.availableHere);
+  }
+
+  // Creates the missing pages on the storefront behind one target
+  @Post(':id/channels/:targetId/pages')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_OFFERINGS.channels.createPage)
+  @ApiCreateChannelPages()
+  createChannelPages(
+    @OrgId() orgId: string,
+    @Param('id') id: string,
+    @Param('targetId') targetId: string,
+    @Body() dto: CreateStorefrontPagesDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/org/offerings/${id}/channels/${targetId}/pages`);
+    return this.service.createChannelPages(orgId, id, targetId, dto.variantCodes);
   }
 
   // Builds the workbook and streams it — shared by both export routes

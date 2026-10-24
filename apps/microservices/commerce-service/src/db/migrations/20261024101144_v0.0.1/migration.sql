@@ -1,0 +1,6 @@
+ALTER TABLE "commerce"."catalog_listing_channel_exclusions" ADD COLUMN "app_id" uuid;--> statement-breakpoint
+ALTER TABLE "commerce"."catalog_listing_channel_exclusions" ADD COLUMN "terminal_id" uuid;--> statement-breakpoint
+ALTER TABLE "commerce"."catalog_listing_channel_exclusions" DROP CONSTRAINT "uq_catalog_listing_channel_exclusions";--> statement-breakpoint
+ALTER TABLE "commerce"."catalog_listing_channel_exclusions" ADD CONSTRAINT "uq_catalog_listing_channel_exclusions" UNIQUE NULLS NOT DISTINCT("catalog_listing_id","catalog_channel_id","app_id","terminal_id","currency_code");--> statement-breakpoint
+ALTER TABLE "commerce"."catalog_listing_channel_exclusions" ADD CONSTRAINT "catalog_listing_channel_exclusions_CqHCYKGHblhu_fkey" FOREIGN KEY ("terminal_id") REFERENCES "commerce"."pos_terminals"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "commerce"."catalog_listing_channel_exclusions" ADD CONSTRAINT "catalog_listing_channel_exclusions_one_target_chk" CHECK ("app_id" is null or "terminal_id" is null);

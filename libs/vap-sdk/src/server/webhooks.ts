@@ -126,8 +126,10 @@ function toMetadata(value: unknown): Record<string, string> {
   return {};
 }
 
-// Proves a webhook came from core and returns it typed — or throws `VapWebhookError`.
-export function verifyVapWebhook(input: VerifyVapWebhookInput): VapWebhookEvent {
+// Proves a signed request came from core and returns its body parsed — or throws `VapWebhookError`.
+// Transport only: it says who sent this and that it has not been altered, and nothing about the shape
+// of what was sent, which is the caller's to decide.
+export function verifyVapSignedRequest(input: VerifyVapWebhookInput): { eventId: string; body: unknown } {
   const key = verificationKey(input);
   const tolerance = input.toleranceSeconds ?? 300;
 
@@ -168,6 +170,13 @@ export function verifyVapWebhook(input: VerifyVapWebhookInput): VapWebhookEvent 
   } catch {
     throw new VapWebhookError('bad_json', 'The webhook body is not JSON.');
   }
+  return { eventId, body: parsed };
+}
+
+// Proves a webhook came from core and returns it typed — or throws `VapWebhookError`.
+export function verifyVapWebhook(input: VerifyVapWebhookInput): VapWebhookEvent {
+  const { eventId, body: parsed } = verifyVapSignedRequest(input);
+
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new VapWebhookError('bad_json', 'The webhook body is not an event object.');
   }

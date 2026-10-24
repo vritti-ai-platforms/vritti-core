@@ -8,6 +8,7 @@ import { partyCollection } from './collections/parties.js';
 import { vapCacheCollection } from './collections/vap-cache.js';
 import { visitorSessionCollection } from './collections/visitor-sessions.js';
 import { VAP_NEXT_KEY, VapNextConfig } from './next-config.js';
+import { productCreateEndpoint, productStatusEndpoint } from './products.js';
 import { type ConfigLike, type PayloadPlugin, SDK_CONFIG_KEY } from './runtime.js';
 import { type PaymentEventHandler, paymentWebhookEndpoint } from './webhooks.js';
 
@@ -47,14 +48,19 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
         vapCacheCollection(fields?.vapCache),
         visitorSessionCollection(fields?.visitorSessions),
       ],
-      ...(onPaymentEvent
-        ? {
-            endpoints: [
-              ...(config.endpoints ?? []),
-              paymentWebhookEndpoint({ clientSecret: sdkOptions.clientSecret, onPaymentEvent }),
-            ],
-          }
-        : {}),
+      endpoints: [
+        ...(config.endpoints ?? []),
+        // Core pulls this to show, per listing, whether the storefront has a page for it and whether an
+        // editor has called it finished. Only with a credential to verify against: without one every
+        // request would be refused anyway, and a route that always 401s is worse than no route.
+        ...(sdkOptions.clientSecret
+          ? [
+              productStatusEndpoint({ clientSecret: sdkOptions.clientSecret }),
+              productCreateEndpoint({ clientSecret: sdkOptions.clientSecret }),
+            ]
+          : []),
+        ...(onPaymentEvent ? [paymentWebhookEndpoint({ clientSecret: sdkOptions.clientSecret, onPaymentEvent })] : []),
+      ],
       custom: {
         ...config.custom,
         // A function rather than a getter, and that matters: spreading an object invokes its getters, so `{

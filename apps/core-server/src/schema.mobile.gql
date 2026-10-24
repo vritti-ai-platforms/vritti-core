@@ -116,6 +116,18 @@ type CatalogListingDetail {
   axes: [VariantAxis!]!
 }
 
+type OfferingVariantOption {
+  id: ID!
+  code: String!
+}
+
+type OfferingVariantOptions {
+  items: [OfferingVariantOption!]!
+
+  """Matching variants across every page, after excludeIds"""
+  total: Int!
+}
+
 type PartyAddress {
   id: ID!
   line1: String!
@@ -181,19 +193,6 @@ type Cart {
 type CartQuantity {
   code: String!
   quantity: Int!
-}
-
-type OfferingVariantOption {
-  id: ID!
-  code: String!
-  name: String!
-}
-
-type OfferingVariantOptions {
-  items: [OfferingVariantOption!]!
-
-  """Matching variants across every page, after excludeIds"""
-  total: Int!
 }
 
 type MutationResult {

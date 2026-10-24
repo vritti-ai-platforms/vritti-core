@@ -1,12 +1,11 @@
 import type { ApolloClient } from '@apollo/client';
-import { SITE_OFFERING_VARIANTS_QUERY } from '../graphql/offerings.js';
+import { OFFERING_VARIANTS_QUERY } from '../graphql/offerings.js';
 import { requireData, run } from '../transport/errors.js';
 import { contextForScope, type RequestContext } from '../types.js';
 
 export type OfferingVariantOption = {
   id: string;
   code: string;
-  name: string;
 };
 
 export type OfferingVariantOptions = {
@@ -23,12 +22,12 @@ export function createOfferingsOperations(client: ApolloClient, context: Request
     ): Promise<OfferingVariantOptions> {
       const ttlSeconds = options.cacheSeconds ?? 0;
       const requestContext = {
-        requestContext: contextForScope(context, 'site'),
+        requestContext: contextForScope(context, 'org'),
         ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
       };
       return run(async () => {
         const r = await client.query({
-          query: SITE_OFFERING_VARIANTS_QUERY,
+          query: OFFERING_VARIANTS_QUERY,
           variables: {
             search: query.search,
             excludeIds: query.excludeIds,
@@ -37,7 +36,7 @@ export function createOfferingsOperations(client: ApolloClient, context: Request
           },
           context: requestContext,
         });
-        return requireData(r.data).siteOfferingVariants as OfferingVariantOptions;
+        return requireData(r.data).offeringVariants as OfferingVariantOptions;
       });
     },
   };

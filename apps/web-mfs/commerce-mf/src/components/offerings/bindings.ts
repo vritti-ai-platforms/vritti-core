@@ -8,10 +8,12 @@ import type {
   UseBulkSetVariantsAttribute,
   UseBulkSetVariantsStatus,
   UseBulkSetVariantsTaxClass,
+  UseChannelVariantsTable,
   UseClearVariantFulfilment,
   UseClearVariantTaxClass,
   UseCreateAttribute,
   UseCreateAttributeFromTemplate,
+  UseCreateChannelPages,
   UseCreateDimension,
   UseCreateDimensionFromTemplate,
   UseCreateOffering,
@@ -23,6 +25,7 @@ import type {
   UseDeleteVariant,
   UseGenerateVariants,
   UseOfferingAttributes,
+  UseOfferingChannels,
   UseOfferingDimensions,
   UseOfferingsTable,
   UseOfferingVariantsTable,
@@ -32,6 +35,7 @@ import type {
   UseSetOfferingFulfilment,
   UseSetOfferingStatus,
   UseSetOfferingTaxClass,
+  UseSetTargetAvailability,
   UseSetVariantAttributes,
   UseSetVariantFulfilment,
   UseSetVariantTaxClass,
@@ -85,6 +89,13 @@ export interface OfferingsBinding {
 
   useVariantsTable: UseOfferingVariantsTable;
   useVariant: UseSuspenseVariant;
+
+  useOfferingChannels: UseOfferingChannels;
+  useChannelVariantsTable: UseChannelVariantsTable;
+  useCreateChannelPages: UseCreateChannelPages;
+  useSetTargetAvailability: UseSetTargetAvailability;
+  channelVariantsKey: (offeringId: string, targetId: string) => readonly unknown[];
+  channelVariantsSlug: (offeringId: string, targetId: string) => string;
   useVariantBom: UseVariantBom;
   useCreateVariant: UseCreateVariant;
   useGenerateVariants: UseGenerateVariants;

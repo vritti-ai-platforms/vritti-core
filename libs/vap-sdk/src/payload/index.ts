@@ -44,6 +44,21 @@ export {
   type SealedOtpFlow,
 } from './otp-sign-in.js';
 export { type VapOptions, vap } from './plugin.js';
+export {
+  coreVariantCodeField,
+  metadataCompleteField,
+  type ProductStatus,
+  type ProductToCreate,
+  productCreateEndpoint,
+  productNameField,
+  productStatusEndpoint,
+  productStatuses,
+  productSyncFields,
+  removedInCoreAtField,
+  removedInCoreField,
+  VAP_PRODUCT_CREATE_PATH,
+  VAP_PRODUCT_STATUS_PATH,
+} from './products.js';
 export { getSdk, type PartyLike, type PayloadLike, SDK_CONFIG_KEY } from './runtime.js';
 export { type IssuedSession, issueSessionToken } from './session-token.js';
 export { type PaymentEventHandler, VAP_WEBHOOK_PATH } from './webhooks.js';
