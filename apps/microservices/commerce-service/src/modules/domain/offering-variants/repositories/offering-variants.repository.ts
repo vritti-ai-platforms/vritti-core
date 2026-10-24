@@ -18,6 +18,7 @@ import {
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { attributesFacetSql, dimensionsFacetSql } from '@/common/variant-facets';
 import {
+  type CatalogChannelType,
   catalogChannels,
   catalogListingChannelExclusions,
   catalogListings,
@@ -86,6 +87,14 @@ export interface ExportVariantRow {
   bomLineCount: number;
   isActive: boolean;
   isOfferingActive: boolean;
+}
+
+export interface ChannelForWrite {
+  id: string;
+  type: CatalogChannelType;
+  catalogId: string;
+  catalogName: string;
+  isOwn: boolean;
 }
 
 export interface ChannelExclusionTarget {
@@ -179,12 +188,11 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   }
 
   // The channel's catalog and whether this workspace set it, for a write that must not touch an inherited one
-  async findChannelForWrite(
-    channelId: string,
-  ): Promise<{ id: string; catalogId: string; catalogName: string; isOwn: boolean } | undefined> {
+  async findChannelForWrite(channelId: string): Promise<ChannelForWrite | undefined> {
     const [row] = await this.db
       .select({
         id: catalogChannels.id,
+        type: catalogChannels.type,
         catalogId: catalogChannels.catalogId,
         catalogName: catalogs.name,
         isOwn: ownedByWorkspaceExpression(catalogChannels),

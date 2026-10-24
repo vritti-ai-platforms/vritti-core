@@ -10542,19 +10542,6 @@
             }
           },
           {
-            "name": "targetKind",
-            "required": true,
-            "in": "query",
-            "description": "Whether the target is an app or a till",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APP",
-                "TERMINAL"
-              ]
-            }
-          },
-          {
             "name": "offeringId",
             "required": true,
             "in": "path",
@@ -10668,6 +10655,14 @@
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12794,19 +12789,6 @@
             }
           },
           {
-            "name": "targetKind",
-            "required": true,
-            "in": "query",
-            "description": "Whether the target is an app or a till",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APP",
-                "TERMINAL"
-              ]
-            }
-          },
-          {
             "name": "offeringId",
             "required": true,
             "in": "path",
@@ -12920,6 +12902,14 @@
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15046,19 +15036,6 @@
             }
           },
           {
-            "name": "targetKind",
-            "required": true,
-            "in": "query",
-            "description": "Whether the target is an app or a till",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APP",
-                "TERMINAL"
-              ]
-            }
-          },
-          {
             "name": "offeringId",
             "required": true,
             "in": "path",
@@ -15172,6 +15149,14 @@
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelId",
             "required": true,
             "in": "path",
             "schema": {
@@ -46952,35 +46937,18 @@
       "SetTargetAvailabilityDto": {
         "type": "object",
         "properties": {
-          "targetKind": {
-            "type": "string",
-            "enum": [
-              "APP",
-              "TERMINAL"
-            ],
-            "description": "Whether the target is an app or a till"
-          },
           "availableHere": {
             "type": "boolean",
             "description": "False makes the variant unavailable on this channel outright; true makes it available again"
           }
         },
         "required": [
-          "targetKind",
           "availableHere"
         ]
       },
       "CreateStorefrontPagesDto": {
         "type": "object",
         "properties": {
-          "targetKind": {
-            "type": "string",
-            "enum": [
-              "APP",
-              "TERMINAL"
-            ],
-            "description": "Whether the target is an app or a till"
-          },
           "variantCodes": {
             "description": "Variant codes to create pages for. Ones it already has are skipped.",
             "type": "array",
@@ -46990,7 +46958,6 @@
           }
         },
         "required": [
-          "targetKind",
           "variantCodes"
         ]
       },

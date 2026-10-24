@@ -34,8 +34,9 @@ export const ChannelsTab: React.FC<ChannelsTabProps> = ({ offeringId, useOfferin
 
   // The tab segment is part of the current path, so it is stepped over on the way to a sibling route
   const goToTarget = useCallback(
-    (target: OfferingChannelTargetData) => {
-      const to = `channels/${target.channelId}/${target.targetKind}/${buildSlug(target.name, target.targetId)}`;
+    (entryType: string, target: OfferingChannelTargetData) => {
+      // Both segments are slugs: a breadcrumb reads their names, and no id sits bare in the path
+      const to = `channels/${buildSlug(entryType, target.channelId)}/${buildSlug(target.name, target.targetId)}`;
       navigate(tab ? `../${to}` : to, { relative: 'path' });
     },
     [navigate, tab],
@@ -69,7 +70,7 @@ export const ChannelsTab: React.FC<ChannelsTabProps> = ({ offeringId, useOfferin
               <button
                 key={target.targetId}
                 type="button"
-                onClick={() => goToTarget(target)}
+                onClick={() => goToTarget(CHANNEL_TYPE[entry.type].label, target)}
                 className="flex items-center justify-between gap-4 rounded-lg border p-4 text-left hover:bg-muted/50"
               >
                 <div className="flex min-w-0 flex-col gap-1">

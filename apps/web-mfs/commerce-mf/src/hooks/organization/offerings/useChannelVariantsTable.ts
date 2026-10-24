@@ -11,13 +11,12 @@ export function useChannelVariantsTable(
   offeringId: string,
   channelId: string,
   targetId: string,
-  targetKind: 'APP' | 'TERMINAL',
   options?: Omit<UseQueryOptions<ChannelVariantsTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
   const { available } = usePermission(ORG_OFFERINGS.channels.view);
   return useQuery<ChannelVariantsTableResponse, AxiosError>({
     queryKey: [...CHANNEL_VARIANTS_KEY(offeringId, targetId)],
-    queryFn: () => getChannelVariantsTable(offeringId, channelId, targetId, targetKind),
+    queryFn: () => getChannelVariantsTable(offeringId, channelId, targetId),
     ...options,
     enabled: available && !!offeringId && !!targetId && (options?.enabled ?? true),
   });

@@ -14,7 +14,6 @@ interface AddChannelPagesDialogProps {
   offeringId: string;
   channelId: string;
   targetId: string;
-  targetKind: 'APP' | 'TERMINAL';
   useCreateChannelPages: UseCreateChannelPages;
   onSuccess: () => void;
   onCancel: () => void;
@@ -29,7 +28,6 @@ export const AddChannelPagesDialog: React.FC<AddChannelPagesDialogProps> = ({
   offeringId,
   channelId,
   targetId,
-  targetKind,
   useCreateChannelPages,
   onSuccess,
   onCancel,
@@ -45,7 +43,7 @@ export const AddChannelPagesDialog: React.FC<AddChannelPagesDialogProps> = ({
     <Form
       form={form}
       mutation={createPages}
-      transformSubmit={({ variantCodes }) => ({ offeringId, channelId, targetId, targetKind, variantCodes })}
+      transformSubmit={({ variantCodes }) => ({ offeringId, channelId, targetId, variantCodes })}
       onCancel={onCancel}
     >
       <div className="space-y-4">

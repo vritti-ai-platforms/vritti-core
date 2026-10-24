@@ -71,7 +71,6 @@ import { SetOfferingStatusDto } from '@commerce/offerings/dto/request/set-offeri
 import { SetTargetAvailabilityDto } from '@commerce/offerings/dto/request/set-target-availability.dto';
 import { SetTaxClassDto } from '@commerce/offerings/dto/request/set-tax-class.dto';
 import { SetVariantAttributesDto } from '@commerce/offerings/dto/request/set-variant-attributes.dto';
-import { TargetKindQueryDto } from '@commerce/offerings/dto/request/target-kind-query.dto';
 import { UpdateOfferingDto } from '@commerce/offerings/dto/request/update-offering.dto';
 import { UpdateOfferingAttributeDto } from '@commerce/offerings/dto/request/update-offering-attribute.dto';
 import { UpdateOfferingDimensionDto } from '@commerce/offerings/dto/request/update-offering-dimension.dto';
@@ -101,7 +100,6 @@ import {
   Patch,
   Post,
   Put,
-  Query,
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -607,10 +605,9 @@ export class SiteOfferingsGatewayController {
     @Param('id') id: string,
     @Param('channelId') channelId: string,
     @Param('targetId') targetId: string,
-    @Query() query: TargetKindQueryDto,
   ): Promise<ChannelVariantPagesTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/offerings/${id}/channels/${channelId}/targets/${targetId}`);
-    return this.service.channelVariantPages(orgId, userId, id, channelId, targetId, query.targetKind);
+    return this.service.channelVariantPages(orgId, userId, id, channelId, targetId);
   }
 
   // Sets whether one variant is available on one channel
@@ -626,7 +623,7 @@ export class SiteOfferingsGatewayController {
     @Body() dto: SetTargetAvailabilityDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/offerings/${id}/channels/${channelId}/targets/${targetId}`);
-    return this.service.setTargetAvailability(orgId, channelId, targetId, dto.targetKind, variantId, dto.availableHere);
+    return this.service.setTargetAvailability(orgId, channelId, targetId, variantId, dto.availableHere);
   }
 
   // Creates the missing pages on the storefront behind one target
@@ -637,11 +634,12 @@ export class SiteOfferingsGatewayController {
   createChannelPages(
     @OrgId() orgId: string,
     @Param('id') id: string,
+    @Param('channelId') channelId: string,
     @Param('targetId') targetId: string,
     @Body() dto: CreateStorefrontPagesDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/site/offerings/${id}/channels/${targetId}/pages`);
-    return this.service.createChannelPages(orgId, id, targetId, dto.targetKind, dto.variantCodes);
+    this.logger.log(`POST /commerce-api/site/offerings/${id}/channels/${channelId}/targets/${targetId}/pages`);
+    return this.service.createChannelPages(orgId, id, channelId, targetId, dto.variantCodes);
   }
 
   // Builds the workbook and streams it — shared by both export routes

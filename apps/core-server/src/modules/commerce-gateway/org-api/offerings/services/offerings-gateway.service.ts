@@ -28,7 +28,6 @@ import type {
   OfferingChannelTargetResponseDto,
   OfferingChannelTypeResponseDto,
   OfferingTargetRow,
-  TargetKind,
 } from '@commerce/offerings/dto/response/offering-channel-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
@@ -467,11 +466,7 @@ export class OrgOfferingsGatewayService {
     offeringId: string,
     channelId: string,
     targetId: string,
-    targetKind: TargetKind,
   ): Promise<ChannelVariantPagesTableResponseDto> {
-    const app = targetKind === 'APP' ? await this.appRepository.findByIdInOrg(targetId, orgId) : undefined;
-    const appId = app?.baseUrl ? app.id : null;
-
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `commerce-org-offering-${offeringId}-target-${targetId}-variants`,
@@ -483,13 +478,11 @@ export class OrgOfferingsGatewayService {
       count: number;
       catalogName: string;
       isOwn: boolean;
-    }>('commerce', 'org.offerings.variants.channelTable', {
-      offeringId,
-      channelId,
-      targetId,
-      targetKind,
-      ...state,
-    });
+    }>('commerce', 'org.offerings.variants.channelTable', { offeringId, channelId, targetId, ...state });
+
+    // A target id that names no app of this organization is a till, which has no storefront to ask
+    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
+    const appId = app?.baseUrl ? app.id : null;
 
     const statuses = appId
       ? await this.appStorefront.productStatusesInChunks(
@@ -513,11 +506,12 @@ export class OrgOfferingsGatewayService {
   async createChannelPages(
     orgId: string,
     offeringId: string,
+    channelId: string,
     targetId: string,
-    targetKind: TargetKind,
     variantCodes: string[],
   ): Promise<SuccessResponseDto> {
-    const app = targetKind === 'APP' ? await this.appRepository.findByIdInOrg(targetId, orgId) : undefined;
+    // A till names no app, so the lookup simply finds nothing and the refusal below is the right answer
+    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
     if (!app?.baseUrl) {
       throw new ConflictException({
         label: 'No Storefront',
@@ -529,7 +523,9 @@ export class OrgOfferingsGatewayService {
     const offering = await this.findById(orgId, offeringId);
     const products = variantCodes.map((code) => ({ code, name: offering.name }));
 
-    this.logger.log(`channel pages — offering: ${offeringId}, target: ${targetId}, variants: ${products.length}`);
+    this.logger.log(
+      `channel pages — offering: ${offeringId}, channel: ${channelId}, target: ${targetId}, variants: ${products.length}`,
+    );
     const result = await this.appStorefront.createProductsInChunks(app.id, orgId, products);
 
     // Nothing created and something refused is a failure: reporting success would have the table say
@@ -551,18 +547,16 @@ export class OrgOfferingsGatewayService {
     orgId: string,
     channelId: string,
     targetId: string,
-    targetKind: TargetKind,
     variantId: string,
     availableHere: boolean,
   ): Promise<SuccessResponseDto> {
-    const app = targetKind === 'APP' ? await this.appRepository.findByIdInOrg(targetId, orgId) : undefined;
+    // An app is core's to name; a till names itself in commerce, which fills the blank in
+    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
 
     this.logger.log(`org.offerings.variants.setTargetAvailability — target: ${targetId}, variant: ${variantId}`);
     return this.nats.send('commerce', 'org.offerings.variants.setTargetAvailability', {
       channelId,
       targetId,
-      targetKind,
-      // A till names itself in commerce; an app is core's to name, and the message quotes it
       targetName: app?.name ?? '',
       variantId,
       availableHere,

@@ -547,7 +547,6 @@ export interface CreateChannelPagesData {
   offeringId: string;
   channelId: string;
   targetId: string;
-  targetKind: 'APP' | 'TERMINAL';
   variantCodes: string[];
 }
 
@@ -555,7 +554,6 @@ export interface SetTargetAvailabilityData {
   offeringId: string;
   channelId: string;
   targetId: string;
-  targetKind: 'APP' | 'TERMINAL';
   variantId: string;
   availableHere: boolean;
 }

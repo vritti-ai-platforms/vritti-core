@@ -43,33 +43,23 @@ export class SiteOfferingVariantsController {
   @MessagePattern({ cmd: 'site.offerings.variants.channelTable' })
   findForChannelTable(
     @Payload()
-    data: { offeringId: string; channelId: string; targetId: string; targetKind: 'APP' | 'TERMINAL' } & TableViewState,
+    data: { offeringId: string; channelId: string; targetId: string } & TableViewState,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
-    const { offeringId, channelId, targetId, targetKind, ...state } = data;
+    const { offeringId, channelId, targetId, ...state } = data;
     this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, target: ${targetId}`);
-    return this.service.findForTable(offeringId, state as TableViewState, channelId, {
-      id: targetId,
-      kind: targetKind,
-    });
+    return this.service.findForTable(offeringId, state as TableViewState, channelId, targetId);
   }
 
   // Sets whether one variant is available on one target of one channel
   @MessagePattern({ cmd: 'site.offerings.variants.setTargetAvailability' })
   setTargetAvailability(
     @Payload()
-    data: {
-      channelId: string;
-      targetId: string;
-      targetKind: 'APP' | 'TERMINAL';
-      targetName: string;
-      variantId: string;
-      availableHere: boolean;
-    },
+    data: { channelId: string; targetId: string; targetName: string; variantId: string; availableHere: boolean },
   ): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.setTargetAvailability — target: ${data.targetId}, variant: ${data.variantId}`);
     return this.service.setTargetAvailability(
       data.channelId,
-      { id: data.targetId, kind: data.targetKind },
+      data.targetId,
       data.targetName,
       data.variantId,
       data.availableHere,

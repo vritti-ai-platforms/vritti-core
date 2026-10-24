@@ -30,7 +30,6 @@ interface ChannelVariantsProps {
   offeringId: string;
   channelId: string;
   targetId: string;
-  targetKind: 'APP' | 'TERMINAL';
   permissions: OfferingPermissions;
   useChannelVariantsTable: UseChannelVariantsTable;
   useCreateChannelPages: UseCreateChannelPages;
@@ -45,7 +44,6 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   offeringId,
   channelId,
   targetId,
-  targetKind,
   permissions,
   useChannelVariantsTable,
   useCreateChannelPages,
@@ -53,7 +51,7 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   variantsKey,
   variantsSlug,
 }) => {
-  const { data: response, isLoading } = useChannelVariantsTable(offeringId, channelId, targetId, targetKind);
+  const { data: response, isLoading } = useChannelVariantsTable(offeringId, channelId, targetId);
   const queryClient = useQueryClient();
   const addDialog = useDialog();
   const createPages = useCreateChannelPages();
@@ -64,8 +62,8 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   const canSetAvailability = response?.isOwn ?? false;
 
   const create = useCallback(
-    (variantCodes: string[]) => createPages.mutate({ offeringId, channelId, targetId, targetKind, variantCodes }),
-    [createPages, offeringId, channelId, targetId, targetKind],
+    (variantCodes: string[]) => createPages.mutate({ offeringId, channelId, targetId, variantCodes }),
+    [createPages, offeringId, channelId, targetId],
   );
 
   const columns = useMemo<ColumnDef<ChannelVariantData>[]>(
@@ -103,7 +101,6 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
                   offeringId,
                   channelId,
                   targetId,
-                  targetKind,
                   variantId: row.original.id,
                   availableHere,
                 })
@@ -157,7 +154,6 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
       offeringId,
       channelId,
       targetId,
-      targetKind,
     ],
   );
 
@@ -229,7 +225,6 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
             offeringId={offeringId}
             channelId={channelId}
             targetId={targetId}
-            targetKind={targetKind}
             useCreateChannelPages={useCreateChannelPages}
             onSuccess={close}
             onCancel={close}

@@ -12,6 +12,8 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   BOM_RULES,
+  type CatalogChannelType,
+  CatalogChannelTypeValues,
   type FulfilmentType,
   FulfilmentTypeValues,
   type OfferingVariant,
@@ -59,6 +61,12 @@ export class OfferingVariantsDomainService {
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
 
   // Returns paginated, filtered, sorted variants of one offering for the data table
+  // A POS channel's targets are tills; every other type's are apps. So the kind never has to be sent — the
+  // channel already says it, and a caller cannot get it wrong.
+  private static targetKindOf(type: CatalogChannelType): ChannelExclusionTarget['kind'] {
+    return type === CatalogChannelTypeValues.POS ? 'TERMINAL' : 'APP';
+  }
+
   // `channelId` with its `target` asks for each row's state on that target as part of the same page read, and
   // answers with the channel facts a caller would otherwise have to resolve again: the catalog these rows are
   // listed in, and whether the calling workspace set the channel and so may change what it offers.
@@ -66,7 +74,7 @@ export class OfferingVariantsDomainService {
     offeringId: string,
     state: TableViewState,
     channelId?: string,
-    target?: ChannelExclusionTarget,
+    targetId?: string,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number; catalogName: string; isOwn: boolean }> {
     await this.requireReachableOffering(offeringId);
 
@@ -79,6 +87,12 @@ export class OfferingVariantsDomainService {
     });
     const { limit = 20, offset = 0 } = state.pagination;
 
+    const channel = channelId ? await this.repository.findChannelForWrite(channelId) : undefined;
+    const target =
+      channel && targetId
+        ? { id: targetId, kind: OfferingVariantsDomainService.targetKindOf(channel.type) }
+        : undefined;
+
     const { result: rows, count } = await this.repository.findForTable({
       where,
       orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
@@ -88,7 +102,6 @@ export class OfferingVariantsDomainService {
       target,
     });
 
-    const channel = channelId ? await this.repository.findChannelForWrite(channelId) : undefined;
     return {
       result: rows.map((row) => this.toTableRow(row)),
       count,
@@ -102,7 +115,7 @@ export class OfferingVariantsDomainService {
   // its exclusions belong to the workspace that set it, which is what the row's own policies enforce too.
   async setTargetAvailability(
     channelId: string,
-    target: ChannelExclusionTarget,
+    targetId: string,
     targetName: string,
     variantId: string,
     availableHere: boolean,
@@ -124,7 +137,7 @@ export class OfferingVariantsDomainService {
 
     await this.repository.setTargetAvailability(
       channelId,
-      target,
+      { id: targetId, kind: OfferingVariantsDomainService.targetKindOf(channel.type) },
       listings.map((listing) => listing.id),
       availableHere,
     );
