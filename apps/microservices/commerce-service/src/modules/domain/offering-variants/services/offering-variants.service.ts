@@ -59,13 +59,15 @@ export class OfferingVariantsDomainService {
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
 
   // Returns paginated, filtered, sorted variants of one offering for the data table
-  // `channelId` with its `target` asks for each row's state on that target as part of the same page read
+  // `channelId` with its `target` asks for each row's state on that target as part of the same page read, and
+  // answers with the channel facts a caller would otherwise have to resolve again: the catalog these rows are
+  // listed in, and whether the calling workspace set the channel and so may change what it offers.
   async findForTable(
     offeringId: string,
     state: TableViewState,
     channelId?: string,
     target?: ChannelExclusionTarget,
-  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number; catalogName: string; isOwn: boolean }> {
     await this.requireReachableOffering(offeringId);
 
     const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingVariantsDomainService.FILTER_FIELD_MAP);
@@ -86,7 +88,13 @@ export class OfferingVariantsDomainService {
       target,
     });
 
-    return { result: rows.map((row) => this.toTableRow(row)), count };
+    const channel = channelId ? await this.repository.findChannelForWrite(channelId) : undefined;
+    return {
+      result: rows.map((row) => this.toTableRow(row)),
+      count,
+      catalogName: channel?.catalogName ?? '',
+      isOwn: channel?.isOwn ?? false,
+    };
   }
 
   // Sets whether one variant is available on one target — one app, one till. The exclusion names that target,

@@ -327,33 +327,47 @@ export function getOfferingChannels(offeringId: string): Promise<OfferingChannel
     .then((r) => r.data);
 }
 
-export function getChannelVariantsTable(offeringId: string, targetId: string): Promise<ChannelVariantsTableResponse> {
+export function getChannelVariantsTable(
+  offeringId: string,
+  channelId: string,
+  targetId: string,
+  targetKind: 'APP' | 'TERMINAL',
+): Promise<ChannelVariantsTableResponse> {
   return axios
-    .get<ChannelVariantsTableResponse>(`${BASE}/${offeringId}/channels/${targetId}/variants/table`, {
-      showSuccessToast: false,
-    })
+    .get<ChannelVariantsTableResponse>(
+      `${BASE}/${offeringId}/channels/${channelId}/targets/${targetId}/variants/table`,
+      { params: { targetKind }, showSuccessToast: false },
+    )
     .then((r) => r.data);
 }
 
 export function setTargetAvailability({
   offeringId,
+  channelId,
   targetId,
+  targetKind,
   variantId,
   availableHere,
 }: SetTargetAvailabilityData): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`${BASE}/${offeringId}/channels/${targetId}/variants/${variantId}/availability`, {
-      availableHere,
-    })
+    .patch<SuccessResponse>(
+      `${BASE}/${offeringId}/channels/${channelId}/targets/${targetId}/variants/${variantId}/availability`,
+      { targetKind, availableHere },
+    )
     .then((r) => r.data);
 }
 
 export function createChannelPages({
   offeringId,
+  channelId,
   targetId,
+  targetKind,
   variantCodes,
 }: CreateChannelPagesData): Promise<SuccessResponse> {
   return axios
-    .post<SuccessResponse>(`${BASE}/${offeringId}/channels/${targetId}/pages`, { variantCodes })
+    .post<SuccessResponse>(`${BASE}/${offeringId}/channels/${channelId}/targets/${targetId}/pages`, {
+      targetKind,
+      variantCodes,
+    })
     .then((r) => r.data);
 }

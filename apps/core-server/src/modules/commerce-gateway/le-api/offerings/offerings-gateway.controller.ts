@@ -71,6 +71,7 @@ import { SetOfferingStatusDto } from '@commerce/offerings/dto/request/set-offeri
 import { SetTargetAvailabilityDto } from '@commerce/offerings/dto/request/set-target-availability.dto';
 import { SetTaxClassDto } from '@commerce/offerings/dto/request/set-tax-class.dto';
 import { SetVariantAttributesDto } from '@commerce/offerings/dto/request/set-variant-attributes.dto';
+import { TargetKindQueryDto } from '@commerce/offerings/dto/request/target-kind-query.dto';
 import { UpdateOfferingDto } from '@commerce/offerings/dto/request/update-offering.dto';
 import { UpdateOfferingAttributeDto } from '@commerce/offerings/dto/request/update-offering-attribute.dto';
 import { UpdateOfferingDimensionDto } from '@commerce/offerings/dto/request/update-offering-dimension.dto';
@@ -100,6 +101,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -596,36 +598,39 @@ export class LeOfferingsGatewayController {
   }
 
   // This offering's variants as one channel sees them
-  @Get(':id/channels/:targetId/variants/table')
+  @Get(':id/channels/:channelId/targets/:targetId/variants/table')
   @RequirePermission(LE_OFFERINGS.channels.view)
   @ApiChannelVariants()
   getChannelVariants(
     @OrgId() orgId: string,
     @UserId() userId: string,
     @Param('id') id: string,
+    @Param('channelId') channelId: string,
     @Param('targetId') targetId: string,
+    @Query() query: TargetKindQueryDto,
   ): Promise<ChannelVariantPagesTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/offerings/${id}/channels/${targetId}/variants/table`);
-    return this.service.channelVariantPages(orgId, userId, id, targetId);
+    this.logger.log(`GET /commerce-api/le/offerings/${id}/channels/${channelId}/targets/${targetId}`);
+    return this.service.channelVariantPages(orgId, userId, id, channelId, targetId, query.targetKind);
   }
 
   // Sets whether one variant is available on one channel
-  @Patch(':id/channels/:targetId/variants/:variantId/availability')
+  @Patch(':id/channels/:channelId/targets/:targetId/variants/:variantId/availability')
   @RequirePermission(LE_OFFERINGS.channels.setAvailability)
   @ApiSetTargetAvailability()
   setTargetAvailability(
     @OrgId() orgId: string,
     @Param('id') id: string,
+    @Param('channelId') channelId: string,
     @Param('targetId') targetId: string,
     @Param('variantId') variantId: string,
     @Body() dto: SetTargetAvailabilityDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/offerings/${id}/channels/${targetId}/variants/${variantId}`);
-    return this.service.setTargetAvailability(orgId, id, targetId, variantId, dto.availableHere);
+    this.logger.log(`PATCH /commerce-api/le/offerings/${id}/channels/${channelId}/targets/${targetId}`);
+    return this.service.setTargetAvailability(orgId, channelId, targetId, dto.targetKind, variantId, dto.availableHere);
   }
 
   // Creates the missing pages on the storefront behind one target
-  @Post(':id/channels/:targetId/pages')
+  @Post(':id/channels/:channelId/targets/:targetId/pages')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(LE_OFFERINGS.channels.createPage)
   @ApiCreateChannelPages()
@@ -636,7 +641,7 @@ export class LeOfferingsGatewayController {
     @Body() dto: CreateStorefrontPagesDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/le/offerings/${id}/channels/${targetId}/pages`);
-    return this.service.createChannelPages(orgId, id, targetId, dto.variantCodes);
+    return this.service.createChannelPages(orgId, id, targetId, dto.targetKind, dto.variantCodes);
   }
 
   // Builds the workbook and streams it — shared by both export routes

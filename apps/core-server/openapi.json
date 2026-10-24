@@ -10511,7 +10511,7 @@
         ]
       }
     },
-    "/commerce-api/org/offerings/{id}/channels/{targetId}/variants/table": {
+    "/commerce-api/org/offerings/{id}/channels/{channelId}/targets/{targetId}/variants/table": {
       "get": {
         "description": "The Variants table with the same columns and saved view, plus what this channel carries, what is available on it, and — where the channel names a storefront app — whether a page exists and whether an editor called it finished. The page columns are null for a channel with no storefront, and only the requested page’s codes are asked about.",
         "operationId": "OrgOfferingsGatewayController_getChannelVariants",
@@ -10525,12 +10525,33 @@
             }
           },
           {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "targetId",
             "required": true,
             "in": "path",
             "description": "App or till identifier — where this offering sells",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "targetKind",
+            "required": true,
+            "in": "query",
+            "description": "Whether the target is an app or a till",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "APP",
+                "TERMINAL"
+              ]
             }
           },
           {
@@ -10564,13 +10585,21 @@
         ]
       }
     },
-    "/commerce-api/org/offerings/{id}/channels/{targetId}/variants/{variantId}/availability": {
+    "/commerce-api/org/offerings/{id}/channels/{channelId}/targets/{targetId}/variants/{variantId}/availability": {
       "patch": {
         "description": "Making a variant unavailable writes an outright exclusion for every listing it has in that channel’s catalog, which is what a storefront reads to decide it cannot sell it. A per-currency exclusion is left alone — that belongs to the channel’s Prices tab. A channel set by a wider workspace is refused, because the row was not set here.",
         "operationId": "OrgOfferingsGatewayController_setTargetAvailability",
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelId",
             "required": true,
             "in": "path",
             "schema": {
@@ -10632,7 +10661,7 @@
         ]
       }
     },
-    "/commerce-api/org/offerings/{id}/channels/{targetId}/pages": {
+    "/commerce-api/org/offerings/{id}/channels/{channelId}/targets/{targetId}/pages": {
       "post": {
         "description": "Idempotent by code: codes the storefront already has come back as skipped, so a retry after a timeout is safe. A page the storefront had marked removed is revived, keeping everything written on it. The page name comes from the offering, not the caller. Refused when the channel names no storefront app.",
         "operationId": "OrgOfferingsGatewayController_createChannelPages",
@@ -12734,7 +12763,7 @@
         ]
       }
     },
-    "/commerce-api/le/offerings/{id}/channels/{targetId}/variants/table": {
+    "/commerce-api/le/offerings/{id}/channels/{channelId}/targets/{targetId}/variants/table": {
       "get": {
         "description": "The Variants table with the same columns and saved view, plus what this channel carries, what is available on it, and — where the channel names a storefront app — whether a page exists and whether an editor called it finished. The page columns are null for a channel with no storefront, and only the requested page’s codes are asked about.",
         "operationId": "LeOfferingsGatewayController_getChannelVariants",
@@ -12748,12 +12777,33 @@
             }
           },
           {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "targetId",
             "required": true,
             "in": "path",
             "description": "App or till identifier — where this offering sells",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "targetKind",
+            "required": true,
+            "in": "query",
+            "description": "Whether the target is an app or a till",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "APP",
+                "TERMINAL"
+              ]
             }
           },
           {
@@ -12787,13 +12837,21 @@
         ]
       }
     },
-    "/commerce-api/le/offerings/{id}/channels/{targetId}/variants/{variantId}/availability": {
+    "/commerce-api/le/offerings/{id}/channels/{channelId}/targets/{targetId}/variants/{variantId}/availability": {
       "patch": {
         "description": "Making a variant unavailable writes an outright exclusion for every listing it has in that channel’s catalog, which is what a storefront reads to decide it cannot sell it. A per-currency exclusion is left alone — that belongs to the channel’s Prices tab. A channel set by a wider workspace is refused, because the row was not set here.",
         "operationId": "LeOfferingsGatewayController_setTargetAvailability",
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12855,7 +12913,7 @@
         ]
       }
     },
-    "/commerce-api/le/offerings/{id}/channels/{targetId}/pages": {
+    "/commerce-api/le/offerings/{id}/channels/{channelId}/targets/{targetId}/pages": {
       "post": {
         "description": "Idempotent by code: codes the storefront already has come back as skipped, so a retry after a timeout is safe. A page the storefront had marked removed is revived, keeping everything written on it. The page name comes from the offering, not the caller. Refused when the channel names no storefront app.",
         "operationId": "LeOfferingsGatewayController_createChannelPages",
@@ -14957,7 +15015,7 @@
         ]
       }
     },
-    "/commerce-api/site/offerings/{id}/channels/{targetId}/variants/table": {
+    "/commerce-api/site/offerings/{id}/channels/{channelId}/targets/{targetId}/variants/table": {
       "get": {
         "description": "The Variants table with the same columns and saved view, plus what this channel carries, what is available on it, and — where the channel names a storefront app — whether a page exists and whether an editor called it finished. The page columns are null for a channel with no storefront, and only the requested page’s codes are asked about.",
         "operationId": "SiteOfferingsGatewayController_getChannelVariants",
@@ -14971,12 +15029,33 @@
             }
           },
           {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "targetId",
             "required": true,
             "in": "path",
             "description": "App or till identifier — where this offering sells",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "targetKind",
+            "required": true,
+            "in": "query",
+            "description": "Whether the target is an app or a till",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "APP",
+                "TERMINAL"
+              ]
             }
           },
           {
@@ -15010,13 +15089,21 @@
         ]
       }
     },
-    "/commerce-api/site/offerings/{id}/channels/{targetId}/variants/{variantId}/availability": {
+    "/commerce-api/site/offerings/{id}/channels/{channelId}/targets/{targetId}/variants/{variantId}/availability": {
       "patch": {
         "description": "Making a variant unavailable writes an outright exclusion for every listing it has in that channel’s catalog, which is what a storefront reads to decide it cannot sell it. A per-currency exclusion is left alone — that belongs to the channel’s Prices tab. A channel set by a wider workspace is refused, because the row was not set here.",
         "operationId": "SiteOfferingsGatewayController_setTargetAvailability",
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15078,7 +15165,7 @@
         ]
       }
     },
-    "/commerce-api/site/offerings/{id}/channels/{targetId}/pages": {
+    "/commerce-api/site/offerings/{id}/channels/{channelId}/targets/{targetId}/pages": {
       "post": {
         "description": "Idempotent by code: codes the storefront already has come back as skipped, so a retry after a timeout is safe. A page the storefront had marked removed is revived, keeping everything written on it. The page name comes from the offering, not the caller. Refused when the channel names no storefront app.",
         "operationId": "SiteOfferingsGatewayController_createChannelPages",
@@ -46622,7 +46709,7 @@
           },
           "channelId": {
             "type": "string",
-            "description": "The channel this target resolves to, which its availability is written against"
+            "description": "The channel this target resolves to. With targetId it identifies the row, since an app is a target of two types."
           },
           "catalogId": {
             "type": "string"
@@ -46633,10 +46720,6 @@
           "isAssigned": {
             "type": "boolean",
             "description": "True when the channel names this target; false when it inherits a default"
-          },
-          "isOwn": {
-            "type": "boolean",
-            "description": "False when a wider workspace set that channel — availability is read-only here"
           },
           "storefront": {
             "type": "boolean",
@@ -46663,7 +46746,6 @@
           "catalogId",
           "catalogName",
           "isAssigned",
-          "isOwn",
           "storefront",
           "variants",
           "listed",
@@ -46870,18 +46952,35 @@
       "SetTargetAvailabilityDto": {
         "type": "object",
         "properties": {
+          "targetKind": {
+            "type": "string",
+            "enum": [
+              "APP",
+              "TERMINAL"
+            ],
+            "description": "Whether the target is an app or a till"
+          },
           "availableHere": {
             "type": "boolean",
             "description": "False makes the variant unavailable on this channel outright; true makes it available again"
           }
         },
         "required": [
+          "targetKind",
           "availableHere"
         ]
       },
       "CreateStorefrontPagesDto": {
         "type": "object",
         "properties": {
+          "targetKind": {
+            "type": "string",
+            "enum": [
+              "APP",
+              "TERMINAL"
+            ],
+            "description": "Whether the target is an app or a till"
+          },
           "variantCodes": {
             "description": "Variant codes to create pages for. Ones it already has are skipped.",
             "type": "array",
@@ -46891,6 +46990,7 @@
           }
         },
         "required": [
+          "targetKind",
           "variantCodes"
         ]
       },

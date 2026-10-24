@@ -28,7 +28,9 @@ import type {
 
 interface ChannelVariantsProps {
   offeringId: string;
+  channelId: string;
   targetId: string;
+  targetKind: 'APP' | 'TERMINAL';
   permissions: OfferingPermissions;
   useChannelVariantsTable: UseChannelVariantsTable;
   useCreateChannelPages: UseCreateChannelPages;
@@ -41,7 +43,9 @@ interface ChannelVariantsProps {
 // is available there, and — where the channel names a storefront — whether a page exists and is finished.
 export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   offeringId,
+  channelId,
   targetId,
+  targetKind,
   permissions,
   useChannelVariantsTable,
   useCreateChannelPages,
@@ -49,7 +53,7 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   variantsKey,
   variantsSlug,
 }) => {
-  const { data: response, isLoading } = useChannelVariantsTable(offeringId, targetId);
+  const { data: response, isLoading } = useChannelVariantsTable(offeringId, channelId, targetId, targetKind);
   const queryClient = useQueryClient();
   const addDialog = useDialog();
   const createPages = useCreateChannelPages();
@@ -60,8 +64,8 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   const canSetAvailability = response?.isOwn ?? false;
 
   const create = useCallback(
-    (variantCodes: string[]) => createPages.mutate({ offeringId, targetId, variantCodes }),
-    [createPages, offeringId, targetId],
+    (variantCodes: string[]) => createPages.mutate({ offeringId, channelId, targetId, targetKind, variantCodes }),
+    [createPages, offeringId, channelId, targetId, targetKind],
   );
 
   const columns = useMemo<ColumnDef<ChannelVariantData>[]>(
@@ -95,7 +99,14 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
               }
               isLoading={setAvailability.isPending}
               onCheckedChange={(availableHere) =>
-                setAvailability.mutate({ offeringId, targetId, variantId: row.original.id, availableHere })
+                setAvailability.mutate({
+                  offeringId,
+                  channelId,
+                  targetId,
+                  targetKind,
+                  variantId: row.original.id,
+                  availableHere,
+                })
               }
               ariaLabel={`Set availability of ${row.original.code} on this channel`}
             />
@@ -136,7 +147,18 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
         enableHiding: false,
       },
     ],
-    [permissions, create, storefront, catalogName, canSetAvailability, setAvailability, offeringId, targetId],
+    [
+      permissions,
+      create,
+      storefront,
+      catalogName,
+      canSetAvailability,
+      setAvailability,
+      offeringId,
+      channelId,
+      targetId,
+      targetKind,
+    ],
   );
 
   const { table } = useDataTable({
@@ -205,7 +227,9 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
         content={(close) => (
           <AddChannelPagesDialog
             offeringId={offeringId}
+            channelId={channelId}
             targetId={targetId}
+            targetKind={targetKind}
             useCreateChannelPages={useCreateChannelPages}
             onSuccess={close}
             onCancel={close}

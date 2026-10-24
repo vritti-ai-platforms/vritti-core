@@ -1,8 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsCode } from '@vritti/api-sdk/decorators';
-import { ArrayMaxSize, ArrayNotEmpty, IsArray, IsString, MaxLength } from 'class-validator';
+import { ArrayMaxSize, ArrayNotEmpty, IsArray, IsIn, IsString, MaxLength } from 'class-validator';
 
 export class CreateStorefrontPagesDto {
+  @ApiProperty({ enum: ['APP', 'TERMINAL'], description: 'Whether the target is an app or a till' })
+  @IsIn(['APP', 'TERMINAL'])
+  targetKind: 'APP' | 'TERMINAL';
+
   @ApiProperty({ type: [String], description: 'Variant codes to create pages for. Ones it already has are skipped.' })
   @IsArray()
   @ArrayNotEmpty()

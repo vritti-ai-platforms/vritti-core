@@ -21,6 +21,7 @@ import {
   catalogChannels,
   catalogListingChannelExclusions,
   catalogListings,
+  catalogs,
   type FulfilmentType,
   FulfilmentTypeValues,
   inventoryItems,
@@ -178,14 +179,18 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   }
 
   // The channel's catalog and whether this workspace set it, for a write that must not touch an inherited one
-  async findChannelForWrite(channelId: string): Promise<{ id: string; catalogId: string; isOwn: boolean } | undefined> {
+  async findChannelForWrite(
+    channelId: string,
+  ): Promise<{ id: string; catalogId: string; catalogName: string; isOwn: boolean } | undefined> {
     const [row] = await this.db
       .select({
         id: catalogChannels.id,
         catalogId: catalogChannels.catalogId,
+        catalogName: catalogs.name,
         isOwn: ownedByWorkspaceExpression(catalogChannels),
       })
       .from(catalogChannels)
+      .innerJoin(catalogs, eq(catalogs.id, catalogChannels.catalogId))
       .where(eq(catalogChannels.id, channelId))
       .limit(1);
     return row;

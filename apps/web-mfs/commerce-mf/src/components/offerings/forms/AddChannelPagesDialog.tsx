@@ -12,7 +12,9 @@ import type { UseCreateChannelPages } from '../types';
 
 interface AddChannelPagesDialogProps {
   offeringId: string;
+  channelId: string;
   targetId: string;
+  targetKind: 'APP' | 'TERMINAL';
   useCreateChannelPages: UseCreateChannelPages;
   onSuccess: () => void;
   onCancel: () => void;
@@ -25,7 +27,9 @@ interface AddChannelPagesDialogProps {
 // for it. Variants that already have a page come back as skipped, so picking one costs nothing.
 export const AddChannelPagesDialog: React.FC<AddChannelPagesDialogProps> = ({
   offeringId,
+  channelId,
   targetId,
+  targetKind,
   useCreateChannelPages,
   onSuccess,
   onCancel,
@@ -41,7 +45,7 @@ export const AddChannelPagesDialog: React.FC<AddChannelPagesDialogProps> = ({
     <Form
       form={form}
       mutation={createPages}
-      transformSubmit={({ variantCodes }) => ({ offeringId, targetId, variantCodes })}
+      transformSubmit={({ variantCodes }) => ({ offeringId, channelId, targetId, targetKind, variantCodes })}
       onCancel={onCancel}
     >
       <div className="space-y-4">

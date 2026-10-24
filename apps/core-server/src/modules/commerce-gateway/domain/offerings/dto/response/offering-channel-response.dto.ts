@@ -2,6 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { OfferingVariantResponseDto } from './offering-variant-response.dto';
 
+export type TargetKind = 'APP' | 'TERMINAL';
+
 // What commerce answers with: one row per app or till whose channel carries this offering
 export interface OfferingTargetRow {
   type: string;
@@ -25,7 +27,10 @@ export class OfferingChannelTargetResponseDto {
   @ApiProperty({ enum: ['APP', 'TERMINAL'] }) targetKind: 'APP' | 'TERMINAL';
   @ApiProperty() name: string;
 
-  @ApiProperty({ description: 'The channel this target resolves to, which its availability is written against' })
+  @ApiProperty({
+    description:
+      'The channel this target resolves to. With targetId it identifies the row, since an app is a target of two types.',
+  })
   channelId: string;
 
   @ApiProperty() catalogId: string;
@@ -33,9 +38,6 @@ export class OfferingChannelTargetResponseDto {
 
   @ApiProperty({ description: 'True when the channel names this target; false when it inherits a default' })
   isAssigned: boolean;
-
-  @ApiProperty({ description: 'False when a wider workspace set that channel — availability is read-only here' })
-  isOwn: boolean;
 
   @ApiProperty({ description: 'True when this target is an app with a base url, so it has pages to ask about' })
   storefront: boolean;

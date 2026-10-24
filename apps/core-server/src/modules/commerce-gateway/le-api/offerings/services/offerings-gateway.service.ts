@@ -27,6 +27,7 @@ import type {
   OfferingChannelTargetResponseDto,
   OfferingChannelTypeResponseDto,
   OfferingTargetRow,
+  TargetKind,
 } from '@commerce/offerings/dto/response/offering-channel-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
@@ -38,7 +39,7 @@ import { AppDomainRepository } from '@domain/app/repositories/app.repository';
 import { AppStorefrontDomainService, type StorefrontCreateResult } from '@domain/app/services/app-storefront.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import { BadGatewayException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { BadGatewayException, ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -376,6 +377,24 @@ export class LeOfferingsGatewayService {
   // the winning channel's catalog carries of this offering; core names the apps, since apps are its own.
   // Grouped by channel type, the way the channels screen groups them. No storefront is asked anything here.
   async offeringChannels(orgId: string, offeringId: string): Promise<OfferingChannelTypeResponseDto[]> {
+    const targets = await this.offeringTargets(orgId, offeringId);
+    const byType = new Map<string, OfferingChannelTargetResponseDto[]>();
+
+    for (const target of targets) {
+      const rows = byType.get(target.type) ?? [];
+      rows.push(target.row);
+      byType.set(target.type, rows);
+    }
+
+    return [...byType].map(([type, rows]) => ({ type, targets: rows }));
+  }
+
+  // Every target of this offering, each paired with the facts only this gateway needs: the channel it writes
+  // against and whether this workspace owns that channel. Neither belongs in the list a client reads.
+  private async offeringTargets(
+    orgId: string,
+    offeringId: string,
+  ): Promise<{ type: string; row: OfferingChannelTargetResponseDto; channelId: string; isOwn: boolean }[]> {
     const apps = await this.appRepository.findAllByOrg(orgId);
     const live = apps.filter((app) => !app.revokedAt);
 
@@ -386,45 +405,49 @@ export class LeOfferingsGatewayService {
     });
 
     const named = new Map(live.map((app) => [app.id, app]));
-    const byType = new Map<string, OfferingChannelTargetResponseDto[]>();
 
-    for (const target of targets) {
+    return targets.map((target) => {
       const app = target.targetKind === 'APP' ? named.get(target.targetId) : undefined;
-      const rows = byType.get(target.type) ?? [];
 
-      rows.push({
-        targetId: target.targetId,
-        targetKind: target.targetKind,
-        // Commerce names a till; an app is core's to name
-        name: app?.name ?? target.targetName,
+      return {
+        type: target.type,
         channelId: target.channelId,
-        catalogId: target.catalogId,
-        catalogName: target.catalogName,
-        isAssigned: target.isAssigned,
         isOwn: target.isOwn,
-        // Only an app with a base url has pages to ask about; a till never does
-        storefront: Boolean(app?.baseUrl),
-        variants: target.variants,
-        listed: target.listed,
-        available: target.available,
-      });
-      byType.set(target.type, rows);
-    }
-
-    return [...byType].map(([type, rows]) => ({ type, targets: rows }));
+        row: {
+          targetId: target.targetId,
+          targetKind: target.targetKind,
+          channelId: target.channelId,
+          // Commerce names a till; an app is core's to name
+          name: app?.name ?? target.targetName,
+          catalogId: target.catalogId,
+          catalogName: target.catalogName,
+          isAssigned: target.isAssigned,
+          // Only an app with a base url has pages to ask about; a till never does
+          storefront: Boolean(app?.baseUrl),
+          variants: target.variants,
+          listed: target.listed,
+          available: target.available,
+        },
+      };
+    });
   }
 
   // The Variants table seen through one target: the same rows, columns and saved view as the Variants tab,
-  // plus what its channel carries, what it offers that target, and — where the target is a storefront — the
-  // page behind it. Its own slug, so switching targets does not inherit that tab's view.
+  // plus what its channel carries, what it offers that target, and — where the target is an app with a base
+  // url — the page behind it. Its own slug, so switching targets does not inherit that tab's view.
+  //
+  // Both ids come from the path, so nothing is re-resolved: commerce answers with the channel facts it
+  // already had, and core looks up the one app it needs rather than the organization's whole list.
   async channelVariantPages(
     orgId: string,
     userId: string,
     offeringId: string,
+    channelId: string,
     targetId: string,
+    targetKind: TargetKind,
   ): Promise<ChannelVariantPagesTableResponseDto> {
-    const target = await this.targetFor(orgId, offeringId, targetId);
-    if (!target) throw new NotFoundException('This offering does not sell through that target.');
+    const app = targetKind === 'APP' ? await this.appRepository.findByIdInOrg(targetId, orgId) : undefined;
+    const appId = app?.baseUrl ? app.id : null;
 
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
@@ -432,13 +455,19 @@ export class LeOfferingsGatewayService {
     );
 
     this.logger.log(`le.offerings.variants.channelTable — offeringId: ${offeringId}, target: ${targetId}`);
-    const { result, count } = await this.nats.send<{ result: ChannelVariantResponseDto[]; count: number }>(
-      'commerce',
-      'le.offerings.variants.channelTable',
-      { offeringId, channelId: target.channelId, targetId, targetKind: target.targetKind, ...state },
-    );
+    const { result, count, catalogName, isOwn } = await this.nats.send<{
+      result: ChannelVariantResponseDto[];
+      count: number;
+      catalogName: string;
+      isOwn: boolean;
+    }>('commerce', 'le.offerings.variants.channelTable', {
+      offeringId,
+      channelId,
+      targetId,
+      targetKind,
+      ...state,
+    });
 
-    const appId = target.storefront ? target.targetId : null;
     const statuses = appId
       ? await this.appStorefront.productStatusesInChunks(
           appId,
@@ -454,15 +483,7 @@ export class LeOfferingsGatewayService {
       metadataComplete: appId ? (statuses[row.code]?.metadataComplete ?? null) : null,
     }));
 
-    return {
-      result: rows,
-      count,
-      state,
-      activeViewId,
-      storefront: target.storefront,
-      catalogName: target.catalogName,
-      isOwn: target.isOwn,
-    };
+    return { result: rows, count, state, activeViewId, storefront: Boolean(appId), catalogName, isOwn };
   }
 
   // Creates pages for the named variants on one target's storefront
@@ -470,10 +491,11 @@ export class LeOfferingsGatewayService {
     orgId: string,
     offeringId: string,
     targetId: string,
+    targetKind: TargetKind,
     variantCodes: string[],
   ): Promise<SuccessResponseDto> {
-    const target = await this.targetFor(orgId, offeringId, targetId);
-    if (!target?.storefront) {
+    const app = targetKind === 'APP' ? await this.appRepository.findByIdInOrg(targetId, orgId) : undefined;
+    if (!app?.baseUrl) {
       throw new ConflictException({
         label: 'No Storefront',
         detail: 'This target has no storefront, so there are no pages to create on it.',
@@ -485,7 +507,7 @@ export class LeOfferingsGatewayService {
     const products = variantCodes.map((code) => ({ code, name: offering.name }));
 
     this.logger.log(`channel pages — offering: ${offeringId}, target: ${targetId}, variants: ${products.length}`);
-    const result = await this.appStorefront.createProductsInChunks(target.targetId, orgId, products);
+    const result = await this.appStorefront.createProductsInChunks(app.id, orgId, products);
 
     // Nothing created and something refused is a failure: reporting success would have the table say
     // "no page" straight after telling the operator the pages were made
@@ -504,33 +526,24 @@ export class LeOfferingsGatewayService {
   // does not own cannot be edited here, so this forwards and lets it answer.
   async setTargetAvailability(
     orgId: string,
-    offeringId: string,
+    channelId: string,
     targetId: string,
+    targetKind: TargetKind,
     variantId: string,
     availableHere: boolean,
   ): Promise<SuccessResponseDto> {
-    const target = await this.targetFor(orgId, offeringId, targetId);
-    if (!target) throw new NotFoundException('This offering does not sell through that target.');
+    const app = targetKind === 'APP' ? await this.appRepository.findByIdInOrg(targetId, orgId) : undefined;
 
     this.logger.log(`le.offerings.variants.setTargetAvailability — target: ${targetId}, variant: ${variantId}`);
     return this.nats.send('commerce', 'le.offerings.variants.setTargetAvailability', {
-      channelId: target.channelId,
+      channelId,
       targetId,
-      targetKind: target.targetKind,
-      targetName: target.name,
+      targetKind,
+      // A till names itself in commerce; an app is core's to name, and the message quotes it
+      targetName: app?.name ?? '',
       variantId,
       availableHere,
     });
-  }
-
-  // One target of this offering, by id — the channel it resolves to is what every write below needs
-  private async targetFor(
-    orgId: string,
-    offeringId: string,
-    targetId: string,
-  ): Promise<OfferingChannelTargetResponseDto | undefined> {
-    const types = await this.offeringChannels(orgId, offeringId);
-    return types.flatMap((entry) => entry.targets).find((target) => target.targetId === targetId);
   }
 
   // What to tell the operator: created and skipped read differently, and a partial refusal must be said out loud

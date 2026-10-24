@@ -35,7 +35,7 @@ export const ChannelsTab: React.FC<ChannelsTabProps> = ({ offeringId, useOfferin
   // The tab segment is part of the current path, so it is stepped over on the way to a sibling route
   const goToTarget = useCallback(
     (target: OfferingChannelTargetData) => {
-      const to = `channels/${buildSlug(target.name, target.targetId)}`;
+      const to = `channels/${target.channelId}/${target.targetKind}/${buildSlug(target.name, target.targetId)}`;
       navigate(tab ? `../${to}` : to, { relative: 'path' });
     },
     [navigate, tab],
