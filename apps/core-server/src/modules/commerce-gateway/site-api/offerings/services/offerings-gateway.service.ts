@@ -518,6 +518,7 @@ export class SiteOfferingsGatewayService {
       channelId: target.channelId,
       targetId,
       targetKind: target.targetKind,
+      targetName: target.name,
       variantId,
       availableHere,
     });

@@ -61,6 +61,7 @@ export class SiteOfferingVariantsController {
       channelId: string;
       targetId: string;
       targetKind: 'APP' | 'TERMINAL';
+      targetName: string;
       variantId: string;
       availableHere: boolean;
     },
@@ -69,6 +70,7 @@ export class SiteOfferingVariantsController {
     return this.service.setTargetAvailability(
       data.channelId,
       { id: data.targetId, kind: data.targetKind },
+      data.targetName,
       data.variantId,
       data.availableHere,
     );

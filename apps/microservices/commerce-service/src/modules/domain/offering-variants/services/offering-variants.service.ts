@@ -95,6 +95,7 @@ export class OfferingVariantsDomainService {
   async setTargetAvailability(
     channelId: string,
     target: ChannelExclusionTarget,
+    targetName: string,
     variantId: string,
     availableHere: boolean,
   ): Promise<SuccessResponseDto> {
@@ -108,15 +109,24 @@ export class OfferingVariantsDomainService {
       });
     }
 
-    const listingIds = await this.repository.findListingIdsForVariant(channel.catalogId, variantId);
-    if (listingIds.length === 0) {
+    const listings = await this.repository.findListingsForVariant(channel.catalogId, variantId);
+    if (listings.length === 0) {
       throw new NotFoundException('That variant is not listed in this channel’s catalog.');
     }
 
-    await this.repository.setTargetAvailability(channelId, target, listingIds, availableHere);
+    await this.repository.setTargetAvailability(
+      channelId,
+      target,
+      listings.map((listing) => listing.id),
+      availableHere,
+    );
+
+    const code = listings[0].code;
     return {
       success: true,
-      message: availableHere ? 'Variant is now available here.' : 'Variant is now unavailable here.',
+      message: availableHere
+        ? `"${code}" is now available on "${targetName}".`
+        : `"${code}" is now excluded from "${targetName}".`,
     };
   }
 

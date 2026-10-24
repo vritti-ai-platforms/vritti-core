@@ -517,6 +517,7 @@ export class LeOfferingsGatewayService {
       channelId: target.channelId,
       targetId,
       targetKind: target.targetKind,
+      targetName: target.name,
       variantId,
       availableHere,
     });

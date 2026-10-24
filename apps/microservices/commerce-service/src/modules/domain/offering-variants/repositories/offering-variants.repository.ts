@@ -191,14 +191,14 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return row;
   }
 
-  // Every listing one variant has in a catalog. A variant listed at several MRPs has one row per MRP, and
-  // availability is the variant's, so all of them move together.
-  async findListingIdsForVariant(catalogId: string, variantId: string): Promise<string[]> {
-    const rows = await this.db
-      .select({ id: catalogListings.id })
+  // Every listing one variant has in a catalog, with the code that names it in a message. A variant listed at
+  // several MRPs has one row per MRP, and availability is the variant's, so all of them move together.
+  async findListingsForVariant(catalogId: string, variantId: string): Promise<{ id: string; code: string }[]> {
+    return this.db
+      .select({ id: catalogListings.id, code: offeringVariants.code })
       .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
       .where(and(eq(catalogListings.catalogId, catalogId), eq(catalogListings.offeringVariantId, variantId)));
-    return rows.map((row) => row.id);
   }
 
   // Making a variant unavailable writes an outright exclusion per listing, naming the target it is for, so a
