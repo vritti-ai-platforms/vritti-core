@@ -42,11 +42,15 @@ export class SiteOfferingVariantsController {
   // The same page of variants as the table above, plus how one channel sees each row
   @MessagePattern({ cmd: 'site.offerings.variants.channelTable' })
   findForChannelTable(
-    @Payload() data: { offeringId: string; channelId: string } & TableViewState,
+    @Payload()
+    data: { offeringId: string; channelId: string; targetId: string; targetKind: 'APP' | 'TERMINAL' } & TableViewState,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
-    const { offeringId, channelId, ...state } = data;
-    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, channel: ${channelId}`);
-    return this.service.findForTable(offeringId, state as TableViewState, channelId);
+    const { offeringId, channelId, targetId, targetKind, ...state } = data;
+    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, target: ${targetId}`);
+    return this.service.findForTable(offeringId, state as TableViewState, channelId, {
+      id: targetId,
+      kind: targetKind,
+    });
   }
 
   // Sets whether one variant is available on one target of one channel

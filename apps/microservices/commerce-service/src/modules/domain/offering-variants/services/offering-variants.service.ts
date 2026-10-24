@@ -59,11 +59,12 @@ export class OfferingVariantsDomainService {
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
 
   // Returns paginated, filtered, sorted variants of one offering for the data table
-  // `channelId` asks for each row's state on that channel as part of the same page read
+  // `channelId` with its `target` asks for each row's state on that target as part of the same page read
   async findForTable(
     offeringId: string,
     state: TableViewState,
     channelId?: string,
+    target?: ChannelExclusionTarget,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
     await this.requireReachableOffering(offeringId);
 
@@ -82,6 +83,7 @@ export class OfferingVariantsDomainService {
       limit,
       offset,
       channelId,
+      target,
     });
 
     return { result: rows.map((row) => this.toTableRow(row)), count };

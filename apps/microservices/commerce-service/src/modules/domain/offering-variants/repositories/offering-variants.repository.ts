@@ -177,11 +177,6 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .where(eq(offeringVariantAttributeValues.variantId, offeringVariants.id));
   }
 
-  // `channelId` adds how one channel sees the row, so a storefront view needs no second read.
-  //
-  // A deactivated variant, or one on a deactivated offering, reads as not listed rather than vanishing:
-  // availableOnChannel hides it from the storefront, so the channel cannot sell it either way.
-  // `availableHere` answers only an outright exclusion; one naming a currency belongs to the Prices tab.
   // The channel's catalog and whether this workspace set it, for a write that must not touch an inherited one
   async findChannelForWrite(channelId: string): Promise<{ id: string; catalogId: string; isOwn: boolean } | undefined> {
     const [row] = await this.db
@@ -244,7 +239,21 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .onConflictDoNothing();
   }
 
-  private tableSelection(channelId?: string) {
+  // The exclusions belonging to one target, as a branch of the channel's own
+  private static excludedForTarget(target?: ChannelExclusionTarget): SQL {
+    if (!target) return sql``;
+    return target.kind === 'APP'
+      ? sql`or ${catalogListingChannelExclusions.appId} = ${target.id}`
+      : sql`or ${catalogListingChannelExclusions.terminalId} = ${target.id}`;
+  }
+
+  // `channelId` with its `target` adds how that target sees the row, so a storefront view needs no second read.
+  //
+  // A deactivated variant, or one on a deactivated offering, reads as not listed rather than vanishing:
+  // availableOnChannel hides it from the storefront, so the target cannot sell it either way.
+  // `availableHere` answers an outright exclusion that is the channel's own or this target's — never another
+  // target's, which is the point of naming a target on the exclusion. One naming a currency is the Prices tab's.
+  private tableSelection(channelId?: string, target?: ChannelExclusionTarget) {
     const listedInChannel = (extra?: SQL) =>
       exists(
         this.db
@@ -271,6 +280,9 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
               select 1 from ${catalogListingChannelExclusions}
               where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
                 and ${catalogListingChannelExclusions.catalogChannelId} = ${catalogChannels.id}
+                and ((${catalogListingChannelExclusions.appId} is null
+                      and ${catalogListingChannelExclusions.terminalId} is null)
+                     ${OfferingVariantsDomainRepository.excludedForTarget(target)})
                 and ${catalogListingChannelExclusions.currencyCode} is null
             )`),
           }
@@ -318,9 +330,10 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     limit: number;
     offset: number;
     channelId?: string;
+    target?: ChannelExclusionTarget;
   }): Promise<{ result: OfferingVariantTableRow[]; count: number }> {
     return this.findAllAndCount<OfferingVariantTableRow>({
-      select: this.tableSelection(options.channelId),
+      select: this.tableSelection(options.channelId, options.target),
       innerJoins: this.tableJoins(),
       where: options.where,
       orderBy: options.orderBy,
