@@ -10528,7 +10528,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -10559,6 +10565,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Unknown channel type."
           }
         },
         "security": [
@@ -10589,7 +10598,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -10633,6 +10648,9 @@
               }
             }
           },
+          "400": {
+            "description": "Unknown channel type."
+          },
           "409": {
             "description": "Set by a wider scope, or the variant is not in this catalog."
           }
@@ -10665,7 +10683,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -10706,6 +10730,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Unknown channel type, or a code that is not a variant of this offering."
           },
           "409": {
             "description": "This channel names no storefront app."
@@ -12775,7 +12802,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -12806,6 +12839,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Unknown channel type."
           }
         },
         "security": [
@@ -12836,7 +12872,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -12880,6 +12922,9 @@
               }
             }
           },
+          "400": {
+            "description": "Unknown channel type."
+          },
           "409": {
             "description": "Set by a wider scope, or the variant is not in this catalog."
           }
@@ -12912,7 +12957,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -12953,6 +13004,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Unknown channel type, or a code that is not a variant of this offering."
           },
           "409": {
             "description": "This channel names no storefront app."
@@ -15022,7 +15076,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -15053,6 +15113,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Unknown channel type."
           }
         },
         "security": [
@@ -15083,7 +15146,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -15127,6 +15196,9 @@
               }
             }
           },
+          "400": {
+            "description": "Unknown channel type."
+          },
           "409": {
             "description": "Set by a wider scope, or the variant is not in this catalog."
           }
@@ -15159,7 +15231,13 @@
             "name": "channelType",
             "required": true,
             "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
             "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
               "type": "string"
             }
           },
@@ -15200,6 +15278,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Unknown channel type, or a code that is not a variant of this offering."
           },
           "409": {
             "description": "This channel names no storefront app."

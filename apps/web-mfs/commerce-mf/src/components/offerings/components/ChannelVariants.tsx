@@ -21,9 +21,9 @@ import type { ChannelVariantData } from '@/schemas/offerings';
 import { AddChannelPagesDialog } from '../forms/AddChannelPagesDialog';
 import type {
   OfferingPermissions,
-  UseChannelVariantsTable,
-  UseCreateChannelPages,
-  UseSetTargetAvailability,
+  UseCreateOfferingChannelPages,
+  UseOfferingChannelVariantsTable,
+  UseSetOfferingTargetAvailability,
 } from '../types';
 
 interface ChannelVariantsProps {
@@ -31,9 +31,9 @@ interface ChannelVariantsProps {
   channelType: string;
   targetId: string;
   permissions: OfferingPermissions;
-  useChannelVariantsTable: UseChannelVariantsTable;
-  useCreateChannelPages: UseCreateChannelPages;
-  useSetTargetAvailability: UseSetTargetAvailability;
+  useOfferingChannelVariantsTable: UseOfferingChannelVariantsTable;
+  useCreateOfferingChannelPages: UseCreateOfferingChannelPages;
+  useSetOfferingTargetAvailability: UseSetOfferingTargetAvailability;
   variantsKey: (offeringId: string, targetId: string) => readonly unknown[];
   variantsSlug: (offeringId: string, targetId: string) => string;
 }
@@ -45,17 +45,17 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   channelType,
   targetId,
   permissions,
-  useChannelVariantsTable,
-  useCreateChannelPages,
-  useSetTargetAvailability,
+  useOfferingChannelVariantsTable,
+  useCreateOfferingChannelPages,
+  useSetOfferingTargetAvailability,
   variantsKey,
   variantsSlug,
 }) => {
-  const { data: response, isLoading } = useChannelVariantsTable(offeringId, channelType, targetId);
+  const { data: response, isLoading } = useOfferingChannelVariantsTable(offeringId, channelType, targetId);
   const queryClient = useQueryClient();
   const addDialog = useDialog();
-  const createPages = useCreateChannelPages();
-  const setAvailability = useSetTargetAvailability();
+  const createPages = useCreateOfferingChannelPages();
+  const setAvailability = useSetOfferingTargetAvailability();
   const storefront = response?.storefront ?? false;
   const catalogName = response?.catalogName ?? '';
   // A channel a wider workspace set is read-only here, the way the channels screen treats an inherited one
@@ -225,7 +225,7 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
             offeringId={offeringId}
             channelType={channelType}
             targetId={targetId}
-            useCreateChannelPages={useCreateChannelPages}
+            useCreateOfferingChannelPages={useCreateOfferingChannelPages}
             onSuccess={close}
             onCancel={close}
           />

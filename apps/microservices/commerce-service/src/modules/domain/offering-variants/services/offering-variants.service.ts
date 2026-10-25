@@ -60,13 +60,13 @@ export class OfferingVariantsDomainService {
 
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
 
-  // Returns paginated, filtered, sorted variants of one offering for the data table
   // A POS channel's targets are tills; every other type's are apps. So the kind never has to be sent — the
   // channel already says it, and a caller cannot get it wrong.
   private static targetKindOf(type: CatalogChannelType): ChannelExclusionTarget['kind'] {
     return type === CatalogChannelTypeValues.POS ? 'TERMINAL' : 'APP';
   }
 
+  // Returns paginated, filtered, sorted variants of one offering for the data table.
   // `channelId` with its `target` asks for each row's state on that target as part of the same page read, and
   // answers with the channel facts a caller would otherwise have to resolve again: the catalog these rows are
   // listed in, and whether the calling workspace set the channel and so may change what it offers.
@@ -136,20 +136,27 @@ export class OfferingVariantsDomainService {
       throw new NotFoundException('That variant is not listed in this channel’s catalog.');
     }
 
+    const kind = OfferingVariantsDomainService.targetKindOf(channel.type);
     await this.repository.setTargetAvailability(
       channel.id,
-      { id: targetId, kind: OfferingVariantsDomainService.targetKindOf(channel.type) },
+      { id: targetId, kind },
       listings.map((listing) => listing.id),
       availableHere,
     );
 
+    // Core names an app; a till is commerce's, so it is named here
+    const name = kind === 'TERMINAL' ? ((await this.repository.findTerminalName(targetId)) ?? targetName) : targetName;
     const code = listings[0].code;
     return {
       success: true,
-      message: availableHere
-        ? `"${code}" is now available on "${targetName}".`
-        : `"${code}" is now excluded from "${targetName}".`,
+      message: availableHere ? `"${code}" is now available on "${name}".` : `"${code}" is now excluded from "${name}".`,
     };
+  }
+
+  // The subset of these codes that name a variant of this offering
+  async findCodesInOffering(offeringId: string, codes: string[]): Promise<string[]> {
+    await this.requireReachableOffering(offeringId);
+    return this.repository.findCodesInOffering(offeringId, codes);
   }
 
   // Variant options for a storefront's own picker — which variant a product page is about

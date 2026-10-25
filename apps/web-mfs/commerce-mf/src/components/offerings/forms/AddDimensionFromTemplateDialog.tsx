@@ -12,10 +12,10 @@ import {
   type DimensionTemplateValueOption,
 } from '@/schemas/offerings';
 import { DimensionTemplateSelector } from '@/selectors/dimension-template';
-import type { UseCreateDimensionFromTemplate } from '../types';
+import type { UseCreateOfferingDimensionFromTemplate } from '../types';
 
 interface AddDimensionFromTemplateDialogProps {
-  useCreate: UseCreateDimensionFromTemplate;
+  useCreate: UseCreateOfferingDimensionFromTemplate;
   offeringId: string;
   onSuccess: () => void;
   onCancel: () => void;

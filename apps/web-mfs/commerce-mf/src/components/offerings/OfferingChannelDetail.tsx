@@ -29,9 +29,9 @@ export const OfferingChannelDetail: React.FC<OfferingChannelDetailProps> = ({ bi
         channelType={channelType}
         targetId={targetId}
         permissions={binding.permissions}
-        useChannelVariantsTable={binding.useChannelVariantsTable}
-        useCreateChannelPages={binding.useCreateChannelPages}
-        useSetTargetAvailability={binding.useSetTargetAvailability}
+        useOfferingChannelVariantsTable={binding.useOfferingChannelVariantsTable}
+        useCreateOfferingChannelPages={binding.useCreateOfferingChannelPages}
+        useSetOfferingTargetAvailability={binding.useSetOfferingTargetAvailability}
         variantsKey={binding.channelVariantsKey}
         variantsSlug={binding.channelVariantsSlug}
       />

@@ -39,29 +39,29 @@ import { BulkSetVariantsAttributeDialog } from '../forms/BulkSetVariantsAttribut
 import { BulkSetVariantsTaxClassDialog } from '../forms/SetTaxClassDialog';
 import type {
   OfferingPermissions,
-  UseBulkClearVariantsTaxClass,
-  UseBulkSetVariantsAttribute,
-  UseBulkSetVariantsStatus,
-  UseBulkSetVariantsTaxClass,
-  UseCreateVariant,
-  UseDeleteVariant,
+  UseBulkClearOfferingVariantsTaxClass,
+  UseBulkSetOfferingVariantsAttribute,
+  UseBulkSetOfferingVariantsStatus,
+  UseBulkSetOfferingVariantsTaxClass,
+  UseCreateOfferingVariant,
+  UseDeleteOfferingVariant,
   UseOfferingAttributes,
   UseOfferingDimensions,
   UseOfferingVariantsTable,
-  UseUpdateVariant,
+  UseUpdateOfferingVariant,
 } from '../types';
 
 interface VariantsTabProps {
-  useVariantsTable: UseOfferingVariantsTable;
-  useDimensions: UseOfferingDimensions;
-  useAttributes: UseOfferingAttributes;
-  useCreateVariant: UseCreateVariant;
-  useDelete: UseDeleteVariant;
-  useUpdate: UseUpdateVariant;
-  useBulkSetStatus: UseBulkSetVariantsStatus;
-  useBulkSetTaxClass: UseBulkSetVariantsTaxClass;
-  useBulkClearTaxClass: UseBulkClearVariantsTaxClass;
-  useBulkSetAttribute: UseBulkSetVariantsAttribute;
+  useOfferingVariantsTable: UseOfferingVariantsTable;
+  useOfferingDimensions: UseOfferingDimensions;
+  useOfferingAttributes: UseOfferingAttributes;
+  useCreateOfferingVariant: UseCreateOfferingVariant;
+  useDelete: UseDeleteOfferingVariant;
+  useUpdate: UseUpdateOfferingVariant;
+  useBulkSetStatus: UseBulkSetOfferingVariantsStatus;
+  useBulkSetTaxClass: UseBulkSetOfferingVariantsTaxClass;
+  useBulkClearTaxClass: UseBulkClearOfferingVariantsTaxClass;
+  useBulkSetAttribute: UseBulkSetOfferingVariantsAttribute;
   tableKey: readonly unknown[];
   tableSlug: string;
   exportEndpoint: string;
@@ -72,10 +72,10 @@ interface VariantsTabProps {
 export const VariantsTab: React.FC<VariantsTabProps> = ({
   permissions,
   offering,
-  useVariantsTable,
-  useDimensions,
-  useAttributes,
-  useCreateVariant,
+  useOfferingVariantsTable,
+  useOfferingDimensions,
+  useOfferingAttributes,
+  useCreateOfferingVariant,
   useDelete,
   useUpdate,
   useBulkSetStatus,
@@ -101,9 +101,9 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     [goTo],
   );
   const confirm = useConfirm();
-  const { data: response, isLoading } = useVariantsTable(offering.id);
-  const { data: dimensions = [] } = useDimensions(offering.id);
-  const { data: attributes = [] } = useAttributes(offering.id);
+  const { data: response, isLoading } = useOfferingVariantsTable(offering.id);
+  const { data: dimensions = [] } = useOfferingDimensions(offering.id);
+  const { data: attributes = [] } = useOfferingAttributes(offering.id);
   const addDialog = useDialog();
   const deleteMutation = useDelete();
   const setStatusMutation = useUpdate();
@@ -468,7 +468,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
           <AddVariantDialog
             offering={offering}
             dimensions={dimensions}
-            useCreate={useCreateVariant}
+            useCreate={useCreateOfferingVariant}
             onSuccess={close}
             onCancel={close}
           />

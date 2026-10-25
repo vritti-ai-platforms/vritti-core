@@ -15,7 +15,7 @@ export const GenerateVariants: React.FC<GenerateVariantsProps> = ({ binding }) =
   const navigate = useNavigate();
 
   const { data: offering } = binding.useOffering(id);
-  const { data: dimensions = [] } = binding.useDimensions(id);
+  const { data: dimensions = [] } = binding.useOfferingDimensions(id);
 
   // `relative: 'path'` walks URL segments; the default walks the route tree, and this route is a flat sibling of the
   // tab route rather than nested under it
@@ -25,8 +25,8 @@ export const GenerateVariants: React.FC<GenerateVariantsProps> = ({ binding }) =
     <GenerateVariantsWizard
       offering={offering}
       dimensions={dimensions}
-      usePreview={binding.usePreviewVariantCombinations}
-      useGenerate={binding.useGenerateVariants}
+      usePreview={binding.usePreviewOfferingVariantCombinations}
+      useGenerate={binding.useGenerateOfferingVariants}
       onSuccess={backToVariants}
       onCancel={backToVariants}
     />

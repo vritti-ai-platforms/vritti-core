@@ -90,77 +90,77 @@ export type UseOfferingVariantsTable = (offeringId: string) => {
 export type UseOfferingsTable = () => { data: OfferingsTableResponse | undefined; isLoading: boolean };
 
 export type UseSuspenseOffering = (id: string) => { data: OfferingData };
-export type UseSuspenseVariant = (variantId: string) => { data: OfferingVariantData };
-export type UseVariantBom = (variantId: string) => {
+export type UseSuspenseOfferingVariant = (variantId: string) => { data: OfferingVariantData };
+export type UseOfferingVariantBom = (variantId: string) => {
   data: VariantBomData | undefined;
   isLoading: boolean;
 };
 
 export type UseCreateOffering = MutationHook<CreateResponse<OfferingData>, CreateOfferingData>;
 export type UseUpdateOffering = MutationHook<SuccessResponse, { id: string; data: UpdateOfferingFormData }>;
-export type UseCreateDimension = MutationHook<CreateResponse<OfferingDimensionData>, CreateDimensionData>;
-export type UseCreateAttribute = MutationHook<CreateResponse<OfferingAttributeData>, CreateAttributeData>;
-export type UseCreateDimensionFromTemplate = MutationHook<
+export type UseCreateOfferingDimension = MutationHook<CreateResponse<OfferingDimensionData>, CreateDimensionData>;
+export type UseCreateOfferingAttribute = MutationHook<CreateResponse<OfferingAttributeData>, CreateAttributeData>;
+export type UseCreateOfferingDimensionFromTemplate = MutationHook<
   CreateResponse<OfferingDimensionData>,
   CreateDimensionFromTemplateData
 >;
-export type UseCreateAttributeFromTemplate = MutationHook<
+export type UseCreateOfferingAttributeFromTemplate = MutationHook<
   CreateResponse<OfferingAttributeData>,
   CreateAttributeFromTemplateData
 >;
-export type UseUpsertDimensionValues = MutationHook<SuccessResponse, UpsertDimensionValuesData>;
-export type UseUpsertAttributeValues = MutationHook<SuccessResponse, UpsertAttributeValuesData>;
+export type UseUpsertOfferingDimensionValues = MutationHook<SuccessResponse, UpsertDimensionValuesData>;
+export type UseUpsertOfferingAttributeValues = MutationHook<SuccessResponse, UpsertAttributeValuesData>;
 
-export type UseSetVariantAttributes = MutationHook<SuccessResponse, SetVariantAttributesData>;
+export type UseSetOfferingVariantAttributes = MutationHook<SuccessResponse, SetVariantAttributesData>;
 
-export type UseBulkSetVariantsAttribute = MutationHook<SuccessResponse, BulkSetVariantsAttributeData>;
-export type UseReorderDimensions = MutationHook<SuccessResponse, ReorderDimensionsData>;
-export type UseReorderAttributes = MutationHook<SuccessResponse, ReorderAttributesData>;
-export type UseUpdateDimension = MutationHook<SuccessResponse, UpdateDimensionData>;
-export type UseUpdateAttribute = MutationHook<SuccessResponse, UpdateAttributeData>;
-export type UseDeleteDimension = MutationHook<SuccessResponse, string>;
-export type UseDeleteAttribute = MutationHook<SuccessResponse, string>;
-export type UseCreateVariant = MutationHook<CreateResponse<OfferingVariantData>, CreateVariantData>;
-export type UsePreviewVariantCombinations = MutationHook<VariantCombinationsData, PreviewCombinationsData>;
-export type UseGenerateVariants = MutationHook<SuccessResponse, GenerateVariantsData>;
-export type UseUpdateVariant = MutationHook<
+export type UseBulkSetOfferingVariantsAttribute = MutationHook<SuccessResponse, BulkSetVariantsAttributeData>;
+export type UseReorderOfferingDimensions = MutationHook<SuccessResponse, ReorderDimensionsData>;
+export type UseReorderOfferingAttributes = MutationHook<SuccessResponse, ReorderAttributesData>;
+export type UseUpdateOfferingDimension = MutationHook<SuccessResponse, UpdateDimensionData>;
+export type UseUpdateOfferingAttribute = MutationHook<SuccessResponse, UpdateAttributeData>;
+export type UseDeleteOfferingDimension = MutationHook<SuccessResponse, string>;
+export type UseDeleteOfferingAttribute = MutationHook<SuccessResponse, string>;
+export type UseCreateOfferingVariant = MutationHook<CreateResponse<OfferingVariantData>, CreateVariantData>;
+export type UsePreviewOfferingVariantCombinations = MutationHook<VariantCombinationsData, PreviewCombinationsData>;
+export type UseGenerateOfferingVariants = MutationHook<SuccessResponse, GenerateVariantsData>;
+export type UseUpdateOfferingVariant = MutationHook<
   SuccessResponse,
   { id: string; data: { name?: string; externalSku?: string | null; isActive?: boolean } }
 >;
 export type UseSetOfferingTaxClass = MutationHook<SuccessResponse, SetOfferingTaxClassData>;
 export type UseSetOfferingStatus = MutationHook<SuccessResponse, { id: string; isActive: boolean }>;
 export type UseBulkSetOfferingsStatus = MutationHook<SuccessResponse, { ids: string[]; isActive: boolean }>;
-export type UseBulkSetVariantsStatus = MutationHook<
+export type UseBulkSetOfferingVariantsStatus = MutationHook<
   SuccessResponse,
   { offeringId: string; ids: string[]; isActive: boolean }
 >;
-export type UseBulkClearVariantsTaxClass = MutationHook<SuccessResponse, { offeringId: string; ids: string[] }>;
-export type UseBulkSetVariantsTaxClass = MutationHook<
+export type UseBulkClearOfferingVariantsTaxClass = MutationHook<SuccessResponse, { offeringId: string; ids: string[] }>;
+export type UseBulkSetOfferingVariantsTaxClass = MutationHook<
   SuccessResponse,
   { offeringId: string; ids: string[]; taxClassId: string }
 >;
 export type UseSetOfferingFulfilment = MutationHook<SuccessResponse, SetOfferingFulfilmentData>;
-export type UseSetVariantFulfilment = MutationHook<SuccessResponse, SetVariantFulfilmentData>;
-export type UseClearVariantFulfilment = MutationHook<SuccessResponse, string>;
-export type UseSetVariantTaxClass = MutationHook<SuccessResponse, SetVariantTaxClassData>;
-export type UseClearVariantTaxClass = MutationHook<SuccessResponse, string>;
-export type UseAddBomLine = MutationHook<SuccessResponse, AddBomLineData>;
-export type UseUpdateBomLine = MutationHook<SuccessResponse, UpdateBomLineData>;
-export type UseDeleteBomLine = MutationHook<SuccessResponse, DeleteBomLineData>;
-export type UseAddSuggestedComponent = MutationHook<SuccessResponse, string>;
-export type UseDeleteVariant = MutationHook<SuccessResponse, string>;
+export type UseSetOfferingVariantFulfilment = MutationHook<SuccessResponse, SetVariantFulfilmentData>;
+export type UseClearOfferingVariantFulfilment = MutationHook<SuccessResponse, string>;
+export type UseSetOfferingVariantTaxClass = MutationHook<SuccessResponse, SetVariantTaxClassData>;
+export type UseClearOfferingVariantTaxClass = MutationHook<SuccessResponse, string>;
+export type UseAddOfferingVariantBomLine = MutationHook<SuccessResponse, AddBomLineData>;
+export type UseUpdateOfferingVariantBomLine = MutationHook<SuccessResponse, UpdateBomLineData>;
+export type UseDeleteOfferingVariantBomLine = MutationHook<SuccessResponse, DeleteBomLineData>;
+export type UseAddOfferingVariantSuggestedComponent = MutationHook<SuccessResponse, string>;
+export type UseDeleteOfferingVariant = MutationHook<SuccessResponse, string>;
 export type UseDeleteOffering = MutationHook<SuccessResponse, string>;
 
 export type UseOfferingChannels = (offeringId: string) => UseQueryResult<OfferingChannelTypeData[], AxiosError>;
-export type UseChannelVariantsTable = (
+export type UseOfferingChannelVariantsTable = (
   offeringId: string,
   channelType: string,
   targetId: string,
 ) => UseQueryResult<ChannelVariantsTableResponse, AxiosError>;
-export type UseCreateChannelPages = (options?: {
+export type UseCreateOfferingChannelPages = (options?: {
   onSuccess?: () => void;
 }) => UseMutationResult<SuccessResponse, AxiosError, CreateChannelPagesData>;
 
-export type UseSetTargetAvailability = (options?: {
+export type UseSetOfferingTargetAvailability = (options?: {
   onSuccess?: () => void;
 }) => UseMutationResult<SuccessResponse, AxiosError, SetTargetAvailabilityData>;

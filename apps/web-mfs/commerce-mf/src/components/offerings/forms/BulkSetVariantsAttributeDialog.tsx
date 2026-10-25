@@ -15,10 +15,10 @@ import {
   type OfferingAttributeData,
   type OfferingVariantData,
 } from '@/schemas/offerings';
-import type { UseBulkSetVariantsAttribute } from '../types';
+import type { UseBulkSetOfferingVariantsAttribute } from '../types';
 
 interface BulkSetVariantsAttributeDialogProps {
-  useSet: UseBulkSetVariantsAttribute;
+  useSet: UseBulkSetOfferingVariantsAttribute;
   offeringId: string;
   attributes: OfferingAttributeData[];
   variants: OfferingVariantData[];

@@ -7,13 +7,13 @@ import { MoreVertical, Pencil, Trash2, Wrench } from 'lucide-react';
 import type React from 'react';
 import type { BomLineData, OfferingVariantData } from '@/schemas/offerings';
 import { EditBomLineDialog } from '../forms/BomLineDialog';
-import type { OfferingPermissions, UseUpdateBomLine } from '../types';
+import type { OfferingPermissions, UseUpdateOfferingVariantBomLine } from '../types';
 
 interface BomLineCardProps {
   permissions: OfferingPermissions;
   variant: OfferingVariantData;
   line: BomLineData;
-  useUpdate: UseUpdateBomLine;
+  useUpdate: UseUpdateOfferingVariantBomLine;
   onRemove: (line: BomLineData) => void;
 }
 

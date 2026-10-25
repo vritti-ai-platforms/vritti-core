@@ -73,6 +73,13 @@ export class LeOfferingVariantsController {
     );
   }
 
+  // The subset of these codes that name a variant of this offering
+  @MessagePattern({ cmd: 'le.offerings.variants.codesInOffering' })
+  codesInOffering(@Payload() data: { offeringId: string; codes: string[] }): Promise<string[]> {
+    this.logger.log(`offerings.variants.codesInOffering — offeringId: ${data.offeringId}, codes: ${data.codes.length}`);
+    return this.service.findCodesInOffering(data.offeringId, data.codes);
+  }
+
   // Every combination the selected values produce, flagged with the ones that already exist
   @MessagePattern({ cmd: 'le.offerings.variants.combinations' })
   previewCombinations(@Payload() dto: PreviewCombinationsDto): Promise<VariantCombinationsDto> {

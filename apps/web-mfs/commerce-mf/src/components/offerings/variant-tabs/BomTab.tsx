@@ -15,22 +15,22 @@ import { DimensionsSkeleton } from '../components/DimensionsSkeleton';
 import { AddBomLineDialog } from '../forms/BomLineDialog';
 import type {
   OfferingPermissions,
-  UseAddBomLine,
-  UseAddSuggestedComponent,
-  UseDeleteBomLine,
-  UseUpdateBomLine,
-  UseVariantBom,
+  UseAddOfferingVariantBomLine,
+  UseAddOfferingVariantSuggestedComponent,
+  UseDeleteOfferingVariantBomLine,
+  UseOfferingVariantBom,
+  UseUpdateOfferingVariantBomLine,
 } from '../types';
 
 interface BomTabProps {
   permissions: OfferingPermissions;
   variant: OfferingVariantData;
-  useBom: UseVariantBom;
-  useAdd: UseAddBomLine;
-  useUpdate: UseUpdateBomLine;
-  useDelete: UseDeleteBomLine;
-  useAddSuggested: UseAddSuggestedComponent;
-  useCreateVariantInventoryItem?: UseCreateVariantInventoryItem;
+  useBom: UseOfferingVariantBom;
+  useAdd: UseAddOfferingVariantBomLine;
+  useUpdate: UseUpdateOfferingVariantBomLine;
+  useDelete: UseDeleteOfferingVariantBomLine;
+  useAddSuggested: UseAddOfferingVariantSuggestedComponent;
+  useCreateOfferingVariantInventoryItem?: UseCreateVariantInventoryItem;
 }
 
 export const BomTab: React.FC<BomTabProps> = ({
@@ -41,7 +41,7 @@ export const BomTab: React.FC<BomTabProps> = ({
   useUpdate,
   useDelete,
   useAddSuggested,
-  useCreateVariantInventoryItem,
+  useCreateOfferingVariantInventoryItem,
 }) => {
   const addDialog = useDialog();
   const inventoryItemDialog = useDialog();
@@ -129,7 +129,7 @@ export const BomTab: React.FC<BomTabProps> = ({
 
   const dialogs = (
     <>
-      {useCreateVariantInventoryItem && (
+      {useCreateOfferingVariantInventoryItem && (
         <Dialog
           handle={inventoryItemDialog}
           icon={Boxes}
@@ -138,7 +138,7 @@ export const BomTab: React.FC<BomTabProps> = ({
           description={`Inventory counterpart for ${variant.code}`}
           content={(close) => (
             <CreateVariantInventoryItemDialog
-              useCreate={useCreateVariantInventoryItem}
+              useCreate={useCreateOfferingVariantInventoryItem}
               variant={variant}
               onSuccess={close}
               onCancel={close}

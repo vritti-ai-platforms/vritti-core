@@ -41,6 +41,7 @@ import {
   offeringVariantValues,
   orderItems,
   ownedByWorkspaceExpression,
+  posTerminals,
   taxClasses,
   uom,
 } from '@/db/schema';
@@ -189,7 +190,6 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .where(eq(offeringVariantAttributeValues.variantId, offeringVariants.id));
   }
 
-  // The channel's catalog and whether this workspace set it, for a write that must not touch an inherited one
   // The channel one target resolves through, which is the target's own override if it has one and otherwise
   // the narrowest default in reach — the same ranking channelSpecificity gives every other resolution. So a
   // caller names the target and the type it is acting as, and never has to carry a channel id of its own.
@@ -220,6 +220,27 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .from(catalogListings)
       .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
       .where(and(eq(catalogListings.catalogId, catalogId), eq(catalogListings.offeringVariantId, variantId)));
+  }
+
+  // A till's name, for a message about it; apps are core's to name
+  async findTerminalName(terminalId: string): Promise<string | undefined> {
+    const [row] = await this.db
+      .select({ name: posTerminals.name })
+      .from(posTerminals)
+      .where(eq(posTerminals.id, terminalId))
+      .limit(1);
+    return row?.name;
+  }
+
+  // The subset of these codes that name a variant of this offering
+  async findCodesInOffering(offeringId: string, codes: string[]): Promise<string[]> {
+    if (codes.length === 0) return [];
+
+    const rows = await this.db
+      .select({ code: offeringVariants.code })
+      .from(offeringVariants)
+      .where(and(eq(offeringVariants.offeringId, offeringId), inArray(offeringVariants.code, codes)));
+    return rows.map((row) => row.code);
   }
 
   // Making a variant unavailable writes an outright exclusion per listing, naming the target it is for, so a

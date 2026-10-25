@@ -29,6 +29,7 @@ import type {
   OfferingChannelTypeResponseDto,
   OfferingTargetRow,
 } from '@commerce/offerings/dto/response/offering-channel-response.dto';
+import { OFFERING_CHANNEL_TYPES } from '@commerce/offerings/dto/response/offering-channel-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
@@ -39,7 +40,7 @@ import { AppDomainRepository } from '@domain/app/repositories/app.repository';
 import { AppStorefrontDomainService, type StorefrontCreateResult } from '@domain/app/services/app-storefront.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import { BadGatewayException, ConflictException } from '@vritti/api-sdk/exceptions';
+import { BadGatewayException, BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -465,6 +466,7 @@ export class OrgOfferingsGatewayService {
     channelType: string,
     targetId: string,
   ): Promise<ChannelVariantPagesTableResponseDto> {
+    this.requireChannelType(channelType);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `commerce-org-offering-${offeringId}-target-${targetId}-variants`,
@@ -509,15 +511,36 @@ export class OrgOfferingsGatewayService {
   async createChannelPages(
     orgId: string,
     offeringId: string,
+    channelType: string,
     targetId: string,
     variantCodes: string[],
   ): Promise<SuccessResponseDto> {
+    this.requireChannelType(channelType);
+
     // A till names no app, so the lookup simply finds nothing and the refusal below is the right answer
     const app = await this.appRepository.findByIdInOrg(targetId, orgId);
     if (!app?.baseUrl) {
       throw new ConflictException({
         label: 'No Storefront',
         detail: 'This target has no storefront, so there are no pages to create on it.',
+      });
+    }
+
+    // A page is named after this offering, so a code from any other offering would get the wrong name
+    this.logger.log(
+      `org.offerings.variants.codesInOffering — offeringId: ${offeringId}, codes: ${variantCodes.length}`,
+    );
+    const known = new Set(
+      await this.nats.send<string[]>('commerce', 'org.offerings.variants.codesInOffering', {
+        offeringId,
+        codes: variantCodes,
+      }),
+    );
+    const foreign = variantCodes.filter((code) => !known.has(code));
+    if (foreign.length > 0) {
+      throw new BadRequestException({
+        label: 'Not In This Offering',
+        detail: `No variant of this offering matches ${pluralize('code', foreign.length)}: ${foreign.join(', ')}.`,
       });
     }
 
@@ -550,7 +573,9 @@ export class OrgOfferingsGatewayService {
     variantId: string,
     availableHere: boolean,
   ): Promise<SuccessResponseDto> {
-    // An app is core's to name; a till names itself in commerce, which fills the blank in
+    this.requireChannelType(channelType);
+
+    // An app is core's to name; a till is named by commerce, which fills the blank in
     const app = await this.appRepository.findByIdInOrg(targetId, orgId);
 
     this.logger.log(`org.offerings.variants.setTargetAvailability — target: ${targetId}, variant: ${variantId}`);
@@ -561,6 +586,13 @@ export class OrgOfferingsGatewayService {
       variantId,
       availableHere,
     });
+  }
+
+  // A channel type from the path, refused unless it is one commerce knows
+  private requireChannelType(channelType: string): void {
+    if (!(OFFERING_CHANNEL_TYPES as readonly string[]).includes(channelType)) {
+      throw new BadRequestException(`Unknown channel type "${channelType}". Use ${OFFERING_CHANNEL_TYPES.join(', ')}.`);
+    }
   }
 
   // What to tell the operator: created and skipped read differently, and a partial refusal must be said out loud

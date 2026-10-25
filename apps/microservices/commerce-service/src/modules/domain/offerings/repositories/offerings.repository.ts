@@ -229,8 +229,6 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     await this.db.update(offerings).set({ isActive }).where(inArray(offerings.id, ids));
   }
 
-  // The variants that would break a fulfilment type's bill-of-materials rule if it were applied to them — checked
-  // before a cascade writes anything, so the offering never half-moves.
   // Every channel this workspace can reach, with the catalog it carries. Small by nature — one row per type
   // per target per level — so the ranking that picks a target's channel is done over these in the service.
   async findChannelSlots(): Promise<ChannelSlotRow[]> {
@@ -313,6 +311,8 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     return row?.count ?? 0;
   }
 
+  // The variants that would break a fulfilment type's bill-of-materials rule if it were applied to them — checked
+  // before a cascade writes anything, so the offering never half-moves.
   async findVariantsBreachingBomRule(offeringId: string, max: number, min: number): Promise<string[]> {
     const lineCount = this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id));
     const rows = await this.db

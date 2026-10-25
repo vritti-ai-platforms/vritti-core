@@ -13,23 +13,23 @@ import { AddAttributeDialog } from '../forms/AddAttributeDialog';
 import { AddAttributeFromTemplateDialog } from '../forms/AddAttributeFromTemplateDialog';
 import type {
   OfferingPermissions,
-  UseCreateAttribute,
-  UseCreateAttributeFromTemplate,
-  UseDeleteAttribute,
+  UseCreateOfferingAttribute,
+  UseCreateOfferingAttributeFromTemplate,
+  UseDeleteOfferingAttribute,
   UseOfferingAttributes,
-  UseReorderAttributes,
-  UseUpdateAttribute,
-  UseUpsertAttributeValues,
+  UseReorderOfferingAttributes,
+  UseUpdateOfferingAttribute,
+  UseUpsertOfferingAttributeValues,
 } from '../types';
 
 interface AttributesTabProps {
-  useAttributes: UseOfferingAttributes;
-  useCreate: UseCreateAttribute;
-  useCreateFromTemplate: UseCreateAttributeFromTemplate;
-  useUpsertValues: UseUpsertAttributeValues;
-  useUpdate: UseUpdateAttribute;
-  useReorder: UseReorderAttributes;
-  useDelete: UseDeleteAttribute;
+  useOfferingAttributes: UseOfferingAttributes;
+  useCreate: UseCreateOfferingAttribute;
+  useCreateFromTemplate: UseCreateOfferingAttributeFromTemplate;
+  useUpsertValues: UseUpsertOfferingAttributeValues;
+  useUpdate: UseUpdateOfferingAttribute;
+  useReorder: UseReorderOfferingAttributes;
+  useDelete: UseDeleteOfferingAttribute;
   permissions: OfferingPermissions;
   offering: OfferingData;
 }
@@ -37,7 +37,7 @@ interface AttributesTabProps {
 export const AttributesTab: React.FC<AttributesTabProps> = ({
   permissions,
   offering,
-  useAttributes,
+  useOfferingAttributes,
   useCreate,
   useCreateFromTemplate,
   useUpsertValues,
@@ -48,7 +48,7 @@ export const AttributesTab: React.FC<AttributesTabProps> = ({
   const confirm = useConfirm();
   const addDialog = useDialog();
   const fromTemplateDialog = useDialog();
-  const { data: attributes = [], isLoading } = useAttributes(offering.id);
+  const { data: attributes = [], isLoading } = useOfferingAttributes(offering.id);
   const reorderMutation = useReorder();
   const deleteMutation = useDelete();
 

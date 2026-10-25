@@ -15,10 +15,10 @@ import {
   type OfferingAttributeData,
   toCode,
 } from '@/schemas/offerings';
-import type { UseUpsertAttributeValues } from '../types';
+import type { UseUpsertOfferingAttributeValues } from '../types';
 
 interface AttributeValuesDialogProps {
-  useUpsert: UseUpsertAttributeValues;
+  useUpsert: UseUpsertOfferingAttributeValues;
   attribute: OfferingAttributeData;
   onSuccess: () => void;
   onCancel: () => void;

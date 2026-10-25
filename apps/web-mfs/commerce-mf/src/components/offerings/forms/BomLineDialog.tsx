@@ -15,10 +15,10 @@ import {
   editBomLineSchema,
   type OfferingVariantData,
 } from '@/schemas/offerings';
-import type { UseAddBomLine, UseUpdateBomLine } from '../types';
+import type { UseAddOfferingVariantBomLine, UseUpdateOfferingVariantBomLine } from '../types';
 
 interface AddBomLineDialogProps {
-  useAdd: UseAddBomLine;
+  useAdd: UseAddOfferingVariantBomLine;
   variant: OfferingVariantData;
   onSuccess: () => void;
   onCancel: () => void;
@@ -86,7 +86,7 @@ export const AddBomLineDialog: React.FC<AddBomLineDialogProps> = ({ useAdd, vari
 };
 
 interface EditBomLineDialogProps {
-  useUpdate: UseUpdateBomLine;
+  useUpdate: UseUpdateOfferingVariantBomLine;
   variant: OfferingVariantData;
   line: BomLineData;
   onSuccess: () => void;

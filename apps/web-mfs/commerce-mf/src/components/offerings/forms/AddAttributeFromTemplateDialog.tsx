@@ -12,10 +12,10 @@ import {
   createAttributeFromTemplateSchema,
 } from '@/schemas/offerings';
 import { AttributeTemplateSelector } from '@/selectors/attribute-template';
-import type { UseCreateAttributeFromTemplate } from '../types';
+import type { UseCreateOfferingAttributeFromTemplate } from '../types';
 
 interface AddAttributeFromTemplateDialogProps {
-  useCreate: UseCreateAttributeFromTemplate;
+  useCreate: UseCreateOfferingAttributeFromTemplate;
   offeringId: string;
   onSuccess: () => void;
   onCancel: () => void;

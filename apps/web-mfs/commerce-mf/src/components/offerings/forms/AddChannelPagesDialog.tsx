@@ -8,13 +8,13 @@ import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { type AddStorefrontPagesFormData, addStorefrontPagesSchema } from '@/schemas/offerings';
 import { OfferingVariantSelector } from '@/selectors/offering-variant';
-import type { UseCreateChannelPages } from '../types';
+import type { UseCreateOfferingChannelPages } from '../types';
 
 interface AddChannelPagesDialogProps {
   offeringId: string;
   channelType: string;
   targetId: string;
-  useCreateChannelPages: UseCreateChannelPages;
+  useCreateOfferingChannelPages: UseCreateOfferingChannelPages;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -28,7 +28,7 @@ export const AddChannelPagesDialog: React.FC<AddChannelPagesDialogProps> = ({
   offeringId,
   channelType,
   targetId,
-  useCreateChannelPages,
+  useCreateOfferingChannelPages,
   onSuccess,
   onCancel,
 }) => {
@@ -37,7 +37,7 @@ export const AddChannelPagesDialog: React.FC<AddChannelPagesDialogProps> = ({
     defaultValues: { variantCodes: [] },
   });
   const selected = useWatch({ control: form.control, name: 'variantCodes' });
-  const createPages = useCreateChannelPages({ onSuccess });
+  const createPages = useCreateOfferingChannelPages({ onSuccess });
 
   return (
     <Form

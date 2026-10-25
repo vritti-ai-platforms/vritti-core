@@ -104,13 +104,13 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
               <DimensionsTab
                 permissions={PERMISSIONS}
                 offering={offering}
-                useDimensions={binding.useDimensions}
-                useCreate={binding.useCreateDimension}
-                useCreateFromTemplate={binding.useCreateDimensionFromTemplate}
-                useUpsertValues={binding.useUpsertDimensionValues}
-                useUpdate={binding.useUpdateDimension}
-                useReorder={binding.useReorderDimensions}
-                useDelete={binding.useDeleteDimension}
+                useOfferingDimensions={binding.useOfferingDimensions}
+                useCreate={binding.useCreateOfferingDimension}
+                useCreateFromTemplate={binding.useCreateOfferingDimensionFromTemplate}
+                useUpsertValues={binding.useUpsertOfferingDimensionValues}
+                useUpdate={binding.useUpdateOfferingDimension}
+                useReorder={binding.useReorderOfferingDimensions}
+                useDelete={binding.useDeleteOfferingDimension}
               />
             ),
           },
@@ -122,13 +122,13 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
               <AttributesTab
                 permissions={PERMISSIONS}
                 offering={offering}
-                useAttributes={binding.useAttributes}
-                useCreate={binding.useCreateAttribute}
-                useCreateFromTemplate={binding.useCreateAttributeFromTemplate}
-                useUpsertValues={binding.useUpsertAttributeValues}
-                useUpdate={binding.useUpdateAttribute}
-                useReorder={binding.useReorderAttributes}
-                useDelete={binding.useDeleteAttribute}
+                useOfferingAttributes={binding.useOfferingAttributes}
+                useCreate={binding.useCreateOfferingAttribute}
+                useCreateFromTemplate={binding.useCreateOfferingAttributeFromTemplate}
+                useUpsertValues={binding.useUpsertOfferingAttributeValues}
+                useUpdate={binding.useUpdateOfferingAttribute}
+                useReorder={binding.useReorderOfferingAttributes}
+                useDelete={binding.useDeleteOfferingAttribute}
               />
             ),
           },
@@ -140,16 +140,16 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
               <VariantsTab
                 permissions={PERMISSIONS}
                 offering={offering}
-                useVariantsTable={binding.useVariantsTable}
-                useDimensions={binding.useDimensions}
-                useAttributes={binding.useAttributes}
-                useCreateVariant={binding.useCreateVariant}
-                useDelete={binding.useDeleteVariant}
-                useUpdate={binding.useUpdateVariant}
-                useBulkSetStatus={binding.useBulkSetVariantsStatus}
-                useBulkSetTaxClass={binding.useBulkSetVariantsTaxClass}
-                useBulkClearTaxClass={binding.useBulkClearVariantsTaxClass}
-                useBulkSetAttribute={binding.useBulkSetVariantsAttribute}
+                useOfferingVariantsTable={binding.useOfferingVariantsTable}
+                useOfferingDimensions={binding.useOfferingDimensions}
+                useOfferingAttributes={binding.useOfferingAttributes}
+                useCreateOfferingVariant={binding.useCreateOfferingVariant}
+                useDelete={binding.useDeleteOfferingVariant}
+                useUpdate={binding.useUpdateOfferingVariant}
+                useBulkSetStatus={binding.useBulkSetOfferingVariantsStatus}
+                useBulkSetTaxClass={binding.useBulkSetOfferingVariantsTaxClass}
+                useBulkClearTaxClass={binding.useBulkClearOfferingVariantsTaxClass}
+                useBulkSetAttribute={binding.useBulkSetOfferingVariantsAttribute}
                 tableKey={binding.variantsTableKey(offering.id)}
                 tableSlug={binding.variantsTableSlug(offering.id)}
                 exportEndpoint={binding.variantsExportEndpoint(offering.id)}

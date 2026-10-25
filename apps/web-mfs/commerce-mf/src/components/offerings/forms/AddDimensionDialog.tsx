@@ -7,10 +7,10 @@ import type React from 'react';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { type CreateDimensionFormData, createDimensionSchema, toCode } from '@/schemas/offerings';
-import type { UseCreateDimension } from '../types';
+import type { UseCreateOfferingDimension } from '../types';
 
 interface AddDimensionDialogProps {
-  useCreate: UseCreateDimension;
+  useCreate: UseCreateOfferingDimension;
   offeringId: string;
   onSuccess: () => void;
   onCancel: () => void;

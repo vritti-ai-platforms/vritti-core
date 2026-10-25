@@ -14,23 +14,23 @@ import { AddDimensionDialog } from '../forms/AddDimensionDialog';
 import { AddDimensionFromTemplateDialog } from '../forms/AddDimensionFromTemplateDialog';
 import type {
   OfferingPermissions,
-  UseCreateDimension,
-  UseCreateDimensionFromTemplate,
-  UseDeleteDimension,
+  UseCreateOfferingDimension,
+  UseCreateOfferingDimensionFromTemplate,
+  UseDeleteOfferingDimension,
   UseOfferingDimensions,
-  UseReorderDimensions,
-  UseUpdateDimension,
-  UseUpsertDimensionValues,
+  UseReorderOfferingDimensions,
+  UseUpdateOfferingDimension,
+  UseUpsertOfferingDimensionValues,
 } from '../types';
 
 interface DimensionsTabProps {
-  useDimensions: UseOfferingDimensions;
-  useCreate: UseCreateDimension;
-  useCreateFromTemplate: UseCreateDimensionFromTemplate;
-  useUpsertValues: UseUpsertDimensionValues;
-  useUpdate: UseUpdateDimension;
-  useReorder: UseReorderDimensions;
-  useDelete: UseDeleteDimension;
+  useOfferingDimensions: UseOfferingDimensions;
+  useCreate: UseCreateOfferingDimension;
+  useCreateFromTemplate: UseCreateOfferingDimensionFromTemplate;
+  useUpsertValues: UseUpsertOfferingDimensionValues;
+  useUpdate: UseUpdateOfferingDimension;
+  useReorder: UseReorderOfferingDimensions;
+  useDelete: UseDeleteOfferingDimension;
   permissions: OfferingPermissions;
   offering: OfferingData;
 }
@@ -38,7 +38,7 @@ interface DimensionsTabProps {
 export const DimensionsTab: React.FC<DimensionsTabProps> = ({
   permissions,
   offering,
-  useDimensions,
+  useOfferingDimensions,
   useCreate,
   useCreateFromTemplate,
   useUpsertValues,
@@ -49,7 +49,7 @@ export const DimensionsTab: React.FC<DimensionsTabProps> = ({
   const confirm = useConfirm();
   const addDialog = useDialog();
   const fromTemplateDialog = useDialog();
-  const { data: dimensions = [], isLoading } = useDimensions(offering.id);
+  const { data: dimensions = [], isLoading } = useOfferingDimensions(offering.id);
   const reorderMutation = useReorder();
   const deleteMutation = useDelete();
 

@@ -2,6 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
 import { OfferingVariantResponseDto } from './offering-variant-response.dto';
 
+export const OFFERING_CHANNEL_TYPES = ['APP', 'POS', 'B2B'] as const;
+
 // What commerce answers with: one row per app or till whose channel carries this offering
 export interface OfferingTargetRow {
   type: string;
@@ -44,7 +46,7 @@ export class OfferingChannelTargetResponseDto {
 }
 
 export class OfferingChannelTypeResponseDto {
-  @ApiProperty({ enum: ['APP', 'POS', 'B2B'] }) type: string;
+  @ApiProperty({ enum: OFFERING_CHANNEL_TYPES }) type: string;
 
   @ApiProperty({ type: [OfferingChannelTargetResponseDto] })
   targets: OfferingChannelTargetResponseDto[];

@@ -586,7 +586,7 @@ export class SiteOfferingsGatewayController {
     return this.service.delete(id);
   }
 
-  // Where this offering sells, a row per channel
+  // Where this offering sells, a row per app or till
   @Get(':id/channels')
   @RequirePermission(SITE_OFFERINGS.channels.view)
   @ApiOfferingChannels()
@@ -595,7 +595,7 @@ export class SiteOfferingsGatewayController {
     return this.service.offeringChannels(orgId, id);
   }
 
-  // This offering's variants as one channel sees them
+  // This offering's variants as one app or till sees them
   @Get(':id/channels/:channelType/targets/:targetId/variants/table')
   @RequirePermission(SITE_OFFERINGS.channels.view)
   @ApiChannelVariants()
@@ -610,7 +610,7 @@ export class SiteOfferingsGatewayController {
     return this.service.channelVariantPages(orgId, userId, id, channelType, targetId);
   }
 
-  // Sets whether one variant is available on one channel
+  // Sets whether one variant is available on one app or till
   @Patch(':id/channels/:channelType/targets/:targetId/variants/:variantId/availability')
   @RequirePermission(SITE_OFFERINGS.channels.setAvailability)
   @ApiSetTargetAvailability()
@@ -639,7 +639,7 @@ export class SiteOfferingsGatewayController {
     @Body() dto: CreateStorefrontPagesDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/site/offerings/${id}/channels/${channelType}/targets/${targetId}/pages`);
-    return this.service.createChannelPages(orgId, id, targetId, dto.variantCodes);
+    return this.service.createChannelPages(orgId, id, channelType, targetId, dto.variantCodes);
   }
 
   // Builds the workbook and streams it — shared by both export routes

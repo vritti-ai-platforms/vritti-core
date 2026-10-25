@@ -4,6 +4,7 @@ import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OfferingAttributeResponseDto } from '../dto/response/offering-attribute-response.dto';
 import {
   ChannelVariantPagesTableResponseDto,
+  OFFERING_CHANNEL_TYPES,
   OfferingChannelTypeResponseDto,
 } from '../dto/response/offering-channel-response.dto';
 import { OfferingDimensionResponseDto } from '../dto/response/offering-dimension-response.dto';
@@ -20,6 +21,11 @@ const NOT_FOUND = { status: 404, description: 'Not found or out of reach.' };
 const ID = { name: 'id', description: 'Identifier' };
 const OFFERING_ID = { name: 'offeringId', description: 'Offering identifier' };
 const TARGET_ID = { name: 'targetId', description: 'App or till identifier — where this offering sells' };
+const CHANNEL_TYPE = {
+  name: 'channelType',
+  enum: OFFERING_CHANNEL_TYPES,
+  description: 'How the target sells: POS for a till, APP or B2B for an app',
+};
 
 export function ApiOfferingsTable() {
   return applyDecorators(
@@ -635,8 +641,10 @@ export function ApiChannelVariants() {
         'The Variants table with the same columns and saved view, plus what this channel carries, what is available on it, and — where the channel names a storefront app — whether a page exists and whether an editor called it finished. The page columns are null for a channel with no storefront, and only the requested page’s codes are asked about.',
     }),
     ApiParam(OFFERING_ID),
+    ApiParam(CHANNEL_TYPE),
     ApiParam(TARGET_ID),
     ApiResponse({ status: 200, type: ChannelVariantPagesTableResponseDto }),
+    ApiResponse({ status: 400, description: 'Unknown channel type.' }),
   );
 }
 
@@ -647,9 +655,11 @@ export function ApiSetTargetAvailability() {
       description:
         'Making a variant unavailable writes an outright exclusion for every listing it has in that channel’s catalog, which is what a storefront reads to decide it cannot sell it. A per-currency exclusion is left alone — that belongs to the channel’s Prices tab. A channel set by a wider workspace is refused, because the row was not set here.',
     }),
+    ApiParam(CHANNEL_TYPE),
     ApiParam(TARGET_ID),
     ApiParam({ name: 'variantId', description: 'Variant identifier' }),
     ApiResponse({ status: 200, type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'Unknown channel type.' }),
     ApiResponse({ status: 409, description: 'Set by a wider scope, or the variant is not in this catalog.' }),
   );
 }
@@ -662,8 +672,13 @@ export function ApiCreateChannelPages() {
         'Idempotent by code: codes the storefront already has come back as skipped, so a retry after a timeout is safe. A page the storefront had marked removed is revived, keeping everything written on it. The page name comes from the offering, not the caller. Refused when the channel names no storefront app.',
     }),
     ApiParam(OFFERING_ID),
+    ApiParam(CHANNEL_TYPE),
     ApiParam(TARGET_ID),
     ApiResponse({ status: 201, type: SuccessResponseDto }),
+    ApiResponse({
+      status: 400,
+      description: 'Unknown channel type, or a code that is not a variant of this offering.',
+    }),
     ApiResponse({ status: 409, description: 'This channel names no storefront app.' }),
     ApiResponse({ status: 502, description: 'The storefront refused every page it was asked to create.' }),
   );
