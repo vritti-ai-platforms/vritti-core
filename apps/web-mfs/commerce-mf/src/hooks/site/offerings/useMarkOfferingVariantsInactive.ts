@@ -3,18 +3,20 @@ import { useMutation } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { bulkSetVariantsStatus } from '@/services/site/offerings.service';
+import { MARK_OFFERING_VARIANTS_INACTIVE_KEY } from './keys';
 import { useInvalidate } from './useInvalidate';
 
-export function useBulkSetOfferingVariantsStatus(
+export function useMarkOfferingVariantsInactive(
   options?: Omit<
-    UseMutationOptions<SuccessResponse, AxiosError, { offeringId: string; ids: string[]; isActive: boolean }>,
-    'mutationFn'
+    UseMutationOptions<SuccessResponse, AxiosError, { offeringId: string; ids: string[] }>,
+    'mutationFn' | 'mutationKey'
   >,
 ) {
   const invalidate = useInvalidate();
-  return useMutation<SuccessResponse, AxiosError, { offeringId: string; ids: string[]; isActive: boolean }>({
+  return useMutation<SuccessResponse, AxiosError, { offeringId: string; ids: string[] }>({
     ...options,
-    mutationFn: bulkSetVariantsStatus,
+    mutationKey: MARK_OFFERING_VARIANTS_INACTIVE_KEY,
+    mutationFn: ({ offeringId, ids }) => bulkSetVariantsStatus({ offeringId, ids, isActive: false }),
     onSuccess: (...args) => {
       invalidate();
       options?.onSuccess?.(...args);

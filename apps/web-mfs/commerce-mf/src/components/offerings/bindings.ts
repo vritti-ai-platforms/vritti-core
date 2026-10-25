@@ -4,9 +4,7 @@ import type {
   UseAddOfferingVariantBomLine,
   UseAddOfferingVariantSuggestedComponent,
   UseBulkClearOfferingVariantsTaxClass,
-  UseBulkSetOfferingsStatus,
   UseBulkSetOfferingVariantsAttribute,
-  UseBulkSetOfferingVariantsStatus,
   UseBulkSetOfferingVariantsTaxClass,
   UseClearOfferingVariantFulfilment,
   UseClearOfferingVariantTaxClass,
@@ -23,6 +21,10 @@ import type {
   UseDeleteOfferingVariant,
   UseDeleteOfferingVariantBomLine,
   UseGenerateOfferingVariants,
+  UseMarkOfferingsActive,
+  UseMarkOfferingsInactive,
+  UseMarkOfferingVariantsActive,
+  UseMarkOfferingVariantsInactive,
   UseOfferingAttributes,
   UseOfferingChannels,
   UseOfferingChannelVariantsTable,
@@ -69,7 +71,8 @@ export interface OfferingsBinding {
   useUpdateOffering: UseUpdateOffering;
   useDeleteOffering: UseDeleteOffering;
   useSetOfferingStatus: UseSetOfferingStatus;
-  useBulkSetOfferingsStatus: UseBulkSetOfferingsStatus;
+  useMarkOfferingsActive: UseMarkOfferingsActive;
+  useMarkOfferingsInactive: UseMarkOfferingsInactive;
   useSetOfferingTaxClass: UseSetOfferingTaxClass;
   useSetOfferingFulfilment: UseSetOfferingFulfilment;
 
@@ -97,7 +100,8 @@ export interface OfferingsBinding {
   useGenerateOfferingVariants: UseGenerateOfferingVariants;
   usePreviewOfferingVariantCombinations: UsePreviewOfferingVariantCombinations;
   useUpdateOfferingVariant: UseUpdateOfferingVariant;
-  useBulkSetOfferingVariantsStatus: UseBulkSetOfferingVariantsStatus;
+  useMarkOfferingVariantsActive: UseMarkOfferingVariantsActive;
+  useMarkOfferingVariantsInactive: UseMarkOfferingVariantsInactive;
   useBulkClearOfferingVariantsTaxClass: UseBulkClearOfferingVariantsTaxClass;
   useBulkSetOfferingVariantsTaxClass: UseBulkSetOfferingVariantsTaxClass;
   useDeleteOfferingVariant: UseDeleteOfferingVariant;

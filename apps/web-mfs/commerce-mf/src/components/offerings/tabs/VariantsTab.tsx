@@ -41,10 +41,11 @@ import type {
   OfferingPermissions,
   UseBulkClearOfferingVariantsTaxClass,
   UseBulkSetOfferingVariantsAttribute,
-  UseBulkSetOfferingVariantsStatus,
   UseBulkSetOfferingVariantsTaxClass,
   UseCreateOfferingVariant,
   UseDeleteOfferingVariant,
+  UseMarkOfferingVariantsActive,
+  UseMarkOfferingVariantsInactive,
   UseOfferingAttributes,
   UseOfferingDimensions,
   UseOfferingVariantsTable,
@@ -58,7 +59,8 @@ interface VariantsTabProps {
   useCreateOfferingVariant: UseCreateOfferingVariant;
   useDelete: UseDeleteOfferingVariant;
   useUpdate: UseUpdateOfferingVariant;
-  useBulkSetStatus: UseBulkSetOfferingVariantsStatus;
+  useMarkActive: UseMarkOfferingVariantsActive;
+  useMarkInactive: UseMarkOfferingVariantsInactive;
   useBulkSetTaxClass: UseBulkSetOfferingVariantsTaxClass;
   useBulkClearTaxClass: UseBulkClearOfferingVariantsTaxClass;
   useBulkSetAttribute: UseBulkSetOfferingVariantsAttribute;
@@ -78,7 +80,8 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   useCreateOfferingVariant,
   useDelete,
   useUpdate,
-  useBulkSetStatus,
+  useMarkActive,
+  useMarkInactive,
   useBulkSetTaxClass,
   useBulkClearTaxClass,
   useBulkSetAttribute,
@@ -107,7 +110,8 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   const addDialog = useDialog();
   const deleteMutation = useDelete();
   const setStatusMutation = useUpdate();
-  const bulkSetStatusMutation = useBulkSetStatus();
+  const markActiveMutation = useMarkActive();
+  const markInactiveMutation = useMarkInactive();
   const taxClassDialog = useDialog();
   const attributeDialog = useDialog();
   const clearTaxClassMutation = useBulkClearTaxClass();
@@ -262,11 +266,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     onStatePush: () => queryClient.invalidateQueries({ queryKey: tableKey }),
   });
 
-  const handleBulkSetStatus = (ids: string[], isActive: boolean) =>
-    bulkSetStatusMutation.mutate(
-      { offeringId: offering.id, ids, isActive },
-      { onSuccess: () => table.resetRowSelection() },
-    );
+  const resetSelection = { onSuccess: () => table.resetRowSelection() };
 
   return (
     <>
@@ -285,7 +285,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 variant="outline"
                 permission={permissions.variants.edit}
                 startAdornment={<CircleCheck className="size-4" />}
-                isLoading={bulkSetStatusMutation.isPending}
+                isLoading={markActiveMutation.isPending}
                 disabled={blocked > 0}
                 disabledTip={
                   offeringOff
@@ -293,9 +293,9 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                     : `${pluralize('variant', blocked, true)} in this selection still need a bill of materials.`
                 }
                 onClick={() =>
-                  handleBulkSetStatus(
-                    rows.map((row) => row.original.id),
-                    true,
+                  markActiveMutation.mutate(
+                    { offeringId: offering.id, ids: rows.map((row) => row.original.id) },
+                    resetSelection,
                   )
                 }
               >
@@ -306,11 +306,11 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 variant="outline"
                 permission={permissions.variants.edit}
                 startAdornment={<CircleSlash className="size-4" />}
-                isLoading={bulkSetStatusMutation.isPending}
+                isLoading={markInactiveMutation.isPending}
                 onClick={() =>
-                  handleBulkSetStatus(
-                    rows.map((row) => row.original.id),
-                    false,
+                  markInactiveMutation.mutate(
+                    { offeringId: offering.id, ids: rows.map((row) => row.original.id) },
+                    resetSelection,
                   )
                 }
               >

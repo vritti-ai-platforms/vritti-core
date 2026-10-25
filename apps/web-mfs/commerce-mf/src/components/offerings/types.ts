@@ -129,11 +129,10 @@ export type UseUpdateOfferingVariant = MutationHook<
 >;
 export type UseSetOfferingTaxClass = MutationHook<SuccessResponse, SetOfferingTaxClassData>;
 export type UseSetOfferingStatus = MutationHook<SuccessResponse, { id: string; isActive: boolean }>;
-export type UseBulkSetOfferingsStatus = MutationHook<SuccessResponse, { ids: string[]; isActive: boolean }>;
-export type UseBulkSetOfferingVariantsStatus = MutationHook<
-  SuccessResponse,
-  { offeringId: string; ids: string[]; isActive: boolean }
->;
+export type UseMarkOfferingsActive = MutationHook<SuccessResponse, { ids: string[] }>;
+export type UseMarkOfferingsInactive = MutationHook<SuccessResponse, { ids: string[] }>;
+export type UseMarkOfferingVariantsActive = MutationHook<SuccessResponse, { offeringId: string; ids: string[] }>;
+export type UseMarkOfferingVariantsInactive = MutationHook<SuccessResponse, { offeringId: string; ids: string[] }>;
 export type UseBulkClearOfferingVariantsTaxClass = MutationHook<SuccessResponse, { offeringId: string; ids: string[] }>;
 export type UseBulkSetOfferingVariantsTaxClass = MutationHook<
   SuccessResponse,

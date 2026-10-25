@@ -146,7 +146,8 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
                 useCreateOfferingVariant={binding.useCreateOfferingVariant}
                 useDelete={binding.useDeleteOfferingVariant}
                 useUpdate={binding.useUpdateOfferingVariant}
-                useBulkSetStatus={binding.useBulkSetOfferingVariantsStatus}
+                useMarkActive={binding.useMarkOfferingVariantsActive}
+                useMarkInactive={binding.useMarkOfferingVariantsInactive}
                 useBulkSetTaxClass={binding.useBulkSetOfferingVariantsTaxClass}
                 useBulkClearTaxClass={binding.useBulkClearOfferingVariantsTaxClass}
                 useBulkSetAttribute={binding.useBulkSetOfferingVariantsAttribute}
