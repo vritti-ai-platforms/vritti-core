@@ -40,7 +40,6 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
       locationRole: 'STORAGE',
       isActive: true,
       area: '',
-      managerId: undefined,
     },
   });
 

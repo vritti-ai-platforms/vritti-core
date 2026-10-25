@@ -31,7 +31,6 @@ export const AddRegistrationDialog: React.FC<AddRegistrationDialogProps> = ({
   const form = useForm<PartyRegistrationFormData>({
     resolver: zodResolver(partyRegistrationSchema),
     defaultValues: {
-      jurisdictionId: '',
       registrationNumber: '',
       registrationType: 'GST',
       isPrimary: false,

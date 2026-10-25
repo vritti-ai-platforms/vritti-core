@@ -22,9 +22,12 @@ import { AddChannelPagesDialog } from '../forms/AddChannelPagesDialog';
 import type {
   OfferingPermissions,
   UseCreateOfferingChannelPages,
+  UseOfferingAttributes,
   UseOfferingChannelVariantsTable,
+  UseOfferingDimensions,
   UseSetOfferingTargetAvailability,
 } from '../types';
+import { facetFilters } from './facetFilters';
 
 interface ChannelVariantsProps {
   offeringId: string;
@@ -32,6 +35,8 @@ interface ChannelVariantsProps {
   targetId: string;
   permissions: OfferingPermissions;
   useOfferingChannelVariantsTable: UseOfferingChannelVariantsTable;
+  useOfferingDimensions: UseOfferingDimensions;
+  useOfferingAttributes: UseOfferingAttributes;
   useCreateOfferingChannelPages: UseCreateOfferingChannelPages;
   useSetOfferingTargetAvailability: UseSetOfferingTargetAvailability;
   variantsKey: (offeringId: string, targetId: string) => readonly unknown[];
@@ -46,12 +51,16 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   targetId,
   permissions,
   useOfferingChannelVariantsTable,
+  useOfferingDimensions,
+  useOfferingAttributes,
   useCreateOfferingChannelPages,
   useSetOfferingTargetAvailability,
   variantsKey,
   variantsSlug,
 }) => {
   const { data: response, isLoading } = useOfferingChannelVariantsTable(offeringId, channelType, targetId);
+  const { data: dimensions = [] } = useOfferingDimensions(offeringId);
+  const { data: attributes = [] } = useOfferingAttributes(offeringId);
   const queryClient = useQueryClient();
   const addDialog = useDialog();
   const createPages = useCreateOfferingChannelPages();
@@ -74,6 +83,14 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
         header: 'Code',
         cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
+      },
+      {
+        id: 'combination',
+        header: 'Combination',
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.values.map((value) => value.value).join(' · ')}</span>
+        ),
+        enableSorting: false,
       },
       {
         id: 'availableHere',
@@ -175,6 +192,7 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
         mode="tab"
         isLoading={isLoading}
         searchConfig={{ columns: [{ id: 'code', label: 'Code' }], searchAll: true }}
+        filters={[...facetFilters('dimension', dimensions), ...facetFilters('attribute', attributes)]}
         toolbarActions={{
           actions: storefront ? (
             <Button

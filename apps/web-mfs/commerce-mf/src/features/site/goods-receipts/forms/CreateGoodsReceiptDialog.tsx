@@ -36,8 +36,6 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
   const form = useForm<CreateGoodsReceiptFormData>({
     resolver: zodResolver(createGoodsReceiptSchema),
     defaultValues: {
-      supplierId: '',
-      purchaseOrderId: '',
       receivedDate: format(new Date(), 'yyyy-MM-dd'),
       notes: '',
       exchangeRate: undefined,
@@ -53,7 +51,7 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
 
   // Reset PO + currency captures when supplier changes, wiping stale state from the previous supplier.
   useEffect(() => {
-    form.setValue('purchaseOrderId', '');
+    form.resetField('purchaseOrderId');
     setPoSelection(null);
   }, [form]);
 

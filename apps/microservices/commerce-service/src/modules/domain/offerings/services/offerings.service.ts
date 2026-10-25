@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { compareCount, type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -12,6 +12,7 @@ import {
   catalogListings,
   type FulfilmentType,
   FulfilmentTypeValues,
+  offeringDimensions,
   offerings,
   offeringVariants,
   workspaceScopeOf,
@@ -42,10 +43,24 @@ export class OfferingsDomainService {
     code: { column: offerings.code, type: 'string' },
   };
   private static readonly FILTER_FIELD_MAP: FieldMap = {
+    name: { column: offerings.name, type: 'string' },
+    code: { column: offerings.code, type: 'string' },
     fulfilmentType: { column: offerings.fulfilmentType, type: 'string' },
     categoryId: { column: offerings.categoryId, type: 'string' },
     taxClassId: { column: offerings.taxClassId, type: 'string' },
     isActive: { column: offerings.isActive, type: 'boolean' },
+    dimensionCount: {
+      expression: compareCount(
+        sql`(select count(*) from ${offeringDimensions} where ${offeringDimensions.offeringId} = ${offerings.id})`,
+      ),
+      type: 'number',
+    },
+    variantCount: {
+      expression: compareCount(
+        sql`(select count(*) from ${offeringVariants} where ${offeringVariants.offeringId} = ${offerings.id})`,
+      ),
+      type: 'number',
+    },
   };
 
   constructor(private readonly repository: OfferingsDomainRepository) {}

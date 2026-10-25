@@ -31,8 +31,6 @@ export const AddSitePriceDialog: React.FC<AddSitePriceDialogProps> = ({
       unitPrice: undefined,
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
-      validFrom: '',
-      validTo: '',
     },
   });
 

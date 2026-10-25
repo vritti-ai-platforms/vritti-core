@@ -40,7 +40,6 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({ useCreate,
       description: '',
       categoryId: null,
       fulfilmentType: 'STOCK',
-      taxClassId: '',
     },
   });
 

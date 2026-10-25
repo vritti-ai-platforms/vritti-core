@@ -126,7 +126,7 @@ export const templateLanguageSchema = templateLanguage;
 // bodyParams is sized to the template's {{n}} count at render time; every value is required.
 export const sendTemplateTestSchema = z
   .object({
-    senderPhoneNumberId: z.string().min(1, 'Pick a sender number'),
+    senderPhoneNumberId: z.string({ error: 'Pick a sender number' }).min(1, 'Pick a sender number'),
     to: z
       .string()
       .trim()

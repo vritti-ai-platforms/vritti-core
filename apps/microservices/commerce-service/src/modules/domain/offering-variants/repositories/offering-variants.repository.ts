@@ -419,16 +419,15 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return row?.n ?? 0;
   }
 
-  async findForSelectInOffering(
+  // Active variants for a picker, joined to their offering so its name can label them; search matches the
+  // offering name or the variant code, since the generic search only looks at the label column
+  async findVariantsForSelect(
     config: FindForSelectConfig,
-    offeringId: string,
-    catalogId?: string,
+    filters: { offeringId?: string; catalogId?: string },
   ): Promise<SelectQueryResult> {
-    const conditions = [
-      eq(offeringVariants.offeringId, offeringId),
-      eq(offeringVariants.isActive, true),
-      eq(offeringVariants.isOfferingActive, true),
-    ];
+    const { offeringId, catalogId } = filters;
+    const conditions: SQL[] = [eq(offeringVariants.isActive, true), eq(offeringVariants.isOfferingActive, true)];
+    if (offeringId) conditions.push(eq(offeringVariants.offeringId, offeringId));
     // Listed for any batch it can take nothing further here; listed at an MRP it can still take another
     if (catalogId) {
       conditions.push(
@@ -440,7 +439,12 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       )` as SQL,
       );
     }
-    return super.findForSelect({ ...config, conditions });
+    return super.findForSelect({
+      ...config,
+      searchKeys: ['name', 'code'],
+      joins: [{ table: offerings, on: eq(offerings.id, offeringVariants.offeringId), type: 'inner' }],
+      conditions,
+    });
   }
 
   // Rewrites the cached facets from the junctions in one statement, so the copy cannot disagree with them

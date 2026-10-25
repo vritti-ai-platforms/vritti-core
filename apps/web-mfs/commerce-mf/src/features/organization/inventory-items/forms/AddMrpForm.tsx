@@ -22,7 +22,6 @@ export const AddMrpForm: React.FC<AddMrpFormProps> = ({ inventoryItemId, onSucce
   const form = useForm<AddInventoryItemMrpFormData>({
     resolver: zodResolver(addInventoryItemMrpSchema),
     defaultValues: {
-      uomId: '',
       amount: undefined,
     },
   });

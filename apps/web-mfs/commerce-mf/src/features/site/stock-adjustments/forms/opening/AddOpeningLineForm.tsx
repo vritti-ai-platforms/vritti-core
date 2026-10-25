@@ -42,7 +42,6 @@ export const AddOpeningLineForm = ({
     resolver: zodResolver(addOpeningStockLineSchema),
     defaultValues: {
       stockAdjustmentLotId: stockAdjustmentLotId ?? undefined,
-      locationId: '',
       uomId: primaryUomId,
       // For tracking='serial', quantity is derived from serials count — start at 0 (server will refresh).
       uomQty: 0,

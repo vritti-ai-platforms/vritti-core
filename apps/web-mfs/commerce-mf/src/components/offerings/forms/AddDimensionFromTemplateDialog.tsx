@@ -29,7 +29,7 @@ export const AddDimensionFromTemplateDialog: React.FC<AddDimensionFromTemplateDi
 }) => {
   const form = useForm<CreateDimensionFromTemplateFormData>({
     resolver: zodResolver(createDimensionFromTemplateSchema),
-    defaultValues: { templateId: '', code: '', name: '', description: null, valueCodes: [] },
+    defaultValues: { code: '', name: '', description: null, valueCodes: [] },
   });
   const [offered, setOffered] = useState<DimensionTemplateValueOption[]>([]);
 

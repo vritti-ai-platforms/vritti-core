@@ -29,7 +29,7 @@ export const AddAttributeFromTemplateDialog: React.FC<AddAttributeFromTemplateDi
 }) => {
   const form = useForm<CreateAttributeFromTemplateFormData>({
     resolver: zodResolver(createAttributeFromTemplateSchema),
-    defaultValues: { templateId: '', code: '', name: '', description: null, valueCodes: [] },
+    defaultValues: { code: '', name: '', description: null, valueCodes: [] },
   });
   const [offered, setOffered] = useState<AttributeTemplateValueOption[]>([]);
 

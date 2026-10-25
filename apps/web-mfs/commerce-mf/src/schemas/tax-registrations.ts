@@ -21,7 +21,7 @@ export interface TaxRegistrationData {
 export type TaxRegistrationsTableResponse = TableResponse<TaxRegistrationData>;
 
 export const createTaxRegistrationSchema = z.object({
-  jurisdictionId: z.string().min(1, 'Select where the entity is registered'),
+  jurisdictionId: z.uuid('Select where the entity is registered'),
   registrationNumber: z
     .string()
     .min(1, 'Registration number is required')

@@ -4,8 +4,8 @@ import { z } from '@vritti/quantum-ui/zod';
 export const posTerminalFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
   code: z.string().min(1, 'Code is required').max(50, 'Code cannot exceed 50 characters'),
-  locationId: z.string().min(1, 'POS storage location is required'),
-  catalogId: z.string().min(1, 'Catalog is required'),
+  locationId: z.uuid('POS storage location is required'),
+  catalogId: z.uuid('Catalog is required'),
   description: z.string().max(500, 'Description cannot exceed 500 characters').optional(),
   isActive: z.boolean().optional(),
 });

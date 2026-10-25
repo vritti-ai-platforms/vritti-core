@@ -52,7 +52,7 @@ const AddChangeLineForm = ({
 
   const form = useForm<AddChangeLineFormData>({
     resolver,
-    defaultValues: { quantId: '', uomId: primaryUomId, uomQty: 0 },
+    defaultValues: { uomId: primaryUomId, uomQty: 0 },
   });
 
   const mutation = useAddChangeStockAdjustmentLine(adjustmentId, { onSuccess });

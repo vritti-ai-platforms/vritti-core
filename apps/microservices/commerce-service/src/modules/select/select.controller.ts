@@ -102,12 +102,11 @@ export class SelectController {
     return this.offeringsService.findForSelect(query);
   }
 
-  // Variants of one offering — scoped, because a code only means anything next to its siblings
+  // Returns paginated offering variant options for the select component
   @MessagePattern({ cmd: 'select.offeringVariants' })
   async offeringVariants(@Payload() data: OfferingVariantsSelectQueryDto): Promise<SelectQueryResult> {
-    const { offeringId, ...query } = data;
-    this.logger.log(`select.offeringVariants — offeringId: ${offeringId}`);
-    return this.offeringVariantsService.findForSelect(offeringId, query);
+    this.logger.log(`select.offeringVariants — offeringId: ${data.offeringId ?? 'all'}`);
+    return this.offeringVariantsService.findForSelect(data);
   }
 
   // Returns paginated dimension template options for the select component

@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
-import { asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { and, asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { catalogListings, type InventoryItemMrp, offeringVariants } from '@/db/schema';
+import { catalogListings, type InventoryItemMrp, offerings, offeringVariants } from '@/db/schema';
 import { CatalogListingDto, type CatalogListingRow } from '../dto/entity/catalog-listing.dto';
 import type { AddCatalogListingDto } from '../dto/request/add-catalog-listing.dto';
 import type { AddCatalogListingsBatchDto } from '../dto/request/add-catalog-listings-batch.dto';
@@ -24,6 +24,15 @@ import { CatalogsDomainRepository } from '../repositories/catalogs.repository';
 export class CatalogListingsDomainService {
   private readonly logger = new Logger(CatalogListingsDomainService.name);
 
+  private static readonly SEARCH_FIELD_MAP: FieldMap = {
+    code: { column: offeringVariants.code, type: 'string' },
+    offeringName: { column: offerings.name, type: 'string' },
+  };
+  private static readonly FILTER_FIELD_MAP: FieldMap = {
+    isVariantActive: { column: offeringVariants.isActive, type: 'boolean' },
+    isOfferingActive: { column: offeringVariants.isOfferingActive, type: 'boolean' },
+  };
+
   constructor(
     private readonly repository: CatalogListingsDomainRepository,
     private readonly catalogsRepository: CatalogsDomainRepository,
@@ -37,10 +46,16 @@ export class CatalogListingsDomainService {
     currencyCode?: string,
   ): Promise<{ result: CatalogListingDto[]; count: number }> {
     await this.requireCatalog(catalogId);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, CatalogListingsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, CatalogListingsDomainService.SEARCH_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...CatalogListingsDomainService.SEARCH_FIELD_MAP,
+      ...CatalogListingsDomainService.FILTER_FIELD_MAP,
+    });
     const { limit = 20, offset = 0 } = state.pagination;
     const { result: rows, count } = await this.repository.findForTable({
-      where: eq(catalogListings.catalogId, catalogId) as SQL,
-      orderBy: [asc(offeringVariants.code)],
+      where: and(eq(catalogListings.catalogId, catalogId), filterWhere, searchWhere) as SQL,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
       limit,
       offset,
     });

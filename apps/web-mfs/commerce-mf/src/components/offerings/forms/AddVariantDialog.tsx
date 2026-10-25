@@ -32,7 +32,6 @@ export const AddVariantDialog: React.FC<AddVariantDialogProps> = ({
     resolver: zodResolver(schema),
     defaultValues: {
       ...Object.fromEntries(dimensions.map((dimension) => [dimension.id, ''])),
-      salesUomId: '',
       externalSku: '',
     },
   });

@@ -11,7 +11,7 @@ export const createInventoryItemSchema = z.object({
   tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
   categoryId: z.uuid('Category is required'),
   description: z.string().optional(),
-  uomId: z.string().uuid('Unit of measure is required'),
+  uomId: z.uuid('Unit of measure is required'),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
   hsnCode: z.string().max(20).optional(),
@@ -39,7 +39,7 @@ export const createOrgInventoryItemSchema = z.object({
   tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
   categoryId: z.uuid('Category is required'),
   description: z.string().optional(),
-  uomId: z.string().uuid('Unit of measure is required'),
+  uomId: z.uuid('Unit of measure is required'),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   hsnCode: z.string().max(20).optional(),
 });
@@ -215,8 +215,8 @@ export const createVariantInventoryItemSchema = z.object({
   type: z.enum(INVENTORY_ITEM_TYPES),
   tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']),
-  categoryId: z.string().min(1, 'Category is required'),
-  uomId: z.string().min(1, 'Unit is required'),
+  categoryId: z.uuid('Category is required'),
+  uomId: z.uuid('Unit is required'),
   description: z.string().max(500).optional(),
   hsnCode: z.string().max(20).optional(),
 });

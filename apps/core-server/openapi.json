@@ -33767,7 +33767,7 @@
     },
     "/commerce-api/select-api/offering-variants": {
       "get": {
-        "description": "Variants of one offering, keyed by code. Scoped by offeringId — a code only means anything next to its siblings.",
+        "description": "Active variants labelled by their offering name, with the variant code as the description. Scoped to one offering when offeringId is given, otherwise every reachable offering. Search matches the offering name or the variant code.",
         "operationId": "SelectApiController_selectOfferingVariants",
         "parameters": [
           {
@@ -33902,9 +33902,9 @@
           },
           {
             "name": "offeringId",
-            "required": true,
+            "required": false,
             "in": "query",
-            "description": "Offering whose variants are offered",
+            "description": "Offering whose variants are offered; all when omitted",
             "schema": {
               "type": "string"
             }

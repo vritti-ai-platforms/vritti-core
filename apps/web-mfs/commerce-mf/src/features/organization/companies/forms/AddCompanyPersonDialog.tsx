@@ -20,7 +20,6 @@ export const AddCompanyPersonDialog: React.FC<AddCompanyPersonDialogProps> = ({ 
   const form = useForm<AddCompanyPersonFormData>({
     resolver: zodResolver(addCompanyPersonSchema),
     defaultValues: {
-      personId: '',
       jobTitle: '',
       functions: [],
     },

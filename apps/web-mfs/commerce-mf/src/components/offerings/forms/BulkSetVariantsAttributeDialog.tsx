@@ -56,7 +56,7 @@ export const BulkSetVariantsAttributeDialog: React.FC<BulkSetVariantsAttributeDi
 }) => {
   const form = useForm<BulkSetVariantsAttributeFormData>({
     resolver: zodResolver(bulkSetVariantsAttributeSchema),
-    defaultValues: { attributeId: '', valueIds: [] },
+    defaultValues: { valueIds: [] },
   });
 
   const setMutation = useSet({ onSuccess });

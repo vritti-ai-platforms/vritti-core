@@ -16,7 +16,6 @@ interface EnrollSupplierDialogProps {
 export const EnrollSupplierDialog: React.FC<EnrollSupplierDialogProps> = ({ onSuccess, onCancel }) => {
   const form = useForm<EnrollSiteSupplierFormData>({
     resolver: zodResolver(enrollSiteSupplierSchema),
-    defaultValues: { supplierId: '' },
   });
 
   const enrollMutation = useEnrollSiteSupplier({ onSuccess });

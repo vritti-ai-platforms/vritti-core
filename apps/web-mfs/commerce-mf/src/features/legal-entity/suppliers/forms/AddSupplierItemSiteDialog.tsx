@@ -29,7 +29,6 @@ export const AddSupplierItemSiteDialog: React.FC<AddSupplierItemSiteDialogProps>
   const form = useForm<AddSupplierItemSiteFormData>({
     resolver: zodResolver(addSupplierItemSiteSchema),
     defaultValues: {
-      siteId: '',
       leadTimeDays: standingLeadTimeDays ?? undefined,
       minOrderQuantity: standingMinOrderQuantity ?? undefined,
     },

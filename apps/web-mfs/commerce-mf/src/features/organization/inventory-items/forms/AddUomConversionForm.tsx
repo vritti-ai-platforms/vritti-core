@@ -33,7 +33,7 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
 
   const form = useForm<CreateInventoryItemUomConversionFormData>({
     resolver: zodResolver(createInventoryItemUomConversionSchema),
-    defaultValues: { uomId: '', primaryUomQty: 1, uomQty: 1 },
+    defaultValues: { primaryUomQty: 1, uomQty: 1 },
   });
 
   const primaryUomQty = useWatch({ control: form.control, name: 'primaryUomQty' });

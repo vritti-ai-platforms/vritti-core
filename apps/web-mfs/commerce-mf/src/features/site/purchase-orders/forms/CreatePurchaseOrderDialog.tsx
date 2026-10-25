@@ -32,12 +32,10 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
   const form = useForm<CreatePurchaseOrderFormData>({
     resolver: zodResolver(createPurchaseOrderSchema),
     defaultValues: {
-      supplierId: '',
       supplierCurrencyCode: '',
       exchangeRateType: 'FIXED',
       exchangeRate: undefined,
       orderDate: new Date().toISOString().split('T')[0],
-      expectedBy: '',
       notes: '',
     },
   });

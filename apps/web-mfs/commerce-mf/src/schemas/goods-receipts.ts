@@ -20,8 +20,8 @@ export const goodsReceiptStatusConfig: Record<GoodsReceiptStatus, { label: strin
 };
 
 export const createGoodsReceiptSchema = z.object({
-  supplierId: z.string().min(1, 'Supplier is required'),
-  purchaseOrderId: z.string().nullable().optional(),
+  supplierId: z.uuid('Supplier is required'),
+  purchaseOrderId: z.uuid().nullable().optional(),
   receivedDate: z.string({ error: 'Received date is required' }).min(1, 'Received date is required'),
   notes: z.string().optional(),
   // Required only when supplier currency != BU currency and not inherited from a FIXED PO.
@@ -56,7 +56,7 @@ export interface GoodsReceiptData {
 }
 
 export const linkGoodsReceiptPurchaseOrderSchema = z.object({
-  purchaseOrderId: z.string({ error: 'Purchase order is required' }).min(1, 'Purchase order is required'),
+  purchaseOrderId: z.uuid('Purchase order is required'),
 });
 export type LinkGoodsReceiptPurchaseOrderFormData = z.infer<typeof linkGoodsReceiptPurchaseOrderSchema>;
 
@@ -229,7 +229,7 @@ const enforceSchemeRatio = (
 export function buildAddGoodsReceiptItemFromSupplierItemSchema(options: { allowDecimal: boolean; max?: number }) {
   return z
     .object({
-      supplierItemId: z.string({ error: 'Supplier item is required' }).uuid('Supplier item is required'),
+      supplierItemId: z.uuid('Supplier item is required'),
       orderedQty: buildOrderedQtyField(options),
       rejectedQuantity: zOptionalNonNegativeNumber,
       unitPrice: zodCurrencyField({ positive: true }).optional(),
@@ -244,9 +244,7 @@ export type AddGoodsReceiptItemFromSupplierItemFormData = z.infer<
 export function buildAddGoodsReceiptItemFromPurchaseOrderItemSchema(options: { allowDecimal: boolean; max?: number }) {
   return z
     .object({
-      purchaseOrderItemId: z
-        .string({ error: 'Purchase order line is required' })
-        .uuid('Purchase order line is required'),
+      purchaseOrderItemId: z.uuid('Purchase order line is required'),
       orderedQty: buildOrderedQtyField(options),
       rejectedQuantity: zOptionalNonNegativeNumber,
       unitPrice: zodCurrencyField({ positive: true }).optional(),
@@ -274,7 +272,7 @@ export const addGoodsReceiptLotSchema = z
   .object({
     lotNumber: z.string().min(1, 'Lot number is required').max(100),
     manufacturingDate: z.string().nullable().optional(),
-    expiryDate: z.string().min(1, 'Expiry date is required'),
+    expiryDate: z.string({ error: 'Expiry date is required' }).min(1, 'Expiry date is required'),
     mrp: zodCurrencyField({ positive: true }).optional(),
   })
   .refine((data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate), {
@@ -286,8 +284,8 @@ export type AddGoodsReceiptLotFormData = z.infer<typeof addGoodsReceiptLotSchema
 // Quantity rules depend on UOM allowDecimal, PO remaining (when linked), and current serial count; built per form mount.
 export function buildAddGoodsReceiptLineSchema(options: { allowDecimal: boolean; min?: number; max?: number }) {
   return z.object({
-    goodsReceiptLotId: z.string().optional(),
-    locationId: z.string().min(1, 'Location is required'),
+    goodsReceiptLotId: z.uuid().optional(),
+    locationId: z.uuid('Location is required'),
     quantity: zodNumericField({
       required: 'Quantity is required',
       positive: true,

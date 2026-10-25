@@ -168,10 +168,14 @@ export function ApiOfferingVariantsSelect() {
     ApiOperation({
       summary: 'Offering variant options',
       description:
-        'Variants of one offering, keyed by code. Scoped by offeringId — a code only means anything next to its siblings.',
+        'Active variants labelled by their offering name, with the variant code as the description. Scoped to one offering when offeringId is given, otherwise every reachable offering. Search matches the offering name or the variant code.',
     }),
     ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'offeringId', description: 'Offering whose variants are offered', required: true }),
+    ApiQuery({
+      name: 'offeringId',
+      description: 'Offering whose variants are offered; all when omitted',
+      required: false,
+    }),
     ApiQuery({
       name: 'catalogId',
       description: 'Hide the variants this catalog already lists for any batch',

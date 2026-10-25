@@ -137,7 +137,7 @@ export type StockAdjustmentLineItemsTableResponse = TableResponse<StockAdjustmen
 
 export const createStockAdjustmentSchema = z
   .object({
-    inventoryItemId: z.string().min(1, 'Inventory item is required'),
+    inventoryItemId: z.uuid('Inventory item is required'),
     type: z.enum(['OPENING_STOCK', 'WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'CORRECTION'], {
       message: 'Adjustment type is required',
     }),
@@ -166,7 +166,7 @@ export const addStockAdjustmentLotSchema = z
   .object({
     lotNumber: z.string().min(1, 'Lot number is required').max(100),
     manufacturingDate: z.string().nullable().optional(),
-    expiryDate: z.string().min(1, 'Expiry date is required'),
+    expiryDate: z.string({ error: 'Expiry date is required' }).min(1, 'Expiry date is required'),
   })
   .refine((data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate), {
     message: 'Expiry date must be after manufacturing date',
@@ -175,9 +175,9 @@ export const addStockAdjustmentLotSchema = z
 export type AddStockAdjustmentLotFormData = z.infer<typeof addStockAdjustmentLotSchema>;
 
 export const addOpeningStockLineSchema = z.object({
-  stockAdjustmentLotId: z.string().optional(), // null for tracking='quantity'
-  locationId: z.string().min(1, 'Location is required'),
-  uomId: z.string().min(1, 'UOM is required'),
+  stockAdjustmentLotId: z.uuid().optional(), // null for tracking='quantity'
+  locationId: z.uuid('Location is required'),
+  uomId: z.uuid('UOM is required'),
   uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
 });
 export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSchema>;
@@ -187,8 +187,8 @@ export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSche
 // negative/zero) and the source quant's available qty (maxQty).
 export function buildAddChangeLineSchema(opts: { isCorrection: boolean; maxQty?: number }) {
   return z.object({
-    quantId: z.string().min(1, 'Quant is required'),
-    uomId: z.string().min(1, 'UOM is required'),
+    quantId: z.uuid('Quant is required'),
+    uomId: z.uuid('UOM is required'),
     uomQty: opts.isCorrection
       ? zodNumericField({ required: 'Quantity is required', nonZero: true })
       : zodNumericField({ required: 'Quantity is required', positive: true, max: opts.maxQty }),
@@ -201,12 +201,12 @@ export function buildUpdateChangeLineSchema(opts: { isCorrection: boolean }) {
     uomQty: opts.isCorrection
       ? zodNumericField({ required: 'Quantity is required' })
       : zodNumericField({ required: 'Quantity is required', positive: true }),
-    uomId: z.string().min(1, 'UOM is required'),
+    uomId: z.uuid('UOM is required'),
   });
 }
 export type UpdateChangeLineFormData = z.infer<ReturnType<typeof buildUpdateChangeLineSchema>>;
 
 export const addStockAdjustmentLineItemSchema = z.object({
-  serialNumber: z.string().min(1, 'Serial number is required').max(100),
+  serialNumber: z.string({ error: 'Serial number is required' }).min(1, 'Serial number is required').max(100),
 });
 export type AddStockAdjustmentLineItemFormData = z.infer<typeof addStockAdjustmentLineItemSchema>;

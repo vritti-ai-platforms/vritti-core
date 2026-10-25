@@ -61,20 +61,20 @@ export const createOfferingSchema = z.object({
   code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(255, 'Name cannot exceed 255 characters'),
   description: z.string().max(2000, 'Description cannot exceed 2000 characters'),
-  categoryId: z.string().nullable(),
+  categoryId: z.uuid().nullable(),
   fulfilmentType: z.enum(FULFILMENT_TYPES),
-  taxClassId: z.string().min(1, 'Tax class is required'),
+  taxClassId: z.uuid('Tax class is required'),
 });
 
 export const updateOfferingSchema = z.object({
   code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(255, 'Name cannot exceed 255 characters'),
   description: z.string().max(2000, 'Description cannot exceed 2000 characters'),
-  categoryId: z.string().nullable(),
+  categoryId: z.uuid().nullable(),
 });
 
 export const setTaxClassSchema = z.object({
-  taxClassId: z.string().min(1, 'Tax class is required'),
+  taxClassId: z.uuid('Tax class is required'),
 });
 
 // A custom dimension is created empty; its values are set afterwards from the card
@@ -92,7 +92,7 @@ export const createAttributeSchema = z.object({
 });
 
 export const createDimensionFromTemplateSchema = z.object({
-  templateId: z.string().min(1, 'Select a template'),
+  templateId: z.uuid('Select a template'),
   code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
   description: z.string().max(500, 'Description cannot exceed 500 characters').nullable(),
@@ -100,7 +100,7 @@ export const createDimensionFromTemplateSchema = z.object({
 });
 
 export const createAttributeFromTemplateSchema = z.object({
-  templateId: z.string().min(1, 'Select a template'),
+  templateId: z.uuid('Select a template'),
   code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
   description: z.string().max(500, 'Description cannot exceed 500 characters').nullable(),
@@ -131,17 +131,17 @@ export const attributeValueSchema = z.object({
 
 export const dimensionValuesSchema = z.object({
   values: z.array(dimensionValueSchema).min(1, 'Add at least one value'),
-  templateId: z.string().nullable().optional(),
+  templateId: z.uuid().nullable().optional(),
 });
 
 export const attributeValuesSchema = z.object({
   values: z.array(attributeValueSchema).min(1, 'Add at least one value'),
-  templateId: z.string().nullable().optional(),
+  templateId: z.uuid().nullable().optional(),
 });
 
 // valueIds has no minimum: clearing the attribute across the selection is a legitimate save
 export const bulkSetVariantsAttributeSchema = z.object({
-  attributeId: z.string().min(1, 'Select an attribute'),
+  attributeId: z.uuid('Select an attribute'),
   valueIds: z.array(z.string()),
 });
 
@@ -374,7 +374,7 @@ export function buildAddVariantSchema(dimensions: OfferingDimensionData[]) {
   const axes = Object.fromEntries(dimensions.map((dimension) => [dimension.id, z.string()]));
   return z.object({
     ...axes,
-    salesUomId: z.string().min(1, 'Unit is required'),
+    salesUomId: z.uuid('Unit is required'),
     externalSku: z.string().max(100, 'External SKU cannot exceed 100 characters'),
   });
 }
@@ -489,12 +489,12 @@ export interface DeleteBomLineData {
 
 export const editBomLineSchema = z.object({
   quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
-  uomId: z.string().min(1, 'Unit is required'),
+  uomId: z.uuid('Unit is required'),
 });
 
 // Which item a line names is fixed once it exists, so only adding asks for it
 export const addBomLineSchema = editBomLineSchema.extend({
-  inventoryItemId: z.string().min(1, 'Item is required'),
+  inventoryItemId: z.uuid('Item is required'),
 });
 
 export type AddBomLineFormData = z.infer<typeof addBomLineSchema>;

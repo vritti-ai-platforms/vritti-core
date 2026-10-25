@@ -48,7 +48,6 @@ export const AddLineForm = ({
     resolver: zodResolver(schema),
     defaultValues: {
       goodsReceiptLotId: goodsReceiptLotId ?? undefined,
-      locationId: '',
       quantity: 0,
     },
   });

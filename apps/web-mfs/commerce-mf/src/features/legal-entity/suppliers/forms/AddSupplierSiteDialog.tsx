@@ -24,12 +24,6 @@ export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
 }) => {
   const form = useForm<AddSupplierSiteFormData>({
     resolver: zodResolver(addSupplierSiteSchema),
-    defaultValues: {
-      siteId: '',
-      partyTaxRegistrationId: '',
-      partyBankAccountId: '',
-      orderRelationshipId: '',
-    },
   });
 
   const addMutation = useAddSupplierSite(supplierId, { onSuccess });

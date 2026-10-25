@@ -26,7 +26,6 @@ export const AddLicenseDialog: React.FC<AddLicenseDialogProps> = ({ partyId, bin
       licenseType: 'DRUG',
       licenseNumber: '',
       region: '',
-      validTo: '',
       notes: '',
       isActive: true,
     },

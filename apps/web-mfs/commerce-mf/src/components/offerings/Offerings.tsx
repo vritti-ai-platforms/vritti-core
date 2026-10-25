@@ -1,6 +1,6 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Badge } from "@vritti/quantum-ui/Badge";
-import { Button } from "@vritti/quantum-ui/Button";
+import { useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@vritti/quantum-ui/Badge';
+import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
   DataTable,
@@ -9,21 +9,22 @@ import {
   RowActions,
   StringCell,
   useDataTable,
-} from "@vritti/quantum-ui/DataTable";
-import { Dialog } from "@vritti/quantum-ui/Dialog";
-import { useDialog } from "@vritti/quantum-ui/hooks";
-import { PageHeader } from "@vritti/quantum-ui/PageHeader";
-import { SelectFilter } from "@vritti/quantum-ui/Select";
-import { StatusSwitch } from "@vritti/quantum-ui/StatusSwitch";
-import { buildSlug } from "@vritti/quantum-ui/slug";
-import { CircleCheck, CircleSlash, Eye, Plus, ShoppingBag } from "lucide-react";
-import type React from "react";
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import type { OfferingTableRow } from "@/schemas/offerings";
-import { FULFILMENT_TYPE_META } from "@/schemas/offerings";
-import type { OfferingsBinding } from "./bindings";
-import { AddOfferingDialog } from "./forms/AddOfferingDialog";
+} from '@vritti/quantum-ui/DataTable';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { useDialog } from '@vritti/quantum-ui/hooks';
+import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
+import { buildSlug } from '@vritti/quantum-ui/slug';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
+import { CircleCheck, CircleSlash, Eye, Plus, ShoppingBag } from 'lucide-react';
+import type React from 'react';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { OfferingTableRow } from '@/schemas/offerings';
+import { FULFILMENT_TYPE_META } from '@/schemas/offerings';
+import type { OfferingsBinding } from './bindings';
+import { AddOfferingDialog } from './forms/AddOfferingDialog';
 
 interface OfferingsProps {
   binding: OfferingsBinding;
@@ -43,44 +44,38 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
     () => [
       getSelectionColumn<OfferingTableRow>(),
       {
-        accessorKey: "code",
-        header: "Code",
+        accessorKey: 'code',
+        header: 'Code',
         cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
-      { accessorKey: "name", header: "Name", enableSorting: true },
+      { accessorKey: 'name', header: 'Name', enableSorting: true },
       {
-        accessorKey: "fulfilmentType",
-        header: "Fulfilment",
-        cell: ({ row }) => (
-          <Badge variant="outline">
-            {FULFILMENT_TYPE_META[row.original.fulfilmentType].label}
-          </Badge>
-        ),
+        accessorKey: 'fulfilmentType',
+        header: 'Fulfilment',
+        cell: ({ row }) => <Badge variant="outline">{FULFILMENT_TYPE_META[row.original.fulfilmentType].label}</Badge>,
         enableSorting: false,
       },
       {
-        accessorKey: "ownerName",
-        header: "Owner",
-        cell: ({ row }) => (
-          <Badge variant="secondary">{row.original.ownerName}</Badge>
-        ),
+        accessorKey: 'ownerName',
+        header: 'Owner',
+        cell: ({ row }) => <Badge variant="secondary">{row.original.ownerName}</Badge>,
         enableSorting: false,
       },
       {
-        accessorKey: "dimensionCount",
-        header: "Dimensions",
+        accessorKey: 'dimensionCount',
+        header: 'Dimensions',
         cell: ({ row }) => <NumberCell value={row.original.dimensionCount} />,
         enableSorting: false,
       },
       {
-        accessorKey: "variantCount",
-        header: "Variants",
+        accessorKey: 'variantCount',
+        header: 'Variants',
         cell: ({ row }) => <NumberCell value={row.original.variantCount} />,
         enableSorting: false,
       },
       {
-        accessorKey: "isActive",
+        accessorKey: 'isActive',
         header: () => <div className="text-center">Status</div>,
         cell: ({ row }) => (
           <div className="flex justify-center">
@@ -90,13 +85,9 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
               disabled={!row.original.canMarkActive}
               isLoading={setStatusMutation.isPending}
               disabledTip={
-                row.original.canEdit
-                  ? "Generate a variant first"
-                  : "This offering belongs to a wider scope."
+                row.original.canEdit ? 'Generate a variant first' : 'This offering belongs to a wider scope.'
               }
-              onCheckedChange={(isActive) =>
-                setStatusMutation.mutate({ id: row.original.id, isActive })
-              }
+              onCheckedChange={(isActive) => setStatusMutation.mutate({ id: row.original.id, isActive })}
               ariaLabel={`Mark ${row.original.name} active`}
             />
           </div>
@@ -104,17 +95,16 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
         enableSorting: false,
       },
       {
-        id: "actions",
-        header: "",
+        id: 'actions',
+        header: '',
         cell: ({ row }) => (
           <RowActions
             actions={[
               {
-                id: "view",
+                id: 'view',
                 icon: Eye,
-                label: "View",
-                onClick: () =>
-                  navigate(buildSlug(row.original.name, row.original.id)),
+                label: 'View',
+                onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
               },
             ]}
           />
@@ -129,13 +119,12 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
   const { table } = useDataTable({
     columns,
     slug: binding.tableSlug,
-    label: "offering",
+    label: 'offering',
     serverState: response,
     enableRowSelection: (row) => row.original.canMarkActive,
     enableSorting: true,
     enableMultiSort: false,
-    onStatePush: () =>
-      queryClient.invalidateQueries({ queryKey: binding.tableKey }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: binding.tableKey }),
   });
 
   const resetSelection = { onSuccess: () => table.resetRowSelection() };
@@ -156,12 +145,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
               permission={PERMISSIONS.toggle}
               startAdornment={<CircleCheck className="size-4" />}
               isLoading={markActiveMutation.isPending}
-              onClick={() =>
-                markActiveMutation.mutate(
-                  { ids: rows.map((row) => row.original.id) },
-                  resetSelection,
-                )
-              }
+              onClick={() => markActiveMutation.mutate({ ids: rows.map((row) => row.original.id) }, resetSelection)}
             >
               Mark Active
             </Button>
@@ -171,12 +155,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
               permission={PERMISSIONS.toggle}
               startAdornment={<CircleSlash className="size-4" />}
               isLoading={markInactiveMutation.isPending}
-              onClick={() =>
-                markInactiveMutation.mutate(
-                  { ids: rows.map((row) => row.original.id) },
-                  resetSelection,
-                )
-              }
+              onClick={() => markInactiveMutation.mutate({ ids: rows.map((row) => row.original.id) }, resetSelection)}
             >
               Mark Inactive
             </Button>
@@ -184,38 +163,36 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
         )}
         searchConfig={{
           columns: [
-            { id: "name", label: "Name" },
-            { id: "code", label: "Code" },
+            { id: 'name', label: 'Name' },
+            { id: 'code', label: 'Code' },
           ],
           searchAll: true,
         }}
         filters={[
+          <ValueFilter key="name" name="name" label="Name" fieldType="string" />,
+          <ValueFilter key="code" name="code" label="Code" fieldType="string" />,
           <SelectFilter
             key="fulfilmentType"
             name="fulfilmentType"
             label="Fulfilment"
             multiple
-            options={Object.entries(FULFILMENT_TYPE_META).map(
-              ([value, { label }]) => ({ label, value }),
-            )}
+            options={Object.entries(FULFILMENT_TYPE_META).map(([value, { label }]) => ({ label, value }))}
           />,
           <SelectFilter
             key="isActive"
             name="isActive"
             label="Status"
             options={[
-              { label: "Active", value: "true" },
-              { label: "Inactive", value: "false" },
+              { label: 'Active', value: 'true' },
+              { label: 'Inactive', value: 'false' },
             ]}
           />,
+          <ValueFilter key="dimensionCount" name="dimensionCount" label="Dimensions" fieldType="number" />,
+          <ValueFilter key="variantCount" name="variantCount" label="Variants" fieldType="number" />,
         ]}
         toolbarActions={{
           actions: (
-            <Button
-              size="sm"
-              onClick={addDialog.open}
-              permission={PERMISSIONS.add}
-            >
+            <Button size="sm" onClick={addDialog.open} permission={PERMISSIONS.add}>
               <Plus className="mr-2 size-4" />
               Add Offering
             </Button>
@@ -223,23 +200,22 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
         }}
         importExport={{
           columns: [
-            { key: "code", label: "Code" },
-            { key: "name", label: "Name" },
-            { key: "fulfilmentType", label: "Fulfilment" },
-            { key: "ownerName", label: "Owner" },
-            { key: "dimensionCount", label: "Dimensions" },
-            { key: "variantCount", label: "Variants" },
-            { key: "isActive", label: "Status" },
+            { key: 'code', label: 'Code' },
+            { key: 'name', label: 'Name' },
+            { key: 'fulfilmentType', label: 'Fulfilment' },
+            { key: 'ownerName', label: 'Owner' },
+            { key: 'dimensionCount', label: 'Dimensions' },
+            { key: 'variantCount', label: 'Variants' },
+            { key: 'isActive', label: 'Status' },
           ],
           exportEndpoint: binding.exportEndpoint,
           exportPermission: PERMISSIONS.export,
-          filename: "offerings",
+          filename: 'offerings',
         }}
         emptyStateConfig={{
           icon: ShoppingBag,
-          title: "No offerings yet",
-          description:
-            "Create an offering, add its dimensions, then generate variants from the combinations.",
+          title: 'No offerings yet',
+          description: 'Create an offering, add its dimensions, then generate variants from the combinations.',
         }}
       />
 
@@ -249,11 +225,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
         title="Add Offering"
         description="Its code becomes the prefix of every variant Code, so it cannot be changed later."
         content={(close) => (
-          <AddOfferingDialog
-            useCreate={binding.useCreateOffering}
-            onSuccess={close}
-            onCancel={close}
-          />
+          <AddOfferingDialog useCreate={binding.useCreateOffering} onSuccess={close} onCancel={close} />
         )}
         className="max-w-3xl"
       />

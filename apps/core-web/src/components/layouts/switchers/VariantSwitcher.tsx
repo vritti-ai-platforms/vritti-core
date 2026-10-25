@@ -3,7 +3,7 @@ import { Separator } from '@vritti/quantum-ui/Separator';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Boxes, ChevronsUpDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { OfferingVariantSelector } from '@/selectors/offering-variant';
+import { OfferingVariantSelector } from '@/utils/RemoteSelectors';
 
 interface VariantSwitcherProps {
   // The raw `code~uuid` breadcrumb segment
@@ -35,7 +35,7 @@ export const VariantSwitcher = ({ segment, offeringId, basePath }: VariantSwitch
           className="h-auto min-w-25 gap-1.5 p-0 text-sm font-normal hover:bg-transparent"
         >
           <span className="flex-1 text-left font-mono font-normal text-foreground">
-            {selectedOption?.label ?? labelOf(segment)}
+            {selectedOption?.description ?? labelOf(segment)}
           </span>
           <span className="flex size-6 items-center justify-center rounded-full border border-border transition-colors hover:bg-accent">
             <ChevronsUpDown className="size-3.5 text-muted-foreground" />
@@ -58,7 +58,8 @@ export const VariantSwitcher = ({ segment, offeringId, basePath }: VariantSwitch
       }
       onOptionSelect={(option) => {
         if (option && String(option.value) !== current) {
-          navigate(`${basePath}/${buildSlug(String(option.label), String(option.value))}`);
+          // The option's label is its offering; the code, its description, is what a variant's URL is slugged by
+          navigate(`${basePath}/${buildSlug(String(option.description ?? option.label), String(option.value))}`);
         }
       }}
     />

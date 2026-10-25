@@ -16,6 +16,7 @@ import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import {
   Boxes,
   CircleCheck,
@@ -34,6 +35,7 @@ import type React from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FULFILMENT_TYPE_META, type OfferingData, type OfferingVariantData } from '@/schemas/offerings';
+import { facetFilters } from '../components/facetFilters';
 import { AddVariantDialog } from '../forms/AddVariantDialog';
 import { BulkSetVariantsAttributeDialog } from '../forms/BulkSetVariantsAttributeDialog';
 import { BulkSetVariantsTaxClassDialog } from '../forms/SetTaxClassDialog';
@@ -380,6 +382,9 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
           searchAll: true,
         }}
         filters={[
+          ...facetFilters('dimension', dimensions),
+          ...facetFilters('attribute', attributes),
+          <ValueFilter key="bomLineCount" name="bomLineCount" label="Bill of Materials" fieldType="number" />,
           <SelectFilter
             key="isTaxClassOverridden"
             name="isTaxClassOverridden"

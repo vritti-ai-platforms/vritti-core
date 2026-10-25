@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
-import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { compareCount, type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,
   ConflictException,
@@ -17,7 +17,12 @@ import {
   type FulfilmentType,
   FulfilmentTypeValues,
   type OfferingVariant,
+  offeringAttributes,
+  offeringBom,
+  offeringDimensions,
+  offeringVariantAttributeValues,
   offeringVariants,
+  offeringVariantValues,
 } from '@/db/schema';
 import { OfferingVariantDto, type OfferingVariantTableRowDto } from '../dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '../dto/entity/variant-combination.dto';
@@ -56,6 +61,48 @@ export class OfferingVariantsDomainService {
     isTaxClassOverridden: { column: offeringVariants.isTaxClassOverridden, type: 'boolean' },
     fulfilmentType: { column: offeringVariants.fulfilmentType, type: 'string' },
     isFulfilmentOverridden: { column: offeringVariants.isFulfilmentOverridden, type: 'boolean' },
+    bomLineCount: {
+      expression: compareCount(
+        sql`(select count(*) from ${offeringBom} where ${offeringBom.variantId} = ${offeringVariants.id})`,
+      ),
+      type: 'number',
+    },
+    'dimension:*': {
+      wildcardExpression: ({ key: dimensionId, values: valueIds, operator }) => {
+        const carriesValue = sql`exists (
+          select 1 from ${offeringVariantValues}
+          where ${offeringVariantValues.variantId} = ${offeringVariants.id}
+            and ${offeringVariantValues.dimensionId} = ${dimensionId}
+            and ${inArray(offeringVariantValues.valueId, valueIds)}
+        )`;
+        return sql`(not exists (
+          select 1 from ${offeringDimensions}
+          where ${offeringDimensions.id} = ${dimensionId}
+            and ${offeringDimensions.offeringId} = ${offeringVariants.offeringId}
+        ) or ${operator === 'isNotAnyOf' ? sql`not ${carriesValue}` : carriesValue})`;
+      },
+      keyFormat: 'uuid',
+      valueFormat: 'uuid',
+      type: 'string',
+    },
+    'attribute:*': {
+      wildcardExpression: ({ key: attributeId, values: valueIds, operator }) => {
+        const carriesValue = sql`exists (
+          select 1 from ${offeringVariantAttributeValues}
+          where ${offeringVariantAttributeValues.variantId} = ${offeringVariants.id}
+            and ${offeringVariantAttributeValues.attributeId} = ${attributeId}
+            and ${inArray(offeringVariantAttributeValues.valueId, valueIds)}
+        )`;
+        return sql`(not exists (
+          select 1 from ${offeringAttributes}
+          where ${offeringAttributes.id} = ${attributeId}
+            and ${offeringAttributes.offeringId} = ${offeringVariants.offeringId}
+        ) or ${operator === 'isNotAnyOf' ? sql`not ${carriesValue}` : carriesValue})`;
+      },
+      keyFormat: 'uuid',
+      valueFormat: 'uuid',
+      type: 'string',
+    },
   };
 
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
@@ -174,16 +221,15 @@ export class OfferingVariantsDomainService {
     });
   }
 
-  // Options for the breadcrumb switcher: this offering's variants, keyed by Code
+  // Returns paginated active variant options for the select component — one offering's when offeringId is given
   async findForSelect(
-    offeringId: string,
-    query: SelectOptionsQueryDto & { catalogId?: string },
+    query: SelectOptionsQueryDto & { offeringId?: string; catalogId?: string },
   ): Promise<SelectQueryResult> {
-    await this.requireReachableOffering(offeringId);
-    const result = await this.repository.findForSelectInOffering(
+    if (query.offeringId) await this.requireReachableOffering(query.offeringId);
+    return this.repository.findVariantsForSelect(
       {
         value: query.valueKey || 'id',
-        label: query.labelKey || 'code',
+        label: query.labelKey || 'name',
         description: query.descriptionKey,
         additionalKeys: query.additionalKeys,
         // Read off the cached column rather than re-joining the junctions, which is what that column is for
@@ -202,20 +248,8 @@ export class OfferingVariantsDomainService {
         orderByKey: query.orderByKey || 'code',
         orderDirection: query.orderDirection || 'asc',
       },
-      offeringId,
-      query.catalogId,
+      { offeringId: query.offeringId, catalogId: query.catalogId },
     );
-
-    // A variant has nothing else to describe it with: no name of its own, and its offering is already the
-    // thing being browsed. Its dimension values are what tell one option from the next.
-    if (query.descriptionKey) return result;
-    return {
-      ...result,
-      options: result.options.map((option) => ({
-        ...option,
-        description: String(option.additionals?.facets ?? '') || undefined,
-      })),
-    };
   }
 
   // Flat rows for the file export, scoped to one offering.

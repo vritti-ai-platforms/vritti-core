@@ -20,7 +20,6 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
   const form = useForm<CreateStockTransferFormData>({
     resolver: zodResolver(createStockTransferSchema),
     defaultValues: {
-      inventoryItemId: '',
       fromSiteId: '',
       toSiteId: '',
       fromLocationId: undefined,

@@ -21,7 +21,7 @@ const AddLotForm = ({
 }) => {
   const form = useForm<AddStockAdjustmentLotFormData>({
     resolver: zodResolver(addStockAdjustmentLotSchema),
-    defaultValues: { lotNumber: '', manufacturingDate: '', expiryDate: '' },
+    defaultValues: { lotNumber: '' },
   });
 
   const manufacturingDate = form.watch('manufacturingDate');

@@ -45,7 +45,6 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   const form = useForm<AddPurchaseOrderItemFormData>({
     resolver: zodResolver(addPurchaseOrderItemSchema),
     defaultValues: {
-      supplierItemId: '',
       uomQty: 0,
       unitPrice: undefined,
       schemeBuyQty: undefined,

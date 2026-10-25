@@ -6,7 +6,7 @@ export const ExchangeRateTypeEnum = z.enum(['FIXED', 'VARIABLE']);
 export type ExchangeRateType = z.infer<typeof ExchangeRateTypeEnum>;
 
 export const createPurchaseOrderSchema = z.object({
-  supplierId: z.string().min(1, 'Supplier is required'),
+  supplierId: z.uuid('Supplier is required'),
   supplierCurrencyCode: z.string().optional(),
   exchangeRateType: ExchangeRateTypeEnum,
   exchangeRate: zodNumericField({ positive: true, nonZero: true }).optional(),
@@ -142,7 +142,7 @@ const enforceSchemeRatio = (
 
 export const addPurchaseOrderItemSchema = z
   .object({
-    supplierItemId: z.string().min(1, 'Item is required'),
+    supplierItemId: z.uuid('Item is required'),
     uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
     unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
     ...poSchemeShape,
@@ -180,7 +180,7 @@ export const updatePurchaseOrderNotesSchema = z.object({
 export type UpdatePurchaseOrderNotesFormData = z.infer<typeof updatePurchaseOrderNotesSchema>;
 
 export const changePurchaseOrderSupplierSchema = z.object({
-  supplierId: z.string().min(1, 'Supplier is required'),
+  supplierId: z.uuid('Supplier is required'),
 });
 
 export type ChangePurchaseOrderSupplierFormData = z.infer<typeof changePurchaseOrderSupplierSchema>;

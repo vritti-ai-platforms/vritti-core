@@ -17,7 +17,6 @@ interface OpenCartDialogProps {
 export const OpenCartDialog = ({ binding, onSuccess, onCancel }: OpenCartDialogProps) => {
   const form = useForm<OpenCartFormData>({
     resolver: zodResolver(openCartSchema),
-    defaultValues: { partyId: '' },
   });
 
   const createMutation = binding.useOpenCart({ onSuccess });

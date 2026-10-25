@@ -1,12 +1,12 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsOptional, IsUUID } from 'class-validator';
 
-// Variants are only meaningful within their offering, so the parent is required rather than optional
 export class OfferingVariantsSelectQueryDto extends SelectOptionsQueryDto {
-  @ApiProperty({ description: 'Offering whose variants are listed' })
+  @ApiPropertyOptional({ description: 'Offering whose variants are listed; every reachable offering when omitted' })
+  @IsOptional()
   @IsUUID('7')
-  offeringId: string;
+  offeringId?: string;
 
   @ApiPropertyOptional({ description: 'Hide the variants this catalog already lists for any batch' })
   @IsOptional()

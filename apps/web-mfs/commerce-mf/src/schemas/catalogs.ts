@@ -18,17 +18,17 @@ export type CreateCatalogFormData = z.infer<typeof createCatalogSchema>;
 export type UpdateCatalogFormData = z.infer<typeof updateCatalogSchema>;
 
 export const addCatalogListingSchema = z.object({
-  offeringVariantId: z.string().uuid('Variant is required'),
-  inventoryItemMrpId: z.string().uuid().nullable().optional(),
-  price: zodCurrencyField({ positive: true }).optional(),
+  offeringVariantId: z.uuid('Variant is required'),
+  inventoryItemMrpId: z.uuid().nullable().optional(),
+  price: zodCurrencyField({ positive: true, optional: true }).optional(),
 });
 
 export type AddCatalogListingItem = z.infer<typeof addCatalogListingSchema>;
 
-// The offering and the currency only decide what the other fields may hold — neither is submitted
+// The offering only decides which variants may be chosen — it is not submitted
 export const addCatalogListingFormSchema = addCatalogListingSchema.extend({
-  offeringId: z.string().uuid('Offering is required'),
-  currencyCode: z.string().optional(),
+  offeringId: z.uuid('Offering is required'),
+  offeringVariantId: z.uuid('Variant is required'),
 });
 
 export type AddCatalogListingFormShape = z.infer<typeof addCatalogListingFormSchema>;
@@ -36,13 +36,13 @@ export type AddCatalogListingFormShape = z.infer<typeof addCatalogListingFormSch
 // One row of the page: a variant, the MRPs it is being listed at, and a price slot for each of them.
 // An empty mrpIds means one listing covering any batch, which is what `rows` then holds a single entry for.
 export const addCatalogListingVariantSchema = z.object({
-  offeringVariantId: z.string().uuid(),
-  mrpIds: z.array(z.string().uuid()),
+  offeringVariantId: z.uuid(),
+  mrpIds: z.array(z.uuid()),
   rows: z
     .array(
       z.object({
-        inventoryItemMrpId: z.string().uuid().nullable(),
-        price: zodCurrencyField({ positive: true }).optional(),
+        inventoryItemMrpId: z.uuid().nullable(),
+        price: zodCurrencyField({ positive: true, optional: true }).optional(),
       }),
     )
     .min(1),
@@ -63,7 +63,7 @@ export const setCatalogListingPriceSchema = z.object({
 export type SetCatalogListingPriceFormData = z.infer<typeof setCatalogListingPriceSchema>;
 
 export const bulkSetListingPriceSchema = z.object({
-  currencyCode: z.string().min(1, 'Currency is required'),
+  currencyCode: z.string({ error: 'Currency is required' }).min(1, 'Currency is required'),
   price: zodCurrencyField({ positive: true }),
 });
 
@@ -76,7 +76,7 @@ export const bulkClearListingPricesSchema = z.object({
 export type BulkClearListingPricesFormData = z.infer<typeof bulkClearListingPricesSchema>;
 
 export const addCatalogCurrencySchema = z.object({
-  currencyCode: z.string().min(1, 'Currency is required'),
+  currencyCode: z.string({ error: 'Currency is required' }).min(1, 'Currency is required'),
 });
 
 export type AddCatalogCurrencyFormData = z.infer<typeof addCatalogCurrencySchema>;

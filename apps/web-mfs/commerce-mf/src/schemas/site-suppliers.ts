@@ -30,8 +30,8 @@ export const enrollSiteSupplierSchema = z.object({
 });
 
 export const updateSiteEnrollmentSchema = z.object({
-  partyTaxRegistrationId: z.string().nullable().optional(),
-  partyBankAccountId: z.string().nullable().optional(),
+  partyTaxRegistrationId: z.uuid().nullable().optional(),
+  partyBankAccountId: z.uuid().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 

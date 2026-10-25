@@ -28,7 +28,7 @@ interface AddBomLineDialogProps {
 export const AddBomLineDialog: React.FC<AddBomLineDialogProps> = ({ useAdd, variant, onSuccess, onCancel }) => {
   const form = useForm<AddBomLineFormData>({
     resolver: zodResolver(addBomLineSchema),
-    defaultValues: { inventoryItemId: '', quantity: 1, uomId: '' },
+    defaultValues: { quantity: 1 },
   });
 
   const addMutation = useAdd({ onSuccess });

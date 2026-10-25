@@ -39,11 +39,11 @@ export interface CartLinesData {
 
 // Opening a basket. Every basket belongs to a shopper
 export const openCartSchema = z.object({
-  partyId: z.string().min(1, 'Choose a shopper'),
+  partyId: z.uuid('Choose a shopper'),
 });
 
 export const addCartLineSchema = z.object({
-  offeringVariantId: z.string().min(1, 'Choose a variant'),
+  offeringVariantId: z.uuid('Choose a variant'),
   quantity: zodNumericField({
     required: 'How many?',
     integer: true,
@@ -59,7 +59,7 @@ export type AddCartLineFormData = z.infer<typeof addCartLineSchema>;
 
 // The offering scopes the variant picker but is never submitted — a variant carries its own offering
 export const addCartLineFormSchema = addCartLineSchema.extend({
-  offeringId: z.string().min(1, 'Choose a product'),
+  offeringId: z.uuid('Choose a product'),
 });
 
 export type AddCartLineFormShape = z.infer<typeof addCartLineFormSchema>;

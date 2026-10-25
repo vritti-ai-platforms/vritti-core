@@ -29,10 +29,8 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
   const form = useForm<AddSupplierItemFormData>({
     resolver: zodResolver(addSupplierItemSchema),
     defaultValues: {
-      inventoryItemId: '',
       supplierItemCode: '',
       unitPrice: undefined,
-      uomId: '',
       minOrderQuantity: undefined,
       leadTimeDays: undefined,
       isPreferred: false,
@@ -79,7 +77,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
                 label="Inventory Item"
                 placeholder="Select item"
                 optionsEndpoint="commerce-api/org/inventory-items/select"
-                onOptionSelect={() => form.setValue('uomId', '')}
+                onOptionSelect={() => form.resetField('uomId')}
                 params={{ excludeOnSupplierId: supplierId }}
               />
             </div>
