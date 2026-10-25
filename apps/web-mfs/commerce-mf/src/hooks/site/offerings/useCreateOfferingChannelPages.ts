@@ -6,7 +6,7 @@ import { createChannelPages } from '@/services/site/offerings.service';
 import { CHANNEL_VARIANTS_KEY } from './keys';
 
 // Creates pages on one channel's storefront, then re-reads that channel's rows
-export function useCreateChannelPages(options?: { onSuccess?: () => void }) {
+export function useCreateOfferingChannelPages(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, CreateChannelPagesData>({
     mutationFn: createChannelPages,

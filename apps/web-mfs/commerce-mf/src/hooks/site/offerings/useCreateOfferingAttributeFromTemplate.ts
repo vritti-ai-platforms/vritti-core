@@ -6,7 +6,7 @@ import type { CreateAttributeFromTemplateData, OfferingAttributeData } from '@/s
 import { createAttributeFromTemplate } from '@/services/site/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useCreateAttributeFromTemplate(
+export function useCreateOfferingAttributeFromTemplate(
   options?: Omit<
     UseMutationOptions<CreateResponse<OfferingAttributeData>, AxiosError, CreateAttributeFromTemplateData>,
     'mutationFn'

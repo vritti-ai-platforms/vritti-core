@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 import { bulkSetVariantsTaxClass } from '@/services/organization/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useBulkSetVariantsTaxClass(
+export function useBulkSetOfferingVariantsTaxClass(
   options?: Omit<
     UseMutationOptions<SuccessResponse, AxiosError, { offeringId: string; ids: string[]; taxClassId: string }>,
     'mutationFn'

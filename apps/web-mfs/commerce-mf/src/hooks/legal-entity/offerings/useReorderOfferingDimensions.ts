@@ -6,7 +6,7 @@ import type { ReorderDimensionsData } from '@/schemas/offerings';
 import { reorderDimensions } from '@/services/legal-entity/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useReorderDimensions(
+export function useReorderOfferingDimensions(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, ReorderDimensionsData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

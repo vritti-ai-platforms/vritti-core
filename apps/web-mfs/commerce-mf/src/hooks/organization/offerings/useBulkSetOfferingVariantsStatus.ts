@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 import { bulkSetVariantsStatus } from '@/services/organization/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useBulkSetVariantsStatus(
+export function useBulkSetOfferingVariantsStatus(
   options?: Omit<
     UseMutationOptions<SuccessResponse, AxiosError, { offeringId: string; ids: string[]; isActive: boolean }>,
     'mutationFn'

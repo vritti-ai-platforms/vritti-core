@@ -6,7 +6,7 @@ import type { UpsertAttributeValuesData } from '@/schemas/offerings';
 import { upsertAttributeValues } from '@/services/legal-entity/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useUpsertAttributeValues(
+export function useUpsertOfferingAttributeValues(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpsertAttributeValuesData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

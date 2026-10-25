@@ -6,7 +6,7 @@ import type { GenerateVariantsData } from '@/schemas/offerings';
 import { generateVariants } from '@/services/site/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useGenerateVariants(
+export function useGenerateOfferingVariants(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, GenerateVariantsData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

@@ -6,7 +6,7 @@ import type { UpdateAttributeData } from '@/schemas/offerings';
 import { updateAttribute } from '@/services/legal-entity/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useUpdateAttribute(
+export function useUpdateOfferingAttribute(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpdateAttributeData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

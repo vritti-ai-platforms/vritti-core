@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 import { clearVariantTaxClass } from '@/services/organization/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useClearVariantTaxClass(
+export function useClearOfferingVariantTaxClass(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

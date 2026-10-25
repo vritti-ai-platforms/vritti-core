@@ -6,7 +6,7 @@ import type { UpsertDimensionValuesData } from '@/schemas/offerings';
 import { upsertDimensionValues } from '@/services/legal-entity/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useUpsertDimensionValues(
+export function useUpsertOfferingDimensionValues(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpsertDimensionValuesData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

@@ -7,7 +7,7 @@ import { getChannelVariantsTable } from '@/services/organization/offerings.servi
 import { CHANNEL_VARIANTS_KEY } from './keys';
 
 // This offering's variants as one storefront sees them — the rows of that app's table
-export function useChannelVariantsTable(
+export function useOfferingChannelVariantsTable(
   offeringId: string,
   channelType: string,
   targetId: string,

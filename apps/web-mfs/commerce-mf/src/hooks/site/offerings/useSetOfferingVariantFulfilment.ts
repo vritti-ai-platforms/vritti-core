@@ -6,7 +6,7 @@ import type { SetVariantFulfilmentData } from '@/schemas/offerings';
 import { setVariantFulfilment } from '@/services/site/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useSetVariantFulfilment(
+export function useSetOfferingVariantFulfilment(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetVariantFulfilmentData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

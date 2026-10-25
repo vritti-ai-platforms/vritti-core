@@ -6,7 +6,7 @@ import type { CreateVariantData, OfferingVariantData } from '@/schemas/offerings
 import { createVariant } from '@/services/organization/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useCreateVariant(
+export function useCreateOfferingVariant(
   options?: Omit<UseMutationOptions<CreateResponse<OfferingVariantData>, AxiosError, CreateVariantData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

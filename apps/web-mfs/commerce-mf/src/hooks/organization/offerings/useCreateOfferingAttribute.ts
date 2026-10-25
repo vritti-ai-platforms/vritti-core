@@ -6,7 +6,7 @@ import type { CreateAttributeData, OfferingAttributeData } from '@/schemas/offer
 import { createAttribute } from '@/services/organization/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useCreateAttribute(
+export function useCreateOfferingAttribute(
   options?: Omit<
     UseMutationOptions<CreateResponse<OfferingAttributeData>, AxiosError, CreateAttributeData>,
     'mutationFn'

@@ -8,7 +8,7 @@ import { useInvalidate } from './useInvalidate';
 
 // The whole set in one call: attributes are multi-valued, so a per-value toggle would make an eight-tag variant eight
 // requests and leave it half-tagged if one failed
-export function useSetVariantAttributes(
+export function useSetOfferingVariantAttributes(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetVariantAttributesData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

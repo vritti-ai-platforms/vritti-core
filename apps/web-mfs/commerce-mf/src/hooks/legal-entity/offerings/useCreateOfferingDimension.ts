@@ -6,7 +6,7 @@ import type { CreateDimensionData, OfferingDimensionData } from '@/schemas/offer
 import { createDimension } from '@/services/legal-entity/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useCreateDimension(
+export function useCreateOfferingDimension(
   options?: Omit<
     UseMutationOptions<CreateResponse<OfferingDimensionData>, AxiosError, CreateDimensionData>,
     'mutationFn'

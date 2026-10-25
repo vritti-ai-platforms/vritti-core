@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 import { updateVariant } from '@/services/legal-entity/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useUpdateVariant(
+export function useUpdateOfferingVariant(
   options?: Omit<
     UseMutationOptions<
       SuccessResponse,

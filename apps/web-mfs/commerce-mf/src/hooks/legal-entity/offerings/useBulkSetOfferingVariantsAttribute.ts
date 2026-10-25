@@ -7,7 +7,7 @@ import { bulkSetVariantsAttribute } from '@/services/legal-entity/offerings.serv
 import { useInvalidate } from './useInvalidate';
 
 // One attribute across the whole selection.
-export function useBulkSetVariantsAttribute(
+export function useBulkSetOfferingVariantsAttribute(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, BulkSetVariantsAttributeData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

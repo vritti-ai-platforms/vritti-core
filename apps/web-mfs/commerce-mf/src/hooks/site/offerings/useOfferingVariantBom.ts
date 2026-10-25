@@ -8,7 +8,7 @@ import { VARIANT_BOM_KEY } from './keys';
 import type { Options } from './options';
 
 // The bill of materials, fetched by the tab that shows it rather than riding on the variant.
-export function useVariantBom(variantId: string, options?: Options<VariantBomData>) {
+export function useOfferingVariantBom(variantId: string, options?: Options<VariantBomData>) {
   const { available } = usePermission(SITE_OFFERINGS.variants.bom.view);
   return useQuery<VariantBomData, AxiosError>({
     queryKey: [...VARIANT_BOM_KEY(variantId)],

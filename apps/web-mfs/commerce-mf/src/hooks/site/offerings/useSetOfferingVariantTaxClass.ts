@@ -6,7 +6,7 @@ import type { SetVariantTaxClassData } from '@/schemas/offerings';
 import { setVariantTaxClass } from '@/services/site/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useSetVariantTaxClass(
+export function useSetOfferingVariantTaxClass(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetVariantTaxClassData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

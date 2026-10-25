@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 import { clearVariantFulfilment } from '@/services/legal-entity/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useClearVariantFulfilment(
+export function useClearOfferingVariantFulfilment(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

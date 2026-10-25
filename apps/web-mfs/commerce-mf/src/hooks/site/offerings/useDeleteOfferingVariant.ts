@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 import { deleteVariant } from '@/services/site/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useDeleteVariant(
+export function useDeleteOfferingVariant(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

@@ -6,7 +6,7 @@ import { setTargetAvailability } from '@/services/legal-entity/offerings.service
 import { CHANNEL_VARIANTS_KEY, OFFERING_CHANNELS_KEY } from './keys';
 
 // Shows or hides a variant on one channel, then re-reads that channel's rows and the counts above them
-export function useSetTargetAvailability(options?: { onSuccess?: () => void }) {
+export function useSetOfferingTargetAvailability(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, SetTargetAvailabilityData>({
     mutationFn: setTargetAvailability,

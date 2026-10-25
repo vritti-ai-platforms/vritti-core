@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 import { addSuggestedComponent } from '@/services/site/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useAddSuggestedComponent(
+export function useAddOfferingVariantSuggestedComponent(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

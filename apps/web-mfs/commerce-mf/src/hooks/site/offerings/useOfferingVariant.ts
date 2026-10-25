@@ -6,7 +6,7 @@ import { VARIANT_KEY } from './keys';
 import type { SuspenseOptions } from './options';
 
 // Suspense-backed: the variant route renders a skeleton at its boundary, so `data` is always defined
-export function useVariant(variantId: string, options?: SuspenseOptions<OfferingVariantData>) {
+export function useOfferingVariant(variantId: string, options?: SuspenseOptions<OfferingVariantData>) {
   return useSuspenseQuery<OfferingVariantData, AxiosError>({
     queryKey: [...VARIANT_KEY(variantId)],
     queryFn: () => getVariant(variantId),

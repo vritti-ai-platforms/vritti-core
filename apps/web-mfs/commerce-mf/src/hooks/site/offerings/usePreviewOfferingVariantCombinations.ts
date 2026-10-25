@@ -4,7 +4,7 @@ import type { AxiosError } from 'axios';
 import type { PreviewCombinationsData, VariantCombinationsData } from '@/schemas/offerings';
 import { previewVariantCombinations } from '@/services/site/offerings.service';
 
-export function usePreviewVariantCombinations(
+export function usePreviewOfferingVariantCombinations(
   options?: Omit<UseMutationOptions<VariantCombinationsData, AxiosError, PreviewCombinationsData>, 'mutationFn'>,
 ) {
   return useMutation<VariantCombinationsData, AxiosError, PreviewCombinationsData>({

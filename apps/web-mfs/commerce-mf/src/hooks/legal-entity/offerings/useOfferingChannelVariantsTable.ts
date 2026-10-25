@@ -8,7 +8,7 @@ import { CHANNEL_VARIANTS_KEY } from './keys';
 import type { Options } from './options';
 
 // This offering's variants as one storefront sees them — the rows of that app's table
-export function useChannelVariantsTable(
+export function useOfferingChannelVariantsTable(
   offeringId: string,
   channelType: string,
   targetId: string,

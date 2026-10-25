@@ -6,7 +6,7 @@ import type { UpdateDimensionData } from '@/schemas/offerings';
 import { updateDimension } from '@/services/legal-entity/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useUpdateDimension(
+export function useUpdateOfferingDimension(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpdateDimensionData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

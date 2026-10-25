@@ -7,7 +7,7 @@ import { createInventoryItem } from '@/services/organization/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
 // Creates the variant's inventory item and links it in one call — the response is the updated variant
-export function useCreateVariantInventoryItem(
+export function useCreateOfferingVariantInventoryItem(
   options?: Omit<
     UseMutationOptions<CreateResponse<OfferingVariantData>, AxiosError, CreateVariantInventoryItemData>,
     'mutationFn'

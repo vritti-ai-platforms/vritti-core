@@ -6,7 +6,7 @@ import type { AddBomLineData } from '@/schemas/offerings';
 import { addBomLine } from '@/services/organization/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useAddBomLine(
+export function useAddOfferingVariantBomLine(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, AddBomLineData>, 'mutationFn'>,
 ) {
   const invalidate = useInvalidate();

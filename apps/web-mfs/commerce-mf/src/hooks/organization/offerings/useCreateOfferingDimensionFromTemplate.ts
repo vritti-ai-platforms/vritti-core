@@ -6,7 +6,7 @@ import type { CreateDimensionFromTemplateData, OfferingDimensionData } from '@/s
 import { createDimensionFromTemplate } from '@/services/organization/offerings.service';
 import { useInvalidate } from './useInvalidate';
 
-export function useCreateDimensionFromTemplate(
+export function useCreateOfferingDimensionFromTemplate(
   options?: Omit<
     UseMutationOptions<CreateResponse<OfferingDimensionData>, AxiosError, CreateDimensionFromTemplateData>,
     'mutationFn'
