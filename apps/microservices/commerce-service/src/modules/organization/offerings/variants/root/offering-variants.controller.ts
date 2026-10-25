@@ -21,6 +21,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { CatalogChannelType } from '@/db/schema';
 
 @Controller()
 export class OrgOfferingVariantsController {
@@ -44,22 +45,28 @@ export class OrgOfferingVariantsController {
   @MessagePattern({ cmd: 'org.offerings.variants.channelTable' })
   findForChannelTable(
     @Payload()
-    data: { offeringId: string; channelId: string; targetId: string } & TableViewState,
+    data: { offeringId: string; channelType: CatalogChannelType; targetId: string } & TableViewState,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
-    const { offeringId, channelId, targetId, ...state } = data;
-    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, target: ${targetId}`);
-    return this.service.findForTable(offeringId, state as TableViewState, channelId, targetId);
+    const { offeringId, channelType, targetId, ...state } = data;
+    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, ${channelType} target: ${targetId}`);
+    return this.service.findForTable(offeringId, state as TableViewState, channelType, targetId);
   }
 
   // Sets whether one variant is available on one target of one channel
   @MessagePattern({ cmd: 'org.offerings.variants.setTargetAvailability' })
   setTargetAvailability(
     @Payload()
-    data: { channelId: string; targetId: string; targetName: string; variantId: string; availableHere: boolean },
+    data: {
+      channelType: CatalogChannelType;
+      targetId: string;
+      targetName: string;
+      variantId: string;
+      availableHere: boolean;
+    },
   ): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.setTargetAvailability — target: ${data.targetId}, variant: ${data.variantId}`);
     return this.service.setTargetAvailability(
-      data.channelId,
+      data.channelType,
       data.targetId,
       data.targetName,
       data.variantId,

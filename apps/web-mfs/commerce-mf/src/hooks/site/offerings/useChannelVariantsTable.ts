@@ -10,14 +10,14 @@ import type { Options } from './options';
 // This offering's variants as one storefront sees them — the rows of that app's table
 export function useChannelVariantsTable(
   offeringId: string,
-  channelId: string,
+  channelType: string,
   targetId: string,
   options?: Options<ChannelVariantsTableResponse>,
 ) {
   const { available } = usePermission(SITE_OFFERINGS.channels.view);
   return useQuery<ChannelVariantsTableResponse, AxiosError>({
     queryKey: [...CHANNEL_VARIANTS_KEY(offeringId, targetId)],
-    queryFn: () => getChannelVariantsTable(offeringId, channelId, targetId),
+    queryFn: () => getChannelVariantsTable(offeringId, channelType, targetId),
     ...options,
     enabled: available && !!offeringId && !!targetId && (options?.enabled ?? true),
   });

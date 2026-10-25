@@ -596,50 +596,50 @@ export class SiteOfferingsGatewayController {
   }
 
   // This offering's variants as one channel sees them
-  @Get(':id/channels/:channelId/targets/:targetId/variants/table')
+  @Get(':id/channels/:channelType/targets/:targetId/variants/table')
   @RequirePermission(SITE_OFFERINGS.channels.view)
   @ApiChannelVariants()
   getChannelVariants(
     @OrgId() orgId: string,
     @UserId() userId: string,
     @Param('id') id: string,
-    @Param('channelId') channelId: string,
+    @Param('channelType') channelType: string,
     @Param('targetId') targetId: string,
   ): Promise<ChannelVariantPagesTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/offerings/${id}/channels/${channelId}/targets/${targetId}`);
-    return this.service.channelVariantPages(orgId, userId, id, channelId, targetId);
+    this.logger.log(`GET /commerce-api/site/offerings/${id}/channels/${channelType}/targets/${targetId}`);
+    return this.service.channelVariantPages(orgId, userId, id, channelType, targetId);
   }
 
   // Sets whether one variant is available on one channel
-  @Patch(':id/channels/:channelId/targets/:targetId/variants/:variantId/availability')
+  @Patch(':id/channels/:channelType/targets/:targetId/variants/:variantId/availability')
   @RequirePermission(SITE_OFFERINGS.channels.setAvailability)
   @ApiSetTargetAvailability()
   setTargetAvailability(
     @OrgId() orgId: string,
     @Param('id') id: string,
-    @Param('channelId') channelId: string,
+    @Param('channelType') channelType: string,
     @Param('targetId') targetId: string,
     @Param('variantId') variantId: string,
     @Body() dto: SetTargetAvailabilityDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/offerings/${id}/channels/${channelId}/targets/${targetId}`);
-    return this.service.setTargetAvailability(orgId, channelId, targetId, variantId, dto.availableHere);
+    this.logger.log(`PATCH /commerce-api/site/offerings/${id}/channels/${channelType}/targets/${targetId}`);
+    return this.service.setTargetAvailability(orgId, channelType, targetId, variantId, dto.availableHere);
   }
 
   // Creates the missing pages on the storefront behind one target
-  @Post(':id/channels/:channelId/targets/:targetId/pages')
+  @Post(':id/channels/:channelType/targets/:targetId/pages')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(SITE_OFFERINGS.channels.createPage)
   @ApiCreateChannelPages()
   createChannelPages(
     @OrgId() orgId: string,
     @Param('id') id: string,
-    @Param('channelId') channelId: string,
+    @Param('channelType') channelType: string,
     @Param('targetId') targetId: string,
     @Body() dto: CreateStorefrontPagesDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/site/offerings/${id}/channels/${channelId}/targets/${targetId}/pages`);
-    return this.service.createChannelPages(orgId, id, channelId, targetId, dto.variantCodes);
+    this.logger.log(`POST /commerce-api/site/offerings/${id}/channels/${channelType}/targets/${targetId}/pages`);
+    return this.service.createChannelPages(orgId, id, targetId, dto.variantCodes);
   }
 
   // Builds the workbook and streams it — shared by both export routes

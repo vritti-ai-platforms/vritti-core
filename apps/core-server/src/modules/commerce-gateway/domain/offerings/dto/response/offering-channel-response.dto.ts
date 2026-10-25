@@ -8,7 +8,6 @@ export interface OfferingTargetRow {
   targetId: string;
   targetName: string;
   targetKind: 'APP' | 'TERMINAL';
-  channelId: string;
   catalogId: string;
   catalogName: string;
   isAssigned: boolean;
@@ -24,12 +23,6 @@ export class OfferingChannelTargetResponseDto {
 
   @ApiProperty({ enum: ['APP', 'TERMINAL'] }) targetKind: 'APP' | 'TERMINAL';
   @ApiProperty() name: string;
-
-  @ApiProperty({
-    description:
-      'The channel this target resolves to. With targetId it identifies the row, since an app is a target of two types.',
-  })
-  channelId: string;
 
   @ApiProperty() catalogId: string;
   @ApiProperty() catalogName: string;

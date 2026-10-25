@@ -154,7 +154,7 @@ export type UseDeleteOffering = MutationHook<SuccessResponse, string>;
 export type UseOfferingChannels = (offeringId: string) => UseQueryResult<OfferingChannelTypeData[], AxiosError>;
 export type UseChannelVariantsTable = (
   offeringId: string,
-  channelId: string,
+  channelType: string,
   targetId: string,
 ) => UseQueryResult<ChannelVariantsTableResponse, AxiosError>;
 export type UseCreateChannelPages = (options?: {

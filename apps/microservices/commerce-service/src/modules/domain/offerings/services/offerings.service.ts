@@ -163,7 +163,6 @@ export class OfferingsDomainService {
           targetId: target.id,
           targetName: target.name,
           targetKind: target.kind,
-          channelId: channel.channelId,
           catalogId: channel.catalogId,
           catalogName: channel.catalogName,
           // An override is this target's own channel; anything else is the default it inherits

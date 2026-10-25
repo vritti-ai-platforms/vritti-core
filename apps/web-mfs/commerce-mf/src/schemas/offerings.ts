@@ -514,8 +514,6 @@ export interface OfferingChannelTargetData {
   targetId: string;
   targetKind: 'APP' | 'TERMINAL';
   name: string;
-  // With targetId this identifies the row, since an app is a target of both storefront types
-  channelId: string;
   catalogId: string;
   catalogName: string;
   isAssigned: boolean;
@@ -545,14 +543,14 @@ export type ChannelVariantsTableResponse = TableResponse<ChannelVariantData> & {
 
 export interface CreateChannelPagesData {
   offeringId: string;
-  channelId: string;
+  channelType: string;
   targetId: string;
   variantCodes: string[];
 }
 
 export interface SetTargetAvailabilityData {
   offeringId: string;
-  channelId: string;
+  channelType: string;
   targetId: string;
   variantId: string;
   availableHere: boolean;

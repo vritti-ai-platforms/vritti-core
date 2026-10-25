@@ -73,7 +73,6 @@ export interface OfferingTargetRow {
   targetId: string;
   targetName: string;
   targetKind: 'APP' | 'TERMINAL';
-  channelId: string;
   catalogId: string;
   catalogName: string;
   isAssigned: boolean;

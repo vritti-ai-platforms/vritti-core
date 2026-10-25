@@ -14,10 +14,11 @@ interface OfferingChannelDetailProps {
 // view, filters and page, and none of that can be linked to or restored from a reload if the only thing
 // holding the chosen channel is component state.
 export const OfferingChannelDetail: React.FC<OfferingChannelDetailProps> = ({ binding }) => {
-  // Both segments are slugs, so no bare id rides in the path and a breadcrumb reads the names. The channel is
-  // named as well as the target because an app is a target of two channel types, and which one it is decides
-  // the channel its availability is written against.
-  const { slug, channelSlug, targetSlug } = useSlugParams('slug', 'channelSlug', 'targetSlug');
+  const { slug, targetSlug } = useSlugParams('slug', 'targetSlug');
+  // The slug names the target and carries the channel type with its id, so the trail gains one crumb and only
+  // the target's own id appears. The type is needed because an app is a target of two types, and which one
+  // decides the channel its availability is written against — the server derives that channel from the pair.
+  const [channelType, targetId] = targetSlug.id.split('.');
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-6">
@@ -25,8 +26,8 @@ export const OfferingChannelDetail: React.FC<OfferingChannelDetailProps> = ({ bi
 
       <ChannelVariants
         offeringId={slug.id}
-        channelId={channelSlug.id}
-        targetId={targetSlug.id}
+        channelType={channelType}
+        targetId={targetId}
         permissions={binding.permissions}
         useChannelVariantsTable={binding.useChannelVariantsTable}
         useCreateChannelPages={binding.useCreateChannelPages}

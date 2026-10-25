@@ -32,7 +32,7 @@ const routes: RouteObject[] = [
   { path: ':slug/variants/generate', element: gated(SITE_OFFERINGS.variants.add, <GenerateVariantsPage />) },
   // Three segments again, so it never collides with the two-segment tab route
   {
-    path: ':slug/channels/:channelSlug/:targetSlug',
+    path: ':slug/channels/:targetSlug',
     element: gated(SITE_OFFERINGS.channels.view, <OfferingChannelPage />),
   },
   // Ranks below the static `generate` above — React Router prefers a literal segment over a param

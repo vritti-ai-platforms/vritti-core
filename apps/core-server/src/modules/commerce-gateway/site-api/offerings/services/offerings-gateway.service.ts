@@ -389,12 +389,12 @@ export class SiteOfferingsGatewayService {
     return [...byType].map(([type, rows]) => ({ type, targets: rows }));
   }
 
-  // Every target of this offering, each paired with the facts only this gateway needs: the channel it writes
-  // against and whether this workspace owns that channel. Neither belongs in the list a client reads.
+  // Every target of this offering, paired with the one fact only this gateway needs: whether this workspace
+  // owns the channel the target resolves through. That does not belong in the list a client reads.
   private async offeringTargets(
     orgId: string,
     offeringId: string,
-  ): Promise<{ type: string; row: OfferingChannelTargetResponseDto; channelId: string; isOwn: boolean }[]> {
+  ): Promise<{ type: string; row: OfferingChannelTargetResponseDto; isOwn: boolean }[]> {
     const apps = await this.appRepository.findAllByOrg(orgId);
     const live = apps.filter((app) => !app.revokedAt);
 
@@ -411,12 +411,10 @@ export class SiteOfferingsGatewayService {
 
       return {
         type: target.type,
-        channelId: target.channelId,
         isOwn: target.isOwn,
         row: {
           targetId: target.targetId,
           targetKind: target.targetKind,
-          channelId: target.channelId,
           // Commerce names a till; an app is core's to name
           name: app?.name ?? target.targetName,
           catalogId: target.catalogId,
@@ -442,7 +440,7 @@ export class SiteOfferingsGatewayService {
     orgId: string,
     userId: string,
     offeringId: string,
-    channelId: string,
+    channelType: string,
     targetId: string,
   ): Promise<ChannelVariantPagesTableResponseDto> {
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
@@ -456,7 +454,12 @@ export class SiteOfferingsGatewayService {
       count: number;
       catalogName: string;
       isOwn: boolean;
-    }>('commerce', 'site.offerings.variants.channelTable', { offeringId, channelId, targetId, ...state });
+    }>('commerce', 'site.offerings.variants.channelTable', {
+      offeringId,
+      channelType,
+      targetId,
+      ...state,
+    });
 
     // A target id that names no app of this organization is a till, which has no storefront to ask
     const app = await this.appRepository.findByIdInOrg(targetId, orgId);
@@ -484,7 +487,6 @@ export class SiteOfferingsGatewayService {
   async createChannelPages(
     orgId: string,
     offeringId: string,
-    channelId: string,
     targetId: string,
     variantCodes: string[],
   ): Promise<SuccessResponseDto> {
@@ -501,9 +503,7 @@ export class SiteOfferingsGatewayService {
     const offering = await this.findById(orgId, offeringId);
     const products = variantCodes.map((code) => ({ code, name: offering.name }));
 
-    this.logger.log(
-      `channel pages — offering: ${offeringId}, channel: ${channelId}, target: ${targetId}, variants: ${products.length}`,
-    );
+    this.logger.log(`channel pages — offering: ${offeringId}, target: ${targetId}, variants: ${products.length}`);
     const result = await this.appStorefront.createProductsInChunks(app.id, orgId, products);
 
     // Nothing created and something refused is a failure: reporting success would have the table say
@@ -523,7 +523,7 @@ export class SiteOfferingsGatewayService {
   // does not own cannot be edited here, so this forwards and lets it answer.
   async setTargetAvailability(
     orgId: string,
-    channelId: string,
+    channelType: string,
     targetId: string,
     variantId: string,
     availableHere: boolean,
@@ -533,7 +533,7 @@ export class SiteOfferingsGatewayService {
 
     this.logger.log(`site.offerings.variants.setTargetAvailability — target: ${targetId}, variant: ${variantId}`);
     return this.nats.send('commerce', 'site.offerings.variants.setTargetAvailability', {
-      channelId,
+      channelType,
       targetId,
       targetName: app?.name ?? '',
       variantId,

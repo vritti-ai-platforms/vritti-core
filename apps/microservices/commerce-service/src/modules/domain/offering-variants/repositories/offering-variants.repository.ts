@@ -3,6 +3,7 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/d
 import {
   and,
   asc,
+  desc,
   eq,
   exists,
   getColumns,
@@ -23,6 +24,7 @@ import {
   catalogListingChannelExclusions,
   catalogListings,
   catalogs,
+  channelSpecificity,
   type FulfilmentType,
   FulfilmentTypeValues,
   inventoryItems,
@@ -89,7 +91,7 @@ export interface ExportVariantRow {
   isOfferingActive: boolean;
 }
 
-export interface ChannelForWrite {
+export interface ChannelForTarget {
   id: string;
   type: CatalogChannelType;
   catalogId: string;
@@ -188,7 +190,12 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
   }
 
   // The channel's catalog and whether this workspace set it, for a write that must not touch an inherited one
-  async findChannelForWrite(channelId: string): Promise<ChannelForWrite | undefined> {
+  // The channel one target resolves through, which is the target's own override if it has one and otherwise
+  // the narrowest default in reach — the same ranking channelSpecificity gives every other resolution. So a
+  // caller names the target and the type it is acting as, and never has to carry a channel id of its own.
+  async findChannelForTarget(type: CatalogChannelType, targetId: string): Promise<ChannelForTarget | undefined> {
+    const named = type === 'POS' ? catalogChannels.terminalId : catalogChannels.appId;
+
     const [row] = await this.db
       .select({
         id: catalogChannels.id,
@@ -199,7 +206,8 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       })
       .from(catalogChannels)
       .innerJoin(catalogs, eq(catalogs.id, catalogChannels.catalogId))
-      .where(eq(catalogChannels.id, channelId))
+      .where(and(eq(catalogChannels.type, type), or(eq(named, targetId), isNull(named))))
+      .orderBy(desc(channelSpecificity))
       .limit(1);
     return row;
   }

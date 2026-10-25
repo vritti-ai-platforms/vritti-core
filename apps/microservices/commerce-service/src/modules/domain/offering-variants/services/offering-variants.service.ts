@@ -73,7 +73,7 @@ export class OfferingVariantsDomainService {
   async findForTable(
     offeringId: string,
     state: TableViewState,
-    channelId?: string,
+    channelType?: CatalogChannelType,
     targetId?: string,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number; catalogName: string; isOwn: boolean }> {
     await this.requireReachableOffering(offeringId);
@@ -87,7 +87,8 @@ export class OfferingVariantsDomainService {
     });
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const channel = channelId ? await this.repository.findChannelForWrite(channelId) : undefined;
+    const channel =
+      channelType && targetId ? await this.repository.findChannelForTarget(channelType, targetId) : undefined;
     const target =
       channel && targetId
         ? { id: targetId, kind: OfferingVariantsDomainService.targetKindOf(channel.type) }
@@ -98,7 +99,7 @@ export class OfferingVariantsDomainService {
       orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
       limit,
       offset,
-      channelId,
+      channelId: channel?.id,
       target,
     });
 
@@ -114,14 +115,14 @@ export class OfferingVariantsDomainService {
   // so a sibling inheriting the same channel is untouched. A channel this workspace does not own is refused:
   // its exclusions belong to the workspace that set it, which is what the row's own policies enforce too.
   async setTargetAvailability(
-    channelId: string,
+    channelType: CatalogChannelType,
     targetId: string,
     targetName: string,
     variantId: string,
     availableHere: boolean,
   ): Promise<SuccessResponseDto> {
-    const channel = await this.repository.findChannelForWrite(channelId);
-    if (!channel) throw new NotFoundException('Channel not found.');
+    const channel = await this.repository.findChannelForTarget(channelType, targetId);
+    if (!channel) throw new NotFoundException('This target resolves to no channel.');
 
     if (!channel.isOwn) {
       throw new ConflictException({
@@ -136,7 +137,7 @@ export class OfferingVariantsDomainService {
     }
 
     await this.repository.setTargetAvailability(
-      channelId,
+      channel.id,
       { id: targetId, kind: OfferingVariantsDomainService.targetKindOf(channel.type) },
       listings.map((listing) => listing.id),
       availableHere,
