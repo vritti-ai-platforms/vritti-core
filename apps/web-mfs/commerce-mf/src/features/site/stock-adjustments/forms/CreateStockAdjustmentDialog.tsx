@@ -32,7 +32,6 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
   const form = useForm<CreateStockAdjustmentFormData>({
     resolver: zodResolver(createStockAdjustmentSchema),
     defaultValues: {
-      inventoryItemId: '',
       type: undefined,
       reason: '',
       unitCost: undefined,

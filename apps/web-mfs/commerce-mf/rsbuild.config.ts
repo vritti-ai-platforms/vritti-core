@@ -110,6 +110,9 @@ export default defineConfig({
         './Site/StockAdjustments': './src/features/site/stock-adjustments/index.tsx',
         './Site/StockTransfers': './src/features/site/stock-transfers/index.tsx',
         './Site/Suppliers': './src/features/site/suppliers/index.tsx',
+        // Selectors the host renders outside any feature (breadcrumb switchers), so it never owns commerce's
+        './Selectors/Offering': './src/selectors/offering/index.ts',
+        './Selectors/OfferingVariant': './src/selectors/offering-variant/index.ts',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },

@@ -10,14 +10,14 @@ import type React from 'react';
 import type { OfferingDimensionData } from '@/schemas/offerings';
 import { DimensionValuesDialog } from '../forms/DimensionValuesDialog';
 import { EditDimensionDialog } from '../forms/EditDimensionDialog';
-import type { OfferingPermissions, UseUpdateDimension, UseUpsertDimensionValues } from '../types';
+import type { OfferingPermissions, UseUpdateOfferingDimension, UseUpsertOfferingDimensionValues } from '../types';
 
 interface DimensionCardProps {
   permissions: OfferingPermissions;
   dimension: OfferingDimensionData;
   canEdit: boolean;
-  useUpsertValues: UseUpsertDimensionValues;
-  useUpdate: UseUpdateDimension;
+  useUpsertValues: UseUpsertOfferingDimensionValues;
+  useUpdate: UseUpdateOfferingDimension;
   onDelete: (dimension: OfferingDimensionData) => void;
 }
 

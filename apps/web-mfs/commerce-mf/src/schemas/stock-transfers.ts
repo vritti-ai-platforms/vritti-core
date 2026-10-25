@@ -23,11 +23,11 @@ export interface StockTransferData {
 export type StockTransfersTableResponse = TableResponse<StockTransferData>;
 
 export const createStockTransferSchema = z.object({
-  inventoryItemId: z.string().min(1, 'Inventory item is required'),
+  inventoryItemId: z.uuid('Inventory item is required'),
   fromSiteId: z.string().min(1, 'Source location is required'),
   toSiteId: z.string().min(1, 'Destination location is required'),
-  fromLocationId: z.string().min(1, 'From location is required'),
-  toLocationId: z.string().min(1, 'To location is required'),
+  fromLocationId: z.uuid('From location is required'),
+  toLocationId: z.uuid('To location is required'),
   quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
   notes: z.string().optional(),
 });

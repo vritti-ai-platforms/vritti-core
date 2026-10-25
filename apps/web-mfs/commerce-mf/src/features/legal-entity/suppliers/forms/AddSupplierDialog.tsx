@@ -21,7 +21,6 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
   const form = useForm<CreateSupplierFormData>({
     resolver: zodResolver(createSupplierSchema),
     defaultValues: {
-      partyId: '',
       code: '',
       currencyCode: 'INR',
       paymentTerms: '',

@@ -25,7 +25,6 @@ export const LinkPurchaseOrderDialog: React.FC<LinkPurchaseOrderDialogProps> = (
 }) => {
   const form = useForm<LinkGoodsReceiptPurchaseOrderFormData>({
     resolver: zodResolver(linkGoodsReceiptPurchaseOrderSchema),
-    defaultValues: { purchaseOrderId: '' },
   });
   const mutation = useLinkGoodsReceiptPurchaseOrder(goodsReceipt.id, { onSuccess });
 

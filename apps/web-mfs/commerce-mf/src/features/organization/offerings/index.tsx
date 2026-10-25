@@ -6,6 +6,7 @@ import type { RouteObject } from 'react-router-dom';
 import { OfferingDetailSkeleton } from '@/components/offerings/OfferingDetailSkeleton';
 import { VariantDetailSkeleton } from '@/components/offerings/VariantDetailSkeleton';
 import { GenerateVariantsPage } from './GenerateVariantsPage';
+import { OfferingChannelPage } from './OfferingChannelPage';
 import { OfferingDetailPage } from './OfferingDetailPage';
 import { OfferingsPage } from './OfferingsPage';
 import { VariantDetailPage } from './VariantDetailPage';
@@ -29,6 +30,11 @@ const routes: RouteObject[] = [
   { path: ':slug/:tab?', element: gated(ORG_OFFERINGS.view, <OfferingDetailPage />) },
   // Three segments, so it never collides with the two-segment tab route above
   { path: ':slug/variants/generate', element: gated(ORG_OFFERINGS.variants.add, <GenerateVariantsPage />) },
+  // Three segments again, so it never collides with the two-segment tab route
+  {
+    path: ':slug/channels/:targetSlug',
+    element: gated(ORG_OFFERINGS.channels.view, <OfferingChannelPage />),
+  },
   // Ranks below the static `generate` above — React Router prefers a literal segment over a param
   {
     path: ':slug/variants/:variantSlug/:tab?',

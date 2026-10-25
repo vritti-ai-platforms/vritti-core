@@ -3,10 +3,13 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/d
 import {
   and,
   asc,
+  desc,
   eq,
+  exists,
   getColumns,
   ilike,
   inArray,
+  isNull,
   notExists,
   notInArray,
   or,
@@ -16,7 +19,12 @@ import {
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { attributesFacetSql, dimensionsFacetSql } from '@/common/variant-facets';
 import {
+  type CatalogChannelType,
+  catalogChannels,
+  catalogListingChannelExclusions,
   catalogListings,
+  catalogs,
+  channelSpecificity,
   type FulfilmentType,
   FulfilmentTypeValues,
   inventoryItems,
@@ -33,9 +41,9 @@ import {
   offeringVariantValues,
   orderItems,
   ownedByWorkspaceExpression,
+  posTerminals,
   taxClasses,
   uom,
-  type VariantFacet,
 } from '@/db/schema';
 
 export interface OfferingRef {
@@ -66,9 +74,6 @@ export interface VariantAttributeValueRef {
 export interface VariantOptionRow {
   id: string;
   code: string;
-  offeringName: string;
-  dimensions: VariantFacet[];
-  attributes: VariantFacet[];
 }
 
 export type VariantWithBomCount = OfferingVariant & { bomLineCount: number };
@@ -87,7 +92,22 @@ export interface ExportVariantRow {
   isOfferingActive: boolean;
 }
 
+export interface ChannelForTarget {
+  id: string;
+  type: CatalogChannelType;
+  catalogId: string;
+  catalogName: string;
+  isOwn: boolean;
+}
+
+export interface ChannelExclusionTarget {
+  id: string;
+  kind: 'APP' | 'TERMINAL';
+}
+
 export type OfferingVariantTableRow = OfferingVariant & {
+  listed?: boolean;
+  availableHere?: boolean;
   salesUomName: string | null;
   taxClassName: string | null;
   values: VariantValueRef[];
@@ -170,9 +190,145 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .where(eq(offeringVariantAttributeValues.variantId, offeringVariants.id));
   }
 
-  private tableSelection() {
+  // The channel one target resolves through, which is the target's own override if it has one and otherwise
+  // the narrowest default in reach — the same ranking channelSpecificity gives every other resolution. So a
+  // caller names the target and the type it is acting as, and never has to carry a channel id of its own.
+  async findChannelForTarget(type: CatalogChannelType, targetId: string): Promise<ChannelForTarget | undefined> {
+    const named = type === 'POS' ? catalogChannels.terminalId : catalogChannels.appId;
+
+    const [row] = await this.db
+      .select({
+        id: catalogChannels.id,
+        type: catalogChannels.type,
+        catalogId: catalogChannels.catalogId,
+        catalogName: catalogs.name,
+        isOwn: ownedByWorkspaceExpression(catalogChannels),
+      })
+      .from(catalogChannels)
+      .innerJoin(catalogs, eq(catalogs.id, catalogChannels.catalogId))
+      .where(and(eq(catalogChannels.type, type), or(eq(named, targetId), isNull(named))))
+      .orderBy(desc(channelSpecificity))
+      .limit(1);
+    return row;
+  }
+
+  // Every listing one variant has in a catalog, with the code that names it in a message. A variant listed at
+  // several MRPs has one row per MRP, and availability is the variant's, so all of them move together.
+  async findListingsForVariant(catalogId: string, variantId: string): Promise<{ id: string; code: string }[]> {
+    return this.db
+      .select({ id: catalogListings.id, code: offeringVariants.code })
+      .from(catalogListings)
+      .innerJoin(offeringVariants, eq(offeringVariants.id, catalogListings.offeringVariantId))
+      .where(and(eq(catalogListings.catalogId, catalogId), eq(catalogListings.offeringVariantId, variantId)));
+  }
+
+  // A till's name, for a message about it; apps are core's to name
+  async findTerminalName(terminalId: string): Promise<string | undefined> {
+    const [row] = await this.db
+      .select({ name: posTerminals.name })
+      .from(posTerminals)
+      .where(eq(posTerminals.id, terminalId))
+      .limit(1);
+    return row?.name;
+  }
+
+  // The subset of these codes that name a variant of this offering
+  async findCodesInOffering(offeringId: string, codes: string[]): Promise<string[]> {
+    if (codes.length === 0) return [];
+
+    const rows = await this.db
+      .select({ code: offeringVariants.code })
+      .from(offeringVariants)
+      .where(and(eq(offeringVariants.offeringId, offeringId), inArray(offeringVariants.code, codes)));
+    return rows.map((row) => row.code);
+  }
+
+  // Making a variant unavailable writes an outright exclusion per listing, naming the target it is for, so a
+  // target sharing an inherited channel with others is the only one affected. Making it available lifts just
+  // those rows — the channel's own exclusion, and any other target's, are left standing. A per-currency
+  // exclusion is untouched either way; it is the Prices tab's to own.
+  async setTargetAvailability(
+    channelId: string,
+    target: ChannelExclusionTarget,
+    listingIds: string[],
+    availableHere: boolean,
+  ): Promise<void> {
+    if (listingIds.length === 0) return;
+
+    const namesThisTarget =
+      target.kind === 'APP'
+        ? and(eq(catalogListingChannelExclusions.appId, target.id), isNull(catalogListingChannelExclusions.terminalId))
+        : and(eq(catalogListingChannelExclusions.terminalId, target.id), isNull(catalogListingChannelExclusions.appId));
+
+    if (availableHere) {
+      await this.db
+        .delete(catalogListingChannelExclusions)
+        .where(
+          and(
+            eq(catalogListingChannelExclusions.catalogChannelId, channelId),
+            inArray(catalogListingChannelExclusions.catalogListingId, listingIds),
+            isNull(catalogListingChannelExclusions.currencyCode),
+            namesThisTarget,
+          ),
+        );
+      return;
+    }
+
+    const named = target.kind === 'APP' ? { appId: target.id } : { terminalId: target.id };
+    await this.db
+      .insert(catalogListingChannelExclusions)
+      .values(listingIds.map((catalogListingId) => ({ catalogListingId, catalogChannelId: channelId, ...named })))
+      .onConflictDoNothing();
+  }
+
+  // The exclusions belonging to one target, as a branch of the channel's own
+  private static excludedForTarget(target?: ChannelExclusionTarget): SQL {
+    if (!target) return sql``;
+    return target.kind === 'APP'
+      ? sql`or ${catalogListingChannelExclusions.appId} = ${target.id}`
+      : sql`or ${catalogListingChannelExclusions.terminalId} = ${target.id}`;
+  }
+
+  // `channelId` with its `target` adds how that target sees the row, so a storefront view needs no second read.
+  //
+  // A deactivated variant, or one on a deactivated offering, reads as not listed rather than vanishing:
+  // availableOnChannel hides it from the storefront, so the target cannot sell it either way.
+  // `availableHere` answers an outright exclusion that is the channel's own or this target's — never another
+  // target's, which is the point of naming a target on the exclusion. One naming a currency is the Prices tab's.
+  private tableSelection(channelId?: string, target?: ChannelExclusionTarget) {
+    const listedInChannel = (extra?: SQL) =>
+      exists(
+        this.db
+          .select({ one: sql`1` })
+          .from(catalogListings)
+          .innerJoin(catalogChannels, eq(catalogChannels.catalogId, catalogListings.catalogId))
+          .where(
+            and(
+              eq(catalogChannels.id, channelId as string),
+              eq(catalogListings.offeringVariantId, offeringVariants.id),
+              eq(offeringVariants.isActive, true),
+              eq(offeringVariants.isOfferingActive, true),
+              extra,
+            ),
+          ),
+      ).mapWith(Boolean);
+
     return {
       ...getColumns(offeringVariants),
+      ...(channelId
+        ? {
+            listed: listedInChannel(),
+            availableHere: listedInChannel(sql`not exists (
+              select 1 from ${catalogListingChannelExclusions}
+              where ${catalogListingChannelExclusions.catalogListingId} = ${catalogListings.id}
+                and ${catalogListingChannelExclusions.catalogChannelId} = ${catalogChannels.id}
+                and ((${catalogListingChannelExclusions.appId} is null
+                      and ${catalogListingChannelExclusions.terminalId} is null)
+                     ${OfferingVariantsDomainRepository.excludedForTarget(target)})
+                and ${catalogListingChannelExclusions.currencyCode} is null
+            )`),
+          }
+        : {}),
       salesUomName: uom.name,
       taxClassName: taxClasses.name,
       values: sql<VariantValueRef[]>`(${this.valuesJson()})`,
@@ -215,9 +371,11 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     orderBy: SQL[];
     limit: number;
     offset: number;
+    channelId?: string;
+    target?: ChannelExclusionTarget;
   }): Promise<{ result: OfferingVariantTableRow[]; count: number }> {
     return this.findAllAndCount<OfferingVariantTableRow>({
-      select: this.tableSelection(),
+      select: this.tableSelection(options.channelId, options.target),
       innerJoins: this.tableJoins(),
       where: options.where,
       orderBy: options.orderBy,
@@ -261,16 +419,15 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return row?.n ?? 0;
   }
 
-  async findForSelectInOffering(
+  // Active variants for a picker, joined to their offering so its name can label them; search matches the
+  // offering name or the variant code, since the generic search only looks at the label column
+  async findVariantsForSelect(
     config: FindForSelectConfig,
-    offeringId: string,
-    catalogId?: string,
+    filters: { offeringId?: string; catalogId?: string },
   ): Promise<SelectQueryResult> {
-    const conditions = [
-      eq(offeringVariants.offeringId, offeringId),
-      eq(offeringVariants.isActive, true),
-      eq(offeringVariants.isOfferingActive, true),
-    ];
+    const { offeringId, catalogId } = filters;
+    const conditions: SQL[] = [eq(offeringVariants.isActive, true), eq(offeringVariants.isOfferingActive, true)];
+    if (offeringId) conditions.push(eq(offeringVariants.offeringId, offeringId));
     // Listed for any batch it can take nothing further here; listed at an MRP it can still take another
     if (catalogId) {
       conditions.push(
@@ -282,7 +439,12 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       )` as SQL,
       );
     }
-    return super.findForSelect({ ...config, conditions });
+    return super.findForSelect({
+      ...config,
+      searchKeys: ['name', 'code'],
+      joins: [{ table: offerings, on: eq(offerings.id, offeringVariants.offeringId), type: 'inner' }],
+      conditions,
+    });
   }
 
   // Rewrites the cached facets from the junctions in one statement, so the copy cannot disagree with them
@@ -303,7 +465,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     return rows.map((row) => row.id);
   }
 
-  // Variant options for a picker, across every offering this workspace can reach.
+  // Variant options for a picker, across every offering this workspace can reach
   async findOptions(options: {
     search?: string;
     excludeIds?: string[];
@@ -321,9 +483,6 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       .select({
         id: offeringVariants.id,
         code: offeringVariants.code,
-        offeringName: offerings.name,
-        dimensions: offeringVariants.dimensions,
-        attributes: offeringVariants.attributes,
       })
       .from(offeringVariants)
       .innerJoin(offerings, eq(offerings.id, offeringVariants.offeringId))

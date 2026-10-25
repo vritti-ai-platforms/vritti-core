@@ -7,7 +7,7 @@ import type { PartyLicenseType } from './party-licenses';
 export const createSupplierSchema = z.object({
   partyId: z.uuid('Company is required'),
   code: z.string().min(1, 'Code is required').max(100),
-  currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
+  currencyCode: z.string({ error: 'Currency is required' }).regex(/^[A-Z]{3}$/, 'Currency is required'),
   paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
   leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
   notes: z.string().optional(),
@@ -62,7 +62,7 @@ export type SetSupplierItemSchemeFormData = z.infer<typeof setSupplierItemScheme
 
 export const addSupplierItemSchema = z
   .object({
-    inventoryItemId: z.string().min(1, 'Inventory item is required'),
+    inventoryItemId: z.uuid('Inventory item is required'),
     supplierItemCode: z.string().max(100).optional(),
     unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
     uomId: z.uuid('Unit of measure is required'),
@@ -179,7 +179,7 @@ export interface SupplierDetail extends SupplierData {
 }
 
 export const changeSupplierCurrencySchema = z.object({
-  currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
+  currencyCode: z.string({ error: 'Currency is required' }).regex(/^[A-Z]{3}$/, 'Currency is required'),
   conversionRate: zodNumericField({ required: 'Conversion rate is required', positive: true, nonZero: true }),
 });
 
@@ -206,15 +206,15 @@ export type SupplierSitesTableResponse = TableResponse<SupplierSiteRow>;
 
 export const addSupplierSiteSchema = z.object({
   siteId: z.uuid('Site is required'),
-  partyTaxRegistrationId: z.string().nullable().optional(),
-  partyBankAccountId: z.string().nullable().optional(),
-  orderRelationshipId: z.string().nullable().optional(),
+  partyTaxRegistrationId: z.uuid().nullable().optional(),
+  partyBankAccountId: z.uuid().nullable().optional(),
+  orderRelationshipId: z.uuid().nullable().optional(),
 });
 
 export const updateSupplierSiteSchema = z.object({
-  partyTaxRegistrationId: z.string().nullable().optional(),
-  partyBankAccountId: z.string().nullable().optional(),
-  orderRelationshipId: z.string().nullable().optional(),
+  partyTaxRegistrationId: z.uuid().nullable().optional(),
+  partyBankAccountId: z.uuid().nullable().optional(),
+  orderRelationshipId: z.uuid().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -249,7 +249,7 @@ export const addSupplierItemPriceSchema = z
     unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
     schemeBuyQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
     schemeFreeQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-    validFrom: z.string().min(1, 'Valid from is required'),
+    validFrom: z.string({ error: 'Valid from is required' }).min(1, 'Valid from is required'),
     validTo: z.string().nullable().optional(),
   })
   .refine((data) => !data.validTo || new Date(data.validTo) >= new Date(data.validFrom), {

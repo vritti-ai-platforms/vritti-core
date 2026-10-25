@@ -20,11 +20,11 @@ const categoryRoleEnumValues = Object.values(CategoryRoleValues) as [CategoryRol
 const _categorySchema = z
   .object({
     name: z.string().min(1, 'Name is required').max(255),
-    parentId: z.string().optional().nullable(),
+    parentId: z.uuid().optional().nullable(),
     categoryRole: z.enum(categoryRoleEnumValues),
     sortOrder: zodNumericField({ required: 'Sort order is required', min: 1 }),
     isActive: z.boolean(),
-    defaultTaxClassId: z.string().uuid().optional().nullable(),
+    defaultTaxClassId: z.uuid().optional().nullable(),
   })
   .superRefine((data, ctx) => {
     // Tax class only applies to leaf CATEGORY-role categories (they hold items) — required there

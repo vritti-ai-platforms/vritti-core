@@ -51,6 +51,8 @@ export class OfferingVariantDto {
       canMarkActive?: boolean;
       canDelete?: boolean;
       taxClassName?: string | null;
+      listed?: boolean;
+      availableHere?: boolean;
     } = {},
   ): OfferingVariantTableRowDto {
     const {
@@ -81,6 +83,8 @@ export class OfferingVariantDto {
       bomLineCount,
       canMarkActive,
       canDelete,
+      ...(options.listed === undefined ? {} : { listed: options.listed }),
+      ...(options.availableHere === undefined ? {} : { availableHere: options.availableHere }),
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
     };
@@ -102,4 +106,7 @@ export class OfferingVariantDto {
   }
 }
 
-export type OfferingVariantTableRowDto = Omit<OfferingVariantDto, 'inventoryItem'>;
+export type OfferingVariantTableRowDto = Omit<OfferingVariantDto, 'inventoryItem'> & {
+  listed?: boolean;
+  availableHere?: boolean;
+};

@@ -1,9 +1,9 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Select } from '@vritti/quantum-ui/Select';
 import { Separator } from '@vritti/quantum-ui/Separator';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ChevronsUpDown, MessageSquareText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { SmsProviderSelector } from '@/utils/RemoteSelectors';
 
 interface SmsProviderSwitcherProps {
   // The raw `name~uuid` breadcrumb segment; the id addresses the API, the slug is the fallback label
@@ -22,11 +22,8 @@ export const SmsProviderSwitcher = ({ segment, basePath }: SmsProviderSwitcherPr
   const current = idOf(segment);
 
   return (
-    <Select
+    <SmsProviderSelector
       value={current}
-      searchable
-      optionsEndpoint="communications-api/select-api/sms-providers"
-      fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
       // The anchor replaces the trigger but not the surrounding Field, so a label would still render above it
       label={undefined}
       searchPlaceholder="Find provider..."

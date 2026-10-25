@@ -10,12 +10,11 @@ interface AddListingsPageProps {
 
 // Reads what the wizard needs and hands it to the provider — the steps take it from there
 export const AddListingsPage: React.FC<AddListingsPageProps> = ({ binding }) => {
-  const { id: catalogId } = useSlugParams('slug');
-  const { data: catalog } = binding.useCatalog(catalogId);
+  const { id: catalogId, name: catalogName } = useSlugParams('slug');
   const { data: currencies = [] } = binding.useCurrencies(catalogId);
 
   return (
-    <AddListingsProvider binding={binding} catalogId={catalogId} catalogName={catalog.name} currencies={currencies}>
+    <AddListingsProvider binding={binding} catalogId={catalogId} catalogName={catalogName} currencies={currencies}>
       <AddListingsWizard />
     </AddListingsProvider>
   );

@@ -10,7 +10,11 @@ export interface VapClientOptions {
   fetch: typeof fetch;
 
   links?: ApolloLink[];
+
+  timeoutMs?: number;
 }
+
+const DEFAULT_TIMEOUT_MS = 30_000;
 
 // The one client every domain operation runs through.
 export function createVapClient(options: VapClientOptions): ApolloClient {
@@ -28,7 +32,12 @@ export function createVapClient(options: VapClientOptions): ApolloClient {
     };
   });
 
-  const http = new HttpLink({ uri: options.endpoint, fetch: options.fetch });
+  // Every request carries a deadline unless its caller brought one of its own
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const fetchWithDeadline: typeof fetch = (input, init) =>
+    options.fetch(input, init?.signal ? init : { ...init, signal: AbortSignal.timeout(timeoutMs) });
+
+  const http = new HttpLink({ uri: options.endpoint, fetch: fetchWithDeadline });
 
   // Order matters: anything in `links` sits in front of http so a cache hit never reaches the network, and behind
   // contextLink so its key can read the headers that identify the tenant.

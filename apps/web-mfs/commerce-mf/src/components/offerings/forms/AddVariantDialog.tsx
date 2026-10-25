@@ -9,12 +9,12 @@ import type React from 'react';
 import { useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { buildAddVariantSchema, deriveCode, type OfferingData, type OfferingDimensionData } from '@/schemas/offerings';
-import type { UseCreateVariant } from '../types';
+import type { UseCreateOfferingVariant } from '../types';
 
 interface AddVariantDialogProps {
   offering: OfferingData;
   dimensions: OfferingDimensionData[];
-  useCreate: UseCreateVariant;
+  useCreate: UseCreateOfferingVariant;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -32,7 +32,6 @@ export const AddVariantDialog: React.FC<AddVariantDialogProps> = ({
     resolver: zodResolver(schema),
     defaultValues: {
       ...Object.fromEntries(dimensions.map((dimension) => [dimension.id, ''])),
-      salesUomId: '',
       externalSku: '',
     },
   });

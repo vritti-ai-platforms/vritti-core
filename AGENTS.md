@@ -60,6 +60,23 @@ vritti-core/
 - Default session type: `['NEXUS']` (configured via `configureApiSdk({ guard: { defaultSessionTypes: ['NEXUS'] } })`)
 - `@RequireSession()` replaces the old `@Admin()`, `@Onboarding()`, `@Reset()` decorators
 
+## Form Default Values (react-hook-form)
+
+Set `defaultValues` by **what the control is**, never by habit. quantum-ui's `<Form>` wraps every field in a `Controller` and calls `reset()` on `resetOnSuccess` and on Cancel, so the default is what the field returns to.
+
+| Field | Default | Why |
+|---|---|---|
+| **Select / ID / lookup** (selectors, `currencyCode`, `uomId`, …) | **Omit** | `undefined` is native "nothing chosen"; `''` counts as a selection and fires a bogus resolve request (`values=&offeringId=` → 400 from `@IsUUID`) |
+| **Text input** (`TextField`, `TextArea`, `PhoneField`) | `''` | Must stay controlled — `undefined` triggers React's uncontrolled→controlled warning, and `reset()` can't clear an uncontrolled input (stale text in the next dialog) |
+| **Boolean** (`Switch`, `Checkbox`) | real `true` / `false` | Same controlled-input rule, and the off state is a real value |
+| **Business default** (quantity `1`, first currency, a default enum) | the real value | It's data, not a placeholder |
+| **Edit forms** | the existing record | Obviously |
+
+- Clear a dependent field with `form.resetField(name)`, never `setValue(name, '')`.
+- UUID fields use `z.uuid()` — never the deprecated `z.string().uuid()`, and never `z.string().min(1)` for an ID. A required select is `z.uuid('Variant is required')`; that one message also covers the missing (`undefined`) case.
+- A required non-UUID string needs its message on the base type too — `z.string({ error: 'Name is required' }).min(1, 'Name is required')` — because `undefined` never reaches `.min(1)`.
+- A dependent selector takes `parentId: string | undefined` and passes no `optionsEndpoint` until the parent exists.
+
 ## Conventions
 
 See `.claude/rules/` for detailed pattern documentation:

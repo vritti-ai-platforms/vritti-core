@@ -3,8 +3,10 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type {
   AddBomLineData,
   BulkSetVariantsAttributeData,
+  ChannelVariantsTableResponse,
   CreateAttributeData,
   CreateAttributeFromTemplateData,
+  CreateChannelPagesData,
   CreateDimensionData,
   CreateDimensionFromTemplateData,
   CreateOfferingData,
@@ -13,6 +15,7 @@ import type {
   DeleteBomLineData,
   GenerateVariantsData,
   OfferingAttributeData,
+  OfferingChannelTypeData,
   OfferingData,
   OfferingDimensionData,
   OfferingsTableResponse,
@@ -23,6 +26,7 @@ import type {
   ReorderDimensionsData,
   SetOfferingFulfilmentData,
   SetOfferingTaxClassData,
+  SetTargetAvailabilityData,
   SetVariantAttributesData,
   SetVariantFulfilmentData,
   SetVariantTaxClassData,
@@ -325,4 +329,50 @@ export function updateDimension({ id, name }: UpdateDimensionData): Promise<Succ
 // Renames an attribute; its code is fixed because a storefront filters on it
 export function updateAttribute({ id, name }: UpdateAttributeData): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${BASE}/attributes/${id}`, { name }).then((r) => r.data);
+}
+
+// Where this offering sells, a row per channel
+export function getOfferingChannels(offeringId: string): Promise<OfferingChannelTypeData[]> {
+  return axios
+    .get<OfferingChannelTypeData[]>(`${BASE}/${offeringId}/channels`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function getChannelVariantsTable(
+  offeringId: string,
+  channelType: string,
+  targetId: string,
+): Promise<ChannelVariantsTableResponse> {
+  return axios
+    .get<ChannelVariantsTableResponse>(
+      `${BASE}/${offeringId}/channels/${channelType}/targets/${targetId}/variants/table`,
+      { showSuccessToast: false },
+    )
+    .then((r) => r.data);
+}
+
+export function setTargetAvailability({
+  offeringId,
+  channelType,
+  targetId,
+  variantId,
+  availableHere,
+}: SetTargetAvailabilityData): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(
+      `${BASE}/${offeringId}/channels/${channelType}/targets/${targetId}/variants/${variantId}/availability`,
+      { availableHere },
+    )
+    .then((r) => r.data);
+}
+
+export function createChannelPages({
+  offeringId,
+  channelType,
+  targetId,
+  variantCodes,
+}: CreateChannelPagesData): Promise<SuccessResponse> {
+  return axios
+    .post<SuccessResponse>(`${BASE}/${offeringId}/channels/${channelType}/targets/${targetId}/pages`, { variantCodes })
+    .then((r) => r.data);
 }

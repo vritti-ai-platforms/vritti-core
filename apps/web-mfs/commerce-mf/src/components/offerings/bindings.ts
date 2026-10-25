@@ -1,50 +1,56 @@
 import type { UseCreateVariantInventoryItem } from '../inventory-items/types';
 import type {
   OfferingPermissions,
-  UseAddBomLine,
-  UseAddSuggestedComponent,
-  UseBulkClearVariantsTaxClass,
-  UseBulkSetOfferingsStatus,
-  UseBulkSetVariantsAttribute,
-  UseBulkSetVariantsStatus,
-  UseBulkSetVariantsTaxClass,
-  UseClearVariantFulfilment,
-  UseClearVariantTaxClass,
-  UseCreateAttribute,
-  UseCreateAttributeFromTemplate,
-  UseCreateDimension,
-  UseCreateDimensionFromTemplate,
+  UseAddOfferingVariantBomLine,
+  UseAddOfferingVariantSuggestedComponent,
+  UseBulkClearOfferingVariantsTaxClass,
+  UseBulkSetOfferingVariantsAttribute,
+  UseBulkSetOfferingVariantsTaxClass,
+  UseClearOfferingVariantFulfilment,
+  UseClearOfferingVariantTaxClass,
   UseCreateOffering,
-  UseCreateVariant,
-  UseDeleteAttribute,
-  UseDeleteBomLine,
-  UseDeleteDimension,
+  UseCreateOfferingAttribute,
+  UseCreateOfferingAttributeFromTemplate,
+  UseCreateOfferingChannelPages,
+  UseCreateOfferingDimension,
+  UseCreateOfferingDimensionFromTemplate,
+  UseCreateOfferingVariant,
   UseDeleteOffering,
-  UseDeleteVariant,
-  UseGenerateVariants,
+  UseDeleteOfferingAttribute,
+  UseDeleteOfferingDimension,
+  UseDeleteOfferingVariant,
+  UseDeleteOfferingVariantBomLine,
+  UseGenerateOfferingVariants,
+  UseMarkOfferingsActive,
+  UseMarkOfferingsInactive,
+  UseMarkOfferingVariantsActive,
+  UseMarkOfferingVariantsInactive,
   UseOfferingAttributes,
+  UseOfferingChannels,
+  UseOfferingChannelVariantsTable,
   UseOfferingDimensions,
   UseOfferingsTable,
+  UseOfferingVariantBom,
   UseOfferingVariantsTable,
-  UsePreviewVariantCombinations,
-  UseReorderAttributes,
-  UseReorderDimensions,
+  UsePreviewOfferingVariantCombinations,
+  UseReorderOfferingAttributes,
+  UseReorderOfferingDimensions,
   UseSetOfferingFulfilment,
   UseSetOfferingStatus,
+  UseSetOfferingTargetAvailability,
   UseSetOfferingTaxClass,
-  UseSetVariantAttributes,
-  UseSetVariantFulfilment,
-  UseSetVariantTaxClass,
+  UseSetOfferingVariantAttributes,
+  UseSetOfferingVariantFulfilment,
+  UseSetOfferingVariantTaxClass,
   UseSuspenseOffering,
-  UseSuspenseVariant,
-  UseUpdateAttribute,
-  UseUpdateBomLine,
-  UseUpdateDimension,
+  UseSuspenseOfferingVariant,
   UseUpdateOffering,
-  UseUpdateVariant,
-  UseUpsertAttributeValues,
-  UseUpsertDimensionValues,
-  UseVariantBom,
+  UseUpdateOfferingAttribute,
+  UseUpdateOfferingDimension,
+  UseUpdateOfferingVariant,
+  UseUpdateOfferingVariantBomLine,
+  UseUpsertOfferingAttributeValues,
+  UseUpsertOfferingDimensionValues,
 } from './types';
 
 export interface OfferingsBinding {
@@ -54,6 +60,8 @@ export interface OfferingsBinding {
   tableSlug: string;
   variantsTableKey: (offeringId: string) => readonly unknown[];
   variantsTableSlug: (offeringId: string) => string;
+  channelVariantsKey: (offeringId: string, targetId: string) => readonly unknown[];
+  channelVariantsSlug: (offeringId: string, targetId: string) => string;
   exportEndpoint: string;
   variantsExportEndpoint: (offeringId: string) => string;
 
@@ -63,47 +71,54 @@ export interface OfferingsBinding {
   useUpdateOffering: UseUpdateOffering;
   useDeleteOffering: UseDeleteOffering;
   useSetOfferingStatus: UseSetOfferingStatus;
-  useBulkSetOfferingsStatus: UseBulkSetOfferingsStatus;
-
-  useAttributes: UseOfferingAttributes;
-  useCreateAttribute: UseCreateAttribute;
-  useCreateAttributeFromTemplate: UseCreateAttributeFromTemplate;
-  useUpsertAttributeValues: UseUpsertAttributeValues;
-  useUpdateAttribute: UseUpdateAttribute;
-  useReorderAttributes: UseReorderAttributes;
-  useDeleteAttribute: UseDeleteAttribute;
-  useSetVariantAttributes: UseSetVariantAttributes;
-  useBulkSetVariantsAttribute: UseBulkSetVariantsAttribute;
-
-  useDimensions: UseOfferingDimensions;
-  useCreateDimension: UseCreateDimension;
-  useCreateDimensionFromTemplate: UseCreateDimensionFromTemplate;
-  useUpsertDimensionValues: UseUpsertDimensionValues;
-  useUpdateDimension: UseUpdateDimension;
-  useReorderDimensions: UseReorderDimensions;
-  useDeleteDimension: UseDeleteDimension;
-
-  useVariantsTable: UseOfferingVariantsTable;
-  useVariant: UseSuspenseVariant;
-  useVariantBom: UseVariantBom;
-  useCreateVariant: UseCreateVariant;
-  useGenerateVariants: UseGenerateVariants;
-  usePreviewVariantCombinations: UsePreviewVariantCombinations;
-  useUpdateVariant: UseUpdateVariant;
-  useBulkSetVariantsStatus: UseBulkSetVariantsStatus;
-  useBulkClearVariantsTaxClass: UseBulkClearVariantsTaxClass;
-  useBulkSetVariantsTaxClass: UseBulkSetVariantsTaxClass;
-  useDeleteVariant: UseDeleteVariant;
+  useMarkOfferingsActive: UseMarkOfferingsActive;
+  useMarkOfferingsInactive: UseMarkOfferingsInactive;
   useSetOfferingTaxClass: UseSetOfferingTaxClass;
-  useSetVariantTaxClass: UseSetVariantTaxClass;
   useSetOfferingFulfilment: UseSetOfferingFulfilment;
-  useSetVariantFulfilment: UseSetVariantFulfilment;
-  useClearVariantFulfilment: UseClearVariantFulfilment;
-  useClearVariantTaxClass: UseClearVariantTaxClass;
-  useAddBomLine: UseAddBomLine;
-  useUpdateBomLine: UseUpdateBomLine;
-  useDeleteBomLine: UseDeleteBomLine;
-  useAddSuggestedComponent: UseAddSuggestedComponent;
 
-  useCreateVariantInventoryItem?: UseCreateVariantInventoryItem;
+  useOfferingAttributes: UseOfferingAttributes;
+  useCreateOfferingAttribute: UseCreateOfferingAttribute;
+  useCreateOfferingAttributeFromTemplate: UseCreateOfferingAttributeFromTemplate;
+  useUpsertOfferingAttributeValues: UseUpsertOfferingAttributeValues;
+  useUpdateOfferingAttribute: UseUpdateOfferingAttribute;
+  useReorderOfferingAttributes: UseReorderOfferingAttributes;
+  useDeleteOfferingAttribute: UseDeleteOfferingAttribute;
+  useSetOfferingVariantAttributes: UseSetOfferingVariantAttributes;
+  useBulkSetOfferingVariantsAttribute: UseBulkSetOfferingVariantsAttribute;
+
+  useOfferingDimensions: UseOfferingDimensions;
+  useCreateOfferingDimension: UseCreateOfferingDimension;
+  useCreateOfferingDimensionFromTemplate: UseCreateOfferingDimensionFromTemplate;
+  useUpsertOfferingDimensionValues: UseUpsertOfferingDimensionValues;
+  useUpdateOfferingDimension: UseUpdateOfferingDimension;
+  useReorderOfferingDimensions: UseReorderOfferingDimensions;
+  useDeleteOfferingDimension: UseDeleteOfferingDimension;
+
+  useOfferingVariantsTable: UseOfferingVariantsTable;
+  useOfferingVariant: UseSuspenseOfferingVariant;
+  useCreateOfferingVariant: UseCreateOfferingVariant;
+  useGenerateOfferingVariants: UseGenerateOfferingVariants;
+  usePreviewOfferingVariantCombinations: UsePreviewOfferingVariantCombinations;
+  useUpdateOfferingVariant: UseUpdateOfferingVariant;
+  useMarkOfferingVariantsActive: UseMarkOfferingVariantsActive;
+  useMarkOfferingVariantsInactive: UseMarkOfferingVariantsInactive;
+  useBulkClearOfferingVariantsTaxClass: UseBulkClearOfferingVariantsTaxClass;
+  useBulkSetOfferingVariantsTaxClass: UseBulkSetOfferingVariantsTaxClass;
+  useDeleteOfferingVariant: UseDeleteOfferingVariant;
+  useSetOfferingVariantTaxClass: UseSetOfferingVariantTaxClass;
+  useClearOfferingVariantTaxClass: UseClearOfferingVariantTaxClass;
+  useSetOfferingVariantFulfilment: UseSetOfferingVariantFulfilment;
+  useClearOfferingVariantFulfilment: UseClearOfferingVariantFulfilment;
+
+  useOfferingVariantBom: UseOfferingVariantBom;
+  useAddOfferingVariantBomLine: UseAddOfferingVariantBomLine;
+  useUpdateOfferingVariantBomLine: UseUpdateOfferingVariantBomLine;
+  useDeleteOfferingVariantBomLine: UseDeleteOfferingVariantBomLine;
+  useAddOfferingVariantSuggestedComponent: UseAddOfferingVariantSuggestedComponent;
+  useCreateOfferingVariantInventoryItem?: UseCreateVariantInventoryItem;
+
+  useOfferingChannels: UseOfferingChannels;
+  useOfferingChannelVariantsTable: UseOfferingChannelVariantsTable;
+  useCreateOfferingChannelPages: UseCreateOfferingChannelPages;
+  useSetOfferingTargetAvailability: UseSetOfferingTargetAvailability;
 }

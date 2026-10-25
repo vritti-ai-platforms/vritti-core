@@ -21,7 +21,7 @@ interface AddCartLineDialogProps {
 export const AddCartLineDialog = ({ binding, cartId, partyId, onSuccess, onCancel }: AddCartLineDialogProps) => {
   const form = useForm<AddCartLineFormShape>({
     resolver: zodResolver(addCartLineFormSchema),
-    defaultValues: { offeringId: '', offeringVariantId: '', quantity: 1 },
+    defaultValues: { quantity: 1 },
   });
 
   // Variants only exist inside an offering, so picking one unlocks the next
@@ -30,7 +30,7 @@ export const AddCartLineDialog = ({ binding, cartId, partyId, onSuccess, onCance
   const createMutation = binding.useAddCartLine(cartId, { onSuccess });
 
   // A variant from the previous offering would query the wrong parent
-  const handleOfferingChange = () => form.setValue('offeringVariantId', '');
+  const handleOfferingChange = () => form.resetField('offeringVariantId');
 
   return (
     <Form
@@ -42,7 +42,7 @@ export const AddCartLineDialog = ({ binding, cartId, partyId, onSuccess, onCance
     >
       <FormSection title="Product" contentClassName="grid grid-cols-1 gap-4">
         <OfferingSelector name="offeringId" onOptionSelect={handleOfferingChange} />
-        {/* The endpoint requires a real offeringId, so the variant selector only mounts once one is picked */}
+        {/* Product first, then its variants — the selector mounts once a product is picked */}
         {offeringId ? (
           <OfferingVariantSelector key={offeringId} name="offeringVariantId" offeringId={offeringId} />
         ) : null}

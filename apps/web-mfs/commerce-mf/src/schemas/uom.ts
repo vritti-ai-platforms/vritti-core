@@ -9,7 +9,7 @@ const _uomFormSchema = z
     name: z.string().min(1, 'Name is required').max(50),
     symbol: z.string().min(1, 'Symbol is required').max(10),
     kind: z.enum(['base', 'derived']),
-    baseUnitId: z.string().optional(),
+    baseUnitId: z.uuid().optional(),
     baseUomQty: positiveInt.optional().catch(undefined),
     uomQty: positiveInt.optional().catch(undefined),
     allowDecimal: z.boolean().default(false),

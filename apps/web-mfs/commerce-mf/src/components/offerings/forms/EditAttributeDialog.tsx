@@ -6,10 +6,10 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { type OfferingAttributeData, type UpdateAttributeFormData, updateAttributeSchema } from '@/schemas/offerings';
-import type { UseUpdateAttribute } from '../types';
+import type { UseUpdateOfferingAttribute } from '../types';
 
 interface EditAttributeDialogProps {
-  useUpdate: UseUpdateAttribute;
+  useUpdate: UseUpdateOfferingAttribute;
   attribute: OfferingAttributeData;
   onSuccess: () => void;
   onCancel: () => void;

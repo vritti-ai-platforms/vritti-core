@@ -20,10 +20,10 @@ import {
   toCode,
 } from '@/schemas/offerings';
 import { DimensionTemplateSelector } from '@/selectors/dimension-template';
-import type { UseUpsertDimensionValues } from '../types';
+import type { UseUpsertOfferingDimensionValues } from '../types';
 
 interface DimensionValuesDialogProps {
-  useUpsert: UseUpsertDimensionValues;
+  useUpsert: UseUpsertOfferingDimensionValues;
   dimension: OfferingDimensionData;
   onSuccess: () => void;
   onCancel: () => void;

@@ -13,12 +13,12 @@ import { useMemo, useState } from 'react';
 import { stepNumber, toStepDefs } from '@/components/wizardSteps';
 import type { OfferingData, OfferingDimensionData, VariantCombinationData } from '@/schemas/offerings';
 import { CodeOrderStrip } from '../components/CodeOrderStrip';
-import type { UseGenerateVariants, UsePreviewVariantCombinations } from '../types';
+import type { UseGenerateOfferingVariants, UsePreviewOfferingVariantCombinations } from '../types';
 import { VARIANT_WIZARD_STEPS, type VariantWizardStep } from './wizardSteps';
 
 interface GenerateVariantsWizardProps {
-  useGenerate: UseGenerateVariants;
-  usePreview: UsePreviewVariantCombinations;
+  useGenerate: UseGenerateOfferingVariants;
+  usePreview: UsePreviewOfferingVariantCombinations;
   offering: OfferingData;
   dimensions: OfferingDimensionData[];
   onSuccess: () => void;

@@ -24,7 +24,7 @@ interface AddTaxRegistrationDialogProps {
 export const AddTaxRegistrationDialog: React.FC<AddTaxRegistrationDialogProps> = ({ onSuccess, onCancel }) => {
   const form = useForm<CreateTaxRegistrationFormData>({
     resolver: zodResolver(createTaxRegistrationSchema),
-    defaultValues: { jurisdictionId: '', registrationNumber: '', registrationType: 'GSTIN', isPrimary: false },
+    defaultValues: { registrationNumber: '', registrationType: 'GSTIN', isPrimary: false },
   });
 
   const createMutation = useCreateTaxRegistration({ onSuccess });

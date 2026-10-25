@@ -26,7 +26,7 @@ export const AddInventoryItemLocationForm: React.FC<AddInventoryItemLocationForm
 }) => {
   const form = useForm<CreateInventoryItemLocationFormData>({
     resolver: zodResolver(createInventoryItemLocationSchema),
-    defaultValues: { locationId: '', reorderLevel: 0 },
+    defaultValues: { reorderLevel: 0 },
   });
 
   const createMutation = useCreateInventoryItemLocation(inventoryItemId, { onSuccess });

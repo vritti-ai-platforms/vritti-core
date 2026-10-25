@@ -1,15 +1,20 @@
-import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import { Select, type SelectOption, type SelectProps } from '@vritti/quantum-ui/Select';
 import { forwardRef } from 'react';
 
 export interface OfferingVariantSelectorProps extends SelectProps {
-  offeringId: string;
+  offeringId?: string;
   catalogId?: string;
 }
 
-// No descriptionKey: a variant has no name column, so the endpoint composes one from its facets
-const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'code' } as const;
+const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'name', descriptionKey: 'code' } as const;
 
-// Pre-configured Select for the variants of one offering, keyed by Code
+// The offering name alone is shared by every sibling, so its dimension values are what tell them apart
+function defaultTransformLabel(label: string, option: SelectOption): string {
+  const facets = typeof option.additionals?.facets === 'string' ? option.additionals.facets : '';
+  return facets ? `${label} · ${facets}` : label;
+}
+
+// Pre-configured Select for offering variants — one offering's when offeringId is given, every reachable one's otherwise
 export const OfferingVariantSelector = forwardRef<HTMLButtonElement, OfferingVariantSelectorProps>(
   ({ offeringId, catalogId, fieldKeys, params, ...props }, ref) => (
     <Select
@@ -18,8 +23,9 @@ export const OfferingVariantSelector = forwardRef<HTMLButtonElement, OfferingVar
       placeholder="Select variant"
       searchable
       optionsEndpoint="commerce-api/select-api/offering-variants"
+      transformLabel={defaultTransformLabel}
       {...props}
-      params={{ ...params, offeringId, ...(catalogId ? { catalogId } : {}) }}
+      params={{ ...params, ...(offeringId ? { offeringId } : {}), ...(catalogId ? { catalogId } : {}) }}
       fieldKeys={{ ...DEFAULT_FIELD_KEYS, ...fieldKeys }}
     />
   ),

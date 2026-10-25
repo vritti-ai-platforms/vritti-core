@@ -155,6 +155,7 @@ export class LeCatalogChannelsGatewayService {
       'le.catalogChannels.items',
       { channelId, state },
     );
+
     return { result, count, state, activeViewId };
   }
 

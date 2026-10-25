@@ -53,7 +53,7 @@ export interface OrderDetail extends OrderData {
 export type OrdersTableResponse = TableResponse<OrderData>;
 
 const orderItemSchema = z.object({
-  offeringVariantId: z.string().min(1, 'Variant is required'),
+  offeringVariantId: z.uuid('Variant is required'),
   quantity: z.number().min(1, 'Quantity must be at least 1'),
   notes: z.string().optional(),
 });

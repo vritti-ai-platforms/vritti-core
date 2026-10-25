@@ -26,7 +26,7 @@ const AddLotForm = ({
 }) => {
   const form = useForm<AddGoodsReceiptLotFormData>({
     resolver: zodResolver(addGoodsReceiptLotSchema),
-    defaultValues: { lotNumber: '', manufacturingDate: '', expiryDate: '', mrp: undefined },
+    defaultValues: { lotNumber: '', mrp: undefined },
   });
   const mutation = useAddGoodsReceiptLot(goodsReceiptId, itemId, { onSuccess });
   const buCurrencyCode = useBUCurrency();

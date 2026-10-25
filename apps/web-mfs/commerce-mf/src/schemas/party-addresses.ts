@@ -29,7 +29,7 @@ export const addAddressSchema = z.object({
   city: z.string().max(255).optional(),
   region: z.string().max(255).optional(),
   postalCode: z.string().max(20).optional(),
-  countryCode: z.string().length(2, 'Select a country'),
+  countryCode: z.string({ error: 'Select a country' }).length(2, 'Select a country'),
   functions: z.array(partyFunctionAssignmentSchema),
 });
 

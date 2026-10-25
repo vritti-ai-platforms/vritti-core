@@ -26,7 +26,6 @@ export const AssignCatalogDialog: React.FC<AssignCatalogDialogProps> = ({
 }) => {
   const form = useForm<AssignCatalogFormData>({
     resolver: zodResolver(assignCatalogSchema),
-    defaultValues: { catalogId: '' },
   });
 
   // The endpoint takes one comma-separated list, not repeated params

@@ -13,7 +13,11 @@ import {
   setTaxClassSchema,
 } from '@/schemas/offerings';
 import { TaxClassSelector } from '@/selectors/tax-class';
-import type { UseBulkSetVariantsTaxClass, UseSetOfferingTaxClass, UseSetVariantTaxClass } from '../types';
+import type {
+  UseBulkSetOfferingVariantsTaxClass,
+  UseSetOfferingTaxClass,
+  UseSetOfferingVariantTaxClass,
+} from '../types';
 
 interface SetTaxClassDialogProps {
   useSet: UseSetOfferingTaxClass;
@@ -68,7 +72,7 @@ export const SetTaxClassDialog: React.FC<SetTaxClassDialogProps> = ({ useSet, of
 };
 
 interface SetVariantTaxClassDialogProps {
-  useSet: UseSetVariantTaxClass;
+  useSet: UseSetOfferingVariantTaxClass;
   variant: OfferingVariantData;
   onSuccess: () => void;
   onCancel: () => void;
@@ -117,7 +121,7 @@ export const SetVariantTaxClassDialog: React.FC<SetVariantTaxClassDialogProps> =
 };
 
 interface BulkSetVariantsTaxClassDialogProps {
-  useSet: UseBulkSetVariantsTaxClass;
+  useSet: UseBulkSetOfferingVariantsTaxClass;
   offeringId: string;
   variantIds: string[];
   onSuccess: () => void;

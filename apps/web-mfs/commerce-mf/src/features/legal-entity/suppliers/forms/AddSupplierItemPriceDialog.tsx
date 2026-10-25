@@ -31,8 +31,6 @@ export const AddSupplierItemPriceDialog: React.FC<AddSupplierItemPriceDialogProp
       unitPrice: undefined,
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
-      validFrom: '',
-      validTo: '',
     },
   });
 

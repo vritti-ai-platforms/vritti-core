@@ -15,12 +15,12 @@ import { SetVariantAttributesDto } from '@domain/offering-variants/dto/request/s
 import { SetVariantFulfilmentDto } from '@domain/offering-variants/dto/request/set-variant-fulfilment.dto';
 import { SetVariantTaxClassDto } from '@domain/offering-variants/dto/request/set-variant-tax-class.dto';
 import { UpdateVariantDto } from '@domain/offering-variants/dto/request/update-variant.dto';
-import type { VariantOptionRow } from '@domain/offering-variants/repositories/offering-variants.repository';
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { CatalogChannelType } from '@/db/schema';
 
 @Controller()
 export class SiteOfferingVariantsController {
@@ -40,6 +40,45 @@ export class SiteOfferingVariantsController {
     this.logger.log(`offerings.variants.table — offeringId: ${offeringId}`);
     return this.service.findForTable(offeringId, state as TableViewState);
   }
+  // The same page of variants as the table above, plus how one channel sees each row
+  @MessagePattern({ cmd: 'site.offerings.variants.channelTable' })
+  findForChannelTable(
+    @Payload()
+    data: { offeringId: string; channelType: CatalogChannelType; targetId: string } & TableViewState,
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
+    const { offeringId, channelType, targetId, ...state } = data;
+    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, ${channelType} target: ${targetId}`);
+    return this.service.findForTable(offeringId, state as TableViewState, channelType, targetId);
+  }
+
+  // Sets whether one variant is available on one target of one channel
+  @MessagePattern({ cmd: 'site.offerings.variants.setTargetAvailability' })
+  setTargetAvailability(
+    @Payload()
+    data: {
+      channelType: CatalogChannelType;
+      targetId: string;
+      targetName: string;
+      variantId: string;
+      availableHere: boolean;
+    },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.setTargetAvailability — target: ${data.targetId}, variant: ${data.variantId}`);
+    return this.service.setTargetAvailability(
+      data.channelType,
+      data.targetId,
+      data.targetName,
+      data.variantId,
+      data.availableHere,
+    );
+  }
+
+  // The subset of these codes that name a variant of this offering
+  @MessagePattern({ cmd: 'site.offerings.variants.codesInOffering' })
+  codesInOffering(@Payload() data: { offeringId: string; codes: string[] }): Promise<string[]> {
+    this.logger.log(`offerings.variants.codesInOffering — offeringId: ${data.offeringId}, codes: ${data.codes.length}`);
+    return this.service.findCodesInOffering(data.offeringId, data.codes);
+  }
 
   // Every combination the selected values produce, flagged with the ones that already exist
   @MessagePattern({ cmd: 'site.offerings.variants.combinations' })
@@ -55,15 +94,6 @@ export class SiteOfferingVariantsController {
   ): Promise<Record<string, unknown>[]> {
     this.logger.log(`offerings.variants.exportRows — offeringId: ${data.offeringId}, offset: ${data.offset}`);
     return this.service.findForExport(data.offeringId, data);
-  }
-
-  // Variant options for a storefront's own picker.
-  @MessagePattern({ cmd: 'site.offerings.variants.appOptions' })
-  appOptions(
-    @Payload() data: { search?: string; excludeIds?: string[]; limit?: number; offset?: number },
-  ): Promise<{ items: VariantOptionRow[]; total: number }> {
-    this.logger.log(`offerings.variants.appOptions — search: ${data.search ?? ''}`);
-    return this.service.findOptions(data);
   }
 
   // Returns one variant

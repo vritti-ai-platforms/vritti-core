@@ -72,6 +72,8 @@ export default defineConfig({
         // resolve the container entry for this feature
         './Org/Organization': './src/features/organization/organization/index.tsx',
         './Org/Repositories': './src/features/organization/repositories/index.tsx',
+        // Selectors the host renders outside any feature (breadcrumb switchers), so it never owns gitea's
+        './Selectors/Repository': './src/selectors/repository/index.ts',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },

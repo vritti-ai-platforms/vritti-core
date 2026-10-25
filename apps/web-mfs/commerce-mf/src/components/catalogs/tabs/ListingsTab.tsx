@@ -14,6 +14,7 @@ import {
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Boxes, Eraser, IndianRupee, Layers, Plus, Radio, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -216,7 +217,33 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         mode="tab"
         isLoading={isLoading}
         permission={binding.permissions.listings.view}
-        searchConfig={{ columns: [{ id: 'code', label: 'Code' }], searchAll: true }}
+        searchConfig={{
+          columns: [
+            { id: 'code', label: 'Code' },
+            { id: 'offeringName', label: 'Variant' },
+          ],
+          searchAll: true,
+        }}
+        filters={[
+          <SelectFilter
+            key="isVariantActive"
+            name="isVariantActive"
+            label="Variant Status"
+            options={[
+              { label: 'Active', value: 'true' },
+              { label: 'Inactive', value: 'false' },
+            ]}
+          />,
+          <SelectFilter
+            key="isOfferingActive"
+            name="isOfferingActive"
+            label="Offering Status"
+            options={[
+              { label: 'Active', value: 'true' },
+              { label: 'Inactive', value: 'false' },
+            ]}
+          />,
+        ]}
         toolbarActions={{
           actions: (
             <>

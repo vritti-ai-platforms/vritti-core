@@ -5,6 +5,7 @@ import { SetOfferingFulfilmentDto } from '@domain/offerings/dto/request/set-offe
 import { SetOfferingStatusDto } from '@domain/offerings/dto/request/set-offering-status.dto';
 import { SetOfferingTaxClassDto } from '@domain/offerings/dto/request/set-offering-tax-class.dto';
 import { UpdateOfferingDto } from '@domain/offerings/dto/request/update-offering.dto';
+import type { OfferingTargetRow } from '@domain/offerings/repositories/offerings.repository';
 import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -36,6 +37,13 @@ export class LeOfferingsController {
   findById(@Payload() data: { id: string }): Promise<OfferingDto> {
     this.logger.log(`offerings.findById — id: ${data.id}`);
     return this.service.findById(data.id);
+  }
+
+  // Where this offering sells: a row per app or till whose catalog carries it
+  @MessagePattern({ cmd: 'le.offerings.channels' })
+  channels(@Payload() data: { offeringId: string; appIds: string[] }): Promise<OfferingTargetRow[]> {
+    this.logger.log(`offerings.channels — offeringId: ${data.offeringId}, apps: ${data.appIds.length}`);
+    return this.service.findTargetsForOffering(data.offeringId, data.appIds);
   }
 
   // Creates a legal entity-owned offering; dimensions and variants follow

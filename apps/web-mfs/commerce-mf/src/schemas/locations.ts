@@ -21,12 +21,12 @@ const locationRoleEnumValues = Object.values(LocationRoleValues) as [LocationRol
 const _locationSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   code: z.string().min(1, 'Code is required').max(50),
-  parentId: z.string().optional().nullable(),
+  parentId: z.uuid().optional().nullable(),
   sortOrder: zodNumericField({ required: 'Sort order is required', min: 1 }),
   locationRole: z.enum(locationRoleEnumValues),
   isActive: z.boolean(),
   area: z.string().max(100).optional().or(z.literal('')),
-  managerId: z.string().max(100).optional().or(z.literal('')),
+  managerId: z.uuid().optional().nullable(),
 });
 
 export type LocationFormData = {

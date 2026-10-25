@@ -1,8 +1,8 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Select } from '@vritti/quantum-ui/Select';
 import { Separator } from '@vritti/quantum-ui/Separator';
 import { ChevronsUpDown, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { WhatsappAccountSelector } from '@/utils/RemoteSelectors';
 
 interface WhatsappAccountSwitcherProps {
   // The raw detail crumb segment — WhatsApp accounts are keyed by UUID, so this is the account id
@@ -17,11 +17,8 @@ export const WhatsappAccountSwitcher = ({ segment, basePath }: WhatsappAccountSw
   const navigate = useNavigate();
 
   return (
-    <Select
+    <WhatsappAccountSelector
       value={segment}
-      searchable
-      optionsEndpoint="communications-api/select-api/whatsapp-accounts"
-      fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
       // The anchor replaces the trigger but not the surrounding Field, so a label would still render above it
       label={undefined}
       searchPlaceholder="Find account..."

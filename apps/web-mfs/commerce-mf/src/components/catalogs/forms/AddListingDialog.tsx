@@ -2,7 +2,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { Select } from '@vritti/quantum-ui/Select';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -45,27 +44,21 @@ export const AddListingDialog: React.FC<AddListingDialogProps> = (props) => {
 const AddListingForm: React.FC<AddListingFormProps> = ({ binding, catalogId, currencyCodes, onSuccess, onCancel }) => {
   const form = useForm<AddCatalogListingFormShape>({
     resolver: zodResolver(addCatalogListingFormSchema),
-    defaultValues: {
-      offeringId: '',
-      offeringVariantId: '',
-      inventoryItemMrpId: null,
-      currencyCode: currencyCodes[0] ?? '',
-      price: undefined,
-    },
   });
   const offeringId = useWatch({ control: form.control, name: 'offeringId' });
   const offeringVariantId = useWatch({ control: form.control, name: 'offeringVariantId' });
-  const currencyCode = useWatch({ control: form.control, name: 'currencyCode' });
+  const price = useWatch({ control: form.control, name: 'price' });
+  const currencyCode = price?.currency ?? currencyCodes[0];
 
   const addMutation = binding.useAddListings({ onSuccess });
 
   // A variant from the previous offering would be priced into a catalog its parent never reached
   const handleOfferingChange = () => {
-    form.setValue('offeringVariantId', '');
-    form.setValue('inventoryItemMrpId', null);
+    form.resetField('offeringVariantId');
+    form.resetField('inventoryItemMrpId');
   };
 
-  const handleVariantChange = () => form.setValue('inventoryItemMrpId', null);
+  const handleVariantChange = () => form.resetField('inventoryItemMrpId');
 
   return (
     <Form
@@ -78,9 +71,7 @@ const AddListingForm: React.FC<AddListingFormProps> = ({ binding, catalogId, cur
           {
             offeringVariantId: data.offeringVariantId,
             inventoryItemMrpId: data.inventoryItemMrpId ?? null,
-            ...(data.price?.value && data.currencyCode
-              ? { price: { currency: data.currencyCode, value: data.price.value } }
-              : {}),
+            ...(data.price?.value ? { price: { currency: data.price.currency, value: data.price.value } } : {}),
           },
         ],
       })}
@@ -98,7 +89,7 @@ const AddListingForm: React.FC<AddListingFormProps> = ({ binding, catalogId, cur
           catalogId={catalogId}
           disabled={!offeringId}
           onOptionSelect={handleVariantChange}
-          description={offeringId ? undefined : 'Choose a product first.'}
+          description={offeringId ? undefined : 'Choose an offering first.'}
         />
 
         <InventoryItemMrpSelector
@@ -106,7 +97,7 @@ const AddListingForm: React.FC<AddListingFormProps> = ({ binding, catalogId, cur
           name="inventoryItemMrpId"
           label="MRP"
           variantId={offeringVariantId}
-          currencyCode={currencyCode || undefined}
+          currencyCode={currencyCode}
           catalogId={catalogId}
           clearable
           disabled={!offeringVariantId}
@@ -117,25 +108,14 @@ const AddListingForm: React.FC<AddListingFormProps> = ({ binding, catalogId, cur
           }
         />
 
-        <Select
-          name="currencyCode"
-          label="Currency"
-          options={currencyCodes.map((code) => ({ value: code, label: code }))}
-          disabled={currencyCodes.length === 0}
-          description={
-            currencyCodes.length === 0
-              ? 'This catalog has no currency yet. Add one on the Prices tab to start pricing.'
-              : 'The currency you are pricing in. Only MRPs printed in it can be chosen.'
-          }
-        />
-
         <CurrencyField
           name="price"
           label="Price"
-          currencyCode={currencyCode}
+          currencies={currencyCodes}
+          defaultCurrencyCode={currencyCodes[0]}
           disabled={currencyCodes.length === 0}
           disabledTip="This catalog carries no currency yet. Add one on the Prices tab."
-          description="Leave blank to price it later. It cannot be more than the MRP you chose."
+          description="Leave blank to price it later. Only MRPs printed in its currency can be chosen, and it cannot be more than the MRP."
         />
       </div>
       <DialogActions>

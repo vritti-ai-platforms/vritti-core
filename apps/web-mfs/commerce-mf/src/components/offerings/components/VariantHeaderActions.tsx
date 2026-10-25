@@ -6,13 +6,13 @@ import type React from 'react';
 import { useMemo } from 'react';
 import type { OfferingVariantData } from '@/schemas/offerings';
 import { SetVariantTaxClassDialog } from '../forms/SetTaxClassDialog';
-import type { OfferingPermissions, UseClearVariantTaxClass, UseSetVariantTaxClass } from '../types';
+import type { OfferingPermissions, UseClearOfferingVariantTaxClass, UseSetOfferingVariantTaxClass } from '../types';
 
 interface VariantHeaderActionsProps {
   permissions: OfferingPermissions;
   variant: OfferingVariantData;
-  useSetTaxClass: UseSetVariantTaxClass;
-  useClearTaxClass: UseClearVariantTaxClass;
+  useSetTaxClass: UseSetOfferingVariantTaxClass;
+  useClearTaxClass: UseClearOfferingVariantTaxClass;
 }
 
 export const VariantHeaderActions: React.FC<VariantHeaderActionsProps> = ({

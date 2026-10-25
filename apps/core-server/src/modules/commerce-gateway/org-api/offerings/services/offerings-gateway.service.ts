@@ -22,20 +22,32 @@ import type { UpdateVariantDto } from '@commerce/offerings/dto/request/update-va
 import type { UpsertOfferingAttributeValuesDto } from '@commerce/offerings/dto/request/upsert-offering-attribute-values.dto';
 import type { UpsertOfferingDimensionValuesDto } from '@commerce/offerings/dto/request/upsert-offering-dimension-values.dto';
 import type { OfferingAttributeResponseDto } from '@commerce/offerings/dto/response/offering-attribute-response.dto';
+import type {
+  ChannelVariantPagesTableResponseDto,
+  ChannelVariantResponseDto,
+  OfferingChannelTargetResponseDto,
+  OfferingChannelTypeResponseDto,
+  OfferingTargetRow,
+} from '@commerce/offerings/dto/response/offering-channel-response.dto';
+import { OFFERING_CHANNEL_TYPES } from '@commerce/offerings/dto/response/offering-channel-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
 import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/response/offering-variant-response.dto';
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
 import type { VariantBomResponseDto } from '@commerce/offerings/dto/response/variant-bom-response.dto';
+import { AppDomainRepository } from '@domain/app/repositories/app.repository';
+import { AppStorefrontDomainService, type StorefrontCreateResult } from '@domain/app/services/app-storefront.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import { ConflictException } from '@vritti/api-sdk/exceptions';
+import { BadGatewayException, BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 import type { PreviewCombinationsDto } from '../../../domain/offerings/dto/request/preview-combinations.dto';
 import type { VariantCombinationsResponseDto } from '../../../domain/offerings/dto/response/variant-combinations-response.dto';
+import type { OfferingVariantOptions } from '../graphql/offering-variant-option.type';
 
 const EXPORT_PAGE_SIZE = 500;
 const MAX_EXPORT_ROWS = 50_000;
@@ -48,6 +60,8 @@ export class OrgOfferingsGatewayService {
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
     private readonly ownerNames: OwnerNameService,
+    private readonly appRepository: AppDomainRepository,
+    private readonly appStorefront: AppStorefrontDomainService,
   ) {}
 
   // Returns paginated offerings for the data table, merged with the caller's saved view state
@@ -369,5 +383,235 @@ export class OrgOfferingsGatewayService {
   async deleteVariant(variantId: string): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.delete — id: ${variantId}`);
     return this.nats.send('commerce', 'org.offerings.variants.delete', { id: variantId });
+  }
+
+  // Variant options for a storefront's own picker — org-wide, since an app credential carries no site
+  async appVariantOptions(query: {
+    search?: string;
+    excludeIds?: string[];
+    limit?: number;
+    offset?: number;
+  }): Promise<OfferingVariantOptions> {
+    this.logger.log(`org.offerings.variants.appOptions — search: ${query.search ?? ''}`);
+    return this.nats.send('commerce', 'org.offerings.variants.appOptions', query);
+  }
+
+  // Where this offering sells. Commerce ranks each app or till against the channels in reach and counts what
+  // the winning channel's catalog carries of this offering; core names the apps, since apps are its own.
+  // Grouped by channel type, the way the channels screen groups them. No storefront is asked anything here.
+  async offeringChannels(orgId: string, offeringId: string): Promise<OfferingChannelTypeResponseDto[]> {
+    const targets = await this.offeringTargets(orgId, offeringId);
+    const byType = new Map<string, OfferingChannelTargetResponseDto[]>();
+
+    for (const target of targets) {
+      const rows = byType.get(target.type) ?? [];
+      rows.push(target.row);
+      byType.set(target.type, rows);
+    }
+
+    return [...byType].map(([type, rows]) => ({ type, targets: rows }));
+  }
+
+  // Every target of this offering, paired with the one fact only this gateway needs: whether this workspace
+  // owns the channel the target resolves through. That does not belong in the list a client reads.
+  private async offeringTargets(
+    orgId: string,
+    offeringId: string,
+  ): Promise<{ type: string; row: OfferingChannelTargetResponseDto; isOwn: boolean }[]> {
+    const apps = await this.appRepository.findAllByOrg(orgId);
+    const live = apps.filter((app) => !app.revokedAt);
+
+    this.logger.log(`org.offerings.channels — offeringId: ${offeringId}, apps: ${live.length}`);
+    const targets = await this.nats.send<OfferingTargetRow[]>('commerce', 'org.offerings.channels', {
+      offeringId,
+      appIds: live.map((app) => app.id),
+    });
+
+    const named = new Map(live.map((app) => [app.id, app]));
+
+    return targets.map((target) => {
+      const app = target.targetKind === 'APP' ? named.get(target.targetId) : undefined;
+
+      return {
+        type: target.type,
+        isOwn: target.isOwn,
+        row: {
+          targetId: target.targetId,
+          targetKind: target.targetKind,
+          // Commerce names a till; an app is core's to name
+          name: app?.name ?? target.targetName,
+          catalogId: target.catalogId,
+          catalogName: target.catalogName,
+          isAssigned: target.isAssigned,
+          // Only an app with a base url has pages to ask about; a till never does
+          storefront: Boolean(app?.baseUrl),
+          variants: target.variants,
+          listed: target.listed,
+          available: target.available,
+        },
+      };
+    });
+  }
+
+  // The Variants table seen through one target: the same rows, columns and saved view as the Variants tab,
+  // plus what its channel carries, what it offers that target, and — where the target is an app with a base
+  // url — the page behind it. Its own slug, so switching targets does not inherit that tab's view.
+  //
+  // Both ids come from the path, so nothing is re-resolved: commerce answers with the channel facts it
+  // already had, and core looks up the one app it needs rather than the organization's whole list.
+  async channelVariantPages(
+    orgId: string,
+    userId: string,
+    offeringId: string,
+    channelType: string,
+    targetId: string,
+  ): Promise<ChannelVariantPagesTableResponseDto> {
+    this.requireChannelType(channelType);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-org-offering-${offeringId}-target-${targetId}-variants`,
+    );
+
+    this.logger.log(`org.offerings.variants.channelTable — offeringId: ${offeringId}, target: ${targetId}`);
+    const { result, count, catalogName, isOwn } = await this.nats.send<{
+      result: ChannelVariantResponseDto[];
+      count: number;
+      catalogName: string;
+      isOwn: boolean;
+    }>('commerce', 'org.offerings.variants.channelTable', {
+      offeringId,
+      channelType,
+      targetId,
+      ...state,
+    });
+
+    // A target id that names no app of this organization is a till, which has no storefront to ask
+    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
+    const appId = app?.baseUrl ? app.id : null;
+
+    const statuses = appId
+      ? await this.appStorefront.productStatusesInChunks(
+          appId,
+          orgId,
+          result.map((row) => row.code),
+        )
+      : {};
+
+    // Null rather than false wherever nothing could be asked, so the table says "unknown" not "no page"
+    const rows = result.map((row) => ({
+      ...row,
+      exists: appId ? (statuses[row.code]?.exists ?? null) : null,
+      metadataComplete: appId ? (statuses[row.code]?.metadataComplete ?? null) : null,
+    }));
+
+    return { result: rows, count, state, activeViewId, storefront: Boolean(appId), catalogName, isOwn };
+  }
+
+  // Creates pages for the named variants on one target's storefront
+  async createChannelPages(
+    orgId: string,
+    offeringId: string,
+    channelType: string,
+    targetId: string,
+    variantCodes: string[],
+  ): Promise<SuccessResponseDto> {
+    this.requireChannelType(channelType);
+
+    // A till names no app, so the lookup simply finds nothing and the refusal below is the right answer
+    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
+    if (!app?.baseUrl) {
+      throw new ConflictException({
+        label: 'No Storefront',
+        detail: 'This target has no storefront, so there are no pages to create on it.',
+      });
+    }
+
+    // A page is named after this offering, so a code from any other offering would get the wrong name
+    this.logger.log(
+      `org.offerings.variants.codesInOffering — offeringId: ${offeringId}, codes: ${variantCodes.length}`,
+    );
+    const known = new Set(
+      await this.nats.send<string[]>('commerce', 'org.offerings.variants.codesInOffering', {
+        offeringId,
+        codes: variantCodes,
+      }),
+    );
+    const foreign = variantCodes.filter((code) => !known.has(code));
+    if (foreign.length > 0) {
+      throw new BadRequestException({
+        label: 'Not In This Offering',
+        detail: `No variant of this offering matches ${pluralize('code', foreign.length)}: ${foreign.join(', ')}.`,
+      });
+    }
+
+    // Every page of one offering is named after it, so the name is read once rather than per variant
+    const offering = await this.findById(orgId, offeringId);
+    const products = variantCodes.map((code) => ({ code, name: offering.name }));
+
+    this.logger.log(`channel pages — offering: ${offeringId}, target: ${targetId}, variants: ${products.length}`);
+    const result = await this.appStorefront.createProductsInChunks(app.id, orgId, products);
+
+    // Nothing created and something refused is a failure: reporting success would have the table say
+    // "no page" straight after telling the operator the pages were made
+    const refusedEverything = result.created.length === 0 && result.failed.length > 0;
+    if (refusedEverything) {
+      throw new BadGatewayException({
+        label: 'Storefront Refused',
+        detail: `The storefront could not create ${pluralize('page', result.failed.length, true)}: ${result.failed[0].error}`,
+      });
+    }
+
+    return { success: true, message: this.channelPagesMessage(result) };
+  }
+
+  // Sets whether one variant is available on one target. Commerce owns the rule that a channel this workspace
+  // does not own cannot be edited here, so this forwards and lets it answer.
+  async setTargetAvailability(
+    orgId: string,
+    channelType: string,
+    targetId: string,
+    variantId: string,
+    availableHere: boolean,
+  ): Promise<SuccessResponseDto> {
+    this.requireChannelType(channelType);
+
+    // An app is core's to name; a till is named by commerce, which fills the blank in
+    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
+
+    this.logger.log(`org.offerings.variants.setTargetAvailability — target: ${targetId}, variant: ${variantId}`);
+    return this.nats.send('commerce', 'org.offerings.variants.setTargetAvailability', {
+      channelType,
+      targetId,
+      targetName: app?.name ?? '',
+      variantId,
+      availableHere,
+    });
+  }
+
+  // A channel type from the path, refused unless it is one commerce knows
+  private requireChannelType(channelType: string): void {
+    if (!(OFFERING_CHANNEL_TYPES as readonly string[]).includes(channelType)) {
+      throw new BadRequestException(`Unknown channel type "${channelType}". Use ${OFFERING_CHANNEL_TYPES.join(', ')}.`);
+    }
+  }
+
+  // What to tell the operator: created and skipped read differently, and a partial refusal must be said out loud
+  private channelPagesMessage(result: StorefrontCreateResult): string {
+    const parts: string[] = [];
+
+    if (result.created.length > 0) {
+      parts.push(`${pluralize('page', result.created.length, true)} created`);
+    }
+    if (result.skipped.length > 0) {
+      parts.push(`${result.skipped.length} already had one`);
+    }
+    if (result.failed.length > 0) {
+      parts.push(`${result.failed.length} refused by the storefront`);
+    }
+
+    if (parts.length === 0) {
+      return 'The storefront reported nothing to do.';
+    }
+    return `${parts.join(', ')}.`;
   }
 }

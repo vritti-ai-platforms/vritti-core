@@ -18,8 +18,8 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
   const { permissions: PERMISSIONS } = binding;
   const { slug, variantSlug } = useSlugParams('slug', 'variantSlug');
   const { data: offering } = binding.useOffering(slug.id);
-  const { data: variant } = binding.useVariant(variantSlug.id);
-  const setStatusMutation = binding.useUpdateVariant();
+  const { data: variant } = binding.useOfferingVariant(variantSlug.id);
+  const setStatusMutation = binding.useUpdateOfferingVariant();
   const meta = FULFILMENT_TYPE_META[variant.fulfilmentType];
 
   return (
@@ -47,8 +47,8 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
           <VariantHeaderActions
             permissions={PERMISSIONS}
             variant={variant}
-            useSetTaxClass={binding.useSetVariantTaxClass}
-            useClearTaxClass={binding.useClearVariantTaxClass}
+            useSetTaxClass={binding.useSetOfferingVariantTaxClass}
+            useClearTaxClass={binding.useClearOfferingVariantTaxClass}
           />
         }
       />
@@ -70,8 +70,8 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
                 permissions={PERMISSIONS}
                 offering={offering}
                 variant={variant}
-                useAttributes={binding.useAttributes}
-                useSetAttributes={binding.useSetVariantAttributes}
+                useOfferingAttributes={binding.useOfferingAttributes}
+                useSetAttributes={binding.useSetOfferingVariantAttributes}
               />
             ),
           },
@@ -83,12 +83,12 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
               <BomTab
                 permissions={PERMISSIONS}
                 variant={variant}
-                useBom={binding.useVariantBom}
-                useAdd={binding.useAddBomLine}
-                useUpdate={binding.useUpdateBomLine}
-                useDelete={binding.useDeleteBomLine}
-                useAddSuggested={binding.useAddSuggestedComponent}
-                useCreateVariantInventoryItem={binding.useCreateVariantInventoryItem}
+                useBom={binding.useOfferingVariantBom}
+                useAdd={binding.useAddOfferingVariantBomLine}
+                useUpdate={binding.useUpdateOfferingVariantBomLine}
+                useDelete={binding.useDeleteOfferingVariantBomLine}
+                useAddSuggested={binding.useAddOfferingVariantSuggestedComponent}
+                useCreateOfferingVariantInventoryItem={binding.useCreateOfferingVariantInventoryItem}
               />
             ),
           },

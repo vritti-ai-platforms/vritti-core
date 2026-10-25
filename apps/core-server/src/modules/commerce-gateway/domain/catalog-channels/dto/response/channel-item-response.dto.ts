@@ -16,6 +16,19 @@ export class ChannelItemResponseDto {
   @ApiProperty({ description: 'False when this channel does not carry the item at all' })
   availableHere: boolean;
 
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'Whether the storefront has a page for it at all. Null when the storefront could not be asked.',
+  })
+  existsInStorefront: boolean | null;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description:
+      'Whether the storefront has a finished page for it. Null when the storefront could not be asked \u2014 which is not the same as unfinished.',
+  })
+  metadataComplete: boolean | null;
+
   @ApiProperty({
     type: [String],
     description: 'Currencies a shopper can buy it in here — declared by the catalog, priced, and withheld from none',
@@ -25,6 +38,7 @@ export class ChannelItemResponseDto {
 
 export class ChannelItemTableResponseDto extends TableResponseDto<ChannelItemResponseDto> {
   @ApiProperty({ type: [ChannelItemResponseDto] }) declare result: ChannelItemResponseDto[];
+
   @ApiProperty() declare count: number;
   @ApiProperty() declare state: TableViewState;
   @ApiPropertyOptional({ nullable: true }) declare activeViewId: string | null;

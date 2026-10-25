@@ -14,7 +14,7 @@ export interface InventoryItemMrpData {
 }
 
 export const addInventoryItemMrpSchema = z.object({
-  uomId: z.string().uuid('Unit is required'),
+  uomId: z.uuid('Unit is required'),
   amount: zodCurrencyField({ positive: true }),
 });
 

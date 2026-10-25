@@ -25,7 +25,6 @@ export const ChangeCurrencyDialog: React.FC<ChangeCurrencyDialogProps> = ({
   const form = useForm<ChangeSupplierCurrencyFormData>({
     resolver: zodResolver(changeSupplierCurrencySchema),
     defaultValues: {
-      currencyCode: '',
       conversionRate: NaN,
     },
   });

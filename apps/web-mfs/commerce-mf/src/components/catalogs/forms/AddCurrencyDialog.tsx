@@ -25,7 +25,6 @@ export const AddCurrencyDialog: React.FC<AddCurrencyDialogProps> = ({
 }) => {
   const form = useForm<AddCatalogCurrencyFormData>({
     resolver: zodResolver(addCatalogCurrencySchema),
-    defaultValues: { currencyCode: '' },
   });
 
   const addMutation = binding.useAddCurrency({ onSuccess });

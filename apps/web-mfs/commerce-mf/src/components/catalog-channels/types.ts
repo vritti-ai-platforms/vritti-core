@@ -36,6 +36,7 @@ export type UseUpsertChannel = Mutation<
 >;
 
 export type UseDeleteChannel = Mutation<string>;
+
 export type UseSetChannelItemVisibility = Mutation<{
   channelId: string;
   listingId: string;

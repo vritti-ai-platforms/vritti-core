@@ -10,14 +10,14 @@ import type React from 'react';
 import type { OfferingAttributeData } from '@/schemas/offerings';
 import { AttributeValuesDialog } from '../forms/AttributeValuesDialog';
 import { EditAttributeDialog } from '../forms/EditAttributeDialog';
-import type { OfferingPermissions, UseUpdateAttribute, UseUpsertAttributeValues } from '../types';
+import type { OfferingPermissions, UseUpdateOfferingAttribute, UseUpsertOfferingAttributeValues } from '../types';
 
 interface AttributeCardProps {
   permissions: OfferingPermissions;
   attribute: OfferingAttributeData;
   canEdit: boolean;
-  useUpsertValues: UseUpsertAttributeValues;
-  useUpdate: UseUpdateAttribute;
+  useUpsertValues: UseUpsertOfferingAttributeValues;
+  useUpdate: UseUpdateOfferingAttribute;
   onDelete: (attribute: OfferingAttributeData) => void;
 }
 

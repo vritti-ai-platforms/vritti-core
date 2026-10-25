@@ -36,8 +36,8 @@ export const EditCostCategoryDialog: React.FC<EditCostCategoryDialogProps> = ({ 
       transformSubmit={(data) => ({ id: category.id, data: { name: data.name } })}
     >
       <div className="space-y-4">
-        <TextField name="code" label="Code" value={category.code} disabled description="Code cannot be changed" />
-        <TextField name="kind" label="Kind" value={category.kind} disabled description="Kind cannot be changed" />
+        <TextField label="Code" value={category.code} disabled description="Code cannot be changed" />
+        <TextField label="Kind" value={category.kind} disabled description="Kind cannot be changed" />
         <TextField name="name" label="Name" placeholder="e.g. Supplier Price" />
       </div>
       <DialogActions>

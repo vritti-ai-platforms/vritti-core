@@ -8,24 +8,24 @@ import type React from 'react';
 import { useState } from 'react';
 import type { OfferingData, OfferingVariantData } from '@/schemas/offerings';
 import { AttributesSkeleton } from '../components/AttributesSkeleton';
-import type { OfferingPermissions, UseOfferingAttributes, UseSetVariantAttributes } from '../types';
+import type { OfferingPermissions, UseOfferingAttributes, UseSetOfferingVariantAttributes } from '../types';
 
 interface AttributesTabProps {
-  useAttributes: UseOfferingAttributes;
-  useSetAttributes: UseSetVariantAttributes;
+  useOfferingAttributes: UseOfferingAttributes;
+  useSetAttributes: UseSetOfferingVariantAttributes;
   permissions: OfferingPermissions;
   offering: OfferingData;
   variant: OfferingVariantData;
 }
 
 export const AttributesTab: React.FC<AttributesTabProps> = ({
-  useAttributes,
+  useOfferingAttributes,
   useSetAttributes,
   permissions,
   offering,
   variant,
 }) => {
-  const { data: attributes = [], isLoading } = useAttributes(variant.offeringId);
+  const { data: attributes = [], isLoading } = useOfferingAttributes(variant.offeringId);
   const setMutation = useSetAttributes();
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(variant.attributeValues.map((entry) => entry.valueId)),

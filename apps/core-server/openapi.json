@@ -10464,6 +10464,294 @@
         ]
       }
     },
+    "/commerce-api/org/offerings/{id}/channels": {
+      "get": {
+        "description": "Grouped by channel type, a row per app or till whose channel carries any of this offering’s variants. Each target resolves to the most specific channel covering it — its own override, else the default it inherits — so a target is always one app or one till, never a catch-all. Each row says what that target’s catalog carries of this offering and how much of it the target offers. No storefront is asked anything here.",
+        "operationId": "OrgOfferingsGatewayController_getChannels",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OfferingChannelTypeResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Where this offering sells",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/{id}/channels/{channelType}/targets/{targetId}/variants/table": {
+      "get": {
+        "description": "The Variants table with the same columns and saved view, plus what this channel carries, what is available on it, and — where the channel names a storefront app — whether a page exists and whether an editor called it finished. The page columns are null for a channel with no storefront, and only the requested page’s codes are asked about.",
+        "operationId": "OrgOfferingsGatewayController_getChannelVariants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelVariantPagesTableResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "This offering’s variants as one channel sees them",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/{id}/channels/{channelType}/targets/{targetId}/variants/{variantId}/availability": {
+      "patch": {
+        "description": "Making a variant unavailable writes an outright exclusion for every listing it has in that channel’s catalog, which is what a storefront reads to decide it cannot sell it. A per-currency exclusion is left alone — that belongs to the channel’s Prices tab. A channel set by a wider workspace is refused, because the row was not set here.",
+        "operationId": "OrgOfferingsGatewayController_setTargetAvailability",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTargetAvailabilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type."
+          },
+          "409": {
+            "description": "Set by a wider scope, or the variant is not in this catalog."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set a variant’s availability on one channel",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/{id}/channels/{channelType}/targets/{targetId}/pages": {
+      "post": {
+        "description": "Idempotent by code: codes the storefront already has come back as skipped, so a retry after a timeout is safe. A page the storefront had marked removed is revived, keeping everything written on it. The page name comes from the offering, not the caller. Refused when the channel names no storefront app.",
+        "operationId": "OrgOfferingsGatewayController_createChannelPages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStorefrontPagesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type, or a code that is not a variant of this offering."
+          },
+          "409": {
+            "description": "This channel names no storefront app."
+          },
+          "502": {
+            "description": "The storefront refused every page it was asked to create."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create pages on the storefront behind one channel",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
     "/commerce-api/le/offerings/table": {
       "get": {
         "description": "One page of reachable offerings, merged with the caller's saved table view state.",
@@ -12450,6 +12738,294 @@
         ]
       }
     },
+    "/commerce-api/le/offerings/{id}/channels": {
+      "get": {
+        "description": "Grouped by channel type, a row per app or till whose channel carries any of this offering’s variants. Each target resolves to the most specific channel covering it — its own override, else the default it inherits — so a target is always one app or one till, never a catch-all. Each row says what that target’s catalog carries of this offering and how much of it the target offers. No storefront is asked anything here.",
+        "operationId": "LeOfferingsGatewayController_getChannels",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OfferingChannelTypeResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Where this offering sells",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/channels/{channelType}/targets/{targetId}/variants/table": {
+      "get": {
+        "description": "The Variants table with the same columns and saved view, plus what this channel carries, what is available on it, and — where the channel names a storefront app — whether a page exists and whether an editor called it finished. The page columns are null for a channel with no storefront, and only the requested page’s codes are asked about.",
+        "operationId": "LeOfferingsGatewayController_getChannelVariants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelVariantPagesTableResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "This offering’s variants as one channel sees them",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/channels/{channelType}/targets/{targetId}/variants/{variantId}/availability": {
+      "patch": {
+        "description": "Making a variant unavailable writes an outright exclusion for every listing it has in that channel’s catalog, which is what a storefront reads to decide it cannot sell it. A per-currency exclusion is left alone — that belongs to the channel’s Prices tab. A channel set by a wider workspace is refused, because the row was not set here.",
+        "operationId": "LeOfferingsGatewayController_setTargetAvailability",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTargetAvailabilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type."
+          },
+          "409": {
+            "description": "Set by a wider scope, or the variant is not in this catalog."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set a variant’s availability on one channel",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/channels/{channelType}/targets/{targetId}/pages": {
+      "post": {
+        "description": "Idempotent by code: codes the storefront already has come back as skipped, so a retry after a timeout is safe. A page the storefront had marked removed is revived, keeping everything written on it. The page name comes from the offering, not the caller. Refused when the channel names no storefront app.",
+        "operationId": "LeOfferingsGatewayController_createChannelPages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStorefrontPagesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type, or a code that is not a variant of this offering."
+          },
+          "409": {
+            "description": "This channel names no storefront app."
+          },
+          "502": {
+            "description": "The storefront refused every page it was asked to create."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create pages on the storefront behind one channel",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
     "/commerce-api/site/offerings/table": {
       "get": {
         "description": "One page of reachable offerings, merged with the caller's saved table view state.",
@@ -14431,6 +15007,294 @@
           }
         ],
         "summary": "Activate or deactivate an offering",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/channels": {
+      "get": {
+        "description": "Grouped by channel type, a row per app or till whose channel carries any of this offering’s variants. Each target resolves to the most specific channel covering it — its own override, else the default it inherits — so a target is always one app or one till, never a catch-all. Each row says what that target’s catalog carries of this offering and how much of it the target offers. No storefront is asked anything here.",
+        "operationId": "SiteOfferingsGatewayController_getChannels",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OfferingChannelTypeResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Where this offering sells",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/channels/{channelType}/targets/{targetId}/variants/table": {
+      "get": {
+        "description": "The Variants table with the same columns and saved view, plus what this channel carries, what is available on it, and — where the channel names a storefront app — whether a page exists and whether an editor called it finished. The page columns are null for a channel with no storefront, and only the requested page’s codes are asked about.",
+        "operationId": "SiteOfferingsGatewayController_getChannelVariants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelVariantPagesTableResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "This offering’s variants as one channel sees them",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/channels/{channelType}/targets/{targetId}/variants/{variantId}/availability": {
+      "patch": {
+        "description": "Making a variant unavailable writes an outright exclusion for every listing it has in that channel’s catalog, which is what a storefront reads to decide it cannot sell it. A per-currency exclusion is left alone — that belongs to the channel’s Prices tab. A channel set by a wider workspace is refused, because the row was not set here.",
+        "operationId": "SiteOfferingsGatewayController_setTargetAvailability",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTargetAvailabilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type."
+          },
+          "409": {
+            "description": "Set by a wider scope, or the variant is not in this catalog."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set a variant’s availability on one channel",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/{id}/channels/{channelType}/targets/{targetId}/pages": {
+      "post": {
+        "description": "Idempotent by code: codes the storefront already has come back as skipped, so a retry after a timeout is safe. A page the storefront had marked removed is revived, keeping everything written on it. The page name comes from the offering, not the caller. Refused when the channel names no storefront app.",
+        "operationId": "SiteOfferingsGatewayController_createChannelPages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelType",
+            "required": true,
+            "in": "path",
+            "description": "How the target sells: POS for a till, APP or B2B for an app",
+            "schema": {
+              "enum": [
+                "APP",
+                "POS",
+                "B2B"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "description": "App or till identifier — where this offering sells",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering identifier",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStorefrontPagesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown channel type, or a code that is not a variant of this offering."
+          },
+          "409": {
+            "description": "This channel names no storefront app."
+          },
+          "502": {
+            "description": "The storefront refused every page it was asked to create."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create pages on the storefront behind one channel",
         "tags": [
           "Commerce - Offerings (Site)"
         ]
@@ -32903,7 +33767,7 @@
     },
     "/commerce-api/select-api/offering-variants": {
       "get": {
-        "description": "Variants of one offering, keyed by code. Scoped by offeringId — a code only means anything next to its siblings.",
+        "description": "Active variants labelled by their offering name, with the variant code as the description. Scoped to one offering when offeringId is given, otherwise every reachable offering. Search matches the offering name or the variant code.",
         "operationId": "SelectApiController_selectOfferingVariants",
         "parameters": [
           {
@@ -33038,9 +33902,9 @@
           },
           {
             "name": "offeringId",
-            "required": true,
+            "required": false,
             "in": "query",
-            "description": "Offering whose variants are offered",
+            "description": "Offering whose variants are offered; all when omitted",
             "schema": {
               "type": "string"
             }
@@ -45892,6 +46756,287 @@
           "isActive"
         ]
       },
+      "OfferingChannelTargetResponseDto": {
+        "type": "object",
+        "properties": {
+          "targetId": {
+            "type": "string",
+            "description": "The app or till itself — what an operator recognises and clicks into"
+          },
+          "targetKind": {
+            "type": "string",
+            "enum": [
+              "APP",
+              "TERMINAL"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "catalogId": {
+            "type": "string"
+          },
+          "catalogName": {
+            "type": "string"
+          },
+          "isAssigned": {
+            "type": "boolean",
+            "description": "True when the channel names this target; false when it inherits a default"
+          },
+          "storefront": {
+            "type": "boolean",
+            "description": "True when this target is an app with a base url, so it has pages to ask about"
+          },
+          "variants": {
+            "type": "number",
+            "description": "Variants this offering has in total"
+          },
+          "listed": {
+            "type": "number",
+            "description": "How many of them this target’s catalog carries"
+          },
+          "available": {
+            "type": "number",
+            "description": "How many of those it offers, rather than excluding"
+          }
+        },
+        "required": [
+          "targetId",
+          "targetKind",
+          "name",
+          "catalogId",
+          "catalogName",
+          "isAssigned",
+          "storefront",
+          "variants",
+          "listed",
+          "available"
+        ]
+      },
+      "OfferingChannelTypeResponseDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "APP",
+              "POS",
+              "B2B"
+            ]
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingChannelTargetResponseDto"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "targets"
+        ]
+      },
+      "ChannelVariantResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "offeringId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "description": "Derived from the offering code and value codes; never edited",
+            "example": "tshirt-classic-m-red"
+          },
+          "externalSku": {
+            "type": "object",
+            "nullable": true,
+            "description": "Manufacturer part number or GTIN — the stable identifier"
+          },
+          "name": {
+            "type": "string"
+          },
+          "salesUomId": {
+            "type": "string"
+          },
+          "salesUomName": {
+            "type": "object",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isOfferingActive": {
+            "type": "boolean"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingVariantValueRefResponseDto"
+            }
+          },
+          "attributeValues": {
+            "description": "Several entries may share an attributeId — an attribute is multi-valued, unlike a dimension",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingVariantAttributeValueRefResponseDto"
+            }
+          },
+          "bomLineCount": {
+            "type": "number"
+          },
+          "canMarkActive": {
+            "type": "boolean",
+            "description": "Whether the bill of materials satisfies this variant's fulfilment type"
+          },
+          "fulfilmentType": {
+            "type": "string",
+            "enum": [
+              "STOCK",
+              "ASSEMBLY",
+              "COMPOSITE",
+              "SERVICE"
+            ],
+            "description": "Follows the offering's unless pinned — a variety pack inside a stock offering is composite"
+          },
+          "isFulfilmentOverridden": {
+            "type": "boolean",
+            "description": "Pinned to this variant, so an offering-level change no longer cascades to it"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "False once the variant appears on an order line"
+          },
+          "taxClassId": {
+            "type": "string",
+            "description": "Follows the offering's tax class unless overridden"
+          },
+          "taxClassName": {
+            "type": "object",
+            "nullable": true
+          },
+          "isTaxClassOverridden": {
+            "type": "boolean",
+            "description": "Pinned to this variant, so an offering-level change no longer cascades to it"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "listed": {
+            "type": "boolean",
+            "description": "Whether this channel’s catalog carries the variant"
+          },
+          "availableHere": {
+            "type": "boolean",
+            "description": "Whether the variant is available on this channel, as opposed to excluded outright"
+          },
+          "exists": {
+            "type": "object",
+            "nullable": true,
+            "description": "Whether the storefront has a page for it. Null when the channel names none, or it did not answer."
+          },
+          "metadataComplete": {
+            "type": "object",
+            "nullable": true,
+            "description": "Whether an editor marked that page finished. Null when it could not be asked."
+          }
+        },
+        "required": [
+          "id",
+          "offeringId",
+          "code",
+          "name",
+          "salesUomId",
+          "isActive",
+          "isOfferingActive",
+          "values",
+          "attributeValues",
+          "bomLineCount",
+          "canMarkActive",
+          "fulfilmentType",
+          "isFulfilmentOverridden",
+          "canDelete",
+          "taxClassId",
+          "isTaxClassOverridden",
+          "createdAt",
+          "updatedAt",
+          "listed",
+          "availableHere"
+        ]
+      },
+      "ChannelVariantPagesTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChannelVariantResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          },
+          "storefront": {
+            "type": "boolean",
+            "description": "False when this channel names no storefront, so the page columns say nothing"
+          },
+          "catalogName": {
+            "type": "string",
+            "description": "The catalog these rows are listed in, which is what availability is set on"
+          },
+          "isOwn": {
+            "type": "boolean",
+            "description": "False when a wider workspace set the channel — availability is read-only here"
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state",
+          "storefront",
+          "catalogName",
+          "isOwn"
+        ]
+      },
+      "SetTargetAvailabilityDto": {
+        "type": "object",
+        "properties": {
+          "availableHere": {
+            "type": "boolean",
+            "description": "False makes the variant unavailable on this channel outright; true makes it available again"
+          }
+        },
+        "required": [
+          "availableHere"
+        ]
+      },
+      "CreateStorefrontPagesDto": {
+        "type": "object",
+        "properties": {
+          "variantCodes": {
+            "description": "Variant codes to create pages for. Ones it already has are skipped.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "variantCodes"
+        ]
+      },
       "CategoryItemResponseDto": {
         "type": "object",
         "properties": {
@@ -47433,6 +48578,16 @@
           "availableHere": {
             "type": "boolean",
             "description": "False when this channel does not carry the item at all"
+          },
+          "existsInStorefront": {
+            "type": "object",
+            "nullable": true,
+            "description": "Whether the storefront has a page for it at all. Null when the storefront could not be asked."
+          },
+          "metadataComplete": {
+            "type": "object",
+            "nullable": true,
+            "description": "Whether the storefront has a finished page for it. Null when the storefront could not be asked — which is not the same as unfinished."
           },
           "availableCurrencyCodes": {
             "description": "Currencies a shopper can buy it in here — declared by the catalog, priced, and withheld from none",

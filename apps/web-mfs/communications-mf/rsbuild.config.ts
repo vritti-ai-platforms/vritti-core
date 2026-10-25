@@ -74,6 +74,9 @@ export default defineConfig({
         './Org/SmsProviders': './src/features/organization/sms-providers/index.tsx',
         './Org/WhatsappAccounts': './src/features/organization/whatsapp-accounts/index.tsx',
         './Org/WhatsappOtps': './src/features/organization/whatsapp-otps/index.tsx',
+        // Selectors the host renders outside any feature (breadcrumb switchers), so it never owns communications'
+        './Selectors/WhatsappAccount': './src/selectors/whatsapp-account/index.ts',
+        './Selectors/SmsProvider': './src/selectors/sms-provider/index.ts',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },

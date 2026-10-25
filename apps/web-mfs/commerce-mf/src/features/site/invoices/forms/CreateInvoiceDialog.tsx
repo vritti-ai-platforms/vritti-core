@@ -25,7 +25,6 @@ export const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ onSucc
       partyType: undefined,
       partyName: '',
       issuedDate: new Date().toISOString().split('T')[0],
-      dueDate: '',
       paymentTerms: '',
       notes: '',
     },

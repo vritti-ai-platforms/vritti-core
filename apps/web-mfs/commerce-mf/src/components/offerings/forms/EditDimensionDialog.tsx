@@ -6,10 +6,10 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { type OfferingDimensionData, type UpdateDimensionFormData, updateDimensionSchema } from '@/schemas/offerings';
-import type { UseUpdateDimension } from '../types';
+import type { UseUpdateOfferingDimension } from '../types';
 
 interface EditDimensionDialogProps {
-  useUpdate: UseUpdateDimension;
+  useUpdate: UseUpdateOfferingDimension;
   dimension: OfferingDimensionData;
   onSuccess: () => void;
   onCancel: () => void;

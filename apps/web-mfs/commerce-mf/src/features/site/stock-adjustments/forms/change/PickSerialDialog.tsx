@@ -30,7 +30,6 @@ const PickSerialForm = ({
 
   const form = useForm<AddStockAdjustmentLineItemFormData>({
     resolver: zodResolver(addStockAdjustmentLineItemSchema),
-    defaultValues: { serialNumber: '' },
   });
 
   const mutation = useAddStockAdjustmentLineItem(adjustmentId, lineId, {
@@ -38,7 +37,7 @@ const PickSerialForm = ({
       if (isLastSlot) {
         onSuccess();
       } else {
-        form.reset({ serialNumber: '' });
+        form.reset();
       }
     },
   });

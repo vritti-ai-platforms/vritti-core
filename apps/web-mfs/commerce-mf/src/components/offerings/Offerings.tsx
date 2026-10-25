@@ -16,6 +16,7 @@ import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { buildSlug } from '@vritti/quantum-ui/slug';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { CircleCheck, CircleSlash, Eye, Plus, ShoppingBag } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -36,7 +37,8 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
   const { data: response, isLoading } = binding.useOfferingsTable();
   const addDialog = useDialog();
   const setStatusMutation = binding.useSetOfferingStatus();
-  const bulkSetStatusMutation = binding.useBulkSetOfferingsStatus();
+  const markActiveMutation = binding.useMarkOfferingsActive();
+  const markInactiveMutation = binding.useMarkOfferingsInactive();
 
   const columns = useMemo<ColumnDef<OfferingTableRow>[]>(
     () => [
@@ -125,8 +127,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
     onStatePush: () => queryClient.invalidateQueries({ queryKey: binding.tableKey }),
   });
 
-  const handleBulkSetStatus = (ids: string[], isActive: boolean) =>
-    bulkSetStatusMutation.mutate({ ids, isActive }, { onSuccess: () => table.resetRowSelection() });
+  const resetSelection = { onSuccess: () => table.resetRowSelection() };
 
   return (
     <div className="flex flex-col gap-6">
@@ -143,13 +144,8 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
               variant="outline"
               permission={PERMISSIONS.toggle}
               startAdornment={<CircleCheck className="size-4" />}
-              isLoading={bulkSetStatusMutation.isPending}
-              onClick={() =>
-                handleBulkSetStatus(
-                  rows.map((row) => row.original.id),
-                  true,
-                )
-              }
+              isLoading={markActiveMutation.isPending}
+              onClick={() => markActiveMutation.mutate({ ids: rows.map((row) => row.original.id) }, resetSelection)}
             >
               Mark Active
             </Button>
@@ -158,13 +154,8 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
               variant="outline"
               permission={PERMISSIONS.toggle}
               startAdornment={<CircleSlash className="size-4" />}
-              isLoading={bulkSetStatusMutation.isPending}
-              onClick={() =>
-                handleBulkSetStatus(
-                  rows.map((row) => row.original.id),
-                  false,
-                )
-              }
+              isLoading={markInactiveMutation.isPending}
+              onClick={() => markInactiveMutation.mutate({ ids: rows.map((row) => row.original.id) }, resetSelection)}
             >
               Mark Inactive
             </Button>
@@ -178,6 +169,8 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
           searchAll: true,
         }}
         filters={[
+          <ValueFilter key="name" name="name" label="Name" fieldType="string" />,
+          <ValueFilter key="code" name="code" label="Code" fieldType="string" />,
           <SelectFilter
             key="fulfilmentType"
             name="fulfilmentType"
@@ -194,6 +187,8 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
               { label: 'Inactive', value: 'false' },
             ]}
           />,
+          <ValueFilter key="dimensionCount" name="dimensionCount" label="Dimensions" fieldType="number" />,
+          <ValueFilter key="variantCount" name="variantCount" label="Variants" fieldType="number" />,
         ]}
         toolbarActions={{
           actions: (

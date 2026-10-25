@@ -16,6 +16,7 @@ import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import {
   Boxes,
   CircleCheck,
@@ -34,34 +35,37 @@ import type React from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FULFILMENT_TYPE_META, type OfferingData, type OfferingVariantData } from '@/schemas/offerings';
+import { facetFilters } from '../components/facetFilters';
 import { AddVariantDialog } from '../forms/AddVariantDialog';
 import { BulkSetVariantsAttributeDialog } from '../forms/BulkSetVariantsAttributeDialog';
 import { BulkSetVariantsTaxClassDialog } from '../forms/SetTaxClassDialog';
 import type {
   OfferingPermissions,
-  UseBulkClearVariantsTaxClass,
-  UseBulkSetVariantsAttribute,
-  UseBulkSetVariantsStatus,
-  UseBulkSetVariantsTaxClass,
-  UseCreateVariant,
-  UseDeleteVariant,
+  UseBulkClearOfferingVariantsTaxClass,
+  UseBulkSetOfferingVariantsAttribute,
+  UseBulkSetOfferingVariantsTaxClass,
+  UseCreateOfferingVariant,
+  UseDeleteOfferingVariant,
+  UseMarkOfferingVariantsActive,
+  UseMarkOfferingVariantsInactive,
   UseOfferingAttributes,
   UseOfferingDimensions,
   UseOfferingVariantsTable,
-  UseUpdateVariant,
+  UseUpdateOfferingVariant,
 } from '../types';
 
 interface VariantsTabProps {
-  useVariantsTable: UseOfferingVariantsTable;
-  useDimensions: UseOfferingDimensions;
-  useAttributes: UseOfferingAttributes;
-  useCreateVariant: UseCreateVariant;
-  useDelete: UseDeleteVariant;
-  useUpdate: UseUpdateVariant;
-  useBulkSetStatus: UseBulkSetVariantsStatus;
-  useBulkSetTaxClass: UseBulkSetVariantsTaxClass;
-  useBulkClearTaxClass: UseBulkClearVariantsTaxClass;
-  useBulkSetAttribute: UseBulkSetVariantsAttribute;
+  useOfferingVariantsTable: UseOfferingVariantsTable;
+  useOfferingDimensions: UseOfferingDimensions;
+  useOfferingAttributes: UseOfferingAttributes;
+  useCreateOfferingVariant: UseCreateOfferingVariant;
+  useDelete: UseDeleteOfferingVariant;
+  useUpdate: UseUpdateOfferingVariant;
+  useMarkActive: UseMarkOfferingVariantsActive;
+  useMarkInactive: UseMarkOfferingVariantsInactive;
+  useBulkSetTaxClass: UseBulkSetOfferingVariantsTaxClass;
+  useBulkClearTaxClass: UseBulkClearOfferingVariantsTaxClass;
+  useBulkSetAttribute: UseBulkSetOfferingVariantsAttribute;
   tableKey: readonly unknown[];
   tableSlug: string;
   exportEndpoint: string;
@@ -72,13 +76,14 @@ interface VariantsTabProps {
 export const VariantsTab: React.FC<VariantsTabProps> = ({
   permissions,
   offering,
-  useVariantsTable,
-  useDimensions,
-  useAttributes,
-  useCreateVariant,
+  useOfferingVariantsTable,
+  useOfferingDimensions,
+  useOfferingAttributes,
+  useCreateOfferingVariant,
   useDelete,
   useUpdate,
-  useBulkSetStatus,
+  useMarkActive,
+  useMarkInactive,
   useBulkSetTaxClass,
   useBulkClearTaxClass,
   useBulkSetAttribute,
@@ -101,13 +106,14 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     [goTo],
   );
   const confirm = useConfirm();
-  const { data: response, isLoading } = useVariantsTable(offering.id);
-  const { data: dimensions = [] } = useDimensions(offering.id);
-  const { data: attributes = [] } = useAttributes(offering.id);
+  const { data: response, isLoading } = useOfferingVariantsTable(offering.id);
+  const { data: dimensions = [] } = useOfferingDimensions(offering.id);
+  const { data: attributes = [] } = useOfferingAttributes(offering.id);
   const addDialog = useDialog();
   const deleteMutation = useDelete();
   const setStatusMutation = useUpdate();
-  const bulkSetStatusMutation = useBulkSetStatus();
+  const markActiveMutation = useMarkActive();
+  const markInactiveMutation = useMarkInactive();
   const taxClassDialog = useDialog();
   const attributeDialog = useDialog();
   const clearTaxClassMutation = useBulkClearTaxClass();
@@ -262,11 +268,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     onStatePush: () => queryClient.invalidateQueries({ queryKey: tableKey }),
   });
 
-  const handleBulkSetStatus = (ids: string[], isActive: boolean) =>
-    bulkSetStatusMutation.mutate(
-      { offeringId: offering.id, ids, isActive },
-      { onSuccess: () => table.resetRowSelection() },
-    );
+  const resetSelection = { onSuccess: () => table.resetRowSelection() };
 
   return (
     <>
@@ -285,7 +287,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 variant="outline"
                 permission={permissions.variants.edit}
                 startAdornment={<CircleCheck className="size-4" />}
-                isLoading={bulkSetStatusMutation.isPending}
+                isLoading={markActiveMutation.isPending}
                 disabled={blocked > 0}
                 disabledTip={
                   offeringOff
@@ -293,9 +295,9 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                     : `${pluralize('variant', blocked, true)} in this selection still need a bill of materials.`
                 }
                 onClick={() =>
-                  handleBulkSetStatus(
-                    rows.map((row) => row.original.id),
-                    true,
+                  markActiveMutation.mutate(
+                    { offeringId: offering.id, ids: rows.map((row) => row.original.id) },
+                    resetSelection,
                   )
                 }
               >
@@ -306,11 +308,11 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 variant="outline"
                 permission={permissions.variants.edit}
                 startAdornment={<CircleSlash className="size-4" />}
-                isLoading={bulkSetStatusMutation.isPending}
+                isLoading={markInactiveMutation.isPending}
                 onClick={() =>
-                  handleBulkSetStatus(
-                    rows.map((row) => row.original.id),
-                    false,
+                  markInactiveMutation.mutate(
+                    { offeringId: offering.id, ids: rows.map((row) => row.original.id) },
+                    resetSelection,
                   )
                 }
               >
@@ -380,6 +382,9 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
           searchAll: true,
         }}
         filters={[
+          ...facetFilters('dimension', dimensions),
+          ...facetFilters('attribute', attributes),
+          <ValueFilter key="bomLineCount" name="bomLineCount" label="Bill of Materials" fieldType="number" />,
           <SelectFilter
             key="isTaxClassOverridden"
             name="isTaxClassOverridden"
@@ -468,7 +473,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
           <AddVariantDialog
             offering={offering}
             dimensions={dimensions}
-            useCreate={useCreateVariant}
+            useCreate={useCreateOfferingVariant}
             onSuccess={close}
             onCancel={close}
           />

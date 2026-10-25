@@ -26,7 +26,6 @@ export const AddAddressDialog: React.FC<AddAddressDialogProps> = ({ partyId, bin
       city: '',
       region: '',
       postalCode: '',
-      countryCode: '',
       functions: [],
     },
   });

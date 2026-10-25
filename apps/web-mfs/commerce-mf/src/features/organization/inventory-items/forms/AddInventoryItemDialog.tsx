@@ -33,9 +33,7 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
       type: 'RAW_MATERIAL',
       tracking: 'lot',
       pickStrategy: 'none',
-      categoryId: '',
       description: '',
-      uomId: '',
       hsnCode: '',
     },
   });

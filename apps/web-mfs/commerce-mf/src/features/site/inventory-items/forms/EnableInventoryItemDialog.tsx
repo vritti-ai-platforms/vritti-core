@@ -18,7 +18,6 @@ export const EnableInventoryItemDialog: React.FC<EnableInventoryItemDialogProps>
   const form = useForm<EnableInventoryItemFormData>({
     resolver: zodResolver(enableInventoryItemSchema),
     defaultValues: {
-      inventoryItemId: '',
       reorderPoint: undefined,
       maxStockLevel: undefined,
       safetyStock: undefined,

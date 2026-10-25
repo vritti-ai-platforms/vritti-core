@@ -155,6 +155,7 @@ export class SiteCatalogChannelsGatewayService {
       'site.catalogChannels.items',
       { channelId, state },
     );
+
     return { result, count, state, activeViewId };
   }
 

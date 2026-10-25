@@ -20,6 +20,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { CatalogChannelType } from '@/db/schema';
 
 @Controller()
 export class LeOfferingVariantsController {
@@ -38,6 +39,45 @@ export class LeOfferingVariantsController {
     const { offeringId, ...state } = data;
     this.logger.log(`offerings.variants.table — offeringId: ${offeringId}`);
     return this.service.findForTable(offeringId, state as TableViewState);
+  }
+  // The same page of variants as the table above, plus how one channel sees each row
+  @MessagePattern({ cmd: 'le.offerings.variants.channelTable' })
+  findForChannelTable(
+    @Payload()
+    data: { offeringId: string; channelType: CatalogChannelType; targetId: string } & TableViewState,
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
+    const { offeringId, channelType, targetId, ...state } = data;
+    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, ${channelType} target: ${targetId}`);
+    return this.service.findForTable(offeringId, state as TableViewState, channelType, targetId);
+  }
+
+  // Sets whether one variant is available on one target of one channel
+  @MessagePattern({ cmd: 'le.offerings.variants.setTargetAvailability' })
+  setTargetAvailability(
+    @Payload()
+    data: {
+      channelType: CatalogChannelType;
+      targetId: string;
+      targetName: string;
+      variantId: string;
+      availableHere: boolean;
+    },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.setTargetAvailability — target: ${data.targetId}, variant: ${data.variantId}`);
+    return this.service.setTargetAvailability(
+      data.channelType,
+      data.targetId,
+      data.targetName,
+      data.variantId,
+      data.availableHere,
+    );
+  }
+
+  // The subset of these codes that name a variant of this offering
+  @MessagePattern({ cmd: 'le.offerings.variants.codesInOffering' })
+  codesInOffering(@Payload() data: { offeringId: string; codes: string[] }): Promise<string[]> {
+    this.logger.log(`offerings.variants.codesInOffering — offeringId: ${data.offeringId}, codes: ${data.codes.length}`);
+    return this.service.findCodesInOffering(data.offeringId, data.codes);
   }
 
   // Every combination the selected values produce, flagged with the ones that already exist

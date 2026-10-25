@@ -7,10 +7,10 @@ import type React from 'react';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { type CreateAttributeFormData, createAttributeSchema, toCode } from '@/schemas/offerings';
-import type { UseCreateAttribute } from '../types';
+import type { UseCreateOfferingAttribute } from '../types';
 
 interface AddAttributeDialogProps {
-  useCreate: UseCreateAttribute;
+  useCreate: UseCreateOfferingAttribute;
   offeringId: string;
   onSuccess: () => void;
   onCancel: () => void;

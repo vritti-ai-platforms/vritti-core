@@ -59,7 +59,6 @@ const SupplierItemForm = ({
   const form = useForm<AddGoodsReceiptItemFromSupplierItemFormData>({
     resolver: (values, context, options) => zodResolver(schemaRef.current)(values, context, options),
     defaultValues: {
-      supplierItemId: '',
       orderedQty: 0,
       rejectedQuantity: undefined,
       unitPrice: undefined,
@@ -177,7 +176,6 @@ const PurchaseOrderItemForm = ({
   const form = useForm<AddGoodsReceiptItemFromPurchaseOrderItemFormData>({
     resolver: (values, context, options) => zodResolver(schemaRef.current)(values, context, options),
     defaultValues: {
-      purchaseOrderItemId: '',
       orderedQty: 0,
       rejectedQuantity: undefined,
       unitPrice: undefined,

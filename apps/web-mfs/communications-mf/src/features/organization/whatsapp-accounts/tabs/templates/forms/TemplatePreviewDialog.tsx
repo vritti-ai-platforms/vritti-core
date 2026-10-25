@@ -52,7 +52,6 @@ export const TemplatePreviewDialog = ({ accountId, template, onClose }: Template
   const form = useForm<SendTemplateTestFormData>({
     resolver: zodResolver(sendTemplateTestSchema),
     defaultValues: {
-      senderPhoneNumberId: '',
       to: '',
       bodyParams: Array.from({ length: variableCount }, () => ''),
     },

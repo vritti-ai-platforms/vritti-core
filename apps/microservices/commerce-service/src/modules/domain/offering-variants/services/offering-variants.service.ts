@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
-import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { compareCount, type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,
   ConflictException,
@@ -12,10 +12,17 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   BOM_RULES,
+  type CatalogChannelType,
+  CatalogChannelTypeValues,
   type FulfilmentType,
   FulfilmentTypeValues,
   type OfferingVariant,
+  offeringAttributes,
+  offeringBom,
+  offeringDimensions,
+  offeringVariantAttributeValues,
   offeringVariants,
+  offeringVariantValues,
 } from '@/db/schema';
 import { OfferingVariantDto, type OfferingVariantTableRowDto } from '../dto/entity/offering-variant.dto';
 import type { VariantCombinationsDto } from '../dto/entity/variant-combination.dto';
@@ -30,6 +37,7 @@ import type { SetVariantFulfilmentDto } from '../dto/request/set-variant-fulfilm
 import type { SetVariantTaxClassDto } from '../dto/request/set-variant-tax-class.dto';
 import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
 import {
+  type ChannelExclusionTarget,
   type DimensionValueRow,
   type OfferingRef,
   OfferingVariantsDomainRepository,
@@ -53,15 +61,68 @@ export class OfferingVariantsDomainService {
     isTaxClassOverridden: { column: offeringVariants.isTaxClassOverridden, type: 'boolean' },
     fulfilmentType: { column: offeringVariants.fulfilmentType, type: 'string' },
     isFulfilmentOverridden: { column: offeringVariants.isFulfilmentOverridden, type: 'boolean' },
+    bomLineCount: {
+      expression: compareCount(
+        sql`(select count(*) from ${offeringBom} where ${offeringBom.variantId} = ${offeringVariants.id})`,
+      ),
+      type: 'number',
+    },
+    'dimension:*': {
+      wildcardExpression: ({ key: dimensionId, values: valueIds, operator }) => {
+        const carriesValue = sql`exists (
+          select 1 from ${offeringVariantValues}
+          where ${offeringVariantValues.variantId} = ${offeringVariants.id}
+            and ${offeringVariantValues.dimensionId} = ${dimensionId}
+            and ${inArray(offeringVariantValues.valueId, valueIds)}
+        )`;
+        return sql`(not exists (
+          select 1 from ${offeringDimensions}
+          where ${offeringDimensions.id} = ${dimensionId}
+            and ${offeringDimensions.offeringId} = ${offeringVariants.offeringId}
+        ) or ${operator === 'isNotAnyOf' ? sql`not ${carriesValue}` : carriesValue})`;
+      },
+      keyFormat: 'uuid',
+      valueFormat: 'uuid',
+      type: 'string',
+    },
+    'attribute:*': {
+      wildcardExpression: ({ key: attributeId, values: valueIds, operator }) => {
+        const carriesValue = sql`exists (
+          select 1 from ${offeringVariantAttributeValues}
+          where ${offeringVariantAttributeValues.variantId} = ${offeringVariants.id}
+            and ${offeringVariantAttributeValues.attributeId} = ${attributeId}
+            and ${inArray(offeringVariantAttributeValues.valueId, valueIds)}
+        )`;
+        return sql`(not exists (
+          select 1 from ${offeringAttributes}
+          where ${offeringAttributes.id} = ${attributeId}
+            and ${offeringAttributes.offeringId} = ${offeringVariants.offeringId}
+        ) or ${operator === 'isNotAnyOf' ? sql`not ${carriesValue}` : carriesValue})`;
+      },
+      keyFormat: 'uuid',
+      valueFormat: 'uuid',
+      type: 'string',
+    },
   };
 
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
 
-  // Returns paginated, filtered, sorted variants of one offering for the data table
+  // A POS channel's targets are tills; every other type's are apps. So the kind never has to be sent — the
+  // channel already says it, and a caller cannot get it wrong.
+  private static targetKindOf(type: CatalogChannelType): ChannelExclusionTarget['kind'] {
+    return type === CatalogChannelTypeValues.POS ? 'TERMINAL' : 'APP';
+  }
+
+  // Returns paginated, filtered, sorted variants of one offering for the data table.
+  // `channelId` with its `target` asks for each row's state on that target as part of the same page read, and
+  // answers with the channel facts a caller would otherwise have to resolve again: the catalog these rows are
+  // listed in, and whether the calling workspace set the channel and so may change what it offers.
   async findForTable(
     offeringId: string,
     state: TableViewState,
-  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
+    channelType?: CatalogChannelType,
+    targetId?: string,
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number; catalogName: string; isOwn: boolean }> {
     await this.requireReachableOffering(offeringId);
 
     const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingVariantsDomainService.FILTER_FIELD_MAP);
@@ -73,17 +134,79 @@ export class OfferingVariantsDomainService {
     });
     const { limit = 20, offset = 0 } = state.pagination;
 
+    const channel =
+      channelType && targetId ? await this.repository.findChannelForTarget(channelType, targetId) : undefined;
+    const target =
+      channel && targetId
+        ? { id: targetId, kind: OfferingVariantsDomainService.targetKindOf(channel.type) }
+        : undefined;
+
     const { result: rows, count } = await this.repository.findForTable({
       where,
       orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
       limit,
       offset,
+      channelId: channel?.id,
+      target,
     });
 
-    return { result: rows.map((row) => this.toTableRow(row)), count };
+    return {
+      result: rows.map((row) => this.toTableRow(row)),
+      count,
+      catalogName: channel?.catalogName ?? '',
+      isOwn: channel?.isOwn ?? false,
+    };
   }
 
-  // Variant options for a storefront's own picker — which variant a product page is about.
+  // Sets whether one variant is available on one target — one app, one till. The exclusion names that target,
+  // so a sibling inheriting the same channel is untouched. A channel this workspace does not own is refused:
+  // its exclusions belong to the workspace that set it, which is what the row's own policies enforce too.
+  async setTargetAvailability(
+    channelType: CatalogChannelType,
+    targetId: string,
+    targetName: string,
+    variantId: string,
+    availableHere: boolean,
+  ): Promise<SuccessResponseDto> {
+    const channel = await this.repository.findChannelForTarget(channelType, targetId);
+    if (!channel) throw new NotFoundException('This target resolves to no channel.');
+
+    if (!channel.isOwn) {
+      throw new ConflictException({
+        label: 'Inherited Channel',
+        detail: 'This channel is set by a wider scope. Change what it carries where it was set.',
+      });
+    }
+
+    const listings = await this.repository.findListingsForVariant(channel.catalogId, variantId);
+    if (listings.length === 0) {
+      throw new NotFoundException('That variant is not listed in this channel’s catalog.');
+    }
+
+    const kind = OfferingVariantsDomainService.targetKindOf(channel.type);
+    await this.repository.setTargetAvailability(
+      channel.id,
+      { id: targetId, kind },
+      listings.map((listing) => listing.id),
+      availableHere,
+    );
+
+    // Core names an app; a till is commerce's, so it is named here
+    const name = kind === 'TERMINAL' ? ((await this.repository.findTerminalName(targetId)) ?? targetName) : targetName;
+    const code = listings[0].code;
+    return {
+      success: true,
+      message: availableHere ? `"${code}" is now available on "${name}".` : `"${code}" is now excluded from "${name}".`,
+    };
+  }
+
+  // The subset of these codes that name a variant of this offering
+  async findCodesInOffering(offeringId: string, codes: string[]): Promise<string[]> {
+    await this.requireReachableOffering(offeringId);
+    return this.repository.findCodesInOffering(offeringId, codes);
+  }
+
+  // Variant options for a storefront's own picker — which variant a product page is about
   findOptions(query: {
     search?: string;
     excludeIds?: string[];
@@ -98,16 +221,15 @@ export class OfferingVariantsDomainService {
     });
   }
 
-  // Options for the breadcrumb switcher: this offering's variants, keyed by Code
+  // Returns paginated active variant options for the select component — one offering's when offeringId is given
   async findForSelect(
-    offeringId: string,
-    query: SelectOptionsQueryDto & { catalogId?: string },
+    query: SelectOptionsQueryDto & { offeringId?: string; catalogId?: string },
   ): Promise<SelectQueryResult> {
-    await this.requireReachableOffering(offeringId);
-    const result = await this.repository.findForSelectInOffering(
+    if (query.offeringId) await this.requireReachableOffering(query.offeringId);
+    return this.repository.findVariantsForSelect(
       {
         value: query.valueKey || 'id',
-        label: query.labelKey || 'code',
+        label: query.labelKey || 'name',
         description: query.descriptionKey,
         additionalKeys: query.additionalKeys,
         // Read off the cached column rather than re-joining the junctions, which is what that column is for
@@ -126,20 +248,8 @@ export class OfferingVariantsDomainService {
         orderByKey: query.orderByKey || 'code',
         orderDirection: query.orderDirection || 'asc',
       },
-      offeringId,
-      query.catalogId,
+      { offeringId: query.offeringId, catalogId: query.catalogId },
     );
-
-    // A variant has nothing else to describe it with: no name of its own, and its offering is already the
-    // thing being browsed. Its dimension values are what tell one option from the next.
-    if (query.descriptionKey) return result;
-    return {
-      ...result,
-      options: result.options.map((option) => ({
-        ...option,
-        description: String(option.additionals?.facets ?? '') || undefined,
-      })),
-    };
   }
 
   // Flat rows for the file export, scoped to one offering.
@@ -621,6 +731,8 @@ export class OfferingVariantsDomainService {
   // detail view
   private toTableRow(variant: OfferingVariantTableRow): OfferingVariantTableRowDto {
     return OfferingVariantDto.fromTableRow(variant, {
+      listed: variant.listed,
+      availableHere: variant.availableHere,
       values: variant.values,
       attributeValues: variant.attributeValues,
       bomLineCount: variant.bomLineCount,

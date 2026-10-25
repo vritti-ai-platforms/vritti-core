@@ -51,7 +51,7 @@ export const OWNER_SCOPE_LABEL: Record<ChannelOwnerScope, string> = {
 };
 
 export const assignCatalogSchema = z.object({
-  catalogId: z.string().uuid('Catalog is required'),
+  catalogId: z.uuid('Catalog is required'),
 });
 
 export type AssignCatalogFormData = z.infer<typeof assignCatalogSchema>;
