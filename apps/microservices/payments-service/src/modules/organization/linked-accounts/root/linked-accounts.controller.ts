@@ -1,6 +1,11 @@
 import { CreateLinkedAccountDto } from '@domain/gateways/dto/request/create-linked-account.dto';
 import { FetchLinkedAccountStatusDto } from '@domain/gateways/dto/request/fetch-linked-account-status.dto';
-import type { CreateLinkedAccountResult, LinkedAccountStatusResult } from '@domain/gateways/gateway-transport';
+import { LookupLinkedAccountDto } from '@domain/gateways/dto/request/lookup-linked-account.dto';
+import type {
+  CreateLinkedAccountResult,
+  LinkedAccountLookup,
+  LinkedAccountStatusResult,
+} from '@domain/gateways/gateway-transport';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { LinkedAccountsService } from './services/linked-accounts.service';
@@ -23,5 +28,12 @@ export class LinkedAccountsController {
   async status(@Payload() dto: FetchLinkedAccountStatusDto): Promise<LinkedAccountStatusResult> {
     this.logger.log(`linkedAccounts.status — gateway: ${dto.gatewayCode}, account: ${dto.providerAccountId}`);
     return this.service.status(dto);
+  }
+
+  // Looks an existing linked account up at the gateway; null when the gateway has none under these keys
+  @MessagePattern({ cmd: 'payments.linkedAccounts.lookup' })
+  async lookup(@Payload() dto: LookupLinkedAccountDto): Promise<{ account: LinkedAccountLookup | null }> {
+    this.logger.log(`linkedAccounts.lookup — gateway: ${dto.gatewayCode}, account: ${dto.providerAccountId}`);
+    return { account: await this.service.lookup(dto) };
   }
 }

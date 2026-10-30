@@ -40,6 +40,7 @@ describe('payments', () => {
       reference: { type: 'booking', id: 'b_1' },
       idempotencyKey: 'booking-b_1',
       metadata: { slot: 'morning', seats: '2' },
+      gatewayCode: 'razorpay',
     });
 
     const call = mutate.mock.calls[0]?.[0];
@@ -55,9 +56,11 @@ describe('payments', () => {
           { key: 'seats', value: '2' },
         ],
         channel: undefined,
+        checkoutUrl: undefined,
+        returnUrl: undefined,
+        gatewayCode: 'razorpay',
       },
     });
-    // Site-scoped: the site header only, never the LE alongside it.
     // Site-scoped: the site header only, never the LE alongside it. The party travels when bound.
     expect(call?.context?.requestContext).toEqual({ partyId: 'p_1', siteId: 'site_1' });
   });
@@ -131,51 +134,137 @@ describe('payments', () => {
   });
 });
 
-describe('checkout.startFromCart', () => {
-  const session = {
-    startCheckoutFromCart: {
-      order: {
-        __typename: 'CheckoutOrder',
-        id: 'o_1',
-        orderNumber: 'SO-1',
-        total: { currency: 'INR', value: '499.00' },
+describe('checkout.start', () => {
+  // A checkout as core answers it the moment the payment opens: no orders yet, the intent bound
+  const rawCheckout = {
+    __typename: 'Checkout',
+    id: 'chk_1',
+    status: 'OPEN',
+    currencyCode: 'INR',
+    total: { __typename: 'Money', currency: 'INR', value: '499.00' },
+    sites: [
+      {
+        __typename: 'CheckoutStoreShare',
+        siteId: 'site_1',
+        legalEntityId: 'le_1',
+        subtotal: { __typename: 'Money', currency: 'INR', value: '300.00' },
       },
-      paymentIntent: rawIntent(),
-    },
+      {
+        __typename: 'CheckoutStoreShare',
+        siteId: 'site_2',
+        legalEntityId: 'le_2',
+        subtotal: { __typename: 'Money', currency: 'INR', value: '199.00' },
+      },
+    ],
+    orders: [],
+    paymentIntent: rawIntent(),
   };
+  const started = { startCheckout: rawCheckout };
+  const context = { siteId: 'site_1', legalEntityId: 'le_1', partyId: 'p_1' };
 
-  it('needs a party', async () => {
-    const { client } = fakeClient(session);
-    await expect(
-      createCheckoutOperations(client, { siteId: 'site_1' }, 'INR').startFromCart({ idempotencyKey: 'k' }),
-    ).rejects.toMatchObject({
-      code: 'No Party',
-    });
-  });
-
-  it("checks out without a configured currency, leaving core to use the site's", async () => {
-    const { client, mutate } = fakeClient(session);
-    const result = await createCheckoutOperations(client, { siteId: 'site_1', partyId: 'p_1' }).startFromCart({
+  it('checks every store out at the organization, in the configured currency, and parses the checkout', async () => {
+    const { client, mutate } = fakeClient(started);
+    const result = await createCheckoutOperations(client, context, 'INR').start({
       idempotencyKey: 'k',
-    });
-
-    expect(mutate.mock.calls[0]?.[0].variables).toEqual({
-      input: { addressId: undefined, notes: undefined, idempotencyKey: 'k' },
-    });
-    expect(result.order.orderNumber).toBe('SO-1');
-  });
-
-  it('checks out in the configured currency and parses the intent', async () => {
-    const { client, mutate } = fakeClient(session);
-    const result = await createCheckoutOperations(client, { siteId: 'site_1', partyId: 'p_1' }, 'INR').startFromCart({
+      gatewayCode: 'cashfree',
       addressId: 'addr_1',
-      idempotencyKey: 'k',
     });
 
-    expect(mutate.mock.calls[0]?.[0].variables).toEqual({
-      input: { currencyCode: 'INR', addressId: 'addr_1', notes: undefined, idempotencyKey: 'k' },
+    const call = mutate.mock.calls[0]?.[0];
+    expect(call?.variables).toEqual({
+      input: {
+        currencyCode: 'INR',
+        siteId: undefined,
+        gatewayCode: 'cashfree',
+        addressId: 'addr_1',
+        notes: undefined,
+        idempotencyKey: 'k',
+        returnUrl: undefined,
+        checkoutUrl: undefined,
+      },
     });
-    expect(result.order).toEqual({ id: 'o_1', orderNumber: 'SO-1', total: { currency: 'INR', value: '499.00' } });
-    expect(result.paymentIntent.checkout?.options.order_id).toBe('order_1');
+    // Under the visitor's store, where the permission check resolves — core reads every store's cart regardless
+    expect(call?.context?.requestContext).toEqual({ partyId: 'p_1', siteId: 'site_1' });
+
+    expect(result.id).toBe('chk_1');
+    expect(result.status).toBe('OPEN');
+    expect(result.sites.map((share) => share.subtotal.value)).toEqual(['300.00', '199.00']);
+    expect(result.orders).toEqual([]);
+    expect(result.paymentIntent?.checkout?.options.order_id).toBe('order_1');
+  });
+
+  it('refuses without a pick when the cart offers several gateways, or none', async () => {
+    const several = fakeClient({ ...started, cart: { checkout: { gateways: ['razorpay', 'cashfree'] } } });
+    await expect(
+      createCheckoutOperations(several.client, context, 'INR').start({ idempotencyKey: 'k' }),
+    ).rejects.toMatchObject({
+      code: 'Payment Gateway Required',
+    });
+    const none = fakeClient({ ...started, cart: { checkout: { gateways: [] } } });
+    await expect(
+      createCheckoutOperations(none.client, context, 'INR').start({ idempotencyKey: 'k' }),
+    ).rejects.toMatchObject({
+      code: 'Payments Not Set Up',
+    });
+    expect(several.mutate).not.toHaveBeenCalled();
+    expect(none.mutate).not.toHaveBeenCalled();
+  });
+
+  it("uses the named store's only gateway when one store is checked out", async () => {
+    const { client, mutate } = fakeClient({
+      ...started,
+      cart: { sites: [{ siteId: 'site_2', gateways: ['cashfree'] }], checkout: { gateways: [] } },
+    });
+    await createCheckoutOperations(client, context, 'INR').start({ idempotencyKey: 'k', siteId: 'site_2' });
+    const input = (mutate.mock.calls[0]?.[0].variables as { input: { gatewayCode: string; siteId: string } }).input;
+    expect(input).toMatchObject({ gatewayCode: 'cashfree', siteId: 'site_2' });
+  });
+
+  it("uses the cart's only checkout gateway when none was picked", async () => {
+    const { client, query, mutate } = fakeClient({ ...started, cart: { checkout: { gateways: ['cashfree'] } } });
+    await createCheckoutOperations(client, context, 'INR').start({ idempotencyKey: 'k' });
+    expect(query).toHaveBeenCalledTimes(1);
+    expect((mutate.mock.calls[0]?.[0].variables as { input: { gatewayCode: string } }).input.gatewayCode).toBe(
+      'cashfree',
+    );
+  });
+
+  it('refuses without a configured currency, without a party, and without a store to ask from', async () => {
+    const { client, mutate } = fakeClient(started);
+    await expect(
+      createCheckoutOperations(client, context).start({ idempotencyKey: 'k', gatewayCode: 'cashfree' }),
+    ).rejects.toMatchObject({ code: 'Not Configured' });
+    await expect(
+      createCheckoutOperations(client, { siteId: 'site_1' }, 'INR').start({ idempotencyKey: 'k' }),
+    ).rejects.toMatchObject({ code: 'No Party' });
+    await expect(
+      createCheckoutOperations(client, { partyId: 'p_1' }, 'INR').start({
+        idempotencyKey: 'k',
+        gatewayCode: 'cashfree',
+      }),
+    ).rejects.toMatchObject({ code: 'Not Configured' });
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('reads a checkout fresh, at the organization, with the orders it became', async () => {
+    const converted = {
+      ...rawCheckout,
+      status: 'CONVERTED',
+      orders: [
+        { __typename: 'CheckoutStoreOrder', siteId: 'site_1', orderId: 'o_1', orderNumber: 'SO-1' },
+        { __typename: 'CheckoutStoreOrder', siteId: 'site_2', orderId: 'o_2', orderNumber: 'SO-2' },
+      ],
+      paymentIntent: { ...rawIntent(), status: 'SUCCEEDED' },
+    };
+    const { client, query } = fakeClient({ checkout: converted });
+    const result = await createCheckoutOperations(client, context, 'INR').find('chk_1');
+
+    const call = query.mock.calls[0]?.[0] as Call & { fetchPolicy?: string };
+    expect(call.variables).toEqual({ input: { checkoutId: 'chk_1' } });
+    expect(call.context?.requestContext).toEqual({ partyId: 'p_1', siteId: 'site_1' });
+    expect(call.fetchPolicy).toBe('no-cache');
+    expect(result.status).toBe('CONVERTED');
+    expect(result.orders.map((order) => order.orderNumber)).toEqual(['SO-1', 'SO-2']);
+    expect(result.paymentIntent?.status).toBe('SUCCEEDED');
   });
 });

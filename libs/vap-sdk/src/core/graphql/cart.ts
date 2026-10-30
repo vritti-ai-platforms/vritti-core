@@ -7,6 +7,23 @@ export const MoneyFieldsFragment = graphql(`
   }
 `);
 
+export const CartItemFieldsFragment = graphql(`
+  fragment CartItemFields on CartItem {
+    id
+    catalogListingId
+    quantity
+    name
+    code
+    isAvailable
+    unitPrice {
+      ...MoneyFields
+    }
+    lineTotal {
+      ...MoneyFields
+    }
+  }
+`);
+
 export const CartFieldsFragment = graphql(`
   fragment CartFields on Cart {
     currencyCode
@@ -14,19 +31,20 @@ export const CartFieldsFragment = graphql(`
     subtotal {
       ...MoneyFields
     }
-    items {
-      id
-      catalogListingId
-      quantity
-      name
-      code
-      isAvailable
-      unitPrice {
+    sites {
+      siteId
+      siteName
+      itemCount
+      subtotal {
         ...MoneyFields
       }
-      lineTotal {
-        ...MoneyFields
+      gateways
+      items {
+        ...CartItemFields
       }
+    }
+    checkout {
+      gateways
     }
   }
 `);

@@ -1,14 +1,28 @@
 'use server';
 
+import { VapError } from '@vritti/vap-sdk';
+import { getSdk, type PayloadLike } from '@vritti/vap-sdk/payload';
 import { revalidatePath } from 'next/cache';
 import { requireParty } from './party.js';
 import { resolvePayload } from './payload-adapter.js';
 import { formField, type PartyActionState, returnToFrom, withPartyErrors } from './state.js';
-import { vapSdk } from './visitor-session.js';
+import { resolveWorkspace, vapSdk } from './visitor-session.js';
 
-// The basket, as server actions a storefront imports directly.
+// The cart, as server actions a storefront imports directly.
 
 const MAX_QUANTITY = 99;
+
+// The cart a line is edited in: the visitor's store, or the line's own when the form names one. A line belongs to
+// the store it was added at, and a cart page lists every store's, so editing one the visitor is not shopping at
+// has to carry that store rather than theirs. Core takes the legal entity from the store, so only the store is sent
+async function cartFor(payload: PayloadLike, partyId: string, siteId: string) {
+  if (!siteId) return (await vapSdk(payload, { partyId })).cart;
+  const sdk = getSdk(payload);
+  const site = await sdk.structure.findSite(siteId);
+  if (!site) throw new VapError('That store is not available.', 'Store Not Available', 404);
+  const workspace = await resolveWorkspace();
+  return sdk.forContext({ partyId, ...workspace, siteId: site.id, legalEntityId: site.legalEntityId }).cart;
+}
 
 export async function addToCartAction(_previous: PartyActionState, formData: FormData): Promise<PartyActionState> {
   const returnTo = returnToFrom(formData);
@@ -22,7 +36,7 @@ export async function addToCartAction(_previous: PartyActionState, formData: For
   const result = await withPartyErrors(payload, async () =>
     (await vapSdk(payload, { partyId: party.partyId })).cart.add(code, quantity).then(() => ({ ok: true })),
   );
-  // The header's basket count renders on every page, so the route the party is looking at has to be re-rendered for it
+  // The header's cart count renders on every page, so the route the party is looking at has to be re-rendered for it
   // to change.
   revalidatePath(returnTo);
   return result;
@@ -37,7 +51,9 @@ export async function updateCartItemAction(_previous: PartyActionState, formData
 
   const payload = await resolvePayload();
   const result = await withPartyErrors(payload, async () =>
-    (await vapSdk(payload, { partyId: party.partyId })).cart.update(code, quantity).then(() => ({ ok: true })),
+    (await cartFor(payload, party.partyId, formField(formData, 'siteId')))
+      .update(code, quantity)
+      .then(() => ({ ok: true })),
   );
   revalidatePath(returnTo);
   return result;
@@ -51,7 +67,7 @@ export async function removeFromCartAction(_previous: PartyActionState, formData
 
   const payload = await resolvePayload();
   const result = await withPartyErrors(payload, async () =>
-    (await vapSdk(payload, { partyId: party.partyId })).cart.remove(code).then(() => ({ ok: true })),
+    (await cartFor(payload, party.partyId, formField(formData, 'siteId'))).remove(code).then(() => ({ ok: true })),
   );
   revalidatePath(returnTo);
   return result;
@@ -75,10 +91,10 @@ export async function setCartQuantityAction(
   if (next > MAX_QUANTITY) return { error: `You can add up to ${MAX_QUANTITY} of one item.` };
 
   const payload = await resolvePayload();
-  const cart = (await vapSdk(payload, { partyId: party.partyId })).cart;
-  const result = await withPartyErrors(payload, () =>
-    (next < 1 ? cart.remove(code) : cart.update(code, next)).then(() => ({ ok: true })),
-  );
+  const result = await withPartyErrors(payload, async () => {
+    const cart = await cartFor(payload, party.partyId, formField(formData, 'siteId'));
+    return (next < 1 ? cart.remove(code) : cart.update(code, next)).then(() => ({ ok: true }));
+  });
   revalidatePath(returnTo);
   return result;
 }

@@ -183,11 +183,30 @@ type CartItem {
   isAvailable: Boolean!
 }
 
-type Cart {
-  currencyCode: String!
+type CartSite {
+  siteId: ID!
+  siteName: String!
   items: [CartItem!]!
   subtotal: Money!
   itemCount: Int!
+
+  """Gateway codes this store accepts, e.g. razorpay."""
+  gateways: [String!]!
+}
+
+type CartCheckout {
+  """
+  Gateway codes that pay for every store in one payment. Empty when the stores share none.
+  """
+  gateways: [String!]!
+}
+
+type Cart {
+  currencyCode: String!
+  sites: [CartSite!]!
+  subtotal: Money!
+  itemCount: Int!
+  checkout: CartCheckout!
 }
 
 type CartQuantity {
@@ -661,29 +680,36 @@ enum PaymentIntentStatus {
   EXPIRED
 }
 
-type CheckoutOrder {
-  id: ID!
+type CheckoutStoreShare {
+  siteId: ID!
+  legalEntityId: ID!
+  subtotal: Money!
+}
+
+type CheckoutStoreOrder {
+  siteId: ID!
+  orderId: ID!
   orderNumber: String!
-  total: Money!
 }
 
-type CheckoutSession {
-  order: CheckoutOrder!
-  paymentIntent: PaymentIntent!
-}
-
-type CheckoutPaymentGateway {
+type Checkout {
   id: ID!
+  status: CheckoutStatus!
+  currencyCode: String!
+  total: Money!
+  sites: [CheckoutStoreShare!]!
+  orders: [CheckoutStoreOrder!]!
+  paymentIntent: PaymentIntent
+}
 
-  """Gateway provider code, e.g. razorpay"""
-  gatewayCode: String!
-  label: String!
-
-  """The gateway's logo for light backgrounds"""
-  logoLightUrl: String
-
-  """The gateway's logo for dark backgrounds"""
-  logoDarkUrl: String
+"""
+OPEN: awaiting payment. PAID: the payment landed, orders being made. CONVERTED: one order per store exists. CANCELLED: expired or cancelled unpaid.
+"""
+enum CheckoutStatus {
+  OPEN
+  PAID
+  CONVERTED
+  CANCELLED
 }
 
 type Query {

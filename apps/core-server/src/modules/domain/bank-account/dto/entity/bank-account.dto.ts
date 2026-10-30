@@ -8,9 +8,6 @@ export class BankAccountDto {
   @ApiProperty({ example: 'uuid-here' })
   legalEntityId: string;
 
-  @ApiPropertyOptional({ example: 'Primary current account', nullable: true })
-  label: string | null;
-
   @ApiProperty({ example: 'Acme Retail Pvt Ltd' })
   accountHolderName: string;
 
@@ -37,7 +34,6 @@ export class BankAccountDto {
     const dto = new BankAccountDto();
     dto.id = row.id;
     dto.legalEntityId = row.legalEntityId;
-    dto.label = row.label ?? null;
     dto.accountHolderName = row.accountHolderName;
     dto.accountNumber = row.accountNumber;
     dto.ifscCode = row.ifscCode;

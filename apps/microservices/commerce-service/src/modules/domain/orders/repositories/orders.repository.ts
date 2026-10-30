@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type NewOrderItem,
-  type Order,
   type OrderItem,
   offerings,
   offeringVariants,
@@ -29,24 +28,6 @@ export class OrdersDomainRepository extends PrimaryBaseRepository<typeof orders>
   async createItems(data: NewOrderItem[]): Promise<OrderItem[]> {
     if (data.length === 0) return [];
     return this.db.insert(orderItems).values(data).returning() as Promise<OrderItem[]>;
-  }
-
-  // The order a party's checkout already opened under this key at this site. orders' site_* RLS policies are permissive
-  // and OR with org isolation, so they do not narrow to the site — the siteId filter here does
-  async findByCheckoutKey(partyId: string, checkoutKey: string, siteId: string): Promise<Order | undefined> {
-    return this.model.findFirst({ where: { partyId, checkoutKey, siteId } });
-  }
-
-  // Loads a site's order and locks its row until the surrounding transaction ends, so concurrent payment callbacks
-  // serialize.
-  async findByIdForUpdate(id: string, siteId: string): Promise<Order | undefined> {
-    const [row] = await this.db
-      .select()
-      .from(orders)
-      .where(and(eq(orders.id, id), eq(orders.siteId, siteId)))
-      .limit(1)
-      .for('update');
-    return row as Order | undefined;
   }
 
   // Generates a sequential order number (RLS scopes the count to current site)

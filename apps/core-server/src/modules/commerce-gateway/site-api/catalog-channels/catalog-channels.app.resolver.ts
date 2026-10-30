@@ -58,7 +58,7 @@ export class SiteCatalogChannelsAppResolver {
     return this.service.appListingByCode(appId, code, currencyCode);
   }
 
-  // The same range narrowed to variants the caller already holds — reconciling a wishlist or a basket
+  // The same range narrowed to variants the caller already holds — reconciling a wishlist or a cart
   @Query(() => [CatalogListing], { name: 'siteCatalogListingsByCodes' })
   @RequirePermission(SITE_CATALOG_CHANNELS.listings)
   siteCatalogListingsByCodes(

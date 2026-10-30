@@ -1,30 +1,43 @@
 import { graphql } from '../gql/index.js';
 
-export const START_CHECKOUT_FROM_CART = graphql(`
-  mutation StartCheckoutFromCart($input: StartCheckoutInput!) {
-    startCheckoutFromCart(input: $input) {
-      order {
-        id
-        orderNumber
-        total {
-          ...MoneyFields
-        }
+export const CheckoutFieldsFragment = graphql(`
+  fragment CheckoutFields on Checkout {
+    id
+    status
+    currencyCode
+    total {
+      ...MoneyFields
+    }
+    sites {
+      siteId
+      legalEntityId
+      subtotal {
+        ...MoneyFields
       }
-      paymentIntent {
-        ...PaymentIntentFields
-      }
+    }
+    orders {
+      siteId
+      orderId
+      orderNumber
+    }
+    paymentIntent {
+      ...PaymentIntentFields
     }
   }
 `);
 
-export const CHECKOUT_PAYMENT_GATEWAYS = graphql(`
-  query CheckoutPaymentGateways($input: CheckoutPaymentGatewaysInput) {
-    checkoutPaymentGateways(input: $input) {
-      id
-      gatewayCode
-      label
-      logoLightUrl
-      logoDarkUrl
+export const START_CHECKOUT = graphql(`
+  mutation StartCheckout($input: CheckoutStartInput!) {
+    startCheckout(input: $input) {
+      ...CheckoutFields
+    }
+  }
+`);
+
+export const CHECKOUT_QUERY = graphql(`
+  query Checkout($input: CheckoutRefInput!) {
+    checkout(input: $input) {
+      ...CheckoutFields
     }
   }
 `);

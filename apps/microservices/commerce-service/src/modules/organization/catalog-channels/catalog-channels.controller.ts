@@ -67,7 +67,7 @@ export class OrgCatalogChannelsController {
     return this.service.appListingFilters(data.appId, data.filters ?? []);
   }
 
-  // The same range narrowed to variants the caller already holds — a wishlist or a basket
+  // The same range narrowed to variants the caller already holds — a wishlist or a cart
   @MessagePattern({ cmd: 'org.catalogChannels.app.listingsByCodes' })
   appListingsByCodes(
     @Payload() data: { appId: string; codes: string[]; currencyCode: string; filters?: ListingFilterSelectionDto[] },

@@ -4,16 +4,15 @@ import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SITE_PAYMENTS } from '@vritti/commerce-permissions/payments';
 import { AppTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { AppId, LegalEntityId, OptionalPartyId, OrgId, PartyId, SiteId } from '@/security/decorators';
+import { AppId, LegalEntityId, OptionalPartyId, OrgId, PartyId, RequestOrigin, SiteId } from '@/security/decorators';
 import {
-  CheckoutPaymentGatewaysInput,
+  CheckoutRefInput,
+  CheckoutStartInput,
   ConfirmPaymentInput,
   CreatePaymentIntentInput,
-  PaymentChannel,
   PaymentIntentRefInput,
-  StartCheckoutInput,
 } from './graphql/payment-intent.input';
-import { CheckoutPaymentGateway, CheckoutSession, PaymentIntent } from './graphql/payment-intent.type';
+import { Checkout, PaymentIntent } from './graphql/payment-intent.type';
 import { PaymentIntentsGatewayService } from './services/payment-intents-gateway.service';
 
 @Resolver()
@@ -24,23 +23,6 @@ export class PaymentIntentsAppResolver {
 
   constructor(private readonly service: PaymentIntentsGatewayService) {}
 
-  // The gateways the payment page can offer: those with a payout account for this store, app and channel
-  @Query(() => [CheckoutPaymentGateway], { name: 'checkoutPaymentGateways' })
-  @RequirePermission(SITE_PAYMENTS.create)
-  checkoutPaymentGateways(
-    @OrgId() orgId: string,
-    @AppId() appId: string,
-    @SiteId() siteId: string | undefined,
-    @LegalEntityId() legalEntityId: string | undefined,
-    @Args('input', { nullable: true }) input?: CheckoutPaymentGatewaysInput,
-  ): Promise<CheckoutPaymentGateway[]> {
-    this.logger.log('QUERY checkoutPaymentGateways');
-    return this.service.listCheckoutGateways(
-      { orgId, appId, siteId, legalEntityId },
-      input?.channel ?? PaymentChannel.APP,
-    );
-  }
-
   // Opens a payment for anything the app sells, through the gateway the shopper picked
   @Mutation(() => PaymentIntent, { name: 'createPaymentIntent' })
   @RequirePermission(SITE_PAYMENTS.create)
@@ -50,10 +32,11 @@ export class PaymentIntentsAppResolver {
     @OptionalPartyId() partyId: string | undefined,
     @SiteId() siteId: string | undefined,
     @LegalEntityId() legalEntityId: string | undefined,
+    @RequestOrigin() origin: string | undefined,
     @Args('input') input: CreatePaymentIntentInput,
   ): Promise<PaymentIntent> {
     this.logger.log('MUTATION createPaymentIntent');
-    return this.service.create({ orgId, appId, partyId, siteId, legalEntityId }, input);
+    return this.service.create({ orgId, appId, partyId, siteId, legalEntityId, origin }, input);
   }
 
   // Completes a payment from what the gateway's checkout handed back
@@ -93,18 +76,30 @@ export class PaymentIntentsAppResolver {
     return this.service.cancel({ orgId, appId, partyId }, input.paymentIntentId);
   }
 
-  // Places an order from the party's cart and opens the payment for it in one call
-  @Mutation(() => CheckoutSession, { name: 'startCheckoutFromCart' })
+  // Freezes the party's cart — every store, or one — and opens the one payment for it
+  @Mutation(() => Checkout, { name: 'startCheckout' })
   @RequirePermission(SITE_PAYMENTS.create)
-  startCheckoutFromCart(
+  startCheckout(
     @OrgId() orgId: string,
     @AppId() appId: string,
     @PartyId() partyId: string,
-    @SiteId() siteId: string | undefined,
-    @LegalEntityId() legalEntityId: string | undefined,
-    @Args('input') input: StartCheckoutInput,
-  ): Promise<CheckoutSession> {
-    this.logger.log('MUTATION startCheckoutFromCart');
-    return this.service.startCheckoutFromCart({ orgId, appId, partyId, siteId, legalEntityId }, input);
+    @RequestOrigin() origin: string | undefined,
+    @Args('input') input: CheckoutStartInput,
+  ): Promise<Checkout> {
+    this.logger.log('MUTATION startCheckout');
+    return this.service.startCheckout({ orgId, appId, partyId, origin }, input);
+  }
+
+  // Where a checkout stands — its payment, and the orders it became — for a return page
+  @Query(() => Checkout, { name: 'checkout' })
+  @RequirePermission(SITE_PAYMENTS.view)
+  checkout(
+    @OrgId() orgId: string,
+    @AppId() appId: string,
+    @PartyId() partyId: string,
+    @Args('input') input: CheckoutRefInput,
+  ): Promise<Checkout> {
+    this.logger.log('QUERY checkout');
+    return this.service.findCheckout({ orgId, appId, partyId }, input.checkoutId);
   }
 }

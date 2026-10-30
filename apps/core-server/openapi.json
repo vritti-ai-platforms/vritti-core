@@ -6529,7 +6529,7 @@
         ]
       },
       "patch": {
-        "description": "Updates the label, holder, number, IFSC, bank or branch of a bank account.",
+        "description": "Updates the holder, number, IFSC, bank or branch of a bank account.",
         "operationId": "BankAccountInternalController_update",
         "parameters": [
           {
@@ -6750,7 +6750,7 @@
         ]
       },
       "post": {
-        "description": "Credentials are validated against the gateway field list, encrypted at rest and never returned. The label must be unique among the organization's gateways.",
+        "description": "Credentials are validated against the gateway field list, encrypted at rest and never returned. An organization has one gateway of each code; Vritti's may share a code with it.",
         "operationId": "PaymentGatewayConfigInternalController_create",
         "parameters": [
           {
@@ -6809,10 +6809,109 @@
             "description": "Invalid or missing request signature."
           },
           "409": {
-            "description": "The label already names another gateway."
+            "description": "The organization already has a gateway of this code."
           }
         },
         "summary": "Connect one of the organization's own payment gateways",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/table": {
+      "get": {
+        "description": "Resolves one page of the organization's own gateways (ORG) and Vritti's (PLATFORM, key id withheld) from a serialized view state (filters, search, sort, pagination) that cloud holds. Secrets are never included.",
+        "operationId": "PaymentGatewayConfigInternalController_findForTable",
+        "parameters": [
+          {
+            "name": "filters",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified FilterCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SearchState",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SortCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment gateway configs page retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentGatewayConfigsPageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "Payment gateway configs table",
         "tags": [
           "Structure - Payment Gateway Configs (internal)"
         ]
@@ -6861,6 +6960,96 @@
           }
         },
         "summary": "List supported payment gateways",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/platform/table": {
+      "get": {
+        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header. Resolves one page from a serialized view state that cloud holds.",
+        "operationId": "PaymentGatewayConfigInternalController_findPlatformForTable",
+        "parameters": [
+          {
+            "name": "filters",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified FilterCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SearchState",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SortCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform gateways page retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentGatewayConfigsPageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "Platform payment gateways table",
         "tags": [
           "Structure - Payment Gateway Configs (internal)"
         ]
@@ -6964,7 +7153,7 @@
             "description": "Invalid or missing request signature."
           },
           "409": {
-            "description": "The label already names another platform gateway."
+            "description": "This deployment already has a platform gateway of this code."
           }
         },
         "summary": "Set up a platform payment gateway",
@@ -6975,7 +7164,7 @@
     },
     "/payment-gateway-configs/internal/platform/{id}": {
       "patch": {
-        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header. Credentials, label and fee; the gateway itself cannot change once set up.",
+        "description": "Vritti's own gateways on this deployment — rows with no organization, visible to every organization and managed only by cloud admin. Called with the deployment signing key and no x-org-id header. Credentials and fee; the gateway itself cannot change once set up.",
         "operationId": "PaymentGatewayConfigInternalController_updatePlatform",
         "parameters": [
           {
@@ -7037,7 +7226,7 @@
             "description": "Payment gateway config not found."
           },
           "409": {
-            "description": "The gateway cannot change once set up, or the label is taken."
+            "description": "The gateway cannot change once set up."
           }
         },
         "summary": "Update a platform payment gateway",
@@ -7229,89 +7418,6 @@
           "Structure - Payment Gateway Configs (internal)"
         ]
       },
-      "patch": {
-        "description": "Updates one of the organization's own gateways. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext. The gateway cannot change while payout accounts are registered under it.",
-        "operationId": "PaymentGatewayConfigInternalController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Payment gateway config ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-timestamp",
-            "in": "header",
-            "description": "Unix seconds when the request was signed",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-signature",
-            "in": "header",
-            "description": "Ed25519 signature of the canonical request (base64)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-org-id",
-            "in": "header",
-            "description": "Organization ID scoping the request",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePaymentGatewayConfigDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Payment gateway config updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input, unsupported gateway or incomplete credentials."
-          },
-          "401": {
-            "description": "Invalid or missing request signature."
-          },
-          "403": {
-            "description": "Vritti's gateways cannot be changed from here."
-          },
-          "404": {
-            "description": "Payment gateway config not found."
-          },
-          "409": {
-            "description": "Payout accounts are registered under this gateway, or the label is taken."
-          }
-        },
-        "summary": "Update payment gateway config",
-        "tags": [
-          "Structure - Payment Gateway Configs (internal)"
-        ]
-      },
       "delete": {
         "description": "Removes one of the organization's own gateways, unless payout accounts still depend on it.",
         "operationId": "PaymentGatewayConfigInternalController_delete",
@@ -7455,23 +7561,261 @@
         ]
       }
     },
-    "/payout-accounts/internal": {
-      "get": {
-        "description": "The payout accounts of a bank account, or every one of a legal entity, with the gateway and bank each names. Only the last four digits of an account number are returned.",
-        "operationId": "PayoutAccountInternalController_list",
+    "/payment-gateway-configs/internal/{id}/webhook-check": {
+      "post": {
+        "description": "Opens a ₹10 verification payment on an own gateway that signs webhooks with its own secret, for the gateway's embedded checkout in a new tab. Core's hosted callback settles it, which refunds it; its signed webhook proves the URL and secret registered in the gateway dashboard and makes the config ACTIVE.",
+        "operationId": "PaymentGatewayConfigInternalController_startWebhookCheck",
         "parameters": [
           {
-            "name": "bankAccountId",
-            "required": false,
-            "in": "query",
-            "description": "The bank account whose payout accounts are listed",
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "legalEntityId",
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationPaymentRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification payment opened.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookCheckStartedResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The gateway needs no webhook check, or its keys are not verified."
+          },
+          "409": {
+            "description": "The webhook is already verified."
+          }
+        },
+        "summary": "Start the webhook check",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payment-gateway-configs/internal/{id}/webhook-check/{paymentIntentId}": {
+      "get": {
+        "description": "Where one of this config's verification payments stands, for the dialog waiting on its outcome.",
+        "operationId": "PaymentGatewayConfigInternalController_findWebhookCheck",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment gateway config ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentIntentId",
+            "required": true,
+            "in": "path",
+            "description": "The verification payment",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification payment status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookCheckStatusResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not this config's verification payment."
+          }
+        },
+        "summary": "Get a webhook check payment",
+        "tags": [
+          "Structure - Payment Gateway Configs (internal)"
+        ]
+      }
+    },
+    "/payout-accounts/internal/table": {
+      "get": {
+        "description": "Resolves one page of the organization's payout accounts from a serialized view state (filters, search, sort, pagination) that cloud holds; cloud pins the bank account as a filter. Only the last four digits of an account number are returned.",
+        "operationId": "PayoutAccountInternalController_findForTable",
+        "parameters": [
+          {
+            "name": "filters",
             "required": false,
+            "in": "query",
+            "description": "JSON-stringified FilterCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SearchState",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified SortCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payout accounts page retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutAccountsPageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "Payout accounts table",
+        "tags": [
+          "Structure - Payout Accounts (internal)"
+        ]
+      }
+    },
+    "/payout-accounts/internal": {
+      "get": {
+        "description": "Every payout account of a legal entity, across its bank accounts, with the gateway and bank each names. Only the last four digits of an account number are returned.",
+        "operationId": "PayoutAccountInternalController_list",
+        "parameters": [
+          {
+            "name": "legalEntityId",
+            "required": true,
             "in": "query",
             "description": "The legal entity whose payout accounts are listed, across its bank accounts",
             "schema": {
@@ -7533,7 +7877,7 @@
         ]
       },
       "post": {
-        "description": "Adds a gateway account to a bank account. The id is stored as entered; it is marked as the gateway's main account when it equals the gateway's own id. A gateway account is one payout account.",
+        "description": "Adds a gateway account to a bank account. The id is stored as entered; it is marked as the gateway's main account when it equals the gateway's own id. A gateway account is one payout account. A linked account is looked up at the gateway first; Easebuzz has no lookup, so its split labels are stored as entered and a wrong one fails at payment.",
         "operationId": "PayoutAccountInternalController_create",
         "parameters": [
           {
@@ -7822,7 +8166,7 @@
         ]
       },
       "post": {
-        "description": "Points the legal entity, one of its sites, an app or a sales channel at one of the legal entity's payout accounts. A scope has at most one payout channel per gateway.",
+        "description": "Gives the legal entity, one of its sites, an app or a sales channel one of the legal entity's bank accounts, with its payout accounts switched off until turned on. A scope has one bank account.",
         "operationId": "PayoutChannelInternalController_create",
         "parameters": [
           {
@@ -7875,13 +8219,13 @@
             }
           },
           "400": {
-            "description": "Invalid payout account, site or app."
+            "description": "Invalid bank account, site or app."
           },
           "401": {
             "description": "Invalid or missing request signature."
           },
           "409": {
-            "description": "This scope already pays out through that gateway."
+            "description": "This scope already has a bank account."
           }
         },
         "summary": "Add a payout channel",
@@ -7892,7 +8236,7 @@
     },
     "/payout-channels/internal/{id}": {
       "patch": {
-        "description": "Points the channel at another payout account of the same legal entity; its scope is fixed.",
+        "description": "Moves the channel to another bank account of the same legal entity, its payout accounts switched off; the scope is fixed.",
         "operationId": "PayoutChannelInternalController_update",
         "parameters": [
           {
@@ -7954,16 +8298,13 @@
             }
           },
           "400": {
-            "description": "A payout account of another legal entity."
+            "description": "A bank account of another legal entity."
           },
           "401": {
             "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Payout channel not found."
-          },
-          "409": {
-            "description": "This scope already pays out through that gateway."
           }
         },
         "summary": "Change a payout channel",
@@ -8031,6 +8372,94 @@
           }
         },
         "summary": "Remove a payout channel",
+        "tags": [
+          "Structure - Payout Channels (internal)"
+        ]
+      }
+    },
+    "/payout-channels/internal/{id}/payout-accounts/{payoutAccountId}": {
+      "put": {
+        "description": "Turns payments through one of the channel's bank account's payout accounts on or off for its scope.",
+        "operationId": "PayoutChannelInternalController_switchAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payout channel ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "payoutAccountId",
+            "required": true,
+            "in": "path",
+            "description": "Payout account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwitchPayoutChannelAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payout account switched.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A payout account of another bank account."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Payout channel not found."
+          }
+        },
+        "summary": "Switch a payout channel's payout account on or off",
         "tags": [
           "Structure - Payout Channels (internal)"
         ]
@@ -17250,7 +17679,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17371,7 +17800,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17407,7 +17836,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17463,7 +17892,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17517,7 +17946,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17582,7 +18011,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17703,7 +18132,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17739,7 +18168,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17795,7 +18224,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -17849,7 +18278,7 @@
             "name": "currencyCode",
             "required": false,
             "in": "query",
-            "description": "ISO 4217 the basket is priced in",
+            "description": "ISO 4217 the cart is priced in",
             "schema": {
               "example": "INR",
               "type": "string"
@@ -46708,11 +47137,6 @@
             "type": "string",
             "example": "uuid-here"
           },
-          "label": {
-            "type": "object",
-            "example": "Primary current account",
-            "nullable": true
-          },
           "accountHolderName": {
             "type": "string",
             "example": "Acme Retail Pvt Ltd"
@@ -46784,11 +47208,6 @@
       "CreateLeBankAccountDto": {
         "type": "object",
         "properties": {
-          "label": {
-            "type": "object",
-            "description": "Display label for the account",
-            "example": "Primary current account"
-          },
           "accountHolderName": {
             "type": "string",
             "description": "Name the account is held in",
@@ -46846,11 +47265,6 @@
       "UpdateBankAccountDto": {
         "type": "object",
         "properties": {
-          "label": {
-            "type": "object",
-            "description": "Display label for the account",
-            "example": "Primary current account"
-          },
           "accountHolderName": {
             "type": "string",
             "description": "Name the account is held in",
@@ -46903,11 +47317,6 @@
             "type": "string",
             "description": "Owning legal entity ID",
             "example": "uuid-here"
-          },
-          "label": {
-            "type": "object",
-            "description": "Display label for the account",
-            "example": "Primary current account"
           },
           "accountHolderName": {
             "type": "string",
@@ -46963,11 +47372,6 @@
             "type": "string",
             "example": "razorpay"
           },
-          "label": {
-            "type": "string",
-            "description": "Tells the rows of a group apart; unique within it",
-            "example": "Main Razorpay"
-          },
           "keyId": {
             "type": "object",
             "description": "The public half of the credential pair; withheld from organizations on PLATFORM rows",
@@ -47005,6 +47409,27 @@
             "example": "2024-01-15T10:30:00Z",
             "nullable": true
           },
+          "webhookVerifiedAt": {
+            "type": "object",
+            "description": "When the first webhook signed with this config’s secret arrived; null until then",
+            "example": "2024-01-15T10:35:00Z",
+            "nullable": true
+          },
+          "lastWebhookAt": {
+            "type": "object",
+            "description": "When the latest signed webhook arrived",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "ACTIVE takes payments; KEYS_NOT_VERIFIED and WAITING_FOR_WEBHOOK (a gateway that signs webhooks with its own secret, before the first signed webhook) do not",
+            "enum": [
+              "KEYS_NOT_VERIFIED",
+              "WAITING_FOR_WEBHOOK",
+              "ACTIVE"
+            ],
+            "example": "ACTIVE"
+          },
           "createdAt": {
             "type": "string",
             "example": "2024-01-15T10:30:00Z"
@@ -47018,12 +47443,30 @@
           "id",
           "kind",
           "gatewayCode",
-          "label",
           "hasWebhookSecret",
           "gatewayAccountId",
           "platformFeeBps",
+          "status",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "PaymentGatewayConfigsPageResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentGatewayConfigDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "result",
+          "count"
         ]
       },
       "PaymentGatewayOptionDto": {
@@ -47064,11 +47507,6 @@
             "description": "Gateway provider code",
             "example": "razorpay"
           },
-          "label": {
-            "type": "string",
-            "description": "Tells this gateway apart from the others; unique within its group",
-            "example": "Main Razorpay"
-          },
           "credentials": {
             "type": "object",
             "description": "Provider credentials keyed by field name; the required keys depend on gatewayCode",
@@ -47102,7 +47540,6 @@
         },
         "required": [
           "gatewayCode",
-          "label",
           "credentials",
           "gatewayAccountId"
         ]
@@ -47114,11 +47551,6 @@
             "type": "string",
             "description": "Gateway provider code",
             "example": "razorpay"
-          },
-          "label": {
-            "type": "string",
-            "description": "Tells this gateway apart from the others; unique within its group",
-            "example": "Main Razorpay"
           },
           "credentials": {
             "type": "object",
@@ -47200,11 +47632,6 @@
             "description": "Gateway provider code",
             "example": "razorpay"
           },
-          "label": {
-            "type": "string",
-            "description": "Tells this gateway apart from the others; unique within its group",
-            "example": "Main Razorpay"
-          },
           "credentials": {
             "type": "object",
             "description": "Provider credentials keyed by field name; the required keys depend on gatewayCode",
@@ -47233,50 +47660,130 @@
         },
         "required": [
           "gatewayCode",
-          "label",
           "credentials",
           "gatewayAccountId"
         ]
       },
-      "UpdatePaymentGatewayConfigDto": {
+      "VerificationPayerDto": {
         "type": "object",
         "properties": {
-          "gatewayCode": {
+          "name": {
             "type": "string",
-            "description": "Gateway provider code",
-            "example": "razorpay"
+            "example": "Shyam Sunder"
           },
-          "label": {
+          "email": {
             "type": "string",
-            "description": "Tells this gateway apart from the others; unique within its group",
-            "example": "Main Razorpay"
+            "example": "admin@example.com"
           },
-          "credentials": {
-            "type": "object",
-            "description": "Provider credentials keyed by field name; the required keys depend on gatewayCode",
-            "example": {
-              "key_id": "rzp_live_AbCdEf123456",
-              "key_secret": "xxxxxxxxxxxxxxxx"
-            }
-          },
-          "webhookSecret": {
-            "type": "object",
-            "description": "Webhook signing secret issued by the provider"
-          },
-          "gatewayAccountId": {
+          "phone": {
             "type": "string",
-            "description": "The main account's id at the gateway",
-            "example": "acc_Tpmw33BnyMhFUf"
-          },
-          "logoLightUrl": {
-            "type": "object",
-            "description": "The catalog gateway's logo for light backgrounds, set by Vritti Cloud"
-          },
-          "logoDarkUrl": {
-            "type": "object",
-            "description": "The catalog gateway's logo for dark backgrounds, set by Vritti Cloud"
+            "example": "9876543210"
           }
         }
+      },
+      "VerificationPaymentRequestDto": {
+        "type": "object",
+        "properties": {
+          "callbackOrigin": {
+            "type": "string",
+            "description": "Core's public origin as cloud reaches it",
+            "example": "https://api.acme.vrittiai.com"
+          },
+          "payer": {
+            "$ref": "#/components/schemas/VerificationPayerDto"
+          }
+        }
+      },
+      "WebhookCheckCheckoutDto": {
+        "type": "object",
+        "properties": {
+          "gateway": {
+            "type": "string",
+            "example": "razorpay"
+          },
+          "keyId": {
+            "type": "object",
+            "description": "The public key id Razorpay's embedded checkout opens with; null for a gateway with its own page",
+            "nullable": true,
+            "example": "rzp_test_AbCdEf123456"
+          },
+          "orderId": {
+            "type": "object",
+            "nullable": true,
+            "example": "order_PqR1a2b3c4"
+          },
+          "url": {
+            "type": "object",
+            "description": "The gateway’s own page to pay on (Easebuzz); null for an embedded checkout",
+            "nullable": true,
+            "example": "https://testpay.easebuzz.in/pay/4d49058599709b74c4616b28c3ec38a4"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Minor units",
+            "example": 1000
+          },
+          "currency": {
+            "type": "string",
+            "example": "INR"
+          }
+        },
+        "required": [
+          "gateway",
+          "keyId",
+          "orderId",
+          "url",
+          "amount",
+          "currency"
+        ]
+      },
+      "WebhookCheckStartedResponseDto": {
+        "type": "object",
+        "properties": {
+          "paymentIntentId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "checkout": {
+            "$ref": "#/components/schemas/WebhookCheckCheckoutDto"
+          },
+          "callbackPath": {
+            "type": "string",
+            "description": "Core's hosted callback the embedded checkout posts its result to; prefix it with core's origin",
+            "example": "/payments/checkout/uuid-org/uuid-intent/callback"
+          },
+          "cancelPath": {
+            "type": "string",
+            "description": "Where the embedded checkout sends a cancelled payment",
+            "example": "/payments/checkout/uuid-org/uuid-intent/cancel"
+          }
+        },
+        "required": [
+          "paymentIntentId",
+          "checkout",
+          "callbackPath",
+          "cancelPath"
+        ]
+      },
+      "WebhookCheckStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "The verification payment’s status: CREATED / REQUIRES_ACTION while open, then SUCCEEDED, FAILED, CANCELED or EXPIRED",
+            "example": "SUCCEEDED"
+          },
+          "failureMessage": {
+            "type": "object",
+            "description": "Why the payment failed, as the gateway said",
+            "nullable": true,
+            "example": null
+          }
+        },
+        "required": [
+          "status",
+          "failureMessage"
+        ]
       },
       "PayoutAccountGatewayDto": {
         "type": "object",
@@ -47296,17 +47803,12 @@
           "gatewayCode": {
             "type": "string",
             "example": "razorpay"
-          },
-          "label": {
-            "type": "string",
-            "example": "Vritti Razorpay"
           }
         },
         "required": [
           "id",
           "kind",
-          "gatewayCode",
-          "label"
+          "gatewayCode"
         ]
       },
       "PayoutAccountBankDto": {
@@ -47315,11 +47817,6 @@
           "id": {
             "type": "string",
             "example": "uuid-here"
-          },
-          "label": {
-            "type": "object",
-            "example": "Main current account",
-            "nullable": true
           },
           "bankName": {
             "type": "string",
@@ -47384,6 +47881,24 @@
           "updatedAt"
         ]
       },
+      "PayoutAccountsPageResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayoutAccountDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "result",
+          "count"
+        ]
+      },
       "CreatePayoutAccountDto": {
         "type": "object",
         "properties": {
@@ -47419,48 +47934,12 @@
           }
         }
       },
-      "PayoutChannelGatewayDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "uuid-here"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "PLATFORM",
-              "ORG"
-            ],
-            "example": "PLATFORM"
-          },
-          "gatewayCode": {
-            "type": "string",
-            "example": "razorpay"
-          },
-          "label": {
-            "type": "string",
-            "example": "Vritti Razorpay"
-          }
-        },
-        "required": [
-          "id",
-          "kind",
-          "gatewayCode",
-          "label"
-        ]
-      },
       "PayoutChannelBankDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "example": "uuid-here"
-          },
-          "label": {
-            "type": "object",
-            "example": "Main current account",
-            "nullable": true
           },
           "bankName": {
             "type": "string",
@@ -47476,37 +47955,6 @@
           "id",
           "bankName",
           "accountNumberLast4"
-        ]
-      },
-      "PayoutChannelAccountDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "uuid-here"
-          },
-          "gatewayAccountId": {
-            "type": "string",
-            "example": "acc_Hx81aBcDeF"
-          },
-          "isMainAccount": {
-            "type": "boolean",
-            "description": "True when the account is the gateway's own main account",
-            "example": false
-          },
-          "paymentGatewayConfig": {
-            "$ref": "#/components/schemas/PayoutChannelGatewayDto"
-          },
-          "bankAccount": {
-            "$ref": "#/components/schemas/PayoutChannelBankDto"
-          }
-        },
-        "required": [
-          "id",
-          "gatewayAccountId",
-          "isMainAccount",
-          "paymentGatewayConfig",
-          "bankAccount"
         ]
       },
       "PayoutChannelDto": {
@@ -47540,8 +47988,15 @@
             ],
             "nullable": true
           },
-          "payoutAccount": {
-            "$ref": "#/components/schemas/PayoutChannelAccountDto"
+          "bankAccount": {
+            "$ref": "#/components/schemas/PayoutChannelBankDto"
+          },
+          "payoutAccountIds": {
+            "description": "The bank account's payout accounts switched on for this scope",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "createdAt": {
             "type": "string",
@@ -47555,7 +48010,8 @@
         "required": [
           "id",
           "legalEntityId",
-          "payoutAccount",
+          "bankAccount",
+          "payoutAccountIds",
           "createdAt",
           "updatedAt"
         ]
@@ -47563,9 +48019,9 @@
       "CreatePayoutChannelDto": {
         "type": "object",
         "properties": {
-          "payoutAccountId": {
+          "bankAccountId": {
             "type": "string",
-            "description": "The payout account this scope pays out to",
+            "description": "The bank account this scope pays out to; its legal entity is the scope",
             "example": "uuid-here"
           },
           "siteId": {
@@ -47590,20 +48046,33 @@
           }
         },
         "required": [
-          "payoutAccountId"
+          "bankAccountId"
         ]
       },
       "UpdatePayoutChannelDto": {
         "type": "object",
         "properties": {
-          "payoutAccountId": {
+          "bankAccountId": {
             "type": "string",
-            "description": "The payout account this scope pays out to",
+            "description": "The bank account this scope pays out to; its legal entity is the scope",
             "example": "uuid-here"
           }
         },
         "required": [
-          "payoutAccountId"
+          "bankAccountId"
+        ]
+      },
+      "SwitchPayoutChannelAccountDto": {
+        "type": "object",
+        "properties": {
+          "switchedOn": {
+            "type": "boolean",
+            "description": "True to take payments through this payout account for the scope",
+            "example": true
+          }
+        },
+        "required": [
+          "switchedOn"
         ]
       },
       "ReceiveCatalogInternalDto": {
@@ -50053,7 +50522,7 @@
         "properties": {
           "partyId": {
             "type": "string",
-            "description": "The party this basket is for — every basket belongs to one."
+            "description": "The party this cart is for — every cart belongs to one."
           }
         },
         "required": [
@@ -50065,7 +50534,7 @@
         "properties": {
           "partyId": {
             "type": "string",
-            "description": "The party whose basket this is — the response is their whole list"
+            "description": "The party whose cart this is — the response is their whole list"
           },
           "offeringVariantId": {
             "type": "string",

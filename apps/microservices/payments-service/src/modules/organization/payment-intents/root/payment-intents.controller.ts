@@ -9,6 +9,7 @@ import {
   ExecuteTransfersDto,
   ExpireStaleIntentsDto,
   PaymentIntentRefDto,
+  RefundPaymentIntentDto,
 } from '@/modules/payment-lifecycle/dto/payment-intent-requests.dto';
 import {
   type IntentWithEvents,
@@ -33,6 +34,12 @@ export class PaymentIntentsController {
   async confirm(@Payload() dto: ConfirmPaymentIntentDto): Promise<IntentWithEvents> {
     this.logger.log(`intents.confirm — ${dto.paymentIntentId}`);
     return this.lifecycle.confirm(dto);
+  }
+
+  @MessagePattern({ cmd: 'payments.intents.refund' })
+  async refund(@Payload() dto: RefundPaymentIntentDto): Promise<{ providerRefundId: string; status: string }> {
+    this.logger.log(`intents.refund — ${dto.paymentIntentId}`);
+    return this.lifecycle.refund(dto);
   }
 
   @MessagePattern({ cmd: 'payments.intents.get' })

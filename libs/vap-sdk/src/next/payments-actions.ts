@@ -1,7 +1,7 @@
 'use server';
 
 import {
-  type CheckoutPaymentGateway,
+  type Checkout,
   checkoutRetryUrl,
   type GatewayResponse,
   type PaymentCheckout,
@@ -15,13 +15,19 @@ import { resolvePayload } from './payload-adapter.js';
 import { formField, type PartyActionState, returnToFrom, withPartyErrors } from './state.js';
 import { vapSdk } from './visitor-session.js';
 
-// Paying for a basket, as server actions a storefront imports directly.
+// Paying for a cart, as server actions a storefront imports directly.
 
 export type CheckoutActionState = PartyActionState & {
   paymentIntentId?: string;
-  orderNumber?: string;
+  // The checkout opened by `startCartCheckoutAction`; its orders are made once the payment lands
+  checkoutId?: string;
   checkout?: PaymentCheckout | null;
   idempotencyKey?: string;
+};
+
+export type CheckoutStatusActionState = {
+  error?: string;
+  checkout?: Checkout;
 };
 
 export type ConfirmPaymentActionState = {
@@ -41,65 +47,86 @@ export type CancelPaymentActionState = PartyActionState & {
 
 const MAX_KEY_LENGTH = 100;
 
-// Checks out the signed-in party's basket.
-export async function startCheckoutAction(
+// One checkout attempt as the form describes it: its key, the shopper's choices, and where core sends them back to
+type CheckoutAttemptInput = {
+  idempotencyKey: string;
+  siteId?: string;
+  gatewayCode?: string;
+  addressId?: string;
+  notes?: string;
+  returnUrl?: string;
+  checkoutUrl?: string;
+};
+
+// Reads the attempt both checkout actions take from the form. The key comes from the page's hidden field, else the
+// previous answer, else is minted here — so pressing Pay again stays on this attempt
+async function readAttempt(
+  previous: CheckoutActionState,
+  formData: FormData,
+  returnTo: string,
+): Promise<CheckoutAttemptInput> {
+  const idempotencyKey =
+    formField(formData, 'idempotencyKey') || previous?.idempotencyKey || globalThis.crypto.randomUUID();
+
+  const origin = await requestOrigin();
+  const returnPath = localPath(formField(formData, 'returnPath')) ?? '/checkout/return';
+  const checkoutPath = localPath(formField(formData, 'checkoutPath')) ?? localPath(returnTo) ?? '/checkout';
+
+  return {
+    idempotencyKey,
+    // The store being checked out, when the page names one
+    siteId: formField(formData, 'siteId') || undefined,
+    // The gateway the shopper picked on the payment page; left out, the only one on offer is used
+    gatewayCode: formField(formData, 'gatewayCode') || undefined,
+    addressId: formField(formData, 'addressId') || undefined,
+    notes: formField(formData, 'notes') || undefined,
+    returnUrl: origin ? `${origin}${returnPath}` : undefined,
+    checkoutUrl: origin ? checkoutRetryUrl(`${origin}${checkoutPath}`, { idempotencyKey }) : undefined,
+  };
+}
+
+const KEY_TOO_LONG: CheckoutActionState = {
+  error: 'This checkout could not be started. Reload the page and try again.',
+};
+
+// Pays for the signed-in party's cart as one payment — every store it holds lines at, or the one the form's `siteId`
+// names. The cart is frozen into a checkout and one order per store is made once the payment lands; the return page
+// reads the checkout, by `checkoutId`, for the orders.
+export async function startCartCheckoutAction(
   previous: CheckoutActionState,
   formData: FormData,
 ): Promise<CheckoutActionState> {
   const returnTo = returnToFrom(formData);
   const party = await requireParty(returnTo);
 
-  const idempotencyKey =
-    formField(formData, 'idempotencyKey') || previous?.idempotencyKey || globalThis.crypto.randomUUID();
-  if (idempotencyKey.length > MAX_KEY_LENGTH) {
-    return { error: 'This checkout could not be started. Reload the page and try again.' };
-  }
-
-  // The gateway the shopper picked on the payment page; left out, the store's only gateway is used
-  const paymentGatewayConfigId = formField(formData, 'paymentGatewayConfigId') || undefined;
-  const addressId = formField(formData, 'addressId') || undefined;
-  const notes = formField(formData, 'notes') || undefined;
-
-  const origin = await requestOrigin();
-  const returnPath = localPath(formField(formData, 'returnPath')) ?? '/checkout/return';
-  const checkoutPath = localPath(formField(formData, 'checkoutPath')) ?? localPath(returnTo) ?? '/checkout';
-  const returnUrl = origin ? `${origin}${returnPath}` : undefined;
-  const checkoutUrl = origin ? checkoutRetryUrl(`${origin}${checkoutPath}`, { idempotencyKey }) : undefined;
+  const attempt = await readAttempt(previous, formData, returnTo);
+  if (attempt.idempotencyKey.length > MAX_KEY_LENGTH) return KEY_TOO_LONG;
 
   const payload = await resolvePayload();
   const state = await withPartyErrors<CheckoutActionState>(payload, async () => {
-    const session = await (await vapSdk(payload, { partyId: party.partyId })).checkout.startFromCart({
-      paymentGatewayConfigId,
-      addressId,
-      notes,
-      idempotencyKey,
-      returnUrl,
-      checkoutUrl,
-    });
+    const checkout = await (await vapSdk(payload, { partyId: party.partyId })).checkout.start(attempt);
+    // Core opens the payment as it answers; a checkout without one is a checkout that cannot be paid
+    if (!checkout.paymentIntent) {
+      return { error: 'The payment could not be opened. Try again in a moment.' };
+    }
     return {
       ok: true,
-      paymentIntentId: session.paymentIntent.id,
-      orderNumber: session.order.orderNumber,
-      checkout: session.paymentIntent.checkout,
+      checkoutId: checkout.id,
+      paymentIntentId: checkout.paymentIntent.id,
+      checkout: checkout.paymentIntent.checkout,
     };
   });
-  // The key travels with every answer, failures included, so pressing Pay again stays on this attempt
-  return { ...state, idempotencyKey };
+  return { ...state, idempotencyKey: attempt.idempotencyKey };
 }
 
-export type CheckoutGatewaysActionState = {
-  error?: string;
-  gateways?: CheckoutPaymentGateway[];
-};
+// One read of a checkout — its payment and the orders it became — for a return page.
+export async function getCheckoutAction(checkoutId: string): Promise<CheckoutStatusActionState> {
+  if (!isId(checkoutId)) return { error: 'No such checkout.' };
 
-// The gateways the payment page can offer the signed-in party — render a choice when there is more than one.
-export async function listCheckoutGatewaysAction(): Promise<CheckoutGatewaysActionState> {
   const party = await getCurrentParty();
   const payload = await resolvePayload();
-  return withPartyErrors<CheckoutGatewaysActionState>(payload, async () => ({
-    gateways: await (
-      await vapSdk(payload, party?.partyId ? { partyId: party.partyId } : {})
-    ).checkout.paymentGateways(),
+  return withPartyErrors<CheckoutStatusActionState>(payload, async () => ({
+    checkout: await (await vapSdk(payload, party?.partyId ? { partyId: party.partyId } : {})).checkout.find(checkoutId),
   }));
 }
 
@@ -135,7 +162,7 @@ export async function confirmPaymentAction(input: {
     };
   });
 
-  // The basket was emptied into the order, and the header's count renders on every page.
+  // The cart was emptied into the order, and the header's count renders on every page.
   if (result.status === 'SUCCEEDED' || result.status === 'PROCESSING') revalidatePath('/', 'layout');
   return result;
 }

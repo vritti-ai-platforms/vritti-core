@@ -1,5 +1,6 @@
 import { AppDomainModule } from '@domain/app/app.module';
 import { LegalEntityDomainModule } from '@domain/legal-entity/legal-entity.module';
+import { PayoutChannelDomainModule } from '@domain/payout-channel/payout-channel.module';
 import { SiteDomainModule } from '@domain/site/site.module';
 import { Module } from '@nestjs/common';
 import { LeAttributeTemplatesGatewayService } from './le-api/attribute-templates/services/attribute-templates-gateway.service';
@@ -110,7 +111,7 @@ const services = [
 
 // Every commerce gateway service, and nothing else
 @Module({
-  imports: [SiteDomainModule, LegalEntityDomainModule, AppDomainModule],
+  imports: [SiteDomainModule, LegalEntityDomainModule, AppDomainModule, PayoutChannelDomainModule],
   providers: services,
   exports: services,
 })

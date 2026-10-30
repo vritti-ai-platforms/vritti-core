@@ -8,6 +8,7 @@ export * from './catalog-listing-prices';
 export * from './catalog-listings';
 export * from './catalogs';
 export * from './categories';
+export * from './checkouts';
 export * from './commerce-schema';
 export * from './cost-categories';
 export * from './credit-notes';

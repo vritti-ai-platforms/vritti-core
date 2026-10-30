@@ -29,10 +29,10 @@ export const payoutAccounts = coreSchema.table(
     legalEntityId: uuid('legal_entity_id')
       .notNull()
       .references(() => legalEntities.id, { onDelete: 'restrict' }),
-    paymentGatewayConfigId: uuid('payment_gateway_config_id')
-      .notNull()
-      .references(() => paymentGatewayConfigs.id, { onDelete: 'restrict' }),
+    paymentGatewayConfigId: uuid('payment_gateway_config_id').notNull(),
     bankAccountId: uuid('bank_account_id').notNull(),
+    // The config's gateway code, kept equal to it by a composite key, so a bank account holds one per gateway
+    gatewayCode: varchar('gateway_code', { length: 100 }).notNull(),
     // The receiving account's id at the gateway (a Razorpay acc_…), as the merchant entered it
     gatewayAccountId: varchar('gateway_account_id', { length: 100 }).notNull(),
     // Set by core: true when gatewayAccountId is the gateway config's own main account, so the share stays there and
@@ -51,8 +51,18 @@ export const payoutAccounts = coreSchema.table(
       columns: [table.bankAccountId, table.legalEntityId],
       foreignColumns: [bankAccounts.id, bankAccounts.legalEntityId],
     }).onDelete('restrict'),
+    // The config, and its gateway code with it, so the copy can never drift from the config
+    foreignKey({
+      name: 'payout_accounts_config_gateway_fkey',
+      columns: [table.paymentGatewayConfigId, table.gatewayCode],
+      foreignColumns: [paymentGatewayConfigs.id, paymentGatewayConfigs.gatewayCode],
+    }).onDelete('restrict'),
+    // A bank account pays out through each gateway once, Vritti's or the organization's own
+    unique('uq_payout_accounts_bank_gateway').on(table.bankAccountId, table.gatewayCode),
     // Lets payout channels require, through one composite key, that their payout account is the same legal entity's
     unique('uq_payout_accounts_id_le').on(table.id, table.legalEntityId),
+    // Lets a payout channel's accounts require, through one composite key, that they belong to the channel's bank account
+    unique('uq_payout_accounts_id_bank').on(table.id, table.bankAccountId),
     // A gateway account is one payout account; this also keeps a gateway's main account to one legal entity
     unique('uq_payout_accounts_config_account').on(table.paymentGatewayConfigId, table.gatewayAccountId),
     index('idx_payout_accounts_le').on(table.legalEntityId),

@@ -6,7 +6,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.0.6-alpha.13",
+  "version": "0.0.6-alpha.15",
   "sideEffects": false,
   "repository": {
     "type": "git",
@@ -50,6 +50,26 @@
     "./payload/client": {
       "types": "./dist/payload/client/index.d.ts",
       "default": "./dist/payload/client/index.js"
+    },
+    "./checkout": {
+      "types": "./dist/checkout/index.d.ts",
+      "default": "./dist/checkout/index.js"
+    },
+    "./razorpay": {
+      "types": "./dist/checkout/razorpay.d.ts",
+      "default": "./dist/checkout/razorpay.js"
+    },
+    "./hdfc": {
+      "types": "./dist/checkout/hdfc.d.ts",
+      "default": "./dist/checkout/hdfc.js"
+    },
+    "./cashfree": {
+      "types": "./dist/checkout/cashfree.d.ts",
+      "default": "./dist/checkout/cashfree.js"
+    },
+    "./easebuzz": {
+      "types": "./dist/checkout/easebuzz.d.ts",
+      "default": "./dist/checkout/easebuzz.js"
     },
     "./next/auth": {
       "types": "./dist/next/auth.d.ts",
@@ -149,6 +169,12 @@
       "js",
       "json"
     ],
+    "moduleNameMapper": {
+      "^@vritti/vap-sdk$": "<rootDir>/core/index.ts",
+      "^@vritti/vap-sdk/(checkout)$": "<rootDir>/checkout/index.ts",
+      "^@vritti/vap-sdk/(razorpay|hdfc|cashfree|easebuzz)$": "<rootDir>/checkout/$1.ts",
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
     "transform": {
       "^.+\\.(t|j)s$": [
         "@swc/jest"

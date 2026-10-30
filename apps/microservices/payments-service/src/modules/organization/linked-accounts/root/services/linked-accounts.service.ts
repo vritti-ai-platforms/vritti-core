@@ -1,7 +1,12 @@
 import type { CreateLinkedAccountDto } from '@domain/gateways/dto/request/create-linked-account.dto';
 import type { FetchLinkedAccountStatusDto } from '@domain/gateways/dto/request/fetch-linked-account-status.dto';
+import type { LookupLinkedAccountDto } from '@domain/gateways/dto/request/lookup-linked-account.dto';
 import { GatewayRegistry } from '@domain/gateways/gateway-registry';
-import type { CreateLinkedAccountResult, LinkedAccountStatusResult } from '@domain/gateways/gateway-transport';
+import type {
+  CreateLinkedAccountResult,
+  LinkedAccountLookup,
+  LinkedAccountStatusResult,
+} from '@domain/gateways/gateway-transport';
 import { Injectable, Logger } from '@nestjs/common';
 
 // Onboards a linked account at the vendor for split payments. Core owns the linked-account record and
@@ -27,5 +32,16 @@ export class LinkedAccountsService {
       providerAccountId: dto.providerAccountId,
       providerData: dto.providerData,
     });
+  }
+
+  // Looks an existing linked account up at the gateway under the config's keys
+  async lookup(dto: LookupLinkedAccountDto): Promise<LinkedAccountLookup | null> {
+    const account = await this.registry
+      .resolveSplit(dto.gatewayCode)
+      .fetchLinkedAccount(dto.credentials, dto.providerAccountId);
+    this.logger.log(
+      `Looked up ${dto.gatewayCode} linked account ${dto.providerAccountId}: ${account?.status ?? 'missing'}`,
+    );
+    return account;
   }
 }

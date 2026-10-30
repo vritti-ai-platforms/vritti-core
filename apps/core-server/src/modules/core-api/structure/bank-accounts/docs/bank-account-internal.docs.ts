@@ -79,7 +79,7 @@ export function ApiUpdateBankAccountInternal() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update bank account',
-      description: 'Updates the label, holder, number, IFSC, bank or branch of a bank account.',
+      description: 'Updates the holder, number, IFSC, bank or branch of a bank account.',
     }),
     ...SIGNATURE_HEADERS,
     ApiParam(ID),

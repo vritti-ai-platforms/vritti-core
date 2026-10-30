@@ -683,7 +683,7 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       );
   }
 
-  // Prices variants the caller already holds — a basket or wishlist reconciling stored rows
+  // Prices variants the caller already holds — a cart or wishlist reconciling stored rows
   async findListingsByCodes(
     channel: StorefrontChannel,
     codes: string[],

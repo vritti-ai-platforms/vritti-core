@@ -2,13 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsInt, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-validator';
 
 export class PeopleCartWriteDto {
-  @ApiProperty({ description: 'The storefront app credential whose basket this is' })
+  @ApiProperty({ description: 'The storefront app credential whose cart this is' })
   @IsUUID('7')
   appId: string;
 }
 
 export class AddPersonCartItemDto extends PeopleCartWriteDto {
-  @ApiProperty({ description: 'Which of their baskets to add to — one per outlet they shop at' })
+  @ApiProperty({ description: 'Which of their carts to add to — one per outlet they shop at' })
   @IsUUID('7')
   cartId: string;
 
@@ -32,7 +32,7 @@ export class UpdatePersonCartItemDto extends PeopleCartWriteDto {
 }
 
 export class RemovePersonCartItemQueryDto {
-  @ApiProperty({ description: 'The storefront app credential whose basket this is' })
+  @ApiProperty({ description: 'The storefront app credential whose cart this is' })
   @IsUUID('7')
   appId: string;
 }

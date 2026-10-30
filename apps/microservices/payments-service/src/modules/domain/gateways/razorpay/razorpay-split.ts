@@ -8,6 +8,7 @@ import type {
   CreateTransferResult,
   FetchLinkedAccountStatusInput,
   GatewaySplitCapability,
+  LinkedAccountLookup,
   LinkedAccountSetupError,
   LinkedAccountStatus,
   LinkedAccountStatusResult,
@@ -18,6 +19,7 @@ import type {
 import { toMinorUnitsNumber } from './razorpay-amount';
 
 const ROUTE_PRODUCT_NAME = 'route';
+const LINKED_ACCOUNT_MISSING_REASONS = ['linked_account_id_does_not_exist'] as const;
 const ROUTE_ACCOUNT_TYPE = 'route';
 const PAYMENT_ID_PREFIX = 'pay_';
 
@@ -251,6 +253,20 @@ export class RazorpaySplit implements GatewaySplitCapability {
         .map((requirement) => requirement.field_reference)
         .filter((reference): reference is string => typeof reference === 'string' && reference.length > 0),
     };
+  }
+
+  // Looks a Route linked account up under the parent's keys; Razorpay answers another merchant's as missing too
+  async fetchLinkedAccount(
+    credentials: Record<string, string>,
+    providerAccountId: string,
+  ): Promise<LinkedAccountLookup | null> {
+    const account = await this.http.find<{ id: string; status?: string }>(
+      this.resolveAuth(credentials),
+      `/accounts/${encodeURIComponent(providerAccountId)}`,
+      { version: 'v2', missingReasons: LINKED_ACCOUNT_MISSING_REASONS },
+    );
+    if (!account) return null;
+    return { status: account.status === 'suspended' ? 'SUSPENDED' : 'ACTIVE' };
   }
 
   // Splits a captured payment across linked accounts; Razorpay answers with one transfer per entry, in order

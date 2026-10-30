@@ -11,22 +11,22 @@ export class LeCartsController {
 
   constructor(private readonly service: CartsDomainService) {}
 
-  // Returns paginated baskets open at this workspace, for the data table
+  // Returns paginated carts open at this workspace, for the data table
   @MessagePattern({ cmd: 'le.carts.table' })
   table(@Payload() state: TableViewState): Promise<{ result: CartDetailDto[]; count: number }> {
     this.logger.log('le.carts.table');
     return this.service.findForTable(state);
   }
 
-  // Returns a single basket by ID
+  // Returns a single cart by ID
   @MessagePattern({ cmd: 'le.carts.findById' })
   findById(@Payload() data: { id: string }): Promise<CartDetailDto> {
     this.logger.log(`le.carts.findById — id: ${data.id}`);
     return this.service.findById(data.id);
   }
 
-  // Returns one basket's lines, priced by the caller's catalogue Returns paginated, filtered and sorted items of one
-  // basket for the data table
+  // Returns one cart's lines, priced by the caller's catalogue Returns paginated, filtered and sorted items of one
+  // cart for the data table
   @MessagePattern({ cmd: 'le.carts.items.table' })
   itemsTable(
     @Payload()
@@ -43,21 +43,21 @@ export class LeCartsController {
     return this.service.findItemsById(data.id, data.currencyCode, data.appId);
   }
 
-  // Opens a basket for a shopper, or hands back the one they already have here
+  // Opens a cart for a shopper, or hands back the one they already have here
   @MessagePattern({ cmd: 'le.carts.create' })
   create(@Payload() data: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
     this.logger.log(`le.carts.create — party: ${data.partyId}`);
     return this.service.create(data);
   }
 
-  // Closes a basket outright — the lines go with it
+  // Closes a cart outright — the lines go with it
   @MessagePattern({ cmd: 'le.carts.delete' })
   deleteCart(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.carts.delete — id: ${data.id}`);
     return this.service.delete(data.id);
   }
 
-  // Staff add a product to a named basket
+  // Staff add a product to a named cart
   @MessagePattern({ cmd: 'le.carts.items.addForCart' })
   addItemForCart(
     @Payload()

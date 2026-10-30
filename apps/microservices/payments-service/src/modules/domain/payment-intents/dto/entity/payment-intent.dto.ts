@@ -3,7 +3,7 @@ import type { PaymentChannelType, PaymentIntent, PaymentIntentCustomer, PaymentI
 
 export class PaymentIntentDto {
   id: string;
-  legalEntityId: string;
+  legalEntityId: string | null;
   siteId: string | null;
   appId: string | null;
   partyId: string | null;
@@ -38,7 +38,7 @@ export class PaymentIntentDto {
   static from(entity: PaymentIntent): PaymentIntentDto {
     const dto = new PaymentIntentDto();
     dto.id = entity.id;
-    dto.legalEntityId = entity.legalEntityId;
+    dto.legalEntityId = entity.legalEntityId ?? null;
     dto.siteId = entity.siteId ?? null;
     dto.appId = entity.appId ?? null;
     dto.partyId = entity.partyId ?? null;

@@ -4,4 +4,5 @@ export { OptionalPartyId } from './optional-party-id.decorator';
 export { OrgId } from './org-id.decorator';
 export { OrgSubdomain } from './org-subdomain.decorator';
 export { PartyId } from './party-id.decorator';
+export { RequestOrigin } from './request-origin.decorator';
 export { SiteId } from './site-id.decorator';

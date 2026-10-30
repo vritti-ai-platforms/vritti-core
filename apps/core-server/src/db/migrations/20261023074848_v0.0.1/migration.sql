@@ -1,0 +1,2 @@
+ALTER TABLE "core"."payout_accounts" ADD COLUMN "gateway_code" varchar(100);--> statement-breakpoint
+ALTER TABLE "core"."payment_gateway_configs" ADD CONSTRAINT "uq_payment_gateway_configs_id_gateway" UNIQUE("id","gateway_code");

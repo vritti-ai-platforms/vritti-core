@@ -1,10 +1,13 @@
 import { allowedOriginOf, effectiveOrigins } from '@domain/app/allowed-origins';
 import { AppDomainService } from '@domain/app/services/app.service';
+import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { FastifyRequest } from 'fastify';
 import type { App } from '@/db/schema';
+import { GATEWAY_WEBHOOK_CHECK_REFERENCE_TYPE } from '../../events/services/webhook-check-payment-handler.service';
+import { PaymentGatewaysGatewayService } from '../../gateways/services/payment-gateways-gateway.service';
 import type { PaymentIntentResponseDto } from '../../intents/dto/response/payment-intent-response.dto';
 import { PaymentIntentsGatewayService } from '../../intents/services/payment-intents-gateway.service';
 
@@ -34,6 +37,19 @@ interface GatewayFailure {
 const MESSAGE_MAX_LENGTH = 200;
 
 const SUCCESS_PAGE = page('Payment received', 'Your payment was received. You can close this window.');
+// The tab a verification payment ran in; the dialog in Vritti Cloud follows the outcome on its own
+const WEBHOOK_CHECK_PAID_PAGE = page(
+  'Payment received',
+  'The verification payment went through and is being refunded. Go back to Vritti Cloud — the dialog there shows when the webhook is verified. You can close this tab.',
+);
+const WEBHOOK_CHECK_FAILED_PAGE = page(
+  'Payment not completed',
+  'The verification payment did not go through. Go back to Vritti Cloud to try again. You can close this tab.',
+);
+const WEBHOOK_CHECK_CANCELLED_PAGE = page(
+  'Payment cancelled',
+  'The verification payment was cancelled and nothing was charged. Go back to Vritti Cloud to try again. You can close this tab.',
+);
 const FAILURE_PAGE = page(
   'Payment not completed',
   'The payment did not go through. Return to the store and try again.',
@@ -48,9 +64,13 @@ export class CheckoutCallbackService {
     private readonly nats: NatsClientService,
     private readonly appService: AppDomainService,
     private readonly intents: PaymentIntentsGatewayService,
+    private readonly gateways: PaymentGatewaysGatewayService,
+    private readonly configService: PaymentGatewayConfigDomainService,
   ) {}
 
-  // Handles the gateway's form post: confirms a success and returns the shopper to the store, or back to checkout
+  // Handles the gateway's form post: confirms a success and returns the shopper to the store, or back to checkout. A
+  // gateway that posts its result whatever it is (Easebuzz) is confirmed either way: the payment is read back from the
+  // gateway, and what it says decides where the browser goes
   async handleCallback(
     request: FastifyRequest,
     orgId: string,
@@ -58,23 +78,31 @@ export class CheckoutCallbackService {
     body: unknown,
   ): Promise<CheckoutCallbackOutcome> {
     const fields = formFields(body);
-    const success = parseSuccess(fields);
+    const readBack = parseReadBack(fields);
+    const success = parseSuccess(fields) ?? readBack;
     this.logger.log(
-      `[checkout-callback] POST ${success ? 'success' : 'failure'} — org=${orgId} intent=${paymentIntentId}` +
+      `[checkout-callback] POST ${readBack ? `read-back status=${fields.status ?? '-'}` : success ? 'success' : 'failure'} — org=${orgId} intent=${paymentIntentId}` +
         (success ? ` order=${success.orderId} payment=${success.paymentId}` : ''),
     );
 
     try {
       const context = await this.loadContext(request, orgId, paymentIntentId);
+      if (context && isWebhookCheck(context.intent)) {
+        const status = success ? await this.confirmWebhookCheckQuietly(orgId, context.intent, success) : null;
+        const paid = readBack ? status === 'SUCCEEDED' : Boolean(success);
+        return { kind: 'page', html: paid ? WEBHOOK_CHECK_PAID_PAGE : WEBHOOK_CHECK_FAILED_PAGE };
+      }
       if (success) {
-        if (context) await this.confirmQuietly(orgId, context.intent, success);
-        return this.redirectOr(SUCCESS_PAGE, orgId, context, context?.intent.returnUrl, {
-          intent: paymentIntentId,
-          order: context?.intent.metadata?.orderNumber,
-        });
+        const status = context ? await this.confirmQuietly(orgId, context.intent, success) : null;
+        if (!readBack || status === 'SUCCEEDED') {
+          return this.redirectOr(SUCCESS_PAGE, orgId, context, context?.intent.returnUrl, {
+            intent: paymentIntentId,
+            order: context?.intent.metadata?.orderNumber,
+          });
+        }
       }
 
-      const failure = parseFailure(fields);
+      const failure = readBack ? readBackFailure(fields) : parseFailure(fields);
       this.logger.log(
         `[checkout-callback] declined — intent=${paymentIntentId} code=${failure.code ?? '-'} reason=${failure.reason ?? '-'} ` +
           `source=${failure.source ?? '-'} step=${failure.step ?? '-'} gatewayOrder=${failure.providerOrderId ?? '-'} gatewayPayment=${failure.providerPaymentId ?? '-'}`,
@@ -86,7 +114,7 @@ export class CheckoutCallbackService {
     } catch (error: unknown) {
       // The browser is mid-checkout: whatever broke here, it gets a page rather than a 500
       this.logger.error(`[checkout-callback] intent=${paymentIntentId} failed: ${errorMessage(error)}`);
-      return { kind: 'page', html: success ? SUCCESS_PAGE : FAILURE_PAGE };
+      return { kind: 'page', html: success && !readBack ? SUCCESS_PAGE : FAILURE_PAGE };
     }
   }
 
@@ -99,6 +127,10 @@ export class CheckoutCallbackService {
     this.logger.log(`[checkout-callback] GET cancel — org=${orgId} intent=${paymentIntentId}`);
     try {
       const context = await this.loadContext(request, orgId, paymentIntentId);
+      if (context && isWebhookCheck(context.intent)) {
+        await this.cancelWebhookCheckQuietly(context.intent);
+        return { kind: 'page', html: WEBHOOK_CHECK_CANCELLED_PAGE };
+      }
       return this.redirectOr(FAILURE_PAGE, orgId, context, context?.intent.checkoutUrl, { payment: 'cancelled' });
     } catch (error: unknown) {
       this.logger.error(`[checkout-callback] cancel intent=${paymentIntentId} failed: ${errorMessage(error)}`);
@@ -116,6 +148,12 @@ export class CheckoutCallbackService {
     try {
       const context = await this.loadContext(request, orgId, paymentIntentId);
       const fallback = context?.intent.status === 'SUCCEEDED' ? SUCCESS_PAGE : FAILURE_PAGE;
+      if (context && isWebhookCheck(context.intent)) {
+        return {
+          kind: 'page',
+          html: context.intent.status === 'SUCCEEDED' ? WEBHOOK_CHECK_PAID_PAGE : WEBHOOK_CHECK_FAILED_PAGE,
+        };
+      }
       const target = context?.intent.checkoutUrl ?? context?.intent.returnUrl;
       return this.redirectOr(fallback, orgId, context, target, {});
     } catch (error: unknown) {
@@ -156,10 +194,10 @@ export class CheckoutCallbackService {
     orgId: string,
     intent: PaymentIntentResponseDto,
     success: GatewaySuccess,
-  ): Promise<void> {
+  ): Promise<string | null> {
     if (!intent.appId) {
       this.logger.warn(`[checkout-callback] intent=${intent.id} has no app — not confirming`);
-      return;
+      return null;
     }
     try {
       const confirmed = await this.db.runWithRlsContext({ orgId }, () =>
@@ -169,8 +207,41 @@ export class CheckoutCallbackService {
         ),
       );
       this.logger.log(`[checkout-callback] confirmed intent=${intent.id} status=${confirmed.status}`);
+      return confirmed.status;
     } catch (error: unknown) {
       this.logger.warn(`[checkout-callback] confirm of intent=${intent.id} failed: ${errorMessage(error)}`);
+      return null;
+    }
+  }
+
+  // Settles a verification payment through its gateway config, which refunds it; the webhook it triggered is what
+  // verifies the config. Never fails the redirect
+  private async confirmWebhookCheckQuietly(
+    orgId: string,
+    intent: PaymentIntentResponseDto,
+    success: GatewaySuccess,
+  ): Promise<string | null> {
+    try {
+      const status = await this.db.runWithRlsContext({ orgId }, async () => {
+        const config = await this.configService.requireWritable('organization', intent.reference.id);
+        return this.gateways.confirmWebhookCheck(orgId, config, { paymentIntentId: intent.id, ...success });
+      });
+      this.logger.log(`[checkout-callback] webhook check intent=${intent.id} confirmed status=${status.status}`);
+      return status.status;
+    } catch (error: unknown) {
+      this.logger.warn(`[checkout-callback] webhook check intent=${intent.id} not confirmed: ${errorMessage(error)}`);
+      return null;
+    }
+  }
+
+  // Marks a verification payment the admin abandoned on the gateway's page as cancelled, so the waiting dialog in
+  // Vritti Cloud can say so. Never fails the page
+  private async cancelWebhookCheckQuietly(intent: PaymentIntentResponseDto): Promise<void> {
+    try {
+      await this.nats.send('payments', 'payments.intents.cancel', { paymentIntentId: intent.id });
+      this.logger.log(`[checkout-callback] webhook check intent=${intent.id} cancelled`);
+    } catch (error: unknown) {
+      this.logger.warn(`[checkout-callback] webhook check intent=${intent.id} not cancelled: ${errorMessage(error)}`);
     }
   }
 
@@ -229,6 +300,26 @@ function parseSuccess(fields: Record<string, string>): GatewaySuccess | null {
   return { orderId, paymentId, signature };
 }
 
+// A gateway that posts its result to the order's return URL whatever it is (Easebuzz: txnid and easepayid, with the
+// status and a hash). Nothing in it is trusted: it only names the payment to read back from the gateway
+function parseReadBack(fields: Record<string, string>): GatewaySuccess | null {
+  const orderId = fields.txnid?.trim();
+  const paymentId = fields.easepayid?.trim();
+  if (!orderId || !paymentId) return null;
+  return { orderId, paymentId, signature: fields.hash?.trim() || 'read-back' };
+}
+
+// Why a read-back gateway's payment did not go through, as it posted it
+function readBackFailure(fields: Record<string, string>): GatewayFailure {
+  const message = fields.error_Message?.trim() || fields.error?.trim();
+  return {
+    code: fields.status,
+    description: message && message !== 'NA' ? message : undefined,
+    providerOrderId: fields.txnid,
+    providerPaymentId: fields.easepayid,
+  };
+}
+
 // The gateway's failure fields; metadata is a JSON string naming the gateway's order and payment
 function parseFailure(fields: Record<string, string>): GatewayFailure {
   const failure: GatewayFailure = {
@@ -273,4 +364,9 @@ function page(title: string, message: string): string {
     '<body style="font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem;text-align:center">' +
     `<p>${message}</p></body></html>`
   );
+}
+
+// A verification payment — the ₹10 that proves a gateway config's webhook — rather than a storefront's
+function isWebhookCheck(intent: PaymentIntentResponseDto): boolean {
+  return intent.reference.type === GATEWAY_WEBHOOK_CHECK_REFERENCE_TYPE;
 }

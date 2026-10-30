@@ -29,7 +29,7 @@
     "db:studio": "infisical run --path=/payments-service -- drizzle-kit studio",
     "db:studio:dev": "infisical run --env=dev-local --path=/payments-service -- drizzle-kit studio",
     "db:studio:apw1": "infisical run --env=apw1-local --path=/payments-service -- drizzle-kit studio",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "@nats-io/transport-node": "^3.4.0",

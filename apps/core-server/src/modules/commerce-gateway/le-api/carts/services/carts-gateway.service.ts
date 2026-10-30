@@ -57,7 +57,7 @@ export class LeCartsGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // Returns paginated, filtered, and sorted baskets for the data table
+  // Returns paginated, filtered, and sorted carts for the data table
   async findForTable(userId: string): Promise<CartTableResponse> {
     this.logger.log('le.carts.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-le-carts');
@@ -71,19 +71,19 @@ export class LeCartsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns a single basket by ID
+  // Returns a single cart by ID
   async findById(id: string): Promise<CartRow> {
     this.logger.log(`le.carts.findById — id: ${id}`);
     return this.nats.send('commerce', 'le.carts.findById', { id });
   }
 
-  // Returns a basket's lines, priced through this site's channel
+  // Returns a cart's lines, priced through this site's channel
   async findItems(id: string, currencyCode: string): Promise<CartLinesResponse> {
     this.logger.log(`le.carts.findItemsById — id: ${id}`);
     return this.nats.send('commerce', 'le.carts.findItemsById', { id, currencyCode, appId: null });
   }
 
-  // Returns paginated, filtered and sorted items of one basket for the data table
+  // Returns paginated, filtered and sorted items of one cart for the data table
   async findItemsForTable(cartId: string, userId: string, currencyCode: string): Promise<CartItemsTableResponse> {
     this.logger.log(`le.carts.items.table — cart: ${cartId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
@@ -100,13 +100,13 @@ export class LeCartsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Opens a basket for a party, or hands back the one they already have here
+  // Opens a cart for a party, or hands back the one they already have here
   async create(input: { partyId: string }): Promise<CreateResponseDto<CartRow>> {
     this.logger.log(`le.carts.create — party: ${input.partyId}`);
     return this.nats.send('commerce', 'le.carts.create', { partyId: input.partyId });
   }
 
-  // Closes a basket outright — the lines go with it
+  // Closes a cart outright — the lines go with it
   async delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`le.carts.delete — id: ${id}`);
     return this.nats.send('commerce', 'le.carts.delete', { id });

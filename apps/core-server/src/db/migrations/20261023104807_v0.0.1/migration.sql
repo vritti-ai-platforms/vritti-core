@@ -1,0 +1,1 @@
+ALTER TABLE "core"."bank_accounts" DROP COLUMN "label";

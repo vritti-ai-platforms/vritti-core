@@ -12,6 +12,7 @@ export {
   type CartItem,
   type CartOperations,
   type CartQuantity,
+  type CartSite,
   createCartOperations,
 } from './domains/cart.js';
 export {
@@ -27,13 +28,14 @@ export {
   type ListingSort,
 } from './domains/catalog-channels.js';
 export {
+  CHECKOUT_REFERENCE_TYPE,
+  type Checkout,
   type CheckoutOperations,
-  type CheckoutOrder,
-  type CheckoutPaymentChannel,
-  type CheckoutPaymentGateway,
-  type CheckoutSession,
+  type CheckoutStartInput,
+  type CheckoutStatus,
+  type CheckoutStoreOrder,
+  type CheckoutStoreShare,
   createCheckoutOperations,
-  type StartCheckoutInput,
 } from './domains/checkout.js';
 export {
   createOfferingsOperations,

@@ -1,5 +1,6 @@
 import { GatewayRegistry } from '@domain/gateways/gateway-registry';
 import type { NormalizedPayment, NormalizedWebhookEvent } from '@domain/gateways/gateway-transport';
+import { PaymentAllocationsDomainRepository } from '@domain/payment-allocations/repositories/payment-allocations.repository';
 import { PaymentAttemptsDomainRepository } from '@domain/payment-attempts/repositories/payment-attempts.repository';
 import { PaymentEventDto } from '@domain/payment-events/dto/entity/payment-event.dto';
 import { PaymentEventsDomainRepository } from '@domain/payment-events/repositories/payment-events.repository';
@@ -24,6 +25,7 @@ import type {
   ConfirmPaymentIntentDto,
   CreatePaymentIntentDto,
   ExecuteTransfersDto,
+  RefundPaymentIntentDto,
 } from '../dto/payment-intent-requests.dto';
 
 // How long a customer has to pay before an untouched intent expires
@@ -55,6 +57,15 @@ const ENDED_UNPAID = [
 const IDEMPOTENCY_KEY_CONSTRAINT = 'uq_payment_intents_org_idempotency_key';
 const PG_UNIQUE_VIOLATION = '23505';
 
+// The store's return page with the attempt in its query, spelled as the SDK's checkoutAttemptUrl reads it
+function attemptReturnUrl(intent: PaymentIntent): string {
+  const url = new URL(intent.returnUrl as string);
+  url.searchParams.set('intent', intent.id);
+  const orderNumber = intent.metadata?.orderNumber;
+  if (orderNumber) url.searchParams.set('order', orderNumber);
+  return url.toString();
+}
+
 export interface IntentWithEvents {
   intent: PaymentIntentDto;
   events: PaymentEventDto[];
@@ -76,6 +87,7 @@ export class PaymentLifecycleService {
     private readonly events: PaymentEventsDomainRepository,
     private readonly transfers: PaymentTransfersDomainRepository,
     private readonly transfersService: PaymentTransfersDomainService,
+    private readonly allocations: PaymentAllocationsDomainRepository,
   ) {}
 
   // Opens an intent and its gateway order. Idempotent per organization and key: a retry returns the intent already
@@ -110,6 +122,11 @@ export class PaymentLifecycleService {
       currency: intent.currency,
       receipt: intent.receipt,
       notes: { payment_intent_id: intent.id, reference: `${intent.referenceType}:${intent.referenceId}` },
+      paymentIntentId: intent.id,
+      ...(intent.returnUrl && { returnUrl: attemptReturnUrl(intent) }),
+      ...(dto.notifyUrl && { notifyUrl: dto.notifyUrl }),
+      ...(dto.checkoutCallbackBase && { callbackUrl: `${dto.checkoutCallbackBase}/${intent.id}/callback` }),
+      ...(dto.mainAccountId && { mainAccountId: dto.mainAccountId }),
       ...(dto.customer && { customer: dto.customer }),
       ...(legs.length > 0 && {
         transfers: legs.map((leg) => ({
@@ -144,6 +161,28 @@ export class PaymentLifecycleService {
   // Completes an intent from what the gateway's checkout handed the browser. Nothing the browser says is taken on
   // trust: the signature is checked with the merchant's secret, then the payment is read back from the gateway and
   // must belong to this intent's order for this intent's amount
+  // Refunds a succeeded payment in full through its gateway. Used for the verification payment that proves a
+  // gateway config's webhook; the gateway refuses a second refund of the same payment, so a repeat is harmless
+  async refund(dto: RefundPaymentIntentDto): Promise<{ providerRefundId: string; status: string }> {
+    const intent = await this.requireIntent(dto.paymentIntentId);
+    if (intent.status !== PaymentIntentStatusValues.SUCCEEDED || !intent.providerPaymentId) {
+      throw new BadRequestException({
+        label: 'Nothing To Refund',
+        detail: 'Only a payment that has succeeded can be refunded.',
+      });
+    }
+    const transport = this.registry.resolve(intent.gatewayCode);
+    if (!transport.refundPayment) {
+      throw new BadRequestException({
+        label: 'Refunds Not Supported',
+        detail: `Refunds through ${intent.gatewayCode} are not supported yet.`,
+      });
+    }
+    const result = await transport.refundPayment(dto.credentials, intent.providerPaymentId, intent.amount);
+    this.logger.log(`Refunded intent ${intent.id} (${intent.amount} ${intent.currency}) as ${result.providerRefundId}`);
+    return result;
+  }
+
   async confirm(dto: ConfirmPaymentIntentDto): Promise<IntentWithEvents> {
     const intent = await this.requireIntent(dto.paymentIntentId);
     if (intent.status === PaymentIntentStatusValues.SUCCEEDED) {
@@ -162,6 +201,15 @@ export class PaymentLifecycleService {
     }
 
     const transport = this.registry.resolve(intent.gatewayCode);
+    // A gateway that can be read back by order is never trusted on the browser's word: its payment is read from the
+    // gateway, and an order with nothing paid yet leaves the intent as it is
+    if (transport.fetchOrderPayment) {
+      const read = await transport.fetchOrderPayment(dto.credentials, intent.providerOrderId);
+      if (!read) return { intent: PaymentIntentDto.from(intent), events: [] };
+      assertPaymentMatches(intent, read, 'gatewayResponse.orderId');
+      return this.applyPayment(intent.id, read);
+    }
+
     const signed = transport.verifyCheckoutSignature(dto.credentials, {
       providerOrderId: orderId,
       providerPaymentId: paymentId,
@@ -370,7 +418,7 @@ export class PaymentLifecycleService {
     });
   }
 
-  // Inserts the intent and any split legs it carries, in one transaction
+  // Inserts the intent, any split legs it carries and every store's share of it, in one transaction
   private async openIntent(dto: CreatePaymentIntentDto, amount: bigint): Promise<PaymentIntent> {
     const legs = dto.transfers ?? [];
     const legTotal = legs.reduce((sum, leg) => sum + BigInt(leg.amount), 0n);
@@ -381,10 +429,11 @@ export class PaymentLifecycleService {
         errors: [{ field: 'transfers', message: 'Total exceeds the amount' }],
       });
     }
+    assertAllocations(dto, amount);
 
     return this.database.runInTransaction(async () => {
       const intent = await this.intents.create({
-        legalEntityId: dto.legalEntityId,
+        legalEntityId: dto.legalEntityId ?? null,
         siteId: dto.siteId ?? null,
         appId: dto.appId ?? null,
         partyId: dto.partyId ?? null,
@@ -404,10 +453,10 @@ export class PaymentLifecycleService {
         metadata: dto.metadata ?? null,
         returnUrl: dto.returnUrl ?? null,
         checkoutUrl: dto.checkoutUrl ?? null,
-        expiresAt: new Date(Date.now() + INTENT_TTL_MS),
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : new Date(Date.now() + INTENT_TTL_MS),
       });
 
-      await this.transfersService.createForIntent(
+      const created = await this.transfersService.createForIntent(
         legs.map((leg) => ({
           intentId: intent.id,
           linkedAccountId: leg.linkedAccountId,
@@ -416,6 +465,25 @@ export class PaymentLifecycleService {
           currency: dto.currency,
           onHold: leg.onHold ?? false,
           onHoldUntil: leg.onHoldUntil ? new Date(leg.onHoldUntil) : null,
+        })),
+      );
+
+      // A linked-account share names the leg paid to its payout account; a main-account share has none
+      const legByAccount = new Map(created.map((leg) => [leg.linkedAccountId, leg.id]));
+      await this.allocations.createMany(
+        (dto.allocations ?? []).map((share) => ({
+          intentId: intent.id,
+          legalEntityId: share.legalEntityId,
+          siteId: share.siteId ?? null,
+          payoutAccountId: share.payoutAccountId,
+          bankAccountId: share.bankAccountId,
+          gatewayAccountId: share.gatewayAccountId,
+          isMainAccount: share.isMainAccount,
+          grossAmount: BigInt(share.grossAmount),
+          platformFeeAmount: BigInt(share.platformFeeAmount),
+          netAmount: BigInt(share.netAmount),
+          currency: dto.currency,
+          transferId: share.isMainAccount ? null : (legByAccount.get(share.payoutAccountId) ?? null),
         })),
       );
       return intent;
@@ -541,4 +609,45 @@ function mismatch(detail: string, field: string): BadRequestException {
     detail,
     errors: [{ field, message: 'Does not match this payment' }],
   });
+}
+
+// The shares must account for the whole payment, each must add up on its own, and the linked-account shares must
+// be exactly what the legs carry — otherwise the record of whose money this was would disagree with what moved
+function assertAllocations(dto: CreatePaymentIntentDto, amount: bigint): void {
+  const shares = dto.allocations;
+  if (!shares || shares.length === 0) return;
+
+  const refuse = (detail: string, message: string): never => {
+    throw new BadRequestException({
+      label: 'Allocations Do Not Add Up',
+      detail,
+      errors: [{ field: 'allocations', message }],
+    });
+  };
+
+  let gross = 0n;
+  const netByAccount = new Map<string, bigint>();
+  for (const share of shares) {
+    const shareGross = BigInt(share.grossAmount);
+    if (BigInt(share.platformFeeAmount) + BigInt(share.netAmount) !== shareGross) {
+      refuse("A store's platform fee and payout do not add up to its share.", 'Fee + net must equal gross');
+    }
+    gross += shareGross;
+    if (!share.isMainAccount) {
+      netByAccount.set(
+        share.payoutAccountId,
+        (netByAccount.get(share.payoutAccountId) ?? 0n) + BigInt(share.netAmount),
+      );
+    }
+  }
+  if (gross !== amount) {
+    refuse("The stores' shares do not add up to the payment.", 'Shares must add up to the amount');
+  }
+
+  const legs = new Map((dto.transfers ?? []).map((leg) => [leg.linkedAccountId, BigInt(leg.amount)]));
+  const matches =
+    legs.size === netByAccount.size && [...netByAccount].every(([account, net]) => legs.get(account) === net);
+  if (!matches) {
+    refuse('The split transfers do not match the shares paid to linked accounts.', 'Legs must match shares');
+  }
 }

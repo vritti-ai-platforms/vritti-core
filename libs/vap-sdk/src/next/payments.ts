@@ -3,15 +3,15 @@
 export type {
   CancelPaymentActionState,
   CheckoutActionState,
-  CheckoutGatewaysActionState,
+  CheckoutStatusActionState,
   ConfirmPaymentActionState,
   PaymentIntentActionState,
 } from './payments-actions.js';
 export {
   cancelPaymentAction,
   confirmPaymentAction,
+  getCheckoutAction,
   getPaymentIntentAction,
-  listCheckoutGatewaysAction,
-  startCheckoutAction,
+  startCartCheckoutAction,
 } from './payments-actions.js';
 export type { PartyActionState } from './state.js';

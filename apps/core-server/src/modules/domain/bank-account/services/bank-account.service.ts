@@ -20,7 +20,6 @@ export class BankAccountDomainService {
     accountHolderName: { column: bankAccounts.accountHolderName, type: 'string' },
     bankName: { column: bankAccounts.bankName, type: 'string' },
     accountNumber: { column: bankAccounts.accountNumber, type: 'string' },
-    label: { column: bankAccounts.label, type: 'string' },
     legalEntityId: { column: bankAccounts.legalEntityId, type: 'string' },
     ifscCode: { column: bankAccounts.ifscCode, type: 'string' },
     createdAt: { column: bankAccounts.createdAt, type: 'string' },
@@ -67,7 +66,6 @@ export class BankAccountDomainService {
     const row = await this.bankAccountRepository.create({
       organizationId: orgId,
       legalEntityId: dto.legalEntityId,
-      label: dto.label ?? null,
       accountHolderName: dto.accountHolderName,
       accountNumber: dto.accountNumber,
       ifscCode: dto.ifscCode,
@@ -99,7 +97,6 @@ export class BankAccountDomainService {
     }
 
     const row = await this.bankAccountRepository.update(id, {
-      ...(dto.label !== undefined && { label: dto.label }),
       ...(dto.accountHolderName !== undefined && { accountHolderName: dto.accountHolderName }),
       ...(dto.accountNumber !== undefined && { accountNumber: dto.accountNumber }),
       ...(dto.ifscCode !== undefined && { ifscCode: dto.ifscCode }),
@@ -114,11 +111,15 @@ export class BankAccountDomainService {
   // Deletes a bank account nothing settles into; one a linked account still uses is a 409
   async delete(orgId: string, id: string, scope?: BankAccountScope): Promise<SuccessResponseDto> {
     const existing = await this.requireInScope(orgId, id, scope);
-    const { payoutAccounts } = await this.bankAccountRepository.countReferences(id);
-    if (payoutAccounts > 0) {
+    const { payoutAccounts, payoutChannels } = await this.bankAccountRepository.countReferences(id);
+    if (payoutAccounts > 0 || payoutChannels > 0) {
+      const uses = [
+        ...(payoutAccounts > 0 ? [pluralize('payout account', payoutAccounts, true)] : []),
+        ...(payoutChannels > 0 ? [pluralize('payout', payoutChannels, true)] : []),
+      ];
       throw new ConflictException({
         label: 'Bank Account In Use',
-        detail: `This bank account is used by ${pluralize('payout account', payoutAccounts, true)}. Change or remove them before deleting it.`,
+        detail: `This bank account is used by ${uses.join(' and ')}. Change or remove them before deleting it.`,
       });
     }
     await this.bankAccountRepository.delete(id);
@@ -153,9 +154,9 @@ export class BankAccountDomainService {
   }
 }
 
-// Shows the label when set, otherwise the masked account number
-function displayName(row: Pick<BankAccount, 'label' | 'accountNumber'>): string {
-  return row.label ?? maskAccountNumber(row.accountNumber);
+// Names an account by its bank and masked number
+function displayName(row: Pick<BankAccount, 'bankName' | 'accountNumber'>): string {
+  return `${row.bankName} ${maskAccountNumber(row.accountNumber)}`;
 }
 
 // Keeps only the last four characters of an account number

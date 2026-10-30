@@ -1,4 +1,5 @@
 import { Field, ID, InputType, registerEnumType } from '@nestjs/graphql';
+import { IsCode } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -28,6 +29,7 @@ const RETURN_URL_DESCRIPTION =
   "Where the hosted checkout sends the shopper once paid. Its origin must be one of the app's allowed origins.";
 const CHECKOUT_URL_DESCRIPTION =
   "Where the hosted checkout sends the shopper back to after a failed or cancelled payment. Its origin must be one of the app's allowed origins.";
+const GATEWAY_CODE_DESCRIPTION = 'The gateway the shopper picked, e.g. razorpay; one of cart.checkout.gateways.';
 
 @InputType()
 export class MoneyInput {
@@ -135,10 +137,11 @@ export class CreatePaymentIntentInput {
   @IsEnum(PaymentChannel)
   channel?: PaymentChannel;
 
-  // The gateway the shopper picked on the payment page, one of checkoutPaymentGateways
-  @Field(() => ID, { description: 'The payment gateway the shopper picked; one of checkoutPaymentGateways.' })
-  @IsUUID()
-  paymentGatewayConfigId: string;
+  // The gateway the shopper picked on the payment page, by its code; which account it charges through is resolved
+  // from the store's payouts
+  @Field(() => String, { description: GATEWAY_CODE_DESCRIPTION })
+  @IsCode()
+  gatewayCode: string;
 
   @Field(() => String, { nullable: true, description: RETURN_URL_DESCRIPTION })
   @IsOptional()
@@ -193,21 +196,26 @@ export class PaymentIntentRefInput {
   paymentIntentId: string;
 }
 
+// Checks out the party's cart — every store, or one — as one payment
 @InputType()
-export class StartCheckoutInput {
-  // Optional: core prices the basket in the site's own currency. Sent only by older SDKs, and then it must agree
+export class CheckoutStartInput {
   @Field(() => String, {
+    description: 'ISO 4217. The currency every store’s lines are priced and the one payment is taken in.',
+  })
+  @Matches(/^[A-Z]{3}$/, { message: 'currencyCode must be an ISO 4217 code' })
+  currencyCode: string;
+
+  @Field(() => ID, {
     nullable: true,
-    description: "Optional. The site's currency is used; a different value is refused.",
+    description: 'One store to check out on its own; left out, every store the cart holds lines at.',
   })
   @IsOptional()
-  @Matches(/^[A-Z]{3}$/, { message: 'currencyCode must be an ISO 4217 code' })
-  currencyCode?: string;
-
-  // The gateway the shopper picked on the payment page, one of checkoutPaymentGateways
-  @Field(() => ID, { description: 'The payment gateway the shopper picked; one of checkoutPaymentGateways.' })
   @IsUUID()
-  paymentGatewayConfigId: string;
+  siteId?: string;
+
+  @Field(() => String, { description: GATEWAY_CODE_DESCRIPTION })
+  @IsCode()
+  gatewayCode: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
@@ -240,9 +248,8 @@ export class StartCheckoutInput {
 }
 
 @InputType()
-export class CheckoutPaymentGatewaysInput {
-  @Field(() => PaymentChannel, { nullable: true, defaultValue: PaymentChannel.APP })
-  @IsOptional()
-  @IsEnum(PaymentChannel)
-  channel?: PaymentChannel;
+export class CheckoutRefInput {
+  @Field(() => ID)
+  @IsUUID()
+  checkoutId: string;
 }

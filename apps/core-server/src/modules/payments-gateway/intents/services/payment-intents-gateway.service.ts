@@ -1,35 +1,42 @@
 import { createHash } from 'node:crypto';
 import { allowedOriginOf, effectiveOrigins, parseStorefrontUrl } from '@domain/app/allowed-origins';
 import { AppDomainService } from '@domain/app/services/app.service';
+import {
+  PaymentGatewayConfigStatusValues,
+  paymentGatewayConfigStatus,
+} from '@domain/payment-gateway-config/payment-gateway-config-status';
 import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
+import type { SwitchedOnPayoutAccount } from '@domain/payout-channel/repositories/payout-channel.repository';
 import { PayoutChannelDomainService } from '@domain/payout-channel/services/payout-channel.service';
+import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
+import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { isEmail } from 'class-validator';
 import type { PaymentChannelType, PayoutAccount } from '@/db/schema';
 import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 import { isDefinitiveRejection } from '../../events/payment-rejection';
-import { COMMERCE_ORDER_REFERENCE_TYPE } from '../../events/services/commerce-order-payment-handler.service';
+import { COMMERCE_CHECKOUT_REFERENCE_TYPE } from '../../events/services/checkout-payment-handler.service';
 import { PaymentEventDispatcherService } from '../../events/services/payment-event-dispatcher.service';
-import type { CheckoutOrderResponseDto } from '../dto/response/checkout-order-response.dto';
+import { paymentWebhookUrl, publicWebhookOrigin } from '../../webhooks/payment-webhook-url';
+import type {
+  CheckoutStartedResponseDto,
+  CheckoutStatusResponseDto,
+  CheckoutStoreShareResponseDto,
+} from '../dto/response/checkout-response.dto';
 import type { PaymentEventResponseDto } from '../dto/response/payment-event-response.dto';
 import type { PaymentIntentResponseDto } from '../dto/response/payment-intent-response.dto';
 import type {
+  CheckoutStartInput,
   ConfirmPaymentInput,
   CreatePaymentIntentInput,
   KeyValueInput,
   PaymentCustomerInput,
-  StartCheckoutInput,
 } from '../graphql/payment-intent.input';
 import { PaymentChannel } from '../graphql/payment-intent.input';
-import type {
-  CheckoutPaymentGateway,
-  CheckoutSession,
-  PaymentIntent,
-  PaymentIntentStatus,
-} from '../graphql/payment-intent.type';
+import type { Checkout, CheckoutStatus, PaymentIntent, PaymentIntentStatus } from '../graphql/payment-intent.type';
 
 export interface PaymentCallerContext {
   orgId: string;
@@ -37,6 +44,8 @@ export interface PaymentCallerContext {
   partyId?: string;
   siteId?: string;
   legalEntityId?: string;
+  // The origin the caller reached core on, unchecked — it becomes the order's webhook URL only once validated
+  origin?: string;
 }
 
 interface IntentRequest {
@@ -48,13 +57,33 @@ interface IntentRequest {
   metadata?: Record<string, string>;
   idempotencyKey: string;
   channel: PaymentChannelType;
-  paymentGatewayConfigId: string;
+  gatewayCode: string;
   urls: StorefrontUrls;
 }
 
 interface StorefrontUrls {
   returnUrl?: string;
   checkoutUrl?: string;
+}
+
+// One seller's share of a payment, sent to the gateway with the order
+interface TransferLeg {
+  linkedAccountId: string;
+  providerAccountId: string;
+  amount: string;
+}
+
+// One store's share of a payment and where it is paid out, as payments-service records it with the intent
+interface PaymentAllocation {
+  legalEntityId: string;
+  siteId?: string;
+  payoutAccountId: string;
+  bankAccountId: string;
+  gatewayAccountId: string;
+  isMainAccount: boolean;
+  grossAmount: string;
+  platformFeeAmount: string;
+  netAmount: string;
 }
 
 interface ResolvedScope {
@@ -80,6 +109,8 @@ export class PaymentIntentsGatewayService {
     private readonly siteContextResolver: SiteContextResolverService,
     private readonly dispatcher: PaymentEventDispatcherService,
     private readonly appService: AppDomainService,
+    private readonly siteRepository: SiteDomainRepository,
+    private readonly environment: ConfigService,
   ) {}
 
   // Opens an intent against the organization's collector, scoped to the caller's legal entity, site, app and channel
@@ -103,7 +134,7 @@ export class PaymentIntentsGatewayService {
       metadata: toMetadata(input.metadata),
       idempotencyKey: input.idempotencyKey,
       channel: input.channel ?? PaymentChannel.APP,
-      paymentGatewayConfigId: input.paymentGatewayConfigId,
+      gatewayCode: input.gatewayCode,
       urls,
     });
     return toPaymentIntent(intent, caller.orgId);
@@ -112,7 +143,7 @@ export class PaymentIntentsGatewayService {
   // Completes an intent from the gateway checkout's response, then settles whatever it paid for.
   async confirm(caller: PaymentCallerContext, input: ConfirmPaymentInput): Promise<PaymentIntent> {
     const existing = await this.findOwned(caller, input.paymentIntentId, false);
-    const { credentials } = await this.configService.getDecryptedCredentials(caller.orgId, existing.configId);
+    const { credentials } = await this.configService.getDecryptedCredentials(existing.configId);
 
     this.logger.log(`payments.intents.confirm — intent: ${existing.id}`);
     const { intent, events } = await this.nats.send<{
@@ -148,8 +179,9 @@ export class PaymentIntentsGatewayService {
     return toPaymentIntent(intent, caller.orgId);
   }
 
-  // Turns the party's cart into an order awaiting payment and opens the intent that pays for it.
-  async startCheckoutFromCart(caller: PaymentCallerContext, input: StartCheckoutInput): Promise<CheckoutSession> {
+  // Freezes the party's cart — every store it holds lines at, or one — into a checkout and opens the one payment for
+  // it. Each store's share is paid out to that store's account through the gateway the shopper picked
+  async startCheckout(caller: PaymentCallerContext, input: CheckoutStartInput): Promise<Checkout> {
     const partyId = caller.partyId;
     if (!partyId) {
       throw new BadRequestException({
@@ -157,53 +189,150 @@ export class PaymentIntentsGatewayService {
         detail: 'Checkout needs the signed-in party whose cart is being paid for.',
       });
     }
-    const scope = await this.resolveScope(caller);
-    if (!scope.siteId) {
-      throw new BadRequestException({
-        label: 'Site Required',
-        detail: 'Checkout places an order at a site. Send the x-site-id header.',
-        errors: [{ field: 'x-site-id', message: 'Required for checkout' }],
-      });
-    }
-    const currencyCode = checkoutCurrency(scope, input.currencyCode);
     const urls = await this.requireAllowedUrls(caller, input);
-    await this.requirePayoutAccount(caller, scope, PaymentChannel.APP, input.paymentGatewayConfigId);
+    const sites = await this.siteRepository.findForAppByOrg(caller.orgId);
 
-    this.logger.log(`site.orders.createFromCart — party: ${partyId}, currency: ${currencyCode}`);
-    const order = await this.nats.send<CheckoutOrderResponseDto>('commerce', 'site.orders.createFromCart', {
+    this.logger.log(`org.checkouts.start — party: ${partyId}, store: ${input.siteId ?? 'all'}`);
+    const checkout = await this.nats.send<CheckoutStartedResponseDto>('commerce', 'org.checkouts.start', {
       appId: caller.appId,
       partyId,
-      currencyCode,
+      currencyCode: input.currencyCode,
+      gatewayCode: input.gatewayCode,
+      checkoutKey: input.idempotencyKey,
+      ...(input.siteId ? { siteIds: [input.siteId] } : {}),
       ...(input.addressId ? { addressId: input.addressId } : {}),
       ...(input.notes ? { notes: input.notes } : {}),
-      idempotencyKey: input.idempotencyKey,
+      sites: sites.map((site) => ({ siteId: site.id, legalEntityId: site.legalEntityId, timezone: site.timezone })),
     });
 
-    const customer = checkoutCustomer(order.customer);
+    const plan = await this.planPayouts(caller, checkout.sites, input.gatewayCode);
+    const { gatewayCode, credentials, gatewayAccountId } = await this.configService.getDecryptedCredentials(
+      plan.configId,
+    );
+    // A one-store checkout keeps the store on the intent, as a plain order payment would
+    const only = checkout.sites.length === 1 ? checkout.sites[0] : undefined;
+    const siteNames = checkout.sites.map((share) => sites.find((site) => site.id === share.siteId)?.name ?? 'store');
+    const customer = checkoutCustomer(checkout.customer);
+
+    this.logger.log(
+      `payments.intents.create — checkout:${checkout.checkoutId} app: ${caller.appId} config: ${plan.configId} legs: ${plan.transfers.length}`,
+    );
     let intent: PaymentIntentResponseDto;
     try {
-      intent = await this.openIntent(caller, scope, {
-        amountMinor: BigInt(order.totalMinor),
-        currency: order.total.currency,
-        reference: { type: COMMERCE_ORDER_REFERENCE_TYPE, id: order.orderId },
-        description: `Order ${order.orderNumber}`,
-        metadata: { orderNumber: order.orderNumber },
-        // A retried checkout reuses the order this key already opened, so the payment below is the same payment
-        idempotencyKey: input.idempotencyKey,
-        channel: PaymentChannel.APP,
-        paymentGatewayConfigId: input.paymentGatewayConfigId,
-        urls,
+      intent = await this.nats.send<PaymentIntentResponseDto>('payments', 'payments.intents.create', {
+        ...(only ? { legalEntityId: only.legalEntityId, siteId: only.siteId } : {}),
+        appId: caller.appId,
+        partyId,
+        configId: plan.configId,
+        gatewayCode,
+        ...this.notifyUrlFor(caller, gatewayCode, plan.configId),
+        ...checkoutCallbackBaseFor(caller.origin, caller.orgId),
+        mainAccountId: gatewayAccountId,
+        ...(plan.transfers.length > 0 && { transfers: plan.transfers }),
+        allocations: plan.allocations,
+        type: PaymentChannel.APP,
+        credentials,
+        amount: checkout.totalMinor,
+        currency: checkout.currencyCode,
+        referenceType: COMMERCE_CHECKOUT_REFERENCE_TYPE,
+        referenceId: checkout.checkoutId,
+        description: `Order at ${siteNames.join(', ')}`.slice(0, 500),
+        metadata: { checkoutId: checkout.checkoutId },
         ...(customer && { customer }),
+        ...(urls.returnUrl ? { returnUrl: urls.returnUrl } : {}),
+        ...(urls.checkoutUrl ? { checkoutUrl: urls.checkoutUrl } : {}),
+        // The payment window is the checkout's
+        expiresAt: checkout.expiresAt,
+        // A retried checkout reuses the checkout this key already opened, so the payment below is the same payment
+        idempotencyKey: namespacedIdempotencyKey(caller, input.idempotencyKey),
       });
     } catch (error: unknown) {
-      if (!order.reused && isDefinitiveRejection(error)) await this.cancelOrderQuietly(order.orderId);
+      if (!checkout.reused && isDefinitiveRejection(error)) await this.cancelCheckoutQuietly(checkout.checkoutId);
       throw error;
     }
 
-    return {
-      order: { id: order.orderId, orderNumber: order.orderNumber, total: order.total },
-      paymentIntent: toPaymentIntent(intent, caller.orgId),
-    };
+    await this.nats.send('commerce', 'org.checkouts.bindIntent', {
+      checkoutId: checkout.checkoutId,
+      paymentIntentId: intent.id,
+    });
+    return toCheckoutResult(checkout, [], toPaymentIntent(intent, caller.orgId));
+  }
+
+  // Where one of the party's checkouts stands, with its payment and the orders it became
+  async findCheckout(caller: PaymentCallerContext, checkoutId: string): Promise<Checkout> {
+    const partyId = caller.partyId;
+    if (!partyId) {
+      throw new BadRequestException({
+        label: 'Sign In Required',
+        detail: 'A checkout belongs to the signed-in party.',
+      });
+    }
+    const status = await this.nats.send<CheckoutStatusResponseDto>('commerce', 'org.checkouts.get', {
+      checkoutId,
+      partyId,
+    });
+    const intent = status.paymentIntentId ? await this.findOwned(caller, status.paymentIntentId, true) : null;
+    return toCheckoutResult(status, status.orders, intent ? toPaymentIntent(intent, caller.orgId) : null);
+  }
+
+  // The payout account of every store in the checkout through the gateway the shopper picked, and the split legs
+  // their shares make. One gateway account must take the whole payment, so every store must resolve to the same
+  // config; stores paid into the same linked account share one leg, and a store on the main account needs none
+  private async planPayouts(
+    caller: PaymentCallerContext,
+    shares: CheckoutStoreShareResponseDto[],
+    gatewayCode: string,
+  ): Promise<{ configId: string; transfers: TransferLeg[]; allocations: PaymentAllocation[] }> {
+    const payouts: { share: CheckoutStoreShareResponseDto; payout: PayoutAccount }[] = [];
+    for (const share of shares) {
+      const payout = await this.payoutChannelService.resolve(
+        { legalEntityId: share.legalEntityId, siteId: share.siteId, appId: caller.appId, channel: PaymentChannel.APP },
+        gatewayCode,
+      );
+      if (!payout) {
+        throw new BadRequestException({
+          label: 'Payments Not Set Up',
+          detail: `${gatewayCode} is not switched on for every store in this checkout. Pick one of the cart's checkout gateways, or check the stores out on their own.`,
+          errors: [{ field: 'gatewayCode', message: 'Not available for every store' }],
+        });
+      }
+      assertGatewayReady(payout);
+      payouts.push({ share, payout });
+    }
+
+    const configIds = new Set(payouts.map((entry) => entry.payout.paymentGatewayConfigId));
+    if (configIds.size > 1) {
+      throw new BadRequestException({
+        label: 'Stores Pay Separately',
+        detail: `The stores in this checkout take ${gatewayCode} through different gateway accounts, so one payment cannot cover them. Check out each store on its own.`,
+        errors: [{ field: 'gatewayCode', message: 'Not shared by every store' }],
+      });
+    }
+
+    const allocations: PaymentAllocation[] = [];
+    for (const { share, payout } of payouts) {
+      allocations.push(
+        await this.allocationFor(payout, BigInt(share.subtotalMinor), {
+          legalEntityId: share.legalEntityId,
+          siteId: share.siteId,
+        }),
+      );
+    }
+    return { configId: payouts[0].payout.paymentGatewayConfigId, transfers: legsFor(allocations), allocations };
+  }
+
+  private async cancelCheckoutQuietly(checkoutId: string): Promise<void> {
+    try {
+      this.logger.log(`org.checkouts.cancel — checkout: ${checkoutId} (payment could not be opened)`);
+      await this.nats.send('commerce', 'org.checkouts.cancel', {
+        checkoutId,
+        reason: 'Payment could not be started.',
+      });
+    } catch (error: unknown) {
+      this.logger.error(
+        `Cancelling checkout ${checkoutId} after a failed payment start failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   // Resolves the config, decrypts its credentials and asks payments-service for the intent
@@ -220,10 +349,14 @@ export class PaymentIntentsGatewayService {
       });
     }
 
-    const payout = await this.requirePayoutAccount(caller, scope, request.channel, request.paymentGatewayConfigId);
+    const payout = await this.requirePayoutAccount(caller, scope, request.channel, request.gatewayCode);
     const configId = payout.paymentGatewayConfigId;
-    const { gatewayCode, credentials } = await this.configService.getDecryptedCredentials(caller.orgId, configId);
-    const transfers = await this.transfersFor(caller.orgId, payout, request.amountMinor);
+    const { gatewayCode, credentials, gatewayAccountId } = await this.configService.getDecryptedCredentials(configId);
+    const allocation = await this.allocationFor(payout, request.amountMinor, {
+      legalEntityId: scope.legalEntityId,
+      siteId: scope.siteId,
+    });
+    const transfers = legsFor([allocation]);
 
     this.logger.log(
       `payments.intents.create — ${request.reference.type}:${request.reference.id} app: ${caller.appId} config: ${configId} payout: ${payout.id}`,
@@ -235,8 +368,12 @@ export class PaymentIntentsGatewayService {
       ...(caller.partyId ? { partyId: caller.partyId } : {}),
       configId,
       gatewayCode,
+      ...this.notifyUrlFor(caller, gatewayCode, configId),
+      ...checkoutCallbackBaseFor(caller.origin, caller.orgId),
+      mainAccountId: gatewayAccountId,
       bankAccountId: payout.bankAccountId,
       ...(transfers.length > 0 && { transfers }),
+      allocations: [allocation],
       type: request.channel,
       credentials,
       amount: request.amountMinor.toString(),
@@ -258,38 +395,34 @@ export class PaymentIntentsGatewayService {
     caller: PaymentCallerContext,
     scope: ResolvedScope,
     channel: PaymentChannelType,
-    paymentGatewayConfigId: string,
+    gatewayCode: string,
   ): Promise<PayoutAccount> {
     const payout = await this.payoutChannelService.resolve(
-      caller.orgId,
       { legalEntityId: scope.legalEntityId, siteId: scope.siteId, appId: caller.appId, channel },
-      paymentGatewayConfigId,
+      gatewayCode,
     );
     if (!payout) {
       throw new BadRequestException({
         label: 'Payments Not Set Up',
-        detail:
-          'This payment gateway has no payout account for this store. Pick one of checkoutPaymentGateways, or add a payout account in Vritti Cloud.',
-        errors: [{ field: 'paymentGatewayConfigId', message: 'Not available here' }],
+        detail: `${gatewayCode} is not switched on for this store's payouts. Pick one of the cart's checkout gateways, or switch it on in Vritti Cloud.`,
+        errors: [{ field: 'gatewayCode', message: 'Not available here' }],
       });
     }
+    assertGatewayReady(payout);
     return payout;
   }
 
-  // The split the gateway makes once the payment is captured. A payout account on the gateway's main account keeps
-  // the whole payment there, so nothing is transferred; a linked account receives the payment less Vritti's fee
-  // (platform gateways only — an organization's own gateway carries no fee), and the main account keeps the fee
-  private async transfersFor(
-    orgId: string,
+  // One store's share of a payment through its payout account. A share kept in the gateway's main account stays
+  // whole there and nothing is transferred; a linked account receives the share less Vritti's fee (platform gateways
+  // only — an organization's own gateway carries no fee), and the main account keeps the fee
+  private async allocationFor(
     payout: PayoutAccount,
     amountMinor: bigint,
-  ): Promise<{ linkedAccountId: string; providerAccountId: string; amount: string }[]> {
-    if (payout.isMainAccount) return [];
-
-    const config = await this.configService.findById(orgId, payout.paymentGatewayConfigId);
-    const fee = (amountMinor * BigInt(config.platformFeeBps)) / BASIS_POINTS;
-    const share = amountMinor - fee;
-    if (share < MIN_TRANSFER_MINOR) {
+    store: { legalEntityId: string; siteId?: string },
+  ): Promise<PaymentAllocation> {
+    const fee = payout.isMainAccount ? 0n : await this.platformFee(payout, amountMinor);
+    const net = amountMinor - fee;
+    if (!payout.isMainAccount && net < MIN_TRANSFER_MINOR) {
       throw new BadRequestException({
         label: 'Amount Too Small To Split',
         detail:
@@ -297,34 +430,30 @@ export class PaymentIntentsGatewayService {
         errors: [{ field: 'amount.value', message: 'Too small to split' }],
       });
     }
-    return [{ linkedAccountId: payout.id, providerAccountId: payout.gatewayAccountId, amount: share.toString() }];
+    return {
+      legalEntityId: store.legalEntityId,
+      ...(store.siteId ? { siteId: store.siteId } : {}),
+      payoutAccountId: payout.id,
+      bankAccountId: payout.bankAccountId,
+      gatewayAccountId: payout.gatewayAccountId,
+      isMainAccount: payout.isMainAccount,
+      grossAmount: amountMinor.toString(),
+      platformFeeAmount: fee.toString(),
+      netAmount: net.toString(),
+    };
   }
 
-  // The gateways the shopper can pick from: those with a payout account that fits this store, app and channel
-  async listCheckoutGateways(
-    caller: PaymentCallerContext,
-    channel: PaymentChannelType,
-  ): Promise<CheckoutPaymentGateway[]> {
-    const scope = await this.resolveScope(caller);
-    const payable = new Set(
-      await this.payoutChannelService.findPayableConfigIds(caller.orgId, {
-        legalEntityId: scope.legalEntityId,
-        siteId: scope.siteId,
-        appId: caller.appId,
-        channel,
-      }),
-    );
-    if (payable.size === 0) return [];
-    const configs = await this.configService.list(caller.orgId);
-    return configs
-      .filter((config) => payable.has(config.id))
-      .map((config) => ({
-        id: config.id,
-        gatewayCode: config.gatewayCode,
-        label: config.label,
-        logoLightUrl: config.logoLightUrl,
-        logoDarkUrl: config.logoDarkUrl,
-      }));
+  private async platformFee(payout: PayoutAccount, amountMinor: bigint): Promise<bigint> {
+    const config = await this.configService.findById('organization', payout.paymentGatewayConfigId);
+    return (amountMinor * BigInt(config.platformFeeBps)) / BASIS_POINTS;
+  }
+
+  // Where the gateway delivers this payment's webhooks, for a gateway that takes the URL on each order: our own
+  // webhook route for the org and config, on the origin the caller reached core on once it is provably public and ours.
+  // Nothing when it is not — a local core, a spoofed host — and the gateway then uses its dashboard setting
+  private notifyUrlFor(caller: PaymentCallerContext, gatewayCode: string, configId: string): { notifyUrl?: string } {
+    const origin = publicWebhookOrigin(caller.origin, this.environment.get<string>('BASE_DOMAIN'));
+    return origin ? { notifyUrl: paymentWebhookUrl(origin, caller.orgId, gatewayCode, configId) } : {};
   }
 
   // The storefront urls the hosted checkout may redirect to, each refused unless its origin is one the calling app
@@ -383,20 +512,6 @@ export class PaymentIntentsGatewayService {
     }
     return intent;
   }
-
-  private async cancelOrderQuietly(orderId: string): Promise<void> {
-    try {
-      this.logger.log(`site.orders.cancelUnpaid — order: ${orderId} (payment could not be opened)`);
-      await this.nats.send('commerce', 'site.orders.cancelUnpaid', {
-        orderId,
-        reason: 'Payment could not be started.',
-      });
-    } catch (error: unknown) {
-      this.logger.error(
-        `Cancelling order ${orderId} after a failed payment start failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
 }
 
 const RESERVED_REFERENCE_PREFIX = 'commerce.';
@@ -407,25 +522,6 @@ export function namespacedIdempotencyKey(caller: PaymentCallerContext, clientKey
   return createHash('sha256')
     .update(`${caller.appId}|${caller.partyId ?? ''}|${clientKey}`)
     .digest('hex');
-}
-
-// Converts a major-unit amount to minor units, naming the GraphQL field on failure The currency a site's checkout
-// prices in: its legal entity's, never the storefront's choice.
-function checkoutCurrency(scope: ResolvedScope, requested?: string): string {
-  if (!scope.currencyCode) {
-    throw new BadRequestException({
-      label: 'Currency Not Set',
-      detail: "This site's legal entity has no currency, so its basket cannot be priced.",
-    });
-  }
-  if (requested && requested !== scope.currencyCode) {
-    throw new BadRequestException({
-      label: 'Currency Mismatch',
-      detail: `This site sells in ${scope.currencyCode}, not ${requested}.`,
-      errors: [{ field: 'currencyCode', message: `Must be ${scope.currencyCode} or left out` }],
-    });
-  }
-  return scope.currencyCode;
 }
 
 function toMinor(value: string, currency: string): bigint {
@@ -456,6 +552,20 @@ export function checkoutCallbackPaths(orgId: string, paymentIntentId: string) {
   return { callbackPath: `${base}/callback`, cancelPath: `${base}/cancel` };
 }
 
+// Core's hosted checkout callback for the organization, on the origin the caller reached core on — for a gateway that
+// takes the URL its result is posted to when the payment is opened (Easebuzz). The browser is sent there, so it only
+// has to be an http(s) origin the caller could reach; a spoofed host only redirects the caller's own payment result
+export function checkoutCallbackBaseFor(origin: string | undefined, orgId: string): { checkoutCallbackBase?: string } {
+  if (!origin) return {};
+  try {
+    const url = new URL(origin);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return {};
+    return { checkoutCallbackBase: `${url.origin}/payments/checkout/${orgId}` };
+  } catch {
+    return {};
+  }
+}
+
 // Shapes a payments-service intent for the storefront: launch data as a JSON string, failure folded into one object
 export function toPaymentIntent(intent: PaymentIntentResponseDto, orgId: string): PaymentIntent {
   return {
@@ -483,10 +593,50 @@ function toCheckout(intent: PaymentIntentResponseDto, orgId: string): PaymentInt
   return { gateway: gatewayCode, payload: JSON.stringify(launch), ...paths };
 }
 
+// Shapes a commerce checkout for the storefront, with the payment opened for it when there is one
+// The split legs the shares make: one per linked account, carrying the net of every share paid to it. A share kept
+// in the main account makes none
+function legsFor(allocations: PaymentAllocation[]): TransferLeg[] {
+  const legs = new Map<string, TransferLeg>();
+  for (const share of allocations) {
+    if (share.isMainAccount) continue;
+    const merged = legs.get(share.payoutAccountId);
+    legs.set(share.payoutAccountId, {
+      linkedAccountId: share.payoutAccountId,
+      providerAccountId: share.gatewayAccountId,
+      amount: ((merged ? BigInt(merged.amount) : 0n) + BigInt(share.netAmount)).toString(),
+    });
+  }
+  return [...legs.values()];
+}
+
+function toCheckoutResult(
+  checkout: Pick<CheckoutStartedResponseDto, 'checkoutId' | 'status' | 'currencyCode' | 'total' | 'sites'>,
+  orders: CheckoutStatusResponseDto['orders'],
+  paymentIntent: PaymentIntent | null,
+): Checkout {
+  return {
+    id: checkout.checkoutId,
+    status: checkout.status as CheckoutStatus,
+    currencyCode: checkout.currencyCode,
+    total: checkout.total,
+    sites: checkout.sites.map((share) => ({
+      siteId: share.siteId,
+      legalEntityId: share.legalEntityId,
+      subtotal: {
+        currency: checkout.currencyCode,
+        value: minorToMajor(BigInt(share.subtotalMinor), checkout.currencyCode as CurrencyCode),
+      },
+    })),
+    orders: orders.map((order) => ({ siteId: order.siteId, orderId: order.orderId, orderNumber: order.orderNumber })),
+    paymentIntent,
+  };
+}
+
 // The shopper's contact details as the payment intent takes them, so the gateway's page comes prefilled.
 
 function checkoutCustomer(
-  customer: CheckoutOrderResponseDto['customer'],
+  customer: CheckoutStartedResponseDto['customer'],
 ): { name?: string; email?: string; phone?: string } | undefined {
   if (!customer) return undefined;
   const name = customer.name?.trim().slice(0, 200);
@@ -498,4 +648,19 @@ function checkoutCustomer(
     ...(email && email.length <= 200 && isEmail(email) ? { email } : {}),
   };
   return Object.keys(result).length > 0 ? result : undefined;
+}
+
+// Refuses a payment through a gateway config that may not take payments yet, saying what it is still waiting for
+function assertGatewayReady(payout: SwitchedOnPayoutAccount): void {
+  const status = paymentGatewayConfigStatus(payout.config);
+  if (status === PaymentGatewayConfigStatusValues.ACTIVE) return;
+  const missing =
+    status === PaymentGatewayConfigStatusValues.KEYS_NOT_VERIFIED
+      ? 'its API keys have not been verified'
+      : 'its webhook has not been verified — no signed webhook has reached it yet';
+  throw new BadRequestException({
+    label: 'Gateway Not Ready',
+    detail: `${payout.config.gatewayCode} cannot take payments yet: ${missing}. Finish connecting it in Vritti Cloud.`,
+    errors: [{ field: 'gatewayCode', message: 'Gateway not ready' }],
+  });
 }

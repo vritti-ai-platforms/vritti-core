@@ -519,7 +519,33 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.orders.customerId,
       to: r.customers.id,
     }),
+    checkout: r.one.checkouts({
+      from: r.orders.checkoutId,
+      to: r.checkouts.id,
+    }),
     orderItems: r.many.orderItems(),
+  },
+  checkouts: {
+    party: r.one.parties({
+      from: r.checkouts.partyId,
+      to: r.parties.id,
+    }),
+    lines: r.many.checkoutLines(),
+    orders: r.many.orders(),
+  },
+  checkoutLines: {
+    checkout: r.one.checkouts({
+      from: r.checkoutLines.checkoutId,
+      to: r.checkouts.id,
+    }),
+    offering: r.one.offerings({
+      from: r.checkoutLines.offeringId,
+      to: r.offerings.id,
+    }),
+    offeringVariant: r.one.offeringVariants({
+      from: r.checkoutLines.offeringVariantId,
+      to: r.offeringVariants.id,
+    }),
   },
   customers: {
     orders: r.many.orders(),

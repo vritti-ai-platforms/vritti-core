@@ -1,5 +1,6 @@
 import type { ApolloClient } from '@apollo/client';
 import { VapError } from '../errors.js';
+import type { CartFieldsFragment } from '../gql/graphql.js';
 import {
   ADD_TO_CART,
   CART_QUANTITIES_QUERY,
@@ -13,7 +14,10 @@ import type { Money, RequestContext } from '../types.js';
 
 export type CartItem = {
   id: string;
-  catalogListingId: string;
+  // The store the line was added at — where an edit to it has to be made
+  siteId: string;
+  // The priced row the line points at, or null once the store's catalogue stops carrying it
+  catalogListingId: string | null;
   quantity: number;
   name: string;
   code: string;
@@ -22,19 +26,74 @@ export type CartItem = {
   isAvailable: boolean;
 };
 
-export type Cart = {
-  currencyCode: string;
+// The party's cart at one store, with the gateways that store takes payments through
+export type CartSite = {
+  siteId: string;
+  siteName: string;
   items: CartItem[];
+  // Totals only the lines that can be bought
   subtotal: Money;
   itemCount: number;
+  // Gateway codes this store accepts, e.g. "razorpay"
+  gateways: string[];
 };
+
+export type Cart = {
+  currencyCode: string;
+  // One entry per store the party holds lines at; a store with no lines is left out
+  sites: CartSite[];
+  // Every store's lines in one list, for a page that does not group them by store
+  items: CartItem[];
+  // Totals only the lines that can be bought, across every store
+  subtotal: Money;
+  itemCount: number;
+  checkout: {
+    // Gateway codes that pay for every store in one payment. Empty when the stores share none, and the cart cannot
+    // be checked out as one until a store's lines are removed
+    gateways: string[];
+  };
+};
+
+// Core's cart, with the stores' lines also flattened into one list
+export function toCart(raw: CartFieldsFragment): Cart {
+  const sites: CartSite[] = raw.sites.map((site) => ({
+    siteId: site.siteId,
+    siteName: site.siteName,
+    items: site.items.map((item) => toCartItem(item, site.siteId)),
+    subtotal: { currency: site.subtotal.currency, value: site.subtotal.value },
+    itemCount: site.itemCount,
+    gateways: [...site.gateways],
+  }));
+  return {
+    currencyCode: raw.currencyCode,
+    sites,
+    items: sites.flatMap((site) => site.items),
+    subtotal: { currency: raw.subtotal.currency, value: raw.subtotal.value },
+    itemCount: raw.itemCount,
+    checkout: { gateways: [...raw.checkout.gateways] },
+  };
+}
+
+function toCartItem(raw: CartFieldsFragment['sites'][number]['items'][number], siteId: string): CartItem {
+  return {
+    id: raw.id,
+    siteId,
+    catalogListingId: raw.catalogListingId ?? null,
+    quantity: raw.quantity,
+    name: raw.name,
+    code: raw.code,
+    unitPrice: raw.unitPrice ? { currency: raw.unitPrice.currency, value: raw.unitPrice.value } : null,
+    lineTotal: raw.lineTotal ? { currency: raw.lineTotal.currency, value: raw.lineTotal.value } : null,
+    isAvailable: raw.isAvailable,
+  };
+}
 
 export type CartQuantity = {
   code: string;
   quantity: number;
 };
 
-// One party's basket, at the site the storefront sells from.
+// One party's cart across the stores the storefront sells from. Each edit is made at the visitor's store.
 export function createCartOperations(client: ApolloClient, context: RequestContext = {}, currency?: string) {
   const requestContext = { requestContext: context };
 
@@ -42,7 +101,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
   const currencyCode = (): string => {
     if (!currency) {
       throw new VapError(
-        'VAP is not configured for baskets — pass `currency` (e.g. "INR") to createVapSdk.',
+        'VAP is not configured for carts — pass `currency` (e.g. "INR") to createVapSdk.',
         'Not Configured',
         undefined,
       );
@@ -59,7 +118,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
   };
 
   return {
-    // The basket, or an empty one for a party who has added nothing.
+    // The cart, or an empty one for a party who has added nothing.
     async items(): Promise<Cart> {
       requireParty();
       return run(() =>
@@ -69,7 +128,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
             variables: { input: { currencyCode: currencyCode() } },
             context: requestContext,
           })
-          .then((r) => requireData(r.data).cart as Cart),
+          .then((r) => toCart(requireData(r.data).cart)),
       );
     },
     // Adds a listing, or raises the quantity of the line already there.
@@ -82,7 +141,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
             variables: { input: { code, quantity, currencyCode: currencyCode() } },
             context: requestContext,
           })
-          .then((r) => requireData(r.data).addToCart as Cart),
+          .then((r) => toCart(requireData(r.data).addToCart)),
       );
     },
     // Sets a line to an exact quantity — not a delta.
@@ -95,7 +154,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
             variables: { input: { code, quantity, currencyCode: currencyCode() } },
             context: requestContext,
           })
-          .then((r) => requireData(r.data).updateCartItem as Cart),
+          .then((r) => toCart(requireData(r.data).updateCartItem)),
       );
     },
     async remove(code: string): Promise<Cart> {
@@ -107,7 +166,7 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
             variables: { input: { code, currencyCode: currencyCode() } },
             context: requestContext,
           })
-          .then((r) => requireData(r.data).removeFromCart as Cart),
+          .then((r) => toCart(requireData(r.data).removeFromCart)),
       );
     },
     async clear(): Promise<Cart> {
@@ -119,10 +178,10 @@ export function createCartOperations(client: ApolloClient, context: RequestConte
             variables: { input: { currencyCode: currencyCode() } },
             context: requestContext,
           })
-          .then((r) => requireData(r.data).clearCart as Cart),
+          .then((r) => toCart(requireData(r.data).clearCart)),
       );
     },
-    // How many of each product is in the basket — for a product page's stepper.
+    // How many of each product is in the cart at the visitor's store — for a product page's stepper.
     async quantities(): Promise<CartQuantity[]> {
       requireParty();
       return run(() =>

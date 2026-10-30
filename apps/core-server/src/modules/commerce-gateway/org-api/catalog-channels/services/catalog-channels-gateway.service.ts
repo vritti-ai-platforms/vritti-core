@@ -101,7 +101,7 @@ export class CatalogChannelsGatewayService {
     return this.nats.send('commerce', 'org.catalogChannels.app.listingFilters', { appId, filters });
   }
 
-  // Prices variants the caller already holds — a wishlist or a basket The currencies this storefront's catalog carries
+  // Prices variants the caller already holds — a wishlist or a cart The currencies this storefront's catalog carries
   // — what its switcher may offer
   async appCurrencies(appId: string): Promise<string[]> {
     this.logger.log(`org.catalogChannels.app.currencies — appId: ${appId}`);

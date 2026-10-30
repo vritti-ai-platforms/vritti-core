@@ -30,11 +30,14 @@ export class CartItem {
   isAvailable: boolean;
 }
 
+// The party's cart at one store, with the gateways that store can take a payment through
 @ObjectType()
-export class Cart {
-  // The currency the lines were priced in — the one the caller asked for
+export class CartSite {
+  @Field(() => ID)
+  siteId: string;
+
   @Field(() => String)
-  currencyCode: string;
+  siteName: string;
 
   @Field(() => [CartItem])
   items: CartItem[];
@@ -43,9 +46,45 @@ export class Cart {
   @Field(() => Money)
   subtotal: Money;
 
-  // Quantity across available lines — the number a basket badge shows
   @Field(() => Int)
   itemCount: number;
+
+  // Gateway codes with a payout switched on for this store, e.g. razorpay
+  @Field(() => [String], { description: 'Gateway codes this store accepts, e.g. razorpay.' })
+  gateways: string[];
+}
+
+// How the whole cart can be paid in one payment
+@ObjectType()
+export class CartCheckout {
+  // Gateway codes every store with items accepts through the same gateway account; empty means the cart cannot
+  // be paid in one payment yet
+  @Field(() => [String], {
+    description: 'Gateway codes that pay for every store in one payment. Empty when the stores share none.',
+  })
+  gateways: string[];
+}
+
+@ObjectType()
+export class Cart {
+  // The currency the lines were priced in — the one the caller asked for
+  @Field(() => String)
+  currencyCode: string;
+
+  // One entry per store the party holds lines at; a store with no lines is left out
+  @Field(() => [CartSite])
+  sites: CartSite[];
+
+  // Totals only the lines that can actually be bought, across every store
+  @Field(() => Money)
+  subtotal: Money;
+
+  // Quantity across available lines — the number a cart badge shows
+  @Field(() => Int)
+  itemCount: number;
+
+  @Field(() => CartCheckout)
+  checkout: CartCheckout;
 }
 
 @ObjectType()

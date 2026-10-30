@@ -43,7 +43,7 @@ export class CartItemDto {
   code: string;
   dimensions: VariantFacet[];
   attributes: VariantFacet[];
-  // Null when nothing in the catalogue prices this listing in the basket's currency
+  // Null when nothing in the catalogue prices this listing in the cart's currency
   unitPrice: CurrencyAmountDto | null;
   lineTotal: CurrencyAmountDto | null;
   // Whether this line can still be bought
@@ -86,7 +86,7 @@ export class CartDto {
   items: CartItemDto[];
   // The sum of the lines that can actually be bought
   subtotal: CurrencyAmountDto;
-  // Quantity summed across available lines, for a basket badge
+  // Quantity summed across available lines, for a cart badge
   itemCount: number;
 
   static from(currencyCode: string, items: CartItemRow[]): CartDto {
@@ -103,7 +103,7 @@ export class CartDto {
 }
 
 export class StaffCartItemDto extends CartItemDto {
-  // Which basket this line sits in — a person may hold one at each outlet, so an edit must name it
+  // Which cart this line sits in — a person may hold one at each outlet, so an edit must name it
   cartId: string;
   siteId: string | null;
   legalEntityId: string;
@@ -121,12 +121,12 @@ export class StaffCartItemDto extends CartItemDto {
 
 export class CartDetailDto {
   id: string;
-  // The outlet whose basket it is. Null on a basket the company itself holds
+  // The outlet whose cart it is. Null on a cart the company itself holds
   siteId: string | null;
   legalEntityId: string | null;
   partyId: string;
   partyName: string;
-  // Set while a payment is in flight, which is what freezes the basket
+  // Set while a payment is in flight, which is what freezes the cart
   checkoutStartedAt: string | null;
   itemCount: number;
   createdAt: string;

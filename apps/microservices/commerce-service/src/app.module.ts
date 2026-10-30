@@ -23,6 +23,7 @@ import { OrgAttributeTemplatesModule } from './modules/organization/attribute-te
 import { OrgCatalogChannelsModule } from './modules/organization/catalog-channels/catalog-channels.module';
 import { OrgCatalogsModule } from './modules/organization/catalogs/catalogs.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
+import { OrgCheckoutsModule } from './modules/organization/checkouts/checkouts.module';
 import { OrgCompaniesModule } from './modules/organization/companies/companies.module';
 import { OrgDimensionTemplatesModule } from './modules/organization/dimension-templates/dimension-templates.module';
 import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
@@ -123,6 +124,7 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     LeCartsModule,
     SiteCartsModule,
     OrgWishlistModule,
+    OrgCheckoutsModule,
     OrgPeopleModule,
     OrgCompaniesModule,
     OrgPaymentTermsModule,

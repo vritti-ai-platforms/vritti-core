@@ -12,6 +12,7 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
+import { checkouts } from './checkouts';
 import { commerceSchema } from './commerce-schema';
 import { customers } from './customers';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
@@ -55,7 +56,8 @@ export const orders = commerceSchema.table(
     paymentMethod: varchar('payment_method', { length: 30 }),
     paymentReference: varchar('payment_reference', { length: 100 }),
     needsReview: boolean('needs_review').notNull().default(false),
-    checkoutKey: varchar('checkout_key', { length: 100 }),
+    // The checkout this order was made from once its payment landed; the other stores' orders share it
+    checkoutId: uuid('checkout_id').references(() => checkouts.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -64,11 +66,12 @@ export const orders = commerceSchema.table(
   },
   (table) => [
     unique('uq_orders_org_number').on(table.organizationId, table.orderNumber),
-    unique('uq_orders_payment_intent').on(table.paymentIntentId),
-    unique('uq_orders_party_checkout_key').on(table.organizationId, table.partyId, table.checkoutKey),
+    // A payment pays one order per store; a checkout across stores shares its intent between their orders
+    unique('uq_orders_payment_intent').on(table.paymentIntentId, table.siteId),
     index('idx_orders_party').on(table.organizationId, table.partyId),
     index('idx_orders_site').on(table.organizationId, table.siteId),
     index('idx_orders_status').on(table.status),
+    index('idx_orders_checkout').on(table.checkoutId),
     orgIsolationPolicy(),
     pgPolicy('site_read', {
       for: 'select',

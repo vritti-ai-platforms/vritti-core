@@ -1,4 +1,4 @@
-// The basket actions, re-exported.
+// The cart actions, re-exported.
 export {
   addToCartAction,
   removeFromCartAction,

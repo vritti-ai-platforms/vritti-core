@@ -156,11 +156,30 @@ type CartItem {
   isAvailable: Boolean!
 }
 
-type Cart {
-  currencyCode: String!
+type CartSite {
+  siteId: ID!
+  siteName: String!
   items: [CartItem!]!
   subtotal: Money!
   itemCount: Int!
+
+  """Gateway codes this store accepts, e.g. razorpay."""
+  gateways: [String!]!
+}
+
+type CartCheckout {
+  """
+  Gateway codes that pay for every store in one payment. Empty when the stores share none.
+  """
+  gateways: [String!]!
+}
+
+type Cart {
+  currencyCode: String!
+  sites: [CartSite!]!
+  subtotal: Money!
+  itemCount: Int!
+  checkout: CartCheckout!
 }
 
 type CartQuantity {
@@ -516,34 +535,41 @@ enum PaymentIntentStatus {
   EXPIRED
 }
 
-type CheckoutOrder {
-  id: ID!
+type CheckoutStoreShare {
+  siteId: ID!
+  legalEntityId: ID!
+  subtotal: Money!
+}
+
+type CheckoutStoreOrder {
+  siteId: ID!
+  orderId: ID!
   orderNumber: String!
-  total: Money!
 }
 
-type CheckoutSession {
-  order: CheckoutOrder!
-  paymentIntent: PaymentIntent!
-}
-
-type CheckoutPaymentGateway {
+type Checkout {
   id: ID!
+  status: CheckoutStatus!
+  currencyCode: String!
+  total: Money!
+  sites: [CheckoutStoreShare!]!
+  orders: [CheckoutStoreOrder!]!
+  paymentIntent: PaymentIntent
+}
 
-  """Gateway provider code, e.g. razorpay"""
-  gatewayCode: String!
-  label: String!
-
-  """The gateway's logo for light backgrounds"""
-  logoLightUrl: String
-
-  """The gateway's logo for dark backgrounds"""
-  logoDarkUrl: String
+"""
+OPEN: awaiting payment. PAID: the payment landed, orders being made. CONVERTED: one order per store exists. CANCELLED: expired or cancelled unpaid.
+"""
+enum CheckoutStatus {
+  OPEN
+  PAID
+  CONVERTED
+  CANCELLED
 }
 
 type Query {
-  checkoutPaymentGateways(input: CheckoutPaymentGatewaysInput): [CheckoutPaymentGateway!]!
   paymentIntent(input: PaymentIntentRefInput!): PaymentIntent!
+  checkout(input: CheckoutRefInput!): Checkout!
   appSites(types: [AppSiteType!]): [AppSite!]!
   appLegalEntities: [AppLegalEntity!]!
   peopleByCommunication(input: FindPeopleByCommunicationInput!): [Person!]!
@@ -568,18 +594,12 @@ type Query {
   offeringVariants(search: String, excludeIds: [ID!], limit: Int, offset: Int): OfferingVariantOptions!
 }
 
-input CheckoutPaymentGatewaysInput {
-  channel: PaymentChannel = APP
-}
-
-enum PaymentChannel {
-  APP
-  POS
-  B2B
-}
-
 input PaymentIntentRefInput {
   paymentIntentId: ID!
+}
+
+input CheckoutRefInput {
+  checkoutId: ID!
 }
 
 input FindPeopleByCommunicationInput {
@@ -611,7 +631,7 @@ type Mutation {
   createPaymentIntent(input: CreatePaymentIntentInput!): PaymentIntent!
   confirmPayment(input: ConfirmPaymentInput!): PaymentIntent!
   cancelPaymentIntent(input: PaymentIntentRefInput!): PaymentIntent!
-  startCheckoutFromCart(input: StartCheckoutInput!): CheckoutSession!
+  startCheckout(input: CheckoutStartInput!): Checkout!
   sendSmsOtp(input: SendSmsOtpInput!): SendSmsOtpResult!
   verifySmsOtp(input: VerifySmsOtpInput!): VerifySmsOtpResult!
   sendWhatsappOtp(input: SendWhatsappOtpInput!): SendWhatsappOtpResult!
@@ -640,9 +660,9 @@ input CreatePaymentIntentInput {
   channel: PaymentChannel = APP
 
   """
-  The payment gateway the shopper picked; one of checkoutPaymentGateways.
+  The gateway the shopper picked, e.g. razorpay; one of cart.checkout.gateways.
   """
-  paymentGatewayConfigId: ID!
+  gatewayCode: String!
 
   """
   Where the hosted checkout sends the shopper once paid. Its origin must be one of the app's allowed origins.
@@ -676,6 +696,12 @@ input KeyValueInput {
   value: String!
 }
 
+enum PaymentChannel {
+  APP
+  POS
+  B2B
+}
+
 input ConfirmPaymentInput {
   paymentIntentId: ID!
   gatewayResponse: GatewayResponseInput!
@@ -687,14 +713,21 @@ input GatewayResponseInput {
   signature: String!
 }
 
-input StartCheckoutInput {
-  """Optional. The site's currency is used; a different value is refused."""
-  currencyCode: String
+input CheckoutStartInput {
+  """
+  ISO 4217. The currency every store’s lines are priced and the one payment is taken in.
+  """
+  currencyCode: String!
 
   """
-  The payment gateway the shopper picked; one of checkoutPaymentGateways.
+  One store to check out on its own; left out, every store the cart holds lines at.
   """
-  paymentGatewayConfigId: ID!
+  siteId: ID
+
+  """
+  The gateway the shopper picked, e.g. razorpay; one of cart.checkout.gateways.
+  """
+  gatewayCode: String!
   addressId: ID
   notes: String
   idempotencyKey: String!

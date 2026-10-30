@@ -5,7 +5,8 @@ import { ScopedNatsClientService } from '@/services/scoped-nats-client.service';
 import type { PaymentEventResponseDto } from '../../intents/dto/response/payment-event-response.dto';
 import type { PaymentEventHandler } from '../payment-event-handler';
 import { errorStatus, isDefinitiveRejection } from '../payment-rejection';
-import { CommerceOrderPaymentHandlerService } from './commerce-order-payment-handler.service';
+import { CheckoutPaymentHandlerService } from './checkout-payment-handler.service';
+import { WebhookCheckPaymentHandlerService } from './webhook-check-payment-handler.service';
 
 export interface PaymentDispatchResult {
   dispatched: number;
@@ -23,9 +24,11 @@ export class PaymentEventDispatcherService {
     private readonly nats: ScopedNatsClientService,
     private readonly deliveries: WebhookDeliveryDomainService,
     private readonly db: PrimaryDatabaseService,
-    commerceOrderHandler: CommerceOrderPaymentHandlerService,
+    checkoutHandler: CheckoutPaymentHandlerService,
+    webhookCheckHandler: WebhookCheckPaymentHandlerService,
   ) {
-    this.register(commerceOrderHandler);
+    this.register(checkoutHandler);
+    this.register(webhookCheckHandler);
   }
 
   // Adds the handler for one reference type; a second registration for the same type is a wiring bug

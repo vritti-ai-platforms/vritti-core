@@ -8,13 +8,6 @@ export class CreateBankAccountDto {
   @IsUUID()
   legalEntityId: string;
 
-  @ApiPropertyOptional({ description: 'Display label for the account', example: 'Primary current account' })
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  label?: string | null;
-
   @ApiProperty({ description: 'Name the account is held in', example: 'Acme Retail Pvt Ltd' })
   @Trim({ nullify: false })
   @IsString()

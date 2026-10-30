@@ -1,4 +1,5 @@
 import { GatewaysDomainModule } from '@domain/gateways/gateways.module';
+import { PaymentAllocationsDomainModule } from '@domain/payment-allocations/payment-allocations.module';
 import { PaymentAttemptsDomainModule } from '@domain/payment-attempts/payment-attempts.module';
 import { PaymentEventsDomainModule } from '@domain/payment-events/payment-events.module';
 import { PaymentIntentsDomainModule } from '@domain/payment-intents/payment-intents.module';
@@ -16,6 +17,7 @@ import { PaymentLifecycleService } from './services/payment-lifecycle.service';
     PaymentAttemptsDomainModule,
     PaymentEventsDomainModule,
     PaymentTransfersDomainModule,
+    PaymentAllocationsDomainModule,
   ],
   providers: [PaymentLifecycleService],
   exports: [PaymentLifecycleService],

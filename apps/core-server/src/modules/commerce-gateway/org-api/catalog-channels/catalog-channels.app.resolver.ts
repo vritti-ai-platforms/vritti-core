@@ -53,7 +53,7 @@ export class CatalogChannelsAppResolver {
     return this.service.appListingByCode(appId, code, currencyCode);
   }
 
-  // The same range narrowed to variants the caller already holds — a wishlist or a basket
+  // The same range narrowed to variants the caller already holds — a wishlist or a cart
   @Query(() => [CatalogListing], { name: 'catalogListingsByCodes' })
   @RequirePermission(ORG_CATALOG_CHANNELS.listings)
   catalogListingsByCodes(

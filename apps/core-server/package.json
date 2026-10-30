@@ -17,7 +17,7 @@
     "dev:apw1": "docker compose -f local-db-compose.yml up -d redis nats && infisical run --env=apw1-local --path=/core-server -- nest start --watch",
     "debug": "docker compose -f local-db-compose.yml up -d postgres redis nats gitea && infisical run --path=/core-server -- nest start --debug --watch",
     "prod": "node dist/main",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",

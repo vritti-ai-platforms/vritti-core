@@ -1,100 +1,140 @@
 import type { PaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/entity/payment-gateway-config.dto';
 import type { CreatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-payment-gateway-config.dto';
 import type { CreatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-platform-payment-gateway-config.dto';
-import type { UpdatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-payment-gateway-config.dto';
 import type { UpdatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-platform-payment-gateway-config.dto';
 import type { PaymentGatewayConfigVerificationResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-config-verification-response.dto';
-import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
+import type { PaymentGatewayConfigsPageResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-configs-page-response.dto';
+import { requiresWebhookVerification } from '@domain/payment-gateway-config/gateway-credential-fields';
+import {
+  PaymentGatewayConfigDomainService,
+  type PaymentGatewayConfigViewer,
+} from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { PayoutAccountDomainRepository } from '@domain/payout-account/repositories/payout-account.repository';
 import { Injectable } from '@nestjs/common';
-import { BadRequestException, ConflictException, ForbiddenException } from '@vritti/api-sdk/exceptions';
-import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import { BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { PaymentGatewayConfigKindValues } from '@/db/schema';
 import type { PaymentGatewayOptionDto } from '@/modules/payments-gateway/gateways/dto/response/payment-gateway-option.dto';
-import { PaymentGatewaysGatewayService } from '@/modules/payments-gateway/gateways/services/payment-gateways-gateway.service';
+import {
+  PaymentGatewaysGatewayService,
+  type VerificationPaymentOptions,
+} from '@/modules/payments-gateway/gateways/services/payment-gateways-gateway.service';
+import { parseTableQueryParam } from '@/utils/parse-table-query';
+import type { GetPaymentGatewayConfigsInternalDto } from '../dto/request/get-payment-gateway-configs-internal.dto';
+import type {
+  WebhookCheckStartedResponseDto,
+  WebhookCheckStatusResponseDto,
+} from '../dto/response/webhook-check-response.dto';
 
-const PG_FOREIGN_KEY_VIOLATION = '23503';
+// A row still referenced elsewhere: 23503 for a plain foreign key, 23001 for one declared ON DELETE RESTRICT — which is
+// how payout_accounts points at its gateway config
+const PG_REFERENCED_ROW_CODES: ReadonlySet<string> = new Set(['23503', '23001']);
 
 @Injectable()
 export class PaymentGatewayConfigService {
   constructor(
     private readonly gatewayConfigService: PaymentGatewayConfigDomainService,
-    private readonly payoutAccountRepository: PayoutAccountDomainRepository,
+    readonly _payoutAccountRepository: PayoutAccountDomainRepository,
     private readonly paymentGatewaysGatewayService: PaymentGatewaysGatewayService,
   ) {}
 
-  // The gateways payments-service can charge through, for the UI to intersect with the catalog
+  // Lists the gateways payments-service can charge through, for the UI to intersect with the catalog
   async listGateways(): Promise<PaymentGatewayOptionDto[]> {
     return this.paymentGatewaysGatewayService.listGateways();
   }
 
+  // Resolves a table page from the view state cloud serializes; RLS decides which rows the viewer sees
+  async findForTableWithQuery(
+    viewer: PaymentGatewayConfigViewer,
+    query: GetPaymentGatewayConfigsInternalDto,
+  ): Promise<PaymentGatewayConfigsPageResponseDto> {
+    return this.gatewayConfigService.findForTable(viewer, {
+      filters: parseTableQueryParam<TableViewState['filters']>(query.filters, 'filters', []),
+      search: parseTableQueryParam<TableViewState['search'] | null>(query.search, 'search', null),
+      sort: parseTableQueryParam<TableViewState['sort']>(query.sort, 'sort', []),
+      pagination: { limit: query.limit ?? 20, offset: query.offset ?? 0 },
+    } as TableViewState);
+  }
+
   // ---- The organization's own gateways ----
 
-  async list(orgId: string): Promise<PaymentGatewayConfigDto[]> {
-    return this.gatewayConfigService.list(orgId);
+  // Lists every gateway the organization can use, its own and Vritti's, for pickers
+  async list(): Promise<PaymentGatewayConfigDto[]> {
+    return this.gatewayConfigService.list('organization');
   }
 
+  // Connects one of the organization's own gateways
+  // The keys are checked with the gateway first; a config is saved only once they pass
   async create(orgId: string, dto: CreatePaymentGatewayConfigDto): Promise<CreateResponseDto<PaymentGatewayConfigDto>> {
-    return this.gatewayConfigService.create(orgId, dto);
+    const keysVerifiedAt = await this.verifyKeys(dto.gatewayCode, dto.credentials);
+    return this.gatewayConfigService.create(orgId, dto, keysVerifiedAt);
   }
 
-  async findById(orgId: string, id: string): Promise<PaymentGatewayConfigDto> {
-    return this.gatewayConfigService.findById(orgId, id);
+  // Returns one gateway the organization can see
+  async findById(id: string): Promise<PaymentGatewayConfigDto> {
+    return this.gatewayConfigService.findById('organization', id);
   }
 
-  // A change of gateway is refused while payout accounts name it, since their gateway account ids only exist at the
-  // old gateway. A new main account id re-marks the payout accounts: on a gateway that splits, the rows naming the
-  // new id keep their share there (one legal entity at most); on one that cannot, every row follows the main account
-  async update(orgId: string, id: string, dto: UpdatePaymentGatewayConfigDto): Promise<SuccessResponseDto> {
-    const existing = await this.requireOwn(orgId, id);
-    if (dto.gatewayCode !== undefined && dto.gatewayCode !== existing.gatewayCode) {
-      await this.assertNoPayoutAccounts(id);
+  // Removes an own gateway; the guard read carries its payout account count
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.gatewayConfigService.requireWritable('organization', id);
+    try {
+      return await this.gatewayConfigService.delete(existing);
+    } catch (error: unknown) {
+      // A payout account added after the count was read still holds the foreign key
+      if (isForeignKeyViolation(error)) throw gatewayInUse('Payout accounts pay out through this gateway.');
+      throw error;
     }
-    const mainAccountId =
-      dto.gatewayAccountId !== undefined && dto.gatewayAccountId !== existing.gatewayAccountId
-        ? dto.gatewayAccountId
-        : null;
-    const splits = mainAccountId
-      ? await this.paymentGatewaysGatewayService.supportsSplit(dto.gatewayCode ?? existing.gatewayCode)
-      : false;
-    if (mainAccountId && splits) {
-      const legalEntities = await this.payoutAccountRepository.findLegalEntitiesNaming(id, mainAccountId);
-      if (legalEntities.length > 1) {
-        throw new ConflictException({
-          label: 'Main Account In Use',
-          detail: `Payout accounts of ${legalEntities.length} legal entities name ${mainAccountId}; a main account pays out for one legal entity only. Change those payout accounts first.`,
-          errors: [{ field: 'gatewayAccountId', message: 'Named by several legal entities' }],
-        });
-      }
-    }
-
-    const result = await this.gatewayConfigService.update(orgId, id, dto);
-    if (mainAccountId) {
-      if (splits) await this.payoutAccountRepository.remarkMainAccount(id, mainAccountId);
-      else await this.payoutAccountRepository.moveToMainAccount(id, mainAccountId);
-    }
-    return result;
   }
 
-  async delete(orgId: string, id: string): Promise<SuccessResponseDto> {
-    await this.requireOwn(orgId, id);
-    await this.assertNoPayoutAccounts(id);
-    return this.deleteGuarded(orgId, id);
+  // Has the provider check an own gateway's credentials
+  async verify(id: string): Promise<PaymentGatewayConfigVerificationResponseDto> {
+    const existing = await this.gatewayConfigService.requireWritable('organization', id);
+    return this.paymentGatewaysGatewayService.verifyConfig(existing);
   }
 
-  async verify(orgId: string, id: string): Promise<PaymentGatewayConfigVerificationResponseDto> {
-    await this.requireOwn(orgId, id);
-    return this.paymentGatewaysGatewayService.verifyConfig(orgId, id);
+  // Opens the ₹10 verification payment on an own gateway that signs webhooks with its own secret, once its keys pass
+  async startWebhookCheck(
+    orgId: string,
+    id: string,
+    options: VerificationPaymentOptions = {},
+  ): Promise<WebhookCheckStartedResponseDto> {
+    const existing = await this.gatewayConfigService.requireWritable('organization', id);
+    if (!requiresWebhookVerification(existing.gatewayCode)) {
+      throw new BadRequestException({
+        label: 'No Webhook Check Needed',
+        detail: `${existing.gatewayCode} receives its webhook URL on every payment, so there is nothing to verify.`,
+      });
+    }
+    if (!existing.verifiedAt) {
+      throw new BadRequestException({
+        label: 'Keys Not Verified',
+        detail: 'Save the gateway with keys the gateway accepts before checking its webhook.',
+      });
+    }
+    if (existing.webhookVerifiedAt) {
+      throw new ConflictException({
+        label: 'Webhook Already Verified',
+        detail: 'This gateway’s webhook is already verified.',
+      });
+    }
+    return this.paymentGatewaysGatewayService.startWebhookCheck(orgId, existing, options);
+  }
+
+  // Where a verification payment stands, for the dialog waiting on its outcome
+  async findWebhookCheck(id: string, paymentIntentId: string): Promise<WebhookCheckStatusResponseDto> {
+    const existing = await this.gatewayConfigService.requireWritable('organization', id);
+    return this.paymentGatewaysGatewayService.findWebhookCheck(existing, paymentIntentId);
   }
 
   // ---- Platform gateways — Vritti's accounts on this deployment. Called with no organization scope ----
 
+  // Lists Vritti's gateways on the deployment
   async listPlatform(): Promise<PaymentGatewayConfigDto[]> {
-    return this.gatewayConfigService.listPlatform();
+    return this.gatewayConfigService.list('platform');
   }
 
-  // Vritti collects for organizations and pays each its share, so its gateways must be able to split
+  // Sets up one of Vritti's gateways, which must split since Vritti pays each organization its share
   async createPlatform(
     dto: CreatePlatformPaymentGatewayConfigDto,
   ): Promise<CreateResponseDto<PaymentGatewayConfigDto>> {
@@ -106,13 +146,13 @@ export class PaymentGatewayConfigService {
         errors: [{ field: 'gatewayCode', message: 'Cannot split payments' }],
       });
     }
-    return this.gatewayConfigService.createPlatform(dto);
+    const keysVerifiedAt = await this.verifyKeys(dto.gatewayCode, dto.credentials);
+    return this.gatewayConfigService.createPlatform(dto, keysVerifiedAt);
   }
 
-  // Payout accounts under a platform row belong to organizations and are invisible without an org context, so a
-  // change of gateway is refused outright. They never name Vritti's main account, so a new one leaves them as they are
+  // Updates a platform row; its gateway never changes, since organizations' payout accounts exist only there
   async updatePlatform(id: string, dto: UpdatePlatformPaymentGatewayConfigDto): Promise<SuccessResponseDto> {
-    const existing = await this.gatewayConfigService.findById(null, id);
+    const existing = await this.gatewayConfigService.requireWritable('platform', id);
     if (dto.gatewayCode !== undefined && dto.gatewayCode !== existing.gatewayCode) {
       throw new ConflictException({
         label: 'Gateway Cannot Change',
@@ -121,65 +161,51 @@ export class PaymentGatewayConfigService {
         errors: [{ field: 'gatewayCode', message: 'Cannot change once set up' }],
       });
     }
-    return this.gatewayConfigService.updatePlatform(id, dto);
+    const keysVerifiedAt =
+      dto.credentials !== undefined ? await this.verifyKeys(existing.gatewayCode, dto.credentials) : undefined;
+    return this.gatewayConfigService.updatePlatform(existing, dto, keysVerifiedAt);
   }
 
+  // Validates the submitted credential fields for the gateway, then has the gateway itself accept them
+  private verifyKeys(gatewayCode: string, credentials: Record<string, string>): Promise<Date> {
+    return this.paymentGatewaysGatewayService.verifyCredentials(
+      gatewayCode,
+      this.gatewayConfigService.prepareCredentials(gatewayCode, credentials),
+    );
+  }
+
+  // Has the provider check a platform row's credentials
   async verifyPlatform(id: string): Promise<PaymentGatewayConfigVerificationResponseDto> {
-    await this.gatewayConfigService.findById(null, id);
-    return this.paymentGatewaysGatewayService.verifyConfig(null, id);
+    const existing = await this.gatewayConfigService.requireWritable('platform', id);
+    return this.paymentGatewaysGatewayService.verifyConfig(existing);
   }
 
-  // The database refuses while any organization's linked accounts reference the row
+  // Removes a platform row; organizations' payout accounts are invisible here, so the foreign key is the only guard
   async deletePlatform(id: string): Promise<SuccessResponseDto> {
-    return this.deleteGuarded(null, id);
-  }
-
-  // Loads a row the organization may act on: its own, never one of Vritti's. The domain service guards the same
-  // way; checking here keeps a forbidden verify from reaching the provider first
-  private async requireOwn(orgId: string, id: string): Promise<PaymentGatewayConfigDto> {
-    const config = await this.gatewayConfigService.findById(orgId, id);
-    if (config.kind !== PaymentGatewayConfigKindValues.ORG) {
-      throw new ForbiddenException({
-        label: 'Managed By Vritti',
-        detail: "Vritti's gateways cannot be changed, verified or removed from here.",
-      });
-    }
-    return config;
-  }
-
-  // Payout accounts name receiving accounts at the gateway behind a config; removing or re-pointing it would orphan them
-  private async assertNoPayoutAccounts(id: string): Promise<void> {
-    const count = await this.payoutAccountRepository.countByConfig(id);
-    if (count === 0) return;
-    throw gatewayInUse(count);
-  }
-
-  // Deletes, turning the foreign-key refusal into the same 409 — the backstop for payout accounts the caller cannot
-  // see, which is every organization's under a platform row
-  private async deleteGuarded(scope: string | null, id: string): Promise<SuccessResponseDto> {
+    const existing = await this.gatewayConfigService.requireWritable('platform', id);
     try {
-      return await this.gatewayConfigService.delete(scope, id);
+      return await this.gatewayConfigService.delete(existing);
     } catch (error: unknown) {
-      if (isForeignKeyViolation(error)) throw gatewayInUse();
+      if (isForeignKeyViolation(error)) {
+        throw gatewayInUse("Organizations' payout accounts pay out through this Vritti gateway.");
+      }
       throw error;
     }
   }
 }
 
-function gatewayInUse(count?: number): ConflictException {
+// Builds the 409 for a gateway payout accounts still pay out through
+function gatewayInUse(who: string): ConflictException {
   return new ConflictException({
     label: 'Gateway In Use',
-    detail:
-      count === undefined
-        ? 'Payout accounts pay out through this gateway. Remove them first.'
-        : `${pluralize('payout account', count, true)} ${count === 1 ? 'pays' : 'pay'} out through this gateway. Remove ${count === 1 ? 'it' : 'them'} first.`,
+    detail: `${who} Remove those payout accounts before deleting it.`,
   });
 }
 
-// True for a Postgres foreign-key violation, however deep the driver wrapped it
+// Detects a Postgres foreign-key violation, however deep the driver wrapped it
 function isForeignKeyViolation(error: unknown, depth = 0): boolean {
   if (!error || typeof error !== 'object' || depth > 5) return false;
   const candidate = error as { code?: unknown; cause?: unknown };
-  if (candidate.code === PG_FOREIGN_KEY_VIOLATION) return true;
+  if (typeof candidate.code === 'string' && PG_REFERENCED_ROW_CODES.has(candidate.code)) return true;
   return isForeignKeyViolation(candidate.cause, depth + 1);
 }

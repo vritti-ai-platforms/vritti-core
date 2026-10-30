@@ -23,12 +23,12 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     super(database, carts);
   }
 
-  // The party's open basket in this workspace, if they have one
+  // The party's open cart in this workspace, if they have one
   findByParty(partyId: string): Promise<Cart | undefined> {
     return this.findOne({ partyId });
   }
 
-  // The party's basket, opening one if this is their first line here, and whether it opened one
+  // The party's cart, opening one if this is their first line here, and whether it opened one
   async findOrCreateForParty(partyId: string): Promise<{ cart: Cart; opened: boolean }> {
     const inserted = (await this.db
       .insert(carts)
@@ -43,10 +43,10 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
 
     const existing = await this.findByParty(partyId);
     if (existing) return { cart: existing, opened: false };
-    throw new Error(`Could not open a basket for party ${partyId}`);
+    throw new Error(`Could not open a cart for party ${partyId}`);
   }
 
-  // The shape of a priced basket line, ready for a `where` to narrow it
+  // The shape of a priced cart line, ready for a `where` to narrow it
   private lineRows(currencyCode: string, appId?: string | null) {
     const price = this.priceLateral(currencyCode);
 
@@ -105,7 +105,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       .as('price');
   }
 
-  // Every line of one basket
+  // Every line of one cart
   async findItems(cartId: string, currencyCode: string, appId?: string | null): Promise<CartItemRow[]> {
     const rows = await this.lineRows(currencyCode, appId)
       .where(eq(cartItems.cartId, cartId))
@@ -113,7 +113,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     return rows as CartItemRow[];
   }
 
-  // One basket's items for the data table — filtered, sorted and paged by the table's own state
+  // One cart's items for the data table — filtered, sorted and paged by the table's own state
   async findItemsForTable(
     cartId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
@@ -141,7 +141,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     return { result: rows as CartItemRow[], count: Number(total?.count ?? 0) };
   }
 
-  // How many of each product a party holds in their basket here — what a product page draws its quantity stepper from
+  // How many of each product a party holds in their cart here — what a product page draws its quantity stepper from
   async findQuantitiesForParty(partyId: string): Promise<{ code: string; quantity: number }[]> {
     return this.db
       .select({ code: cartItems.code, quantity: cartItems.quantity })
@@ -190,7 +190,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     return rows[0]?.code;
   }
 
-  // Empties a basket without closing it — the cart row survives for the shopper to fill again
+  // Empties a cart without closing it — the cart row survives for the shopper to fill again
   async deleteAllItems(cartId: string): Promise<void> {
     await this.db.delete(cartItems).where(eq(cartItems.cartId, cartId));
   }
@@ -217,7 +217,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     return rows as (CartItemRow & { cartId: string; siteId: string | null; legalEntityId: string })[];
   }
 
-  // The baskets open at this workspace, for the staff table
+  // The carts open at this workspace, for the staff table
   async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
     result: CartTableRow[];
     count: number;
@@ -243,7 +243,7 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
     });
   }
 
-  // One basket with the shopper it belongs to, or nothing when this workspace cannot reach it
+  // One cart with the shopper it belongs to, or nothing when this workspace cannot reach it
   async findByIdWithParty(id: string): Promise<CartTableRow | undefined> {
     const rows = (await this.db
       .select({

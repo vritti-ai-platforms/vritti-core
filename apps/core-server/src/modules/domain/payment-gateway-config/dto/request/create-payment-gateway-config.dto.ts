@@ -12,16 +12,6 @@ export class CreatePaymentGatewayConfigDto {
   gatewayCode: string;
 
   @ApiProperty({
-    description: 'Tells this gateway apart from the others; unique within its group',
-    example: 'Main Razorpay',
-  })
-  @Trim({ nullify: false })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(100)
-  label: string;
-
-  @ApiProperty({
     description: 'Provider credentials keyed by field name; the required keys depend on gatewayCode',
     example: { key_id: 'rzp_live_AbCdEf123456', key_secret: 'xxxxxxxxxxxxxxxx' },
   })

@@ -1,11 +1,23 @@
 import { IsCode } from '@vritti/api-sdk/decorators';
-import { IsInt, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  Max,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class CartScopeDto {
   @IsUUID('7')
   partyId: string;
 
-  // ISO 4217. Fixes which of a listing's prices the basket is read at
+  // ISO 4217. Fixes which of a listing's prices the cart is read at
   @IsString()
   @Length(3, 3)
   currencyCode: string;
@@ -14,6 +26,26 @@ export class CartScopeDto {
   @IsOptional()
   @IsUUID('7')
   appId?: string;
+}
+
+export class CartSiteScopeDto {
+  @IsUUID('7')
+  siteId: string;
+
+  @IsUUID('7')
+  legalEntityId: string;
+
+  @IsString()
+  timezone: string;
+}
+
+export class CartSitesScopeDto extends CartScopeDto {
+  // The sites the storefront sells from; each cart is read under its own site's reach
+  @IsArray()
+  @ArrayMaxSize(200)
+  @ValidateNested({ each: true })
+  @Type(() => CartSiteScopeDto)
+  sites: CartSiteScopeDto[];
 }
 
 export class AddCartItemDto extends CartScopeDto {

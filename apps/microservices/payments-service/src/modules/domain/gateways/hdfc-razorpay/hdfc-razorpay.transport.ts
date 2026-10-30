@@ -13,6 +13,7 @@ import {
   type NormalizedPaymentStatus,
   type NormalizedWebhookEvent,
   type PaymentGatewayTransport,
+  type RefundResult,
   type VerifyCheckoutSignatureInput,
   type VerifyCredentialsResult,
 } from '../gateway-transport';
@@ -130,6 +131,22 @@ export class HdfcRazorpayTransport implements PaymentGatewayTransport {
       `/payments/${encodeURIComponent(providerPaymentId)}`,
     );
     return this.normalizePayment(payment);
+  }
+
+  // Refunds a captured payment, in full or for part of it — POST /payments/:id/refund, amount in paise
+  async refundPayment(
+    credentials: Record<string, string>,
+    providerPaymentId: string,
+    amount: bigint,
+  ): Promise<RefundResult> {
+    const auth = this.auth(credentials);
+    const refund = await this.http.post<{ id: string; status?: string }>(
+      auth,
+      `/payments/${encodeURIComponent(providerPaymentId)}/refund`,
+      { amount: toMinorUnitsNumber(amount) },
+    );
+    this.logger.log(`Refunded ${amount} of payment ${providerPaymentId} as ${refund.id}`);
+    return { providerRefundId: refund.id, status: refund.status ?? 'pending' };
   }
 
   // Checks the signature the checkout widget hands back: HMAC-SHA256(`order_id|payment_id`, key_secret)

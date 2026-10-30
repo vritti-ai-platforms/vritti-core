@@ -2,11 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { type PaymentChannelType, PaymentChannelTypeValues } from '@/db/schema';
 
-// The legal entity is the payout account's own
 export class CreatePayoutChannelDto {
-  @ApiProperty({ description: 'The payout account this scope pays out to', example: 'uuid-here' })
+  @ApiProperty({
+    description: 'The bank account this scope pays out to; its legal entity is the scope',
+    example: 'uuid-here',
+  })
   @IsUUID()
-  payoutAccountId: string;
+  bankAccountId: string;
 
   @ApiPropertyOptional({ description: 'Narrows the channel to one site of the legal entity', example: 'uuid-here' })
   @IsOptional()

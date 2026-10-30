@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
-import { and, desc, ne } from '@vritti/api-sdk/drizzle-orm';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { variantLabel } from '@/common/variant-label';
 import {
   type Order,
@@ -14,11 +14,8 @@ import {
   orders,
 } from '@/db/schema';
 import { OrderDetailDto, OrderDto, OrderItemDto } from '../dto/entity/order.dto';
-import { CheckoutOrderDto, OrderPaymentStatusDto } from '../dto/entity/order-checkout.dto';
-import type { AwaitingPaymentOrderInput } from '../dto/request/awaiting-payment-order-input.dto';
-import type { CancelUnpaidOrderDto } from '../dto/request/cancel-unpaid-order.dto';
 import type { CreateOrderDto, CreateOrderItemDto } from '../dto/request/create-order.dto';
-import type { MarkOrderPaidDto } from '../dto/request/mark-order-paid.dto';
+import type { PaidOrderInput } from '../dto/request/paid-order-input.dto';
 import type { UpdateOrderStatusDto } from '../dto/request/update-order-status.dto';
 import { OrdersDomainRepository } from '../repositories/orders.repository';
 
@@ -35,8 +32,6 @@ export class OrdersDomainService {
 
   // Valid status transitions: current status -> allowed next statuses
   private static readonly STATUS_TRANSITIONS: Record<string, string[]> = {
-    // Leaves only through a payment (markPaid) or the checkout expiring (cancelUnpaid), never by hand
-    [OrderStatusValues.AWAITING_PAYMENT]: [],
     [OrderStatusValues.PENDING]: [OrderStatusValues.ACCEPTED, OrderStatusValues.CANCELLED],
     [OrderStatusValues.ACCEPTED]: [OrderStatusValues.PREPARING, OrderStatusValues.CANCELLED],
     [OrderStatusValues.PREPARING]: [OrderStatusValues.READY, OrderStatusValues.CANCELLED],
@@ -51,10 +46,7 @@ export class OrdersDomainService {
   async findForTable(state: TableViewState): Promise<{ result: OrderDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, OrdersDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, OrdersDomainService.FIELD_MAP);
-    // Unpaid checkouts stay out of the store's queue unless the reader filters by status explicitly
-    const filtersByStatus = state.filters?.some((filter) => filter.field === 'status') ?? false;
-    const unpaidHidden = filtersByStatus ? undefined : ne(orders.status, OrderStatusValues.AWAITING_PAYMENT);
-    const where = and(filterWhere, searchWhere, unpaidHidden);
+    const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, OrdersDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
@@ -118,10 +110,12 @@ export class OrdersDomainService {
     return OrderDto.from(entity);
   }
 
-  // Opens an online order from priced basket lines, held in AWAITING_PAYMENT until the payment lands
-  async createAwaitingPayment(input: AwaitingPaymentOrderInput): Promise<CheckoutOrderDto> {
+  // Opens an online order already paid for — what a converted checkout becomes at one store. The store's queue sees it
+  // from the moment the money landed
+  async createPaid(input: PaidOrderInput): Promise<Order> {
     const lines = input.lines.map((line) => ({ ...line, lineTotal: line.unitPrice * BigInt(line.quantity) }));
     const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0n);
+    const reviewNote = 'Paid after the checkout was cancelled — review.';
 
     const entity = await this.repository.transaction(async () => {
       const orderNumber = await this.repository.generateOrderNumber();
@@ -129,13 +123,13 @@ export class OrdersDomainService {
         orderNumber,
         type: input.type,
         channel: OrderSourceValues.ONLINE,
-        status: OrderStatusValues.AWAITING_PAYMENT,
+        status: OrderStatusValues.PENDING,
         partyId: input.partyId,
         customerName: input.customerName,
         customerPhone: input.customerPhone,
         deliveryAddress: input.deliveryAddress,
-        notes: input.notes,
-        checkoutKey: input.checkoutKey,
+        notes: input.needsReview ? [input.notes, reviewNote].filter(Boolean).join('\n') : input.notes,
+        checkoutId: input.checkoutId,
         currencyCode: input.currencyCode,
         subtotal,
         taxAmount: 0n,
@@ -143,6 +137,13 @@ export class OrdersDomainService {
         deliveryCharge: 0n,
         discountAmount: 0n,
         totalAmount: subtotal,
+        paymentIntentId: input.paymentIntentId,
+        paidAt: input.paidAt,
+        // The store's queue orders by placement — a paid checkout becomes an order when the money lands
+        placedAt: input.paidAt,
+        paymentMethod: input.paymentMethod,
+        paymentReference: input.paymentReference,
+        needsReview: input.needsReview,
       });
 
       await this.repository.createItems(
@@ -164,136 +165,9 @@ export class OrdersDomainService {
     });
 
     this.logger.log(
-      `Checkout order ${entity.orderNumber} (${entity.id}) awaiting payment — ${subtotal} ${input.currencyCode}`,
+      `Order ${entity.orderNumber} (${entity.id}) placed paid from checkout ${input.checkoutId} — ${subtotal} ${input.currencyCode}`,
     );
-    return CheckoutOrderDto.from(entity, input.currencyCode);
-  }
-
-  // The order a party's checkout already opened under this key at this site, if any
-  async findCheckoutOrder(partyId: string, checkoutKey: string, siteId: string): Promise<Order | undefined> {
-    return this.repository.findByCheckoutKey(partyId, checkoutKey, siteId);
-  }
-
-  // Records a captured payment against a site's order and releases it to the store. Idempotent per payment intent
-  async markPaid(
-    data: MarkOrderPaidDto,
-    siteId: string,
-  ): Promise<{
-    result: OrderPaymentStatusDto;
-    partyId: string | null;
-    paidLines: { code: string; quantity: number }[];
-  }> {
-    return this.repository.transaction(async () => {
-      const order = await this.repository.findByIdForUpdate(data.orderId, siteId);
-      if (!order) throw new NotFoundException('Order not found.');
-
-      if (order.paymentIntentId === data.paymentIntentId) {
-        return { result: OrderPaymentStatusDto.from(order), partyId: order.partyId, paidLines: [] };
-      }
-      if (order.paymentIntentId) {
-        this.logger.error(
-          `markPaid REFUSED — order ${order.id} already paid by intent ${order.paymentIntentId}, second intent ${data.paymentIntentId}`,
-        );
-        throw new ConflictException({
-          label: 'Already Paid',
-          detail: `Order ${order.orderNumber} was already paid by another payment. Refund the duplicate.`,
-        });
-      }
-
-      const amount = BigInt(data.amountMinor);
-      if (amount !== order.totalAmount) {
-        this.logger.error(
-          `markPaid AMOUNT MISMATCH — order ${order.id} (${order.orderNumber}) total ${order.totalAmount} ${order.currencyCode}, intent ${data.paymentIntentId} paid ${amount}. Not marked paid.`,
-        );
-        throw new ConflictException({
-          label: 'Amount Mismatch',
-          detail: `The payment of ${amount} does not match the order total of ${order.totalAmount} (minor units).`,
-        });
-      }
-
-      // Legacy orders carry no currency; only those skip the check
-      const currency = data.currency.toUpperCase();
-      if (order.currencyCode && currency !== order.currencyCode.toUpperCase()) {
-        this.logger.error(
-          `markPaid CURRENCY MISMATCH — order ${order.id} (${order.orderNumber}) in ${order.currencyCode}, intent ${data.paymentIntentId} paid in ${currency}. Not marked paid.`,
-        );
-        throw new ConflictException({
-          label: 'Amount Mismatch',
-          detail: `The payment in ${currency} does not match the order currency ${order.currencyCode}.`,
-        });
-      }
-
-      const wasCancelled = order.status === OrderStatusValues.CANCELLED;
-      if (order.status !== OrderStatusValues.AWAITING_PAYMENT && !wasCancelled) {
-        throw new ConflictException({
-          label: 'Order Not Payable',
-          detail: `Order ${order.orderNumber} is ${order.status} and is not waiting for a payment.`,
-        });
-      }
-
-      const paidAt = new Date(data.paidAt);
-      const updated = await this.repository.update(order.id, {
-        status: OrderStatusValues.PENDING,
-        paymentIntentId: data.paymentIntentId,
-        paidAt,
-        paymentMethod: data.method ?? null,
-        paymentReference: data.providerPaymentId ?? null,
-        // The store's queue orders by placement — a paid checkout becomes an order when the money lands
-        placedAt: paidAt,
-        ...(wasCancelled ? this.reopenAfterLatePayment(order) : {}),
-      });
-
-      if (wasCancelled) {
-        this.logger.warn(
-          `Order ${updated.orderNumber} paid after cancellation — reopened as PENDING, flagged for review`,
-        );
-      } else {
-        this.logger.log(`Order ${updated.orderNumber} paid — intent ${data.paymentIntentId}`);
-      }
-
-      const items = await this.repository.findItemsByOrderId(order.id);
-      return {
-        result: OrderPaymentStatusDto.from(updated),
-        partyId: updated.partyId,
-        paidLines: items.flatMap((item) => (item.code ? [{ code: item.code, quantity: item.quantity }] : [])),
-      };
-    });
-  }
-
-  // Abandons a site's unpaid checkout.
-  async cancelUnpaid(data: CancelUnpaidOrderDto, siteId: string): Promise<OrderPaymentStatusDto> {
-    const { orderId, reason, paymentIntentId } = data;
-    return this.repository.transaction(async () => {
-      const order = await this.repository.findByIdForUpdate(orderId, siteId);
-      if (!order) throw new NotFoundException('Order not found.');
-      if (paymentIntentId && order.paymentIntentId && order.paymentIntentId !== paymentIntentId) {
-        this.logger.warn(
-          `cancelUnpaid skipped — order ${order.orderNumber} is bound to intent ${order.paymentIntentId}, not ${paymentIntentId}`,
-        );
-        return OrderPaymentStatusDto.from(order);
-      }
-      if (order.status !== OrderStatusValues.AWAITING_PAYMENT) return OrderPaymentStatusDto.from(order);
-
-      const updated = await this.repository.update(order.id, {
-        status: OrderStatusValues.CANCELLED,
-        cancelledAt: new Date(),
-        cancellationReason: reason,
-      });
-      this.logger.log(`Unpaid checkout ${updated.orderNumber} cancelled — ${reason}`);
-      return OrderPaymentStatusDto.from(updated);
-    });
-  }
-
-  // The fields that turn a cancelled order back into a live one flagged for staff review
-  private reopenAfterLatePayment(order: Order): Partial<Order> {
-    const reason = order.cancellationReason ? ` (was cancelled: ${order.cancellationReason})` : '';
-    const reviewNote = `Paid after cancellation${reason} — review.`;
-    return {
-      needsReview: true,
-      cancelledAt: null,
-      cancellationReason: null,
-      notes: order.notes ? `${order.notes}\n${reviewNote}` : reviewNote,
-    };
+    return entity;
   }
 
   // Returns order detail with items

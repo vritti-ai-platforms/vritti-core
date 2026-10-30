@@ -33,7 +33,7 @@ import {
   type CartTableResponse,
 } from './services/carts-gateway.service';
 
-// The currency a basket is read in when the caller names none
+// The currency a cart is read in when the caller names none
 const DEFAULT_CURRENCY = 'INR';
 
 @ApiTags('Commerce - Carts')
@@ -46,7 +46,7 @@ export class CartsGatewayController {
 
   constructor(private readonly service: CartsGatewayService) {}
 
-  // Returns paginated baskets for the data table with server-stored state
+  // Returns paginated carts for the data table with server-stored state
   @Get('table')
   @RequirePermission(SITE_CARTS.view)
   findForTable(@UserId() userId: string): Promise<CartTableResponse> {
@@ -54,7 +54,7 @@ export class CartsGatewayController {
     return this.service.findForTable(userId);
   }
 
-  // Returns paginated items of one basket for the data table with server-stored state
+  // Returns paginated items of one cart for the data table with server-stored state
   @Get(':id/items/table')
   @RequirePermission(SITE_CARTS.view)
   findItemsForTable(
@@ -66,7 +66,7 @@ export class CartsGatewayController {
     return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 
-  // Opens a basket for a party, or hands back the one they already have here
+  // Opens a cart for a party, or hands back the one they already have here
   @Post()
   @RequirePermission(SITE_CARTS.add)
   open(@Body() dto: OpenCartDto): Promise<CreateResponseDto<CartRow>> {
@@ -81,7 +81,7 @@ export class CartsGatewayController {
     return this.service.findById(id);
   }
 
-  // Returns the basket's lines, priced through this outlet's channel
+  // Returns the cart's lines, priced through this outlet's channel
   @Get(':id/items')
   @RequirePermission(SITE_CARTS.view)
   findItems(@Param('id', new ParseUUIDPipe()) id: string, @Query() query: CartsQueryDto): Promise<CartLinesResponse> {
@@ -89,7 +89,7 @@ export class CartsGatewayController {
     return this.service.findItems(id, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 
-  // Adds a product to the basket
+  // Adds a product to the cart
   @Post(':id/items')
   @RequirePermission(SITE_CARTS.add)
   @HttpCode(HttpStatus.OK)
@@ -105,7 +105,7 @@ export class CartsGatewayController {
     });
   }
 
-  // A line is addressed by its basket and its product
+  // A line is addressed by its cart and its product
   @Patch(':id/items/:offeringVariantId')
   @RequirePermission(SITE_CARTS.edit)
   updateItem(
@@ -135,7 +135,7 @@ export class CartsGatewayController {
     });
   }
 
-  // Closes the basket outright — the lines go with it
+  // Closes the cart outright — the lines go with it
   @Delete(':id')
   @RequirePermission(SITE_CARTS.delete)
   close(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {

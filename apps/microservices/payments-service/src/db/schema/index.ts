@@ -1,4 +1,5 @@
 export * from './enums';
+export * from './payment-allocations';
 export * from './payment-attempts';
 export * from './payment-events';
 export * from './payment-intents';

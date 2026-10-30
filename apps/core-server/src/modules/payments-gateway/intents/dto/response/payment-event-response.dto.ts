@@ -11,7 +11,7 @@ export interface PaymentEventPayloadDto {
   paymentIntentId: string;
   appId: string | null;
   partyId: string | null;
-  legalEntityId: string;
+  legalEntityId: string | null;
   siteId: string | null;
   configId: string;
   reference: { type: string; id: string };

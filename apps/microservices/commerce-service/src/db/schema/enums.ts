@@ -28,6 +28,9 @@ export const BOM_RULES = {
 } as const;
 
 export const orderSourceEnum = commerceSchema.enum('order_source', ['ONLINE', 'WALK_IN']);
+// OPEN: payable. PAID: the payment landed, orders being made. CONVERTED: one order per store exists. CANCELLED:
+// expired or cancelled unpaid — a late payment still converts it
+export const checkoutStatusEnum = commerceSchema.enum('checkout_status', ['OPEN', 'PAID', 'CONVERTED', 'CANCELLED']);
 export const orderStatusEnum = commerceSchema.enum('order_status', [
   'AWAITING_PAYMENT',
   'PENDING',
@@ -74,6 +77,7 @@ export const creditNoteStatusEnum = commerceSchema.enum('credit_note_status', [
 
 export type OrderSource = (typeof orderSourceEnum.enumValues)[number];
 export type OrderStatus = (typeof orderStatusEnum.enumValues)[number];
+export type CheckoutStatus = (typeof checkoutStatusEnum.enumValues)[number];
 export type OrderItemStatus = (typeof orderItemStatusEnum.enumValues)[number];
 export type PaymentMethod = (typeof paymentMethodEnum.enumValues)[number];
 export type InvoiceStatus = (typeof invoiceStatusEnum.enumValues)[number];
@@ -95,6 +99,13 @@ export const OrderStatusValues = {
   PREPARING: 'PREPARING' as const,
   READY: 'READY' as const,
   COMPLETED: 'COMPLETED' as const,
+  CANCELLED: 'CANCELLED' as const,
+};
+
+export const CheckoutStatusValues = {
+  OPEN: 'OPEN' as const,
+  PAID: 'PAID' as const,
+  CONVERTED: 'CONVERTED' as const,
   CANCELLED: 'CANCELLED' as const,
 };
 

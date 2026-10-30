@@ -44,22 +44,40 @@ export async function vapSdk(payload: PayloadLike, context: { partyId?: string }
   return getSdk(payload).forContext({ ...context, ...(await resolveWorkspace()) });
 }
 
-// The context a visitor starts in, from what cloud injected.
+// The context a visitor starts in: the configured store, else the first store the organization offers, else the
+// configured legal entity on its own. The store switcher moves them from there
 export const seededWorkspace = cache(async (payload: PayloadLike): Promise<Workspace> => {
-  const sdk = getSdk(payload);
-  const { siteId, legalEntityId } = sdk.defaults;
+  const workspace = await seedScope(getSdk(payload));
+  const currencyCode = await defaultCurrency(payload, workspace);
+  return { ...workspace, currencyCode };
+});
 
-  if (!legalEntityId) {
+// A configured store names its legal entity itself, so the entity need not be configured beside it
+async function seedScope(sdk: ReturnType<typeof getSdk>): Promise<{ siteId: string | null; legalEntityId: string }> {
+  const { siteId, legalEntityId } = sdk.defaults;
+  if (siteId) {
+    const site = await sdk.structure.findSite(siteId);
+    if (!site) {
+      throw new VapError(
+        'This storefront is configured with a store it may not sell from — check the default store on the website in Vritti Cloud.',
+        'Not Configured',
+        undefined,
+      );
+    }
+    return { siteId: site.id, legalEntityId: site.legalEntityId };
+  }
+  if (legalEntityId) return { siteId: null, legalEntityId };
+
+  const [first] = await sdk.structure.sites();
+  if (!first) {
     throw new VapError(
-      'This storefront has no default legal entity — set a default store or legal entity on the website in Vritti Cloud.',
+      'This storefront has no store to sell from — add one in Vritti Cloud, or set a default store or legal entity on the website.',
       'Not Configured',
       undefined,
     );
   }
-
-  const currencyCode = await defaultCurrency(payload, { siteId, legalEntityId });
-  return { siteId, legalEntityId, currencyCode };
-});
+  return { siteId: first.id, legalEntityId: first.legalEntityId };
+}
 
 // The currencies the catalogue resolved for this context declares, in the order it offers them.
 export async function workspaceCurrencies(

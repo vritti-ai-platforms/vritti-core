@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { count, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type BankAccount, bankAccounts, payoutAccounts } from '@/db/schema';
+import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { type BankAccount, bankAccounts, payoutAccounts, payoutChannels } from '@/db/schema';
 
 @Injectable()
 export class BankAccountDomainRepository extends PrimaryBaseRepository<typeof bankAccounts> {
@@ -43,12 +43,15 @@ export class BankAccountDomainRepository extends PrimaryBaseRepository<typeof ba
     });
   }
 
-  // Counts the payout accounts that pay into the bank account
-  async countReferences(id: string): Promise<{ payoutAccounts: number }> {
-    const [linked] = await this.db
-      .select({ value: count() })
-      .from(payoutAccounts)
-      .where(eq(payoutAccounts.bankAccountId, id));
-    return { payoutAccounts: Number(linked?.value ?? 0) };
+  // Counts the payout accounts and payout channels that use the bank account, in one query
+  async countReferences(id: string): Promise<{ payoutAccounts: number; payoutChannels: number }> {
+    const [row] = await this.db
+      .select({
+        payoutAccounts: this.db.$count(payoutAccounts, eq(payoutAccounts.bankAccountId, id)),
+        payoutChannels: this.db.$count(payoutChannels, eq(payoutChannels.bankAccountId, id)),
+      })
+      .from(bankAccounts)
+      .where(eq(bankAccounts.id, id));
+    return { payoutAccounts: Number(row?.payoutAccounts ?? 0), payoutChannels: Number(row?.payoutChannels ?? 0) };
   }
 }

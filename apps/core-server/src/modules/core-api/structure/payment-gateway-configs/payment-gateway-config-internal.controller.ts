@@ -1,9 +1,10 @@
 import type { PaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/entity/payment-gateway-config.dto';
 import { CreatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-payment-gateway-config.dto';
 import { CreatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-platform-payment-gateway-config.dto';
-import { UpdatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-payment-gateway-config.dto';
 import { UpdatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-platform-payment-gateway-config.dto';
+import { VerificationPaymentRequestDto } from '@domain/payment-gateway-config/dto/request/verification-payment-request.dto';
 import type { PaymentGatewayConfigVerificationResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-config-verification-response.dto';
+import type { PaymentGatewayConfigsPageResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-configs-page-response.dto';
 import {
   Body,
   Controller,
@@ -16,6 +17,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
@@ -27,19 +29,25 @@ import {
   ApiCreatePlatformPaymentGatewayConfigInternal,
   ApiDeletePaymentGatewayConfigInternal,
   ApiDeletePlatformPaymentGatewayConfigInternal,
+  ApiFindForTablePaymentGatewayConfigsInternal,
+  ApiFindForTablePlatformPaymentGatewayConfigsInternal,
   ApiGetPaymentGatewayConfigInternal,
+  ApiGetWebhookCheckInternal,
   ApiListPaymentGatewayConfigsInternal,
   ApiListPaymentGatewaysInternal,
   ApiListPlatformPaymentGatewayConfigsInternal,
-  ApiUpdatePaymentGatewayConfigInternal,
+  ApiStartWebhookCheckInternal,
   ApiUpdatePlatformPaymentGatewayConfigInternal,
   ApiVerifyPaymentGatewayConfigInternal,
   ApiVerifyPlatformPaymentGatewayConfigInternal,
 } from './docs/payment-gateway-config-internal.docs';
+import { GetPaymentGatewayConfigsInternalDto } from './dto/request/get-payment-gateway-configs-internal.dto';
+import type {
+  WebhookCheckStartedResponseDto,
+  WebhookCheckStatusResponseDto,
+} from './dto/response/webhook-check-response.dto';
 import { PaymentGatewayConfigService } from './services/payment-gateway-config-api.service';
 
-// The cloud-facing surface for collectors. The organization routes read the org from the signed x-org-id header;
-// the platform routes are called by cloud admin with no org at all, which is what confines them to the PLATFORM rows
 @ApiTags('Structure - Payment Gateway Configs (internal)')
 @Require(AuthType.Cloud)
 @Controller('payment-gateway-configs/internal')
@@ -48,12 +56,23 @@ export class PaymentGatewayConfigInternalController {
 
   constructor(private readonly paymentGatewayConfigService: PaymentGatewayConfigService) {}
 
-  // The organization's own gateways, then Vritti's read-only
+  // The organization's own gateways and Vritti's read-only, for pickers
   @Get()
   @ApiListPaymentGatewayConfigsInternal()
   list(@OrgId() orgId: string): Promise<PaymentGatewayConfigDto[]> {
     this.logger.log(`GET /payment-gateway-configs/internal — org ${orgId}`);
-    return this.paymentGatewayConfigService.list(orgId);
+    return this.paymentGatewayConfigService.list();
+  }
+
+  // Resolves one table page from the view state cloud holds and sends serialized
+  @Get('table')
+  @ApiFindForTablePaymentGatewayConfigsInternal()
+  findForTable(
+    @OrgId() orgId: string,
+    @Query() query: GetPaymentGatewayConfigsInternalDto,
+  ): Promise<PaymentGatewayConfigsPageResponseDto> {
+    this.logger.log(`GET /payment-gateway-configs/internal/table — org ${orgId}`);
+    return this.paymentGatewayConfigService.findForTableWithQuery('organization', query);
   }
 
   // The gateways payments-service can charge through, for the cloud UI to intersect with the catalog
@@ -66,6 +85,17 @@ export class PaymentGatewayConfigInternalController {
 
   // ---- Platform gateways — Vritti's accounts on this deployment, managed only from cloud admin ----
 
+  // Resolves one page of the platform rows from the view state cloud holds
+  @Get('platform/table')
+  @ApiFindForTablePlatformPaymentGatewayConfigsInternal()
+  findPlatformForTable(
+    @Query() query: GetPaymentGatewayConfigsInternalDto,
+  ): Promise<PaymentGatewayConfigsPageResponseDto> {
+    this.logger.log('GET /payment-gateway-configs/internal/platform/table');
+    return this.paymentGatewayConfigService.findForTableWithQuery('platform', query);
+  }
+
+  // Lists Vritti's gateways on this deployment
   @Get('platform')
   @ApiListPlatformPaymentGatewayConfigsInternal()
   listPlatform(): Promise<PaymentGatewayConfigDto[]> {
@@ -73,6 +103,7 @@ export class PaymentGatewayConfigInternalController {
     return this.paymentGatewayConfigService.listPlatform();
   }
 
+  // Sets up one of Vritti's gateways on this deployment
   @Post('platform')
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatePlatformPaymentGatewayConfigInternal()
@@ -83,6 +114,7 @@ export class PaymentGatewayConfigInternalController {
     return this.paymentGatewayConfigService.createPlatform(dto);
   }
 
+  // Updates a platform row's credentials or fee
   @Patch('platform/:id')
   @ApiUpdatePlatformPaymentGatewayConfigInternal()
   updatePlatform(
@@ -93,6 +125,7 @@ export class PaymentGatewayConfigInternalController {
     return this.paymentGatewayConfigService.updatePlatform(id, dto);
   }
 
+  // Has the provider check a platform row's credentials
   @Post('platform/:id/verify')
   @HttpCode(HttpStatus.OK)
   @ApiVerifyPlatformPaymentGatewayConfigInternal()
@@ -101,6 +134,7 @@ export class PaymentGatewayConfigInternalController {
     return this.paymentGatewayConfigService.verifyPlatform(id);
   }
 
+  // Removes a platform row
   @Delete('platform/:id')
   @HttpCode(HttpStatus.OK)
   @ApiDeletePlatformPaymentGatewayConfigInternal()
@@ -111,6 +145,7 @@ export class PaymentGatewayConfigInternalController {
 
   // ---- The organization's own gateways ----
 
+  // Connects one of the organization's own gateways
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatePaymentGatewayConfigInternal()
@@ -122,40 +157,51 @@ export class PaymentGatewayConfigInternalController {
     return this.paymentGatewayConfigService.create(orgId, dto);
   }
 
+  // Returns one gateway the organization can see
   @Get(':id')
   @ApiGetPaymentGatewayConfigInternal()
-  findById(@OrgId() orgId: string, @Param('id', ParseUUIDPipe) id: string): Promise<PaymentGatewayConfigDto> {
+  findById(@Param('id', ParseUUIDPipe) id: string): Promise<PaymentGatewayConfigDto> {
     this.logger.log(`GET /payment-gateway-configs/internal/${id}`);
-    return this.paymentGatewayConfigService.findById(orgId, id);
+    return this.paymentGatewayConfigService.findById(id);
   }
 
-  @Patch(':id')
-  @ApiUpdatePaymentGatewayConfigInternal()
-  update(
-    @OrgId() orgId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdatePaymentGatewayConfigDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /payment-gateway-configs/internal/${id}`);
-    return this.paymentGatewayConfigService.update(orgId, id, dto);
-  }
-
+  // Has the provider check an own gateway's credentials
   @Post(':id/verify')
   @HttpCode(HttpStatus.OK)
   @ApiVerifyPaymentGatewayConfigInternal()
-  verify(
-    @OrgId() orgId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<PaymentGatewayConfigVerificationResponseDto> {
+  verify(@Param('id', ParseUUIDPipe) id: string): Promise<PaymentGatewayConfigVerificationResponseDto> {
     this.logger.log(`POST /payment-gateway-configs/internal/${id}/verify`);
-    return this.paymentGatewayConfigService.verify(orgId, id);
+    return this.paymentGatewayConfigService.verify(id);
   }
 
+  // Opens the ₹10 verification payment whose signed webhook makes the gateway ACTIVE
+  @Post(':id/webhook-check')
+  @ApiStartWebhookCheckInternal()
+  startWebhookCheck(
+    @OrgId() orgId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: VerificationPaymentRequestDto,
+  ): Promise<WebhookCheckStartedResponseDto> {
+    this.logger.log(`POST /payment-gateway-configs/internal/${id}/webhook-check`);
+    return this.paymentGatewayConfigService.startWebhookCheck(orgId, id, dto);
+  }
+
+  // Where a verification payment stands, for the dialog waiting on its outcome
+  @Get(':id/webhook-check/:paymentIntentId')
+  @ApiGetWebhookCheckInternal()
+  findWebhookCheck(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('paymentIntentId', ParseUUIDPipe) paymentIntentId: string,
+  ): Promise<WebhookCheckStatusResponseDto> {
+    return this.paymentGatewayConfigService.findWebhookCheck(id, paymentIntentId);
+  }
+
+  // Removes one of the organization's own gateways
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiDeletePaymentGatewayConfigInternal()
-  delete(@OrgId() orgId: string, @Param('id', ParseUUIDPipe) id: string): Promise<SuccessResponseDto> {
+  delete(@Param('id', ParseUUIDPipe) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /payment-gateway-configs/internal/${id}`);
-    return this.paymentGatewayConfigService.delete(orgId, id);
+    return this.paymentGatewayConfigService.delete(id);
   }
 }

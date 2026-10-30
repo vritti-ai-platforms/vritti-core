@@ -1,6 +1,8 @@
 export const GatewayCodeValues = {
   RAZORPAY: 'razorpay' as const,
   HDFC_RAZORPAY: 'hdfc-razorpay' as const,
+  CASHFREE: 'cashfree' as const,
+  EASEBUZZ: 'easebuzz' as const,
 };
 
 export type NormalizedPaymentStatus = 'created' | 'authorized' | 'captured' | 'refunded' | 'failed';
@@ -62,6 +64,18 @@ export interface CreateOrderInput {
   customer?: GatewayCustomer;
   // Shares the gateway splits off once the payment is captured; only a gateway with split support takes them
   transfers?: CreateTransferInput[];
+  // The intent the order pays, for gateways that key their order on it
+  paymentIntentId?: string;
+  // Where a gateway that redirects on its own sends the shopper back to, carrying the intent it paid
+  returnUrl?: string;
+  // Where a gateway that takes a webhook URL on each order delivers that order's webhooks; one that does not ignores it
+  notifyUrl?: string;
+  // Core's hosted checkout callback for this intent, for a gateway that posts the payment's result to a URL set on the
+  // order; one whose checkout is handed the URL in the browser ignores it
+  callbackUrl?: string;
+  // The config's main account at the gateway. A gateway whose split must cover the whole amount sends what the legs
+  // leave over to it; one that keeps the remainder in the main account on its own ignores it
+  mainAccountId?: string;
 }
 
 export interface CreateOrderResult {
@@ -149,6 +163,10 @@ export interface FetchLinkedAccountStatusInput {
   providerData: LinkedAccountProviderData;
 }
 
+export interface LinkedAccountLookup {
+  status: LinkedAccountStatus;
+}
+
 export interface LinkedAccountStatusResult {
   status: LinkedAccountStatus;
   requirements: string[];
@@ -180,11 +198,22 @@ export interface GatewaySplitCapability {
     credentials: Record<string, string>,
     input: FetchLinkedAccountStatusInput,
   ): Promise<LinkedAccountStatusResult>;
+  // Looks an existing linked account up by id under the given keys; null when the gateway has none
+  fetchLinkedAccount(
+    credentials: Record<string, string>,
+    providerAccountId: string,
+  ): Promise<LinkedAccountLookup | null>;
   createTransfers(
     credentials: Record<string, string>,
     providerPaymentId: string,
     transfers: CreateTransferInput[],
   ): Promise<CreateTransferResult[]>;
+}
+
+// What a gateway answered a refund with
+export interface RefundResult {
+  providerRefundId: string;
+  status: string;
 }
 
 export interface PaymentGatewayTransport {
@@ -194,7 +223,12 @@ export interface PaymentGatewayTransport {
   verifyCredentials(credentials: Record<string, string>): Promise<VerifyCredentialsResult>;
   createOrder(credentials: Record<string, string>, input: CreateOrderInput): Promise<CreateOrderResult>;
   fetchPayment(credentials: Record<string, string>, providerPaymentId: string): Promise<NormalizedPayment>;
+  // Returns a captured payment's money, whole or in part; a gateway without it cannot refund through the platform yet
+  refundPayment?(credentials: Record<string, string>, providerPaymentId: string, amount: bigint): Promise<RefundResult>;
   verifyCheckoutSignature(credentials: Record<string, string>, input: VerifyCheckoutSignatureInput): boolean;
+  // Reads an order's payment back from the gateway, null while it has none. A gateway with it completes a browser
+  // return by this server-side read alone, so nothing the browser posted is trusted, signature included
+  fetchOrderPayment?(credentials: Record<string, string>, providerOrderId: string): Promise<NormalizedPayment | null>;
   verifyWebhook(webhookSecret: string, rawBody: string, headers: Record<string, string>): boolean;
   parseWebhook(rawBody: string, headers: Record<string, string>): NormalizedWebhookEvent[];
 }

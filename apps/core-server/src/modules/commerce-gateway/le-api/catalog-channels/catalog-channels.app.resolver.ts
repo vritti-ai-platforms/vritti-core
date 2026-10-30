@@ -58,7 +58,7 @@ export class LeCatalogChannelsAppResolver {
     return this.service.appListingByCode(appId, code, currencyCode);
   }
 
-  // The same range narrowed to variants the caller already holds — reconciling a wishlist or a basket
+  // The same range narrowed to variants the caller already holds — reconciling a wishlist or a cart
   @Query(() => [CatalogListing], { name: 'leCatalogListingsByCodes' })
   @RequirePermission(LE_CATALOG_CHANNELS.listings)
   leCatalogListingsByCodes(

@@ -17,7 +17,7 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
  */
 const config: CodegenConfig = {
   schema: '../../apps/core-server/src/schema.app.gql',
-  documents: ['src/**/*.ts', '!src/core/gql/**'],
+  documents: ['src/**/*.ts', '!src/**/*.test.ts', '!src/core/gql/**'],
   ignoreNoDocuments: true,
   emitLegacyCommonJSImports: false,
   generates: {

@@ -53,8 +53,8 @@ export type CreatePaymentIntentInput = {
   idempotencyKey: string;
   metadata?: Record<string, string>;
   channel?: PaymentChannel;
-  // The gateway the shopper picked, one of `checkout.paymentGateways()`
-  paymentGatewayConfigId: string;
+  // The gateway to charge through, by its code, e.g. "razorpay"; which account is resolved from the store's payouts
+  gatewayCode: string;
   returnUrl?: string;
   checkoutUrl?: string;
 };
@@ -139,7 +139,7 @@ export function createPaymentsOperations(client: ApolloClient, context: RequestC
                 idempotencyKey: input.idempotencyKey,
                 metadata: toKeyValues(input.metadata),
                 channel: input.channel,
-                paymentGatewayConfigId: input.paymentGatewayConfigId,
+                gatewayCode: input.gatewayCode,
                 returnUrl: input.returnUrl,
                 checkoutUrl: input.checkoutUrl,
               },

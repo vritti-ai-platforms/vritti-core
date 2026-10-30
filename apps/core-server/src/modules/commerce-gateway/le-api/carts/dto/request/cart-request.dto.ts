@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsInt, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-validator';
 
 export class CartsQueryDto {
-  @ApiPropertyOptional({ description: 'ISO 4217 the basket is priced in', example: 'INR' })
+  @ApiPropertyOptional({ description: 'ISO 4217 the cart is priced in', example: 'INR' })
   @IsOptional()
   @IsString()
   @Length(3, 3)
@@ -10,13 +10,13 @@ export class CartsQueryDto {
 }
 
 export class OpenCartDto {
-  @ApiProperty({ description: 'The party this basket is for — every basket belongs to one.' })
+  @ApiProperty({ description: 'The party this cart is for — every cart belongs to one.' })
   @IsUUID('7')
   partyId: string;
 }
 
 export class AddCartLineDto {
-  @ApiProperty({ description: 'The party whose basket this is — the response is their whole list' })
+  @ApiProperty({ description: 'The party whose cart this is — the response is their whole list' })
   @IsUUID('7')
   partyId: string;
 

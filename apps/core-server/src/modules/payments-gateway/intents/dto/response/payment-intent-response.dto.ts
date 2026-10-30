@@ -18,7 +18,7 @@ export interface PaymentMoneyResponseDto {
 
 export interface PaymentIntentResponseDto {
   id: string;
-  legalEntityId: string;
+  legalEntityId: string | null;
   siteId: string | null;
   appId: string | null;
   partyId: string | null;

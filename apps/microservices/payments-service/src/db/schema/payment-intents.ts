@@ -15,7 +15,8 @@ export const paymentIntents = paymentsSchema.table(
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
-    legalEntityId: uuid('legal_entity_id').notNull(),
+    // Null for a checkout that spans legal entities — the split legs then say who is paid
+    legalEntityId: uuid('legal_entity_id'),
     siteId: uuid('site_id'),
     appId: uuid('app_id'),
     // The party the payment is made by, when the caller acts for one; null for a guest payment

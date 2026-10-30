@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { PaymentGatewayConfigKindValues } from '@/db/schema';
 import type { PayoutAccountDetail } from '../../repositories/payout-account.repository';
 
@@ -11,17 +11,11 @@ export class PayoutAccountGatewayDto {
 
   @ApiProperty({ example: 'razorpay' })
   gatewayCode: string;
-
-  @ApiProperty({ example: 'Vritti Razorpay' })
-  label: string;
 }
 
 export class PayoutAccountBankDto {
   @ApiProperty({ example: 'uuid-here' })
   id: string;
-
-  @ApiPropertyOptional({ example: 'Main current account', nullable: true })
-  label: string | null;
 
   @ApiProperty({ example: 'HDFC Bank' })
   bankName: string;
@@ -67,7 +61,6 @@ export class PayoutAccountDto {
     dto.paymentGatewayConfig = { ...row.gateway };
     dto.bankAccount = {
       id: row.bank.id,
-      label: row.bank.label,
       bankName: row.bank.bankName,
       accountNumberLast4: row.bank.accountNumber.slice(-4),
     };

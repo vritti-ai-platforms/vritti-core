@@ -1,6 +1,7 @@
 import type { PayoutAccountDto } from '@domain/payout-account/dto/entity/payout-account.dto';
 import { CreatePayoutAccountDto } from '@domain/payout-account/dto/request/create-payout-account.dto';
 import { UpdatePayoutAccountDto } from '@domain/payout-account/dto/request/update-payout-account.dto';
+import type { PayoutAccountsPageResponseDto } from '@domain/payout-account/dto/response/payout-accounts-page-response.dto';
 import {
   Body,
   Controller,
@@ -22,13 +23,14 @@ import { OrgId } from '@/security/decorators';
 import {
   ApiCreatePayoutAccountInternal,
   ApiDeletePayoutAccountInternal,
+  ApiFindForTablePayoutAccountsInternal,
   ApiListPayoutAccountsInternal,
   ApiUpdatePayoutAccountInternal,
 } from './docs/payout-account-internal.docs';
+import { GetPayoutAccountsInternalDto } from './dto/request/get-payout-accounts-internal.dto';
 import { ListPayoutAccountsInternalQueryDto } from './dto/request/list-payout-accounts-internal-query.dto';
 import { PayoutAccountService } from './services/payout-account-api.service';
 
-// The cloud-facing surface for payout accounts
 @ApiTags('Structure - Payout Accounts (internal)')
 @Require(AuthType.Cloud)
 @Controller('payout-accounts/internal')
@@ -37,15 +39,23 @@ export class PayoutAccountInternalController {
 
   constructor(private readonly payoutAccountService: PayoutAccountService) {}
 
-  @Get()
-  @ApiListPayoutAccountsInternal()
-  list(@OrgId() orgId: string, @Query() query: ListPayoutAccountsInternalQueryDto): Promise<PayoutAccountDto[]> {
-    this.logger.log(
-      `GET /payout-accounts/internal — bank account ${query.bankAccountId ?? '-'} legal entity ${query.legalEntityId ?? '-'}`,
-    );
-    return this.payoutAccountService.list(orgId, query);
+  // Resolves one table page from the view state cloud holds and sends serialized
+  @Get('table')
+  @ApiFindForTablePayoutAccountsInternal()
+  findForTable(@Query() query: GetPayoutAccountsInternalDto): Promise<PayoutAccountsPageResponseDto> {
+    this.logger.log('GET /payout-accounts/internal/table');
+    return this.payoutAccountService.findForTableWithQuery(query);
   }
 
+  // Every payout account of a legal entity, for the payout channel picker
+  @Get()
+  @ApiListPayoutAccountsInternal()
+  list(@Query() query: ListPayoutAccountsInternalQueryDto): Promise<PayoutAccountDto[]> {
+    this.logger.log(`GET /payout-accounts/internal — legal entity ${query.legalEntityId}`);
+    return this.payoutAccountService.list(query.legalEntityId);
+  }
+
+  // Adds a payout account to a bank account
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatePayoutAccountInternal()
@@ -54,22 +64,20 @@ export class PayoutAccountInternalController {
     return this.payoutAccountService.create(orgId, dto);
   }
 
+  // Changes a payout account's gateway account id
   @Patch(':id')
   @ApiUpdatePayoutAccountInternal()
-  update(
-    @OrgId() orgId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdatePayoutAccountDto,
-  ): Promise<SuccessResponseDto> {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePayoutAccountDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /payout-accounts/internal/${id}`);
-    return this.payoutAccountService.update(orgId, id, dto);
+    return this.payoutAccountService.update(id, dto);
   }
 
+  // Removes a payout account no payout channel uses
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiDeletePayoutAccountInternal()
-  delete(@OrgId() orgId: string, @Param('id', ParseUUIDPipe) id: string): Promise<SuccessResponseDto> {
+  delete(@Param('id', ParseUUIDPipe) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /payout-accounts/internal/${id}`);
-    return this.payoutAccountService.delete(orgId, id);
+    return this.payoutAccountService.delete(id);
   }
 }

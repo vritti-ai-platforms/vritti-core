@@ -44,9 +44,7 @@ export class PaymentWebhookService {
 
     if (!rawBody) throw new BadRequestException('Webhook body is required.');
 
-    const target = await this.db.runWithRlsContext({ orgId }, () =>
-      this.configService.findWebhookTarget(orgId, configId),
-    );
+    const target = await this.db.runWithRlsContext({ orgId }, () => this.configService.findWebhookTarget(configId));
     if (!target || target.gatewayCode !== gatewayCode) {
       this.logger.warn(`[payment-webhook] no ${gatewayCode} config ${configId} in org ${orgId} — ignoring`);
       throw new NotFoundException('Payment gateway config not found.');
@@ -70,6 +68,16 @@ export class PaymentWebhookService {
         headers: flattenHeaders(request.headers),
       },
     );
+
+    // payments-service answers only once the signature matched, so this webhook proves the URL and secret registered
+    // at the gateway. Never fails the delivery: a missed stamp is caught by the next webhook
+    await this.db
+      .runWithRlsContext({ orgId }, () => this.configService.markWebhookReceived(configId))
+      .catch((error: unknown) =>
+        this.logger.warn(
+          `[payment-webhook] could not stamp config ${configId}: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
 
     // Settles orders and queues app webhooks for what the provider just reported.
     if (paymentEvents && paymentEvents.length > 0) {

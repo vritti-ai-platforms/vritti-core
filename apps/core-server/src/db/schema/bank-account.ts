@@ -14,7 +14,6 @@ export const bankAccounts = coreSchema.table(
     legalEntityId: uuid('legal_entity_id')
       .notNull()
       .references(() => legalEntities.id, { onDelete: 'restrict' }),
-    label: varchar('label', { length: 100 }),
     accountHolderName: varchar('account_holder_name', { length: 255 }).notNull(),
     accountNumber: varchar('account_number', { length: 50 }).notNull(),
     ifscCode: varchar('ifsc_code', { length: 11 }).notNull(),

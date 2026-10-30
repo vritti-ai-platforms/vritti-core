@@ -90,42 +90,67 @@ export class PaymentIntent {
   createdAt: string;
 }
 
+export enum CheckoutStatus {
+  OPEN = 'OPEN',
+  PAID = 'PAID',
+  CONVERTED = 'CONVERTED',
+  CANCELLED = 'CANCELLED',
+}
+
+registerEnumType(CheckoutStatus, {
+  name: 'CheckoutStatus',
+  description:
+    'OPEN: awaiting payment. PAID: the payment landed, orders being made. CONVERTED: one order per store exists. CANCELLED: expired or cancelled unpaid.',
+});
+
+// One store's share of a checkout
 @ObjectType()
-export class CheckoutOrder {
+export class CheckoutStoreShare {
   @Field(() => ID)
-  id: string;
+  siteId: string;
+
+  @Field(() => ID)
+  legalEntityId: string;
+
+  @Field(() => Money)
+  subtotal: Money;
+}
+
+// One order a checkout became, at one store
+@ObjectType()
+export class CheckoutStoreOrder {
+  @Field(() => ID)
+  siteId: string;
+
+  @Field(() => ID)
+  orderId: string;
 
   @Field(() => String)
   orderNumber: string;
-
-  @Field(() => Money)
-  total: Money;
 }
 
+// The cart frozen for one payment — every store, or one — and what it has become
 @ObjectType()
-export class CheckoutSession {
-  @Field(() => CheckoutOrder)
-  order: CheckoutOrder;
-
-  @Field(() => PaymentIntent)
-  paymentIntent: PaymentIntent;
-}
-
-// A gateway the shopper can pay through here: one with a payout account for the store's legal entity
-@ObjectType()
-export class CheckoutPaymentGateway {
+export class Checkout {
   @Field(() => ID)
   id: string;
 
-  @Field(() => String, { description: 'Gateway provider code, e.g. razorpay' })
-  gatewayCode: string;
+  @Field(() => CheckoutStatus)
+  status: CheckoutStatus;
 
   @Field(() => String)
-  label: string;
+  currencyCode: string;
 
-  @Field(() => String, { nullable: true, description: "The gateway's logo for light backgrounds" })
-  logoLightUrl: string | null;
+  @Field(() => Money)
+  total: Money;
 
-  @Field(() => String, { nullable: true, description: "The gateway's logo for dark backgrounds" })
-  logoDarkUrl: string | null;
+  @Field(() => [CheckoutStoreShare])
+  sites: CheckoutStoreShare[];
+
+  // Empty until the payment lands
+  @Field(() => [CheckoutStoreOrder])
+  orders: CheckoutStoreOrder[];
+
+  @Field(() => PaymentIntent, { nullable: true })
+  paymentIntent: PaymentIntent | null;
 }

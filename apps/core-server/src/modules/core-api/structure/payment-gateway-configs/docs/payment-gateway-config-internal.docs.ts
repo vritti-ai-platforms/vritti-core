@@ -1,13 +1,17 @@
 import { PaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/entity/payment-gateway-config.dto';
 import { CreatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-payment-gateway-config.dto';
 import { CreatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/create-platform-payment-gateway-config.dto';
-import { UpdatePaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-payment-gateway-config.dto';
 import { UpdatePlatformPaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/request/update-platform-payment-gateway-config.dto';
 import { PaymentGatewayConfigVerificationResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-config-verification-response.dto';
+import { PaymentGatewayConfigsPageResponseDto } from '@domain/payment-gateway-config/dto/response/payment-gateway-configs-page-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PaymentGatewayOptionDto } from '@/modules/payments-gateway/gateways/dto/response/payment-gateway-option.dto';
+import {
+  WebhookCheckStartedResponseDto,
+  WebhookCheckStatusResponseDto,
+} from '../dto/response/webhook-check-response.dto';
 
 const ID = ApiParam({ name: 'id', description: 'Payment gateway config ID' });
 
@@ -49,6 +53,23 @@ export function ApiListPaymentGatewayConfigsInternal() {
   );
 }
 
+export function ApiFindForTablePaymentGatewayConfigsInternal() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Payment gateway configs table',
+      description:
+        "Resolves one page of the organization's own gateways (ORG) and Vritti's (PLATFORM, key id withheld) from a serialized view state (filters, search, sort, pagination) that cloud holds. Secrets are never included.",
+    }),
+    ...ORG_HEADERS,
+    ApiResponse({
+      status: 200,
+      description: 'Payment gateway configs page retrieved.',
+      type: PaymentGatewayConfigsPageResponseDto,
+    }),
+    UNAUTHORIZED,
+  );
+}
+
 export function ApiListPaymentGatewaysInternal() {
   return applyDecorators(
     ApiOperation({
@@ -71,14 +92,14 @@ export function ApiCreatePaymentGatewayConfigInternal() {
     ApiOperation({
       summary: "Connect one of the organization's own payment gateways",
       description:
-        "Credentials are validated against the gateway field list, encrypted at rest and never returned. The label must be unique among the organization's gateways.",
+        "Credentials are validated against the gateway field list, encrypted at rest and never returned. An organization has one gateway of each code; Vritti's may share a code with it.",
     }),
     ...ORG_HEADERS,
     ApiBody({ type: CreatePaymentGatewayConfigDto }),
     ApiResponse({ status: 201, description: 'Payment gateway config created successfully.', type: CreateResponseDto }),
     ApiResponse({ status: 400, description: 'Invalid input, unsupported gateway or incomplete credentials.' }),
     UNAUTHORIZED,
-    ApiResponse({ status: 409, description: 'The label already names another gateway.' }),
+    ApiResponse({ status: 409, description: 'The organization already has a gateway of this code.' }),
   );
 }
 
@@ -97,28 +118,6 @@ export function ApiGetPaymentGatewayConfigInternal() {
     }),
     UNAUTHORIZED,
     NOT_FOUND,
-  );
-}
-
-export function ApiUpdatePaymentGatewayConfigInternal() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Update payment gateway config',
-      description:
-        "Updates one of the organization's own gateways. Sending credentials rotates the stored set; omitting them keeps the existing ciphertext. The gateway cannot change while payout accounts are registered under it.",
-    }),
-    ...ORG_HEADERS,
-    ID,
-    ApiBody({ type: UpdatePaymentGatewayConfigDto }),
-    ApiResponse({ status: 200, description: 'Payment gateway config updated successfully.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'Invalid input, unsupported gateway or incomplete credentials.' }),
-    UNAUTHORIZED,
-    MANAGED,
-    NOT_FOUND,
-    ApiResponse({
-      status: 409,
-      description: 'Payout accounts are registered under this gateway, or the label is taken.',
-    }),
   );
 }
 
@@ -171,6 +170,22 @@ export function ApiListPlatformPaymentGatewayConfigsInternal() {
   );
 }
 
+export function ApiFindForTablePlatformPaymentGatewayConfigsInternal() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Platform payment gateways table',
+      description: `${PLATFORM_NOTE} Resolves one page from a serialized view state that cloud holds.`,
+    }),
+    ...SIGNATURE_HEADERS,
+    ApiResponse({
+      status: 200,
+      description: 'Platform gateways page retrieved.',
+      type: PaymentGatewayConfigsPageResponseDto,
+    }),
+    UNAUTHORIZED,
+  );
+}
+
 export function ApiCreatePlatformPaymentGatewayConfigInternal() {
   return applyDecorators(
     ApiOperation({
@@ -182,7 +197,7 @@ export function ApiCreatePlatformPaymentGatewayConfigInternal() {
     ApiResponse({ status: 201, description: 'Platform gateway set up successfully.', type: CreateResponseDto }),
     ApiResponse({ status: 400, description: 'Invalid input, unsupported gateway or incomplete credentials.' }),
     UNAUTHORIZED,
-    ApiResponse({ status: 409, description: 'The label already names another platform gateway.' }),
+    ApiResponse({ status: 409, description: 'This deployment already has a platform gateway of this code.' }),
   );
 }
 
@@ -190,7 +205,7 @@ export function ApiUpdatePlatformPaymentGatewayConfigInternal() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update a platform payment gateway',
-      description: `${PLATFORM_NOTE} Credentials, label and fee; the gateway itself cannot change once set up.`,
+      description: `${PLATFORM_NOTE} Credentials and fee; the gateway itself cannot change once set up.`,
     }),
     ...SIGNATURE_HEADERS,
     ID,
@@ -199,7 +214,7 @@ export function ApiUpdatePlatformPaymentGatewayConfigInternal() {
     ApiResponse({ status: 400, description: 'Invalid input or incomplete credentials.' }),
     UNAUTHORIZED,
     NOT_FOUND,
-    ApiResponse({ status: 409, description: 'The gateway cannot change once set up, or the label is taken.' }),
+    ApiResponse({ status: 409, description: 'The gateway cannot change once set up.' }),
   );
 }
 
@@ -231,5 +246,34 @@ export function ApiDeletePlatformPaymentGatewayConfigInternal() {
     UNAUTHORIZED,
     NOT_FOUND,
     IN_USE,
+  );
+}
+
+export function ApiStartWebhookCheckInternal() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Start the webhook check',
+      description:
+        "Opens a ₹10 verification payment on an own gateway that signs webhooks with its own secret, for the gateway's embedded checkout in a new tab. Core's hosted callback settles it, which refunds it; its signed webhook proves the URL and secret registered in the gateway dashboard and makes the config ACTIVE.",
+    }),
+    ...ORG_HEADERS,
+    ID,
+    ApiResponse({ status: 201, description: 'Verification payment opened.', type: WebhookCheckStartedResponseDto }),
+    ApiResponse({ status: 400, description: 'The gateway needs no webhook check, or its keys are not verified.' }),
+    ApiResponse({ status: 409, description: 'The webhook is already verified.' }),
+  );
+}
+
+export function ApiGetWebhookCheckInternal() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get a webhook check payment',
+      description: "Where one of this config's verification payments stands, for the dialog waiting on its outcome.",
+    }),
+    ...ORG_HEADERS,
+    ID,
+    ApiParam({ name: 'paymentIntentId', type: String, description: 'The verification payment' }),
+    ApiResponse({ status: 200, description: 'Verification payment status.', type: WebhookCheckStatusResponseDto }),
+    ApiResponse({ status: 400, description: "Not this config's verification payment." }),
   );
 }

@@ -1,99 +1,90 @@
 import { BankAccountDomainRepository } from '@domain/bank-account/repositories/bank-account.repository';
 import type { PaymentGatewayConfigDto } from '@domain/payment-gateway-config/dto/entity/payment-gateway-config.dto';
+import { looksUpPayoutAccount } from '@domain/payment-gateway-config/gateway-credential-fields';
 import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import type { PayoutAccountDto } from '@domain/payout-account/dto/entity/payout-account.dto';
 import type { CreatePayoutAccountDto } from '@domain/payout-account/dto/request/create-payout-account.dto';
 import type { UpdatePayoutAccountDto } from '@domain/payout-account/dto/request/update-payout-account.dto';
+import type { PayoutAccountsPageResponseDto } from '@domain/payout-account/dto/response/payout-accounts-page-response.dto';
 import { PayoutAccountDomainService } from '@domain/payout-account/services/payout-account.service';
-import { PayoutChannelDomainService } from '@domain/payout-channel/services/payout-channel.service';
 import { Injectable } from '@nestjs/common';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PaymentGatewayConfigKindValues } from '@/db/schema';
 import { PaymentGatewaysGatewayService } from '@/modules/payments-gateway/gateways/services/payment-gateways-gateway.service';
+import { parseTableQueryParam } from '@/utils/parse-table-query';
+import type { GetPayoutAccountsInternalDto } from '../dto/request/get-payout-accounts-internal.dto';
 
-const PG_UNIQUE_VIOLATION = '23505';
-const PG_FOREIGN_KEY_VIOLATION = '23503';
-
-// Payout accounts of a bank account: one per gateway account. Checks the bank account and gateway, and compares the
-// entered id with the gateway's main account to decide whether a payment's share stays there or is transferred out
 @Injectable()
 export class PayoutAccountService {
   constructor(
     private readonly payoutAccountService: PayoutAccountDomainService,
-    private readonly payoutChannelService: PayoutChannelDomainService,
     private readonly gatewayConfigService: PaymentGatewayConfigDomainService,
     private readonly paymentGatewaysGatewayService: PaymentGatewaysGatewayService,
     private readonly bankAccountRepository: BankAccountDomainRepository,
   ) {}
 
-  // A bank account's payout accounts, or every one of a legal entity for the payout channel picker
-  async list(orgId: string, filter: { bankAccountId?: string; legalEntityId?: string }): Promise<PayoutAccountDto[]> {
-    if (filter.bankAccountId) {
-      await this.requireBankAccount(orgId, filter.bankAccountId);
-      return this.payoutAccountService.listForBankAccount(orgId, filter.bankAccountId);
-    }
-    if (filter.legalEntityId) return this.payoutAccountService.listForLegalEntity(orgId, filter.legalEntityId);
-    throw new BadRequestException({
-      label: 'Filter Required',
-      detail: 'List payout accounts of a bank account or of a legal entity.',
-      errors: [{ field: 'bankAccountId', message: 'Send bankAccountId or legalEntityId' }],
-    });
+  // Lists every payout account of a legal entity for the payout channel picker
+  async list(legalEntityId: string): Promise<PayoutAccountDto[]> {
+    return this.payoutAccountService.listForLegalEntity(legalEntityId);
   }
 
+  // Resolves a table page from the view state cloud serializes, with the bank account pinned as a filter
+  async findForTableWithQuery(query: GetPayoutAccountsInternalDto): Promise<PayoutAccountsPageResponseDto> {
+    return this.payoutAccountService.findForTable({
+      filters: parseTableQueryParam<TableViewState['filters']>(query.filters, 'filters', []),
+      search: parseTableQueryParam<TableViewState['search'] | null>(query.search, 'search', null),
+      sort: parseTableQueryParam<TableViewState['sort']>(query.sort, 'sort', []),
+      pagination: { limit: query.limit ?? 20, offset: query.offset ?? 0 },
+    } as TableViewState);
+  }
+
+  // Adds a payout account to a bank account after checking the bank and gateway and classifying the account. A gateway
+  // that cannot look an account up (Easebuzz) stores it as entered; a wrong one fails when a payment is split to it
   async create(orgId: string, dto: CreatePayoutAccountDto): Promise<CreateResponseDto<PayoutAccountDto>> {
-    const bankAccount = await this.requireBankAccount(orgId, dto.bankAccountId);
-    const config = await this.requireGatewayConfig(orgId, dto.paymentGatewayConfigId);
+    const bankAccount = await this.requireBankAccount(dto.bankAccountId);
+    const config = await this.requireGatewayConfig(dto.paymentGatewayConfigId);
     const isMainAccount = await this.classifyAccount(config, dto.gatewayAccountId);
-
-    try {
-      return await this.payoutAccountService.create(orgId, bankAccount.legalEntityId, dto, isMainAccount);
-    } catch (error: unknown) {
-      if (hasPgCode(error, PG_UNIQUE_VIOLATION)) throw gatewayAccountInUse();
-      throw error;
+    if (!isMainAccount && looksUpPayoutAccount(config.gatewayCode)) {
+      await this.assertLinkedAccount(config, dto.gatewayAccountId);
     }
+    return this.payoutAccountService.create(
+      orgId,
+      { legalEntityId: bankAccount.legalEntityId, gatewayCode: config.gatewayCode },
+      dto,
+      isMainAccount,
+    );
   }
 
-  // A new gateway account id is classified again against the gateway's main account
-  async update(orgId: string, id: string, dto: UpdatePayoutAccountDto): Promise<SuccessResponseDto> {
-    const existing = await this.payoutAccountService.requireById(orgId, id);
+  // Changes the gateway account id, classifying a new one again against the gateway's main account
+  async update(id: string, dto: UpdatePayoutAccountDto): Promise<SuccessResponseDto> {
+    const existing = await this.payoutAccountService.requireById(id);
     let isMainAccount: boolean | undefined;
     if (dto.gatewayAccountId !== undefined && dto.gatewayAccountId !== existing.gatewayAccountId) {
-      const config = await this.gatewayConfigService.findById(orgId, existing.paymentGatewayConfigId);
+      const config = await this.gatewayConfigService.findById('organization', existing.paymentGatewayConfigId);
       isMainAccount = await this.classifyAccount(config, dto.gatewayAccountId);
+      if (!isMainAccount && looksUpPayoutAccount(config.gatewayCode)) {
+        await this.assertLinkedAccount(config, dto.gatewayAccountId);
+      }
     }
-    try {
-      return await this.payoutAccountService.update(orgId, id, dto, isMainAccount);
-    } catch (error: unknown) {
-      if (hasPgCode(error, PG_UNIQUE_VIOLATION)) throw gatewayAccountInUse();
-      throw error;
-    }
+    return this.payoutAccountService.update(existing, dto, isMainAccount);
   }
 
-  // Refused while payout channels use the account; the foreign key backs the check
-  async delete(orgId: string, id: string): Promise<SuccessResponseDto> {
-    await this.payoutAccountService.requireById(orgId, id);
-    const inUse = await this.payoutChannelService.countForPayoutAccount(id);
-    if (inUse > 0) throw payoutAccountInUse(inUse);
-    try {
-      return await this.payoutAccountService.delete(orgId, id);
-    } catch (error: unknown) {
-      if (hasPgCode(error, PG_FOREIGN_KEY_VIOLATION)) throw payoutAccountInUse();
-      throw error;
-    }
+  // Removes a payout account; the guard read carries how many payout channels still use it
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.payoutAccountService.requireById(id);
+    return this.payoutAccountService.delete(existing);
   }
 
-  // Whether the entered account is the gateway's main account — the share then stays there — or a linked account
-  // the share is transferred to. A gateway that cannot split only pays into its main account, and Vritti's main
-  // account is never an organization's payout account
+  // Decides whether the share stays in the gateway's main account or is transferred to a linked one
   private async classifyAccount(config: PaymentGatewayConfigDto, gatewayAccountId: string): Promise<boolean> {
     const isMainAccount = gatewayAccountId === config.gatewayAccountId;
 
     if (!isMainAccount && !(await this.paymentGatewaysGatewayService.supportsSplit(config.gatewayCode))) {
       throw new BadRequestException({
         label: 'Split Not Supported',
-        detail: `"${config.label}" cannot split payments, so it only pays into its main account ${config.gatewayAccountId}.`,
+        detail: `${config.gatewayCode} cannot split payments, so it only pays into its main account ${config.gatewayAccountId}.`,
         errors: [{ field: 'gatewayAccountId', message: `Must be ${config.gatewayAccountId}` }],
       });
     }
@@ -108,17 +99,46 @@ export class PayoutAccountService {
     return isMainAccount;
   }
 
-  // Hides a bank account of another organization behind the same 404 as a missing one
-  private async requireBankAccount(orgId: string, bankAccountId: string) {
+  // Refuses a linked account the gateway does not know under the config's keys, or one it has suspended
+  private async assertLinkedAccount(config: PaymentGatewayConfigDto, gatewayAccountId: string): Promise<void> {
+    const account = await this.paymentGatewaysGatewayService.lookupLinkedAccount(config.id, gatewayAccountId);
+    const gateway = config.gatewayCode;
+    if (!account) {
+      throw new BadRequestException({
+        label: 'Linked Account Not Found',
+        detail: `${gateway} has no linked account ${gatewayAccountId} under this gateway's keys. Check the id in the ${gateway} dashboard.`,
+        errors: [{ field: 'gatewayAccountId', message: `Not found at ${gateway}` }],
+      });
+    }
+    if (account.status === 'SUSPENDED') {
+      throw new BadRequestException({
+        label: 'Linked Account Suspended',
+        detail: `${gateway} has suspended or blocked ${gatewayAccountId}, so payments cannot be split to it.`,
+        errors: [{ field: 'gatewayAccountId', message: `Suspended at ${gateway}` }],
+      });
+    }
+    // The gateway holds the account back until the merchant fixes something on it — for Cashfree a vendor whose bank
+    // details failed validation. A share split to it would stay in the main account, so it is refused until fixed
+    if (account.status === 'ACTION_REQUIRED') {
+      throw new BadRequestException({
+        label: 'Linked Account Needs Action',
+        detail: `${gateway} cannot pay ${gatewayAccountId} until its details are fixed, for example bank details that failed validation. Fix it in the ${gateway} dashboard, then save again.`,
+        errors: [{ field: 'gatewayAccountId', message: `Needs action at ${gateway}` }],
+      });
+    }
+  }
+
+  // Loads the bank account; RLS hides another organization's, so it reads the same as a missing one
+  private async requireBankAccount(bankAccountId: string) {
     const bankAccount = await this.bankAccountRepository.findById(bankAccountId);
-    if (!bankAccount || bankAccount.organizationId !== orgId) throw new NotFoundException('Bank account not found.');
+    if (!bankAccount) throw new NotFoundException('Bank account not found.');
     return bankAccount;
   }
 
-  // The gateway must be the organization's own or one of Vritti's; the domain answers 404 for anything else
-  private async requireGatewayConfig(orgId: string, configId: string): Promise<PaymentGatewayConfigDto> {
+  // Loads the gateway as a field error, since an unknown one is a bad reference rather than a missing page
+  private async requireGatewayConfig(configId: string): Promise<PaymentGatewayConfigDto> {
     try {
-      return await this.gatewayConfigService.findById(orgId, configId);
+      return await this.gatewayConfigService.findById('organization', configId);
     } catch (error: unknown) {
       if (!(error instanceof NotFoundException)) throw error;
       throw new BadRequestException({
@@ -128,30 +148,4 @@ export class PayoutAccountService {
       });
     }
   }
-}
-
-function gatewayAccountInUse(): ConflictException {
-  return new ConflictException({
-    label: 'Gateway Account In Use',
-    detail: 'This gateway account is already a payout account. Use that one in the payout channels instead.',
-    errors: [{ field: 'gatewayAccountId', message: 'Already a payout account' }],
-  });
-}
-
-function payoutAccountInUse(count?: number): ConflictException {
-  return new ConflictException({
-    label: 'Payout Account In Use',
-    detail:
-      count === undefined
-        ? 'Payout channels use this payout account. Remove or change them first.'
-        : `${pluralize('payout channel', count, true)} ${count === 1 ? 'uses' : 'use'} this payout account. Remove or change ${count === 1 ? 'it' : 'them'} first.`,
-  });
-}
-
-// True for a Postgres error with the given code, however deep the driver wrapped it
-function hasPgCode(error: unknown, code: string, depth = 0): boolean {
-  if (!error || typeof error !== 'object' || depth > 5) return false;
-  const candidate = error as { code?: unknown; cause?: unknown };
-  if (candidate.code === code) return true;
-  return hasPgCode(candidate.cause, code, depth + 1);
 }

@@ -4,7 +4,7 @@ import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SITE_CARTS } from '@vritti/commerce-permissions/carts';
 import { AppTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { AppId, PartyId } from '@/security/decorators';
+import { AppId, OrgId, PartyId } from '@/security/decorators';
 import { AddCartItemInput, CartItemRefInput, CartScopeInput, UpdateCartItemInput } from './graphql/cart.input';
 import { Cart, CartQuantity } from './graphql/cart.type';
 import { CartsGatewayService } from './services/carts-gateway.service';
@@ -17,12 +17,17 @@ export class CartsAppResolver {
 
   constructor(private readonly service: CartsGatewayService) {}
 
-  // The party's basket, or an empty one. Never creates a row
+  // The party's cart across the organization's stores, or an empty one. Never creates a row
   @Query(() => Cart, { name: 'cart' })
   @RequirePermission(SITE_CARTS.view)
-  cart(@AppId() appId: string, @PartyId() partyId: string, @Args('input') input: CartScopeInput): Promise<Cart> {
+  cart(
+    @OrgId() orgId: string,
+    @AppId() appId: string,
+    @PartyId() partyId: string,
+    @Args('input') input: CartScopeInput,
+  ): Promise<Cart> {
     this.logger.log('QUERY cart');
-    return this.service.findPartyCart(appId, partyId, input.currencyCode) as Promise<Cart>;
+    return this.service.findPartyCart(orgId, appId, partyId, input.currencyCode) as Promise<Cart>;
   }
 
   // How many of each product the party holds — a product page draws its stepper from this
@@ -33,48 +38,56 @@ export class CartsAppResolver {
     return this.service.findShopperQuantities(partyId);
   }
 
-  // Adds a listing, opening a basket if this is the party's first line
+  // Adds a listing at the store in context, opening a cart there if this is the party's first line
   @Mutation(() => Cart, { name: 'addToCart' })
   @RequirePermission(SITE_CARTS.add)
-  addToCart(@AppId() appId: string, @PartyId() partyId: string, @Args('input') input: AddCartItemInput): Promise<Cart> {
+  addToCart(
+    @OrgId() orgId: string,
+    @AppId() appId: string,
+    @PartyId() partyId: string,
+    @Args('input') input: AddCartItemInput,
+  ): Promise<Cart> {
     this.logger.log('MUTATION addToCart');
-    return this.service.addShopperItem({ appId, partyId, ...input }) as Promise<Cart>;
+    return this.service.addShopperItem({ orgId, appId, partyId, ...input }) as Promise<Cart>;
   }
 
   // Sets a line to an exact quantity
   @Mutation(() => Cart, { name: 'updateCartItem' })
   @RequirePermission(SITE_CARTS.edit)
   updateCartItem(
+    @OrgId() orgId: string,
     @AppId() appId: string,
     @PartyId() partyId: string,
     @Args('input') input: UpdateCartItemInput,
   ): Promise<Cart> {
     this.logger.log('MUTATION updateCartItem');
-    return this.service.updateShopperItem({ appId, partyId, ...input }) as Promise<Cart>;
+    return this.service.updateShopperItem({ orgId, appId, partyId, ...input }) as Promise<Cart>;
   }
 
   @Mutation(() => Cart, { name: 'removeFromCart' })
   @RequirePermission(SITE_CARTS.delete)
   removeFromCart(
+    @OrgId() orgId: string,
     @AppId() appId: string,
     @PartyId() partyId: string,
     @Args('input') input: CartItemRefInput,
   ): Promise<Cart> {
     this.logger.log('MUTATION removeFromCart');
-    return this.service.removeShopperItem({ appId, partyId, ...input }) as Promise<Cart>;
+    return this.service.removeShopperItem({ orgId, appId, partyId, ...input }) as Promise<Cart>;
   }
 
-  // Empties the basket — a delete of every line the party holds in this storefront
+  // Empties the cart at the store in context — a delete of every line the party holds there
   @Mutation(() => Cart, { name: 'clearCart' })
   @RequirePermission(SITE_CARTS.delete)
   async clearCart(
+    @OrgId() orgId: string,
     @AppId() appId: string,
     @PartyId() partyId: string,
     @Args('input') input: CartScopeInput,
   ): Promise<Cart> {
     this.logger.log('MUTATION clearCart');
     await this.service.clearShopperCart(partyId);
-    // The emptied basket rather than a bare success flag, so a caller redraws from one response.
-    return this.service.findPartyCart(appId, partyId, input.currencyCode) as Promise<Cart>;
+    // The remaining cart rather than a bare success flag, so a caller redraws from one response.
+    return this.service.findPartyCart(orgId, appId, partyId, input.currencyCode) as Promise<Cart>;
   }
 }

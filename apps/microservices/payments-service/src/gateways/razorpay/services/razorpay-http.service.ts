@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
+import axios, { type AxiosInstance, type AxiosRequestConfig, isAxiosError } from 'axios';
 import { GATEWAY_HTTP_TIMEOUT_DEFAULT_MS } from '@/config/env.validation';
 import { type RazorpayErrorContext, rethrowRazorpayError } from '../razorpay-error.util';
 
@@ -15,6 +15,11 @@ export interface RazorpayRequestOptions {
   credentialField?: string;
   version?: RazorpayApiVersion;
   fieldMap?: Readonly<Record<string, string>>;
+}
+
+// The error reasons Razorpay answers a lookup of something that does not exist with
+export interface RazorpayLookupOptions extends RazorpayRequestOptions {
+  missingReasons: readonly string[];
 }
 
 const RAZORPAY_API_HOST = 'https://api.razorpay.com';
@@ -47,6 +52,17 @@ export class RazorpayHttpService {
       const response = await this.client.get<T>(this.url(path, options), this.requestConfig(auth, { params }));
       return response.data;
     } catch (error) {
+      this.rethrow(error, options);
+    }
+  }
+
+  // Issues a GET for one entity, resolving undefined when Razorpay reports it missing rather than throwing
+  async find<T>(auth: RazorpayAuth, path: string, options: RazorpayLookupOptions): Promise<T | undefined> {
+    try {
+      const response = await this.client.get<T>(this.url(path, options), this.requestConfig(auth, {}));
+      return response.data;
+    } catch (error) {
+      if (isMissing(error, options.missingReasons)) return undefined;
       this.rethrow(error, options);
     }
   }
@@ -108,4 +124,13 @@ export class RazorpayHttpService {
   protected errorContext(options?: RazorpayRequestOptions): RazorpayErrorContext {
     return { detail: UNREACHABLE_DETAIL, credentialField: options?.credentialField, fieldMap: options?.fieldMap };
   }
+}
+
+// Detects Razorpay's answer for a missing entity: a 404, or a 400 carrying one of the given reasons
+function isMissing(error: unknown, reasons: readonly string[]): boolean {
+  if (!isAxiosError(error)) return false;
+  const status = error.response?.status;
+  if (status === 404) return true;
+  const reason = (error.response?.data as { error?: { reason?: string } } | undefined)?.error?.reason;
+  return status === 400 && !!reason && reasons.includes(reason);
 }

@@ -5,6 +5,7 @@ export const relations = defineRelations(schema, (r) => ({
   paymentIntents: {
     attempts: r.many.paymentAttempts(),
     transfers: r.many.paymentTransfers(),
+    allocations: r.many.paymentAllocations(),
     events: r.many.paymentEvents(),
   },
   paymentEvents: {
@@ -23,6 +24,16 @@ export const relations = defineRelations(schema, (r) => ({
     intent: r.one.paymentIntents({
       from: r.paymentTransfers.intentId,
       to: r.paymentIntents.id,
+    }),
+  },
+  paymentAllocations: {
+    intent: r.one.paymentIntents({
+      from: r.paymentAllocations.intentId,
+      to: r.paymentIntents.id,
+    }),
+    transfer: r.one.paymentTransfers({
+      from: r.paymentAllocations.transferId,
+      to: r.paymentTransfers.id,
     }),
   },
 }));
