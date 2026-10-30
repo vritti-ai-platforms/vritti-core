@@ -1,1 +1,0 @@
-ALTER TABLE "communications"."whatsapp_accounts" ADD COLUMN "webhooks_subscribed" boolean DEFAULT false NOT NULL;

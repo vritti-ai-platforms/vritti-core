@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "89e7e3fb-967a-4a9a-9c46-6cbfc6cbeeae",
+  "id": "77e481ca-0df4-4091-b8b7-0498dc75076b",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -261,6 +261,12 @@
     {
       "isRlsEnabled": true,
       "name": "payout_channels",
+      "entityType": "tables",
+      "schema": "core"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "payout_channel_accounts",
       "entityType": "tables",
       "schema": "core"
     },
@@ -2356,19 +2362,6 @@
       "table": "bank_accounts"
     },
     {
-      "type": "varchar(100)",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "label",
-      "entityType": "columns",
-      "schema": "core",
-      "table": "bank_accounts"
-    },
-    {
       "type": "varchar(255)",
       "typeSchema": null,
       "notNull": true,
@@ -2512,19 +2505,6 @@
       "table": "payment_gateway_configs"
     },
     {
-      "type": "varchar(100)",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "label",
-      "entityType": "columns",
-      "schema": "core",
-      "table": "payment_gateway_configs"
-    },
-    {
       "type": "varchar(255)",
       "typeSchema": null,
       "notNull": true,
@@ -2631,6 +2611,32 @@
     {
       "type": "timestamp",
       "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "webhook_verified_at",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payment_gateway_configs"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "last_webhook_at",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payment_gateway_configs"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": "now()",
@@ -2727,6 +2733,19 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "name": "gateway_code",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payout_accounts"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
       "name": "gateway_account_id",
       "entityType": "columns",
       "schema": "core",
@@ -2805,7 +2824,7 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "payout_account_id",
+      "name": "bank_account_id",
       "entityType": "columns",
       "schema": "core",
       "table": "payout_channels"
@@ -2887,6 +2906,84 @@
       "entityType": "columns",
       "schema": "core",
       "table": "payout_channels"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payout_channel_accounts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payout_channel_accounts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payout_channel_id",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payout_channel_accounts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payout_account_id",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payout_channel_accounts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "bank_account_id",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payout_channel_accounts"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "core",
+      "table": "payout_channel_accounts"
     },
     {
       "type": "uuid",
@@ -4282,6 +4379,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "bank_account_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_payout_channels_bank_account",
+      "entityType": "indexes",
+      "schema": "core",
+      "table": "payout_channels"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "payout_account_id",
           "isExpression": false,
           "asc": true,
@@ -4294,10 +4412,10 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_payout_channels_payout_account",
+      "name": "idx_payout_channel_accounts_account",
       "entityType": "indexes",
       "schema": "core",
-      "table": "payout_channels"
+      "table": "payout_channel_accounts"
     },
     {
       "nameExplicit": true,
@@ -4721,23 +4839,6 @@
       "table": "payout_accounts"
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "payment_gateway_config_id"
-      ],
-      "schemaTo": "core",
-      "tableTo": "payment_gateway_configs",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
-      "name": "payout_accounts_Wb2djfHfUwys_fkey",
-      "entityType": "fks",
-      "schema": "core",
-      "table": "payout_accounts"
-    },
-    {
       "nameExplicit": true,
       "columns": [
         "bank_account_id",
@@ -4752,6 +4853,25 @@
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "payout_accounts_bank_account_le_fkey",
+      "entityType": "fks",
+      "schema": "core",
+      "table": "payout_accounts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "payment_gateway_config_id",
+        "gateway_code"
+      ],
+      "schemaTo": "core",
+      "tableTo": "payment_gateway_configs",
+      "columnsTo": [
+        "id",
+        "gateway_code"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "payout_accounts_config_gateway_fkey",
       "entityType": "fks",
       "schema": "core",
       "table": "payout_accounts"
@@ -4827,21 +4947,76 @@
     {
       "nameExplicit": true,
       "columns": [
-        "payout_account_id",
+        "bank_account_id",
         "legal_entity_id"
       ],
       "schemaTo": "core",
-      "tableTo": "payout_accounts",
+      "tableTo": "bank_accounts",
       "columnsTo": [
         "id",
         "legal_entity_id"
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "payout_channels_payout_account_le_fkey",
+      "name": "payout_channels_bank_account_le_fkey",
       "entityType": "fks",
       "schema": "core",
       "table": "payout_channels"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "organization_id"
+      ],
+      "schemaTo": "core",
+      "tableTo": "organizations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "payout_channel_accounts_organization_id_organizations_id_fkey",
+      "entityType": "fks",
+      "schema": "core",
+      "table": "payout_channel_accounts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "payout_channel_id",
+        "bank_account_id"
+      ],
+      "schemaTo": "core",
+      "tableTo": "payout_channels",
+      "columnsTo": [
+        "id",
+        "bank_account_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "payout_channel_accounts_channel_bank_fkey",
+      "entityType": "fks",
+      "schema": "core",
+      "table": "payout_channel_accounts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "payout_account_id",
+        "bank_account_id"
+      ],
+      "schemaTo": "core",
+      "tableTo": "payout_accounts",
+      "columnsTo": [
+        "id",
+        "bank_account_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "payout_channel_accounts_account_bank_fkey",
+      "entityType": "fks",
+      "schema": "core",
+      "table": "payout_channel_accounts"
     },
     {
       "nameExplicit": false,
@@ -5222,6 +5397,16 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "payout_channel_accounts_pkey",
+      "schema": "core",
+      "table": "payout_channel_accounts",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "app_webhook_endpoints_pkey",
       "schema": "core",
       "table": "app_webhook_endpoints",
@@ -5273,13 +5458,37 @@
       "nameExplicit": true,
       "columns": [
         "organization_id",
-        "label"
+        "gateway_code"
       ],
       "nullsNotDistinct": true,
-      "name": "uq_payment_gateway_configs_org_label",
+      "name": "uq_payment_gateway_configs_org_gateway",
       "entityType": "uniques",
       "schema": "core",
       "table": "payment_gateway_configs"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "id",
+        "gateway_code"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_payment_gateway_configs_id_gateway",
+      "entityType": "uniques",
+      "schema": "core",
+      "table": "payment_gateway_configs"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "bank_account_id",
+        "gateway_code"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_payout_accounts_bank_gateway",
+      "entityType": "uniques",
+      "schema": "core",
+      "table": "payout_accounts"
     },
     {
       "nameExplicit": true,
@@ -5289,6 +5498,18 @@
       ],
       "nullsNotDistinct": false,
       "name": "uq_payout_accounts_id_le",
+      "entityType": "uniques",
+      "schema": "core",
+      "table": "payout_accounts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "id",
+        "bank_account_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_payout_accounts_id_bank",
       "entityType": "uniques",
       "schema": "core",
       "table": "payout_accounts"
@@ -5308,16 +5529,40 @@
     {
       "nameExplicit": true,
       "columns": [
-        "payout_account_id",
+        "id",
+        "bank_account_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_payout_channels_id_bank",
+      "entityType": "uniques",
+      "schema": "core",
+      "table": "payout_channels"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "legal_entity_id",
         "site_id",
         "app_id",
         "channel"
       ],
       "nullsNotDistinct": true,
-      "name": "uq_payout_channels_account_scope",
+      "name": "uq_payout_channels_scope",
       "entityType": "uniques",
       "schema": "core",
       "table": "payout_channels"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "payout_channel_id",
+        "payout_account_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_payout_channel_accounts_channel_account",
+      "entityType": "uniques",
+      "schema": "core",
+      "table": "payout_channel_accounts"
     },
     {
       "nameExplicit": true,
@@ -5532,6 +5777,19 @@
       "entityType": "policies",
       "schema": "core",
       "table": "payout_channels"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "core",
+      "table": "payout_channel_accounts"
     },
     {
       "as": "PERMISSIVE",

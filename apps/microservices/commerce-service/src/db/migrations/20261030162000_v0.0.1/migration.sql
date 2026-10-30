@@ -14,6 +14,7 @@ $$;
 CREATE TYPE "commerce"."catalog_channel_type" AS ENUM('APP', 'POS', 'B2B');--> statement-breakpoint
 CREATE TYPE "commerce"."catalog_filter_mode" AS ENUM('STATIC', 'NARROWING');--> statement-breakpoint
 CREATE TYPE "commerce"."category_role" AS ENUM('GROUP', 'CATEGORY');--> statement-breakpoint
+CREATE TYPE "commerce"."checkout_status" AS ENUM('OPEN', 'PAID', 'CONVERTED', 'CANCELLED');--> statement-breakpoint
 CREATE TYPE "commerce"."conversion_status" AS ENUM('DRAFT', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');--> statement-breakpoint
 CREATE TYPE "commerce"."cost_category_kind" AS ENUM('ITEM', 'FREIGHT', 'DUTY', 'INSURANCE', 'SERVICE', 'OTHER');--> statement-breakpoint
 CREATE TYPE "commerce"."cost_distribution_method" AS ENUM('by_value', 'by_quantity', 'equal');--> statement-breakpoint
@@ -233,6 +234,49 @@ CREATE TABLE "commerce"."categories" (
 );
 --> statement-breakpoint
 ALTER TABLE "commerce"."categories" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE TABLE "commerce"."checkout_lines" (
+	"id" uuid PRIMARY KEY DEFAULT uuidv7(),
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"checkout_id" uuid NOT NULL,
+	"site_id" uuid NOT NULL,
+	"legal_entity_id" uuid NOT NULL,
+	"offering_id" uuid NOT NULL,
+	"offering_variant_id" uuid NOT NULL,
+	"name" varchar(500) NOT NULL,
+	"code" varchar(200) NOT NULL,
+	"quantity" integer NOT NULL,
+	"unit_price" bigint NOT NULL,
+	"line_total" bigint NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+ALTER TABLE "commerce"."checkout_lines" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE TABLE "commerce"."checkouts" (
+	"id" uuid PRIMARY KEY DEFAULT uuidv7(),
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"app_id" uuid NOT NULL,
+	"party_id" uuid NOT NULL,
+	"status" "commerce"."checkout_status" DEFAULT 'OPEN'::"commerce"."checkout_status" NOT NULL,
+	"currency_code" varchar(3) NOT NULL,
+	"total_amount" bigint NOT NULL,
+	"gateway_code" varchar(100) NOT NULL,
+	"checkout_key" varchar(100) NOT NULL,
+	"payment_intent_id" uuid CONSTRAINT "uq_checkouts_payment_intent" UNIQUE,
+	"customer_name" varchar(255),
+	"customer_phone" varchar(20),
+	"customer_email" varchar(200),
+	"delivery_address" text,
+	"notes" text,
+	"expires_at" timestamp with time zone NOT NULL,
+	"paid_at" timestamp with time zone,
+	"cancelled_at" timestamp with time zone,
+	"cancellation_reason" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "uq_checkouts_party_key" UNIQUE("organization_id","party_id","checkout_key")
+);
+--> statement-breakpoint
+ALTER TABLE "commerce"."checkouts" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "commerce"."cost_categories" (
 	"id" uuid PRIMARY KEY DEFAULT uuidv7(),
 	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
@@ -847,16 +891,16 @@ CREATE TABLE "commerce"."orders" (
 	"completed_at" timestamp with time zone,
 	"cancelled_at" timestamp with time zone,
 	"cancellation_reason" text,
-	"payment_intent_id" uuid CONSTRAINT "uq_orders_payment_intent" UNIQUE,
+	"payment_intent_id" uuid,
 	"paid_at" timestamp with time zone,
 	"payment_method" varchar(30),
 	"payment_reference" varchar(100),
 	"needs_review" boolean DEFAULT false NOT NULL,
-	"checkout_key" varchar(100),
+	"checkout_id" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "uq_orders_org_number" UNIQUE("organization_id","order_number"),
-	CONSTRAINT "uq_orders_party_checkout_key" UNIQUE("organization_id","party_id","checkout_key")
+	CONSTRAINT "uq_orders_payment_intent" UNIQUE("payment_intent_id","site_id")
 );
 --> statement-breakpoint
 ALTER TABLE "commerce"."orders" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
@@ -1493,6 +1537,9 @@ CREATE INDEX "idx_catalogs_org" ON "commerce"."catalogs" ("organization_id","nam
 CREATE INDEX "idx_categories_org" ON "commerce"."categories" ("organization_id");--> statement-breakpoint
 CREATE INDEX "idx_categories_parent" ON "commerce"."categories" ("parent_id");--> statement-breakpoint
 CREATE INDEX "idx_categories_path" ON "commerce"."categories" USING gist ("path");--> statement-breakpoint
+CREATE INDEX "idx_checkout_lines_checkout_site" ON "commerce"."checkout_lines" ("checkout_id","site_id");--> statement-breakpoint
+CREATE INDEX "idx_checkouts_party" ON "commerce"."checkouts" ("organization_id","party_id","created_at");--> statement-breakpoint
+CREATE INDEX "idx_checkouts_status" ON "commerce"."checkouts" ("status");--> statement-breakpoint
 CREATE UNIQUE INDEX "uq_cost_categories_org_kind_item" ON "commerce"."cost_categories" ("organization_id") WHERE "kind" = 'ITEM';--> statement-breakpoint
 CREATE INDEX "idx_cost_categories_org" ON "commerce"."cost_categories" ("organization_id");--> statement-breakpoint
 CREATE INDEX "idx_cost_categories_kind" ON "commerce"."cost_categories" ("kind");--> statement-breakpoint
@@ -1579,6 +1626,7 @@ CREATE INDEX "idx_order_items_variant" ON "commerce"."order_items" ("offering_va
 CREATE INDEX "idx_orders_party" ON "commerce"."orders" ("organization_id","party_id");--> statement-breakpoint
 CREATE INDEX "idx_orders_site" ON "commerce"."orders" ("organization_id","site_id");--> statement-breakpoint
 CREATE INDEX "idx_orders_status" ON "commerce"."orders" ("status");--> statement-breakpoint
+CREATE INDEX "idx_orders_checkout" ON "commerce"."orders" ("checkout_id");--> statement-breakpoint
 CREATE INDEX "idx_parties_org" ON "commerce"."parties" ("organization_id");--> statement-breakpoint
 CREATE INDEX "idx_parties_type" ON "commerce"."parties" ("party_type");--> statement-breakpoint
 CREATE INDEX "idx_party_addresses_party" ON "commerce"."party_addresses" ("party_id");--> statement-breakpoint
@@ -1669,6 +1717,10 @@ ALTER TABLE "commerce"."catalog_listings" ADD CONSTRAINT "catalog_listings_catal
 ALTER TABLE "commerce"."catalog_listings" ADD CONSTRAINT "catalog_listings_offering_variant_id_offering_variants_id_fkey" FOREIGN KEY ("offering_variant_id") REFERENCES "commerce"."offering_variants"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "commerce"."catalog_listings" ADD CONSTRAINT "catalog_listings_LU4oACJfLXku_fkey" FOREIGN KEY ("inventory_item_mrp_id") REFERENCES "commerce"."inventory_item_mrps"("id") ON DELETE RESTRICT;--> statement-breakpoint
 ALTER TABLE "commerce"."categories" ADD CONSTRAINT "categories_default_tax_class_id_tax_classes_id_fkey" FOREIGN KEY ("default_tax_class_id") REFERENCES "commerce"."tax_classes"("id");--> statement-breakpoint
+ALTER TABLE "commerce"."checkout_lines" ADD CONSTRAINT "checkout_lines_checkout_id_checkouts_id_fkey" FOREIGN KEY ("checkout_id") REFERENCES "commerce"."checkouts"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "commerce"."checkout_lines" ADD CONSTRAINT "checkout_lines_offering_id_offerings_id_fkey" FOREIGN KEY ("offering_id") REFERENCES "commerce"."offerings"("id");--> statement-breakpoint
+ALTER TABLE "commerce"."checkout_lines" ADD CONSTRAINT "checkout_lines_offering_variant_id_offering_variants_id_fkey" FOREIGN KEY ("offering_variant_id") REFERENCES "commerce"."offering_variants"("id");--> statement-breakpoint
+ALTER TABLE "commerce"."checkouts" ADD CONSTRAINT "checkouts_party_id_parties_id_fkey" FOREIGN KEY ("party_id") REFERENCES "commerce"."parties"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "commerce"."credit_note_applications" ADD CONSTRAINT "credit_note_applications_credit_note_id_credit_notes_id_fkey" FOREIGN KEY ("credit_note_id") REFERENCES "commerce"."credit_notes"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "commerce"."credit_note_applications" ADD CONSTRAINT "credit_note_applications_invoice_id_invoices_id_fkey" FOREIGN KEY ("invoice_id") REFERENCES "commerce"."invoices"("id");--> statement-breakpoint
 ALTER TABLE "commerce"."dimension_template_values" ADD CONSTRAINT "dimension_template_values_d22FK07Iumx2_fkey" FOREIGN KEY ("template_id") REFERENCES "commerce"."dimension_templates"("id") ON DELETE CASCADE;--> statement-breakpoint
@@ -1731,6 +1783,7 @@ ALTER TABLE "commerce"."order_items" ADD CONSTRAINT "order_items_offering_id_off
 ALTER TABLE "commerce"."order_items" ADD CONSTRAINT "order_items_offering_variant_id_offering_variants_id_fkey" FOREIGN KEY ("offering_variant_id") REFERENCES "commerce"."offering_variants"("id");--> statement-breakpoint
 ALTER TABLE "commerce"."orders" ADD CONSTRAINT "orders_customer_id_customers_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "commerce"."customers"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "commerce"."orders" ADD CONSTRAINT "orders_party_id_parties_id_fkey" FOREIGN KEY ("party_id") REFERENCES "commerce"."parties"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "commerce"."orders" ADD CONSTRAINT "orders_checkout_id_checkouts_id_fkey" FOREIGN KEY ("checkout_id") REFERENCES "commerce"."checkouts"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "commerce"."parties" ADD CONSTRAINT "parties_jurisdiction_id_tax_jurisdictions_id_fkey" FOREIGN KEY ("jurisdiction_id") REFERENCES "commerce"."tax_jurisdictions"("id");--> statement-breakpoint
 ALTER TABLE "commerce"."party_addresses" ADD CONSTRAINT "party_addresses_party_id_parties_id_fkey" FOREIGN KEY ("party_id") REFERENCES "commerce"."parties"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "commerce"."party_bank_accounts" ADD CONSTRAINT "party_bank_accounts_party_id_parties_id_fkey" FOREIGN KEY ("party_id") REFERENCES "commerce"."parties"("id") ON DELETE CASCADE;--> statement-breakpoint
@@ -2158,6 +2211,8 @@ CREATE POLICY "catalog_reach_delete" ON "commerce"."catalogs" AS RESTRICTIVE FOR
     else false
   end, false));--> statement-breakpoint
 CREATE POLICY "org_isolation" ON "commerce"."categories" AS PERMISSIVE FOR ALL TO public USING (organization_id = (select current_setting('app.org_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "org_isolation" ON "commerce"."checkout_lines" AS PERMISSIVE FOR ALL TO public USING (organization_id = (select current_setting('app.org_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "org_isolation" ON "commerce"."checkouts" AS PERMISSIVE FOR ALL TO public USING (organization_id = (select current_setting('app.org_id', true)::uuid));--> statement-breakpoint
 CREATE POLICY "org_isolation" ON "commerce"."cost_categories" AS PERMISSIVE FOR ALL TO public USING (organization_id = (select current_setting('app.org_id', true)::uuid));--> statement-breakpoint
 CREATE POLICY "org_isolation" ON "commerce"."credit_notes" AS PERMISSIVE FOR ALL TO public USING (organization_id = (select current_setting('app.org_id', true)::uuid));--> statement-breakpoint
 CREATE POLICY "site_read" ON "commerce"."credit_notes" AS PERMISSIVE FOR SELECT TO public USING (site_id = (select current_setting('app.site_id', true)::uuid));--> statement-breakpoint

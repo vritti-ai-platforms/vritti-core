@@ -1,8 +1,10 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "9db25989-a36b-4fbb-a57f-208547662a99",
-  "prevIds": ["f3ba0392-171e-4866-84d0-67d4c7128444"],
+  "id": "6f05fb85-9bb1-4d19-9c6f-7cefedeeac2a",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
   "ddl": [
     {
       "name": "communications",
@@ -1117,7 +1119,9 @@
       "table": "whatsapp_otps"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sms_otps_pkey",
       "schema": "communications",
@@ -1125,7 +1129,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sms_providers_pkey",
       "schema": "communications",
@@ -1133,7 +1139,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "sms_provider_templates_pkey",
       "schema": "communications",
@@ -1141,7 +1149,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "whatsapp_accounts_pkey",
       "schema": "communications",
@@ -1149,7 +1159,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "whatsapp_otps_pkey",
       "schema": "communications",
@@ -1158,7 +1170,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": ["organization_id", "name"],
+      "columns": [
+        "organization_id",
+        "name"
+      ],
       "nullsNotDistinct": false,
       "name": "uq_sms_providers_org_name",
       "entityType": "uniques",
@@ -1167,7 +1182,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": ["provider_id", "template_id"],
+      "columns": [
+        "provider_id",
+        "template_id"
+      ],
       "nullsNotDistinct": false,
       "name": "uq_sms_provider_templates_provider_template",
       "entityType": "uniques",
@@ -1176,7 +1194,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": ["organization_id", "waba_id"],
+      "columns": [
+        "organization_id",
+        "waba_id"
+      ],
       "nullsNotDistinct": false,
       "name": "uq_whatsapp_accounts_org_waba",
       "entityType": "uniques",
@@ -1186,7 +1207,9 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": ["public"],
+      "roles": [
+        "public"
+      ],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -1197,7 +1220,9 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": ["public"],
+      "roles": [
+        "public"
+      ],
       "using": "organization_id IS NULL OR organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -1208,7 +1233,9 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": ["public"],
+      "roles": [
+        "public"
+      ],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -1219,7 +1246,9 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": ["public"],
+      "roles": [
+        "public"
+      ],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -1230,7 +1259,9 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": ["public"],
+      "roles": [
+        "public"
+      ],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",

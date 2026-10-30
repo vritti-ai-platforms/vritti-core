@@ -1,2 +1,0 @@
-ALTER TABLE "commerce"."orders" DROP CONSTRAINT "uq_orders_payment_intent";--> statement-breakpoint
-ALTER TABLE "commerce"."orders" ADD CONSTRAINT "uq_orders_payment_intent" UNIQUE("payment_intent_id","site_id");

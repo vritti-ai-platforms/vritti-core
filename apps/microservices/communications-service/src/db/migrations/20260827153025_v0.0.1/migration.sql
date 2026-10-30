@@ -1,2 +1,0 @@
-ALTER TABLE "communications"."whatsapp_otps" ADD COLUMN "delivery_status" varchar(32);--> statement-breakpoint
-ALTER TABLE "communications"."whatsapp_otps" ADD COLUMN "delivered_at" timestamp with time zone;

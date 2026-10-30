@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "65cec0c7-cf78-4342-b22b-a15aa6803dd6",
+  "id": "fb871a1b-054d-42a0-b4b3-3c9f37003151",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -35,6 +35,17 @@
         "CATEGORY"
       ],
       "name": "category_role",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "OPEN",
+        "PAID",
+        "CONVERTED",
+        "CANCELLED"
+      ],
+      "name": "checkout_status",
       "entityType": "enums",
       "schema": "commerce"
     },
@@ -618,6 +629,18 @@
     {
       "isRlsEnabled": true,
       "name": "categories",
+      "entityType": "tables",
+      "schema": "commerce"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "checkout_lines",
+      "entityType": "tables",
+      "schema": "commerce"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "checkouts",
       "entityType": "tables",
       "schema": "commerce"
     },
@@ -2366,6 +2389,448 @@
       "entityType": "columns",
       "schema": "commerce",
       "table": "categories"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "checkout_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "site_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "legal_entity_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "offering_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "offering_variant_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "varchar(500)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "code",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "quantity",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "unit_price",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "line_total",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "app_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "party_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "checkout_status",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'OPEN'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "varchar(3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "currency_code",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "total_amount",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "gateway_code",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "checkout_key",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payment_intent_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "customer_name",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "varchar(20)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "customer_phone",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "customer_email",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "delivery_address",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "notes",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "expires_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "paid_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cancelled_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cancellation_reason",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "checkouts"
     },
     {
       "type": "uuid",
@@ -7883,14 +8348,14 @@
       "table": "orders"
     },
     {
-      "type": "varchar(100)",
+      "type": "uuid",
       "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "checkout_key",
+      "name": "checkout_id",
       "entityType": "columns",
       "schema": "commerce",
       "table": "orders"
@@ -13812,6 +14277,90 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "checkout_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "site_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_checkout_lines_checkout_site",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "party_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "created_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_checkouts_party",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_checkouts_status",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "organization_id",
           "isExpression": false,
           "asc": true,
@@ -15912,6 +16461,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "checkout_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_orders_checkout",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "orders"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "organization_id",
           "isExpression": false,
           "asc": true,
@@ -17967,6 +18537,74 @@
     {
       "nameExplicit": false,
       "columns": [
+        "checkout_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "checkouts",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "checkout_lines_checkout_id_checkouts_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "offering_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "offerings",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "checkout_lines_offering_id_offerings_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "offering_variant_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "offering_variants",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "checkout_lines_offering_variant_id_offering_variants_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "party_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "parties",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "checkouts_party_id_parties_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "credit_note_id"
       ],
       "schemaTo": "commerce",
@@ -19014,6 +19652,23 @@
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "orders_party_id_parties_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "orders"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "checkout_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "checkouts",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "orders_checkout_id_checkouts_id_fkey",
       "entityType": "fks",
       "schema": "commerce",
       "table": "orders"
@@ -20170,6 +20825,26 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "checkout_lines_pkey",
+      "schema": "commerce",
+      "table": "checkout_lines",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "checkouts_pkey",
+      "schema": "commerce",
+      "table": "checkouts",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "cost_categories_pkey",
       "schema": "commerce",
       "table": "cost_categories",
@@ -21083,6 +21758,30 @@
       "nameExplicit": true,
       "columns": [
         "organization_id",
+        "party_id",
+        "checkout_key"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_checkouts_party_key",
+      "entityType": "uniques",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "payment_intent_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_checkouts_payment_intent",
+      "entityType": "uniques",
+      "schema": "commerce",
+      "table": "checkouts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "organization_id",
         "code"
       ],
       "nullsNotDistinct": false,
@@ -21526,23 +22225,11 @@
     {
       "nameExplicit": true,
       "columns": [
-        "payment_intent_id"
+        "payment_intent_id",
+        "site_id"
       ],
       "nullsNotDistinct": false,
       "name": "uq_orders_payment_intent",
-      "entityType": "uniques",
-      "schema": "commerce",
-      "table": "orders"
-    },
-    {
-      "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "party_id",
-        "checkout_key"
-      ],
-      "nullsNotDistinct": false,
-      "name": "uq_orders_party_checkout_key",
       "entityType": "uniques",
       "schema": "commerce",
       "table": "orders"
@@ -22917,6 +23604,32 @@
       "entityType": "policies",
       "schema": "commerce",
       "table": "categories"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "checkout_lines"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "checkouts"
     },
     {
       "as": "PERMISSIVE",
