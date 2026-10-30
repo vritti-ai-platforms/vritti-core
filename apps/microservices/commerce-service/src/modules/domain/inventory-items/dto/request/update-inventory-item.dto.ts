@@ -46,4 +46,8 @@ export class UpdateInventoryItemDto {
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
+
+  @IsOptional()
+  @IsUUID('7')
+  taxClassId?: string;
 }

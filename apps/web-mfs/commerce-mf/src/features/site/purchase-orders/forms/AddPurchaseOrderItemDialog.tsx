@@ -20,6 +20,7 @@ import {
 } from '@/schemas/purchase-orders';
 import { SupplierItemSelector } from '@/selectors/supplier-item';
 import { computeFreeQty } from '@/utils/freeQty';
+import { ConversionPreview } from '../components/ConversionPreview';
 
 const toOptionalNumber = (raw: unknown): number | undefined => {
   if (raw == null || raw === '') return undefined;
@@ -41,6 +42,12 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   const mutation = useAddPurchaseOrderItem({ onSuccess });
 
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
+  // The supplier's minimum order for the picked item; a smaller quantity is allowed but flagged
+  const [minOrder, setMinOrder] = useState<number | undefined>();
+  // The supplier item's currency; a price in another than the PO's is converted at the PO's rate for it
+  const [itemCurrency, setItemCurrency] = useState<string>(purchaseOrder.currencyCode);
+  const isForeign = itemCurrency !== purchaseOrder.currencyCode;
+  const storedRate = purchaseOrder.conversionRates[itemCurrency];
 
   const form = useForm<AddPurchaseOrderItemFormData>({
     resolver: zodResolver(addPurchaseOrderItemSchema),
@@ -54,6 +61,10 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   });
 
   const hasScheme = form.watch('hasScheme');
+  const unitPrice = form.watch('unitPrice');
+  const uomQty = form.watch('uomQty');
+  const belowMinOrder = minOrder != null && Number(uomQty) > 0 && Number(uomQty) < minOrder;
+  const enteredRate = form.watch('conversionRate');
   const freeQtyPreview = computeFreeQty(
     form.watch('uomQty'),
     form.watch('schemeBuyQty'),
@@ -63,14 +74,21 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
 
   const handleItemSelect = (option: SelectOption | null) => {
     const rawMinor = option?.additionals?.unitPrice;
+    const rawCurrency = option?.additionals?.currencyCode;
+    const currency = typeof rawCurrency === 'string' ? rawCurrency : purchaseOrder.currencyCode;
     setAllowDecimal(option?.additionals?.allowDecimal === true);
+    setMinOrder(toOptionalNumber(option?.additionals?.minOrderQuantity));
+    setItemCurrency(currency);
+    // The price is entered as the supplier quotes it; a currency the PO has no rate for asks for one
+    const needsRate = currency !== purchaseOrder.currencyCode && !purchaseOrder.conversionRates[currency];
+    form.setValue('rateCurrency', needsRate ? currency : undefined);
+    form.resetField('conversionRate');
     if (rawMinor) {
-      form.setValue('unitPrice', {
-        currency: purchaseOrder.currencyCode,
-        value: minorToMajor(rawMinor.toString(), purchaseOrder.currencyCode),
-      });
+      form.setValue('unitPrice', { currency, value: minorToMajor(rawMinor.toString(), currency) });
+    } else {
+      form.resetField('unitPrice');
     }
-    // Prefill the standing scheme from the supplier item; buyer can edit at PO time.
+    // Prefill the scheme from the site's price in force; buyer can edit at PO time.
     form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
     form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
     form.setValue('hasScheme', option?.additionals?.hasScheme === true);
@@ -87,6 +105,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         supplierItemId: data.supplierItemId,
         uomQty: data.uomQty,
         unitPrice: data.unitPrice as CurrencyValue,
+        conversionRate: data.rateCurrency ? data.conversionRate : undefined,
         schemeBuyQty: data.schemeBuyQty,
         schemeFreeQty: data.schemeFreeQty,
         hasScheme: data.hasScheme,
@@ -108,13 +127,38 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
             placeholder="e.g. 500"
             integer={!allowDecimal}
             positive
+            description={
+              minOrder == null
+                ? undefined
+                : belowMinOrder
+                  ? `Below the supplier's minimum order of ${minOrder}`
+                  : `Supplier's minimum order: ${minOrder}`
+            }
           />
           <CurrencyField
             name="unitPrice"
-            label="Unit Price"
-            currencyCode={purchaseOrder.currencyCode}
+            label={isForeign ? `Unit Price (${itemCurrency})` : 'Unit Price'}
+            currencyCode={itemCurrency}
             placeholder="Enter unit price"
           />
+          {isForeign && !storedRate && (
+            <TextField
+              name="conversionRate"
+              label={`1 ${itemCurrency} in ${purchaseOrder.currencyCode}`}
+              type="number"
+              placeholder="e.g. 83.25"
+              positive
+              nonZero
+              description={`Applies to every ${itemCurrency} line on this PO`}
+            />
+          )}
+          {isForeign && (
+            <ConversionPreview
+              price={unitPrice as CurrencyValue | undefined}
+              poCurrencyCode={purchaseOrder.currencyCode}
+              rate={storedRate ? Number(storedRate) : enteredRate}
+            />
+          )}
           {hasScheme && <FreeQtyPreview value={freeQtyPreview} />}
         </div>
         <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />

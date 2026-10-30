@@ -17,6 +17,6 @@ export class InventoryItemsSuppliersController {
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.suppliers.table — inventoryItemId: ${inventoryItemId}`);
-    return this.service.findSuppliersForItem(inventoryItemId, state);
+    return this.service.findSuppliersForItem(inventoryItemId, null, state);
   }
 }

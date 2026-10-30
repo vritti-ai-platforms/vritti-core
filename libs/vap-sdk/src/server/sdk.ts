@@ -21,7 +21,13 @@ export function createVapSdk(options: VapSdkOptions = {}) {
   const client = createVapClient({
     endpoint: config.endpoint,
     fetch: createSignedFetch(config),
-    links: config.responseCache ? [createResponseCacheLink(config.responseCache, config.clientId)] : [],
+    links: config.responseCache
+      ? [
+          createResponseCacheLink(config.responseCache, config.clientId, {
+            defaultTtlSeconds: config.responseCacheTtlSeconds,
+          }),
+        ]
+      : [],
   });
 
   const coreOrigin = originOf(config.endpoint);

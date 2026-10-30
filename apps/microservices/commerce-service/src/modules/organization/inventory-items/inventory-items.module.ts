@@ -2,6 +2,9 @@ import { CategoriesDomainModule } from '@domain/categories/categories.module';
 import { InventoryItemMrpsDomainModule } from '@domain/inventory-item-mrps/inventory-item-mrps.module';
 import { InventoryItemUomConversionsDomainModule } from '@domain/inventory-item-uom-conversions/inventory-item-uom-conversions.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
+import { OfferingBomDomainModule } from '@domain/offering-bom/offering-bom.module';
+import { OfferingVariantsDomainModule } from '@domain/offering-variants/offering-variants.module';
+import { OfferingsDomainModule } from '@domain/offerings/offerings.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { UomDomainModule } from '@domain/uom/uom.module';
 import { Module } from '@nestjs/common';
@@ -21,6 +24,9 @@ import { InventoryItemsUomConversionsService } from './uom-conversions/services/
     SupplierItemsDomainModule,
     CategoriesDomainModule,
     UomDomainModule,
+    OfferingsDomainModule,
+    OfferingVariantsDomainModule,
+    OfferingBomDomainModule,
   ],
   controllers: [
     InventoryItemsRootController,

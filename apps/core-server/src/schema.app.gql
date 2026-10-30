@@ -356,7 +356,6 @@ type InventoryItemSupplier {
   minOrderQuantity: Float
   leadTimeDays: Int
   isPreferred: Boolean!
-  isActive: Boolean!
 }
 
 type InventoryItemSupplierPageInfo {
@@ -381,7 +380,9 @@ type InventoryItem {
   description: String
   uomId: String!
   uomSymbol: String
-  purchaseTaxGroupId: String
+  purchaseTaxGroupId: String @deprecated(reason: "Replaced by taxClassId; always null.")
+  taxClassId: String!
+  taxClassName: String
   hsnCode: String
   canDelete: Boolean!
   createdAt: String!

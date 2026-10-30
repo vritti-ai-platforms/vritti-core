@@ -2,98 +2,96 @@ import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField, zodPhoneField } from '@vritti/quantum-ui/zod';
 import type { PartyLicenseType } from './party-licenses';
+import type { SiteEnrollmentStatus } from './site-suppliers';
+
+const currencyCodeField = z.string({ error: 'Currency is required' }).regex(/^[A-Z]{3}$/, 'Currency is required');
+const currencyCodesField = z
+  .array(currencyCodeField, { error: 'Select at least one currency' })
+  .min(1, 'Select at least one currency');
+
+// The default currency is one of the supplier's currencies
+const defaultCurrencyListed = {
+  check: (data: { currencyCode: string; currencyCodes: string[] }) => data.currencyCodes.includes(data.currencyCode),
+  params: { path: ['currencyCode'], message: 'Pick the default from the selected currencies' },
+};
 
 // A supplier now references a company party — identity lives on the company, not inline.
-export const createSupplierSchema = z.object({
-  partyId: z.uuid('Company is required'),
-  code: z.string().min(1, 'Code is required').max(100),
-  currencyCode: z.string({ error: 'Currency is required' }).regex(/^[A-Z]{3}$/, 'Currency is required'),
-  paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
-  leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
-  notes: z.string().optional(),
-  purchasingBlocked: z.boolean().optional(),
-  paymentBlocked: z.boolean().optional(),
-  orderEmail: z.string().email('Invalid email').optional().or(z.literal('')),
-  orderPhone: zodPhoneField({ optional: true }),
-  isActive: z.boolean(),
-});
+export const createSupplierSchema = z
+  .object({
+    partyId: z.uuid('Company is required'),
+    code: z.string().min(1, 'Code is required').max(100),
+    currencyCodes: currencyCodesField,
+    currencyCode: currencyCodeField,
+    defaultPaymentTermId: z.uuid().optional(),
+    notes: z.string().optional(),
+    purchasingBlocked: z.boolean().optional(),
+    paymentBlocked: z.boolean().optional(),
+    orderEmail: z.string().email('Invalid email').optional().or(z.literal('')),
+    orderPhone: zodPhoneField({ optional: true }),
+    isActive: z.boolean(),
+  })
+  .refine(defaultCurrencyListed.check, defaultCurrencyListed.params);
 
 export const updateSupplierSchema = z.object({
-  partyId: z.uuid('Company is required').optional(),
   code: z.string().min(1).max(100).optional(),
-  currencyCode: z
-    .string()
-    .regex(/^[A-Z]{3}$/, 'Invalid currency code')
-    .optional(),
-  paymentTerms: z.string().max(50).nullable().optional(),
-  leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  defaultPaymentTermId: z.uuid().nullable().optional(),
   notes: z.string().nullable().optional(),
   purchasingBlocked: z.boolean().optional(),
   paymentBlocked: z.boolean().optional(),
   orderEmail: z.string().email('Invalid email').nullable().optional().or(z.literal('')),
   orderPhone: z.union([zodPhoneField({ optional: true }), z.null()]).optional(),
-  isActive: z.boolean().optional(),
 });
 
-// Standing free-goods scheme (buy + free ratio) carried on a supplier item.
-const supplierSchemeShape = {
-  schemeBuyQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-  schemeFreeQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-  hasScheme: z.boolean(),
-};
+const siteIdsField = z.array(z.uuid(), { error: 'Select at least one site' }).min(1, 'Select at least one site');
 
-// When a scheme is enabled, the buy/free ratio is required.
-const enforceSchemeRatio = (
-  data: { hasScheme: boolean; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
-  ctx: z.RefinementCtx,
-) => {
-  if (!data.hasScheme) return;
-  if (data.schemeBuyQty == null) {
-    ctx.addIssue({ code: 'custom', path: ['schemeBuyQty'], message: 'Buy qty is required for a scheme.' });
-  }
-  if (data.schemeFreeQty == null) {
-    ctx.addIssue({ code: 'custom', path: ['schemeFreeQty'], message: 'Free qty is required for a scheme.' });
-  }
-};
+export const addSupplierItemSchema = z.object({
+  inventoryItemId: z.uuid('Inventory item is required'),
+  supplierItemCode: z.string().max(100).optional(),
+  uomId: z.uuid('Unit of measure is required'),
+  minOrderQuantity: zodNumericField({ positive: true }).optional(),
+  leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
+  siteIds: siteIdsField,
+});
 
-// Scheme-only form used by the bulk "Set Scheme" action on the supplier items table.
-export const setSupplierItemSchemeSchema = z.object(supplierSchemeShape).superRefine(enforceSchemeRatio);
-export type SetSupplierItemSchemeFormData = z.infer<typeof setSupplierItemSchemeSchema>;
+export const updateSupplierItemSchema = z.object({
+  supplierItemCode: z.string().max(100).optional(),
+  uomId: z.uuid('Unit of measure is required'),
+  minOrderQuantity: zodNumericField({ positive: true, nullable: true }).optional(),
+  leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+});
 
-export const addSupplierItemSchema = z
-  .object({
-    inventoryItemId: z.uuid('Inventory item is required'),
-    supplierItemCode: z.string().max(100).optional(),
-    unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
-    uomId: z.uuid('Unit of measure is required'),
-    minOrderQuantity: zodNumericField({ integer: true, positive: true }).optional(),
-    leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
-    isPreferred: z.boolean().optional(),
-    taxInclusive: z.boolean(),
-    ...supplierSchemeShape,
-  })
-  .superRefine(enforceSchemeRatio);
+export const setSupplierItemPreferredSchema = z.object({
+  siteIds: siteIdsField,
+  isPreferred: z.boolean(),
+});
 
-export const updateSupplierItemSchema = z
-  .object({
-    supplierItemCode: z.string().max(100).optional(),
-    unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
-    uomId: z.uuid('Unit of measure is required'),
-    minOrderQuantity: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-    leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-    isPreferred: z.boolean().optional(),
-    isActive: z.boolean().optional(),
-    taxInclusive: z.boolean(),
-    ...supplierSchemeShape,
-  })
-  .superRefine(enforceSchemeRatio);
+export type SetSupplierItemPreferredFormData = z.infer<typeof setSupplierItemPreferredSchema>;
+
+export const setSupplierItemMinOrderSchema = z.object({
+  minOrderQuantity: zodNumericField({ positive: true, nullable: true }).optional(),
+});
+
+export type SetSupplierItemMinOrderFormData = z.infer<typeof setSupplierItemMinOrderSchema>;
+
+export const setSupplierItemLeadTimeSchema = z.object({
+  leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+});
+
+export type SetSupplierItemLeadTimeFormData = z.infer<typeof setSupplierItemLeadTimeSchema>;
 
 export type CreateSupplierFormData = z.infer<typeof createSupplierSchema>;
+export const editSupplierFormSchema = updateSupplierSchema.extend({
+  partyId: z.uuid(),
+  currencyCode: z.string(),
+});
+
 export type UpdateSupplierFormData = z.infer<typeof updateSupplierSchema>;
+export type EditSupplierFormData = z.infer<typeof editSupplierFormSchema>;
 export type AddSupplierItemFormData = z.infer<typeof addSupplierItemSchema>;
 export type UpdateSupplierItemFormData = z.infer<typeof updateSupplierItemSchema>;
 export type SuppliersTableResponse = TableResponse<SupplierData>;
 export type SupplierItemsTableResponse = TableResponse<SupplierItemData>;
+export type SiteSupplierItemsTableResponse = TableResponse<SiteSupplierItemData>;
 
 export interface SupplierData {
   id: string;
@@ -101,9 +99,12 @@ export interface SupplierData {
   partyName: string;
   partyType: 'COMPANY' | 'PERSON';
   code: string;
+  // The default currency; new items, quotations and POs start in it
   currencyCode: string;
-  paymentTerms: string | null;
-  leadTimeDays: number | null;
+  // Every currency the supplier trades in, the default included
+  currencyCodes: string[];
+  defaultPaymentTermId: string | null;
+  defaultPaymentTermName: string | null;
   notes: string | null;
   purchasingBlocked: boolean;
   paymentBlocked: boolean;
@@ -136,38 +137,63 @@ export interface SupplierItemData {
   inventoryItemId: string;
   inventoryItemName: string;
   supplierItemCode: string | null;
-  unitPrice: CurrencyValue | null;
   uomId: string;
   uomSymbol: string;
+  // The least the supplier sells per order, in the item's unit
   minOrderQuantity: number | null;
+  // Days from order to delivery, which every site follows unless it sets its own
   leadTimeDays: number | null;
+  siteCount: number;
+  // Sites where this supplier is the preferred one for the item
+  preferredSiteCount: number;
+}
+
+export interface SiteSupplierItemTerms {
+  itemSiteId: string | null;
   isPreferred: boolean;
-  isActive: boolean;
-  taxInclusive: boolean;
+  leadTimeDays: number | null;
+  // True when the site sets its own lead time instead of following the supplier item's
+  isLeadTimeOverridden: boolean;
+  minOrderQuantity: number | null;
+  unitPrice: CurrencyValue | null;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
   hasScheme: boolean;
+  taxInclusive: boolean;
+}
+
+export interface SiteSupplierItemData extends SupplierItemData, SiteSupplierItemTerms {}
+
+export interface SiteSupplierItemDetail extends SiteSupplierItemData {
+  supplierId: string;
+  supplierCode: string;
+  // The supplier's default currency, which new prices start in, and every currency a price may be in
+  supplierCurrencyCode: string;
+  supplierCurrencyCodes: string[];
 }
 
 export interface SupplierItemDetail extends SupplierItemData {
   supplierId: string;
   supplierCode: string;
+  // The supplier's default currency, which new prices start in, and every currency a price may be in
   supplierCurrencyCode: string;
+  supplierCurrencyCodes: string[];
+  // Price history: an item with any can neither be deleted nor change its unit
+  priceCount: number;
+  pricedSiteCount: number;
+  canDelete: boolean;
 }
 
-export interface InventoryItemSupplierData {
+export interface InventoryItemSupplierData extends SiteSupplierItemTerms {
   id: string;
   supplierId: string;
   supplierName: string;
   supplierCode: string;
   supplierItemCode: string | null;
-  unitPrice: CurrencyValue | null;
   uomId: string;
   uomSymbol: string;
-  minOrderQuantity: number | null;
-  leadTimeDays: number | null;
-  isPreferred: boolean;
-  isActive: boolean;
+  // Sites the supplier item is set up at
+  siteCount: number;
 }
 
 export type InventoryItemSuppliersTableResponse = TableResponse<InventoryItemSupplierData>;
@@ -176,21 +202,25 @@ export interface SupplierDetail extends SupplierData {
   registrations: SupplierRegistrationData[];
   licenses: SupplierLicenseData[];
   enrolledSiteCount: number;
+  itemCount: number;
 }
 
-export const changeSupplierCurrencySchema = z.object({
-  currencyCode: z.string({ error: 'Currency is required' }).regex(/^[A-Z]{3}$/, 'Currency is required'),
-  conversionRate: zodNumericField({ required: 'Conversion rate is required', positive: true, nonZero: true }),
-});
+export const changeSupplierCurrencySchema = z
+  .object({ currencyCodes: currencyCodesField, currencyCode: currencyCodeField })
+  .refine(defaultCurrencyListed.check, defaultCurrencyListed.params);
 
 export type ChangeSupplierCurrencyFormData = z.infer<typeof changeSupplierCurrencySchema>;
 
+// One of the legal entity's sites with the supplier's enrollment there; `id` is the enrollment, null when not enrolled
 export interface SupplierSiteRow {
-  id: string;
+  id: string | null;
   supplierId: string;
   siteId: string;
   siteName: string | null;
   siteCode: string | null;
+  enrollmentStatus: SiteEnrollmentStatus;
+  paymentTermId: string | null;
+  paymentTermName: string | null;
   partyTaxRegistrationId: string | null;
   registrationNumber: string | null;
   partyBankAccountId: string | null;
@@ -198,83 +228,221 @@ export interface SupplierSiteRow {
   orderRelationshipId: string | null;
   orderContactLabel: string | null;
   orderContactName: string | null;
-  isActive: boolean;
-  createdAt: string;
+  createdAt: string | null;
 }
 
 export type SupplierSitesTableResponse = TableResponse<SupplierSiteRow>;
 
 export const addSupplierSiteSchema = z.object({
   siteId: z.uuid('Site is required'),
-  partyTaxRegistrationId: z.uuid().nullable().optional(),
+  paymentTermId: z.uuid('Payment term is required'),
+  partyTaxRegistrationId: z.uuid('Tax registration is required'),
   partyBankAccountId: z.uuid().nullable().optional(),
   orderRelationshipId: z.uuid().nullable().optional(),
 });
 
 export const updateSupplierSiteSchema = z.object({
-  partyTaxRegistrationId: z.uuid().nullable().optional(),
+  paymentTermId: z.uuid('Payment term is required'),
+  partyTaxRegistrationId: z.uuid('Tax registration is required'),
   partyBankAccountId: z.uuid().nullable().optional(),
   orderRelationshipId: z.uuid().nullable().optional(),
-  isActive: z.boolean().optional(),
 });
 
 export type AddSupplierSiteFormData = z.infer<typeof addSupplierSiteSchema>;
 export type UpdateSupplierSiteFormData = z.infer<typeof updateSupplierSiteSchema>;
 
-const PRICE_SOURCES = ['QUOTATION', 'MANUAL', 'IMPORT'] as const;
+const PRICE_SOURCES = ['QUOTATION', 'MANUAL'] as const;
 export type SupplierPriceSource = (typeof PRICE_SOURCES)[number];
 export const PRICE_SOURCE_LABELS: Record<SupplierPriceSource, string> = {
   QUOTATION: 'Quotation',
   MANUAL: 'Manual',
-  IMPORT: 'Import',
 };
 
 export interface SupplierItemPriceRow {
   id: string;
   supplierItemId: string;
-  siteId: string | null;
+  legalEntityId: string;
+  siteId: string;
+  siteName?: string | null;
+  siteCode?: string | null;
   unitPrice: CurrencyValue;
+  mrpId: string | null;
+  mrp: CurrencyValue | null;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
+  taxInclusive: boolean;
   validFrom: string;
   validTo: string | null;
   source: SupplierPriceSource;
+  // Set when a quotation posted the price; it then changes only through the quotation
+  quotationSiteId: string | null;
+  note: string | null;
+  createdBy: string | null;
   createdAt: string;
 }
 
 export type SupplierItemPricesTableResponse = TableResponse<SupplierItemPriceRow>;
 
+// A price row of one supplier for an inventory item, with the supplier and the unit the price is per
+export interface ItemSupplierPriceRow extends SupplierItemPriceRow {
+  supplierId: string;
+  supplierName: string;
+  supplierCode: string;
+  uomSymbol: string | null;
+}
+
+export type ItemSupplierPricesTableResponse = TableResponse<ItemSupplierPriceRow>;
+
+export interface PriceWindow {
+  id: string;
+  unitPrice: CurrencyValue;
+  validFrom: string;
+  validTo: string | null;
+}
+
+export interface SitePriceHistory {
+  siteId: string;
+  siteName?: string | null;
+  siteCode?: string | null;
+  current: PriceWindow | null;
+  previous: PriceWindow | null;
+  next: PriceWindow | null;
+  windows: PriceWindow[];
+}
+
+// One supplier's prices for an inventory item at a site, converted to the item's primary unit
+export interface ItemSupplierPriceHistory {
+  supplierId: string;
+  supplierItemId: string;
+  supplierName: string;
+  supplierCode: string;
+  quotedUomSymbol: string | null;
+  current: PriceWindow | null;
+  previous: PriceWindow | null;
+  next: PriceWindow | null;
+  windows: PriceWindow[];
+}
+
+export interface InventoryItemPriceHistory {
+  siteId: string | null;
+  // Every supplier's prices are per this unit
+  uomSymbol: string | null;
+  // The suppliers drawn: the ones asked for, or by default the preferred then most recently priced; at most 8
+  suppliers: ItemSupplierPriceHistory[];
+  // Every supplier with a price for the item at the site within the window
+  supplierCount: number;
+}
+
+// What a price graph shows, as saved in its live table state; empty supplier ids means the server chose the ones drawn
+export interface PriceGraphSelection {
+  siteId: string | null;
+  from: string;
+  to: string;
+  supplierIds: string[];
+  mrpIds: string[];
+  currency: string | null;
+}
+
+export interface InventoryItemPriceGraph extends InventoryItemPriceHistory {
+  selection: PriceGraphSelection;
+}
+
+// One supplier item's standing for an inventory item at a site on a date: the price in force per its own unit and per
+// the item's primary unit, what its scheme makes it cost, and how it last moved
+export interface ItemSupplierPriceComparisonRow {
+  supplierItemId: string;
+  supplierId: string;
+  supplierName: string;
+  supplierCode: string;
+  quotedUomSymbol: string | null;
+  isPreferred: boolean;
+  currentPrice: CurrencyValue | null;
+  currentFrom: string | null;
+  currentTo: string | null;
+  effectivePrice: CurrencyValue | null;
+  pricePerPrimary: CurrencyValue | null;
+  effectivePricePerPrimary: CurrencyValue | null;
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
+  mrp: CurrencyValue | null;
+  previousPrice: CurrencyValue | null;
+  changePercent: number | null;
+  priceCount: number;
+}
+
+export type ItemSupplierPriceComparisonTableResponse = TableResponse<ItemSupplierPriceComparisonRow> & {
+  // Sites the item has supplier prices at, and the one the table shows when none is picked
+  siteIds: string[];
+  defaultSiteId: string | null;
+  // The site the rows are at: the one asked for when the item is priced there, else the default
+  siteId: string | null;
+};
+
+// What the prices table is about — set in its context bar, not saved: a site (the default when omitted) and a day, as
+// YYYY-MM-DD or yesterday / today / tomorrow
+export interface PricesTableContext {
+  site?: string;
+  asOf: string;
+}
+
+// Each window carries its own currency; a supplier can requote an item in another of its currencies
+export interface SupplierItemPriceHistory {
+  sites: SitePriceHistory[];
+}
+
+const supplierItemPriceFields = {
+  unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
+  mrpId: z.uuid().optional(),
+  schemeBuyQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  schemeFreeQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  taxInclusive: z.boolean(),
+  validFrom: z.string({ error: 'Valid from is required' }).min(1, 'Valid from is required'),
+  validTo: z.string().nullable().optional(),
+  note: z.string().max(500, 'Note must be at most 500 characters'),
+};
+
+const validToAfterValidFrom = {
+  check: (data: { validFrom: string; validTo?: string | null }) =>
+    !data.validTo || new Date(data.validTo) >= new Date(data.validFrom),
+  params: { message: 'Valid to must be on or after valid from', path: ['validTo'] },
+};
+
 export const addSupplierItemPriceSchema = z
+  .object(supplierItemPriceFields)
+  .refine(validToAfterValidFrom.check, validToAfterValidFrom.params);
+
+export const addLeSupplierItemPriceSchema = z
   .object({
-    unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
-    schemeBuyQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-    schemeFreeQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-    validFrom: z.string({ error: 'Valid from is required' }).min(1, 'Valid from is required'),
-    validTo: z.string().nullable().optional(),
+    ...supplierItemPriceFields,
+    siteIds: siteIdsField,
   })
-  .refine((data) => !data.validTo || new Date(data.validTo) >= new Date(data.validFrom), {
-    message: 'Valid to must be on or after valid from',
-    path: ['validTo'],
-  });
+  .refine(validToAfterValidFrom.check, validToAfterValidFrom.params);
 
 export const updateSupplierItemPriceSchema = z.object({
   unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
+  mrpId: z.uuid().optional(),
   schemeBuyQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
   schemeFreeQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  taxInclusive: z.boolean(),
   validTo: z.string().optional(),
 });
 
 export type AddSupplierItemPriceFormData = z.infer<typeof addSupplierItemPriceSchema>;
+export type AddLeSupplierItemPriceFormData = z.infer<typeof addLeSupplierItemPriceSchema>;
 export type UpdateSupplierItemPriceFormData = z.infer<typeof updateSupplierItemPriceSchema>;
 
 export interface SupplierItemSiteRow {
   id: string;
   supplierItemId: string;
+  legalEntityId: string;
   siteId: string;
+  inventoryItemId: string;
   siteName: string | null;
   siteCode: string | null;
+  isPreferred: boolean;
   leadTimeDays: number | null;
-  minOrderQuantity: number | null;
+  // True when the site sets its own lead time instead of following the supplier item's
+  isLeadTimeOverridden: boolean;
   createdAt: string;
 }
 
@@ -282,13 +450,15 @@ export type SupplierItemSitesTableResponse = TableResponse<SupplierItemSiteRow>;
 
 export const addSupplierItemSiteSchema = z.object({
   siteId: z.uuid('Site is required'),
+  isPreferred: z.boolean(),
   leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
-  minOrderQuantity: zodNumericField({ positive: true }).optional(),
 });
 
 export const updateSupplierItemSiteSchema = z.object({
+  isPreferred: z.boolean(),
+  // On: the site follows the supplier item's lead time; off: the lead time below is the site's own
+  followItemLeadTime: z.boolean(),
   leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-  minOrderQuantity: zodNumericField({ positive: true, nullable: true }).optional(),
 });
 
 export type AddSupplierItemSiteFormData = z.infer<typeof addSupplierItemSiteSchema>;

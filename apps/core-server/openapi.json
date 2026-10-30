@@ -1217,6 +1217,168 @@
         ]
       }
     },
+    "/select-api/sites": {
+      "get": {
+        "operationId": "CoreSelectApiController_selectSites",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "ids",
+            "required": false,
+            "in": "query",
+            "description": "Only these sites (comma-separated or repeated); every site of the legal entity when omitted",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Core - Select"
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "description": "Authenticates a nexus user with email and password. Returns an access token and sets a refresh token in an httpOnly cookie.",
@@ -15846,6 +16008,1118 @@
         ]
       }
     },
+    "/commerce-api/le/inventory-items/table": {
+      "get": {
+        "operationId": "LeInventoryItemsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/le/inventory-items/{id}/mrp": {
+      "get": {
+        "operationId": "LeInventoryItemsGatewayController_getMrp",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/le/inventory-items/{id}/suppliers/table": {
+      "get": {
+        "operationId": "LeInventoryItemsGatewayController_getSuppliersTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/le/inventory-items/{id}": {
+      "get": {
+        "operationId": "LeInventoryItemsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/le/inventory-items/{id}/prices/table": {
+      "get": {
+        "operationId": "LeInventoryItemPricesGatewayController_findTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "site",
+            "required": false,
+            "in": "query",
+            "description": "Site to read the prices at; the item's default priced site when omitted",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "asOf",
+            "required": false,
+            "in": "query",
+            "description": "Day the prices in force are read on: YYYY-MM-DD, or yesterday / today / tomorrow; today when omitted",
+            "schema": {
+              "example": "today",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/le/inventory-items/{id}/prices/graph": {
+      "get": {
+        "operationId": "LeInventoryItemPricesGatewayController_findGraph",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/le/inventory-items/{id}/prices/sites": {
+      "get": {
+        "operationId": "LeInventoryItemPricesGatewayController_findSites",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/le/inventory-items/{id}/prices/{siteId}/mrps": {
+      "get": {
+        "operationId": "LeInventoryItemPricesGatewayController_findMrps",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Only options with a price still in force on or after this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Only options with a price starting on or before this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/le/inventory-items/{id}/prices/{siteId}/suppliers": {
+      "get": {
+        "operationId": "LeInventoryItemPricesGatewayController_findSuppliers",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Only options with a price still in force on or after this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Only options with a price starting on or before this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - LE Inventory Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/site/inventory-items/{id}/prices/table": {
+      "get": {
+        "operationId": "SiteInventoryItemPricesGatewayController_findTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Inventory Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/site/inventory-items/{id}/prices/mrps": {
+      "get": {
+        "operationId": "SiteInventoryItemPricesGatewayController_findMrps",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Only options with a price still in force on or after this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Only options with a price starting on or before this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Inventory Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/site/inventory-items/{id}/prices/suppliers": {
+      "get": {
+        "operationId": "SiteInventoryItemPricesGatewayController_findSuppliers",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Only options with a price still in force on or after this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Only options with a price starting on or before this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Inventory Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/site/inventory-items/{id}/prices/graph": {
+      "get": {
+        "operationId": "SiteInventoryItemPricesGatewayController_findGraph",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Inventory Item Prices"
+        ]
+      }
+    },
     "/commerce-api/credit-notes": {
       "post": {
         "operationId": "CreditNotesGatewayController_create",
@@ -23447,6 +24721,44 @@
         ]
       }
     },
+    "/commerce-api/purchase-orders/{id}/conversion-rates": {
+      "patch": {
+        "operationId": "PurchaseOrdersGatewayController_setConversionRate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPurchaseOrderConversionRateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
     "/commerce-api/purchase-orders/{id}/close": {
       "patch": {
         "operationId": "PurchaseOrdersGatewayController_closePurchaseOrder",
@@ -24565,53 +25877,6 @@
         ]
       }
     },
-    "/commerce-api/site/suppliers/items/price": {
-      "get": {
-        "operationId": "SiteSuppliersGatewayController_getItemPrice",
-        "parameters": [
-          {
-            "name": "supplierId",
-            "required": true,
-            "in": "query",
-            "description": "Supplier ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "inventoryItemId",
-            "required": true,
-            "in": "query",
-            "description": "Inventory item ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "uomId",
-            "required": true,
-            "in": "query",
-            "description": "UOM ID for pricing",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Site Suppliers"
-        ]
-      }
-    },
     "/commerce-api/site/suppliers/{id}": {
       "get": {
         "operationId": "SiteSuppliersGatewayController_findById",
@@ -24768,9 +26033,411 @@
         ]
       }
     },
-    "/commerce-api/site/suppliers/{id}/items/{itemId}/prices/table": {
+    "/commerce-api/site/suppliers/{id}/items/{itemId}/sites/{rowId}": {
+      "patch": {
+        "operationId": "SiteSuppliersGatewayController_updateItemSite",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSupplierItemSiteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/quotations/table": {
       "get": {
-        "operationId": "SiteSuppliersGatewayController_getItemPricesTable",
+        "operationId": "SupplierQuotationsGatewayController_getTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/quotations": {
+      "post": {
+        "operationId": "SupplierQuotationsGatewayController_create",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupplierQuotationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/quotations/{quotationId}": {
+      "get": {
+        "operationId": "SupplierQuotationsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      },
+      "patch": {
+        "operationId": "SupplierQuotationsGatewayController_update",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSupplierQuotationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      },
+      "delete": {
+        "operationId": "SupplierQuotationsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/quotations/{quotationId}/items": {
+      "post": {
+        "operationId": "SupplierQuotationsGatewayController_addItem",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSupplierQuotationItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/quotations/{quotationId}/items/{itemId}": {
+      "patch": {
+        "operationId": "SupplierQuotationsGatewayController_updateItem",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierQuotationItemFieldsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      },
+      "delete": {
+        "operationId": "SupplierQuotationsGatewayController_removeItem",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/quotations/{quotationId}/sites": {
+      "post": {
+        "operationId": "SupplierQuotationsGatewayController_postToSite",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostSupplierQuotationSiteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/quotations/{quotationId}/sites/{siteId}": {
+      "delete": {
+        "operationId": "SupplierQuotationsGatewayController_removeFromSite",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/items/{itemId}/prices/table": {
+      "get": {
+        "operationId": "SupplierItemPricesGatewayController_getItemPricesTable",
         "parameters": [
           {
             "name": "id",
@@ -24800,13 +26467,402 @@
           }
         ],
         "tags": [
-          "Commerce - Site Suppliers"
+          "Commerce - Supplier Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/sites/{siteId}/items/{itemId}/prices/table": {
+      "get": {
+        "operationId": "SupplierItemPricesGatewayController_getSiteItemPricesTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/items/{itemId}/prices/history": {
+      "get": {
+        "operationId": "SupplierItemPricesGatewayController_getItemPriceHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteIds",
+            "required": false,
+            "in": "query",
+            "description": "Sites to include (comma-separated or repeated); all when omitted",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Only windows still in force on or after this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Only windows starting on or before this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/items/{itemId}/prices": {
+      "post": {
+        "operationId": "SupplierItemPricesGatewayController_addItemPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSupplierItemPriceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/items/{itemId}/prices/{priceId}": {
+      "patch": {
+        "operationId": "SupplierItemPricesGatewayController_updateItemPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "priceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSupplierItemPriceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Item Prices"
+        ]
+      },
+      "delete": {
+        "operationId": "SupplierItemPricesGatewayController_deleteItemPrice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "priceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Supplier Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/items/price": {
+      "get": {
+        "operationId": "SiteSupplierItemPricesGatewayController_getItemPrice",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "required": true,
+            "in": "query",
+            "description": "Supplier ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "inventoryItemId",
+            "required": true,
+            "in": "query",
+            "description": "Inventory item ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uomId",
+            "required": true,
+            "in": "query",
+            "description": "UOM ID for pricing",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/{id}/items/{itemId}/prices/table": {
+      "get": {
+        "operationId": "SiteSupplierItemPricesGatewayController_getItemPricesTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Item Prices"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/{id}/items/{itemId}/prices/history": {
+      "get": {
+        "operationId": "SiteSupplierItemPricesGatewayController_getItemPriceHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Only windows still in force on or after this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Only windows starting on or before this date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Item Prices"
         ]
       }
     },
     "/commerce-api/site/suppliers/{id}/items/{itemId}/prices": {
       "post": {
-        "operationId": "SiteSuppliersGatewayController_addItemPrice",
+        "operationId": "SiteSupplierItemPricesGatewayController_addItemPrice",
         "parameters": [
           {
             "name": "id",
@@ -24846,13 +26902,13 @@
           }
         ],
         "tags": [
-          "Commerce - Site Suppliers"
+          "Commerce - Site Supplier Item Prices"
         ]
       }
     },
     "/commerce-api/site/suppliers/{id}/items/{itemId}/prices/{priceId}": {
       "patch": {
-        "operationId": "SiteSuppliersGatewayController_updateItemPrice",
+        "operationId": "SiteSupplierItemPricesGatewayController_updateItemPrice",
         "parameters": [
           {
             "name": "id",
@@ -24900,11 +26956,11 @@
           }
         ],
         "tags": [
-          "Commerce - Site Suppliers"
+          "Commerce - Site Supplier Item Prices"
         ]
       },
       "delete": {
-        "operationId": "SiteSuppliersGatewayController_deleteItemPrice",
+        "operationId": "SiteSupplierItemPricesGatewayController_deleteItemPrice",
         "parameters": [
           {
             "name": "id",
@@ -24942,7 +26998,7 @@
           }
         ],
         "tags": [
-          "Commerce - Site Suppliers"
+          "Commerce - Site Supplier Item Prices"
         ]
       }
     },
@@ -24994,81 +27050,9 @@
         ]
       }
     },
-    "/commerce-api/le/suppliers/items/price": {
-      "get": {
-        "operationId": "SuppliersGatewayController_getItemPrice",
-        "parameters": [
-          {
-            "name": "supplierId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "inventoryItemId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "uomId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
     "/commerce-api/le/suppliers/{id}/items/table": {
       "get": {
         "operationId": "SuppliersGatewayController_getSupplierItemsTable",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
-    "/commerce-api/le/suppliers/{id}/items/ids": {
-      "get": {
-        "operationId": "SuppliersGatewayController_getSupplierItemIds",
         "parameters": [
           {
             "name": "id",
@@ -25184,6 +27168,73 @@
         ]
       }
     },
+    "/commerce-api/le/suppliers/active": {
+      "patch": {
+        "operationId": "SuppliersGatewayController_bulkSetActive",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetSupplierActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/active": {
+      "patch": {
+        "operationId": "SuppliersGatewayController_setActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSupplierActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
     "/commerce-api/le/suppliers/{id}/change-currency": {
       "post": {
         "operationId": "SuppliersGatewayController_changeCurrency",
@@ -25228,6 +27279,158 @@
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/sites/{siteId}": {
+      "get": {
+        "operationId": "SuppliersGatewayController_findAtSite",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/sites/{siteId}/items/table": {
+      "get": {
+        "operationId": "SuppliersGatewayController_getSiteItemsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/sites/{siteId}/quotations/table": {
+      "get": {
+        "operationId": "SuppliersGatewayController_getSiteQuotationsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/sites/{siteId}/items/{itemId}": {
+      "get": {
+        "operationId": "SuppliersGatewayController_findSiteItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
             "required": true,
             "in": "path",
             "schema": {
@@ -25404,80 +27607,6 @@
         "tags": [
           "Commerce - Suppliers"
         ]
-      },
-      "delete": {
-        "operationId": "SuppliersGatewayController_bulkUnlinkItems",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BulkUnlinkSupplierItemsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
-    "/commerce-api/le/suppliers/{id}/items/scheme": {
-      "patch": {
-        "operationId": "SuppliersGatewayController_bulkSetItemScheme",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BulkSetSupplierItemSchemeDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
       }
     },
     "/commerce-api/le/suppliers/{id}/items/preferred": {
@@ -25499,6 +27628,82 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/BulkSetSupplierItemPreferredDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/items/min-order": {
+      "patch": {
+        "operationId": "SuppliersGatewayController_bulkSetItemMinOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetSupplierItemMinOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/items/lead-time": {
+      "patch": {
+        "operationId": "SuppliersGatewayController_bulkSetItemLeadTime",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetSupplierItemLeadTimeDto"
               }
             }
           }
@@ -25610,184 +27815,6 @@
           },
           {
             "name": "itemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
-    "/commerce-api/le/suppliers/{id}/items/{itemId}/prices/table": {
-      "get": {
-        "operationId": "SuppliersGatewayController_getItemPricesTable",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "itemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
-    "/commerce-api/le/suppliers/{id}/items/{itemId}/prices": {
-      "post": {
-        "operationId": "SuppliersGatewayController_addItemPrice",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "itemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AddSupplierItemPriceDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      }
-    },
-    "/commerce-api/le/suppliers/{id}/items/{itemId}/prices/{priceId}": {
-      "patch": {
-        "operationId": "SuppliersGatewayController_updateItemPrice",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "itemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "priceId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSupplierItemPriceDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Suppliers"
-        ]
-      },
-      "delete": {
-        "operationId": "SuppliersGatewayController_deleteItemPrice",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "itemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "priceId",
             "required": true,
             "in": "path",
             "schema": {
@@ -26483,6 +28510,25 @@
     "/commerce-api/site-group/inventory-items/table": {
       "get": {
         "operationId": "SiteGroupInventoryItemsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Group Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/site-group/inventory-items/matrix": {
+      "get": {
+        "operationId": "SiteGroupInventoryItemsGatewayController_getMatrix",
         "parameters": [
           {
             "name": "siteIds",
@@ -27031,6 +29077,52 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/people/{id}/registrations/{registrationId}/active": {
+      "patch": {
+        "operationId": "PeopleGatewayController_setRegistrationActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "registrationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRegistrationActiveDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -28194,6 +30286,52 @@
         ]
       }
     },
+    "/commerce-api/companies/{id}/registrations/{regId}/active": {
+      "patch": {
+        "operationId": "CompaniesGatewayController_setRegistrationActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "regId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRegistrationActiveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
     "/commerce-api/companies/{id}/identifiers/table": {
       "get": {
         "operationId": "CompaniesGatewayController_listIdentifiers",
@@ -29113,6 +31251,318 @@
         ],
         "tags": [
           "Commerce - Companies"
+        ]
+      }
+    },
+    "/commerce-api/payment-terms/table": {
+      "get": {
+        "operationId": "PaymentTermsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      }
+    },
+    "/commerce-api/payment-terms": {
+      "post": {
+        "operationId": "PaymentTermsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentTermDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      }
+    },
+    "/commerce-api/payment-terms/{id}": {
+      "get": {
+        "operationId": "PaymentTermsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      },
+      "patch": {
+        "operationId": "PaymentTermsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePaymentTermDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      },
+      "delete": {
+        "operationId": "PaymentTermsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      }
+    },
+    "/commerce-api/payment-terms/{id}/activate": {
+      "post": {
+        "operationId": "PaymentTermsGatewayController_activate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      }
+    },
+    "/commerce-api/payment-terms/{id}/deactivate": {
+      "post": {
+        "operationId": "PaymentTermsGatewayController_deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      }
+    },
+    "/commerce-api/payment-terms/{id}/rules": {
+      "post": {
+        "operationId": "PaymentTermsGatewayController_addRule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentTermRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      }
+    },
+    "/commerce-api/payment-terms/{id}/rules/{ruleId}": {
+      "patch": {
+        "operationId": "PaymentTermsGatewayController_updateRule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ruleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentTermRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      },
+      "delete": {
+        "operationId": "PaymentTermsGatewayController_deleteRule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ruleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payment Terms"
         ]
       }
     },
@@ -32893,6 +35343,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "inventoryItemId",
+            "required": false,
+            "in": "query",
+            "description": "Inventory item whose MRPs to list (instead of a variant)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uomId",
+            "required": false,
+            "in": "query",
+            "description": "Unit the MRP is printed for",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -35218,12 +37686,25 @@
             }
           },
           {
-            "name": "enrollable",
+            "name": "siteId",
             "required": false,
             "in": "query",
-            "description": "When true, only suppliers enrollable at the session site are returned",
+            "description": "Site whose enrollment status each option carries (as the `enrollmentStatus` additional)",
             "schema": {
-              "type": "boolean"
+              "type": "string"
+            }
+          },
+          {
+            "name": "enrollmentStatus",
+            "required": false,
+            "in": "query",
+            "description": "Only suppliers with this enrollment status at `siteId`",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ENROLLED",
+                "NOT_ENROLLED"
+              ]
             }
           }
         ],
@@ -35241,6 +37722,170 @@
           }
         ],
         "summary": "Get supplier select options",
+        "tags": [
+          "Commerce - Select"
+        ]
+      }
+    },
+    "/commerce-api/select-api/payment-terms": {
+      "get": {
+        "description": "Returns paginated active payment term options for the select component.",
+        "operationId": "SelectApiController_selectPaymentTerms",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by name",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "includeAll",
+            "required": false,
+            "in": "query",
+            "description": "When true, draft and inactive terms are returned too (navigation, not picking)",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment term select options retrieved successfully."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get payment term select options",
         "tags": [
           "Commerce - Select"
         ]
@@ -49621,6 +52266,11 @@
             "type": "string",
             "description": "Supplier ID"
           },
+          "currencyCode": {
+            "type": "string",
+            "description": "One of the supplier's currencies the PO is in; the supplier's default when omitted",
+            "example": "USD"
+          },
           "orderDate": {
             "type": "string",
             "description": "Order date (ISO string)",
@@ -49646,7 +52296,7 @@
           },
           "exchangeRate": {
             "type": "object",
-            "description": "FX exchange rate from supplier currency to site currency. Required when FIXED + cross-currency.",
+            "description": "FX exchange rate from the PO currency to site currency. Required when FIXED + cross-currency.",
             "example": 83.5
           }
         },
@@ -49668,12 +52318,17 @@
             "example": 100
           },
           "unitPrice": {
-            "description": "Unit price in PO/supplier currency",
+            "description": "Unit price in the PO currency, or in the supplier item's own currency to be converted at the PO's rate for it",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "conversionRate": {
+            "type": "number",
+            "description": "1 unit of the supplier item's currency in the PO currency, when unitPrice is in the item's currency and no rate is stored on the PO for it yet; once given it applies to every line in that currency",
+            "example": 83.25
           },
           "schemeBuyQty": {
             "type": "number",
@@ -49707,12 +52362,17 @@
             "example": 100
           },
           "unitPrice": {
-            "description": "Unit price in PO/supplier currency",
+            "description": "Unit price in the PO currency, or in the supplier item's own currency to be converted at the PO's rate for it",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "conversionRate": {
+            "type": "number",
+            "description": "1 unit of the supplier item's currency in the PO currency, when unitPrice is in the item's currency and no rate is stored on the PO for it yet; once given it applies to every line in that currency",
+            "example": 83.25
           },
           "schemeBuyQty": {
             "type": "number",
@@ -49769,6 +52429,25 @@
         },
         "required": [
           "exchangeRateType"
+        ]
+      },
+      "SetPurchaseOrderConversionRateDto": {
+        "type": "object",
+        "properties": {
+          "currencyCode": {
+            "type": "string",
+            "description": "One of the supplier's currencies other than the PO's (ISO 4217)",
+            "example": "USD"
+          },
+          "rate": {
+            "type": "number",
+            "description": "1 unit of currencyCode in the PO currency; re-converts the lines priced in it",
+            "example": 83.25
+          }
+        },
+        "required": [
+          "currencyCode",
+          "rate"
         ]
       },
       "SendPurchaseOrderEmailDto": {
@@ -50099,37 +52778,353 @@
             "type": "string",
             "description": "Supplier ID to enroll for this site"
           },
+          "paymentTermId": {
+            "type": "string",
+            "description": "Payment term this site buys from the supplier on"
+          },
           "partyTaxRegistrationId": {
-            "type": "object",
-            "description": "Party tax registration pick for goods sourced at this site",
-            "nullable": true
+            "type": "string",
+            "description": "Supplier's tax registration this site is billed under"
           },
           "partyBankAccountId": {
             "type": "object",
             "description": "Party bank account pick for payments from this site",
             "nullable": true
+          },
+          "orderRelationshipId": {
+            "type": "object",
+            "description": "Company-person relationship pick for the order contact at this site",
+            "nullable": true
           }
         },
         "required": [
-          "supplierId"
+          "supplierId",
+          "paymentTermId",
+          "partyTaxRegistrationId"
         ]
       },
       "UpdateSiteSupplierEnrollmentDto": {
         "type": "object",
         "properties": {
+          "paymentTermId": {
+            "type": "string",
+            "description": "Payment term this site buys from the supplier on"
+          },
           "partyTaxRegistrationId": {
-            "type": "object",
-            "description": "Party tax registration pick for goods sourced at this site",
-            "nullable": true
+            "type": "string",
+            "description": "Supplier's tax registration this site is billed under"
           },
           "partyBankAccountId": {
             "type": "object",
             "description": "Party bank account pick for payments from this site",
             "nullable": true
           },
-          "isActive": {
+          "orderRelationshipId": {
+            "type": "object",
+            "description": "Company-person relationship pick for the order contact at this site",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateSupplierItemSiteDto": {
+        "type": "object",
+        "properties": {
+          "isPreferred": {
             "type": "boolean",
-            "description": "Whether the enrollment is active"
+            "description": "Whether this is the preferred supplier for the item at the site"
+          },
+          "leadTimeDays": {
+            "type": "object",
+            "description": "Pins a lead time to this site instead of the supplier item's",
+            "example": 5
+          },
+          "followItemLeadTime": {
+            "type": "boolean",
+            "description": "Drops the site's own lead time and follows the supplier item's again"
+          }
+        }
+      },
+      "CreateSupplierQuotationDto": {
+        "type": "object",
+        "properties": {
+          "quotationNumber": {
+            "type": "string",
+            "description": "The supplier's quotation reference",
+            "example": "SBD-Q-0411"
+          },
+          "quotationDate": {
+            "type": "string",
+            "description": "Date on the quotation",
+            "example": "2026-11-01"
+          },
+          "currencyCode": {
+            "type": "string",
+            "description": "One of the supplier's currencies every line is priced in; the supplier's default when omitted",
+            "example": "USD"
+          },
+          "validFrom": {
+            "type": "string",
+            "description": "First day the quoted prices apply at the sites it is posted to",
+            "example": "2026-11-01"
+          },
+          "validTo": {
+            "type": "object",
+            "description": "Last day the quoted prices apply; open-ended when empty",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "description": "Internal note",
+            "nullable": true
+          }
+        },
+        "required": [
+          "quotationNumber",
+          "quotationDate",
+          "validFrom"
+        ]
+      },
+      "UpdateSupplierQuotationDto": {
+        "type": "object",
+        "properties": {
+          "quotationNumber": {
+            "type": "string",
+            "description": "The supplier's quotation reference"
+          },
+          "quotationDate": {
+            "type": "string",
+            "description": "Date on the quotation"
+          },
+          "currencyCode": {
+            "type": "string",
+            "description": "One of the supplier's currencies; only while the quotation is a draft without lines",
+            "example": "USD"
+          },
+          "validFrom": {
+            "type": "string",
+            "description": "First day the quoted prices apply; only while the quotation is a draft"
+          },
+          "validTo": {
+            "type": "object",
+            "description": "Last day the quoted prices apply; only while the quotation is a draft",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "description": "Internal note",
+            "nullable": true
+          }
+        }
+      },
+      "AddSupplierQuotationItemDto": {
+        "type": "object",
+        "properties": {
+          "supplierItemCode": {
+            "type": "object",
+            "description": "Supplier's code for the item; used when posting creates the supplier item",
+            "nullable": true
+          },
+          "unitPrice": {
+            "description": "Quoted price in the supplier item's unit and currency",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "mrp": {
+            "description": "MRP printed on the pack, in the line's unit; recorded on the item's MRPs when new",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "schemeBuyQty": {
+            "type": "object",
+            "description": "Scheme: quantity bought for the free quantity",
+            "example": 10,
+            "nullable": true
+          },
+          "schemeFreeQty": {
+            "type": "object",
+            "description": "Scheme: free quantity per bought block",
+            "example": 1,
+            "nullable": true
+          },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether the price includes tax",
+            "default": false
+          },
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item quoted"
+          },
+          "uomId": {
+            "type": "string",
+            "description": "Unit the price is for; must be one the item can be bought in"
+          }
+        },
+        "required": [
+          "unitPrice",
+          "inventoryItemId",
+          "uomId"
+        ]
+      },
+      "SupplierQuotationItemFieldsDto": {
+        "type": "object",
+        "properties": {
+          "supplierItemCode": {
+            "type": "object",
+            "description": "Supplier's code for the item; used when posting creates the supplier item",
+            "nullable": true
+          },
+          "unitPrice": {
+            "description": "Quoted price in the supplier item's unit and currency",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "mrp": {
+            "description": "MRP printed on the pack, in the line's unit; recorded on the item's MRPs when new",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "schemeBuyQty": {
+            "type": "object",
+            "description": "Scheme: quantity bought for the free quantity",
+            "example": 10,
+            "nullable": true
+          },
+          "schemeFreeQty": {
+            "type": "object",
+            "description": "Scheme: free quantity per bought block",
+            "example": 1,
+            "nullable": true
+          },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether the price includes tax",
+            "default": false
+          }
+        },
+        "required": [
+          "unitPrice"
+        ]
+      },
+      "PostSupplierQuotationSiteDto": {
+        "type": "object",
+        "properties": {
+          "siteId": {
+            "type": "string",
+            "description": "Site of the legal entity to post the quotation to"
+          }
+        },
+        "required": [
+          "siteId"
+        ]
+      },
+      "AddSupplierItemPriceDto": {
+        "type": "object",
+        "properties": {
+          "unitPrice": {
+            "description": "Unit price for this validity window",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\")."
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether the quoted price includes tax",
+            "default": false
+          },
+          "validFrom": {
+            "type": "string",
+            "description": "Date the price becomes valid (ISO date)",
+            "example": "2026-08-01"
+          },
+          "validTo": {
+            "type": "object",
+            "description": "Date the price expires (ISO date); open-ended when omitted",
+            "nullable": true
+          },
+          "siteIds": {
+            "description": "Sites the price is added for; one price row is created per site",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mrpId": {
+            "type": "object",
+            "description": "MRP this price was agreed against (inventory item MRP id)",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "description": "Why the price was set or changed",
+            "nullable": true
+          }
+        },
+        "required": [
+          "unitPrice",
+          "validFrom",
+          "siteIds"
+        ]
+      },
+      "UpdateSupplierItemPriceDto": {
+        "type": "object",
+        "properties": {
+          "unitPrice": {
+            "description": "Unit price for this validity window",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "schemeBuyQty": {
+            "type": "object",
+            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\")."
+          },
+          "schemeFreeQty": {
+            "type": "object",
+            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether the quoted price includes tax",
+            "default": false
+          },
+          "validTo": {
+            "type": "object",
+            "description": "Date the price expires (ISO date); null re-opens the window",
+            "nullable": true
+          },
+          "mrpId": {
+            "type": "object",
+            "description": "MRP this price was agreed against (inventory item MRP id)",
+            "nullable": true
           }
         }
       },
@@ -50152,6 +53147,11 @@
             "type": "number",
             "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether the quoted price includes tax",
+            "default": false
+          },
           "validFrom": {
             "type": "string",
             "description": "Date the price becomes valid (ISO date)",
@@ -50160,6 +53160,16 @@
           "validTo": {
             "type": "object",
             "description": "Date the price expires (ISO date); open-ended when omitted",
+            "nullable": true
+          },
+          "mrpId": {
+            "type": "object",
+            "description": "MRP this price was agreed against (inventory item MRP id)",
+            "nullable": true
+          },
+          "note": {
+            "type": "object",
+            "description": "Why the price was set or changed",
             "nullable": true
           }
         },
@@ -50187,9 +53197,19 @@
             "type": "object",
             "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether the quoted price includes tax",
+            "default": false
+          },
           "validTo": {
             "type": "object",
             "description": "Date the price expires (ISO date); null re-opens the window",
+            "nullable": true
+          },
+          "mrpId": {
+            "type": "object",
+            "description": "MRP this price was agreed against (inventory item MRP id)",
             "nullable": true
           }
         }
@@ -50211,15 +53231,20 @@
             "description": "Default supplier currency code (ISO 4217)",
             "example": "INR"
           },
-          "paymentTerms": {
-            "type": "object",
-            "description": "Payment terms",
-            "example": "Net 30"
+          "currencyCodes": {
+            "description": "Further currencies the supplier trades in; the default is always included",
+            "example": [
+              "USD"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
-          "leadTimeDays": {
-            "type": "number",
-            "description": "Default lead time in days",
-            "example": 7
+          "defaultPaymentTermId": {
+            "type": "object",
+            "description": "Payment term new site enrollments start from",
+            "nullable": true
           },
           "notes": {
             "type": "object",
@@ -50264,21 +53289,14 @@
             "type": "string",
             "description": "Updated supplier code"
           },
-          "paymentTerms": {
+          "defaultPaymentTermId": {
             "type": "object",
-            "description": "Updated payment terms"
-          },
-          "leadTimeDays": {
-            "type": "object",
-            "description": "Updated lead time in days"
+            "description": "Payment term new site enrollments start from",
+            "nullable": true
           },
           "notes": {
             "type": "object",
             "description": "Updated notes"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether supplier is active"
           },
           "purchasingBlocked": {
             "type": "boolean",
@@ -50300,22 +53318,61 @@
           }
         }
       },
+      "BulkSetSupplierActiveDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "description": "Supplier IDs to update.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the suppliers can be used in procurement"
+          }
+        },
+        "required": [
+          "ids",
+          "isActive"
+        ]
+      },
+      "SetSupplierActiveDto": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the supplier can be used in procurement"
+          }
+        },
+        "required": [
+          "isActive"
+        ]
+      },
       "ChangeSupplierCurrencyDto": {
         "type": "object",
         "properties": {
           "currencyCode": {
             "type": "string",
-            "description": "New currency code (ISO 4217)",
-            "example": "USD"
+            "description": "Default currency new supplier items, quotations and POs start in (ISO 4217)",
+            "example": "INR"
           },
-          "conversionRate": {
-            "type": "number",
-            "description": "Conversion rate from current currency to new currency",
-            "example": 1.1
+          "currencyCodes": {
+            "description": "Every currency the supplier trades in; the default is always among them. A currency still used by the supplier's items, quotations or open POs cannot be dropped",
+            "example": [
+              "INR",
+              "USD"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
-          "currencyCode"
+          "currencyCode",
+          "currencyCodes"
         ]
       },
       "AddSupplierSiteDto": {
@@ -50325,10 +53382,13 @@
             "type": "string",
             "description": "Site ID to enroll for this supplier"
           },
+          "paymentTermId": {
+            "type": "string",
+            "description": "Payment term this site buys from the supplier on"
+          },
           "partyTaxRegistrationId": {
-            "type": "object",
-            "description": "Party tax registration pick for goods sourced at this site",
-            "nullable": true
+            "type": "string",
+            "description": "Supplier's tax registration this site is billed under"
           },
           "partyBankAccountId": {
             "type": "object",
@@ -50342,16 +53402,21 @@
           }
         },
         "required": [
-          "siteId"
+          "siteId",
+          "paymentTermId",
+          "partyTaxRegistrationId"
         ]
       },
       "UpdateSupplierSiteDto": {
         "type": "object",
         "properties": {
+          "paymentTermId": {
+            "type": "string",
+            "description": "Payment term this site buys from the supplier on"
+          },
           "partyTaxRegistrationId": {
-            "type": "object",
-            "description": "Party tax registration pick for goods sourced at this site",
-            "nullable": true
+            "type": "string",
+            "description": "Supplier's tax registration this site is billed under"
           },
           "partyBankAccountId": {
             "type": "object",
@@ -50362,10 +53427,6 @@
             "type": "object",
             "description": "Company-person relationship pick for the order contact at this site",
             "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the site enrollment is active"
           }
         }
       },
@@ -50376,21 +53437,9 @@
             "type": "string",
             "description": "Inventory item ID to link"
           },
-          "taxClassId": {
-            "type": "string",
-            "description": "How this supplier's invoice classifies the goods — the same item can be goods from one supplier and job work from another"
-          },
           "supplierItemCode": {
             "type": "object",
             "description": "Supplier-specific item code"
-          },
-          "unitPrice": {
-            "description": "Unit price from this supplier",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyAmountDto"
-              }
-            ]
           },
           "uomId": {
             "type": "string",
@@ -50398,70 +53447,26 @@
           },
           "minOrderQuantity": {
             "type": "number",
-            "description": "Minimum order quantity",
+            "description": "The least the supplier sells per order, in the item's unit",
             "example": 10
           },
           "leadTimeDays": {
             "type": "number",
-            "description": "Lead time in days for this item",
+            "description": "Days from order to delivery; every site that does not set its own follows it",
             "example": 5
           },
-          "isPreferred": {
-            "type": "boolean",
-            "description": "Whether this is the preferred supplier for this item",
-            "default": false
-          },
-          "schemeBuyQty": {
-            "type": "number",
-            "description": "Standing free-goods scheme buy qty (e.g. 9 in \"9+1\")."
-          },
-          "schemeFreeQty": {
-            "type": "number",
-            "description": "Standing free-goods scheme free qty (e.g. 1 in \"9+1\")."
-          },
-          "hasScheme": {
-            "type": "boolean",
-            "description": "Whether a free-goods scheme applies."
-          },
-          "taxInclusive": {
-            "type": "boolean",
-            "description": "Whether the unit price is quoted tax-inclusive.",
-            "default": false
-          }
-        },
-        "required": [
-          "inventoryItemId",
-          "taxClassId",
-          "unitPrice",
-          "uomId"
-        ]
-      },
-      "BulkSetSupplierItemSchemeDto": {
-        "type": "object",
-        "properties": {
-          "supplierItemIds": {
-            "description": "Supplier item IDs to apply the scheme to.",
+          "siteIds": {
+            "description": "Enrolled sites to set the item up at",
             "type": "array",
             "items": {
               "type": "string"
             }
-          },
-          "schemeBuyQty": {
-            "type": "number",
-            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\")."
-          },
-          "schemeFreeQty": {
-            "type": "number",
-            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
-          },
-          "hasScheme": {
-            "type": "boolean",
-            "description": "Whether a free-goods scheme applies."
           }
         },
         "required": [
-          "supplierItemIds",
-          "hasScheme"
+          "inventoryItemId",
+          "uomId",
+          "siteIds"
         ]
       },
       "BulkSetSupplierItemPreferredDto": {
@@ -50474,14 +53479,66 @@
               "type": "string"
             }
           },
+          "siteIds": {
+            "description": "Sites to apply the flag at; items not set up at a site are skipped.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "isPreferred": {
             "type": "boolean",
-            "description": "Whether to mark the items as the preferred supplier for their inventory items."
+            "description": "Whether to mark the items as the preferred supplier at those sites."
           }
         },
         "required": [
           "supplierItemIds",
+          "siteIds",
           "isPreferred"
+        ]
+      },
+      "BulkSetSupplierItemMinOrderDto": {
+        "type": "object",
+        "properties": {
+          "supplierItemIds": {
+            "description": "Supplier item IDs to update.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "minOrderQuantity": {
+            "type": "object",
+            "description": "The least the supplier sells per order, in each item's own unit; null clears it.",
+            "nullable": true,
+            "example": 10
+          }
+        },
+        "required": [
+          "supplierItemIds",
+          "minOrderQuantity"
+        ]
+      },
+      "BulkSetSupplierItemLeadTimeDto": {
+        "type": "object",
+        "properties": {
+          "supplierItemIds": {
+            "description": "Supplier item IDs to update.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "leadTimeDays": {
+            "type": "object",
+            "description": "Days from order to delivery; applied to every site of the items that does not set its own. Null clears it.",
+            "nullable": true,
+            "example": 5
+          }
+        },
+        "required": [
+          "supplierItemIds",
+          "leadTimeDays"
         ]
       },
       "UpdateSupplierItemDto": {
@@ -50497,102 +53554,13 @@
           },
           "minOrderQuantity": {
             "type": "object",
-            "description": "Minimum order quantity",
-            "example": 10
+            "description": "The least the supplier sells per order, in the item's unit",
+            "nullable": true
           },
           "leadTimeDays": {
             "type": "object",
-            "description": "Lead time in days for this item",
+            "description": "Days from order to delivery; every site that does not set its own follows it",
             "example": 5
-          },
-          "isPreferred": {
-            "type": "boolean",
-            "description": "Whether this is the preferred supplier for this item"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether this supplier link is active"
-          },
-          "schemeBuyQty": {
-            "type": "object",
-            "description": "Standing free-goods scheme buy qty (e.g. 9 in \"9+1\")."
-          },
-          "schemeFreeQty": {
-            "type": "object",
-            "description": "Standing free-goods scheme free qty (e.g. 1 in \"9+1\")."
-          },
-          "hasScheme": {
-            "type": "boolean",
-            "description": "Whether a free-goods scheme applies."
-          },
-          "taxInclusive": {
-            "type": "boolean",
-            "description": "Whether the unit price is quoted tax-inclusive."
-          }
-        }
-      },
-      "BulkUnlinkSupplierItemsDto": {
-        "type": "object",
-        "properties": {}
-      },
-      "AddSupplierItemPriceDto": {
-        "type": "object",
-        "properties": {
-          "unitPrice": {
-            "description": "Unit price for this validity window",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyAmountDto"
-              }
-            ]
-          },
-          "schemeBuyQty": {
-            "type": "number",
-            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\")."
-          },
-          "schemeFreeQty": {
-            "type": "number",
-            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
-          },
-          "validFrom": {
-            "type": "string",
-            "description": "Date the price becomes valid (ISO date)",
-            "example": "2026-08-01"
-          },
-          "validTo": {
-            "type": "object",
-            "description": "Date the price expires (ISO date); open-ended when omitted",
-            "nullable": true
-          }
-        },
-        "required": [
-          "unitPrice",
-          "validFrom"
-        ]
-      },
-      "UpdateSupplierItemPriceDto": {
-        "type": "object",
-        "properties": {
-          "unitPrice": {
-            "description": "Unit price for this validity window",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyAmountDto"
-              }
-            ]
-          },
-          "schemeBuyQty": {
-            "type": "object",
-            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\")."
-          },
-          "schemeFreeQty": {
-            "type": "object",
-            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
-          },
-          "validTo": {
-            "type": "object",
-            "description": "Date the price expires (ISO date); null re-opens the window",
-            "nullable": true
           }
         }
       },
@@ -50601,37 +53569,22 @@
         "properties": {
           "siteId": {
             "type": "string",
-            "description": "Site ID the override applies to"
+            "description": "Enrolled site to set the item up at"
+          },
+          "isPreferred": {
+            "type": "boolean",
+            "description": "Whether this is the preferred supplier for the item at the site",
+            "default": false
           },
           "leadTimeDays": {
             "type": "number",
             "description": "Site-specific lead time in days",
             "example": 5
-          },
-          "minOrderQuantity": {
-            "type": "number",
-            "description": "Site-specific minimum order quantity",
-            "example": 10
           }
         },
         "required": [
           "siteId"
         ]
-      },
-      "UpdateSupplierItemSiteDto": {
-        "type": "object",
-        "properties": {
-          "leadTimeDays": {
-            "type": "object",
-            "description": "Site-specific lead time in days",
-            "example": 5
-          },
-          "minOrderQuantity": {
-            "type": "object",
-            "description": "Site-specific minimum order quantity",
-            "example": 10
-          }
-        }
       },
       "CreateInventoryItemDto": {
         "type": "object",
@@ -50693,6 +53646,14 @@
           "hsnCode": {
             "type": "object",
             "description": "HSN code for tax reporting"
+          },
+          "taxClassId": {
+            "type": "string",
+            "description": "Tax class the goods are bought under"
+          },
+          "createOffering": {
+            "type": "boolean",
+            "description": "Also create a stock offering for this item: one variant whose only component is the item, quantity 1"
           }
         },
         "required": [
@@ -50701,7 +53662,9 @@
           "type",
           "tracking",
           "categoryId",
-          "uomId"
+          "uomId",
+          "taxClassId",
+          "createOffering"
         ]
       },
       "CreateInventoryItemUomConversionDto": {
@@ -50832,6 +53795,10 @@
             "type": "object",
             "description": "HSN code for tax reporting",
             "nullable": true
+          },
+          "taxClassId": {
+            "type": "string",
+            "description": "Tax class the goods are bought under"
           }
         }
       },
@@ -51133,12 +54100,20 @@
           "isPrimary": {
             "type": "boolean",
             "description": "Whether this is the primary registration"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the registration is active"
           }
         }
+      },
+      "SetRegistrationActiveDto": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean",
+            "description": "Active registrations can be picked for a supplier site enrollment; the primary must stay active"
+          }
+        },
+        "required": [
+          "isActive"
+        ]
       },
       "CreatePersonLicenseDto": {
         "type": "object",
@@ -52150,6 +55125,94 @@
             "description": "Whether the company is selectable"
           }
         }
+      },
+      "CreatePaymentTermDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique code within the org",
+            "example": "net-30"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name",
+            "example": "Net 30"
+          },
+          "baseline": {
+            "type": "string",
+            "description": "Date the due days count from",
+            "enum": [
+              "INVOICE_DATE",
+              "GOODS_RECEIPT_DATE",
+              "END_OF_MONTH"
+            ]
+          },
+          "description": {
+            "type": "object",
+            "description": "Internal description",
+            "nullable": true
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "baseline"
+        ]
+      },
+      "UpdatePaymentTermDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable name"
+          },
+          "baseline": {
+            "type": "string",
+            "description": "Date the due days count from; only a draft may change it",
+            "enum": [
+              "INVOICE_DATE",
+              "GOODS_RECEIPT_DATE",
+              "END_OF_MONTH"
+            ]
+          },
+          "description": {
+            "type": "object",
+            "description": "Internal description",
+            "nullable": true
+          }
+        }
+      },
+      "PaymentTermRuleDto": {
+        "type": "object",
+        "properties": {
+          "percent": {
+            "type": "number",
+            "description": "Share of the invoice this rule makes due",
+            "example": 100
+          },
+          "dueDays": {
+            "type": "number",
+            "description": "Days after the baseline date the rule falls due",
+            "example": 30
+          },
+          "discountPercent": {
+            "type": "object",
+            "description": "Early-payment discount percentage",
+            "example": 2,
+            "nullable": true
+          },
+          "discountDays": {
+            "type": "object",
+            "description": "Days after the baseline date the discount stays available",
+            "example": 10,
+            "nullable": true
+          }
+        },
+        "required": [
+          "percent",
+          "dueDays"
+        ]
       },
       "CreateTaxClassDto": {
         "type": "object",

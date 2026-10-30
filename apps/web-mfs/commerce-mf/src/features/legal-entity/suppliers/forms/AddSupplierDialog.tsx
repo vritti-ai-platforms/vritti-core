@@ -6,11 +6,13 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useCreateSupplier } from '@/hooks/legal-entity/suppliers';
 import { type CreateSupplierFormData, createSupplierSchema } from '@/schemas/suppliers';
 import { CompanySelector } from '@/selectors/company';
 import { CurrencySelector } from '@/selectors/currency';
+import { PaymentTermSelector } from '@/selectors/payment-term';
 
 interface AddSupplierDialogProps {
   onSuccess: () => void;
@@ -22,9 +24,8 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
     resolver: zodResolver(createSupplierSchema),
     defaultValues: {
       code: '',
+      currencyCodes: ['INR'],
       currencyCode: 'INR',
-      paymentTerms: '',
-      leadTimeDays: undefined,
       notes: '',
       purchasingBlocked: false,
       paymentBlocked: false,
@@ -35,6 +36,14 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
   });
 
   const createMutation = useCreateSupplier({ onSuccess });
+  const currencyCodes = useWatch({ control: form.control, name: 'currencyCodes' });
+  const defaultCurrency = useWatch({ control: form.control, name: 'currencyCode' });
+
+  // The default follows the list: dropping it falls back to the first currency left
+  useEffect(() => {
+    if (!currencyCodes?.length || currencyCodes.includes(defaultCurrency)) return;
+    form.setValue('currencyCode', currencyCodes[0], { shouldValidate: true });
+  }, [currencyCodes, defaultCurrency, form]);
 
   return (
     <Form
@@ -46,8 +55,8 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
         partyId: data.partyId,
         code: data.code,
         currencyCode: data.currencyCode,
-        paymentTerms: data.paymentTerms,
-        leadTimeDays: data.leadTimeDays ?? undefined,
+        currencyCodes: data.currencyCodes,
+        defaultPaymentTermId: data.defaultPaymentTermId,
         notes: data.notes,
         purchasingBlocked: data.purchasingBlocked,
         paymentBlocked: data.paymentBlocked,
@@ -64,15 +73,24 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
         <FormSection title="Commercial Terms" contentClassName="block">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField name="code" label="Code" placeholder="e.g. SUP-FRESH-001" />
-            <CurrencySelector name="currencyCode" label="Currency" placeholder="Select currency" />
-            <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
-            <TextField
-              name="leadTimeDays"
-              label="Lead Time (days)"
-              type="number"
-              placeholder="e.g. 7"
-              integer
-              positive
+            <CurrencySelector
+              name="currencyCodes"
+              label="Currencies"
+              placeholder="Select currencies"
+              multiple
+              description="Every currency this supplier quotes and invoices in"
+            />
+            <CurrencySelector
+              name="currencyCode"
+              label="Default Currency"
+              includeCodes={currencyCodes ?? []}
+              disabled={!currencyCodes?.length}
+              description="New items, quotations and purchase orders start in it"
+            />
+            <PaymentTermSelector
+              name="defaultPaymentTermId"
+              label="Default Payment Term"
+              description="Prefilled when a site enrolls this supplier"
             />
             <div className="sm:col-span-2">
               <TextArea name="notes" label="Notes" placeholder="Optional notes" />

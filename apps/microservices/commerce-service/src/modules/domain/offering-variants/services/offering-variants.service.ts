@@ -315,15 +315,39 @@ export class OfferingVariantsDomainService {
     return { success: true, message };
   }
 
-  // Shared by generate() and create(): returns the rows it inserted, so a single-variant create can report the variant
-  // it actually made rather than guessing at the end of a sorted list.
-  private async runGenerate(data: GenerateVariantsDto): Promise<{ created: OfferingVariant[]; message: string }> {
+  // The one variant an offering without dimensions sells as: it names no values, so its Code is the offering's own
+  async createStandalone(offeringId: string, salesUomId: string): Promise<OfferingVariant> {
+    const { created } = await this.runGenerate(
+      { offeringId, salesUomId, combinations: [{ valueIds: [] }] },
+      { standalone: true },
+    );
+    if (created.length === 0) {
+      throw new ConflictException({
+        label: 'Variant Exists',
+        detail: 'This offering already has its variant.',
+      });
+    }
+    return created[0];
+  }
+
+  // Shared by generate(), create() and createStandalone(): returns the rows it inserted, so a single-variant create can
+  // report the variant it actually made rather than guessing at the end of a sorted list.
+  private async runGenerate(
+    data: GenerateVariantsDto,
+    options: { standalone?: boolean } = {},
+  ): Promise<{ created: OfferingVariant[]; message: string }> {
     const offering = await this.requireOwnedOffering(data.offeringId);
     const dimensionCount = await this.repository.countDimensions(data.offeringId);
-    if (dimensionCount === 0) {
+    if (dimensionCount === 0 && !options.standalone) {
       throw new ConflictException({
         label: 'No Dimensions',
         detail: `"${offering.name}" has no dimensions yet. Add at least one before generating variants.`,
+      });
+    }
+    if (dimensionCount > 0 && options.standalone) {
+      throw new ConflictException({
+        label: 'Has Dimensions',
+        detail: `"${offering.name}" has dimensions, so its variants are generated from them.`,
       });
     }
 

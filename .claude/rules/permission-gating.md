@@ -45,6 +45,8 @@ catalog exactly.
 | `permission` prop on `Button` / `Switch` / `CompactSwitch` / `RowActions` / `DataTable` | a single **action**, **toggle** or a **table** | gated in place — hidden when not granted, disabled + lock when locked |
 | `permission` on a `Tabs` `TabItem` | a single **tab** | not granted → the tab is dropped; granted but locked → visible, disabled, lock + upsell tip; the default selection skips locked/disabled tabs |
 | `permission` prop on `DangerZone` | a destructive **delete** card | not granted → the **whole card is hidden**; granted but locked → its button disabled + lock. Pass the delete code (e.g. `X.delete`) |
+| `permission` prop on a form field (`TextField`, `Select`, `Checkbox`, `RadioGroup`, date pickers, …) | a single **input** | not granted → the field renders nothing; granted but locked → disabled + lock + upsell tip. Pair it with a server `@FieldPermission` (below) — the prop is UX only |
+| `FormSection` (automatic) | a **group of inputs** | hides itself when every field inside carries a `permission` and none is granted — no prop; derived from the fields passed as JSX children |
 | `usePermission(code)` | bespoke logic | raw `{ granted, locked, reason, unlockPlans }` |
 
 `DangerZone` also takes `showWarning` (boolean) — render the referenced-records `warning` alert only when true (e.g. `warning="…" showWarning={!x.canDelete}`); it does NOT infer visibility from `warning` being set.
@@ -133,4 +135,28 @@ Permission changes propagate via SSE → `PermissionProvider`, not via query inv
 - **Mutations** (`POST/PUT/PATCH/DELETE`) are hard-guarded with `@RequirePermission(CODE)` on the gateway controller.
 - **Views** (`GET`) are gated **client-side**; only guard a list/table GET on the server when the UI also gates it
   (via the self-gated hook above) — otherwise the 403 tears down the page.
+- **Gated request fields** — a field that unlocks extra behaviour (e.g. `createOffering` also creates an offering,
+  its variant and BOM line) is declared on the gateway request DTO / GraphQL input with `@FieldPermission`, and the
+  global `PermissionInterceptor` enforces it from the same cached permission set as `@RequirePermission`:
+
+  ```ts
+  import { FieldPermission } from '@/rbac/decorators';
+
+  @FieldPermission(
+    [ORG_OFFERINGS.add, ORG_OFFERINGS.variants.add, ORG_OFFERINGS.variants.bom.add], // every code required
+    (value) => value === true,                                                        // when the gate applies
+  )
+  @IsOptional()
+  @IsBoolean()
+  createOffering?: boolean;
+  ```
+
+  - The condition is `(value, payload) => boolean`; omitted, it defaults to "sent and not `null`/`false`".
+  - It runs **before** `ValidationPipe`, so it sees **raw** values (JSON strings for dates, plain objects for
+    nested DTOs). Keep it synchronous and pure — anything needing a DB read belongs in the service.
+  - REST reads the `@Body()` payload, GraphQL the `@Args()` payload (a named arg like `@Args('input')` is resolved).
+    Only top-level fields of that DTO/input are inspected; parent-class gates are inherited.
+  - Require the codes of the feature the field reaches into (here `offerings`), not a new code on the calling
+    feature — revoking the owning feature's permission must stop the behaviour everywhere.
+  - Never thread `@Req()` / `request.auth` into a gateway service to hand-check a permission.
 ```

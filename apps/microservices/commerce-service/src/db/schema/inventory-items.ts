@@ -3,6 +3,7 @@ import { codeCheck, index, jsonb, timestamp, unique, uuid, varchar } from '@vrit
 import { categories } from './categories';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';
+import { taxClasses } from './tax-classes';
 import { uom } from './uom';
 import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
@@ -24,6 +25,9 @@ export const inventoryItems = commerceSchema.table(
       .notNull()
       .references(() => uom.id),
     hsnCode: varchar('hsn_code', { length: 20 }),
+    taxClassId: uuid('tax_class_id')
+      .notNull()
+      .references(() => taxClasses.id),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -35,6 +39,7 @@ export const inventoryItems = commerceSchema.table(
     unique('uq_inventory_items_org_sku').on(table.organizationId, table.sku),
     codeCheck('inventory_items_sku_chk', table.sku),
     index('idx_inventory_items_category').on(table.categoryId),
+    index('idx_inventory_items_tax_class').on(table.taxClassId),
     index('idx_inventory_items_feed').on(table.organizationId, table.createdAt.desc(), table.id),
     index('idx_inventory_items_name').on(table.organizationId, table.name, table.id),
     index('idx_inventory_items_sku_sort').on(table.organizationId, table.sku, table.id),

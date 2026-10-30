@@ -1,1 +1,0 @@
-ALTER TABLE "core"."apps" ADD COLUMN "allowed_origins" text[] DEFAULT '{}'::text[] NOT NULL;

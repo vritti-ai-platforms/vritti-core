@@ -1,19 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import {
-  type ColumnDef,
-  DataTable,
-  NumberCell,
-  RowActions,
-  StringCell,
-  useDataTable,
-} from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Building2, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
+import { LeadTimeCell } from '@/components/suppliers/LeadTimeCell';
 import {
   SUPPLIER_ITEM_SITES_TABLE_KEY,
   useDeleteSupplierItemSite,
@@ -26,16 +21,9 @@ import { EditSupplierItemSiteDialog } from '../forms/EditSupplierItemSiteDialog'
 interface ItemSitesTabProps {
   supplierId: string;
   itemId: string;
-  standingLeadTimeDays: number | null;
-  standingMinOrderQuantity: number | null;
 }
 
-export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({
-  supplierId,
-  itemId,
-  standingLeadTimeDays,
-  standingMinOrderQuantity,
-}) => {
+export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({ supplierId, itemId }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addDialog = useDialog();
@@ -45,8 +33,9 @@ export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({
   const handleRemove = useCallback(
     async (row: SupplierItemSiteRow) => {
       const confirmed = await confirm({
-        title: `Remove override for "${row.siteName ?? 'site'}"?`,
-        description: 'This site will fall back to the item’s standing operational terms.',
+        title: `Remove "${row.siteName ?? 'site'}"?`,
+        description:
+          'The site will no longer be able to order this item from this supplier. Its price history is kept.',
         confirmLabel: 'Remove',
         variant: 'destructive',
       });
@@ -70,15 +59,16 @@ export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({
         enableSorting: false,
       },
       {
-        accessorKey: 'leadTimeDays',
-        header: 'Lead Time (days)',
-        cell: ({ row }) => (row.original.leadTimeDays != null ? <NumberCell value={row.original.leadTimeDays} /> : '—'),
+        accessorKey: 'isPreferred',
+        header: 'Preferred',
+        cell: ({ row }) => (row.original.isPreferred ? <Badge variant="success">Preferred</Badge> : '—'),
       },
       {
-        accessorKey: 'minOrderQuantity',
-        header: 'Min Order',
-        cell: ({ row }) =>
-          row.original.minOrderQuantity != null ? <NumberCell value={row.original.minOrderQuantity} /> : '—',
+        accessorKey: 'leadTimeDays',
+        header: 'Lead Time (days)',
+        cell: ({ row }) => (
+          <LeadTimeCell days={row.original.leadTimeDays} overridden={row.original.isLeadTimeOverridden} />
+        ),
       },
       {
         id: 'actions',
@@ -92,15 +82,15 @@ export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
-                permission: LE_SUPPLIERS.items.edit,
+                permission: LE_SUPPLIERS.sites.items.edit,
                 dialog: {
-                  title: 'Edit Site Override',
-                  description: 'Update the site-specific lead time and minimum order quantity.',
+                  title: 'Edit Site',
+                  description: 'Update how this site buys the item from this supplier.',
                   content: (close) => (
                     <EditSupplierItemSiteDialog
                       supplierId={supplierId}
                       itemId={itemId}
-                      override={row.original}
+                      siteItem={row.original}
                       onSuccess={close}
                       onCancel={close}
                     />
@@ -112,7 +102,7 @@ export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({
                 icon: Trash2,
                 label: 'Remove',
                 variant: 'destructive',
-                permission: LE_SUPPLIERS.items.edit,
+                permission: LE_SUPPLIERS.sites.items.delete,
                 onClick: () => handleRemove(row.original),
               },
             ]}
@@ -127,7 +117,7 @@ export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({
     columns,
     serverState: response,
     slug: `commerce-supplier-item-${itemId}-sites`,
-    label: 'site override',
+    label: 'site',
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -140,30 +130,30 @@ export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({
         table={table}
         mode="tab"
         isLoading={isLoading}
-        permission={LE_SUPPLIERS.items.view}
+        permission={LE_SUPPLIERS.sites.items.view}
         toolbarActions={{
           actions: (
             <Button
               size="sm"
-              permission={LE_SUPPLIERS.items.edit}
+              permission={LE_SUPPLIERS.sites.items.add}
               startAdornment={<Plus className="size-4" />}
               onClick={addDialog.open}
             >
-              Add Override
+              Add Site
             </Button>
           ),
         }}
         emptyStateConfig={{
           icon: Building2,
-          title: 'No site overrides',
-          description: 'Add a per-site override to change lead time or minimum order quantity at a specific site.',
+          title: 'Not set up at any site',
+          description: 'Add a site to let it order this item from this supplier.',
           action: (
             <Button
-              permission={LE_SUPPLIERS.items.edit}
+              permission={LE_SUPPLIERS.sites.items.add}
               startAdornment={<Plus className="size-4" />}
               onClick={addDialog.open}
             >
-              Add Override
+              Add Site
             </Button>
           ),
         }}
@@ -172,17 +162,10 @@ export const ItemSitesTab: React.FC<ItemSitesTabProps> = ({
       <Dialog
         handle={addDialog}
         icon={Building2}
-        title="Add Site Override"
-        description="Override the item’s operational terms for a specific site."
+        title="Add Site"
+        description="Set this item up at one of the supplier's enrolled sites."
         content={(close) => (
-          <AddSupplierItemSiteDialog
-            supplierId={supplierId}
-            itemId={itemId}
-            standingLeadTimeDays={standingLeadTimeDays}
-            standingMinOrderQuantity={standingMinOrderQuantity}
-            onSuccess={close}
-            onCancel={close}
-          />
+          <AddSupplierItemSiteDialog supplierId={supplierId} itemId={itemId} onSuccess={close} onCancel={close} />
         )}
       />
     </>

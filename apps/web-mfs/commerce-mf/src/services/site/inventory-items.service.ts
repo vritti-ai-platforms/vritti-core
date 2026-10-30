@@ -7,15 +7,21 @@ import type {
   InventoryItemData,
   InventoryItemLedgerTableResponse,
   InventoryItemStockData,
-  InventoryItemsTableResponse,
+  SiteInventoryItemsTableResponse,
   UpdateReorderFormData,
 } from '@/schemas/inventory-items';
-import type { InventoryItemSuppliersTableResponse } from '@/schemas/suppliers';
+import type {
+  InventoryItemPriceGraph,
+  InventoryItemSuppliersTableResponse,
+  ItemSupplierPricesTableResponse,
+  PriceGraphSelection,
+} from '@/schemas/suppliers';
+import { priceGraphState } from '@/utils/supplierPrice';
 
 const BASE = 'commerce-api/site/inventory-items';
 
-export function getInventoryItemsTable(): Promise<InventoryItemsTableResponse> {
-  return axios.get<InventoryItemsTableResponse>(`${BASE}/table`).then((r) => r.data);
+export function getInventoryItemsTable(): Promise<SiteInventoryItemsTableResponse> {
+  return axios.get<SiteInventoryItemsTableResponse>(`${BASE}/table`).then((r) => r.data);
 }
 
 export function enableInventoryItem(data: EnableInventoryItemFormData): Promise<CreateResponse<{ id: string }>> {
@@ -52,4 +58,27 @@ export function getInventoryItemSuppliersTable(id: string): Promise<InventoryIte
 
 export function getInventoryItemLedgerTable(id: string): Promise<InventoryItemLedgerTableResponse> {
   return axios.get<InventoryItemLedgerTableResponse>(`${BASE}/${id}/ledger/table`).then((r) => r.data);
+}
+
+export function getInventoryItemPricesTable(id: string): Promise<ItemSupplierPricesTableResponse> {
+  return axios.get<ItemSupplierPricesTableResponse>(`${BASE}/${id}/prices/table`).then((r) => r.data);
+}
+
+export function getInventoryItemPriceGraph(id: string): Promise<InventoryItemPriceGraph> {
+  return axios.get<InventoryItemPriceGraph>(`${BASE}/${id}/prices/graph`).then((r) => r.data);
+}
+
+// Saves what the price graph shows to its live table state, which the graph endpoint reads back
+export function saveInventoryItemPriceGraph(id: string, selection: PriceGraphSelection): Promise<void> {
+  return axios
+    .post(
+      'table-states',
+      {
+        tableSlug: `commerce-site-inventory-item-${id}-price-graph`,
+        state: priceGraphState(selection),
+        activeViewId: null,
+      },
+      { showSuccessToast: false },
+    )
+    .then(() => undefined);
 }

@@ -11,11 +11,9 @@ import { useUpdateTaxRegistration } from '@/hooks/legal-entity/tax-registrations
 import {
   type CreateTaxRegistrationFormData,
   createTaxRegistrationSchema,
-  REGISTRATION_TYPES,
+  REGISTRATION_TYPE_OPTIONS,
   type TaxRegistrationData,
 } from '@/schemas/tax-registrations';
-
-const TYPE_OPTIONS = REGISTRATION_TYPES.map((type) => ({ value: type, label: type }));
 
 interface EditTaxRegistrationDialogProps {
   registration: TaxRegistrationData;
@@ -57,7 +55,7 @@ export const EditTaxRegistrationDialog: React.FC<EditTaxRegistrationDialogProps>
           searchable
           description="Where the number was issued — it decides the origin for tax on every sale."
         />
-        <Select name="registrationType" label="Type" options={TYPE_OPTIONS} />
+        <Select name="registrationType" label="Type" options={REGISTRATION_TYPE_OPTIONS} />
         <TextField
           name="registrationNumber"
           label="Registration Number"

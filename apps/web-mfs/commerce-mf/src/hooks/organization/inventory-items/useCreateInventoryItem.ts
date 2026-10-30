@@ -4,9 +4,10 @@ import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { CreateOrgInventoryItemFormData, InventoryItemData } from '@/schemas/inventory-items';
 import { createOrgInventoryItem } from '@/services/organization/inventory-items.service';
+import { ORG_OFFERINGS_TABLE_KEY } from '../offerings/keys';
 import { ORG_INVENTORY_ITEMS_TABLE_KEY } from './keys';
 
-// Creates a new ORG inventory item and invalidates the table
+// Creates a new ORG inventory item and invalidates the table (and the offerings table when one was created with it)
 export function useCreateInventoryItem(
   options?: Omit<
     UseMutationOptions<CreateResponse<InventoryItemData>, AxiosError, CreateOrgInventoryItemFormData>,
@@ -20,6 +21,7 @@ export function useCreateInventoryItem(
     mutationFn: createOrgInventoryItem,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEMS_TABLE_KEY });
+      if (args[1].createOffering) queryClient.invalidateQueries({ queryKey: ORG_OFFERINGS_TABLE_KEY });
       options?.onSuccess?.(...args);
     },
   });

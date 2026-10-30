@@ -3,9 +3,10 @@ import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
-import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
+import { type CurrencyAmountDto, type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { convertMinor } from '@/common/convert-minor';
 import { computeFreeQty } from '@/common/free-qty';
 import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems } from '@/db/schema';
 
@@ -21,6 +22,7 @@ export interface PurchaseOrderContext {
   poNumber: string;
   status: PurchaseOrderStatus;
   currencyCode: string;
+  conversionRates: Record<string, string>;
   supplierId: string;
   supplierName: string | null;
 }
@@ -121,6 +123,7 @@ export class PurchaseOrderItemsDomainService {
     uomId: string,
     primaryUomQty: number,
     scheme: FreeScheme,
+    supplierCurrencies: string[],
   ): Promise<void> {
     this.assertEditable(po);
 
@@ -132,16 +135,11 @@ export class PurchaseOrderItemsDomainService {
       });
     }
 
-    const poCode = po.currencyCode as CurrencyCode;
-
-    if (data.unitPrice.currency !== poCode) {
-      throw new ValidationException({
-        detail: `Unit price currency must match the purchase order currency (${poCode}).`,
-        errors: [{ field: 'unitPrice', message: `Must be in ${poCode}.` }],
-      });
-    }
-
-    const unitPriceMinor = majorToMinor(data.unitPrice.value, poCode, 'unitPrice');
+    const { unitPriceMinor, sourceCurrencyCode, sourceUnitPrice } = this.priceInPoCurrency(
+      po,
+      data.unitPrice,
+      supplierCurrencies,
+    );
 
     const totalPriceMinor = BigInt(
       new Decimal(unitPriceMinor.toString()).times(data.uomQty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
@@ -167,6 +165,8 @@ export class PurchaseOrderItemsDomainService {
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
       currencyCode: po.currencyCode,
+      sourceCurrencyCode,
+      sourceUnitPrice,
       schemeBuyQty: scheme.buyQty,
       schemeFreeQty: scheme.freeQty,
       hasScheme: scheme.hasScheme,
@@ -183,6 +183,7 @@ export class PurchaseOrderItemsDomainService {
     data: UpdatePurchaseOrderItemDto,
     primaryUomQty: number,
     scheme: FreeScheme,
+    supplierCurrencies: string[],
   ): Promise<SuccessResponseDto> {
     this.assertEditable(po);
 
@@ -207,7 +208,6 @@ export class PurchaseOrderItemsDomainService {
       }
     }
 
-    const poCode = po.currencyCode as CurrencyCode;
     const orderedQuantity = data.uomQty ?? item.uomQty;
 
     if (isReceived && orderedQuantity < item.receivedQuantity) {
@@ -217,18 +217,14 @@ export class PurchaseOrderItemsDomainService {
       });
     }
 
-    let unitPriceMinor: bigint;
-    if (data.unitPrice != null) {
-      if (data.unitPrice.currency !== poCode) {
-        throw new ValidationException({
-          detail: `Unit price currency must match the purchase order currency (${poCode}).`,
-          errors: [{ field: 'unitPrice', message: `Must be in ${poCode}.` }],
-        });
-      }
-      unitPriceMinor = majorToMinor(data.unitPrice.value, poCode, 'unitPrice');
-    } else {
-      unitPriceMinor = item.unitPrice;
-    }
+    const { unitPriceMinor, sourceCurrencyCode, sourceUnitPrice } =
+      data.unitPrice != null
+        ? this.priceInPoCurrency(po, data.unitPrice, supplierCurrencies)
+        : {
+            unitPriceMinor: item.unitPrice,
+            sourceCurrencyCode: item.sourceCurrencyCode,
+            sourceUnitPrice: item.sourceUnitPrice,
+          };
 
     const totalPriceMinor = BigInt(
       new Decimal(unitPriceMinor.toString())
@@ -253,6 +249,8 @@ export class PurchaseOrderItemsDomainService {
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
+      sourceCurrencyCode,
+      sourceUnitPrice,
       schemeBuyQty: scheme.buyQty,
       schemeFreeQty: scheme.freeQty,
       hasScheme: scheme.hasScheme,
@@ -280,5 +278,66 @@ export class PurchaseOrderItemsDomainService {
     await this.repository.delete(itemId);
     this.logger.log(`Removed item ${itemId} from PO ${po.poNumber}`);
     return { success: true, message: `Line item removed from purchase order "${po.poNumber}".` };
+  }
+
+  // Re-converts every line priced in `currencyCode` at a new rate; the caller has stored the rate and syncs the total
+  async repriceSourceCurrency(po: PurchaseOrderContext, currencyCode: string, rate: string): Promise<number> {
+    this.assertEditable(po);
+    const lines = (await this.repository.findItemsByPoId(po.id)).filter(
+      (line) => line.sourceCurrencyCode === currencyCode && line.sourceUnitPrice != null,
+    );
+    for (const line of lines) {
+      const unitPriceMinor = convertMinor(line.sourceUnitPrice as bigint, currencyCode, po.currencyCode, rate);
+      const totalPriceMinor = BigInt(
+        new Decimal(unitPriceMinor.toString()).times(line.uomQty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
+      );
+      await this.repository.update(line.id, {
+        unitPrice: unitPriceMinor,
+        totalPrice: totalPriceMinor,
+        primaryUomUnitPrice: BigInt(
+          new Decimal(totalPriceMinor.toString())
+            .dividedBy(line.primaryUomQty)
+            .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+            .toFixed(0),
+        ),
+      });
+    }
+    return lines.length;
+  }
+
+  // A line is priced in the PO currency, or as quoted in another of the supplier's currencies and converted at the
+  // PO's rate for it
+  private priceInPoCurrency(
+    po: PurchaseOrderContext,
+    unitPrice: CurrencyAmountDto,
+    supplierCurrencies: string[],
+  ): { unitPriceMinor: bigint; sourceCurrencyCode: string | null; sourceUnitPrice: bigint | null } {
+    const currency = unitPrice.currency;
+    if (currency === po.currencyCode) {
+      return {
+        unitPriceMinor: majorToMinor(unitPrice.value, po.currencyCode as CurrencyCode, 'unitPrice'),
+        sourceCurrencyCode: null,
+        sourceUnitPrice: null,
+      };
+    }
+    if (!supplierCurrencies.includes(currency)) {
+      throw new ValidationException({
+        detail: `The unit price must be in one of the supplier's currencies (${supplierCurrencies.join(', ')}).`,
+        errors: [{ field: 'unitPrice', message: `Not one of the supplier's currencies` }],
+      });
+    }
+    const rate = po.conversionRates[currency];
+    if (!rate) {
+      throw new ValidationException({
+        detail: `Enter how much 1 ${currency} is in ${po.currencyCode} to price this line.`,
+        errors: [{ field: 'conversionRate', message: `1 ${currency} in ${po.currencyCode} is required.` }],
+      });
+    }
+    const sourceUnitPrice = majorToMinor(unitPrice.value, currency, 'unitPrice');
+    return {
+      unitPriceMinor: convertMinor(sourceUnitPrice, currency, po.currencyCode, rate),
+      sourceCurrencyCode: currency,
+      sourceUnitPrice,
+    };
   }
 }

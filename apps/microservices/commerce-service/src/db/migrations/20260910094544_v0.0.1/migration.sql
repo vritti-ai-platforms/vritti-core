@@ -1,1 +1,0 @@
-CREATE INDEX "idx_order_items_variant" ON "commerce"."order_items" ("offering_variant_id");

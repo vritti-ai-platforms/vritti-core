@@ -1,1 +1,0 @@
-ALTER TABLE "core"."table_views" ALTER COLUMN "id" SET DEFAULT uuidv7();

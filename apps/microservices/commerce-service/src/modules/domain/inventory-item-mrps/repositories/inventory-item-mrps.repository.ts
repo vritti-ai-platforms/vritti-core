@@ -8,10 +8,18 @@ import {
   inventoryItemMrps,
   inventoryItems,
   offeringBom,
+  supplierItemPrices,
   uom,
 } from '@/db/schema';
 
 export type InventoryItemMrpWithUom = InventoryItemMrp & { uomSymbol: string | null };
+
+// Narrows an item's MRPs to those a supplier price at a site was agreed against within a date window
+export interface MrpPricedAt {
+  siteId: string;
+  from?: string;
+  to?: string;
+}
 
 @Injectable()
 export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemMrps> {
@@ -22,6 +30,32 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
   // The MRPs a variant could be listed at: the recorded prices of whatever its bill of materials draws on,
   // narrowed to one currency when the caller is pricing in one — a listing keyed to an MRP must be priced
   // in that MRP's currency, so offering the others only leads to a refusal
+  findForItemSelect(
+    inventoryItemId: string,
+    uomId: string | undefined,
+    currencyCode: string | undefined,
+    config: Omit<FindForSelectConfig, 'conditions' | 'joins'>,
+    pricedAt?: MrpPricedAt,
+  ) {
+    const conditions: SQL[] = [eq(inventoryItemMrps.inventoryItemId, inventoryItemId) as SQL];
+    if (uomId) conditions.push(eq(inventoryItemMrps.uomId, uomId) as SQL);
+    if (currencyCode) conditions.push(eq(inventoryItemMrps.currencyCode, currencyCode) as SQL);
+    if (pricedAt) {
+      conditions.push(sql`EXISTS (
+        SELECT 1 FROM ${supplierItemPrices}
+        WHERE ${supplierItemPrices.mrpId} = ${inventoryItemMrps.id}
+          AND ${supplierItemPrices.siteId} = ${pricedAt.siteId}
+          ${pricedAt.to ? sql`AND ${supplierItemPrices.validFrom} <= ${pricedAt.to}::date` : sql``}
+          ${pricedAt.from ? sql`AND (${supplierItemPrices.validTo} IS NULL OR ${supplierItemPrices.validTo} >= ${pricedAt.from}::date)` : sql``}
+      )`);
+    }
+    return this.findForSelect({
+      ...config,
+      joins: [{ table: uom, on: eq(uom.id, inventoryItemMrps.uomId), type: 'left' }],
+      conditions,
+    });
+  }
+
   findForVariantSelect(
     variantId: string,
     currencyCode: string | undefined,
@@ -82,6 +116,40 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
         .returning()) as InventoryItemMrp[];
       return row;
     });
+  }
+
+  // Returns the MRP for the exact (item, uom, currency, amount), recording it first when it is new; the current MRP of
+  // the triple is left as it is
+  async findOrInsert(
+    inventoryItemId: string,
+    uomId: string,
+    currencyCode: string,
+    amount: bigint,
+  ): Promise<InventoryItemMrp> {
+    await this.db
+      .insert(inventoryItemMrps)
+      .values({ inventoryItemId, uomId, currencyCode, amount })
+      .onConflictDoNothing({
+        target: [
+          inventoryItemMrps.inventoryItemId,
+          inventoryItemMrps.uomId,
+          inventoryItemMrps.currencyCode,
+          inventoryItemMrps.amount,
+        ],
+      });
+    const [row] = await this.db
+      .select()
+      .from(inventoryItemMrps)
+      .where(
+        and(
+          eq(inventoryItemMrps.inventoryItemId, inventoryItemId),
+          eq(inventoryItemMrps.uomId, uomId),
+          eq(inventoryItemMrps.currencyCode, currencyCode),
+          eq(inventoryItemMrps.amount, amount),
+        ),
+      )
+      .limit(1);
+    return row as InventoryItemMrp;
   }
 
   // Promotes one MRP to current for its (item, uom, currency) triple; returns undefined when no row matches

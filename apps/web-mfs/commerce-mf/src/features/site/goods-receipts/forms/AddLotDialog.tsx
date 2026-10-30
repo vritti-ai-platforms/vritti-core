@@ -1,9 +1,11 @@
+import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency, useDialog } from '@vritti/quantum-ui/hooks';
+import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { PackageCheck } from 'lucide-react';
@@ -24,6 +26,7 @@ const AddLotForm = ({
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
+  const canSetMrp = usePermission(SITE_INVENTORY_ITEMS.mrp.edit).available;
   const form = useForm<AddGoodsReceiptLotFormData>({
     resolver: zodResolver(addGoodsReceiptLotSchema),
     defaultValues: { lotNumber: '', mrp: undefined },
@@ -41,7 +44,7 @@ const AddLotForm = ({
         lotNumber: data.lotNumber,
         manufacturingDate: data.manufacturingDate,
         expiryDate: data.expiryDate,
-        mrp: data.mrp?.value ? data.mrp : undefined,
+        mrp: canSetMrp && data.mrp?.value ? data.mrp : undefined,
       })}
     >
       <TextField name="lotNumber" label="Lot Number" placeholder="e.g. ABC-2026-001" />
@@ -50,6 +53,7 @@ const AddLotForm = ({
       {hasMrp && (
         <CurrencyField
           name="mrp"
+          permission={SITE_INVENTORY_ITEMS.mrp.edit}
           label="MRP"
           description="Printed MRP per primary unit for this batch"
           currencyCode={buCurrencyCode ?? undefined}

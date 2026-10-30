@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { ORG_OFFERINGS } from '@vritti/commerce-permissions/offerings';
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { FieldPermission } from '@/rbac/decorators';
 
 export class CreateInventoryItemDto {
   @Trim({ nullify: false })
@@ -63,4 +65,18 @@ export class CreateInventoryItemDto {
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
+
+  @ApiProperty({ description: 'Tax class the goods are bought under' })
+  @IsUUID('7')
+  taxClassId: string;
+
+  @ApiProperty({
+    description: 'Also create a stock offering for this item: one variant whose only component is the item, quantity 1',
+  })
+  @FieldPermission(
+    [ORG_OFFERINGS.add, ORG_OFFERINGS.variants.add, ORG_OFFERINGS.variants.bom.add],
+    (value) => value === true,
+  )
+  @IsBoolean()
+  createOffering: boolean;
 }

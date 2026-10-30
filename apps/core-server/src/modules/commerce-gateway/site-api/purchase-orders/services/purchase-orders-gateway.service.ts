@@ -5,6 +5,7 @@ import type { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orde
 import type { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '@commerce/purchase-orders/dto/request/create-purchase-order.dto';
 import type { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/request/send-purchase-order-email.dto';
+import type { SetPurchaseOrderConversionRateDto } from '@commerce/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
 import type { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
 import type { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import type { PurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-response.dto';
@@ -152,6 +153,12 @@ export class PurchaseOrdersGatewayService {
   async changeExchangeRate(id: string, dto: ChangePurchaseOrderExchangeRateDto): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeExchangeRate — id: ${id}, type: ${dto.exchangeRateType}`);
     return this.nats.send('commerce', 'site.purchaseOrders.changeExchangeRate', { id, ...dto });
+  }
+
+  // Sets the rate from another of the supplier's currencies into the PO currency
+  async setConversionRate(id: string, dto: SetPurchaseOrderConversionRateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.setConversionRate — id: ${id}, currency: ${dto.currencyCode}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.setConversionRate', { id, ...dto });
   }
 
   // Closes a purchase order short — no further receipts expected

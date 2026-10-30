@@ -1,37 +1,9 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
-import { z, zodCodeField, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
+import { z, zodCodeField, zodNumericField } from '@vritti/quantum-ui/zod';
 
 const INVENTORY_ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] as const;
 
-export const createInventoryItemSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255),
-  sku: zodCodeField({ max: 100 }),
-  type: z.enum(INVENTORY_ITEM_TYPES),
-  tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
-  categoryId: z.uuid('Category is required'),
-  description: z.string().optional(),
-  uomId: z.uuid('Unit of measure is required'),
-  pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
-  purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
-  hsnCode: z.string().max(20).optional(),
-  defaultMrp: zodCurrencyField({ positive: true }).optional(),
-});
-
-export const updateInventoryItemSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  sku: zodCodeField({ max: 100 }).optional(),
-  type: z.enum(INVENTORY_ITEM_TYPES).optional(),
-  description: z.string().nullable().optional(),
-  categoryId: z.uuid('Category is required').optional(),
-  uomId: z.uuid('Unit of measure is required').optional(),
-  pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
-  purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
-  hsnCode: z.string().max(20).nullable().optional(),
-  defaultMrp: zodCurrencyField({ positive: true }).optional(),
-});
-
-// ORG master item — no purchaseTaxGroupId / defaultMrp (those are site/pricing concerns)
 export const createOrgInventoryItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   sku: zodCodeField({ max: 100 }),
@@ -42,6 +14,8 @@ export const createOrgInventoryItemSchema = z.object({
   uomId: z.uuid('Unit of measure is required'),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   hsnCode: z.string().max(20).optional(),
+  taxClassId: z.uuid('Tax class is required'),
+  createOffering: z.boolean(),
 });
 
 export const updateOrgInventoryItemSchema = z.object({
@@ -53,6 +27,7 @@ export const updateOrgInventoryItemSchema = z.object({
   uomId: z.uuid('Unit of measure is required').optional(),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   hsnCode: z.string().max(20).nullable().optional(),
+  taxClassId: z.uuid('Tax class is required').optional(),
 });
 
 // SITE — enable a master item at the current site with optional stock thresholds
@@ -67,13 +42,12 @@ export const updateReorderSchema = z.object({
   reorderPoint: zodNumericField({ required: 'Reorder point is required', min: 0 }),
 });
 
-export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
-export type UpdateInventoryItemFormData = z.infer<typeof updateInventoryItemSchema>;
 export type CreateOrgInventoryItemFormData = z.infer<typeof createOrgInventoryItemSchema>;
 export type UpdateOrgInventoryItemFormData = z.infer<typeof updateOrgInventoryItemSchema>;
 export type EnableInventoryItemFormData = z.infer<typeof enableInventoryItemSchema>;
 export type UpdateReorderFormData = z.infer<typeof updateReorderSchema>;
-export type InventoryItemsTableResponse = TableResponse<InventoryItemData>;
+export type SiteInventoryItemsTableResponse = TableResponse<SiteInventoryItemData>;
+export type SiteGroupInventoryItemsTableResponse = TableResponse<SiteGroupInventoryItemData>;
 export type InventoryItemTableResponse = TableResponse<InventoryItemData>;
 
 export type InventoryItemType = (typeof INVENTORY_ITEM_TYPES)[number];
@@ -124,9 +98,13 @@ export const inventoryTrackingConfig: Record<
   lot_serial: { label: 'Lot + Serial', variant: 'default' },
 };
 
-export type InventoryPickStrategy = 'none' | 'fifo' | 'fefo';
+export const InventoryPickStrategyValues = {
+  NONE: 'none',
+  FIFO: 'fifo',
+  FEFO: 'fefo',
+} as const;
 
-export const InventoryPickStrategyValues = { NONE: 'none', FIFO: 'fifo', FEFO: 'fefo' } as const;
+export type InventoryPickStrategy = (typeof InventoryPickStrategyValues)[keyof typeof InventoryPickStrategyValues];
 
 export interface InventoryItemData {
   id: string;
@@ -140,8 +118,8 @@ export interface InventoryItemData {
   description: string | null;
   uomId: string;
   uomSymbol: string | null;
-  purchaseTaxGroupId: string | null;
-  purchaseTaxGroupName: string | null;
+  taxClassId: string;
+  taxClassName: string | null;
   hsnCode: string | null;
   defaultMrp: CurrencyValue | null;
   reorderPoint: number | null;
@@ -150,6 +128,16 @@ export interface InventoryItemData {
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SiteInventoryItemData extends InventoryItemData {
+  isEnabled: boolean;
+  isStocked: boolean | null;
+  stockedQuantity: string;
+}
+
+export interface SiteGroupInventoryItemData extends InventoryItemData {
+  enabledSiteCount: number;
 }
 
 export interface InventoryItemStockData {

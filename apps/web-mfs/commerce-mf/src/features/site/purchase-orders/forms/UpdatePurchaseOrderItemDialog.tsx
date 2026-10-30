@@ -17,10 +17,13 @@ import {
   type UpdatePurchaseOrderItemFormData,
 } from '@/schemas/purchase-orders';
 import { computeFreeQty } from '@/utils/freeQty';
+import { ConversionPreview } from '../components/ConversionPreview';
 
 interface UpdatePurchaseOrderItemDialogProps {
   purchaseOrderId: string;
   poCurrencyCode: string;
+  // The PO's rates for the supplier's other currencies; a line quoted in one is edited as quoted
+  conversionRates: Record<string, string>;
   item: PurchaseOrderItemData;
   onSuccess: () => void;
   onCancel: () => void;
@@ -29,6 +32,7 @@ interface UpdatePurchaseOrderItemDialogProps {
 export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDialogProps> = ({
   purchaseOrderId,
   poCurrencyCode,
+  conversionRates,
   item,
   onSuccess,
   onCancel,
@@ -41,7 +45,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
     resolver: zodResolver(schema),
     defaultValues: {
       uomQty: item.uomQty,
-      unitPrice: item.unitPrice,
+      unitPrice: item.sourceUnitPrice ?? item.unitPrice,
       schemeBuyQty: item.schemeBuyQty ?? undefined,
       schemeFreeQty: item.schemeFreeQty ?? undefined,
       hasScheme: item.hasScheme ?? false,
@@ -49,6 +53,8 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
   });
   const mutation = useUpdatePurchaseOrderItem({ onSuccess });
   const hasScheme = form.watch('hasScheme');
+  const unitPrice = form.watch('unitPrice');
+  const sourceCurrency = item.sourceUnitPrice?.currency;
   const freeQtyPreview = computeFreeQty(
     form.watch('uomQty'),
     form.watch('schemeBuyQty'),
@@ -84,10 +90,17 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
             <TextField name="uomQty" label="Quantity" type="number" placeholder="e.g. 500" />
             <CurrencyField
               name="unitPrice"
-              label="Unit Price"
-              currencyCode={poCurrencyCode}
+              label={sourceCurrency ? `Unit Price (${sourceCurrency})` : 'Unit Price'}
+              currencyCode={sourceCurrency ?? poCurrencyCode}
               placeholder="Enter unit price"
             />
+            {sourceCurrency && (
+              <ConversionPreview
+                price={unitPrice as CurrencyValue | undefined}
+                poCurrencyCode={poCurrencyCode}
+                rate={conversionRates[sourceCurrency] ? Number(conversionRates[sourceCurrency]) : undefined}
+              />
+            )}
             {hasScheme && <FreeQtyPreview value={freeQtyPreview} />}
           </div>
         </div>

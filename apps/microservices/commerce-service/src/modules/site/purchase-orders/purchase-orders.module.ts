@@ -1,6 +1,8 @@
 import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts.module';
+import { InventoryItemSitesDomainModule } from '@domain/inventory-item-sites/inventory-item-sites.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
+import { SupplierItemPricesDomainModule } from '@domain/supplier-item-prices/supplier-item-prices.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { SupplierSitesDomainModule } from '@domain/supplier-sites/supplier-sites.module';
 import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
@@ -17,8 +19,10 @@ import { PurchaseOrdersService } from './root/services/purchase-orders-root.serv
     PurchaseOrdersDomainModule,
     PurchaseOrderItemsDomainModule,
     GoodsReceiptsDomainModule,
+    InventoryItemSitesDomainModule,
     SuppliersDomainModule,
     SupplierItemsDomainModule,
+    SupplierItemPricesDomainModule,
     SupplierSitesDomainModule,
     UomConversionsDomainModule,
   ],

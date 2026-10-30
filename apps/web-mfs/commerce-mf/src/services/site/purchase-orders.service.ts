@@ -56,6 +56,12 @@ export interface ChangePurchaseOrderExchangeRatePayload {
   exchangeRate?: number | null;
 }
 
+export interface SetPurchaseOrderConversionRatePayload {
+  id: string;
+  currencyCode: string;
+  rate: number;
+}
+
 export interface SendPurchaseOrderEmailPayload {
   id: string;
   email?: string | null;
@@ -182,6 +188,17 @@ export function changePurchaseOrderExchangeRate({
       exchangeRateType,
       exchangeRate,
     })
+    .then((r) => r.data);
+}
+
+// Sets how much 1 unit of another of the supplier's currencies is in the PO currency; lines in it are re-converted
+export function setPurchaseOrderConversionRate({
+  id,
+  currencyCode,
+  rate,
+}: SetPurchaseOrderConversionRatePayload): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/conversion-rates`, { currencyCode, rate })
     .then((r) => r.data);
 }
 

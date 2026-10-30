@@ -10,14 +10,17 @@ export class SiteSupplierEnrollmentResponseDto {
   @ApiProperty({ description: 'Site ID the enrollment belongs to' })
   siteId: string;
 
-  @ApiPropertyOptional({ description: 'Party tax registration pick for this site', nullable: true })
+  @ApiProperty({ description: 'Payment term this site buys from the supplier on' })
+  paymentTermId: string;
+
+  @ApiPropertyOptional({ description: 'Name of the payment term', nullable: true })
+  paymentTermName: string | null;
+
+  @ApiPropertyOptional({ description: "Supplier's tax registration this site is billed under", nullable: true })
   partyTaxRegistrationId: string | null;
 
   @ApiPropertyOptional({ description: 'Party bank account pick for this site', nullable: true })
   partyBankAccountId: string | null;
-
-  @ApiProperty({ description: 'Whether the enrollment is active' })
-  isActive: boolean;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;

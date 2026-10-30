@@ -454,7 +454,6 @@ type InventoryItemSupplier {
   minOrderQuantity: Float
   leadTimeDays: Int
   isPreferred: Boolean!
-  isActive: Boolean!
 }
 
 type InventoryItemSupplierPageInfo {
@@ -500,7 +499,9 @@ type InventoryItem {
   description: String
   uomId: String!
   uomSymbol: String
-  purchaseTaxGroupId: String
+  purchaseTaxGroupId: String @deprecated(reason: "Replaced by taxClassId; always null.")
+  taxClassId: String!
+  taxClassName: String
   hsnCode: String
   canDelete: Boolean!
   createdAt: String!
@@ -715,6 +716,8 @@ type Query {
   locationsOptions(input: SelectOptionsInput, locationRoles: String, inventoryItemId: ID, excludeUsedOnGoodsReceiptItemId: ID, goodsReceiptLotId: ID): SelectOptions!
   uomOptions(input: SelectOptionsInput, dimensionId: ID, baseOnly: Boolean, derivedOnly: Boolean): SelectOptions!
   suppliersOptions(input: SelectOptionsInput): SelectOptions!
+  paymentTermsOptions(input: SelectOptionsInput): SelectOptions!
+  taxClassesOptions(input: SelectOptionsInput): SelectOptions!
   taxGroupsOptions(input: SelectOptionsInput): SelectOptions!
   profile: Profile!
   sessions: [UserSession!]!
@@ -792,7 +795,7 @@ input CreateInventoryItemInput {
   categoryId: String!
   description: String
   uomId: String!
-  purchaseTaxGroupId: String!
+  taxClassId: String!
   hsnCode: String
 }
 
@@ -804,7 +807,7 @@ input UpdateInventoryItemInput {
   description: String
   uomId: String
   pickStrategy: String
-  purchaseTaxGroupId: String!
+  taxClassId: String
   hsnCode: String
 }
 

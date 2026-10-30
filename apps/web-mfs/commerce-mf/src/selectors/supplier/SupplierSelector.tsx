@@ -5,18 +5,26 @@ export type SupplierSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
 
 const DEFAULT_FIELD_KEYS = {
   valueKey: 'id',
-  labelKey: 'name',
-  descriptionKey: 'currencyCode', // default to name, but transformDescription will show currency + payment terms if available
-  additionalKeys: 'currencyCode,paymentTerms',
+  labelKey: 'displayName',
+  descriptionKey: 'currencyCode',
+  additionalKeys: 'currencyCode,currencyCodes,purchasingBlocked',
 } as const;
 
+const ENROLLMENT_LABELS: Record<string, string> = { ENROLLED: 'Enrolled', NOT_ENROLLED: 'Not Enrolled' };
+
+// Currencies, then — when a `siteId` param asked for it — the enrollment status there, then a purchasing block
 function defaultTransformDescription(value: string, option: SelectOption): string {
-  const currencyCode =
-    typeof option.additionals?.currencyCode === 'string' ? option.additionals.currencyCode.trim() : '';
-  const paymentTerms =
-    typeof option.additionals?.paymentTerms === 'string' ? option.additionals.paymentTerms.trim() : '';
-  const parts = [currencyCode, paymentTerms].filter(Boolean);
-  return parts.length > 0 ? parts.join(' · ') : value;
+  const additionals = option.additionals ?? {};
+  const currencyCode = Array.isArray(additionals.currencyCodes)
+    ? additionals.currencyCodes.join(', ')
+    : typeof additionals.currencyCode === 'string'
+      ? additionals.currencyCode.trim()
+      : '';
+  const enrollment =
+    typeof additionals.enrollmentStatus === 'string' ? ENROLLMENT_LABELS[additionals.enrollmentStatus] : '';
+  const blocked = additionals.purchasingBlocked === true ? 'Purchasing blocked' : '';
+  const parts = [currencyCode || value, enrollment, blocked].filter(Boolean);
+  return parts.join(' · ');
 }
 
 // Pre-configured Select for supplier selection with async search.

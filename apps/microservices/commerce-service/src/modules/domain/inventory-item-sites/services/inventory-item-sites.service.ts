@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { InventoryItemSite } from '@/db/schema';
 import { InventoryItemSitesDomainRepository } from '../repositories/inventory-item-sites.repository';
 
@@ -25,6 +26,15 @@ export class InventoryItemSitesDomainService {
     });
     this.logger.log(`Enabled inventory item ${inventoryItemId} at site ${siteId}`);
     return entity;
+  }
+
+  async ensureEnabled(siteId: string, inventoryItemIds: string[]): Promise<void> {
+    const ids = [...new Set(inventoryItemIds)];
+    if (ids.length === 0) return;
+    const created = await this.repository.insertMissing(siteId, ids);
+    if (created.length > 0) {
+      this.logger.log(`Auto-enabled ${pluralize('inventory item', created.length, true)} at site ${siteId}`);
+    }
   }
 
   // Updates the reorder point for an item at the current site

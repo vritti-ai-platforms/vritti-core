@@ -4,7 +4,8 @@ import { CacheService } from '@vritti/api-sdk/cache';
 const TTL_SECONDS = 5 * 60;
 const PREFIX = 'owner:name';
 
-export type OwnerKind = 'org' | 'le' | 'site';
+// A site's code is cached beside its name: rows that name a site often show both
+export type OwnerKind = 'org' | 'le' | 'site' | 'siteCode';
 
 @Injectable()
 export class OwnerNameCacheService {
@@ -34,7 +35,7 @@ export class OwnerNameCacheService {
     );
   }
 
-  // Drops one cached name — called wherever an organization, legal entity or site is renamed
+  // Drops one cached name — called wherever an organization, legal entity or site is renamed or a site recoded
   async invalidate(kind: OwnerKind, id: string): Promise<void> {
     await this.cache.del(this.key(kind, id));
   }

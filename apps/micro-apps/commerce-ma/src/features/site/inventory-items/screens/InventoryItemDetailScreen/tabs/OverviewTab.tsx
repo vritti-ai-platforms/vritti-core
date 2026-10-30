@@ -27,6 +27,7 @@ export function OverviewTab({ item }: { item: InventoryItem }) {
         <DetailRow label="Category" value={item.categoryName} />
         <DetailRow label="Unit of measure" value={item.uomSymbol} />
         <DetailRow label="HSN code" value={item.hsnCode} />
+        <DetailRow label="Tax class" value={item.taxClassName} />
         <DetailRow label="Description" value={item.description} />
       </Card>
     </ScreenContainer>

@@ -1,6 +1,7 @@
 import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/inventory-item-ledger.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
+import { InventoryItemSitesDomainModule } from '@domain/inventory-item-sites/inventory-item-sites.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { StockAdjustmentLineItemsDomainModule } from '@domain/stock-adjustment-line-items/stock-adjustment-line-items.module';
 import { StockAdjustmentLinesDomainModule } from '@domain/stock-adjustment-lines/stock-adjustment-lines.module';
@@ -26,6 +27,7 @@ import { StockAdjustmentsRootController } from './root/stock-adjustments-root.co
     InventoryItemsDomainModule,
     InventoryItemLotsDomainModule,
     InventoryItemQuantsDomainModule,
+    InventoryItemSitesDomainModule,
     UomConversionsDomainModule,
     InventoryItemLedgerDomainModule,
   ],

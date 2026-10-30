@@ -1,1 +1,0 @@
-ALTER TYPE "core"."payment_gateway_config_type" RENAME TO "payment_channel";

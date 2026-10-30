@@ -35,11 +35,11 @@ export class SiteInventoryItemResponseDto {
   @ApiPropertyOptional({ nullable: true })
   uomSymbol: string | null;
 
-  @ApiPropertyOptional({ description: 'Purchase tax group ID', nullable: true })
-  purchaseTaxGroupId: string | null;
+  @ApiProperty({ description: 'Tax class the goods are bought under' })
+  taxClassId: string;
 
-  @ApiPropertyOptional({ description: 'Purchase tax group name', nullable: true })
-  purchaseTaxGroupName: string | null;
+  @ApiPropertyOptional({ nullable: true })
+  taxClassName: string | null;
 
   @ApiPropertyOptional({ description: 'HSN sku for tax reporting', nullable: true })
   hsnCode: string | null;

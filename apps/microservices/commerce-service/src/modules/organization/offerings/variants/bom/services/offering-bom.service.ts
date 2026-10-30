@@ -21,8 +21,8 @@ export class OrgOfferingBomService {
     private readonly inventoryItems: InventoryItemsDomainService,
   ) {}
 
-  // Creates the inventory item a STOCK variant resolves to, taking its SKU from the variant's code, and links it as
-  // that variant's single bill-of-materials line.
+  // Creates the inventory item a STOCK variant resolves to, taking its SKU from the variant's code and its tax class
+  // from the variant (same goods, same class), and links it as that variant's single bill-of-materials line.
   async createInventoryItem(data: CreateVariantInventoryItemDto): Promise<CreateResponseDto<OfferingVariantDto>> {
     const variant = await this.variants.findById(data.variantId);
 
@@ -51,6 +51,7 @@ export class OrgOfferingBomService {
       uomId: data.uomId,
       description: data.description ?? null,
       hsnCode: data.hsnCode ?? null,
+      taxClassId: variant.taxClassId,
     });
 
     await this.bom.replace({

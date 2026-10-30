@@ -19,11 +19,18 @@ export class SupplierResponseDto {
   @ApiProperty({ description: 'Default supplier currency code (ISO 4217)', example: 'INR' })
   currencyCode: string;
 
-  @ApiPropertyOptional({ description: 'Payment terms', nullable: true })
-  paymentTerms: string | null;
+  @ApiProperty({
+    type: [String],
+    description: 'Every currency the supplier trades in, the default included',
+    example: ['INR', 'USD'],
+  })
+  currencyCodes: string[];
 
-  @ApiPropertyOptional({ description: 'Default lead time in days', nullable: true })
-  leadTimeDays: number | null;
+  @ApiPropertyOptional({ description: 'Payment term new site enrollments start from', nullable: true })
+  defaultPaymentTermId: string | null;
+
+  @ApiPropertyOptional({ description: 'Name of the default payment term', nullable: true })
+  defaultPaymentTermName?: string | null;
 
   @ApiPropertyOptional({ description: 'Additional notes', nullable: true })
   notes: string | null;

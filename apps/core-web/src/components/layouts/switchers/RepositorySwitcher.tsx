@@ -7,7 +7,7 @@ import { RepositorySelector } from '@/utils/RemoteSelectors';
 interface RepositorySwitcherProps {
   // Repositories are keyed by name, so the raw breadcrumb segment is both the value and the fallback label
   segment: string;
-  // The repositories root, e.g. `/<workspaceSlug>/repositories`
+  // The repositories root, e.g. `/<kind>/<id>/repositories`
   basePath: string;
 }
 

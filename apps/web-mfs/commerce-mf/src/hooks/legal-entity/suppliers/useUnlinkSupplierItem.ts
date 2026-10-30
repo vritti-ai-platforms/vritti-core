@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { unlinkSupplierItem } from '@/services/legal-entity/suppliers.service';
-import { SUPPLIER_ITEM_IDS_KEY, SUPPLIER_ITEMS_TABLE_KEY, SUPPLIER_KEY } from './keys';
+import { SUPPLIER_ITEMS_TABLE_KEY, SUPPLIER_KEY } from './keys';
 
 // Unlinks an inventory item from a supplier and invalidates the detail
 export function useUnlinkSupplierItem(
@@ -18,7 +18,6 @@ export function useUnlinkSupplierItem(
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(supplierId) });
       queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_IDS_KEY(supplierId) });
       options?.onSuccess?.(...args);
     },
   });

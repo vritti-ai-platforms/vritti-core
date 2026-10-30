@@ -1,1 +1,0 @@
-ALTER TABLE "commerce"."dimension_templates" DROP COLUMN "sort_order";

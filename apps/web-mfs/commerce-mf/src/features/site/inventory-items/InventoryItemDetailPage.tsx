@@ -1,3 +1,4 @@
+import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
@@ -7,6 +8,8 @@ import { LedgerTab } from './tabs/LedgerTab';
 import { LocationsTab } from './tabs/LocationsTab';
 import { LotsTab } from './tabs/LotsTab';
 import { OverviewTab } from './tabs/OverviewTab';
+import { PriceGraphTab } from './tabs/PriceGraphTab';
+import { PricesTab } from './tabs/PricesTab';
 import { QuantsTab } from './tabs/QuantsTab';
 import { ReorderTab } from './tabs/ReorderTab';
 import { StockLevelsTab } from './tabs/StockLevelsTab';
@@ -56,6 +59,18 @@ export const InventoryItemDetailPage = () => {
             value: 'suppliers',
             label: 'Suppliers',
             content: <SuppliersTab inventoryItemId={item.id} />,
+          },
+          {
+            value: 'prices',
+            label: 'Prices',
+            permission: SITE_INVENTORY_ITEMS.prices.view,
+            content: <PricesTab inventoryItemId={item.id} />,
+          },
+          {
+            value: 'price-graph',
+            label: 'Price Graph',
+            permission: SITE_INVENTORY_ITEMS.prices.view,
+            content: <PriceGraphTab inventoryItemId={item.id} />,
           },
           {
             value: 'movements',

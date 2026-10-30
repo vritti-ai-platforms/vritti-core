@@ -1,11 +1,11 @@
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
-import { CreateInventoryItemDto } from '@domain/inventory-items/dto/request/create-inventory-item.dto';
 import { UpdateInventoryItemDto } from '@domain/inventory-items/dto/request/update-inventory-item.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { FilterCondition, SearchState, SortCondition, TableViewState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { CreateOrgInventoryItemDto } from './dto/request/create-org-inventory-item.dto';
 import { OrgInventoryItemsService } from './services/inventory-items-root.service';
 
 @Controller()
@@ -45,7 +45,7 @@ export class InventoryItemsRootController {
 
   // Creates a master inventory item (asserts the category is a leaf)
   @MessagePattern({ cmd: 'org.inventoryItems.create' })
-  async create(@Payload() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+  async create(@Payload() dto: CreateOrgInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     this.logger.log(`inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
     return this.rootService.create(dto);
   }

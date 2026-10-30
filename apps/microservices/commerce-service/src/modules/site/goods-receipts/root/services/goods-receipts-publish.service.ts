@@ -16,6 +16,7 @@ import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/serv
 import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
 import { InventoryItemCostsDomainRepository } from '@domain/inventory-item-quants/repositories/inventory-item-costs.repository';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
 import { Injectable } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
@@ -71,6 +72,7 @@ export class GoodsReceiptsPublishService {
     private readonly ledgerService: InventoryItemLedgerDomainService,
     private readonly goodsReceiptsService: GoodsReceiptsDomainService,
     private readonly inventoryItemMrpsService: InventoryItemMrpsDomainService,
+    private readonly inventoryItemSitesService: InventoryItemSitesDomainService,
   ) {}
 
   async publish(id: string, siteCurrencyCode: string): Promise<GoodsReceiptDto> {
@@ -105,6 +107,10 @@ export class GoodsReceiptsPublishService {
     }
 
     await this.database.runInTransaction(async () => {
+      await this.inventoryItemSitesService.ensureEnabled(
+        goodsReceipt.siteId,
+        grItems.map((grItem) => grItem.inventoryItemId),
+      );
       for (const grItem of grItems) {
         await this.publishItem(goodsReceipt, grItem, siteCurrencyCode);
       }

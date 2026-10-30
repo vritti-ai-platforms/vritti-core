@@ -25,7 +25,7 @@ export function InventoryItemCreate() {
       pickStrategy: 'none',
       categoryId: '',
       uomId: '',
-      purchaseTaxGroupId: '',
+      taxClassId: '',
       description: '',
       hsnCode: '',
       hasMrp: false,
@@ -34,7 +34,9 @@ export function InventoryItemCreate() {
 
   const handleSubmit = async (values: CreateInventoryItemFormValues) => {
     // cache.modify prepends the created item into the feed — no refetch needed; go back to the list.
-    const result = await createItem({ variables: { input: values } });
+    // hasMrp is a form-only flag (MRP capture is deferred); the input type has no such field
+    const { hasMrp: _hasMrp, ...input } = values;
+    const result = await createItem({ variables: { input } });
     if (!result.error) navigation.goBack();
   };
 

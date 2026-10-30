@@ -1,1 +1,0 @@
-CREATE INDEX "idx_offering_variant_values_dimension" ON "commerce"."offering_variant_values" ("dimension_id");

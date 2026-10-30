@@ -4,6 +4,7 @@ import { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dt
 import { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import { CreatePurchaseOrderDto } from '@commerce/purchase-orders/dto/request/create-purchase-order.dto';
 import { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/request/send-purchase-order-email.dto';
+import { SetPurchaseOrderConversionRateDto } from '@commerce/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
 import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
 import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
@@ -143,6 +144,16 @@ export class PurchaseOrdersGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/exchange-rate`);
     return this.service.changeExchangeRate(id, dto);
+  }
+
+  // Sets the rate from another of the supplier's currencies into the PO currency and re-converts its lines in it
+  @Patch(':id/conversion-rates')
+  setConversionRate(
+    @Param('id') id: string,
+    @Body() dto: SetPurchaseOrderConversionRateDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/conversion-rates`);
+    return this.service.setConversionRate(id, dto);
   }
 
   // Closes a purchase order short — no further receipts expected

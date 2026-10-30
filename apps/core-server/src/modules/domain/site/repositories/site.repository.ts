@@ -38,8 +38,14 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
   }
 
   // Returns a legal entity's active sites as select options
-  async findForSelectOptions(legalEntityId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  async findForSelectOptions(
+    legalEntityId: string,
+    query: SelectOptionsQueryDto,
+    siteIds?: string[],
+  ): Promise<SelectQueryResult> {
+    if (siteIds?.length === 0) return { options: [], hasMore: false, totalCount: 0 };
     const conditions: SQL[] = [];
+    if (siteIds) conditions.push(inArray(sites.id, siteIds));
 
     if (query.search) {
       const term = `%${query.search}%`;

@@ -8,8 +8,9 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateSupplier } from '@/hooks/legal-entity/suppliers';
-import { type SupplierDetail, type UpdateSupplierFormData, updateSupplierSchema } from '@/schemas/suppliers';
+import { type EditSupplierFormData, editSupplierFormSchema, type SupplierDetail } from '@/schemas/suppliers';
 import { CompanySelector } from '@/selectors/company';
+import { PaymentTermSelector } from '@/selectors/payment-term';
 
 interface EditSupplierFormProps {
   supplier: SupplierDetail;
@@ -18,20 +19,18 @@ interface EditSupplierFormProps {
 }
 
 export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, onSuccess, onCancel }) => {
-  const form = useForm<UpdateSupplierFormData>({
-    resolver: zodResolver(updateSupplierSchema),
+  const form = useForm<EditSupplierFormData>({
+    resolver: zodResolver(editSupplierFormSchema),
     defaultValues: {
       partyId: supplier.partyId,
-      code: supplier.code,
       currencyCode: supplier.currencyCode,
-      paymentTerms: supplier.paymentTerms ?? '',
-      leadTimeDays: supplier.leadTimeDays ?? undefined,
+      code: supplier.code,
+      defaultPaymentTermId: supplier.defaultPaymentTermId ?? undefined,
       notes: supplier.notes ?? '',
       orderEmail: supplier.orderEmail ?? '',
       orderPhone: supplier.orderPhone ?? '',
       purchasingBlocked: supplier.purchasingBlocked,
       paymentBlocked: supplier.paymentBlocked,
-      isActive: supplier.isActive,
     },
   });
 
@@ -42,11 +41,11 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
       form={form}
       mutation={updateMutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({
+      transformSubmit={({ partyId: _partyId, currencyCode: _currencyCode, ...data }) => ({
         id: supplier.id,
         data: {
           ...data,
-          leadTimeDays: data.leadTimeDays ?? null,
+          defaultPaymentTermId: data.defaultPaymentTermId ?? null,
           orderEmail: data.orderEmail || null,
           orderPhone: data.orderPhone || null,
         },
@@ -54,16 +53,18 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
-          <CompanySelector name="partyId" />
+          <CompanySelector name="partyId" disabled />
         </div>
         <TextField name="code" label="Code" placeholder="e.g. SUP-FRESH-001" />
         <TextField name="currencyCode" label="Currency" disabled />
-        <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
-        <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" integer positive />
+        <PaymentTermSelector
+          name="defaultPaymentTermId"
+          label="Default Payment Term"
+          description="Prefilled when a site enrolls this supplier"
+        />
         <TextField name="orderEmail" label="Order Email" placeholder="e.g. orders@acme.com" />
         <TextField name="orderPhone" label="Order Phone" placeholder="e.g. +91 98765 43210" />
         <TextArea name="notes" label="Notes" placeholder="Optional notes" rows={3} className="w-full sm:col-span-2" />
-        <Switch name="isActive" label="Active" description="Inactive suppliers are hidden from procurement" />
         <Switch
           name="purchasingBlocked"
           label="Purchasing Blocked"

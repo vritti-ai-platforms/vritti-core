@@ -1,4 +1,5 @@
 import { PurchaseOrderItemsDomainRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
+import { SupplierItemPricesDomainRepository } from '@domain/supplier-item-prices/repositories/supplier-item-prices.repository';
 import { SupplierItemsDomainRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -35,6 +36,7 @@ export class GoodsReceiptItemsDomainService {
     private readonly itemsRepository: GoodsReceiptItemsDomainRepository,
     private readonly poItemsRepository: PurchaseOrderItemsDomainRepository,
     private readonly supplierItemsRepository: SupplierItemsDomainRepository,
+    private readonly supplierItemPricesRepository: SupplierItemPricesDomainRepository,
     private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
@@ -134,11 +136,32 @@ export class GoodsReceiptItemsDomainService {
       });
     }
 
-    // Scheme from the form, falling back to the supplier item's standing scheme.
+    const itemSite = await this.supplierItemsRepository.findItemSite(supplierItem.id, receipt.siteId);
+    if (!itemSite) {
+      throw new BadRequestException({
+        label: 'Item Not At Site',
+        detail: 'This supplier item is not set up at this site.',
+        errors: [{ field: 'supplierItemId', message: 'Not set up at this site' }],
+      });
+    }
+
+    // Scheme from the form, falling back to the site's price in force today.
+    const price = await this.supplierItemPricesRepository.resolvePrice(supplierItem.id, receipt.siteId);
+
+    // An un-linked receipt is in the supplier's default currency, the one its exchange rate converts from
+    const supplier = await this.supplierItemsRepository.findSupplierById(receipt.supplierId);
+    const priceCurrency = data.currencyCode ?? price?.currencyCode;
+    if (supplier && priceCurrency && priceCurrency !== supplier.currencyCode) {
+      throw new BadRequestException({
+        label: 'Currency Mismatch',
+        detail: `This item is priced in ${priceCurrency}, but a receipt without a purchase order is in ${supplier.currencyCode}. Receive it against a purchase order, which converts it.`,
+        errors: [{ field: 'supplierItemId', message: `Priced in ${priceCurrency}` }],
+      });
+    }
     const scheme: FreeScheme = {
-      buyQty: data.schemeBuyQty ?? supplierItem.schemeBuyQty ?? null,
-      freeQty: data.schemeFreeQty ?? supplierItem.schemeFreeQty ?? null,
-      hasScheme: data.hasScheme ?? supplierItem.hasScheme ?? false,
+      buyQty: data.schemeBuyQty ?? price?.schemeBuyQty ?? null,
+      freeQty: data.schemeFreeQty ?? price?.schemeFreeQty ?? null,
+      hasScheme: data.hasScheme ?? (price?.schemeBuyQty != null && price?.schemeFreeQty != null),
     };
 
     // Un-linked GR: the ordered (paid) quantity is uncapped.

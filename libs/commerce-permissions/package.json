@@ -57,6 +57,10 @@
       "types": "./dist/dimension-templates.d.ts",
       "default": "./dist/dimension-templates.js"
     },
+    "./payment-terms": {
+      "types": "./dist/payment-terms.d.ts",
+      "default": "./dist/payment-terms.js"
+    },
     "./tax-classes": {
       "types": "./dist/tax-classes.d.ts",
       "default": "./dist/tax-classes.js"

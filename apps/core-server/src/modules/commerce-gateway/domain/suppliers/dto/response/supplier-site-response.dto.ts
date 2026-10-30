@@ -16,7 +16,13 @@ export class SupplierSiteResponseDto {
   @ApiPropertyOptional({ description: 'Site code (gateway-enriched, not sortable)', nullable: true })
   siteCode: string | null;
 
-  @ApiPropertyOptional({ description: 'Party tax registration pick for this site', nullable: true })
+  @ApiProperty({ description: 'Payment term this site buys from the supplier on' })
+  paymentTermId: string;
+
+  @ApiPropertyOptional({ description: 'Name of the payment term', nullable: true })
+  paymentTermName: string | null;
+
+  @ApiPropertyOptional({ description: "Supplier's tax registration this site is billed under", nullable: true })
   partyTaxRegistrationId: string | null;
 
   @ApiPropertyOptional({ description: 'Registration number of the picked tax registration', nullable: true })
@@ -42,9 +48,6 @@ export class SupplierSiteResponseDto {
 
   @ApiPropertyOptional({ description: 'Phone of the order-contact person', nullable: true })
   orderContactPhone: string | null;
-
-  @ApiProperty({ description: 'Whether the site enrollment is active' })
-  isActive: boolean;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;

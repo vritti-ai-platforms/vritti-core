@@ -1,9 +1,14 @@
-import type { ResponseCacheStore } from '../../core/transport/response-cache-store.js';
+import { createHash } from 'node:crypto';
+import type { CachedResponse, ResponseCacheStore } from '../../core/transport/response-cache-store.js';
 
 export const VAP_CACHE_TABLE = 'vap_cache';
+export const VAP_CACHE_RESPONSES_TABLE = 'vap_cache_responses';
+
+const DEFAULT_RETENTION_SECONDS = 7 * 24 * 60 * 60;
+const SWEEP_INTERVAL_MS = 60 * 60 * 1000;
 
 interface PoolLike {
-  query(sql: string, values?: unknown[]): Promise<{ rows: Record<string, unknown>[] }>;
+  query(sql: string, values?: unknown[]): Promise<{ rows: Record<string, unknown>[]; rowCount?: number | null }>;
   end(): Promise<void>;
 }
 
@@ -12,17 +17,26 @@ export interface PostgresResponseCacheOptions {
 
   databaseSchema?: string;
 
+  // How long a key core has not confirmed is kept as a fallback. High-traffic sites can afford a day; a quiet one
+  // wants a week, so a page nobody opened today still has something to show if core goes down tomorrow.
+  retentionSeconds?: number;
+
   logger?: { error: (...args: unknown[]) => void };
 }
 
-// A `ResponseCacheStore` over the `vap-cache` table.
+// A `ResponseCacheStore` over two tables: `vap_cache` maps each key to a response, and `vap_cache_responses` holds
+// each distinct response once — thousands of filter combinations that land on the same page share one row.
 export function createPostgresResponseCache(options: PostgresResponseCacheOptions): ResponseCacheStore {
-  const schema = options.databaseSchema?.trim() || 'public';
-  const table = `"${schema.replace(/"/g, '""')}"."${VAP_CACHE_TABLE}"`;
+  const schema = `"${(options.databaseSchema?.trim() || 'public').replace(/"/g, '""')}"`;
+  const keys = `${schema}."${VAP_CACHE_TABLE}"`;
+  const responses = `${schema}."${VAP_CACHE_RESPONSES_TABLE}"`;
+  const retentionSeconds =
+    options.retentionSeconds && options.retentionSeconds > 0 ? options.retentionSeconds : DEFAULT_RETENTION_SECONDS;
 
   let pool: PoolLike | undefined;
   let poolFailed = false;
   let queryWarned = false;
+  let lastSweep = 0;
 
   // Runs a cache query, swallowing whatever it hits.
   async function attempt<T>(what: string, run: (db: PoolLike) => Promise<T>, fallback: T): Promise<T> {
@@ -33,7 +47,7 @@ export function createPostgresResponseCache(options: PostgresResponseCacheOption
     } catch (error) {
       if (!queryWarned) {
         queryWarned = true;
-        options.logger?.error({ err: error, table }, `Response cache ${what} failed — continuing without it`);
+        options.logger?.error({ err: error, table: keys }, `Response cache ${what} failed — continuing without it`);
       }
       return fallback;
     }
@@ -60,46 +74,80 @@ export function createPostgresResponseCache(options: PostgresResponseCacheOption
     }
   }
 
+  // Drops keys core has not confirmed within the retention window, then responses no key points at any more. Only
+  // ever reached from `set`, which only runs on an answer from core — so while core is down nothing is swept, and
+  // every fallback survives the outage however long it lasts.
+  async function sweep(db: PoolLike): Promise<void> {
+    const now = Date.now();
+    if (now - lastSweep < SWEEP_INTERVAL_MS) return;
+    lastSweep = now;
+    await db.query(`delete from ${keys} where updated_at < now() - make_interval(secs => $1)`, [retentionSeconds]);
+    await db.query(`delete from ${responses} r where not exists (select 1 from ${keys} k where k.response_id = r.id)`);
+  }
+
   return {
-    get(key) {
-      // Expiry is enforced in the query, so a stale row is never served even when nothing has swept it.
+    get(key): Promise<CachedResponse | null> {
+      // Expired rows are returned too, marked stale: they are what the link serves while core cannot answer.
       return attempt(
         'read',
         async (db) => {
-          const { rows } = await db.query(`select result from ${table} where key = $1 and expires_at > now()`, [key]);
-          return rows[0]?.result ?? null;
+          const { rows } = await db.query(
+            `select r.result, k.expires_at > now() as fresh
+               from ${keys} k join ${responses} r on r.id = k.response_id
+              where k.key = $1`,
+            [key],
+          );
+          const row = rows[0];
+          return row ? { result: row.result, fresh: row.fresh === true } : null;
         },
         null,
       );
     },
 
     async set(key, result, ttlSeconds) {
+      const json = JSON.stringify(result);
+      const hash = createHash('sha256').update(json).digest('hex');
       const now = new Date();
       const expiresAt = new Date(now.getTime() + ttlSeconds * 1000);
-      // Both timestamps are supplied rather than left to their DEFAULT now(): a column default fires only on insert, so
-      // on the `do update` path updated_at would keep the value from when the row was first written and stop reflecting
-      // when the entry was actually refreshed.
       await attempt(
         'write',
-        (db) =>
-          db.query(
-            `insert into ${table} (key, result, expires_at, created_at, updated_at)
-             values ($1, $2, $3, $4, $4)
+        async (db) => {
+          // The response is stored once per distinct content, and never rewritten — a key whose answer changed is
+          // pointed at another row rather than editing one other keys share. The key row itself is always updated in
+          // place. A response inserted by this statement is invisible to its own subquery, hence the coalesce.
+          await db.query(
+            `with inserted as (
+               insert into ${responses} (hash, result, created_at, updated_at)
+               values ($1, $2, $3, $3)
+               on conflict (hash) do nothing
+               returning id
+             )
+             insert into ${keys} (key, response_id, expires_at, created_at, updated_at)
+             values ($4, coalesce((select id from inserted), (select id from ${responses} where hash = $1)), $5, $3, $3)
              on conflict (key) do update
-               set result = excluded.result, expires_at = excluded.expires_at, updated_at = excluded.updated_at`,
-            [key, JSON.stringify(result), expiresAt, now],
-          ),
+               set response_id = excluded.response_id, expires_at = excluded.expires_at, updated_at = excluded.updated_at`,
+            [hash, json, now, key, expiresAt],
+          );
+          await sweep(db);
+        },
         undefined,
       );
     },
 
     async invalidate(keyPrefix) {
-      // Prefix rather than equality: keys lead with the operation name for exactly this, so one operation's entries can
-      // be dropped without knowing every variable combination behind them.
-      await attempt(
+      // Expires rather than deletes: the next request asks core, but if core is down at that moment the old response
+      // is still there to serve. Prefix rather than equality, because keys lead with the operation name.
+      return attempt(
         'invalidate',
-        (db) => db.query(`delete from ${table} where key like $1 || '%'`, [keyPrefix]),
-        undefined,
+        async (db) => {
+          const pattern = `${keyPrefix.replace(/[\\%_]/g, '\\$&')}%`;
+          const { rowCount } = await db.query(
+            `update ${keys} set expires_at = now() where key like $1 and expires_at > now()`,
+            [pattern],
+          );
+          return rowCount ?? 0;
+        },
+        0,
       );
     },
   };

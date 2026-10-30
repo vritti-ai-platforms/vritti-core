@@ -1,12 +1,13 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCurrencyCode } from '@vritti/api-sdk/money';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsUUID, ValidateIf } from 'class-validator';
 
 export class InventoryItemMrpsSelectQueryDto extends SelectOptionsQueryDto {
-  @ApiProperty({ description: 'Variant whose bill of materials decides which printed MRPs are offered' })
+  @ApiPropertyOptional({ description: 'Variant whose bill of materials decides which printed MRPs are offered' })
+  @ValidateIf((query) => !query.inventoryItemId)
   @IsUUID('7')
-  variantId: string;
+  variantId?: string;
 
   @ApiPropertyOptional({
     description: 'Only the MRPs printed in this currency, which is what a listing may be priced in',
@@ -19,4 +20,14 @@ export class InventoryItemMrpsSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID('7')
   catalogId?: string;
+
+  @ApiPropertyOptional({ description: 'Inventory item whose MRPs to list (instead of a variant)' })
+  @ValidateIf((query) => !query.variantId)
+  @IsUUID('7')
+  inventoryItemId?: string;
+
+  @ApiPropertyOptional({ description: 'Unit the MRP is printed for' })
+  @IsOptional()
+  @IsUUID('7')
+  uomId?: string;
 }

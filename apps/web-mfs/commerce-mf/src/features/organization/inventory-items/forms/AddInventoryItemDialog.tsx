@@ -1,4 +1,6 @@
+import { ORG_OFFERINGS } from '@vritti/commerce-permissions/offerings';
 import { Button } from '@vritti/quantum-ui/Button';
+import { Checkbox } from '@vritti/quantum-ui/Checkbox';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
@@ -12,11 +14,15 @@ import { useCreateInventoryItem } from '@/hooks/organization/inventory-items';
 import {
   type CreateOrgInventoryItemFormData,
   createOrgInventoryItemSchema,
+  InventoryItemTypeValues,
+  InventoryPickStrategyValues,
+  InventoryTrackingValues,
   inventoryItemTypeOptions,
   pickStrategyOptions,
   trackingOptions,
 } from '@/schemas/inventory-items';
 import { CategorySelector } from '@/selectors/category';
+import { TaxClassSelector } from '@/selectors/tax-class';
 import { UomSelector } from '@/selectors/uom';
 
 interface AddInventoryItemDialogProps {
@@ -30,11 +36,12 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
     defaultValues: {
       name: '',
       sku: '',
-      type: 'RAW_MATERIAL',
-      tracking: 'lot',
-      pickStrategy: 'none',
+      type: InventoryItemTypeValues.RAW_MATERIAL,
+      tracking: InventoryTrackingValues.LOT,
+      pickStrategy: InventoryPickStrategyValues.NONE,
       description: '',
       hsnCode: '',
+      createOffering: false,
     },
   });
 
@@ -57,6 +64,13 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
                   valueKey: 'id',
                   labelKey: 'name',
                   descriptionKey: 'path',
+                  additionalKeys: 'defaultTaxClassId',
+                }}
+                onOptionSelect={(option) => {
+                  const defaultTaxClassId = option?.additionals?.defaultTaxClassId;
+                  if (typeof defaultTaxClassId === 'string' && !form.getFieldState('taxClassId').isDirty) {
+                    form.setValue('taxClassId', defaultTaxClassId, { shouldValidate: true });
+                  }
                 }}
               />
             </div>
@@ -66,7 +80,7 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
         <FormSection title="Tracking" contentClassName="block">
           <div className="grid grid-cols-2 gap-6">
             <RadioGroup name="tracking" label="Tracking Method" options={trackingOptions} />
-            {tracking !== 'quantity' && (
+            {tracking !== InventoryTrackingValues.QUANTITY && (
               <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
             )}
           </div>
@@ -75,7 +89,17 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
         <FormSection title="Compliance" contentClassName="block">
           <div className="grid grid-cols-2 gap-4">
             <TextField name="hsnCode" label="HSN Code" placeholder="e.g. 1006" />
+            <TaxClassSelector name="taxClassId" />
           </div>
+        </FormSection>
+
+        <FormSection title="Selling" contentClassName="block">
+          <Checkbox
+            name="createOffering"
+            label="Create offering"
+            description="Also create a stock offering for this item: one variant, with this item as its only component (quantity 1)."
+            permission={ORG_OFFERINGS.add}
+          />
         </FormSection>
 
         <FormSection title="Notes" contentClassName="block">

@@ -1,18 +1,14 @@
 import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { API_SURFACES, BUCKET_BY_SURFACE, type PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { ForbiddenException } from '@vritti/api-sdk/exceptions';
 import type { Observable } from 'rxjs';
-import { SessionTypeValues } from '@/db/schema';
-import {
-  type GrantSource,
-  type PermissionContext,
-  UserPermissionsDomainService,
-} from '@/modules/domain/user-permissions/services/user-permissions.service';
+import { UserPermissionsDomainService } from '@/modules/domain/user-permissions/services/user-permissions.service';
 import { getRequest } from '@/utils/request-context';
 import { REQUIRE_FEATURE_KEY, SKIP_FEATURE_KEY } from '../decorators/require-feature.decorator';
 import { REQUIRE_PERMISSION_KEY } from '../decorators/require-permission.decorator';
+import { triggeredFieldGates } from '../field-gates';
+import { resolvePermissionCaller } from '../permission-caller';
 
 @Injectable()
 export class PermissionInterceptor implements NestInterceptor {
@@ -36,62 +32,44 @@ export class PermissionInterceptor implements NestInterceptor {
     this.logger.debug(
       `→ ${request.method} ${request.url} | permission=${requiredPermission ?? '—'} feature=${requiredFeature ?? '—'}${skipFeature ? ' (skip-feature)' : ''}`,
     );
-    if (!requiredPermission && !requiredFeature) return next.handle();
+    const fieldGates = triggeredFieldGates(context);
+    if (!requiredPermission && !requiredFeature && fieldGates.length === 0) return next.handle();
 
     const auth = request.auth;
-    const siteId = auth?.siteId;
-    const siteGroupId = auth?.siteGroupId;
-    const legalEntityId = auth?.legalEntityId;
-    const orgId = auth?.organizationId;
     this.logger.debug(
-      `  auth: kind=${auth?.kind} siteId=${siteId} siteGroupId=${siteGroupId} legalEntityId=${legalEntityId} orgId=${orgId}`,
+      `  auth: kind=${auth?.kind} siteId=${auth?.siteId} siteGroupId=${auth?.siteGroupId} legalEntityId=${auth?.legalEntityId} orgId=${auth?.organizationId}`,
     );
 
-    // Only a session or an app carries grants.
-    if (!orgId || (auth?.kind !== 'session' && auth?.kind !== 'app')) {
-      this.logger.warn(`  DENY — no grant-bearing principal (kind=${auth?.kind ?? 'none'}, orgId=${orgId ?? 'none'})`);
+    const caller = resolvePermissionCaller(auth);
+    if (!caller) {
+      this.logger.warn(`  DENY — no grant-bearing principal (kind=${auth?.kind ?? 'none'})`);
       throw new ForbiddenException('You do not have permission to perform this action.');
     }
+    const { orgId, ctx, bucket, source } = caller;
 
-    // Workspace context by precedence: SITE > SITE_GROUP > LE > ORG (no context header = org workspace)
-    const ctx: PermissionContext = siteId
-      ? { scope: 'SITE', id: siteId }
-      : siteGroupId
-        ? { scope: 'SITE_GROUP', id: siteGroupId }
-        : legalEntityId
-          ? { scope: 'LE', id: legalEntityId }
-          : { scope: 'ORG', id: orgId };
-
-    // Platform bucket follows the caller: MOBILE enforces the mobile feature set, an app credential the bucket of its
-    // own surface (GRAPHQL → graphql, HTTP → http), everything else web.
-    let bucket: PlatformBucket;
-    if (auth.kind === 'app') {
-      const surface = API_SURFACES.find((s) => s === auth.appType);
-      if (!surface) {
-        this.logger.warn(`  DENY — app with unrecognised type ${auth.appType ?? '(none)'}`);
-        throw new ForbiddenException('You do not have permission to perform this action.');
-      }
-      bucket = BUCKET_BY_SURFACE[surface];
-    } else {
-      bucket = auth.sessionType === SessionTypeValues.MOBILE ? 'mobile' : 'web';
-    }
-
-    const source: GrantSource =
-      auth.kind === 'app'
-        ? { kind: 'app', appId: auth.appId, grants: auth.permissions ?? {} }
-        : { kind: 'user', userId: auth.userId };
-
-    // A specific permission subsumes the feature switch — an enabled permission implies its feature is unlocked
-    if (requiredPermission) {
+    if (requiredPermission || fieldGates.length > 0) {
       const enabled = await this.primaryDb.runWithRlsContext({ orgId }, () =>
         this.userPermissionsService.resolveEnabledPermissions(source, ctx, bucket),
       );
-      if (!enabled.has(requiredPermission)) {
+      if (requiredPermission && !enabled.has(requiredPermission)) {
         this.logger.warn(`  DENY ${requiredPermission} — not in enabled set`);
         throw new ForbiddenException('You do not have permission to perform this action.');
       }
-      this.logger.debug(`  ALLOW ${requiredPermission}`);
-      return next.handle();
+      for (const gate of fieldGates) {
+        const missing = gate.codes.filter((code) => !enabled.has(code));
+        if (missing.length > 0) {
+          this.logger.warn(`  DENY field "${gate.field}" — missing ${missing.join(', ')}`);
+          throw new ForbiddenException({
+            label: 'Not Allowed',
+            detail: `You do not have permission to set "${gate.field}".`,
+          });
+        }
+      }
+      // A specific permission subsumes the feature switch — an enabled permission implies its feature is unlocked
+      if (requiredPermission) {
+        this.logger.debug(`  ALLOW ${requiredPermission}`);
+        return next.handle();
+      }
     }
 
     // No specific permission (e.g. count) — gate on the feature switch being on for this user's site

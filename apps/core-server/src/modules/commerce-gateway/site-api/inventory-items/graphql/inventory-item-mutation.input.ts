@@ -53,7 +53,7 @@ export class CreateInventoryItemInput {
 
   @Field(() => String)
   @IsUUID('7')
-  purchaseTaxGroupId: string;
+  taxClassId: string;
 
   @Field(() => String, { nullable: true })
   @Trim()
@@ -107,9 +107,10 @@ export class UpdateInventoryItemInput {
   @IsEnum(PICK_STRATEGIES)
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
+  @IsOptional()
   @IsUUID('7')
-  purchaseTaxGroupId: string;
+  taxClassId?: string;
 
   @Field(() => String, { nullable: true })
   @Trim()

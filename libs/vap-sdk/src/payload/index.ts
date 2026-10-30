@@ -22,6 +22,7 @@ export {
   type VapWebhookEvent,
   verifyVapWebhook,
 } from '../server/webhooks.js';
+export { cacheClearEndpoint, VAP_CACHE_CLEAR_PATH } from './cache.js';
 export { reconcileMirroredUsers } from './cloud-auth/accounts.js';
 export { cloudAuthFields } from './cloud-auth/collection.js';
 export { CLOUD_AUTH_ENV, type CloudAuthCredentials } from './cloud-auth/config.js';
@@ -29,7 +30,12 @@ export { CALLBACK_URL_PATH } from './cloud-auth/endpoints.js';
 export { vrittiCloudAuth } from './cloud-auth/plugin.js';
 export type { VrittiCloudAuthOptions } from './cloud-auth/types.js';
 export { partyCollection } from './collections/parties.js';
-export { VAP_CACHE_TABLE, vapCacheCollection } from './collections/vap-cache.js';
+export {
+  VAP_CACHE_RESPONSES_TABLE,
+  VAP_CACHE_TABLE,
+  vapCacheCollection,
+  vapCacheResponsesCollection,
+} from './collections/vap-cache.js';
 export { VISITOR_SESSIONS_SLUG, visitorSessionCollection } from './collections/visitor-sessions.js';
 export { type ConsoleEmailOptions, consoleEmailAdapter } from './console-email.js';
 export { VAP_NEXT_KEY, type VapNextConfig } from './next-config.js';

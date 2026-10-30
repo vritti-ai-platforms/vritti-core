@@ -1,1 +1,0 @@
-ALTER TABLE "core"."sites" DROP CONSTRAINT "sites_code_chk", ADD CONSTRAINT "sites_code_chk" CHECK ("code" ~ '^[a-z0-9][a-z0-9-]*$');

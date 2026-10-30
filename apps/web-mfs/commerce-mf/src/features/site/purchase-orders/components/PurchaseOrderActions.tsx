@@ -11,6 +11,7 @@ import {
 } from '@/hooks/site/purchase-orders';
 import type { PurchaseOrderDetail, PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { downloadPurchaseOrderPdf } from '@/services/site/purchase-orders.service';
+import { ChangeConversionRateDialog } from '../forms/ChangeConversionRateDialog';
 import { ChangePurchaseOrderExchangeRateDialog } from '../forms/ChangePurchaseOrderExchangeRateDialog';
 import { ChangePurchaseOrderSupplierDialog } from '../forms/ChangePurchaseOrderSupplierDialog';
 import { SendPurchaseOrderEmailDialog } from '../forms/SendPurchaseOrderEmailDialog';
@@ -129,9 +130,15 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
     [po],
   );
 
+  const renderChangeConversionRateDialog = useCallback(
+    (close: () => void) => <ChangeConversionRateDialog purchaseOrder={po} onSuccess={close} onCancel={close} />,
+    [po],
+  );
+
   const isCrossCurrency = !!buCurrencyCode && po.currencyCode !== buCurrencyCode;
   const isPreReceipt = po.status === 'DRAFT' || po.status === 'SENT' || po.status === 'CONFIRMED';
   const canChangeExchangeRate = isCrossCurrency && isPreReceipt && !po.goodsReceiptExists;
+  const canChangeConversionRate = isPreReceipt && !po.goodsReceiptExists && Object.keys(po.conversionRates).length > 0;
   const canClose = po.status === 'CONFIRMED' || po.status === 'PARTIALLY_RECEIVED';
 
   const nextAction = nextPurchaseOrderStatusAction[po.status];
@@ -215,6 +222,21 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
         title: 'Change Exchange Rate',
         description: 'Edit the rate policy or value. Locks once a goods receipt is posted.',
         content: renderChangeExchangeRateDialog,
+      },
+    });
+  }
+
+  if (canChangeConversionRate) {
+    actionMenuItems.push({
+      type: 'dialog',
+      id: 'change-conversion-rate',
+      label: 'Change Conversion Rate',
+      icon: Wallet,
+      dialog: {
+        title: 'Change Conversion Rate',
+        description:
+          "Rate from one of the supplier's other currencies into the PO currency. Locks once a goods receipt is posted.",
+        content: renderChangeConversionRateDialog,
       },
     });
   }

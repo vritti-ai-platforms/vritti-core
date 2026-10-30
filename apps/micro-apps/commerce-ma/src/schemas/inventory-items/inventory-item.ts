@@ -10,7 +10,7 @@ const descriptionField = z.string().max(500, 'Description is too long');
 const hsnCodeField = z.string().max(20, 'HSN code is too long');
 const uuidField = z.string().min(1, 'Required').uuid('Enter a valid UUID');
 
-// CREATE — name, sku, type, tracking, categoryId, uomId, purchaseTaxGroupId required;
+// CREATE — name, sku, type, tracking, categoryId, uomId, taxClassId required;
 // pickStrategy, description, hsnCode, hasMrp optional (mirrors CreateInventoryItemInput).
 export const createInventoryItemSchema = z.object({
   name: nameField,
@@ -20,13 +20,13 @@ export const createInventoryItemSchema = z.object({
   pickStrategy: pickStrategyEnum,
   categoryId: uuidField,
   uomId: uuidField,
-  purchaseTaxGroupId: uuidField,
+  taxClassId: uuidField,
   description: descriptionField,
   hsnCode: hsnCodeField,
   hasMrp: z.boolean(),
 });
 
-// UPDATE — all optional EXCEPT purchaseTaxGroupId (required); NO `tracking` field
+// UPDATE — taxClassId stays required; NO `tracking` field
 // (mirrors UpdateInventoryItemInput).
 export const updateInventoryItemSchema = z.object({
   name: nameField,
@@ -35,7 +35,7 @@ export const updateInventoryItemSchema = z.object({
   pickStrategy: pickStrategyEnum,
   categoryId: uuidField,
   uomId: uuidField,
-  purchaseTaxGroupId: uuidField,
+  taxClassId: uuidField,
   description: descriptionField,
   hsnCode: hsnCodeField,
   hasMrp: z.boolean(),

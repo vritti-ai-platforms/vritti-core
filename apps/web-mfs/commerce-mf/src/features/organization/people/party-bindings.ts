@@ -28,6 +28,7 @@ import {
   usePersonSocialProfilesTable,
   useRemovePersonAddress,
   useRemovePersonIdentifier,
+  useSetPersonRegistrationActive,
   useUpdatePersonAddress,
   useUpdatePersonBankAccount,
   useUpdatePersonCommunication,
@@ -85,6 +86,7 @@ export const personBindings: {
     useList: usePersonRegistrationsTable,
     useCreate: useCreatePersonRegistration,
     useUpdate: useUpdatePersonRegistration,
+    useSetActive: useSetPersonRegistrationActive,
     useRemove: useDeletePersonRegistration,
   },
   licenses: {

@@ -15,7 +15,7 @@ import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { SessionTypeValues } from '@/db/schema';
-import { RequireFeature } from '@/rbac/decorators';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Inventory Items')
@@ -30,6 +30,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Returns paginated inventory items for the data table
   @Get('table')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
   getTable(@UserId() userId: string): Promise<SiteInventoryItemTableResponseDto> {
     this.logger.log('GET /commerce-api/site/inventory-items/table');
     return this.service.findForTable(userId);
@@ -37,6 +38,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Enables a master inventory item at the current site
   @Post('enable')
+  @RequirePermission(SITE_INVENTORY_ITEMS.enable)
   @HttpCode(HttpStatus.CREATED)
   async enable(@Body() dto: EnableInventoryItemDto): Promise<CreateResponseDto<{ id: string }>> {
     this.logger.log('POST /commerce-api/site/inventory-items/enable');
@@ -45,6 +47,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Updates the reorder point for an item at the current site
   @Patch('reorder')
+  @RequirePermission(SITE_INVENTORY_ITEMS.edit)
   updateReorder(@Body() dto: UpdateReorderDto): Promise<SuccessResponseDto> {
     this.logger.log('PATCH /commerce-api/site/inventory-items/reorder');
     return this.service.updateReorder(dto);
@@ -52,6 +55,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Returns a single inventory item
   @Get(':id')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
   findById(@Param('id') id: string): Promise<SiteInventoryItemResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}`);
     return this.service.findById(id);
@@ -59,6 +63,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Returns suppliers carrying this item, table-shaped
   @Get(':id/suppliers/table')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
   getSuppliersTable(@Param('id') id: string, @UserId() userId: string) {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/suppliers/table`);
     return this.service.findSuppliersTable(id, userId);
@@ -66,6 +71,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Returns paginated ledger entries for an inventory item data table
   @Get(':id/ledger/table')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
   getLedgerTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLedgerTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/ledger/table`);
     return this.service.findLedgerForTable(id, userId);
@@ -73,6 +79,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Returns location-wise stock aggregates for an inventory item (sourced from inventory_item_quants)
   @Get(':id/stocks')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
   getStocks(@Param('id') id: string): Promise<InventoryItemStockResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/stocks`);
     return this.service.findStocks(id);
@@ -80,6 +87,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Returns paginated quants for an inventory item data table
   @Get(':id/quants/table')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
   getQuantsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemQuantTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/quants/table`);
     return this.service.findQuantsForTable(id, userId);
@@ -87,6 +95,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Returns paginated lots for an inventory item data table
   @Get(':id/lots/table')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
   getLotsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLotTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/lots/table`);
     return this.service.findLotsForTable(id, userId);
@@ -94,6 +103,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Returns paginated item-location configs for an inventory item
   @Get(':id/locations/table')
+  @RequirePermission(SITE_INVENTORY_ITEMS.locations.view)
   getLocationsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/locations/table`);
     return this.service.findItemLocationsForTable(id, userId);
@@ -101,6 +111,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Creates an item-location config for an inventory item
   @Post(':id/locations')
+  @RequirePermission(SITE_INVENTORY_ITEMS.locations.add)
   @HttpCode(HttpStatus.CREATED)
   async createLocation(@Param('id') id: string, @Body() dto: CreateInventoryItemLocationDto) {
     this.logger.log(`POST /commerce-api/site/inventory-items/${id}/locations`);
@@ -109,6 +120,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Updates an item-location config
   @Patch(':id/locations/:locationConfigId')
+  @RequirePermission(SITE_INVENTORY_ITEMS.locations.edit)
   updateLocation(
     @Param('id') id: string,
     @Param('locationConfigId') locationConfigId: string,
@@ -120,6 +132,7 @@ export class SiteInventoryItemsGatewayController {
 
   // Deletes an item-location config
   @Delete(':id/locations/:locationConfigId')
+  @RequirePermission(SITE_INVENTORY_ITEMS.locations.delete)
   deleteLocation(@Param('id') id: string, @Param('locationConfigId') locationConfigId: string) {
     this.logger.log(`DELETE /commerce-api/site/inventory-items/${id}/locations/${locationConfigId}`);
     return this.service.deleteItemLocation(locationConfigId);

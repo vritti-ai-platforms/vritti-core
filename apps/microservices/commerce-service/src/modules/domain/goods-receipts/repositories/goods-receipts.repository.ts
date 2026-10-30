@@ -132,7 +132,8 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
       select: {
         ...goodsReceipts,
         supplierName: parties.displayName,
-        supplierCurrencyCode: suppliers.currencyCode,
+        // The receipt's currency: its PO's when it has one, otherwise the supplier's default
+        supplierCurrencyCode: sql<string>`COALESCE(${purchaseOrders.currencyCode}, ${suppliers.currencyCode})`,
         poNumber: purchaseOrders.poNumber,
         poOrderDate: purchaseOrders.orderDate,
         poExpectedBy: purchaseOrders.expectedBy,
@@ -177,7 +178,8 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
         publishedAt: goodsReceipts.publishedAt,
         createdAt: goodsReceipts.createdAt,
         supplierName: parties.displayName,
-        supplierCurrencyCode: suppliers.currencyCode,
+        // The receipt's currency: its PO's when it has one, otherwise the supplier's default
+        supplierCurrencyCode: sql<string>`COALESCE(${purchaseOrders.currencyCode}, ${suppliers.currencyCode})`,
         poNumber: purchaseOrders.poNumber,
         poOrderDate: purchaseOrders.orderDate,
         poExpectedBy: purchaseOrders.expectedBy,

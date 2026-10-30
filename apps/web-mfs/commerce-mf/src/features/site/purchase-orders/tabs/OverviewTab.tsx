@@ -53,6 +53,14 @@ export const OverviewTab = ({ po, status }: OverviewTabProps) => {
               value={po.exchangeRateType === 'FIXED' ? 'Fixed' : 'Variable'}
             />
           )}
+          {Object.entries(po.conversionRates).map(([currencyCode, rate]) => (
+            <DetailField
+              key={currencyCode}
+              label={`1 ${currencyCode} in ${po.currencyCode}`}
+              type="number"
+              value={rate}
+            />
+          ))}
           <DetailField label="Notes" type="string" value={po.notes} className="col-span-2" />
         </div>
       </CardContent>

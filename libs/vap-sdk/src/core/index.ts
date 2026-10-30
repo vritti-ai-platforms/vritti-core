@@ -113,6 +113,7 @@ export { createVapClient, type VapClientOptions } from './transport/client.js';
 export { requireData, run } from './transport/errors.js';
 export { CLIENT_ID_HEADER, PARTY_ID_HEADER } from './transport/headers.js';
 export type {
+  CachedResponse,
   ResponseCacheContext,
   ResponseCacheStore,
 } from './transport/response-cache-store.js';

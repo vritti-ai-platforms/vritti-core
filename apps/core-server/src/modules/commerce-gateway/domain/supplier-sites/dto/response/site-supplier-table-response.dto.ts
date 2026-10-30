@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
-import { SiteSupplierResponseDto } from './site-supplier-response.dto';
+import { SiteSupplierListRowResponseDto } from './site-supplier-list-row-response.dto';
 
-export class SiteSupplierTableResponseDto extends TableResponseDto<SiteSupplierResponseDto> {
-  @ApiProperty({ type: [SiteSupplierResponseDto] })
-  declare result: SiteSupplierResponseDto[];
+export class SiteSupplierTableResponseDto extends TableResponseDto<SiteSupplierListRowResponseDto> {
+  @ApiProperty({ type: [SiteSupplierListRowResponseDto] })
+  declare result: SiteSupplierListRowResponseDto[];
 
   @ApiProperty()
   declare count: number;

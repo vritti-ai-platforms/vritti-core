@@ -147,6 +147,7 @@ export class SiteDomainService {
 
     await this.siteContextCache.invalidate(id);
     if (dto.name) await this.ownerNameCache.invalidate('site', id);
+    if (code !== undefined) await this.ownerNameCache.invalidate('siteCode', id);
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(id));
 
     this.logger.log(`Updated site ${id}`);

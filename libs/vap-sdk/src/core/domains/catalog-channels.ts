@@ -15,6 +15,7 @@ import {
   SITE_CATALOG_LISTINGS_QUERY,
 } from '../graphql/catalog-channels.js';
 import { requireData, run } from '../transport/errors.js';
+import { cacheFor } from '../transport/response-cache-store.js';
 import type { Money } from '../types.js';
 import { contextForScope, type RequestContext, type WorkspaceScope } from '../types.js';
 
@@ -73,8 +74,6 @@ export type CatalogListing = {
   price: Money;
 };
 
-const DEFAULT_LISTINGS_CACHE_SECONDS = 60;
-
 export function createCatalogChannelsOperations(client: ApolloClient, context: RequestContext = {}, currency?: string) {
   // The currency the catalogue is read in.
   const currencyCode = (): string => {
@@ -91,10 +90,9 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
     // The currencies this shop can price in.
     async currencies(options: { scope?: WorkspaceScope; cacheSeconds?: number } = {}): Promise<string[]> {
       const scope = options.scope ?? 'org';
-      const ttlSeconds = options.cacheSeconds ?? DEFAULT_LISTINGS_CACHE_SECONDS;
       const requestContext = {
         requestContext: contextForScope(context, scope),
-        ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
+        responseCache: cacheFor(options.cacheSeconds),
       };
       return run(async () => {
         if (scope === 'site') {
@@ -117,10 +115,9 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
       options: { scope?: WorkspaceScope; cacheSeconds?: number } = {},
     ): Promise<CatalogListings> {
       const scope = options.scope ?? 'org';
-      const ttlSeconds = options.cacheSeconds ?? DEFAULT_LISTINGS_CACHE_SECONDS;
       const requestContext = {
         requestContext: contextForScope(context, scope),
-        ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
+        responseCache: cacheFor(options.cacheSeconds),
       };
       const variables = {
         filters: query.filters,
@@ -151,10 +148,9 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
       options: { scope?: WorkspaceScope; cacheSeconds?: number } = {},
     ): Promise<CatalogListingDetail | null> {
       const scope = options.scope ?? 'org';
-      const ttlSeconds = options.cacheSeconds ?? DEFAULT_LISTINGS_CACHE_SECONDS;
       const requestContext = {
         requestContext: contextForScope(context, scope),
-        ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
+        responseCache: cacheFor(options.cacheSeconds),
       };
       const variables = { code, currencyCode: currencyCode() };
       return run(async () => {
@@ -182,10 +178,9 @@ export function createCatalogChannelsOperations(client: ApolloClient, context: R
     ): Promise<CatalogListing[]> {
       if (codes.length === 0) return [];
       const scope = options.scope ?? 'org';
-      const ttlSeconds = options.cacheSeconds ?? DEFAULT_LISTINGS_CACHE_SECONDS;
       const requestContext = {
         requestContext: contextForScope(context, scope),
-        ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
+        responseCache: cacheFor(options.cacheSeconds),
       };
       const variables = { codes, currencyCode: currencyCode(), filters: options.filters };
       return run(async () => {

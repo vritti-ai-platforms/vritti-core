@@ -4,6 +4,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
@@ -23,6 +24,7 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ partyId, bin
   const addDialog = useDialog();
   const { data: response, isLoading } = binding.useList(partyId);
   const deleteMutation = binding.useRemove(partyId);
+  const setActiveMutation = binding.useSetActive(partyId);
 
   const handleDelete = useCallback(
     async (row: PartyTaxRegistrationRow) => {
@@ -68,6 +70,21 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ partyId, bin
           ),
       },
       {
+        accessorKey: 'isActive',
+        header: 'Status',
+        cell: ({ row }) => (
+          <StatusSwitch
+            checked={row.original.isActive}
+            permission={binding.permissions.edit}
+            disabled={row.original.isPrimary && row.original.isActive}
+            disabledTip="The primary registration must stay active. Set another registration as primary first."
+            isLoading={setActiveMutation.isPending && setActiveMutation.variables?.registrationId === row.original.id}
+            onCheckedChange={(isActive) => setActiveMutation.mutate({ registrationId: row.original.id, isActive })}
+            ariaLabel={`Mark ${row.original.registrationNumber} active`}
+          />
+        ),
+      },
+      {
         id: 'actions',
         header: '',
         cell: ({ row }) => (
@@ -107,7 +124,7 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ partyId, bin
         enableHiding: false,
       },
     ],
-    [handleDelete, partyId, binding],
+    [setActiveMutation, handleDelete, partyId, binding],
   );
 
   const { table } = useDataTable({

@@ -1,5 +1,6 @@
 import { CreateCompanyDto } from '@commerce/parties/dto/request/create-company.dto';
 import { CreateCompanyRegistrationDto } from '@commerce/parties/dto/request/create-company-registration.dto';
+import { SetRegistrationActiveDto } from '@commerce/parties/dto/request/set-registration-active.dto';
 import { UpdateCompanyDto } from '@commerce/parties/dto/request/update-company.dto';
 import { UpdateCompanyRegistrationDto } from '@commerce/parties/dto/request/update-company-registration.dto';
 import type { CompanyRegistrationResponseDto } from '@commerce/parties/dto/response/company-registration-response.dto';
@@ -160,6 +161,18 @@ export class CompaniesGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/companies/${id}/registrations/${regId}`);
     return this.service.updateRegistration(regId, dto);
+  }
+
+  // Activates or retires a company tax registration
+  @Patch(':id/registrations/:regId/active')
+  @RequirePermission(ORG_COMPANIES.registrations.edit)
+  setRegistrationActive(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('regId', new ParseUUIDPipe()) regId: string,
+    @Body() dto: SetRegistrationActiveDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/companies/${id}/registrations/${regId}/active`);
+    return this.service.setRegistrationActive(regId, dto.isActive);
   }
 
   // Deletes a company tax registration

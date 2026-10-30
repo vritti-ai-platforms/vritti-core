@@ -36,6 +36,14 @@ export class PurchaseOrderResponseDto {
   })
   exchangeRateType: 'FIXED' | 'VARIABLE';
 
+  @ApiProperty({
+    description: "Rates from the supplier's other currencies into the PO currency, as decimal strings",
+    example: { USD: '83.250000' },
+    type: 'object',
+    additionalProperties: { type: 'string' },
+  })
+  conversionRates: Record<string, string>;
+
   @ApiProperty({ description: 'Order date (ISO string)' })
   orderDate: string;
 

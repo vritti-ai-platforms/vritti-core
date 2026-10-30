@@ -1,4 +1,4 @@
-import { extractWorkspaceSlug } from '@utils/workspace';
+import { extractWorkspaceBase } from '@utils/workspace';
 import { groupBy, uniqBy } from '@vritti/quantum-ui/lodash';
 import { lockedTip, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { Sidebar as QSidebar, type SidebarNavGroup } from '@vritti/quantum-ui/Sidebar';
@@ -36,10 +36,10 @@ function LockChip({ feature }: { feature: PermissionFeature }) {
 export const Sidebar = () => {
   const { features, isLoadingPermissions, workspace } = usePermissionContext();
   const { pathname } = useLocation();
-  const workspaceSlug = extractWorkspaceSlug(pathname);
+  const workspaceBase = extractWorkspaceBase(pathname);
 
   const groups = useMemo<SidebarNavGroup[]>(() => {
-    if (!features.length || !workspaceSlug) return [];
+    if (!features.length || !workspaceBase) return [];
 
     const featuresByApp = groupBy(features, 'appCode');
     // Apps arrive app-alphabetical from the resolver; uniqBy preserves that order (no frontend re-sort)
@@ -50,12 +50,12 @@ export const Sidebar = () => {
       items: featuresByApp[app.appCode].map((f) => ({
         title: f.name,
         icon: resolveIcon(f.lucideIcon),
-        path: `/${workspaceSlug}/${f.route.routePrefix.replace(/^\//, '')}`,
+        path: `${workspaceBase}/${f.route.routePrefix.replace(/^\//, '')}`,
         // Locked features stay navigable — the route renders an upsell (plan) or gates its actions (site)
         endAdornment: f.locked ? <LockChip feature={f} /> : undefined,
       })),
     }));
-  }, [features, workspaceSlug]);
+  }, [features, workspaceBase]);
 
   if (!workspace || pathname.includes('/pos-billing')) return null;
 

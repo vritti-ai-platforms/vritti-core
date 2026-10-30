@@ -1,151 +1,53 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Package, Plus } from 'lucide-react';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { InventoryItemsTable } from '@/components/inventory-items/InventoryItemsTable';
 import { ORG_INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/organization/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
-import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
-import { CategoryFilter } from '@/selectors/category';
-import { UomFilter } from '@/selectors/uom';
 import { AddInventoryItemDialog } from './forms/AddInventoryItemDialog';
 
 export const InventoryItemsPage = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { data: response, isLoading } = useInventoryItemsTable();
   const addDialog = useDialog();
 
-  const columns = useMemo<ColumnDef<InventoryItemData>[]>(
-    () => [
-      {
-        accessorKey: 'sku',
-        header: 'SKU',
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'name',
-        header: 'Name',
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'categoryName',
-        header: 'Category',
-        cell: ({ row }) => <StringCell value={row.original.categoryName} />,
-        enableSorting: false,
-      },
-      {
-        accessorKey: 'type',
-        header: 'Type',
-        cell: ({ row }) => {
-          const config = inventoryItemTypeConfig[row.original.type];
-          return <Badge variant={config.variant}>{config.label}</Badge>;
-        },
-      },
-      {
-        accessorKey: 'tracking',
-        header: 'Tracking',
-        enableSorting: true,
-        cell: ({ row }) => inventoryTrackingConfig[row.original.tracking].label,
-      },
-      {
-        accessorKey: 'uomSymbol',
-        header: 'Unit',
-        cell: ({ row }) => <StringCell value={row.original.uomSymbol} />,
-        enableSorting: false,
-      },
-      {
-        id: 'actions',
-        header: '',
-        cell: ({ row }) => (
-          <RowActions
-            actions={[
-              {
-                id: 'view',
-                icon: Eye,
-                label: 'View',
-                onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
-              },
-            ]}
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
+  const rowActions = useCallback(
+    (item: InventoryItemData) => [
+      { id: 'view', icon: Eye, label: 'View', onClick: () => navigate(buildSlug(item.name, item.id)) },
     ],
     [navigate],
   );
 
-  const { table } = useDataTable({
-    columns,
-    slug: 'commerce-org-inventory-items',
-    label: 'inventory item',
-    serverState: response,
-    enableRowSelection: false,
-    enableSorting: true,
-    enableMultiSort: false,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEMS_TABLE_KEY }),
-  });
+  const addButton = (
+    <Button size="sm" onClick={addDialog.open} permission={ORG_INVENTORY_ITEMS.add}>
+      <Plus className="mr-2 size-4" />
+      Add Item
+    </Button>
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Inventory Items" description="Define materials and products for the organization" />
 
-      <DataTable
-        table={table}
+      <InventoryItemsTable
+        response={response}
         isLoading={isLoading}
+        slug="commerce-org-inventory-items"
+        tableKey={ORG_INVENTORY_ITEMS_TABLE_KEY}
         permission={ORG_INVENTORY_ITEMS.view}
-        searchConfig={{
-          columns: [
-            { id: 'name', label: 'Name' },
-            { id: 'sku', label: 'SKU' },
-          ],
-          searchAll: true,
-        }}
-        filters={[
-          <SelectFilter
-            key="type"
-            name="type"
-            label="Type"
-            multiple
-            options={Object.entries(inventoryItemTypeConfig).map(([value, { label }]) => ({ label, value }))}
-          />,
-          <SelectFilter
-            key="tracking"
-            name="tracking"
-            label="Tracking"
-            multiple
-            options={Object.entries(inventoryTrackingConfig).map(([value, { label }]) => ({ label, value }))}
-          />,
-          <CategoryFilter key="categoryId" multiple />,
-          <UomFilter key="uomId" multiple />,
-        ]}
-        toolbarActions={{
-          actions: (
-            <Button size="sm" onClick={addDialog.open} permission={ORG_INVENTORY_ITEMS.add}>
-              <Plus className="mr-2 size-4" />
-              Add Item
-            </Button>
-          ),
-        }}
+        rowActions={rowActions}
+        toolbarActions={addButton}
         emptyStateConfig={{
           icon: Package,
           title: 'No inventory items',
           description: 'Define your first inventory item for the organization.',
-          action: (
-            <Button onClick={addDialog.open} permission={ORG_INVENTORY_ITEMS.add}>
-              <Plus className="mr-2 size-4" />
-              Add Item
-            </Button>
-          ),
+          action: addButton,
         }}
       />
 

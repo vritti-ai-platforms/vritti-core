@@ -1,1 +1,0 @@
-ALTER TABLE "core"."organizations" ADD COLUMN "storage_enabled" boolean DEFAULT true NOT NULL;

@@ -15,6 +15,8 @@ export class PurchaseOrderItemDto {
   unitPrice: CurrencyAmountDto;
   primaryUomUnitPrice: CurrencyAmountDto;
   totalPrice: CurrencyAmountDto;
+  // The supplier item's own price when it is in another currency than the PO; unitPrice is its conversion
+  sourceUnitPrice: CurrencyAmountDto | null;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
   hasScheme: boolean;
@@ -39,6 +41,10 @@ export class PurchaseOrderItemDto {
     dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, entity.currencyCode);
     dto.primaryUomUnitPrice = CurrencyAmountDto.from(entity.primaryUomUnitPrice, entity.currencyCode);
     dto.totalPrice = CurrencyAmountDto.from(entity.totalPrice, entity.currencyCode);
+    dto.sourceUnitPrice =
+      entity.sourceCurrencyCode && entity.sourceUnitPrice != null
+        ? CurrencyAmountDto.from(entity.sourceUnitPrice, entity.sourceCurrencyCode)
+        : null;
 
     dto.schemeBuyQty = entity.schemeBuyQty ?? null;
     dto.schemeFreeQty = entity.schemeFreeQty ?? null;

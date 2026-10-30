@@ -1,6 +1,5 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class UpdateSupplierItemDto {
   @IsUUID('7')
@@ -19,41 +18,15 @@ export class UpdateSupplierItemDto {
   @IsUUID('7')
   uomId?: string;
 
+  // The least the supplier sells per order, in the item's unit
   @IsOptional()
-  @IsInt()
+  @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
   minOrderQuantity?: number | null;
 
+  // Days from order to delivery; every site of the item that does not set its own follows it
   @IsOptional()
   @IsInt()
   @Min(0)
   leadTimeDays?: number | null;
-
-  @IsOptional()
-  @IsBoolean()
-  isPreferred?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  schemeBuyQty?: number | null;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  schemeFreeQty?: number | null;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  hasScheme?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  taxInclusive?: boolean;
 }

@@ -14,6 +14,7 @@ import { LeCatalogChannelsModule } from './modules/legal-entity/catalog-channels
 import { LeCatalogsModule } from './modules/legal-entity/catalogs/catalogs.module';
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
 import { LeDimensionTemplatesModule } from './modules/legal-entity/dimension-templates/dimension-templates.module';
+import { LeInventoryItemsModule } from './modules/legal-entity/inventory-items/inventory-items.module';
 import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.module';
 import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
@@ -26,6 +27,7 @@ import { OrgCompaniesModule } from './modules/organization/companies/companies.m
 import { OrgDimensionTemplatesModule } from './modules/organization/dimension-templates/dimension-templates.module';
 import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
 import { OrgOfferingsModule } from './modules/organization/offerings/offerings.module';
+import { OrgPaymentTermsModule } from './modules/organization/payment-terms/payment-terms.module';
 import { OrgPeopleModule } from './modules/organization/people/people.module';
 import { OrgTaxClassesModule } from './modules/organization/tax-classes/tax-classes.module';
 import { OrgTaxComponentsModule } from './modules/organization/tax-components/tax-components.module';
@@ -123,6 +125,7 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     OrgWishlistModule,
     OrgPeopleModule,
     OrgCompaniesModule,
+    OrgPaymentTermsModule,
     OrgTaxClassesModule,
     OrgTaxComponentsModule,
     OrgTaxJurisdictionsModule,
@@ -138,6 +141,7 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     OrgDimensionTemplatesModule,
     OrgOfferingsModule,
     LeCostCategoriesModule,
+    LeInventoryItemsModule,
     LeTaxGroupsModule,
     LeTaxRegistrationsModule,
     LeSuppliersModule,

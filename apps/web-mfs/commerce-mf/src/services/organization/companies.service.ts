@@ -123,6 +123,20 @@ export function updateCompanyRegistration({
   return axios.patch<SuccessResponse>(`${BASE}/${companyId}/registrations/${registrationId}`, data).then((r) => r.data);
 }
 
+export function setCompanyRegistrationActive({
+  companyId,
+  registrationId,
+  isActive,
+}: {
+  companyId: string;
+  registrationId: string;
+  isActive: boolean;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`${BASE}/${companyId}/registrations/${registrationId}/active`, { isActive })
+    .then((r) => r.data);
+}
+
 export function deleteCompanyRegistration({
   companyId,
   registrationId,

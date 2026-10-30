@@ -43,4 +43,7 @@ export class CreateInventoryItemDto {
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
+
+  @IsUUID('7')
+  taxClassId: string;
 }

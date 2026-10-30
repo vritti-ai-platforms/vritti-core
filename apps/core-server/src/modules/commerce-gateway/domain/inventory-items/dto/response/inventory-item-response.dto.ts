@@ -42,6 +42,12 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
   hsnCode: string | null;
 
+  @ApiProperty({ description: 'Tax class the goods are bought under' })
+  taxClassId: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  taxClassName: string | null;
+
   @ApiProperty({ description: 'Whether this item can be deleted' })
   canDelete: boolean;
 

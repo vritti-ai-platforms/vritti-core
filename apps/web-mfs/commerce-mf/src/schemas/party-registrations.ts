@@ -1,26 +1,10 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
+import { REGISTRATION_TYPES, type RegistrationType } from './tax-registrations';
 
-const REGISTRATION_TYPES = ['GST', 'VAT', 'EIN', 'TIN', 'PAN', 'SALES_TAX', 'OTHER'] as const;
-
-export type RegistrationType = (typeof REGISTRATION_TYPES)[number];
+export { REGISTRATION_TYPE_LABELS, REGISTRATION_TYPE_OPTIONS, type RegistrationType } from './tax-registrations';
 
 const registrationTypeSchema = z.enum(REGISTRATION_TYPES);
-
-export const REGISTRATION_TYPE_LABELS: Record<RegistrationType, string> = {
-  GST: 'GST',
-  VAT: 'VAT',
-  EIN: 'EIN',
-  TIN: 'TIN',
-  PAN: 'PAN',
-  SALES_TAX: 'Sales Tax',
-  OTHER: 'Other',
-};
-
-export const REGISTRATION_TYPE_OPTIONS = REGISTRATION_TYPES.map((value) => ({
-  value,
-  label: REGISTRATION_TYPE_LABELS[value],
-}));
 
 export const partyRegistrationSchema = z.object({
   jurisdictionId: z.uuid('Jurisdiction is required'),
@@ -38,6 +22,8 @@ export interface PartyTaxRegistrationRow {
   registrationNumber: string;
   registrationType: RegistrationType;
   isPrimary: boolean;
+  // Inactive registrations stay on record but cannot be picked for a supplier's site enrollment
+  isActive: boolean;
 }
 
 export type PartyRegistrationsTableResponse = TableResponse<PartyTaxRegistrationRow>;

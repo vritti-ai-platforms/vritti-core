@@ -1,1 +1,0 @@
-ALTER TABLE "core"."apps" ADD COLUMN "otp_config" jsonb;

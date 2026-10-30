@@ -67,6 +67,7 @@ export interface RegistrationsBinding extends BaseBinding {
   useList: QueryHook<PartyRegistrationsTableResponse>;
   useCreate: MutationHook<PartyTaxRegistrationRow, PartyRegistrationFormData>;
   useUpdate: MutationHook<SuccessResponse, { registrationId: string; data: PartyRegistrationFormData }>;
+  useSetActive: MutationHook<SuccessResponse, { registrationId: string; isActive: boolean }>;
   useRemove: MutationHook<SuccessResponse, string>;
 }
 

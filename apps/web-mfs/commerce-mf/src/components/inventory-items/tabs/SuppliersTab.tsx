@@ -5,13 +5,15 @@ import {
   CurrencyCell,
   DataTable,
   NumberCell,
+  RowActions,
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
-import { Truck } from 'lucide-react';
+import { Eye, Truck } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { InventoryItemSupplierData } from '@/schemas/suppliers';
 import type { UseInventoryItemSuppliersTable } from '../types';
 
@@ -21,7 +23,35 @@ interface SuppliersTabProps {
   tableKey: readonly unknown[];
   tableSlug: string;
   permission?: string;
+  showSiteTerms?: boolean;
+  // Where a supplier's View action goes (absolute) and who may follow it; without it the rows have no View action
+  supplierView?: { path: (row: InventoryItemSupplierData) => string; permission: string };
 }
+
+const SITE_TERM_COLUMNS: ColumnDef<InventoryItemSupplierData>[] = [
+  {
+    accessorKey: 'unitPrice',
+    header: 'Unit Price',
+    enableSorting: false,
+    cell: ({ row }) => <CurrencyCell value={row.original.unitPrice} />,
+  },
+  {
+    accessorKey: 'minOrderQuantity',
+    header: 'Min Order',
+    cell: ({ row }) =>
+      row.original.minOrderQuantity != null ? <NumberCell value={row.original.minOrderQuantity} /> : '—',
+  },
+  {
+    accessorKey: 'leadTimeDays',
+    header: 'Lead Time',
+    cell: ({ row }) => (row.original.leadTimeDays != null ? `${row.original.leadTimeDays} d` : '—'),
+  },
+  {
+    accessorKey: 'isPreferred',
+    header: 'Preferred',
+    cell: ({ row }) => (row.original.isPreferred ? <Badge variant="success">Yes</Badge> : '—'),
+  },
+];
 
 export const SuppliersTab: React.FC<SuppliersTabProps> = ({
   inventoryItemId,
@@ -29,8 +59,11 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
   tableKey,
   tableSlug,
   permission,
+  showSiteTerms = false,
+  supplierView,
 }) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { data: response, isLoading } = useSuppliersTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemSupplierData>[]>(
@@ -56,42 +89,42 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
         header: 'UOM',
         cell: ({ row }) => row.original.uomSymbol,
       },
-      {
-        accessorKey: 'unitPrice',
-        header: 'Unit Price',
-        cell: ({ row }) => <CurrencyCell value={row.original.unitPrice} />,
-      },
-      {
-        accessorKey: 'minOrderQuantity',
-        header: 'Min Order',
-        cell: ({ row }) =>
-          row.original.minOrderQuantity != null ? <NumberCell value={row.original.minOrderQuantity} /> : '—',
-      },
-      {
-        accessorKey: 'leadTimeDays',
-        header: 'Lead Time',
-        cell: ({ row }) => (row.original.leadTimeDays != null ? `${row.original.leadTimeDays} d` : '—'),
-      },
-      {
-        accessorKey: 'isPreferred',
-        header: 'Preferred',
-        cell: ({ row }) =>
-          row.original.isPreferred ? (
-            <Badge variant="secondary" className="bg-success/15 text-success">
-              Yes
-            </Badge>
-          ) : (
-            '—'
-          ),
-      },
-      {
-        accessorKey: 'isActive',
-        header: 'Active',
-        cell: ({ row }) =>
-          row.original.isActive ? <Badge variant="secondary">Active</Badge> : <Badge variant="outline">Inactive</Badge>,
-      },
+      ...(showSiteTerms
+        ? SITE_TERM_COLUMNS
+        : [
+            {
+              accessorKey: 'siteCount',
+              header: 'Sites',
+              cell: ({ row }: { row: { original: InventoryItemSupplierData } }) => (
+                <NumberCell value={row.original.siteCount} />
+              ),
+            } satisfies ColumnDef<InventoryItemSupplierData>,
+          ]),
+      ...(supplierView
+        ? [
+            {
+              id: 'actions',
+              header: '',
+              enableSorting: false,
+              enableHiding: false,
+              cell: ({ row }: { row: { original: InventoryItemSupplierData } }) => (
+                <RowActions
+                  actions={[
+                    {
+                      id: 'view',
+                      icon: Eye,
+                      label: 'View',
+                      permission: supplierView.permission,
+                      onClick: () => navigate(supplierView.path(row.original)),
+                    },
+                  ]}
+                />
+              ),
+            } satisfies ColumnDef<InventoryItemSupplierData>,
+          ]
+        : []),
     ],
-    [],
+    [showSiteTerms, supplierView, navigate],
   );
 
   const { table } = useDataTable({
@@ -118,26 +151,21 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
         ],
         searchAll: true,
       }}
-      filters={[
-        <SelectFilter
-          key="isPreferred"
-          name="isPreferred"
-          label="Preferred"
-          options={[
-            { label: 'Preferred', value: 'true' },
-            { label: 'Not preferred', value: 'false' },
-          ]}
-        />,
-        <SelectFilter
-          key="isActive"
-          name="isActive"
-          label="Active"
-          options={[
-            { label: 'Active', value: 'true' },
-            { label: 'Inactive', value: 'false' },
-          ]}
-        />,
-      ]}
+      filters={
+        showSiteTerms
+          ? [
+              <SelectFilter
+                key="isPreferred"
+                name="isPreferred"
+                label="Preferred"
+                options={[
+                  { label: 'Preferred', value: 'true' },
+                  { label: 'Not preferred', value: 'false' },
+                ]}
+              />,
+            ]
+          : undefined
+      }
       emptyStateConfig={{
         icon: Truck,
         title: 'No suppliers',

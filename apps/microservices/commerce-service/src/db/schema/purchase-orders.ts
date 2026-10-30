@@ -5,6 +5,7 @@ import {
   date,
   decimal,
   index,
+  jsonb,
   pgPolicy,
   text,
   timestamp,
@@ -33,6 +34,9 @@ export const purchaseOrders = commerceSchema.table(
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     exchangeRate: decimal('exchange_rate', { precision: 18, scale: 6, mode: 'number' }).default(1),
     exchangeRateType: exchangeRateTypeEnum('exchange_rate_type').notNull().default('FIXED'),
+    // Rates from the currencies of lines priced in another of the supplier's currencies into the PO currency,
+    // as decimal strings: { "USD": "83.250000" } reads 1 USD = 83.25 in the PO currency
+    conversionRates: jsonb('conversion_rates').$type<Record<string, string>>().notNull().default({}),
     orderDate: date('order_date', { mode: 'string' }).notNull(),
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
     timezone: varchar('timezone', { length: 50 })
@@ -98,6 +102,9 @@ export const purchaseOrderItems = commerceSchema.table(
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     totalPrice: bigint('total_price', { mode: 'bigint' }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
+    // The supplier item's own price when it is in another currency than the PO; unit_price is its conversion
+    sourceCurrencyCode: varchar('source_currency_code', { length: 3 }),
+    sourceUnitPrice: bigint('source_unit_price', { mode: 'bigint' }),
   },
   (table) => [
     unique('uq_purchase_order_items_po_item_uom').on(table.purchaseOrderId, table.inventoryItemId, table.uomId),

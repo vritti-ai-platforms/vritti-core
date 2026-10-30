@@ -1,21 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
   type InventoryItem,
   type InventoryItemSite,
+  inventoryItemQuants,
   inventoryItemSites,
   inventoryItems,
   inventoryItemUomConversions,
-  inventoryStockLevels,
   purchaseOrderItems,
   stockAdjustments,
   stockTransfers,
   supplierItems,
+  taxClasses,
   uom,
 } from '@/db/schema';
+
+type TableRow = InventoryItem & { uomSymbol: string | null; categoryName: string | null; taxClassName: string | null };
+
+export type SiteInventoryItemRow = TableRow & {
+  isEnabled: boolean;
+  isStocked: boolean | null;
+  reorderPoint: number | null;
+  stockedQuantity: string;
+};
+
+export type GroupInventoryItemRow = TableRow & { enabledSiteCount: number };
 
 @Injectable()
 export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof inventoryItems> {
@@ -88,7 +100,11 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
 
   // Returns paginated inventory items with UOM symbol via LEFT JOIN
   async findAllWithUom(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
-    result: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null })[];
+    result: (typeof inventoryItems.$inferSelect & {
+      uomSymbol: string | null;
+      categoryName: string | null;
+      taxClassName: string | null;
+    })[];
     count: number;
   }> {
     return this.findAllAndCount({
@@ -99,6 +115,11 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
           SELECT c.name
           FROM ${categories} c
           WHERE c.id = ${inventoryItems.categoryId}
+        )`,
+        taxClassName: sql<string | null>`(
+          SELECT t.name
+          FROM ${taxClasses} t
+          WHERE t.id = ${inventoryItems.taxClassId}
         )`,
       },
       leftJoin: { table: uom, on: eq(inventoryItems.uomId, uom.id) },
@@ -111,7 +132,11 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
 
   // Returns up to limit+1 inventory items with UOM symbol via LEFT JOIN for keyset pagination
   async findKeysetWithUom(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
-    rows: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null })[];
+    rows: (typeof inventoryItems.$inferSelect & {
+      uomSymbol: string | null;
+      categoryName: string | null;
+      taxClassName: string | null;
+    })[];
     hasMore: boolean;
   }> {
     return this.findKeyset({
@@ -122,6 +147,11 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
           SELECT c.name
           FROM ${categories} c
           WHERE c.id = ${inventoryItems.categoryId}
+        )`,
+        taxClassName: sql<string | null>`(
+          SELECT t.name
+          FROM ${taxClasses} t
+          WHERE t.id = ${inventoryItems.taxClassId}
         )`,
       },
       leftJoin: { table: uom, on: eq(inventoryItems.uomId, uom.id) },
@@ -136,6 +166,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     | (typeof inventoryItems.$inferSelect & {
         uomSymbol: string | null;
         categoryName: string | null;
+        taxClassName: string | null;
       })
     | null
   > {
@@ -152,15 +183,18 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         description: inventoryItems.description,
         uomId: inventoryItems.uomId,
         hsnCode: inventoryItems.hsnCode,
+        taxClassId: inventoryItems.taxClassId,
         metadata: inventoryItems.metadata,
         createdAt: inventoryItems.createdAt,
         updatedAt: inventoryItems.updatedAt,
         uomSymbol: uom.symbol,
         categoryName: categories.name,
+        taxClassName: taxClasses.name,
       })
       .from(inventoryItems)
       .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
       .leftJoin(categories, eq(inventoryItems.categoryId, categories.id))
+      .leftJoin(taxClasses, eq(inventoryItems.taxClassId, taxClasses.id))
       .where(eq(inventoryItems.id, id))
       .limit(1);
 
@@ -169,74 +203,71 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
 
   // Org-wide master list (no site filter — RLS scopes to org). Alias of findAllWithUom for the master table.
   findForOrgTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
-    result: (InventoryItem & { uomSymbol: string | null; categoryName: string | null })[];
+    result: (InventoryItem & { uomSymbol: string | null; categoryName: string | null; taxClassName: string | null })[];
     count: number;
   }> {
     return this.findAllWithUom(options);
   }
 
-  // Items enabled at the current site (have an inventory_item_sites row) joined to their site projection and per-site
-  // summed stock.
-  async findForSiteTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
-    result: (InventoryItem & {
-      uomSymbol: string | null;
-      reorderPoint: number;
-      isStocked: boolean;
-      stockedQuantity: string;
-    })[];
-    count: number;
-  }> {
-    const baseQuery = this.db
-      .select({
-        id: inventoryItems.id,
-        organizationId: inventoryItems.organizationId,
-        name: inventoryItems.name,
-        sku: inventoryItems.sku,
-        type: inventoryItems.type,
-        tracking: inventoryItems.tracking,
-        pickStrategy: inventoryItems.pickStrategy,
-        categoryId: inventoryItems.categoryId,
-        description: inventoryItems.description,
-        uomId: inventoryItems.uomId,
-        hsnCode: inventoryItems.hsnCode,
-        metadata: inventoryItems.metadata,
-        createdAt: inventoryItems.createdAt,
-        updatedAt: inventoryItems.updatedAt,
-        uomSymbol: uom.symbol,
-        reorderPoint: inventoryItemSites.reorderPoint,
-        isStocked: inventoryItemSites.isStocked,
-        stockedQuantity: sql<string>`CAST(COALESCE((
-          SELECT SUM(${inventoryStockLevels.stockedQuantity}::numeric)
-          FROM ${inventoryStockLevels}
-          WHERE ${inventoryStockLevels.inventoryItemId} = ${inventoryItems.id}
-        ), 0) AS TEXT)`,
-      })
-      .from(inventoryItems)
-      .innerJoin(inventoryItemSites, eq(inventoryItemSites.inventoryItemId, inventoryItems.id))
-      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
-      .$dynamic();
-
-    const rowsQuery = options?.where ? baseQuery.where(options.where) : baseQuery;
-    const ordered = options?.orderBy?.length ? rowsQuery.orderBy(...options.orderBy) : rowsQuery;
-    const limited = options?.limit != null ? ordered.limit(options.limit).offset(options?.offset ?? 0) : ordered;
-
-    const countBase = this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryItems)
-      .innerJoin(inventoryItemSites, eq(inventoryItemSites.inventoryItemId, inventoryItems.id))
-      .$dynamic();
-    const countQuery = options?.where ? countBase.where(options.where) : countBase;
-
-    const [result, countRows] = await Promise.all([limited, countQuery]);
+  // The master columns every scope's table shows, with the names its foreign keys point at
+  private tableColumns() {
     return {
-      result: result as (InventoryItem & {
-        uomSymbol: string | null;
-        reorderPoint: number;
-        isStocked: boolean;
-        stockedQuantity: string;
-      })[],
-      count: Number(countRows[0]?.count ?? 0),
+      ...getColumns(inventoryItems),
+      uomSymbol: sql<string | null>`(SELECT u.symbol FROM ${uom} u WHERE u.id = ${inventoryItems.uomId})`,
+      categoryName: sql<string | null>`(SELECT c.name FROM ${categories} c WHERE c.id = ${inventoryItems.categoryId})`,
+      taxClassName: sql<string | null>`(SELECT t.name FROM ${taxClasses} t WHERE t.id = ${inventoryItems.taxClassId})`,
     };
+  }
+
+  // Every master item with this site's enablement row, when it has one, and the stock this site holds of it
+  async findForSiteTable(
+    siteId: string,
+    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: SiteInventoryItemRow[]; count: number }> {
+    return this.findAllAndCount<SiteInventoryItemRow>({
+      select: {
+        ...this.tableColumns(),
+        isEnabled: sql<boolean>`${inventoryItemSites.id} IS NOT NULL`,
+        isStocked: inventoryItemSites.isStocked,
+        reorderPoint: inventoryItemSites.reorderPoint,
+        stockedQuantity: sql<string>`CAST(COALESCE((
+          SELECT SUM(${inventoryItemQuants.quantity})
+          FROM ${inventoryItemQuants}
+          WHERE ${inventoryItemQuants.inventoryItemId} = ${inventoryItems.id}
+            AND ${inventoryItemQuants.siteId} = ${siteId}
+        ), 0) AS TEXT)`,
+      },
+      leftJoin: {
+        table: inventoryItemSites,
+        on: and(eq(inventoryItemSites.inventoryItemId, inventoryItems.id), eq(inventoryItemSites.siteId, siteId)),
+      },
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
+      offset: options.offset,
+    });
+  }
+
+  // Every master item with how many of the group's sites have it enabled
+  async findForGroupTable(
+    siteIds: string[],
+    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: GroupInventoryItemRow[]; count: number }> {
+    const enabledSiteCount =
+      siteIds.length > 0
+        ? this.db.$count(
+            inventoryItemSites,
+            and(eq(inventoryItemSites.inventoryItemId, inventoryItems.id), inArray(inventoryItemSites.siteId, siteIds)),
+          )
+        : sql<number>`0`;
+
+    return this.findAllAndCount<GroupInventoryItemRow>({
+      select: { ...this.tableColumns(), enabledSiteCount },
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 
   // Item × site availability across the given sites — one projection row per (item, site) that is enabled.
@@ -275,6 +306,11 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
       .from(categories)
       .where(eq(categories.id, categoryId));
     return result[0]?.name ?? null;
+  }
+
+  async findTaxClassName(taxClassId: string): Promise<string | null> {
+    const [row] = await this.db.select({ name: taxClasses.name }).from(taxClasses).where(eq(taxClasses.id, taxClassId));
+    return row?.name ?? null;
   }
 
   // Returns a set of inventory item IDs that have at least one non-cascading reference

@@ -78,7 +78,7 @@ const SupplierItemForm = ({
         value: minorToMajor(rawMinor.toString(), supplierCurrencyCode),
       });
     }
-    // Prefill the standing scheme from the supplier item; operator can edit.
+    // Prefill the scheme from the site's price in force; operator can edit.
     form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
     form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
     form.setValue('hasScheme', option?.additionals?.hasScheme === true);

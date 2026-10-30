@@ -58,9 +58,9 @@ export class CreateSiteInventoryItemDto {
   @IsUUID('7')
   uomId: string;
 
-  @ApiProperty({ description: 'Purchase tax group ID' })
+  @ApiProperty({ description: 'Tax class the goods are bought under' })
   @IsUUID('7')
-  purchaseTaxGroupId: string;
+  taxClassId: string;
 
   @Trim()
   @ApiPropertyOptional({ description: 'HSN sku for tax reporting' })

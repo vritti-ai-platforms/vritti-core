@@ -11,12 +11,14 @@ import { useForm } from 'react-hook-form';
 import { useUpdateInventoryItem } from '@/hooks/organization/inventory-items';
 import {
   type InventoryItemData,
+  InventoryTrackingValues,
   inventoryItemTypeOptions,
   pickStrategyOptions,
   type UpdateOrgInventoryItemFormData,
   updateOrgInventoryItemSchema,
 } from '@/schemas/inventory-items';
 import { CategorySelector } from '@/selectors/category';
+import { TaxClassSelector } from '@/selectors/tax-class';
 import { UomSelector } from '@/selectors/uom';
 
 interface EditInventoryItemFormProps {
@@ -37,6 +39,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
       description: item.description ?? '',
       uomId: item.uomId,
       hsnCode: item.hsnCode ?? '',
+      taxClassId: item.taxClassId,
     },
   });
 
@@ -72,7 +75,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
           </div>
         </FormSection>
 
-        {item.tracking !== 'quantity' && (
+        {item.tracking !== InventoryTrackingValues.QUANTITY && (
           <FormSection title="Tracking" contentClassName="block">
             <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
           </FormSection>
@@ -81,6 +84,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
         <FormSection title="Compliance" contentClassName="block">
           <div className="grid grid-cols-2 gap-4">
             <TextField name="hsnCode" label="HSN Code" placeholder="e.g. 1006" />
+            <TaxClassSelector name="taxClassId" />
           </div>
         </FormSection>
 

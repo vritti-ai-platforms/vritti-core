@@ -9,6 +9,7 @@ export const SITE_GUC = "cast(nullif(current_setting('app.site_id', true), '') a
 export const SITE_GROUP_GUC = "cast(nullif(current_setting('app.site_group_id', true), '') as uuid)";
 
 const GROUP_SITE_IDS = "string_to_array(nullif(current_setting('app.site_ids', true), ''), ',')::uuid[]";
+const LE_SITE_IDS = "string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]";
 
 // A row's owner is the (legal_entity_id, site_id) pair on it: both null = org-owned, LE set and site null = LE-owned,
 // both set = site-owned.
@@ -65,6 +66,35 @@ const exactlyThisWorkspaceSql = (table?: string) => {
     when ${SITE_GROUP_GUC} is not null then false
     when ${LE_GUC} is not null then ${le} = ${LE_GUC} and ${site} is null
     when ${ORG_GUC} is not null then ${le} is null and ${site} is null
+    else false
+  end`;
+};
+
+// Site-document reach: a site its own rows, a site group its member sites' rows, an LE every row of its sites, the org
+// everything. Site documents are never org- or LE-owned, so there is no upward reach.
+const siteDocumentReadSql = (table?: string) => {
+  const { le, site } = columnNames(table);
+  return `
+  case
+    when ${SITE_GUC} is not null then ${site} = ${SITE_GUC}
+    when ${SITE_GROUP_GUC} is not null then ${site} = any(${GROUP_SITE_IDS})
+    when ${LE_GUC} is not null then ${le} = ${LE_GUC}
+    when ${ORG_GUC} is not null then true
+    else false
+  end`;
+};
+
+// Site-document writes: a site writes its own rows; an LE writes rows of its sites, narrowed to the sites on the user's
+// LE role assignment once app.le_site_ids is sent (every site of the LE until then); a site group and the org never
+// write.
+const siteDocumentWriteSql = (table?: string) => {
+  const { le, site } = columnNames(table);
+  return `
+  case
+    when ${SITE_GUC} is not null then ${site} = ${SITE_GUC} and ${le} = ${LE_GUC}
+    when ${SITE_GROUP_GUC} is not null then false
+    when ${LE_GUC} is not null then ${le} = ${LE_GUC} and ${site} is not null
+      and (${LE_SITE_IDS} is null or ${site} = any(${LE_SITE_IDS}))
     else false
   end`;
 };
@@ -192,5 +222,23 @@ export const workspaceHierarchyPolicies = () => {
     pgPolicy('owner_update', { as: 'restrictive', for: 'update', using: owned }),
     // DELETE — ownership in USING, since WITH CHECK is never consulted for a delete.
     pgPolicy('owner_delete', { as: 'restrictive', for: 'delete', using: owned }),
+  ];
+};
+
+// For a site-owned document table (both owner columns always set): sites write their own rows, an LE writes for its
+// sites, a site group and the org only read.
+export const siteDocumentPolicies = () => {
+  const write = sql.raw(`coalesce(${siteDocumentWriteSql()}, false)`);
+
+  return [
+    orgIsolationPolicy(),
+    pgPolicy('reach_read', {
+      as: 'restrictive',
+      for: 'select',
+      using: sql.raw(`coalesce(${siteDocumentReadSql()}, false)`),
+    }),
+    pgPolicy('owner_insert', { as: 'restrictive', for: 'insert', withCheck: write }),
+    pgPolicy('owner_update', { as: 'restrictive', for: 'update', using: write, withCheck: write }),
+    pgPolicy('owner_delete', { as: 'restrictive', for: 'delete', using: write }),
   ];
 };

@@ -10,7 +10,7 @@ import type {
   UpdateInventoryItemFormValues,
 } from '../../../../schemas/inventory-items/inventory-item';
 import { CategorySelector } from '../../../../selectors/category';
-import { TaxGroupSelector } from '../../../../selectors/tax-group';
+import { TaxClassSelector } from '../../../../selectors/tax-class';
 import { UomSelector } from '../../../../selectors/uom';
 import { PICK_STRATEGY_OPTIONS, TRACKING_OPTIONS, TYPE_OPTIONS } from '../../../../services/site/inventory-items';
 
@@ -42,7 +42,7 @@ interface InventoryItemFormProps {
 
 // All fields auto-wire to react-hook-form via the `name` prop — quantum <Form> reads each field's
 // `fieldBinding` (TextField → value/onChangeText, RadioGroup → value/onValueChange, Select → value/onChange).
-// No <Controller>. FK fields are Apollo-backed Select pickers (Category/UOM/TaxGroup). hasMrp/MRP is deferred
+// No <Controller>. FK fields are Apollo-backed Select pickers (Category/UOM/TaxClass). hasMrp/MRP is deferred
 // (TODO(mrp)); it'd fail server validation without mrpUomId.
 export const InventoryItemForm = ({ form, isSubmitting, onSubmit, mode }: InventoryItemFormProps) => {
   const sharedForm = form as UseFormReturn<CreateInventoryItemFormValues>;
@@ -58,9 +58,22 @@ export const InventoryItemForm = ({ form, isSubmitting, onSubmit, mode }: Invent
       <RadioGroup name="pickStrategy" label="Pick strategy" options={PICK_STRATEGY_RADIO} />
 
       {/* FK pickers — Apollo-backed Select dropdowns (search + infinite scroll), wired by `name` like any field. */}
-      <CategorySelector name="categoryId" />
+      <CategorySelector
+        name="categoryId"
+        fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'path', additionalKeys: 'defaultTaxClassId' }}
+        onOptionSelect={(option) => {
+          const defaultTaxClassId = option?.additionals?.defaultTaxClassId;
+          if (
+            mode === 'create' &&
+            typeof defaultTaxClassId === 'string' &&
+            !sharedForm.getFieldState('taxClassId').isDirty
+          ) {
+            sharedForm.setValue('taxClassId', defaultTaxClassId, { shouldValidate: true });
+          }
+        }}
+      />
       <UomSelector name="uomId" />
-      <TaxGroupSelector name="purchaseTaxGroupId" />
+      <TaxClassSelector name="taxClassId" />
 
       <TextField name="hsnCode" label="HSN code" placeholder="Optional" autoCapitalize="characters" />
       <TextField name="description" label="Description" placeholder="Optional" multiline numberOfLines={3} />

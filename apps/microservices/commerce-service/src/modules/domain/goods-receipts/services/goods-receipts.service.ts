@@ -48,7 +48,13 @@ export class GoodsReceiptsDomainService {
       throw new BadRequestException('Purchase order does not belong to the provided supplier.');
     }
 
-    const exchangeRate = this.resolveExchangeRate(supplier.currencyCode, po, data.exchangeRate, siteCurrencyCode);
+    // Received against a PO, the goods are in the PO's currency; otherwise in the supplier's default
+    const exchangeRate = this.resolveExchangeRate(
+      po?.currencyCode ?? supplier.currencyCode,
+      po,
+      data.exchangeRate,
+      siteCurrencyCode,
+    );
 
     const entity = await this.repository.create({
       supplierId: data.supplierId,
@@ -290,7 +296,7 @@ export class GoodsReceiptsDomainService {
     return { success: true, message: `Goods receipt "${gr.grNumber}" deleted successfully.` };
   }
 
-  // Resolves the supplier→site exchange rate to snapshot on the new GR
+  // Resolves the receipt-currency→site exchange rate to snapshot on the new GR
   private resolveExchangeRate(
     supplierCurrencyCode: string,
     po: PurchaseOrder | null | undefined,
@@ -309,7 +315,7 @@ export class GoodsReceiptsDomainService {
     // VARIABLE PO or un-linked GR — caller must supply the rate.
     if (userExchangeRate == null || userExchangeRate <= 0) {
       throw new ValidationException({
-        detail: `Exchange rate is required (supplier currency ${supplierCurrencyCode} differs from site currency ${siteCurrencyCode}).`,
+        detail: `Exchange rate is required (receipt currency ${supplierCurrencyCode} differs from site currency ${siteCurrencyCode}).`,
         errors: [{ field: 'exchangeRate', message: 'Required when supplier currency differs from site currency.' }],
       });
     }

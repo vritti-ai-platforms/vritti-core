@@ -6,3 +6,5 @@ export const SITE_SUPPLIER_ITEM_KEY = (id: string, itemId: string) =>
   [...SITE_SUPPLIER_KEY(id), 'items', itemId] as const;
 export const SITE_SUPPLIER_ITEM_PRICES_TABLE_KEY = (id: string, itemId: string) =>
   [...SITE_SUPPLIER_ITEM_KEY(id, itemId), 'prices'] as const;
+export const SITE_SUPPLIER_ITEM_PRICE_HISTORY_KEY = (id: string, itemId: string) =>
+  [...SITE_SUPPLIER_ITEM_PRICES_TABLE_KEY(id, itemId), 'history'] as const;

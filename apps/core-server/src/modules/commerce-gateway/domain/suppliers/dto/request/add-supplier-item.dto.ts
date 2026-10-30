@@ -1,7 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class AddSupplierItemDto {
   @ApiProperty({ description: 'Inventory item ID to link' })
@@ -9,65 +18,35 @@ export class AddSupplierItemDto {
   @IsNotEmpty()
   inventoryItemId: string;
 
-  @ApiProperty({
-    description:
-      "How this supplier's invoice classifies the goods — the same item can be goods from one supplier and job work from another",
-  })
-  @IsUUID('7')
-  taxClassId: string;
-
   @Trim()
   @ApiPropertyOptional({ description: 'Supplier-specific item code' })
   @IsOptional()
   @IsString()
   supplierItemCode?: string | null;
 
-  @ApiProperty({ type: CurrencyAmountDto, description: 'Unit price from this supplier' })
-  @IsNotEmpty()
-  @IsCurrency()
-  unitPrice: CurrencyAmountDto;
-
   @ApiProperty({ description: 'UOM ID for pricing' })
   @IsUUID('7')
   @IsNotEmpty()
   uomId: string;
 
-  @ApiPropertyOptional({ description: 'Minimum order quantity', example: 10 })
+  @ApiPropertyOptional({ description: "The least the supplier sells per order, in the item's unit", example: 10 })
   @IsOptional()
-  @IsInt()
+  @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
   minOrderQuantity?: number;
 
-  @ApiPropertyOptional({ description: 'Lead time in days for this item', example: 5 })
+  @ApiPropertyOptional({
+    description: 'Days from order to delivery; every site that does not set its own follows it',
+    example: 5,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
   leadTimeDays?: number;
 
-  @ApiPropertyOptional({ description: 'Whether this is the preferred supplier for this item', default: false })
-  @IsOptional()
-  @IsBoolean()
-  isPreferred?: boolean;
-
-  @ApiPropertyOptional({ description: 'Standing free-goods scheme buy qty (e.g. 9 in "9+1").' })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  schemeBuyQty?: number;
-
-  @ApiPropertyOptional({ description: 'Standing free-goods scheme free qty (e.g. 1 in "9+1").' })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  schemeFreeQty?: number;
-
-  @ApiPropertyOptional({ description: 'Whether a free-goods scheme applies.' })
-  @IsOptional()
-  @IsBoolean()
-  hasScheme?: boolean;
-
-  @ApiPropertyOptional({ description: 'Whether the unit price is quoted tax-inclusive.', default: false })
-  @IsOptional()
-  @IsBoolean()
-  taxInclusive?: boolean;
+  @ApiProperty({ type: [String], description: 'Enrolled sites to set the item up at' })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('7', { each: true })
+  siteIds: string[];
 }

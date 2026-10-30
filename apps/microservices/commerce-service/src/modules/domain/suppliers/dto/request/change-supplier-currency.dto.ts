@@ -1,15 +1,17 @@
 import { IsCurrencyCode } from '@vritti/api-sdk/money';
-import { IsNumber, IsOptional, IsPositive, IsUUID } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsUUID } from 'class-validator';
 
 export class ChangeSupplierCurrencyDto {
   @IsUUID('7')
   id: string;
 
+  // The default currency — new supplier items, quotations and POs start in it
   @IsCurrencyCode()
   currencyCode: string;
 
-  @IsOptional()
-  @IsNumber()
-  @IsPositive()
-  conversionRate?: number;
+  // Every currency the supplier trades in; the default is always among them
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsCurrencyCode({ each: true })
+  currencyCodes: string[];
 }

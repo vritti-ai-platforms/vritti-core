@@ -1,1 +1,0 @@
-ALTER TABLE "core"."organizations" ADD COLUMN "storage" jsonb;

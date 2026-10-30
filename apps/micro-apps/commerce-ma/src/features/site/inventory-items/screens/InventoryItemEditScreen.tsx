@@ -47,7 +47,7 @@ export function InventoryItemEdit({
           pickStrategy: item.pickStrategy,
           categoryId: item.categoryId,
           uomId: item.uomId,
-          purchaseTaxGroupId: item.purchaseTaxGroupId ?? '',
+          taxClassId: item.taxClassId,
           description: item.description ?? '',
           hsnCode: item.hsnCode ?? '',
           hasMrp: false,
@@ -58,7 +58,9 @@ export function InventoryItemEdit({
   const handleSubmit = async (values: UpdateInventoryItemFormValues) => {
     if (!id) return;
     // The mutation returns the entity → Apollo auto-merges by id, so list + detail update on success.
-    const result = await updateItem({ variables: { id, input: values } });
+    // hasMrp is a form-only flag (MRP capture is deferred); the input type has no such field
+    const { hasMrp: _hasMrp, ...input } = values;
+    const result = await updateItem({ variables: { id, input } });
     if (!result.error) navigation.goBack();
   };
 

@@ -1,18 +1,22 @@
-import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class UpdateSiteEnrollmentDto {
   @IsUUID('7')
-  id: string;
+  supplierId: string;
 
   @IsOptional()
   @IsUUID('7')
-  partyTaxRegistrationId?: string | null;
+  paymentTermId?: string;
+
+  @IsOptional()
+  @IsUUID('7')
+  partyTaxRegistrationId?: string;
 
   @IsOptional()
   @IsUUID('7')
   partyBankAccountId?: string | null;
 
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @IsUUID('7')
+  orderRelationshipId?: string | null;
 }

@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class UpdateSupplierSiteDto {
   @IsUUID('7')
@@ -6,7 +6,11 @@ export class UpdateSupplierSiteDto {
 
   @IsOptional()
   @IsUUID('7')
-  partyTaxRegistrationId?: string | null;
+  paymentTermId?: string;
+
+  @IsOptional()
+  @IsUUID('7')
+  partyTaxRegistrationId?: string;
 
   @IsOptional()
   @IsUUID('7')
@@ -15,8 +19,4 @@ export class UpdateSupplierSiteDto {
   @IsOptional()
   @IsUUID('7')
   orderRelationshipId?: string | null;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

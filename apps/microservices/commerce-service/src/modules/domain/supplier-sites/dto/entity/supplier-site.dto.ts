@@ -4,6 +4,8 @@ export class SupplierSiteDto {
   id: string;
   supplierId: string;
   siteId: string;
+  paymentTermId: string;
+  paymentTermName: string | null;
   partyTaxRegistrationId: string | null;
   partyBankAccountId: string | null;
   registrationNumber: string | null;
@@ -15,13 +17,13 @@ export class SupplierSiteDto {
   orderContactName: string | null;
   orderContactEmail: string | null;
   orderContactPhone: string | null;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 
   // Maps a SupplierSite entity with optional joined pick details to a SupplierSiteDto
   static from(
     entity: SupplierSite & {
+      paymentTermName?: string | null;
       registrationNumber?: string | null;
       registrationType?: TaxRegistrationType | null;
       bankAccountName?: string | null;
@@ -36,6 +38,8 @@ export class SupplierSiteDto {
     dto.id = entity.id;
     dto.supplierId = entity.supplierId;
     dto.siteId = entity.siteId;
+    dto.paymentTermId = entity.paymentTermId;
+    dto.paymentTermName = entity.paymentTermName ?? null;
     dto.partyTaxRegistrationId = entity.partyTaxRegistrationId ?? null;
     dto.partyBankAccountId = entity.partyBankAccountId ?? null;
     dto.registrationNumber = entity.registrationNumber ?? null;
@@ -47,45 +51,8 @@ export class SupplierSiteDto {
     dto.orderContactName = entity.orderContactName ?? null;
     dto.orderContactEmail = entity.orderContactEmail ?? null;
     dto.orderContactPhone = entity.orderContactPhone ?? null;
-    dto.isActive = entity.isActive;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
-    return dto;
-  }
-}
-
-// Site-workspace projection of an enrollment row joined with supplier commercial identity
-export class SiteSupplierDto {
-  id: string;
-  supplierId: string;
-  supplierName: string;
-  supplierCode: string;
-  currencyCode: string;
-  partyTaxRegistrationId: string | null;
-  partyBankAccountId: string | null;
-  purchasingBlocked: boolean;
-  isActive: boolean;
-  createdAt: string;
-
-  static from(
-    entity: SupplierSite & {
-      supplierName: string | null;
-      supplierCode: string | null;
-      currencyCode: string | null;
-      purchasingBlocked: boolean | null;
-    },
-  ): SiteSupplierDto {
-    const dto = new SiteSupplierDto();
-    dto.id = entity.id;
-    dto.supplierId = entity.supplierId;
-    dto.supplierName = entity.supplierName ?? '';
-    dto.supplierCode = entity.supplierCode ?? '';
-    dto.currencyCode = entity.currencyCode ?? '';
-    dto.partyTaxRegistrationId = entity.partyTaxRegistrationId ?? null;
-    dto.partyBankAccountId = entity.partyBankAccountId ?? null;
-    dto.purchasingBlocked = entity.purchasingBlocked ?? false;
-    dto.isActive = entity.isActive;
-    dto.createdAt = entity.createdAt.toISOString();
     return dto;
   }
 }

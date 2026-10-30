@@ -7,7 +7,7 @@ export type ExchangeRateType = z.infer<typeof ExchangeRateTypeEnum>;
 
 export const createPurchaseOrderSchema = z.object({
   supplierId: z.uuid('Supplier is required'),
-  supplierCurrencyCode: z.string().optional(),
+  currencyCode: z.string({ error: 'Currency is required' }).regex(/^[A-Z]{3}$/, 'Currency is required'),
   exchangeRateType: ExchangeRateTypeEnum,
   exchangeRate: zodNumericField({ positive: true, nonZero: true }).optional(),
   orderDate: z.string().min(1, 'Order date is required'),
@@ -69,6 +69,8 @@ export interface PurchaseOrderData {
   currencyCode: string;
   exchangeRate: number | null;
   exchangeRateType: ExchangeRateType;
+  // Rates from the supplier's other currencies into the PO currency, as decimal strings: { USD: '83.250000' }
+  conversionRates: Record<string, string>;
   orderDate: string;
   expectedBy: string | null;
   timezone: string;
@@ -89,6 +91,8 @@ export interface PurchaseOrderItemData {
   currencyCode: string;
   unitPrice: CurrencyValue;
   totalPrice: CurrencyValue;
+  // The supplier item's own price when it is in another currency than the PO; unitPrice is its conversion
+  sourceUnitPrice: CurrencyValue | null;
   primaryUomQty: number;
   orderUomSymbol: string | null;
   primaryUomSymbol: string | null;
@@ -145,9 +149,21 @@ export const addPurchaseOrderItemSchema = z
     supplierItemId: z.uuid('Item is required'),
     uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
     unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+    // Set when the item is priced in a currency the PO has no rate for yet; the rate is then required
+    rateCurrency: z.string().optional(),
+    conversionRate: zodNumericField({ positive: true, nonZero: true }).optional(),
     ...poSchemeShape,
   })
-  .superRefine(enforceSchemeRatio);
+  .superRefine((data, ctx) => {
+    enforceSchemeRatio(data, ctx);
+    if (data.rateCurrency && data.conversionRate == null) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['conversionRate'],
+        message: `Enter how much 1 ${data.rateCurrency} is in the PO currency.`,
+      });
+    }
+  });
 
 export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
 
@@ -172,6 +188,13 @@ export function buildUpdatePurchaseOrderItemSchema(options: { minQty?: number } 
 }
 
 export type UpdatePurchaseOrderItemFormData = z.infer<ReturnType<typeof buildUpdatePurchaseOrderItemSchema>>;
+
+export const setPurchaseOrderConversionRateSchema = z.object({
+  currencyCode: z.string({ error: 'Currency is required' }).regex(/^[A-Z]{3}$/, 'Currency is required'),
+  rate: zodNumericField({ required: 'Rate is required', positive: true, nonZero: true }),
+});
+
+export type SetPurchaseOrderConversionRateFormData = z.infer<typeof setPurchaseOrderConversionRateSchema>;
 
 export const updatePurchaseOrderNotesSchema = z.object({
   notes: z.string().optional(),

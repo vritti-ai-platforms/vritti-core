@@ -1,10 +1,11 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useUpdateSupplierItemSite } from '@/hooks/legal-entity/suppliers';
 import {
   type SupplierItemSiteRow,
@@ -15,7 +16,7 @@ import {
 interface EditSupplierItemSiteDialogProps {
   supplierId: string;
   itemId: string;
-  override: SupplierItemSiteRow;
+  siteItem: SupplierItemSiteRow;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -23,19 +24,21 @@ interface EditSupplierItemSiteDialogProps {
 export const EditSupplierItemSiteDialog: React.FC<EditSupplierItemSiteDialogProps> = ({
   supplierId,
   itemId,
-  override,
+  siteItem,
   onSuccess,
   onCancel,
 }) => {
   const form = useForm<UpdateSupplierItemSiteFormData>({
     resolver: zodResolver(updateSupplierItemSiteSchema),
     defaultValues: {
-      leadTimeDays: override.leadTimeDays ?? undefined,
-      minOrderQuantity: override.minOrderQuantity ?? undefined,
+      isPreferred: siteItem.isPreferred,
+      followItemLeadTime: !siteItem.isLeadTimeOverridden,
+      leadTimeDays: siteItem.leadTimeDays ?? undefined,
     },
   });
 
   const updateMutation = useUpdateSupplierItemSite(supplierId, itemId, { onSuccess });
+  const followItemLeadTime = useWatch({ control: form.control, name: 'followItemLeadTime' });
 
   return (
     <Form
@@ -43,17 +46,37 @@ export const EditSupplierItemSiteDialog: React.FC<EditSupplierItemSiteDialogProp
       mutation={updateMutation}
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        rowId: override.id,
+        rowId: siteItem.id,
         data: {
-          leadTimeDays: data.leadTimeDays ?? null,
-          minOrderQuantity: data.minOrderQuantity ?? null,
+          isPreferred: data.isPreferred,
+          ...(data.followItemLeadTime ? { followItemLeadTime: true } : { leadTimeDays: data.leadTimeDays ?? null }),
         },
       })}
     >
-      <FormSection title="Site Override" contentClassName="block">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextField name="leadTimeDays" label="Lead Time (days)" type="number" integer positive placeholder="e.g. 5" />
-          <TextField name="minOrderQuantity" label="Min Order Qty" type="number" positive placeholder="e.g. 10" />
+      <FormSection title="Site" contentClassName="block">
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Switch
+              name="followItemLeadTime"
+              label="Use the item's lead time"
+              description="On: follows the supplier item and its later changes; off: this site sets its own"
+            />
+            <TextField
+              name="leadTimeDays"
+              label="Lead Time (days)"
+              type="number"
+              integer
+              positive
+              placeholder="e.g. 5"
+              disabled={followItemLeadTime}
+              description={followItemLeadTime ? "The supplier item's lead time applies" : 'Only this site'}
+            />
+          </div>
+          <Switch
+            name="isPreferred"
+            label="Preferred supplier"
+            description="Replaces any other preferred supplier for this item at the site"
+          />
         </div>
       </FormSection>
       <DialogActions>

@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class AddSupplierItemSiteDto {
   @IsUUID('7')
@@ -8,12 +8,11 @@ export class AddSupplierItemSiteDto {
   siteId: string;
 
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  leadTimeDays?: number | null;
+  @IsBoolean()
+  isPreferred?: boolean;
 
   @IsOptional()
   @IsInt()
   @Min(0)
-  minOrderQuantity?: number | null;
+  leadTimeDays?: number | null;
 }

@@ -8,7 +8,13 @@ export class BulkSetSupplierItemPreferredDto {
   @IsUUID('7', { each: true })
   supplierItemIds: string[];
 
-  @ApiProperty({ description: 'Whether to mark the items as the preferred supplier for their inventory items.' })
+  @ApiProperty({ type: [String], description: 'Sites to apply the flag at; items not set up at a site are skipped.' })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('7', { each: true })
+  siteIds: string[];
+
+  @ApiProperty({ description: 'Whether to mark the items as the preferred supplier at those sites.' })
   @IsBoolean()
   isPreferred: boolean;
 }

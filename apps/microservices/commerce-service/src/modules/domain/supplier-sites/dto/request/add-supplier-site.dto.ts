@@ -7,9 +7,11 @@ export class AddSupplierSiteDto {
   @IsUUID('7')
   siteId: string;
 
-  @IsOptional()
   @IsUUID('7')
-  partyTaxRegistrationId?: string | null;
+  paymentTermId: string;
+
+  @IsUUID('7')
+  partyTaxRegistrationId: string;
 
   @IsOptional()
   @IsUUID('7')

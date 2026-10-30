@@ -8,7 +8,11 @@ import { LeCatalogChannelsGatewayService } from './le-api/catalog-channels/servi
 import { LeCatalogsGatewayService } from './le-api/catalogs/services/catalogs-gateway.service';
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
 import { LeDimensionTemplatesGatewayService } from './le-api/dimension-templates/services/dimension-templates-gateway.service';
+import { LeInventoryItemPricesGatewayService } from './le-api/inventory-items/services/inventory-item-prices-gateway.service';
+import { LeInventoryItemsGatewayService } from './le-api/inventory-items/services/inventory-items-gateway.service';
 import { LeOfferingsGatewayService } from './le-api/offerings/services/offerings-gateway.service';
+import { SupplierItemPricesGatewayService } from './le-api/suppliers/item-prices/services/supplier-item-prices-gateway.service';
+import { SupplierQuotationsGatewayService } from './le-api/suppliers/services/supplier-quotations-gateway.service';
 import { SuppliersGatewayService } from './le-api/suppliers/services/suppliers-gateway.service';
 import { TaxGroupsGatewayService } from './le-api/tax-groups/services/tax-groups-gateway.service';
 import { TaxRegistrationsGatewayService } from './le-api/tax-registrations/services/tax-registrations-gateway.service';
@@ -20,6 +24,7 @@ import { CompaniesGatewayService } from './org-api/companies/services/companies-
 import { OrgDimensionTemplatesGatewayService } from './org-api/dimension-templates/services/dimension-templates-gateway.service';
 import { InventoryItemsGatewayService as OrgInventoryItemsGatewayService } from './org-api/inventory-items/services/inventory-items-gateway.service';
 import { OrgOfferingsGatewayService } from './org-api/offerings/services/offerings-gateway.service';
+import { PaymentTermsGatewayService } from './org-api/payment-terms/services/payment-terms-gateway.service';
 import { PeopleGatewayService } from './org-api/people/services/people-gateway.service';
 import { TaxClassesGatewayService } from './org-api/tax-classes/services/tax-classes-gateway.service';
 import { TaxComponentsGatewayService } from './org-api/tax-components/services/tax-components-gateway.service';
@@ -34,6 +39,7 @@ import { CustomersGatewayService } from './site-api/customers/services/customers
 import { SiteDimensionTemplatesGatewayService } from './site-api/dimension-templates/services/dimension-templates-gateway.service';
 import { GoodsReceiptsGatewayService } from './site-api/goods-receipts/services/goods-receipts-gateway.service';
 import { InventoryItemQuantsGatewayService } from './site-api/inventory-item-quants/services/inventory-item-quants-gateway.service';
+import { SiteInventoryItemPricesGatewayService } from './site-api/inventory-items/services/inventory-item-prices-gateway.service';
 import { SiteInventoryItemsGatewayService } from './site-api/inventory-items/services/inventory-items-gateway.service';
 import { InvoicesGatewayService } from './site-api/invoices/services/invoices-gateway.service';
 import { LocationsGatewayService } from './site-api/locations/services/locations-gateway.service';
@@ -44,6 +50,7 @@ import { PosTerminalsGatewayService } from './site-api/pos-terminals/services/po
 import { PurchaseOrdersGatewayService } from './site-api/purchase-orders/services/purchase-orders-gateway.service';
 import { StockAdjustmentsGatewayService } from './site-api/stock-adjustments/services/stock-adjustments-gateway.service';
 import { StockTransfersGatewayService } from './site-api/stock-transfers/services/stock-transfers-gateway.service';
+import { SiteSupplierItemPricesGatewayService } from './site-api/suppliers/item-prices/services/site-supplier-item-prices-gateway.service';
 import { SiteSuppliersGatewayService } from './site-api/suppliers/services/site-suppliers-gateway.service';
 import { SiteGroupInventoryItemsGatewayService } from './site-group-api/inventory-items/services/site-group-inventory-items-gateway.service';
 
@@ -54,6 +61,9 @@ const services = [
   SiteOfferingsGatewayService,
   InventoryItemQuantsGatewayService,
   CostCategoriesGatewayService,
+  LeInventoryItemsGatewayService,
+  LeInventoryItemPricesGatewayService,
+  SiteInventoryItemPricesGatewayService,
   CreditNotesGatewayService,
   CartsGatewayService,
   LeCartsGatewayService,
@@ -75,11 +85,15 @@ const services = [
   StockAdjustmentsGatewayService,
   StockTransfersGatewayService,
   SiteSuppliersGatewayService,
+  SupplierQuotationsGatewayService,
+  SupplierItemPricesGatewayService,
+  SiteSupplierItemPricesGatewayService,
   SuppliersGatewayService,
   OrgInventoryItemsGatewayService,
   SiteGroupInventoryItemsGatewayService,
   PeopleGatewayService,
   CompaniesGatewayService,
+  PaymentTermsGatewayService,
   TaxClassesGatewayService,
   TaxComponentsGatewayService,
   TaxJurisdictionsGatewayService,

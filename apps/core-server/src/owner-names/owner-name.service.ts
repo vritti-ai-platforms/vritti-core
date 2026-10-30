@@ -47,6 +47,44 @@ export class OwnerNameService {
     }));
   }
 
+  // Fills each row's site name and code: commerce keys rows by site id only. One read covers names and codes alike
+  async withSiteNames<T extends { siteId: string }>(
+    orgId: string,
+    rows: T[],
+  ): Promise<(T & { siteName: string | null; siteCode: string | null })[]> {
+    if (rows.length === 0) return [];
+
+    const siteIds = [...new Set(rows.map((row) => row.siteId))];
+    const [names, codes] = await Promise.all([
+      this.cache.getMany('site', siteIds),
+      this.cache.getMany('siteCode', siteIds),
+    ]);
+    const missing = [...new Set([...names.missing, ...codes.missing])];
+    if (missing.length > 0) {
+      const sites = await this.siteRepository.findByIds(orgId, missing);
+      await Promise.all([
+        this.cache.setMany(
+          'site',
+          sites.map((site) => ({ id: site.id, name: site.name })),
+        ),
+        this.cache.setMany(
+          'siteCode',
+          sites.map((site) => ({ id: site.id, name: site.code })),
+        ),
+      ]);
+      for (const site of sites) {
+        names.names.set(site.id, site.name);
+        codes.names.set(site.id, site.code);
+      }
+    }
+
+    return rows.map((row) => ({
+      ...row,
+      siteName: names.names.get(row.siteId) ?? null,
+      siteCode: codes.names.get(row.siteId) ?? null,
+    }));
+  }
+
   // Serves what the cache holds and reads only the rest, caching whatever it had to fetch
   private async namesFor(
     kind: 'org' | 'le' | 'site',

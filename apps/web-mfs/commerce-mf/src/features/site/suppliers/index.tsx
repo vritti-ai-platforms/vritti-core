@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
+import { SupplierSiteDetailSkeleton } from '@/components/suppliers/SupplierSiteDetailSkeleton';
+import { SupplierSiteItemDetailSkeleton } from '@/components/suppliers/SupplierSiteItemDetailSkeleton';
 import { SupplierDetailPage } from './SupplierDetailPage';
-import { SupplierDetailPageSkeleton } from './SupplierDetailPageSkeleton';
 import { SupplierItemDetailPage } from './SupplierItemDetailPage';
-import { SupplierItemDetailPageSkeleton } from './SupplierItemDetailPageSkeleton';
 import { SuppliersPage } from './SuppliersPage';
 
 const routes: RouteObject[] = [
@@ -11,15 +11,15 @@ const routes: RouteObject[] = [
   {
     path: ':supplierSlug',
     element: (
-      <Suspense fallback={<SupplierDetailPageSkeleton />}>
+      <Suspense fallback={<SupplierSiteDetailSkeleton />}>
         <SupplierDetailPage />
       </Suspense>
     ),
   },
   {
-    path: ':supplierSlug/items/:itemSlug',
+    path: ':supplierSlug/:itemSlug',
     element: (
-      <Suspense fallback={<SupplierItemDetailPageSkeleton />}>
+      <Suspense fallback={<SupplierSiteItemDetailSkeleton />}>
         <SupplierItemDetailPage />
       </Suspense>
     ),

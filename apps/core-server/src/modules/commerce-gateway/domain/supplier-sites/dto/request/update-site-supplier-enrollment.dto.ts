@@ -1,19 +1,27 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class UpdateSiteSupplierEnrollmentDto {
-  @ApiPropertyOptional({ description: 'Party tax registration pick for goods sourced at this site', nullable: true })
+  @ApiPropertyOptional({ description: 'Payment term this site buys from the supplier on' })
   @IsOptional()
   @IsUUID('7')
-  partyTaxRegistrationId?: string | null;
+  paymentTermId?: string;
+
+  @ApiPropertyOptional({ description: "Supplier's tax registration this site is billed under" })
+  @IsOptional()
+  @IsUUID('7')
+  partyTaxRegistrationId?: string;
 
   @ApiPropertyOptional({ description: 'Party bank account pick for payments from this site', nullable: true })
   @IsOptional()
   @IsUUID('7')
   partyBankAccountId?: string | null;
 
-  @ApiPropertyOptional({ description: 'Whether the enrollment is active' })
+  @ApiPropertyOptional({
+    description: 'Company-person relationship pick for the order contact at this site',
+    nullable: true,
+  })
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @IsUUID('7')
+  orderRelationshipId?: string | null;
 }

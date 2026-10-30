@@ -39,6 +39,13 @@ export class CompanyRegistrationsController {
     return this.service.updateRegistration(id, payload);
   }
 
+  // Activates or retires a tax registration
+  @MessagePattern({ cmd: 'org.companies.registrations.setActive' })
+  async setActive(@Payload() data: { id: string; isActive: boolean }): Promise<SuccessResponseDto> {
+    this.logger.log(`companies.registrations.setActive — id: ${data.id}, isActive: ${data.isActive}`);
+    return this.service.setRegistrationActive(data.id, data.isActive);
+  }
+
   // Deletes a tax registration by ID
   @MessagePattern({ cmd: 'org.companies.registrations.delete' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {

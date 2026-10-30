@@ -7,10 +7,13 @@ export class AddSupplierSiteDto {
   @IsNotEmpty()
   siteId: string;
 
-  @ApiPropertyOptional({ description: 'Party tax registration pick for goods sourced at this site', nullable: true })
-  @IsOptional()
+  @ApiProperty({ description: 'Payment term this site buys from the supplier on' })
   @IsUUID('7')
-  partyTaxRegistrationId?: string | null;
+  paymentTermId: string;
+
+  @ApiProperty({ description: "Supplier's tax registration this site is billed under" })
+  @IsUUID('7')
+  partyTaxRegistrationId: string;
 
   @ApiPropertyOptional({ description: 'Party bank account pick for payments from this site', nullable: true })
   @IsOptional()

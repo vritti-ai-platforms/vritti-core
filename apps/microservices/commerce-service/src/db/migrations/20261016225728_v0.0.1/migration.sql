@@ -1,3 +1,0 @@
-ALTER TABLE "commerce"."catalog_listing_channel_exclusions" ADD COLUMN "currency_code" varchar(3);--> statement-breakpoint
-ALTER TABLE "commerce"."catalog_listing_channel_exclusions" DROP CONSTRAINT "uq_catalog_listing_channel_exclusions";--> statement-breakpoint
-ALTER TABLE "commerce"."catalog_listing_channel_exclusions" ADD CONSTRAINT "uq_catalog_listing_channel_exclusions" UNIQUE NULLS NOT DISTINCT("catalog_listing_id","catalog_channel_id","currency_code");

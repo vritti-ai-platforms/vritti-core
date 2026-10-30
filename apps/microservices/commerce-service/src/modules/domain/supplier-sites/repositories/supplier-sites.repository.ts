@@ -1,17 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, getColumns, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   type PartyBankAccount,
   PartyCommunicationChannelValues,
   type PartyRelationship,
   type PartyTaxRegistration,
+  type PaymentTerm,
   parties,
   partyBankAccounts,
   partyCommunications,
   partyRelationships,
   partyTaxRegistrations,
+  paymentTerms,
   type Supplier,
   type SupplierSite,
   supplierSites,
@@ -53,6 +55,7 @@ const orderContactSelect = {
 };
 
 type SupplierSiteWithPicks = SupplierSite & {
+  paymentTermName: string | null;
   registrationNumber: string | null;
   registrationType: TaxRegistrationType | null;
   bankAccountName: string | null;
@@ -63,13 +66,6 @@ type SupplierSiteWithPicks = SupplierSite & {
   orderContactPhone: string | null;
 };
 
-type SiteSupplierRow = SupplierSite & {
-  supplierName: string | null;
-  supplierCode: string | null;
-  currencyCode: string | null;
-  purchasingBlocked: boolean | null;
-};
-
 @Injectable()
 export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof supplierSites> {
   constructor(database: PrimaryDatabaseService) {
@@ -77,15 +73,12 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Returns paginated enrollments of a supplier joined with the picked registration, bank account, and order contact
-  findForSupplierTable(
-    supplierId: string,
-    options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: SupplierSiteWithPicks[]; count: number }> {
-    const baseWhere = eq(supplierSites.supplierId, supplierId);
-    const where = options.where ? and(baseWhere, options.where) : baseWhere;
-    return this.findAllAndCount<SupplierSiteWithPicks>({
+  // Returns every enrollment of a supplier joined with its payment term, registration, bank account, and order contact
+  async findAllForSupplier(supplierId: string): Promise<SupplierSiteWithPicks[]> {
+    const { result } = await this.findAllAndCount<SupplierSiteWithPicks>({
       select: {
         ...getColumns(supplierSites),
+        paymentTermName: paymentTerms.name,
         registrationNumber: partyTaxRegistrations.registrationNumber,
         registrationType: partyTaxRegistrations.registrationType,
         bankAccountName: partyBankAccounts.accountName,
@@ -93,41 +86,15 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
         ...orderContactSelect,
       },
       leftJoins: [
+        { table: paymentTerms, on: eq(paymentTerms.id, supplierSites.paymentTermId) },
         { table: partyTaxRegistrations, on: eq(partyTaxRegistrations.id, supplierSites.partyTaxRegistrationId) },
         { table: partyBankAccounts, on: eq(partyBankAccounts.id, supplierSites.partyBankAccountId) },
         ...orderContactJoins,
       ],
-      where,
-      orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierSites.createdAt)],
-      limit: options.limit,
-      offset: options.offset,
+      where: eq(supplierSites.supplierId, supplierId),
+      orderBy: [desc(supplierSites.createdAt)],
     });
-  }
-
-  // Returns the current site's enrollments joined with supplier identity — scoped by the session site GUC
-  findForSiteTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: SiteSupplierRow[];
-    count: number;
-  }> {
-    const baseWhere = sql`${supplierSites.siteId} = current_setting('app.site_id', true)::uuid`;
-    const where = options.where ? and(baseWhere, options.where) : baseWhere;
-    return this.findAllAndCount<SiteSupplierRow>({
-      select: {
-        ...getColumns(supplierSites),
-        supplierName: parties.displayName,
-        supplierCode: suppliers.code,
-        currencyCode: suppliers.currencyCode,
-        purchasingBlocked: suppliers.purchasingBlocked,
-      },
-      innerJoins: [
-        { table: suppliers, on: eq(suppliers.id, supplierSites.supplierId) },
-        { table: parties, on: eq(parties.id, suppliers.partyId) },
-      ],
-      where,
-      orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierSites.createdAt)],
-      limit: options.limit,
-      offset: options.offset,
-    });
+    return result;
   }
 
   // Loads a supplier row for enrollment validation
@@ -136,20 +103,25 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
     return row as Supplier | undefined;
   }
 
+  // Loads a payment term for pick validation
+  async findPaymentTermById(id: string): Promise<PaymentTerm | undefined> {
+    const [row] = await this.db.select().from(paymentTerms).where(eq(paymentTerms.id, id)).limit(1);
+    return row as PaymentTerm | undefined;
+  }
+
   // Loads a tax registration for pick validation
   async findRegistrationById(id: string): Promise<PartyTaxRegistration | undefined> {
     const [row] = await this.db.select().from(partyTaxRegistrations).where(eq(partyTaxRegistrations.id, id)).limit(1);
     return row as PartyTaxRegistration | undefined;
   }
 
-  // Returns up to two active registrations of a party — used to auto-pick when exactly one exists
-  async findActiveRegistrationsByParty(partyId: string): Promise<PartyTaxRegistration[]> {
-    const rows = await this.db
-      .select()
-      .from(partyTaxRegistrations)
-      .where(and(eq(partyTaxRegistrations.partyId, partyId), eq(partyTaxRegistrations.isActive, true)))
-      .limit(2);
-    return rows as PartyTaxRegistration[];
+  async findBySupplierAndSite(supplierId: string, siteId: string): Promise<SupplierSite | undefined> {
+    return this.model.findFirst({ where: { supplierId, siteId } }) as Promise<SupplierSite | undefined>;
+  }
+
+  // Returns true when the supplier is enrolled for the site
+  async isEnrolled(supplierId: string, siteId: string): Promise<boolean> {
+    return this.exists(and(eq(supplierSites.supplierId, supplierId), eq(supplierSites.siteId, siteId)) as SQL);
   }
 
   // Loads a bank account for pick validation
@@ -173,34 +145,5 @@ export class SupplierSitesDomainRepository extends PrimaryBaseRepository<typeof 
       .where(eq(supplierSites.id, id))
       .limit(1);
     return row as (SupplierSite & { partyId: string | null }) | undefined;
-  }
-
-  // Loads the current site's enrollment of a supplier joined with the supplier's commercial identity
-  async findSiteSupplier(supplierId: string, siteId: string): Promise<SiteSupplierRow | undefined> {
-    const [row] = await this.db
-      .select({
-        ...getColumns(supplierSites),
-        supplierName: parties.displayName,
-        supplierCode: suppliers.code,
-        currencyCode: suppliers.currencyCode,
-        purchasingBlocked: suppliers.purchasingBlocked,
-      })
-      .from(supplierSites)
-      .innerJoin(suppliers, eq(suppliers.id, supplierSites.supplierId))
-      .innerJoin(parties, eq(parties.id, suppliers.partyId))
-      .where(and(eq(supplierSites.supplierId, supplierId), eq(supplierSites.siteId, siteId)))
-      .limit(1);
-    return row as SiteSupplierRow | undefined;
-  }
-
-  // Returns true when the supplier has an active enrollment for the site
-  async isEnrolled(supplierId: string, siteId: string): Promise<boolean> {
-    return this.exists(
-      and(
-        eq(supplierSites.supplierId, supplierId),
-        eq(supplierSites.siteId, siteId),
-        eq(supplierSites.isActive, true),
-      ) as SQL,
-    );
   }
 }

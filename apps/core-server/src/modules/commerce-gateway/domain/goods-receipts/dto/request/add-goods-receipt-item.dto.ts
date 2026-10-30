@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
+import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { IsBoolean, IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
+import { FieldPermission } from '@/rbac/decorators';
 
 export class AddGoodsReceiptItemFromSupplierItemDto {
   @ApiProperty({ description: 'Supplier item row ID — server resolves to (inventoryItemId, uomId).' })
@@ -80,6 +82,7 @@ export class AddGoodsReceiptItemFromPurchaseOrderItemDto {
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;
 
+  @FieldPermission([SITE_INVENTORY_ITEMS.mrp.edit])
   @ApiPropertyOptional({
     type: CurrencyAmountDto,
     description: 'Printed MRP per primary unit (site currency)',

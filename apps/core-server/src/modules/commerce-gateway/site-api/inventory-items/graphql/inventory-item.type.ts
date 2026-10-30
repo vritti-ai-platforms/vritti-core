@@ -35,8 +35,14 @@ export class InventoryItem {
   @Field(() => String, { nullable: true })
   uomSymbol: string | null;
 
+  @Field(() => String, { nullable: true, deprecationReason: 'Replaced by taxClassId; always null.' })
+  purchaseTaxGroupId?: string | null;
+
+  @Field(() => String)
+  taxClassId: string;
+
   @Field(() => String, { nullable: true })
-  purchaseTaxGroupId: string | null;
+  taxClassName: string | null;
 
   @Field(() => String, { nullable: true })
   hsnCode: string | null;

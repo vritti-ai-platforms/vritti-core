@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc, inArray } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -116,13 +117,13 @@ export class PurchaseOrdersDomainService {
     };
   }
 
-  // Creates a new PO. App-layer resolves the supplier and site currency snapshots.
+  // Creates a new PO in one of the supplier's currencies; the app layer has resolved it and the site currency
   async create(
     data: CreatePurchaseOrderDto,
-    supplierCurrencyCode: string,
+    currencyCode: string,
     siteCurrencyCode: string,
   ): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    const isSameCurrency = supplierCurrencyCode === siteCurrencyCode;
+    const isSameCurrency = currencyCode === siteCurrencyCode;
     const requestedType = data.exchangeRateType ?? ExchangeRateTypeValues.FIXED;
     const exchangeRateType = isSameCurrency ? ExchangeRateTypeValues.FIXED : requestedType;
 
@@ -132,7 +133,7 @@ export class PurchaseOrdersDomainService {
     } else if (exchangeRateType === ExchangeRateTypeValues.FIXED) {
       if (data.exchangeRate == null || data.exchangeRate <= 0) {
         throw new ValidationException({
-          detail: `Exchange rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from site currency (${siteCurrencyCode}) and rate type is FIXED.`,
+          detail: `Exchange rate is required and must be greater than 0 when the PO currency (${currencyCode}) differs from site currency (${siteCurrencyCode}) and rate type is FIXED.`,
           errors: [{ field: 'exchangeRate', message: 'Exchange rate must be greater than 0.' }],
         });
       }
@@ -145,7 +146,7 @@ export class PurchaseOrdersDomainService {
     const entity = await this.repository.create({
       supplierId: data.supplierId,
       poNumber,
-      currencyCode: supplierCurrencyCode,
+      currencyCode,
       exchangeRate,
       exchangeRateType,
       orderDate: data.orderDate,
@@ -181,7 +182,13 @@ export class PurchaseOrdersDomainService {
   }
 
   // Changes supplier on a draft PO. Items-empty check is the app-layer's responsibility.
-  async changeSupplier(id: string, supplierId: string, supplierName: string): Promise<SuccessResponseDto> {
+  // Moves a draft PO to another supplier; a PO currency the new supplier does not trade in becomes its default, with the
+  // site rate reset (1 when it is the site currency, otherwise variable until a fixed rate is set)
+  async changeSupplier(
+    id: string,
+    supplier: { id: string; name: string; currencyCode: string; currencyCodes: string[] },
+    siteCurrencyCode: string,
+  ): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
     if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
@@ -191,7 +198,21 @@ export class PurchaseOrdersDomainService {
       });
     }
 
-    const entity = await this.repository.update(id, { supplierId });
+    const keepsCurrency = supplier.currencyCodes.includes(existing.currencyCode);
+    const currencyCode = keepsCurrency ? existing.currencyCode : supplier.currencyCode;
+    const isSiteCurrency = currencyCode === siteCurrencyCode;
+    const entity = await this.repository.update(id, {
+      supplierId: supplier.id,
+      conversionRates: {},
+      ...(keepsCurrency
+        ? {}
+        : {
+            currencyCode,
+            exchangeRateType: isSiteCurrency ? ExchangeRateTypeValues.FIXED : ExchangeRateTypeValues.VARIABLE,
+            exchangeRate: isSiteCurrency ? 1 : null,
+          }),
+    });
+    const supplierName = supplier.name;
     this.logger.log(`Changed PO supplier: ${entity.poNumber} (${entity.id})`);
     return {
       success: true,
@@ -238,11 +259,28 @@ export class PurchaseOrdersDomainService {
     return { success: true, message: `Purchase order "${entity.poNumber}" closed.` };
   }
 
+  // Records how much 1 unit of another of the supplier's currencies is in the PO currency; the caller re-converts the
+  // lines priced in it and syncs the total
+  async setConversionRate(id: string, currencyCode: string, rate: number): Promise<string> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Purchase order not found.');
+    if (currencyCode === existing.currencyCode) {
+      throw new BadRequestException({
+        label: 'Same Currency',
+        detail: `The purchase order is already in ${currencyCode}.`,
+        errors: [{ field: 'currencyCode', message: 'Same as the PO currency' }],
+      });
+    }
+    const stored = new Decimal(rate).toFixed(6);
+    await this.repository.update(id, { conversionRates: { ...existing.conversionRates, [currencyCode]: stored } });
+    this.logger.log(`Set PO ${existing.poNumber} rate 1 ${currencyCode} = ${stored} ${existing.currencyCode}`);
+    return stored;
+  }
+
   // Changes the exchange rate type and/or rate on a pre-receipt PO
   async changeExchangeRate(
     id: string,
     data: { exchangeRateType: ExchangeRateType; exchangeRate?: number | null },
-    supplierCurrencyCode: string,
     siteCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
@@ -259,10 +297,10 @@ export class PurchaseOrdersDomainService {
       });
     }
 
-    if (supplierCurrencyCode === siteCurrencyCode) {
+    if (existing.currencyCode === siteCurrencyCode) {
       throw new BadRequestException({
         label: 'Cannot Change Exchange Rate',
-        detail: 'Rate is fixed at 1 when supplier currency matches site currency.',
+        detail: 'Rate is fixed at 1 when the PO currency matches the site currency.',
       });
     }
 

@@ -24,8 +24,4 @@ export class UpdateCompanyRegistrationDto {
   @IsOptional()
   @IsBoolean()
   isPrimary?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

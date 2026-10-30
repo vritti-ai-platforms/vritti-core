@@ -1,1 +1,0 @@
-ALTER TABLE "commerce"."offering_dimensions" ADD COLUMN "description" varchar(500);

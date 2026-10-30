@@ -10,7 +10,7 @@ interface VariantSwitcherProps {
   segment: string;
   // The parent offering, which scopes the options — a code only means anything beside its siblings
   offeringId: string;
-  // The variants root, e.g. `/<workspaceSlug>/offerings/<offeringSlug>/variants`
+  // The variants root, e.g. `/<kind>/<id>/offerings/<offeringSlug>/variants`
   basePath: string;
 }
 

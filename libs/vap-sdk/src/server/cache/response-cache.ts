@@ -4,49 +4,95 @@ import { PARTY_ID_HEADER } from '../../core/transport/headers.js';
 import type { ResponseCacheContext, ResponseCacheStore } from '../../core/transport/response-cache-store.js';
 import { WORKSPACE_HEADER_ORDER } from '../signing.js';
 
-// Where cached operation results live.
+export const DEFAULT_RESPONSE_CACHE_TTL_SECONDS = 60;
 
-// Serves whole operation results from the store, keyed per tenant and scope.
-export function createResponseCacheLink(store: ResponseCacheStore, clientId: string): ApolloLink {
+// How long, after core fails, stale responses are served without asking it again. Short on purpose: it bounds how
+// long the site keeps showing old data once core is back, and spares every request core's timeout while it is not.
+const CORE_RETRY_MS = 30_000;
+
+export interface ResponseCacheLinkOptions {
+  // TTL for an operation that opts into caching without naming one.
+  defaultTtlSeconds?: number;
+}
+
+type LinkResult = ApolloLink.Result;
+
+// Serves whole operation results from the store, keyed per tenant and scope. A fresh one is served without asking
+// core; a stale one is refreshed from core — and served as it is if core cannot answer, for as long as core cannot.
+export function createResponseCacheLink(
+  store: ResponseCacheStore,
+  clientId: string,
+  options: ResponseCacheLinkOptions = {},
+): ApolloLink {
+  const defaultTtlSeconds = options.defaultTtlSeconds ?? DEFAULT_RESPONSE_CACHE_TTL_SECONDS;
+  // Shared by every operation through this client: one failure is enough to know core is down.
+  let coreDownUntil = 0;
+
   return new ApolloLink((operation, forward) => {
     const cacheContext = operation.getContext().responseCache as ResponseCacheContext | undefined;
     if (!cacheContext || isMutation(operation.query)) return forward(operation);
 
+    const ttlSeconds = cacheContext.ttlSeconds ?? defaultTtlSeconds;
+    if (ttlSeconds <= 0) return forward(operation);
+
     const key = cacheKey(clientId, operation);
 
-    return new Observable((observer) => {
+    return new Observable<LinkResult>((observer) => {
       let cancelled = false;
       let subscription: { unsubscribe(): void } | undefined;
 
-      const fetchAndStore = () => {
+      const serve = (result: LinkResult) => {
         if (cancelled) return;
+        observer.next(result);
+        observer.complete();
+      };
+
+      const askCore = (stale: LinkResult | null) => {
+        if (cancelled) return;
+        let answered = false;
+        const coreFailed = (onNoFallback: () => void) => {
+          coreDownUntil = Date.now() + CORE_RETRY_MS;
+          if (stale) serve(stale);
+          else onNoFallback();
+        };
+
         subscription = forward(operation).subscribe({
           next: (result) => {
-            // Only a clean result is worth keeping — caching a partial one would serve those errors again for the whole
-            // TTL.
-            if (!result.errors?.length) {
-              void store.set(key, result, cacheContext.ttlSeconds).catch(() => undefined);
+            if (answered) return;
+            answered = true;
+            // Errors and no data is core failing to answer — the commerce service behind it down, say — and is
+            // treated like a network error. A partial result is core's answer and goes through, uncached.
+            if (result.errors?.length && result.data == null) {
+              coreFailed(() => serve(result));
+              return;
             }
-            observer.next(result);
+            coreDownUntil = 0;
+            if (!result.errors?.length) void store.set(key, result, ttlSeconds).catch(() => undefined);
+            serve(result);
           },
-          error: (error) => observer.error(error),
-          complete: () => observer.complete(),
+          error: (error) => {
+            if (answered) return;
+            answered = true;
+            coreFailed(() => observer.error(error));
+          },
+          complete: () => {
+            if (!answered) observer.complete();
+          },
         });
       };
 
       store
         .get(key)
-        .then((hit) => {
+        .then((cached) => {
           if (cancelled) return;
-          if (hit) {
-            observer.next(hit as Parameters<typeof observer.next>[0]);
-            observer.complete();
-            return;
-          }
-          fetchAndStore();
+          const result = (cached?.result ?? null) as LinkResult | null;
+          if (result && cached?.fresh) return serve(result);
+          // Core failed moments ago: serve what there is rather than wait out its timeout again.
+          if (result && Date.now() < coreDownUntil) return serve(result);
+          askCore(result);
         })
         // A cache that is down must not take the request with it.
-        .catch(fetchAndStore);
+        .catch(() => askCore(null));
 
       return () => {
         cancelled = true;

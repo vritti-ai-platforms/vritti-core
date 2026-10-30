@@ -532,11 +532,10 @@ export const PartyLicenseTypeValues = {
 };
 export type PartyLicenseType = (typeof partyLicenseTypeEnum.enumValues)[number];
 
-export const supplierPriceSourceEnum = commerceSchema.enum('supplier_price_source', ['QUOTATION', 'MANUAL', 'IMPORT']);
+export const supplierPriceSourceEnum = commerceSchema.enum('supplier_price_source', ['QUOTATION', 'MANUAL']);
 export const SupplierPriceSourceValues = {
   QUOTATION: 'QUOTATION' as const,
   MANUAL: 'MANUAL' as const,
-  IMPORT: 'IMPORT' as const,
 };
 export type SupplierPriceSource = (typeof supplierPriceSourceEnum.enumValues)[number];
 
@@ -621,3 +620,23 @@ export const CatalogFilterModeValues = {
   STATIC: 'STATIC' as const,
   NARROWING: 'NARROWING' as const,
 };
+
+export const paymentTermBaselineEnum = commerceSchema.enum('payment_term_baseline', [
+  'INVOICE_DATE',
+  'GOODS_RECEIPT_DATE',
+  'END_OF_MONTH',
+]);
+export const PaymentTermBaselineValues = {
+  INVOICE_DATE: 'INVOICE_DATE' as const,
+  GOODS_RECEIPT_DATE: 'GOODS_RECEIPT_DATE' as const,
+  END_OF_MONTH: 'END_OF_MONTH' as const,
+};
+export type PaymentTermBaseline = (typeof paymentTermBaselineEnum.enumValues)[number];
+
+export const paymentTermStatusEnum = commerceSchema.enum('payment_term_status', ['DRAFT', 'ACTIVE', 'INACTIVE']);
+export const PaymentTermStatusValues = {
+  DRAFT: 'DRAFT' as const,
+  ACTIVE: 'ACTIVE' as const,
+  INACTIVE: 'INACTIVE' as const,
+};
+export type PaymentTermStatus = (typeof paymentTermStatusEnum.enumValues)[number];

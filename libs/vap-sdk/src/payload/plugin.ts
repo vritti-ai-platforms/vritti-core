@@ -4,8 +4,9 @@ import type { Field } from 'payload' with { 'resolution-mode': 'import' };
 import type { VapSdkOptions } from '../core/config.js';
 import { createPostgresResponseCache } from '../server/cache/postgres.js';
 import { createVapSdk } from '../server/sdk.js';
+import { cacheClearEndpoint } from './cache.js';
 import { partyCollection } from './collections/parties.js';
-import { vapCacheCollection } from './collections/vap-cache.js';
+import { vapCacheCollection, vapCacheResponsesCollection } from './collections/vap-cache.js';
 import { visitorSessionCollection } from './collections/visitor-sessions.js';
 import { VAP_NEXT_KEY, VapNextConfig } from './next-config.js';
 import { productCreateEndpoint, productStatusEndpoint } from './products.js';
@@ -18,6 +19,14 @@ export interface VapOptions extends VapSdkOptions {
   databaseUrl?: string;
 
   databaseSchema?: string;
+
+  // The response cache. Both default when absent: a 60s TTL and a week of fallback.
+  cache?: {
+    // How long a cached answer is served without asking core. `0` turns the cache off.
+    ttlSeconds?: number;
+    // How long a key nobody has requested is kept to fall back on while core is down.
+    retentionSeconds?: number;
+  };
 
   fields?: {
     parties?: Field[];
@@ -32,7 +41,12 @@ export interface VapOptions extends VapSdkOptions {
 
 // Everything a storefront needs to talk to VAP, as one Payload plugin.
 export function vap(options: VapOptions = {}): PayloadPlugin {
-  const { enabled = true, fields, databaseUrl, databaseSchema, auth, onPaymentEvent, ...sdkOptions } = options;
+  const { enabled = true, fields, databaseUrl, databaseSchema, cache, auth, onPaymentEvent, ...sdkOptions } = options;
+
+  // One store for the client and the clear endpoint. It opens its pool on first use, so building it here costs nothing.
+  const responseCache = databaseUrl
+    ? createPostgresResponseCache({ databaseUrl, databaseSchema, retentionSeconds: cache?.retentionSeconds })
+    : undefined;
 
   return <T extends ConfigLike>(config: T): T => {
     if (enabled === false) return config;
@@ -46,6 +60,7 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
         ...(config.collections ?? []),
         partyCollection(fields?.parties),
         vapCacheCollection(fields?.vapCache),
+        vapCacheResponsesCollection(),
         visitorSessionCollection(fields?.visitorSessions),
       ],
       endpoints: [
@@ -60,6 +75,10 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
             ]
           : []),
         ...(onPaymentEvent ? [paymentWebhookEndpoint({ clientSecret: sdkOptions.clientSecret, onPaymentEvent })] : []),
+        // Core clears the cache when the catalogue changes. Needs both a store and a credential to verify core with.
+        ...(responseCache && sdkOptions.clientSecret
+          ? [cacheClearEndpoint({ clientSecret: sdkOptions.clientSecret, store: responseCache })]
+          : []),
       ],
       custom: {
         ...config.custom,
@@ -72,7 +91,7 @@ export function vap(options: VapOptions = {}): PayloadPlugin {
             ...sdkOptions,
             // Only when a connection was supplied — otherwise the client has no store and never consults one, which is
             // the same shape it had before caching existed.
-            ...(databaseUrl ? { responseCache: createPostgresResponseCache({ databaseUrl, databaseSchema }) } : {}),
+            ...(responseCache ? { responseCache, responseCacheTtlSeconds: cache?.ttlSeconds } : {}),
           })),
       },
     } as T;

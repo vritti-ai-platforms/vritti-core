@@ -46,9 +46,6 @@ export class InventoryItemSupplier {
 
   @Field(() => Boolean)
   isPreferred: boolean;
-
-  @Field(() => Boolean)
-  isActive: boolean;
 }
 
 // Relay Cursor Connection — supplier-scoped names to avoid global type-name collisions (code-first).

@@ -11,13 +11,14 @@ import {
   type SortCondition,
   type TableViewState,
 } from '@vritti/api-sdk/data-table';
-import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, isNotNull, isNull } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { inventoryItems } from '@/db/schema';
+import { inventoryItemSites, inventoryItems } from '@/db/schema';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
+import type { GroupInventoryItemDto, SiteInventoryItemDto } from '../dto/entity/scoped-inventory-item.dto';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import { InventoryItemsDomainRepository } from '../repositories/inventory-items.repository';
@@ -44,6 +45,14 @@ export class InventoryItemsDomainService {
     categoryId: { column: inventoryItems.categoryId, type: 'string' },
     uomId: { column: inventoryItems.uomId, type: 'string' },
   };
+  private static readonly SITE_FILTER_FIELD_MAP: FieldMap = {
+    ...InventoryItemsDomainService.FILTER_FIELD_MAP,
+    isEnabled: {
+      expression: (value) =>
+        String(value) === 'true' ? isNotNull(inventoryItemSites.id) : isNull(inventoryItemSites.id),
+      type: 'boolean',
+    },
+  };
 
   constructor(private readonly repository: InventoryItemsDomainRepository) {}
 
@@ -65,7 +74,7 @@ export class InventoryItemsDomainService {
       offset,
     });
 
-    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName));
+    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName));
 
     return { result: dtos, count };
   }
@@ -92,7 +101,7 @@ export class InventoryItemsDomainService {
     });
 
     return {
-      result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName)),
+      result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName)),
       count,
     };
   }
@@ -147,7 +156,7 @@ export class InventoryItemsDomainService {
         orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
         signature,
       ),
-      node: InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName),
+      node: InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
     }));
 
     return {
@@ -164,36 +173,56 @@ export class InventoryItemsDomainService {
     return this.findForTable(state);
   }
 
-  // Items enabled at the current site (inventory_item_sites projection) joined to summed stock.
-  async findForSiteTable(state: TableViewState): Promise<{
-    result: (InventoryItemDto & { reorderPoint: number; isStocked: boolean; stockedQuantity: string })[];
-    count: number;
-  }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
-    const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
-      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
-    });
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findForSiteTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
-      limit,
-      offset,
-    });
-
+  // Every master item, marked with whether this site has it enabled and the stock it holds here
+  async findForSiteTable(
+    state: TableViewState,
+    siteId: string,
+  ): Promise<{ result: SiteInventoryItemDto[]; count: number }> {
+    const { result, count } = await this.repository.findForSiteTable(
+      siteId,
+      this.tableQuery(state, InventoryItemsDomainService.SITE_FILTER_FIELD_MAP),
+    );
     return {
-      result: rows.map((row) => ({
-        ...InventoryItemDto.from(row, null, true, null),
-        reorderPoint: row.reorderPoint,
+      result: result.map((row) => ({
+        ...InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
+        isEnabled: row.isEnabled,
         isStocked: row.isStocked,
+        reorderPoint: row.reorderPoint,
         stockedQuantity: row.stockedQuantity,
       })),
       count,
     };
+  }
+
+  // Every master item with how many of the group's sites have it enabled
+  async findForGroupTable(
+    state: TableViewState,
+    siteIds: string[],
+  ): Promise<{ result: GroupInventoryItemDto[]; count: number }> {
+    const { result, count } = await this.repository.findForGroupTable(
+      siteIds,
+      this.tableQuery(state, InventoryItemsDomainService.FILTER_FIELD_MAP),
+    );
+    return {
+      result: result.map((row) => ({
+        ...InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
+        enabledSiteCount: Number(row.enabledSiteCount),
+      })),
+      count,
+    };
+  }
+
+  private tableQuery(state: TableViewState, filterFields: FieldMap) {
+    const where = and(
+      FilterProcessor.buildWhere(state.filters, filterFields),
+      FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP),
+    );
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
+      ...filterFields,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+    return { where, orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)], limit, offset };
   }
 
   // Item × site availability matrix across the given sites (group workspace view).
@@ -232,16 +261,18 @@ export class InventoryItemsDomainService {
       description: data.description ?? null,
       uomId: data.uomId,
       hsnCode: data.hsnCode ?? null,
+      taxClassId: data.taxClassId,
     });
-    const [uomSymbol, categoryName] = await Promise.all([
+    const [uomSymbol, categoryName, taxClassName] = await Promise.all([
       this.repository.findUomSymbol(entity.uomId),
       this.repository.findCategoryName(entity.categoryId),
+      this.repository.findTaxClassName(entity.taxClassId),
     ]);
     this.logger.log(`Created inventory item: ${entity.name} (${entity.sku})`);
     return {
       success: true,
       message: `Inventory item "${entity.name}" (${entity.sku}) created successfully.`,
-      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName),
+      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName, taxClassName),
     };
   }
 
@@ -250,7 +281,13 @@ export class InventoryItemsDomainService {
     const entity = await this.repository.findByIdWithUomAndCategory(id);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     const referencedIds = await this.repository.findReferencedIds([id]);
-    return InventoryItemDto.from(entity, entity.uomSymbol, !referencedIds.has(id), entity.categoryName);
+    return InventoryItemDto.from(
+      entity,
+      entity.uomSymbol,
+      !referencedIds.has(id),
+      entity.categoryName,
+      entity.taxClassName,
+    );
   }
 
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family

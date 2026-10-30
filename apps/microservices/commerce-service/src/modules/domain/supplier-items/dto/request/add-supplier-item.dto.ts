@@ -1,7 +1,16 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class AddSupplierItemDto {
   @IsUUID('7')
@@ -10,57 +19,30 @@ export class AddSupplierItemDto {
   @IsUUID('7')
   inventoryItemId: string;
 
-  // How this supplier's invoice classifies the goods — the same item can be goods from one supplier and job work from
-  // another.
-  @IsUUID('7')
-  taxClassId: string;
-
   @Trim()
   @IsOptional()
   @IsString()
   @MaxLength(100)
   supplierItemCode?: string | null;
 
-  @IsOptional()
-  @IsCurrency()
-  unitPrice?: CurrencyAmountDto | null;
-
   @IsUUID('7')
   @IsNotEmpty()
   uomId: string;
 
+  // The least the supplier sells per order, in the item's unit
   @IsOptional()
-  @IsInt()
+  @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
   minOrderQuantity?: number;
 
+  // Days from order to delivery; every site of the item that does not set its own follows it
   @IsOptional()
   @IsInt()
   @Min(0)
   leadTimeDays?: number;
 
-  @IsOptional()
-  @IsBoolean()
-  isPreferred?: boolean;
-
-  // Standing free-goods scheme (e.g. buy 9 get 1). Prefills PO/GR lines for this supplier item.
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  schemeBuyQty?: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  schemeFreeQty?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  hasScheme?: boolean;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  taxInclusive?: boolean;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('7', { each: true })
+  siteIds: string[];
 }

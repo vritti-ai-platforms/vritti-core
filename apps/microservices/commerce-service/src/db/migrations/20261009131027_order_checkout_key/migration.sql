@@ -1,2 +1,0 @@
-ALTER TABLE "commerce"."orders" ADD COLUMN "checkout_key" varchar(100);--> statement-breakpoint
-ALTER TABLE "commerce"."orders" ADD CONSTRAINT "uq_orders_party_checkout_key" UNIQUE("organization_id","party_id","checkout_key");

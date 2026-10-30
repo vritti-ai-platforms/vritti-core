@@ -1,12 +1,11 @@
-import { SupplierItemsDomainRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import type { SupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import type { ChangeSupplierCurrencyDto } from '@domain/suppliers/dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '@domain/suppliers/dto/request/create-supplier.dto';
 import { SuppliersDomainRepository } from '@domain/suppliers/repositories/suppliers.repository';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import { ConflictException } from '@vritti/api-sdk/exceptions';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Injectable()
@@ -14,10 +13,8 @@ export class SuppliersService {
   private readonly logger = new Logger(SuppliersService.name);
 
   constructor(
-    private readonly database: PrimaryDatabaseService,
     private readonly suppliersService: SuppliersDomainService,
     private readonly suppliersRepository: SuppliersDomainRepository,
-    private readonly supplierItemsRepository: SupplierItemsDomainRepository,
   ) {}
 
   // Creates a supplier referencing an existing party for its identity
@@ -27,27 +24,35 @@ export class SuppliersService {
     return result;
   }
 
-  // Changes supplier currency and reprices all supplier items atomically
+  // Sets the currencies a supplier trades in and which one is its default; prices are never converted, so a
+  // currency still used by the supplier's prices, quotations or open purchase orders cannot be dropped
   async changeCurrency(id: string, dto: Omit<ChangeSupplierCurrencyDto, 'id'>): Promise<SuccessResponseDto> {
     const supplier = await this.suppliersService.findById(id);
+    const currencyCodes = [...new Set([dto.currencyCode, ...dto.currencyCodes])];
+    const dropped = supplier.currencyCodes.filter((code) => !currencyCodes.includes(code));
 
-    if (supplier.currencyCode === dto.currencyCode) {
-      return { success: true, message: 'Currency unchanged.' };
+    if (dropped.length > 0) {
+      const usage = await this.suppliersRepository.countCurrencyUsage(id, dropped);
+      const uses = (
+        [
+          ['price', usage.prices],
+          ['quotation', usage.quotations],
+          ['open purchase order', usage.purchaseOrders],
+        ] as const
+      )
+        .filter(([, count]) => count > 0)
+        .map(([noun, count]) => pluralize(noun, count, true));
+      if (uses.length > 0) {
+        throw new ConflictException({
+          label: 'Currency In Use',
+          detail: `${dropped.join(', ')} cannot be removed while ${uses.join(', ')} of this supplier use it.`,
+          errors: [{ field: 'currencyCodes', message: `${dropped.join(', ')} is still in use` }],
+        });
+      }
     }
 
-    if (dto.conversionRate == null || dto.conversionRate <= 0) {
-      throw new BadRequestException({
-        label: 'Conversion Rate Required',
-        detail: `A conversion rate is required when changing supplier currency from ${supplier.currencyCode} to ${dto.currencyCode}.`,
-        errors: [{ field: 'conversionRate', message: 'Conversion rate must be greater than 0.' }],
-      });
-    }
-
-    return this.database.runInTransaction(async () => {
-      await this.suppliersRepository.update(id, { currencyCode: dto.currencyCode });
-      await this.supplierItemsRepository.recalculateAllForSupplier(id, dto.currencyCode, dto.conversionRate as number);
-      this.logger.log(`Changed supplier ${id} currency from ${supplier.currencyCode} to ${dto.currencyCode}`);
-      return { success: true, message: `Supplier currency changed to ${dto.currencyCode}.` };
-    });
+    await this.suppliersRepository.update(id, { currencyCode: dto.currencyCode, currencyCodes });
+    this.logger.log(`Set supplier ${id} currencies to ${currencyCodes.join(', ')} (default ${dto.currencyCode})`);
+    return { success: true, message: `Supplier currencies set to ${currencyCodes.join(', ')}.` };
   }
 }

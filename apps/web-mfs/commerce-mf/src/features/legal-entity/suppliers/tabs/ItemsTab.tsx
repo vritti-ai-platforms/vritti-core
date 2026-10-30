@@ -4,7 +4,6 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
-  CurrencyCell,
   DataTable,
   getSelectionColumn,
   NumberCell,
@@ -13,66 +12,38 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { ClipboardList, Gift, Pencil, Plus, Star, Trash2, Truck } from 'lucide-react';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
+import { Boxes, ClipboardList, Clock, Eye, Plus, Star, Truck } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  SUPPLIER_ITEMS_TABLE_KEY,
-  useBulkSetSupplierItemPreferred,
-  useBulkUnlinkSupplierItems,
-  useSupplierItemsTable,
-  useUnlinkSupplierItem,
-} from '@/hooks/legal-entity/suppliers';
+import { useNavigate, useParams } from 'react-router-dom';
+import { SUPPLIER_ITEMS_TABLE_KEY, useSupplierItemsTable } from '@/hooks/legal-entity/suppliers';
 import type { SupplierItemData } from '@/schemas/suppliers';
+import { SupplierSiteFilter } from '@/selectors/supplier-site';
 import { AddSupplierItemDialog } from '../forms/AddSupplierItemDialog';
-import { SetSupplierItemSchemeDialog } from '../forms/SetSupplierItemSchemeDialog';
-import { UpdateSupplierItemDialog } from '../forms/UpdateSupplierItemDialog';
+import { SetSupplierItemLeadTimeDialog } from '../forms/SetSupplierItemLeadTimeDialog';
+import { SetSupplierItemMinOrderDialog } from '../forms/SetSupplierItemMinOrderDialog';
+import { SetSupplierItemPreferredDialog } from '../forms/SetSupplierItemPreferredDialog';
 
 interface ItemsTabProps {
   supplierId: string;
-  supplierCurrencyCode?: string;
 }
 
-export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) => {
+export const ItemsTab = ({ supplierId }: ItemsTabProps) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { detail: tab } = useParams();
+  // A tab URL (…/<supplier>/items) has a segment to climb out of before a child path; the bare detail URL has none
+  const fromTab = useCallback((target: string) => (tab ? `../${target}` : target), [tab]);
   const addItemDialog = useDialog();
-  const setSchemeDialog = useDialog();
-  const [schemeTargetIds, setSchemeTargetIds] = useState<string[]>([]);
-  const confirm = useConfirm();
-  const unlinkMutation = useUnlinkSupplierItem(supplierId);
-  const bulkUnlinkMutation = useBulkUnlinkSupplierItems(supplierId);
-  const bulkSetPreferredMutation = useBulkSetSupplierItemPreferred(supplierId);
+  const setPreferredDialog = useDialog();
+  const setMinOrderDialog = useDialog();
+  const setLeadTimeDialog = useDialog();
+  const [targetIds, setTargetIds] = useState<string[]>([]);
   const { data: response, isLoading } = useSupplierItemsTable(supplierId);
-
-  const handleUnlinkItem = useCallback(
-    async (itemId: string, itemName: string) => {
-      const confirmed = await confirm({
-        title: `Remove "${itemName}"?`,
-        description: 'This item will be unlinked from the supplier.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) unlinkMutation.mutate(itemId);
-    },
-    [confirm, unlinkMutation],
-  );
-
-  const handleSetPreferred = useCallback(
-    async (ids: string[], onDone: () => void) => {
-      const confirmed = await confirm({
-        title: `Set ${ids.length} item${ids.length === 1 ? '' : 's'} as preferred?`,
-        description:
-          'This supplier becomes the preferred source for the selected inventory items, replacing any other preferred supplier.',
-        confirmLabel: 'Set Preferred',
-      });
-      if (confirmed) {
-        bulkSetPreferredMutation.mutate({ supplierItemIds: ids, isPreferred: true }, { onSuccess: onDone });
-      }
-    },
-    [confirm, bulkSetPreferredMutation],
-  );
 
   const linkedItemColumns = useMemo<ColumnDef<SupplierItemData>[]>(
     () => [
@@ -80,14 +51,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       {
         accessorKey: 'inventoryItemName',
         header: 'Inventory Item',
-        cell: ({ row }) => (
-          <Link
-            to={`items/${buildSlug(row.original.inventoryItemName, row.original.id)}`}
-            className="font-medium text-primary hover:underline"
-          >
-            {row.original.inventoryItemName}
-          </Link>
-        ),
+        cell: ({ row }) => <StringCell value={row.original.inventoryItemName} />,
       },
       {
         accessorKey: 'supplierItemCode',
@@ -100,9 +64,9 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
         cell: ({ row }) => row.original.uomSymbol,
       },
       {
-        accessorKey: 'unitPrice',
-        header: 'Unit Price',
-        cell: ({ row }) => <CurrencyCell value={row.original.unitPrice} />,
+        accessorKey: 'leadTimeDays',
+        header: 'Lead Time',
+        cell: ({ row }) => (row.original.leadTimeDays != null ? `${row.original.leadTimeDays} d` : '—'),
       },
       {
         accessorKey: 'minOrderQuantity',
@@ -111,57 +75,41 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
           row.original.minOrderQuantity != null ? <NumberCell value={row.original.minOrderQuantity} /> : '—',
       },
       {
-        accessorKey: 'isPreferred',
-        header: 'Preferred',
-        cell: ({ row }) => (row.original.isPreferred ? <Badge variant="success">Yes</Badge> : '—'),
+        accessorKey: 'siteCount',
+        header: 'Sites',
+        enableSorting: false,
+        cell: ({ row }) => <NumberCell value={row.original.siteCount} />,
       },
       {
-        accessorKey: 'hasScheme',
-        header: 'Scheme',
-        cell: ({ row }) => {
-          const { hasScheme, schemeBuyQty, schemeFreeQty } = row.original;
-          if (!hasScheme || !schemeBuyQty || !schemeFreeQty) return 'None';
-          return (
-            <span className="font-mono">
-              {schemeBuyQty}+{schemeFreeQty}
-            </span>
-          );
-        },
+        accessorKey: 'preferredSiteCount',
+        header: 'Preferred',
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.preferredSiteCount > 0 ? (
+            <Badge variant="success">
+              {row.original.preferredSiteCount === row.original.siteCount
+                ? 'All sites'
+                : `${row.original.preferredSiteCount} of ${pluralize('site', row.original.siteCount, true)}`}
+            </Badge>
+          ) : (
+            '—'
+          ),
       },
       {
         id: 'actions',
         header: '',
         cell: ({ row }) => (
           <RowActions
-            disabledAll={unlinkMutation.isPending}
             actions={[
               {
-                id: 'edit',
-                icon: Pencil,
-                label: 'Edit',
-                permission: LE_SUPPLIERS.items.edit,
-                dialog: {
-                  title: 'Edit Supplier Item',
-                  description: 'Update pricing, UOM, and terms for this linked item.',
-                  className: 'max-w-3xl',
-                  content: (close) => (
-                    <UpdateSupplierItemDialog
-                      supplierId={supplierId}
-                      supplierCurrencyCode={supplierCurrencyCode}
-                      item={row.original}
-                      onSuccess={close}
-                      onCancel={close}
-                    />
-                  ),
-                },
-              },
-              {
-                id: 'unlink',
-                icon: Trash2,
-                label: 'Unlink',
-                variant: 'destructive',
-                permission: LE_SUPPLIERS.items.delete,
-                onClick: () => handleUnlinkItem(row.original.id, row.original.inventoryItemName ?? 'item'),
+                id: 'view',
+                icon: Eye,
+                label: 'View',
+                permission: LE_SUPPLIERS.items.view,
+                onClick: () =>
+                  navigate(fromTab(`${buildSlug(row.original.inventoryItemName, row.original.id)}/overview`), {
+                    relative: 'path',
+                  }),
               },
             ]}
           />
@@ -170,7 +118,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
         enableHiding: false,
       },
     ],
-    [handleUnlinkItem, unlinkMutation.isPending, supplierId, supplierCurrencyCode],
+    [fromTab, navigate],
   );
 
   const { table: linkedItemsTable } = useDataTable({
@@ -186,22 +134,42 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
     <>
       <DataTable
         table={linkedItemsTable}
+        mode="tab"
         isLoading={isLoading}
         permission={LE_SUPPLIERS.items.view}
+        searchConfig={{
+          columns: [
+            { id: 'inventoryItemName', label: 'Item name' },
+            { id: 'supplierItemCode', label: 'Supplier item code' },
+            { id: 'uomSymbol', label: 'UOM' },
+          ],
+          searchAll: true,
+        }}
+        filters={[
+          <SupplierSiteFilter key="sites" supplierId={supplierId} />,
+          <ValueFilter key="leadTimeDays" name="leadTimeDays" label="Lead Time (days)" fieldType="number" />,
+          <ValueFilter key="minOrderQuantity" name="minOrderQuantity" label="Min Order" fieldType="number" />,
+          <SelectFilter
+            key="isPreferred"
+            name="isPreferred"
+            label="Preferred"
+            options={[
+              { label: 'Preferred at a site', value: 'true' },
+              { label: 'Not preferred anywhere', value: 'false' },
+            ]}
+          />,
+        ]}
         selectActions={(rows) => (
           <>
             <Button
               size="sm"
               variant="outline"
-              permission={LE_SUPPLIERS.items.edit}
+              permission={LE_SUPPLIERS.sites.items.edit}
               startAdornment={<Star className="size-4" />}
-              isLoading={bulkSetPreferredMutation.isPending}
-              onClick={() =>
-                handleSetPreferred(
-                  rows.map((r) => r.original.id),
-                  () => linkedItemsTable.resetRowSelection(),
-                )
-              }
+              onClick={() => {
+                setTargetIds(rows.map((r) => r.original.id));
+                setPreferredDialog.open();
+              }}
             >
               Set Preferred
             </Button>
@@ -209,28 +177,25 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
               size="sm"
               variant="outline"
               permission={LE_SUPPLIERS.items.edit}
-              startAdornment={<Gift className="size-4" />}
+              startAdornment={<Boxes className="size-4" />}
               onClick={() => {
-                setSchemeTargetIds(rows.map((r) => r.original.id));
-                setSchemeDialog.open();
+                setTargetIds(rows.map((r) => r.original.id));
+                setMinOrderDialog.open();
               }}
             >
-              Set Scheme
+              Set Min Order
             </Button>
             <Button
               size="sm"
-              variant="destructive"
-              permission={LE_SUPPLIERS.items.delete}
-              startAdornment={<Trash2 className="size-4" />}
-              isLoading={bulkUnlinkMutation.isPending}
+              variant="outline"
+              permission={LE_SUPPLIERS.items.edit}
+              startAdornment={<Clock className="size-4" />}
               onClick={() => {
-                const ids = rows.map((r) => r.original.id);
-                bulkUnlinkMutation.mutate(ids, {
-                  onSuccess: () => linkedItemsTable.resetRowSelection(),
-                });
+                setTargetIds(rows.map((r) => r.original.id));
+                setLeadTimeDialog.open();
               }}
             >
-              Unlink
+              Set Lead Time
             </Button>
           </>
         )}
@@ -245,7 +210,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
         emptyStateConfig={{
           icon: ClipboardList,
           title: 'No linked items',
-          description: 'Link an inventory item to start tracking supplier-specific terms and pricing.',
+          description: 'Link an inventory item and choose the sites that buy it from this supplier.',
         }}
       />
 
@@ -254,26 +219,55 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
         className="max-w-3xl"
         icon={Truck}
         title="Add Supplier Item"
-        description="Associate an inventory item with this supplier."
+        description="Link an inventory item to this supplier and set it up at its enrolled sites."
+        content={(close) => <AddSupplierItemDialog supplierId={supplierId} onSuccess={close} onCancel={close} />}
+      />
+
+      <Dialog
+        handle={setPreferredDialog}
+        icon={Star}
+        title="Set Preferred Supplier"
+        description="Choose the sites where this supplier is preferred for the selected items."
         content={(close) => (
-          <AddSupplierItemDialog
+          <SetSupplierItemPreferredDialog
             supplierId={supplierId}
-            supplierCurrencyCode={supplierCurrencyCode}
-            onSuccess={close}
+            supplierItemIds={targetIds}
+            onSuccess={() => {
+              close();
+              linkedItemsTable.resetRowSelection();
+            }}
             onCancel={close}
           />
         )}
       />
 
       <Dialog
-        handle={setSchemeDialog}
-        icon={Truck}
-        title="Set Free Goods Scheme"
-        description="Apply a free-goods scheme to the selected supplier items."
+        handle={setMinOrderDialog}
+        icon={Boxes}
+        title="Set Minimum Order"
+        description={`Set the least the supplier sells per order for ${pluralize('selected item', targetIds.length, true)}.`}
         content={(close) => (
-          <SetSupplierItemSchemeDialog
+          <SetSupplierItemMinOrderDialog
             supplierId={supplierId}
-            supplierItemIds={schemeTargetIds}
+            supplierItemIds={targetIds}
+            onSuccess={() => {
+              close();
+              linkedItemsTable.resetRowSelection();
+            }}
+            onCancel={close}
+          />
+        )}
+      />
+
+      <Dialog
+        handle={setLeadTimeDialog}
+        icon={Clock}
+        title="Set Lead Time"
+        description={`Set the lead time for ${pluralize('selected item', targetIds.length, true)}; sites with their own lead time keep it.`}
+        content={(close) => (
+          <SetSupplierItemLeadTimeDialog
+            supplierId={supplierId}
+            supplierItemIds={targetIds}
             onSuccess={() => {
               close();
               linkedItemsTable.resetRowSelection();

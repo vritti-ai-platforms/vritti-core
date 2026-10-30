@@ -13,6 +13,8 @@ export class InventoryItemDto {
   uomId: string;
   uomSymbol: string | null;
   hsnCode: string | null;
+  taxClassId: string;
+  taxClassName: string | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
@@ -22,6 +24,7 @@ export class InventoryItemDto {
     uomSymbol?: string | null,
     canDelete = true,
     categoryName?: string | null,
+    taxClassName?: string | null,
   ): InventoryItemDto {
     const dto = new InventoryItemDto();
     dto.id = entity.id;
@@ -36,6 +39,8 @@ export class InventoryItemDto {
     dto.uomId = entity.uomId;
     dto.uomSymbol = uomSymbol ?? null;
     dto.hsnCode = entity.hsnCode ?? null;
+    dto.taxClassId = entity.taxClassId;
+    dto.taxClassName = taxClassName ?? null;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

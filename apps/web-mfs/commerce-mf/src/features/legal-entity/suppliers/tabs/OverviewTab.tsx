@@ -37,13 +37,9 @@ export const OverviewTab = ({ supplier }: OverviewTabProps) => {
           <div className="grid grid-cols-2 gap-6">
             <DetailField label="Company" type="string" value={supplier.partyName} />
             <DetailField label="Code" type="string" mono value={supplier.code} />
-            <DetailField label="Currency" type="string" mono value={supplier.currencyCode} />
-            <DetailField label="Payment Terms" type="string" value={supplier.paymentTerms} />
-            <DetailField
-              label="Lead Time"
-              type="string"
-              value={supplier.leadTimeDays != null ? `${supplier.leadTimeDays} days` : null}
-            />
+            <DetailField label="Default Currency" type="string" mono value={supplier.currencyCode} />
+            <DetailField label="Currencies" type="string" mono value={supplier.currencyCodes.join(', ')} />
+            <DetailField label="Default Payment Term" type="string" value={supplier.defaultPaymentTermName} />
             <DetailField
               label="Status"
               type="string"

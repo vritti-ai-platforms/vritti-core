@@ -48,6 +48,7 @@ export {
   useCompanyRegistrationsTable,
   useCreateCompanyRegistration,
   useDeleteCompanyRegistration,
+  useSetCompanyRegistrationActive,
   useUpdateCompanyRegistration,
 } from './useCompanyRegistrations';
 export {

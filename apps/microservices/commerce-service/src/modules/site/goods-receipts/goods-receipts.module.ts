@@ -6,6 +6,7 @@ import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/i
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemMrpsDomainModule } from '@domain/inventory-item-mrps/inventory-item-mrps.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
+import { InventoryItemSitesDomainModule } from '@domain/inventory-item-sites/inventory-item-sites.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { SupplierSitesDomainModule } from '@domain/supplier-sites/supplier-sites.module';
@@ -32,6 +33,7 @@ import { GoodsReceiptsService } from './root/services/goods-receipts-root.servic
     InventoryItemLedgerDomainModule,
     InventoryItemLotsDomainModule,
     InventoryItemMrpsDomainModule,
+    InventoryItemSitesDomainModule,
     PurchaseOrderItemsDomainModule,
     SuppliersDomainModule,
     SupplierSitesDomainModule,

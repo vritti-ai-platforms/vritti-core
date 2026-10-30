@@ -1,12 +1,9 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
-import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { Switch } from '@vritti/quantum-ui/Switch';
+import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateSupplierItem } from '@/hooks/legal-entity/suppliers';
 import { type SupplierItemData, type UpdateSupplierItemFormData, updateSupplierItemSchema } from '@/schemas/suppliers';
@@ -15,16 +12,17 @@ import { UomSelector } from '@/selectors/uom';
 
 interface UpdateSupplierItemDialogProps {
   supplierId: string;
-  supplierCurrencyCode?: string;
   item: SupplierItemData;
+  // The item's prices are per its unit, so the unit is fixed once it is priced
+  unitLocked?: boolean;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
 export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> = ({
   supplierId,
-  supplierCurrencyCode,
   item,
+  unitLocked = false,
   onSuccess,
   onCancel,
 }) => {
@@ -32,22 +30,13 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
     resolver: zodResolver(updateSupplierItemSchema),
     defaultValues: {
       supplierItemCode: item.supplierItemCode ?? '',
-      unitPrice: item.unitPrice ?? undefined,
       uomId: item.uomId,
       minOrderQuantity: item.minOrderQuantity ?? undefined,
       leadTimeDays: item.leadTimeDays ?? undefined,
-      isPreferred: item.isPreferred,
-      isActive: item.isActive,
-      taxInclusive: item.taxInclusive,
-      schemeBuyQty: item.schemeBuyQty ?? undefined,
-      schemeFreeQty: item.schemeFreeQty ?? undefined,
-      hasScheme: item.hasScheme ?? false,
     },
   });
 
   const updateMutation = useUpdateSupplierItem(supplierId, { onSuccess });
-  const hasScheme = form.watch('hasScheme');
-  const [allowDecimal, setAllowDecimal] = useState(true);
 
   return (
     <Form
@@ -58,83 +47,44 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
         itemId: item.id,
         data: {
           supplierItemCode: data.supplierItemCode ? data.supplierItemCode : null,
-          unitPrice: data.unitPrice,
           uomId: data.uomId,
           minOrderQuantity: data.minOrderQuantity ?? null,
           leadTimeDays: data.leadTimeDays ?? null,
-          isPreferred: data.isPreferred,
-          isActive: data.isActive,
-          taxInclusive: data.taxInclusive,
-          schemeBuyQty: data.schemeBuyQty ?? null,
-          schemeFreeQty: data.schemeFreeQty ?? null,
-          hasScheme: data.hasScheme,
         },
       })}
     >
-      <FormSection title="Item" contentClassName="block">
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <InventoryItemSelector
-                label="Inventory Item"
-                value={item.inventoryItemId}
-                optionsEndpoint="commerce-api/org/inventory-items/select"
-                params={{ values: item.inventoryItemId }}
-                disabled
-              />
-            </div>
-            <UomSelector
-              name="uomId"
-              label="Unit of Measure"
-              placeholder="Select unit"
-              params={{ inventoryItemId: item.inventoryItemId, supplierId }}
-              onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
-            />
-            <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
-            <CurrencyField name="unitPrice" label="Unit Price" currencyCode={supplierCurrencyCode} />
-            <TextField
-              name="minOrderQuantity"
-              label="Min Order Qty"
-              type="number"
-              placeholder="e.g. 100"
-              integer={!allowDecimal}
-              positive
-            />
-            <TextField
-              name="leadTimeDays"
-              label="Lead Time (days)"
-              type="number"
-              placeholder="e.g. 3"
-              integer
-              positive
-            />
-          </div>
-          <Switch
-            name="taxInclusive"
-            label="Price includes tax"
-            description="On = supplier price is tax-inclusive; off = tax added on top"
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Switch
-              name="isPreferred"
-              label="Preferred Supplier"
-              description="Surfaced first when picking suppliers for this item"
-            />
-            <Switch name="isActive" label="Active" description="Inactive supplier items can't be added to new POs" />
-          </div>
-        </div>
-      </FormSection>
-      <FormSection title="Free Goods Scheme" contentClassName="block">
-        <div className="flex flex-col gap-4">
-          <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
-          {hasScheme && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextField name="schemeBuyQty" label="Buy Qty" type="number" integer positive />
-              <TextField name="schemeFreeQty" label="Free Qty" type="number" integer positive />
-            </div>
-          )}
-        </div>
-      </FormSection>
+      <InventoryItemSelector
+        label="Inventory Item"
+        value={item.inventoryItemId}
+        params={{ values: item.inventoryItemId }}
+        disabled
+      />
+      <UomSelector
+        name="uomId"
+        label="Unit of Measure"
+        placeholder="Select unit"
+        params={{ inventoryItemId: item.inventoryItemId, supplierId }}
+        disabled={unitLocked}
+        description={unitLocked ? "Fixed once priced — the item's prices are per this unit" : undefined}
+      />
+      <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
+      <TextField
+        name="minOrderQuantity"
+        label="Min Order Qty (optional)"
+        type="number"
+        positive
+        placeholder="e.g. 10"
+        description="The least the supplier sells per order, in this unit"
+      />
+      <TextField
+        name="leadTimeDays"
+        label="Lead Time (days, optional)"
+        type="number"
+        integer
+        positive
+        placeholder="e.g. 5"
+        description="Every site follows it unless the site sets its own"
+      />
       <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

@@ -1,11 +1,15 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
+import type { SupplierAtSiteData } from '@/schemas/site-suppliers';
 import type {
+  SiteSupplierItemDetail,
+  SiteSupplierItemsTableResponse,
   SupplierData,
   SupplierDetail,
   SupplierItemData,
   SupplierItemDetail,
+  SupplierItemPriceHistory,
   SupplierItemPriceRow,
   SupplierItemPricesTableResponse,
   SupplierItemSiteRow,
@@ -15,13 +19,13 @@ import type {
   SupplierSitesTableResponse,
   SuppliersTableResponse,
 } from '@/schemas/suppliers';
+import type { PriceRange } from '@/utils/supplierPrice';
 
 export interface CreateSupplierPayload {
   partyId: string;
   code: string;
   currencyCode: string;
-  paymentTerms?: string;
-  leadTimeDays?: number;
+  defaultPaymentTermId?: string;
   notes?: string;
   purchasingBlocked?: boolean;
   paymentBlocked?: boolean;
@@ -33,42 +37,24 @@ export interface CreateSupplierPayload {
 export interface UpdateSupplierPayload {
   partyId?: string;
   code?: string;
-  paymentTerms?: string | null;
-  leadTimeDays?: number | null;
+  defaultPaymentTermId?: string | null;
   notes?: string | null;
   purchasingBlocked?: boolean;
   paymentBlocked?: boolean;
   orderEmail?: string | null;
   orderPhone?: string | null;
-  isActive?: boolean;
 }
 
 export interface AddSupplierItemPayload {
   inventoryItemId: string;
   supplierItemCode?: string;
-  unitPrice?: CurrencyValue;
   uomId: string;
-  minOrderQuantity?: number;
-  leadTimeDays?: number;
-  isPreferred?: boolean;
-  taxInclusive?: boolean;
-  schemeBuyQty?: number;
-  schemeFreeQty?: number;
-  hasScheme?: boolean;
+  siteIds: string[];
 }
 
 export interface UpdateSupplierItemPayload {
   supplierItemCode?: string | null;
-  unitPrice?: CurrencyValue | null;
   uomId?: string;
-  minOrderQuantity?: number | null;
-  leadTimeDays?: number | null;
-  isPreferred?: boolean;
-  isActive?: boolean;
-  taxInclusive?: boolean;
-  schemeBuyQty?: number | null;
-  schemeFreeQty?: number | null;
-  hasScheme?: boolean | null;
 }
 
 // Fetches suppliers for the data table
@@ -95,16 +81,25 @@ export function getSupplierItemsTable(supplierId: string): Promise<SupplierItems
     .then((r) => r.data);
 }
 
-// Fetches linked inventory item IDs for exclusion
-export function getSupplierItemIds(supplierId: string): Promise<string[]> {
-  return axios
-    .get<string[]>(`commerce-api/le/suppliers/${supplierId}/items/ids`, { showSuccessToast: false })
-    .then((r) => r.data);
-}
-
 // Updates a supplier
 export function updateSupplier({ id, data }: { id: string; data: UpdateSupplierPayload }): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`commerce-api/le/suppliers/${id}`, data).then((r) => r.data);
+}
+
+// Activates or deactivates several suppliers in a single request
+export function bulkSetSupplierActive({
+  ids,
+  isActive,
+}: {
+  ids: string[];
+  isActive: boolean;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>('commerce-api/le/suppliers/active', { ids, isActive }).then((r) => r.data);
+}
+
+// Activates or deactivates a supplier
+export function setSupplierActive({ id, isActive }: { id: string; isActive: boolean }): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`commerce-api/le/suppliers/${id}/active`, { isActive }).then((r) => r.data);
 }
 
 // Deletes a supplier
@@ -151,57 +146,59 @@ export function unlinkSupplierItem({
   return axios.delete<SuccessResponse>(`commerce-api/le/suppliers/${supplierId}/items/${itemId}`).then((r) => r.data);
 }
 
-// Bulk unlinks multiple supplier items in a single request
-export function bulkUnlinkSupplierItems({
-  supplierId,
-  supplierItemIds,
-}: {
-  supplierId: string;
-  supplierItemIds: string[];
-}): Promise<SuccessResponse> {
-  return axios
-    .delete<SuccessResponse>(`commerce-api/le/suppliers/${supplierId}/items`, { data: { supplierItemIds } })
-    .then((r) => r.data);
-}
-
-// Bulk-sets the free-goods scheme on multiple supplier items in a single request
-export function bulkSetSupplierItemScheme({
-  supplierId,
-  supplierItemIds,
-  schemeBuyQty,
-  schemeFreeQty,
-  hasScheme,
-}: {
-  supplierId: string;
-  supplierItemIds: string[];
-  schemeBuyQty?: number;
-  schemeFreeQty?: number;
-  hasScheme: boolean;
-}): Promise<SuccessResponse> {
-  return axios
-    .patch<SuccessResponse>(`commerce-api/le/suppliers/${supplierId}/items/scheme`, {
-      supplierItemIds,
-      schemeBuyQty,
-      schemeFreeQty,
-      hasScheme,
-    })
-    .then((r) => r.data);
-}
-
-// Bulk-marks multiple supplier items as preferred (or clears it) in a single request
+// Marks supplier items preferred (or not) at the chosen sites in a single request
 export function bulkSetSupplierItemPreferred({
   supplierId,
   supplierItemIds,
+  siteIds,
   isPreferred,
 }: {
   supplierId: string;
   supplierItemIds: string[];
+  siteIds: string[];
   isPreferred: boolean;
 }): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/le/suppliers/${supplierId}/items/preferred`, {
       supplierItemIds,
+      siteIds,
       isPreferred,
+    })
+    .then((r) => r.data);
+}
+
+// Sets (or clears) the minimum order of supplier items in a single request
+export function bulkSetSupplierItemMinOrder({
+  supplierId,
+  supplierItemIds,
+  minOrderQuantity,
+}: {
+  supplierId: string;
+  supplierItemIds: string[];
+  minOrderQuantity: number | null;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/le/suppliers/${supplierId}/items/min-order`, {
+      supplierItemIds,
+      minOrderQuantity,
+    })
+    .then((r) => r.data);
+}
+
+// Sets (or clears) the lead time of supplier items in a single request; their sites that follow the item take it too
+export function bulkSetSupplierItemLeadTime({
+  supplierId,
+  supplierItemIds,
+  leadTimeDays,
+}: {
+  supplierId: string;
+  supplierItemIds: string[];
+  leadTimeDays: number | null;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/le/suppliers/${supplierId}/items/lead-time`, {
+      supplierItemIds,
+      leadTimeDays,
     })
     .then((r) => r.data);
 }
@@ -218,42 +215,50 @@ export function changeSupplierCurrency(id: string, data: ChangeSupplierCurrencyP
 
 export interface AddSupplierSitePayload {
   siteId: string;
-  partyTaxRegistrationId?: string | null;
+  paymentTermId: string;
+  partyTaxRegistrationId: string;
   partyBankAccountId?: string | null;
   orderRelationshipId?: string | null;
 }
 
 export interface UpdateSupplierSitePayload {
-  partyTaxRegistrationId?: string | null;
+  paymentTermId?: string;
+  partyTaxRegistrationId?: string;
   partyBankAccountId?: string | null;
   orderRelationshipId?: string | null;
-  isActive?: boolean;
 }
 
 export interface AddSupplierItemPricePayload {
+  siteIds: string[];
   unitPrice?: CurrencyValue;
+  mrpId?: string;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
+  taxInclusive?: boolean;
   validFrom: string;
   validTo?: string | null;
+  note?: string;
 }
 
 export interface UpdateSupplierItemPricePayload {
   unitPrice?: CurrencyValue;
+  mrpId?: string | null;
   schemeBuyQty?: number | null;
   schemeFreeQty?: number | null;
+  taxInclusive?: boolean;
   validTo?: string | null;
 }
 
 export interface AddSupplierItemSitePayload {
   siteId: string;
+  isPreferred?: boolean;
   leadTimeDays?: number;
-  minOrderQuantity?: number;
 }
 
 export interface UpdateSupplierItemSitePayload {
+  isPreferred?: boolean;
   leadTimeDays?: number | null;
-  minOrderQuantity?: number | null;
+  followItemLeadTime?: boolean;
 }
 
 // Fetches enrolled sites for a supplier
@@ -317,16 +322,86 @@ export function getSupplierItem({
     .then((r) => r.data);
 }
 
-// Fetches the price timeline of a supplier item
+// Fetches the price timeline of a supplier item — every site's rows, or one site's when given
 export function getSupplierItemPricesTable({
   supplierId,
   itemId,
+  siteId,
 }: {
   supplierId: string;
   itemId: string;
+  siteId?: string;
 }): Promise<SupplierItemPricesTableResponse> {
   return axios
-    .get<SupplierItemPricesTableResponse>(`commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices/table`, {
+    .get<SupplierItemPricesTableResponse>(
+      siteId
+        ? `commerce-api/le/suppliers/${supplierId}/sites/${siteId}/items/${itemId}/prices/table`
+        : `commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices/table`,
+      { showSuccessToast: false },
+    )
+    .then((r) => r.data);
+}
+
+// Fetches every price window of a supplier item grouped by site — unpaged, for charts
+export function getSupplierItemPriceHistory({
+  supplierId,
+  itemId,
+  siteIds,
+  range,
+}: {
+  supplierId: string;
+  itemId: string;
+  siteIds?: string[];
+  range: PriceRange;
+}): Promise<SupplierItemPriceHistory> {
+  return axios
+    .get<SupplierItemPriceHistory>(`commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices/history`, {
+      params: { ...(siteIds?.length ? { siteIds: siteIds.join(',') } : {}), from: range.from, to: range.to },
+      showSuccessToast: false,
+    })
+    .then((r) => r.data);
+}
+
+// Fetches a supplier as one of the LE's sites sees it
+export function getSupplierAtSite({
+  supplierId,
+  siteId,
+}: {
+  supplierId: string;
+  siteId: string;
+}): Promise<SupplierAtSiteData> {
+  return axios
+    .get<SupplierAtSiteData>(`commerce-api/le/suppliers/${supplierId}/sites/${siteId}`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Fetches a supplier's items carried by one of the LE's sites
+export function getSupplierSiteItemsTable({
+  supplierId,
+  siteId,
+}: {
+  supplierId: string;
+  siteId: string;
+}): Promise<SiteSupplierItemsTableResponse> {
+  return axios
+    .get<SiteSupplierItemsTableResponse>(`commerce-api/le/suppliers/${supplierId}/sites/${siteId}/items/table`, {
+      showSuccessToast: false,
+    })
+    .then((r) => r.data);
+}
+
+// Fetches a supplier item as one of the LE's sites carries it
+export function getSupplierSiteItem({
+  supplierId,
+  siteId,
+  itemId,
+}: {
+  supplierId: string;
+  siteId: string;
+  itemId: string;
+}): Promise<SiteSupplierItemDetail> {
+  return axios
+    .get<SiteSupplierItemDetail>(`commerce-api/le/suppliers/${supplierId}/sites/${siteId}/items/${itemId}`, {
       showSuccessToast: false,
     })
     .then((r) => r.data);
@@ -341,9 +416,12 @@ export function addSupplierItemPrice({
   supplierId: string;
   itemId: string;
   data: AddSupplierItemPricePayload;
-}): Promise<SupplierItemPriceRow> {
+}): Promise<SupplierItemPriceRow[]> {
   return axios
-    .post<CreateResponse<SupplierItemPriceRow>>(`commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices`, data)
+    .post<CreateResponse<SupplierItemPriceRow[]>>(
+      `commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices`,
+      data,
+    )
     .then((r) => r.data.data);
 }
 

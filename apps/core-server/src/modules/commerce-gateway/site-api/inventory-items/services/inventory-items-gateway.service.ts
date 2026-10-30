@@ -12,7 +12,10 @@ import type { InventoryItemQuantResponseDto } from '@commerce/inventory-item-sit
 import type { InventoryItemQuantTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-table-response.dto';
 import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-response.dto';
 import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
-import type { SiteInventoryItemTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-table-response.dto';
+import type {
+  SiteInventoryItemTableResponseDto,
+  SiteInventoryItemTableRowDto,
+} from '@commerce/inventory-item-sites/dto/response/inventory-item-table-response.dto';
 import type { SiteInventoryItemUomConversionResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-uom-conversion-response.dto';
 import type { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
@@ -44,10 +47,10 @@ export class SiteInventoryItemsGatewayService {
     this.logger.log('site.inventoryItems.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      'commerce-inventory-items',
+      'commerce-site-inventory-items',
     );
 
-    const { result, count } = await this.nats.send<{ result: SiteInventoryItemResponseDto[]; count: number }>(
+    const { result, count } = await this.nats.send<{ result: SiteInventoryItemTableRowDto[]; count: number }>(
       'commerce',
       'site.inventoryItems.table',
       state,
@@ -74,7 +77,7 @@ export class SiteInventoryItemsGatewayService {
   // Creates a new inventory item
   async create(dto: CreateSiteInventoryItemDto): Promise<CreateResponseDto<SiteInventoryItemResponseDto>> {
     this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
-    return this.nats.send('commerce', 'org.inventoryItems.create', dto);
+    return this.nats.send('commerce', 'org.inventoryItems.create', { ...dto, createOffering: false });
   }
 
   // Enables a master inventory item at the current site

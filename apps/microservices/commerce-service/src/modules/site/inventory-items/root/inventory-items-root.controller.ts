@@ -1,6 +1,7 @@
 import { EnableInventoryItemSiteDto } from '@domain/inventory-item-sites/dto/request/enable-inventory-item-site.dto';
 import { UpdateReorderDto } from '@domain/inventory-item-sites/dto/request/update-reorder.dto';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
+import type { SiteInventoryItemDto } from '@domain/inventory-items/dto/entity/scoped-inventory-item.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -9,8 +10,6 @@ import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { InventoryItemSite } from '@/db/schema';
 import { SiteInventoryItemsService } from './services/inventory-items-root.service';
-
-type SiteInventoryItemRow = InventoryItemDto & { reorderPoint: number; isStocked: boolean; stockedQuantity: string };
 
 @Controller()
 export class InventoryItemsRootController {
@@ -21,11 +20,14 @@ export class InventoryItemsRootController {
     private readonly rootService: SiteInventoryItemsService,
   ) {}
 
-  // Items enabled at the current site, with per-site reorder + stock levels
+  // Every master item, marked with whether this site has it enabled and the stock it holds here
   @MessagePattern({ cmd: 'site.inventoryItems.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: SiteInventoryItemRow[]; count: number }> {
+  async table(
+    @Payload() state: TableViewState,
+    @RpcSiteId() siteId: string,
+  ): Promise<{ result: SiteInventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');
-    return this.service.findForSiteTable(state);
+    return this.service.findForSiteTable(state, siteId);
   }
 
   // Returns a single master inventory item by ID (shared detail)

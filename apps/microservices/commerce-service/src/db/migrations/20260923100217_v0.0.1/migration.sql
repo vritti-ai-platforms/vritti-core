@@ -1,2 +1,0 @@
-ALTER TABLE "commerce"."offering_variants" ADD COLUMN "fulfilment_type" "commerce"."fulfilment_type";--> statement-breakpoint
-ALTER TABLE "commerce"."offering_variants" ADD COLUMN "is_fulfilment_overridden" boolean DEFAULT false NOT NULL;

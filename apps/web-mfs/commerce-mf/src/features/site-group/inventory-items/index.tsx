@@ -1,6 +1,6 @@
 import type { RouteObject } from 'react-router-dom';
-import { GroupInventoryPage } from './GroupInventoryPage';
+import { InventoryItemsPage } from './InventoryItemsPage';
 
-const routes: RouteObject[] = [{ index: true, element: <GroupInventoryPage /> }];
+const routes: RouteObject[] = [{ index: true, element: <InventoryItemsPage /> }];
 
 export default routes;

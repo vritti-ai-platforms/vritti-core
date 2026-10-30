@@ -45,6 +45,7 @@ export {
   useCreatePersonRegistration,
   useDeletePersonRegistration,
   usePersonRegistrationsTable,
+  useSetPersonRegistrationActive,
   useUpdatePersonRegistration,
 } from './usePersonRegistrations';
 export * from './usePersonShopper';

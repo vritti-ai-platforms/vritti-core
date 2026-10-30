@@ -11,10 +11,12 @@ export class InventoryItemSupplierResponseDto {
   @ApiProperty({ type: CurrencyAmountDto, nullable: true }) unitPrice: CurrencyAmountDto | null;
   @ApiProperty() uomId: string;
   @ApiProperty() uomSymbol: string;
+  @ApiProperty({ description: 'Number of sites the supplier item is set up at' }) siteCount: number;
   @ApiProperty({ nullable: true }) minOrderQuantity: number | null;
   @ApiProperty({ nullable: true }) leadTimeDays: number | null;
+  @ApiProperty({ description: "True when the site sets its own lead time instead of following the supplier item's" })
+  isLeadTimeOverridden: boolean;
   @ApiProperty() isPreferred: boolean;
-  @ApiProperty() isActive: boolean;
 }
 
 export class InventoryItemSupplierTableResponseDto extends TableResponseDto<InventoryItemSupplierResponseDto> {

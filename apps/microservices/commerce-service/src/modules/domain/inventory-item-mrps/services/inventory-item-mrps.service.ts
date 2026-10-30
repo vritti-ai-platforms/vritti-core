@@ -8,6 +8,7 @@ import type { UpdateInventoryItemMrpDto } from '../dto/request/update-inventory-
 import {
   InventoryItemMrpsDomainRepository,
   type InventoryItemMrpWithUom,
+  type MrpPricedAt,
 } from '../repositories/inventory-item-mrps.repository';
 
 @Injectable()
@@ -16,9 +17,16 @@ export class InventoryItemMrpsDomainService {
 
   // The options the Add Listings form offers for one variant, labelled the way a pack is read
   async findForSelect(
-    query: SelectOptionsQueryDto & { variantId: string; currencyCode?: string; catalogId?: string },
+    query: SelectOptionsQueryDto & {
+      variantId?: string;
+      inventoryItemId?: string;
+      uomId?: string;
+      currencyCode?: string;
+      catalogId?: string;
+      pricedAt?: MrpPricedAt;
+    },
   ): Promise<SelectQueryResult> {
-    const result = await this.repository.findForVariantSelect(query.variantId, query.currencyCode, query.catalogId, {
+    const config = {
       value: query.valueKey || 'id',
       label: query.labelKey || 'amount',
       additionalKeys: ['currencyCode', 'isCurrent', 'uomId'],
@@ -28,8 +36,17 @@ export class InventoryItemMrpsDomainService {
       limit: query.limit,
       offset: query.offset,
       orderByKey: query.orderByKey || 'amount',
-      orderDirection: query.orderDirection || 'asc',
-    });
+      orderDirection: query.orderDirection || ('asc' as const),
+    };
+    const result = query.inventoryItemId
+      ? await this.repository.findForItemSelect(
+          query.inventoryItemId,
+          query.uomId,
+          query.currencyCode,
+          config,
+          query.pricedAt,
+        )
+      : await this.repository.findForVariantSelect(query.variantId ?? '', query.currencyCode, query.catalogId, config);
 
     // The label is built here rather than in the browser: an amount is minor units and a currency decides
     // how many decimals it has, so formatting it anywhere else is a second place to get a pack's price wrong
@@ -61,6 +78,17 @@ export class InventoryItemMrpsDomainService {
     sourceLotId: string | null,
   ): Promise<InventoryItemMrp> {
     return this.repository.upsert(inventoryItemId, uomId, currencyCode, amount, sourceLotId);
+  }
+
+  // Returns the MRP a supplier quoted for an (item, uom, currency) — reusing an equal amount, recording a new one —
+  // without changing which MRP is current
+  findOrRecord(
+    inventoryItemId: string,
+    uomId: string,
+    currencyCode: string,
+    amount: bigint,
+  ): Promise<InventoryItemMrp> {
+    return this.repository.findOrInsert(inventoryItemId, uomId, currencyCode, amount);
   }
 
   // Inserts a new suggested MRP for an (item, uom, currency); the unique constraint surfaces conflicts

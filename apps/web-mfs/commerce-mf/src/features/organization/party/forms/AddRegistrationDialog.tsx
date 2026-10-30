@@ -32,7 +32,7 @@ export const AddRegistrationDialog: React.FC<AddRegistrationDialogProps> = ({
     resolver: zodResolver(partyRegistrationSchema),
     defaultValues: {
       registrationNumber: '',
-      registrationType: 'GST',
+      registrationType: 'GSTIN',
       isPrimary: false,
     },
   });

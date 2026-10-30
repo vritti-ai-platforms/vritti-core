@@ -1,1 +1,0 @@
-ALTER TABLE "commerce"."offering_dimension_templates" ALTER COLUMN "code" SET NOT NULL;

@@ -23,6 +23,7 @@ export {
 } from './inventory-items';
 export { SITE_LOCATIONS } from './locations';
 export { LE_OFFERINGS, ORG_OFFERINGS, SITE_OFFERINGS } from './offerings';
+export { ORG_PAYMENT_TERMS } from './payment-terms';
 export { SITE_PAYMENTS } from './payments';
 export { ORG_PEOPLE } from './people';
 export { LE_SUPPLIERS, SITE_SUPPLIERS } from './suppliers';

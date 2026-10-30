@@ -40,6 +40,29 @@ export const OfferingVariantSelector = remoteSelector<SelectProps & { offeringId
   'OfferingVariantSelector',
 );
 
+export const InventoryItemSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
+  'commerce/Selectors/InventoryItem',
+  'InventoryItemSelector',
+);
+
+export const PaymentTermSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
+  'commerce/Selectors/PaymentTerm',
+  'PaymentTermSelector',
+);
+
+export const SupplierSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
+  'commerce/Selectors/Supplier',
+  'SupplierSelector',
+);
+
+export const SupplierItemSelector = remoteSelector<
+  Omit<SelectProps, 'optionsEndpoint' | 'params'> & { params?: { supplierId?: string } }
+>('commerce/Selectors/SupplierItem', 'SupplierItemSelector');
+
+export const SupplierSiteSelector = remoteSelector<
+  Omit<SelectProps, 'optionsEndpoint' | 'options'> & { supplierId: string; enrolledOnly?: boolean }
+>('commerce/Selectors/SupplierSite', 'SupplierSiteSelector');
+
 export const RepositorySelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
   'gitea/Selectors/Repository',
   'RepositorySelector',

@@ -8,7 +8,7 @@ interface WhatsappAccountSwitcherProps {
   // The raw detail crumb segment — WhatsApp accounts are keyed by UUID, so this is the account id
   // (the selector resolves it to the account name once options load)
   segment: string;
-  // The accounts root, e.g. `/<workspaceSlug>/whatsapp-accounts`
+  // The accounts root, e.g. `/<kind>/<id>/whatsapp-accounts`
   basePath: string;
 }
 

@@ -25,7 +25,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ receipt }) => {
           <div className="grid grid-cols-2 gap-6">
             <DetailField label="GR Number" type="string" mono value={receipt.grNumber} />
             <DetailField label="Supplier" type="string" value={receipt.supplierName} />
-            <DetailField label="Supplier Currency" type="string" mono value={supplierCurrencyCode} />
+            <DetailField label="Currency" type="string" mono value={supplierCurrencyCode} />
             <DetailField label="Total Value" type="currency" value={cost?.grandTotal ?? null} />
             <DetailField label="Status" type="string" value={receipt.status} />
             <DetailField label="Publishable" type="string" value={receipt.isPublishable ? 'Yes' : 'No'} />

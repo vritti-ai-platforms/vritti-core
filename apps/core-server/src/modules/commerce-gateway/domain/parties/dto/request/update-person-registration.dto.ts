@@ -28,9 +28,4 @@ export class UpdatePersonRegistrationDto {
   @IsOptional()
   @IsBoolean()
   isPrimary?: boolean;
-
-  @ApiPropertyOptional({ description: 'Whether the registration is active' })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

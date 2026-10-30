@@ -105,15 +105,21 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
         accessorKey: 'unitPrice',
         header: 'Unit Price',
         cell: ({ row }) => {
-          const { unitPrice, primaryUomUnitPrice, uomQty, primaryUomQty, primaryUomSymbol } = row.original;
+          const { unitPrice, sourceUnitPrice, primaryUomUnitPrice, uomQty, primaryUomQty, primaryUomSymbol } =
+            row.original;
           const isCrossUom = primaryUomQty !== uomQty;
           return (
-            <span className="font-mono">
-              {fmt.currency(unitPrice).primary}
-              {isCrossUom && (
-                <span className="text-xs text-muted-foreground">
-                  {` (${fmt.currency(primaryUomUnitPrice).primary}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''})`}
-                </span>
+            <span className="flex flex-col font-mono">
+              <span>
+                {fmt.currency(unitPrice).primary}
+                {isCrossUom && (
+                  <span className="text-xs text-muted-foreground">
+                    {` (${fmt.currency(primaryUomUnitPrice).primary}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''})`}
+                  </span>
+                )}
+              </span>
+              {sourceUnitPrice && (
+                <span className="text-xs text-muted-foreground">Quoted {fmt.currency(sourceUnitPrice).primary}</span>
               )}
             </span>
           );
@@ -145,6 +151,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
                             <UpdatePurchaseOrderItemDialog
                               purchaseOrderId={purchaseOrderId}
                               poCurrencyCode={purchaseOrder.currencyCode}
+                              conversionRates={purchaseOrder.conversionRates}
                               item={row.original}
                               onSuccess={close}
                               onCancel={close}
@@ -174,7 +181,15 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
           ]
         : []),
     ],
-    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.currencyCode, purchaseOrder.exchangeRate, fmt],
+    [
+      canModifyItems,
+      handleRemoveItem,
+      purchaseOrderId,
+      purchaseOrder.currencyCode,
+      purchaseOrder.conversionRates,
+      purchaseOrder.exchangeRate,
+      fmt,
+    ],
   );
 
   const { table } = useDataTable({

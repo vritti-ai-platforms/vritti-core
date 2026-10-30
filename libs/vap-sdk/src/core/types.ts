@@ -15,6 +15,9 @@ export type VapSdkConfig = {
   fetch?: typeof fetch;
 
   responseCache?: ResponseCacheStore;
+
+  // TTL for a cached operation that names none. `0` turns caching off.
+  responseCacheTtlSeconds?: number;
 };
 
 export type RequestContext = {

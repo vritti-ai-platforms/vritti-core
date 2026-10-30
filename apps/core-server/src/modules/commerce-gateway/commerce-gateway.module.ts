@@ -7,7 +7,11 @@ import { LeCatalogsGatewayController } from './le-api/catalogs/catalogs-gateway.
 import { CostCategoriesGatewayController } from './le-api/cost-categories/cost-categories-gateway.controller';
 import { CostCategoriesResolver } from './le-api/cost-categories/cost-categories-gateway.resolver';
 import { LeDimensionTemplatesGatewayController } from './le-api/dimension-templates/dimension-templates-gateway.controller';
+import { LeInventoryItemPricesGatewayController } from './le-api/inventory-items/inventory-item-prices-gateway.controller';
+import { LeInventoryItemsGatewayController } from './le-api/inventory-items/inventory-items-gateway.controller';
 import { LeOfferingsGatewayController } from './le-api/offerings/offerings-gateway.controller';
+import { SupplierItemPricesGatewayController } from './le-api/suppliers/item-prices/supplier-item-prices-gateway.controller';
+import { SupplierQuotationsGatewayController } from './le-api/suppliers/supplier-quotations-gateway.controller';
 import { SuppliersGatewayController } from './le-api/suppliers/suppliers-gateway.controller';
 import { TaxGroupsGatewayController } from './le-api/tax-groups/tax-groups-gateway.controller';
 import { TaxGroupsResolver } from './le-api/tax-groups/tax-groups-gateway.resolver';
@@ -20,6 +24,7 @@ import { CompaniesGatewayController } from './org-api/companies/companies-gatewa
 import { OrgDimensionTemplatesGatewayController } from './org-api/dimension-templates/dimension-templates-gateway.controller';
 import { InventoryItemsGatewayController as OrgInventoryItemsGatewayController } from './org-api/inventory-items/inventory-items-gateway.controller';
 import { OrgOfferingsGatewayController } from './org-api/offerings/offerings-gateway.controller';
+import { PaymentTermsGatewayController } from './org-api/payment-terms/payment-terms-gateway.controller';
 import { PeopleAppController } from './org-api/people/people.app.controller';
 import { PeopleGatewayController } from './org-api/people/people-gateway.controller';
 import { TaxClassesGatewayController } from './org-api/tax-classes/tax-classes-gateway.controller';
@@ -41,6 +46,7 @@ import { GoodsReceiptsResolver } from './site-api/goods-receipts/goods-receipts-
 import { InventoryItemQuantsGatewayController } from './site-api/inventory-item-quants/inventory-item-quants-gateway.controller';
 import { InventoryItemLedgerResolver } from './site-api/inventory-items/inventory-item-ledger-gateway.resolver';
 import { InventoryItemLocationsResolver } from './site-api/inventory-items/inventory-item-locations-gateway.resolver';
+import { SiteInventoryItemPricesGatewayController } from './site-api/inventory-items/inventory-item-prices-gateway.controller';
 import { InventoryItemQuantsFeedResolver } from './site-api/inventory-items/inventory-item-quants-gateway.resolver';
 import { InventoryItemStockLevelsResolver } from './site-api/inventory-items/inventory-item-stock-levels-gateway.resolver';
 import { InventoryItemSuppliersResolver } from './site-api/inventory-items/inventory-item-suppliers-gateway.resolver';
@@ -56,6 +62,7 @@ import { PosTerminalsGatewayController } from './site-api/pos-terminals/pos-term
 import { PurchaseOrdersGatewayController } from './site-api/purchase-orders/purchase-orders-gateway.controller';
 import { StockAdjustmentsGatewayController } from './site-api/stock-adjustments/stock-adjustments-gateway.controller';
 import { StockTransfersGatewayController } from './site-api/stock-transfers/stock-transfers-gateway.controller';
+import { SiteSupplierItemPricesGatewayController } from './site-api/suppliers/item-prices/site-supplier-item-prices-gateway.controller';
 import { SiteSuppliersGatewayController } from './site-api/suppliers/site-suppliers-gateway.controller';
 import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inventory-items/site-group-inventory-items-gateway.controller';
 
@@ -68,6 +75,9 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     CategoriesGatewayController,
     InventoryItemQuantsGatewayController,
     CostCategoriesGatewayController,
+    LeInventoryItemsGatewayController,
+    LeInventoryItemPricesGatewayController,
+    SiteInventoryItemPricesGatewayController,
     CreditNotesGatewayController,
     CartsGatewayController,
     LeCartsGatewayController,
@@ -89,12 +99,16 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     StockAdjustmentsGatewayController,
     StockTransfersGatewayController,
     SiteSuppliersGatewayController,
+    SupplierQuotationsGatewayController,
+    SupplierItemPricesGatewayController,
+    SiteSupplierItemPricesGatewayController,
     SuppliersGatewayController,
     OrgInventoryItemsGatewayController,
     SiteGroupInventoryItemsGatewayController,
     PeopleGatewayController,
     PeopleAppController,
     CompaniesGatewayController,
+    PaymentTermsGatewayController,
     TaxClassesGatewayController,
     TaxComponentsGatewayController,
     TaxJurisdictionsGatewayController,

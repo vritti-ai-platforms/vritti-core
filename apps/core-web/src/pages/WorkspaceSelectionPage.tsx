@@ -208,7 +208,7 @@ export const WorkspaceSelectionPage = () => {
   const openSite = useCallback(
     (site: AssignedSite) => {
       selectSite(site.id);
-      navigate(workspacePath('site', site.name, site.id), { replace: true });
+      navigate(workspacePath('site', site.id), { replace: true });
     },
     [selectSite, navigate],
   );
@@ -216,7 +216,7 @@ export const WorkspaceSelectionPage = () => {
   const openGroup = useCallback(
     (group: AssignedSiteGroup) => {
       selectWorkspace({ kind: 'group', id: group.id });
-      navigate(workspacePath('group', group.name, group.id));
+      navigate(workspacePath('group', group.id));
     },
     [selectWorkspace, navigate],
   );
@@ -224,7 +224,7 @@ export const WorkspaceSelectionPage = () => {
   const openLegalEntity = useCallback(
     (entity: AssignedLegalEntity) => {
       selectWorkspace({ kind: 'le', id: entity.id });
-      navigate(workspacePath('le', entity.name, entity.id));
+      navigate(workspacePath('le', entity.id));
     },
     [selectWorkspace, navigate],
   );
@@ -232,7 +232,7 @@ export const WorkspaceSelectionPage = () => {
   const openOrg = useCallback(() => {
     if (!org) return;
     selectWorkspace({ kind: 'org', id: org.id });
-    navigate(workspacePath('org', org.name, org.id));
+    navigate(workspacePath('org', org.id));
   }, [selectWorkspace, navigate, org]);
 
   const siteCards = useMemo(

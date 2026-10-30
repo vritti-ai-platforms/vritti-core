@@ -134,6 +134,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItems.uomId,
       to: r.uom.id,
     }),
+    taxClass: r.one.taxClasses({
+      from: r.inventoryItems.taxClassId,
+      to: r.taxClasses.id,
+    }),
     supplierItems: r.many.supplierItems(),
     inventoryItemUomConversions: r.many.inventoryItemUomConversions(),
     purchaseOrderItems: r.many.purchaseOrderItems(),

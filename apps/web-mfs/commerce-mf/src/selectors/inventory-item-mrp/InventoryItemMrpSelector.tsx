@@ -1,18 +1,22 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
 import { forwardRef } from 'react';
 
-export interface InventoryItemMrpSelectorProps extends SelectProps {
-  variantId: string;
-  currencyCode?: string;
-  catalogId?: string;
-}
+type MrpSource =
+  | { variantId: string; inventoryItemId?: never; uomId?: never }
+  | { variantId?: never; inventoryItemId: string; uomId?: string };
+
+export type InventoryItemMrpSelectorProps = SelectProps &
+  MrpSource & {
+    currencyCode?: string;
+    catalogId?: string;
+  };
 
 // Only the value is named — the label and description are composed server-side, where the currency is known
 const DEFAULT_FIELD_KEYS = { valueKey: 'id' } as const;
 
-// Pre-configured Select for the MRPs a variant could be listed at, found through its bill of materials
+// Pre-configured Select for an item's MRPs — directly by inventory item (+ UOM), or through a variant's bill of materials
 export const InventoryItemMrpSelector = forwardRef<HTMLButtonElement, InventoryItemMrpSelectorProps>(
-  ({ variantId, currencyCode, catalogId, fieldKeys, params, ...props }, ref) => (
+  ({ variantId, inventoryItemId, uomId, currencyCode, catalogId, fieldKeys, params, ...props }, ref) => (
     <Select
       ref={ref}
       label="MRPs"
@@ -21,7 +25,9 @@ export const InventoryItemMrpSelector = forwardRef<HTMLButtonElement, InventoryI
       {...props}
       params={{
         ...params,
-        variantId,
+        ...(variantId ? { variantId } : {}),
+        ...(inventoryItemId ? { inventoryItemId } : {}),
+        ...(uomId ? { uomId } : {}),
         ...(currencyCode ? { currencyCode } : {}),
         ...(catalogId ? { catalogId } : {}),
       }}

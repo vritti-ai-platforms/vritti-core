@@ -1,1 +1,0 @@
-ALTER TABLE "core"."org_services" DROP COLUMN "metadata";

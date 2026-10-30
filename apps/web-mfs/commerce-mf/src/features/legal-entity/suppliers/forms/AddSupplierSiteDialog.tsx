@@ -7,11 +7,15 @@ import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddSupplierSite } from '@/hooks/legal-entity/suppliers';
 import { type AddSupplierSiteFormData, addSupplierSiteSchema } from '@/schemas/suppliers';
+import { PaymentTermSelector } from '@/selectors/payment-term';
 import { SiteSelector } from '@/selectors/site';
 
 interface AddSupplierSiteDialogProps {
   supplierId: string;
   partyId: string;
+  defaultPaymentTermId: string | null;
+  // Preselects the site when enrolling from its row; the site picker is then fixed
+  siteId?: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -19,11 +23,14 @@ interface AddSupplierSiteDialogProps {
 export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
   supplierId,
   partyId,
+  defaultPaymentTermId,
+  siteId,
   onSuccess,
   onCancel,
 }) => {
   const form = useForm<AddSupplierSiteFormData>({
     resolver: zodResolver(addSupplierSiteSchema),
+    defaultValues: { siteId, paymentTermId: defaultPaymentTermId ?? undefined },
   });
 
   const addMutation = useAddSupplierSite(supplierId, { onSuccess });
@@ -36,6 +43,7 @@ export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({
         siteId: data.siteId,
+        paymentTermId: data.paymentTermId,
         partyTaxRegistrationId: data.partyTaxRegistrationId,
         partyBankAccountId: data.partyBankAccountId,
         orderRelationshipId: data.orderRelationshipId,
@@ -43,19 +51,20 @@ export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
     >
       <FormSection title="Enrollment" contentClassName="block">
         <div className="flex flex-col gap-4">
-          <SiteSelector name="siteId" />
+          <SiteSelector name="siteId" disabled={!!siteId} />
+          <PaymentTermSelector name="paymentTermId" />
           <Select
             name="partyTaxRegistrationId"
-            label="Origin Tax Registration"
-            placeholder="Auto-pick when the company has one"
+            label="Tax Registration"
+            placeholder="Select the registration this site is billed under"
             searchable
             optionsEndpoint="commerce-api/select-api/party-tax-registrations"
             params={{ partyId }}
           />
           <Select
             name="partyBankAccountId"
-            label="Branch Bank Account"
-            placeholder="Company primary account when left empty"
+            label="Bank Account"
+            placeholder="Select a bank account"
             searchable
             optionsEndpoint="commerce-api/select-api/party-bank-accounts"
             params={{ partyId }}
@@ -75,7 +84,7 @@ export const AddSupplierSiteDialog: React.FC<AddSupplierSiteDialogProps> = ({
           Cancel
         </Button>
         <Button type="submit" loadingText="Enrolling...">
-          Enroll Site
+          Enroll Supplier
         </Button>
       </DialogActions>
     </Form>

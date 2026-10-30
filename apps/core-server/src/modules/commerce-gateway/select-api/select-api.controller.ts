@@ -6,6 +6,7 @@ import { InventoryItemsSelectQueryDto } from '@commerce/inventory-items/dto/requ
 import { LocationsSelectQueryDto } from '@commerce/locations/dto/request/locations-select-query.dto';
 import { PartyContactSelectQueryDto } from '@commerce/parties/dto/request/party-contact-select-query.dto';
 import { PartySelectQueryDto } from '@commerce/parties/dto/request/party-select-query.dto';
+import { PaymentTermsSelectQueryDto } from '@commerce/payment-terms/dto/request/payment-terms-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-items-select-query.dto';
 import { PurchaseOrderSelectQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-select-query.dto';
 import { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
@@ -32,6 +33,7 @@ import {
   ApiLocationsSelect,
   ApiOfferingsSelect,
   ApiOfferingVariantsSelect,
+  ApiPaymentTermsSelect,
   ApiPosTerminalsSelect,
   ApiPurchaseOrderItemsSelect,
   ApiPurchaseOrdersSelect,
@@ -166,6 +168,12 @@ export class SelectApiController {
   @ApiSuppliersSelect()
   selectSuppliers(@Query() query: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'select.suppliers', query);
+  }
+
+  @Get('payment-terms')
+  @ApiPaymentTermsSelect()
+  selectPaymentTerms(@Query() query: PaymentTermsSelectQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.paymentTerms', query);
   }
 
   @Get('tax-classes')

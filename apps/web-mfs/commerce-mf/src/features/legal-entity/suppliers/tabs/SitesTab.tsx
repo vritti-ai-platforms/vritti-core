@@ -4,135 +4,152 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { Building2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useDialog } from '@vritti/quantum-ui/hooks';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
+import { Building2, Eye, Pencil, Plus, UserPlus } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
-import { SUPPLIER_SITES_TABLE_KEY, useRemoveSupplierSite, useSupplierSitesTable } from '@/hooks/legal-entity/suppliers';
+import { useNavigate, useParams } from 'react-router-dom';
+import { SUPPLIER_SITES_TABLE_KEY, useSupplierSitesTable } from '@/hooks/legal-entity/suppliers';
+import { SITE_ENROLLMENT_STATUS_OPTIONS } from '@/schemas/site-suppliers';
 import type { SupplierSiteRow } from '@/schemas/suppliers';
 import { AddSupplierSiteDialog } from '../forms/AddSupplierSiteDialog';
 import { EditSupplierSiteDialog } from '../forms/EditSupplierSiteDialog';
 
+function sitePath(row: SupplierSiteRow): string {
+  return row.siteId;
+}
+
 interface SitesTabProps {
   supplierId: string;
   partyId: string;
+  defaultPaymentTermId: string | null;
 }
 
-export const SitesTab: React.FC<SitesTabProps> = ({ supplierId, partyId }) => {
+export const SitesTab: React.FC<SitesTabProps> = ({ supplierId, partyId, defaultPaymentTermId }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
+  const navigate = useNavigate();
+  const { detail: tab } = useParams();
+  // A tab URL (…/<supplier>/items) has a segment to climb out of before a child path; the bare detail URL has none
+  const fromTab = useCallback((target: string) => (tab ? `../${target}` : target), [tab]);
   const addDialog = useDialog();
   const { data: response, isLoading } = useSupplierSitesTable(supplierId);
-  const removeMutation = useRemoveSupplierSite(supplierId);
-
-  const handleRemove = useCallback(
-    async (row: SupplierSiteRow) => {
-      const confirmed = await confirm({
-        title: `Remove "${row.siteName ?? 'site'}"?`,
-        description: 'This site will no longer be able to purchase from this supplier.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeMutation.mutate(row.id);
-    },
-    [confirm, removeMutation],
-  );
 
   const columns = useMemo<ColumnDef<SupplierSiteRow>[]>(
     () => [
       {
         accessorKey: 'siteName',
         header: 'Site',
-        cell: ({ row }) => <StringCell value={row.original.siteName} />,
-        enableSorting: false,
+        cell: ({ row }) => <StringCell value={row.original.siteName ?? row.original.siteCode} />,
+        enableSorting: true,
       },
       {
         accessorKey: 'siteCode',
         header: 'Code',
         cell: ({ row }) => <StringCell value={row.original.siteCode} mono />,
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'enrollmentStatus',
+        header: 'Enrollment Status',
+        cell: ({ row }) =>
+          row.original.enrollmentStatus === 'ENROLLED' ? (
+            <Badge variant="success">Enrolled</Badge>
+          ) : (
+            <Badge variant="outline">Not Enrolled</Badge>
+          ),
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'paymentTermName',
+        header: 'Payment Term',
+        cell: ({ row }) => <StringCell value={row.original.paymentTermName} />,
         enableSorting: false,
       },
       {
         accessorKey: 'registrationNumber',
-        header: 'Origin Registration',
-        cell: ({ row }) =>
-          row.original.registrationNumber ? (
-            <StringCell value={row.original.registrationNumber} mono />
-          ) : (
-            <Badge variant="warning">Not set</Badge>
-          ),
+        header: 'Tax Registration',
+        cell: ({ row }) => <StringCell value={row.original.registrationNumber} mono />,
+        enableSorting: false,
       },
       {
         accessorKey: 'bankAccountName',
         header: 'Branch Bank',
-        cell: ({ row }) =>
-          row.original.bankAccountName ? (
-            <StringCell value={row.original.bankAccountName} />
-          ) : (
-            <Badge variant="outline">Company primary</Badge>
-          ),
+        cell: ({ row }) => <StringCell value={row.original.bankAccountName} />,
+        enableSorting: false,
       },
       {
         accessorKey: 'orderContactName',
         header: 'Order Contact',
         enableSorting: false,
-        cell: ({ row }) =>
-          row.original.orderContactName || row.original.orderContactLabel ? (
-            <StringCell value={row.original.orderContactName ?? row.original.orderContactLabel} />
-          ) : (
-            <Badge variant="outline">Not set</Badge>
-          ),
-      },
-      {
-        accessorKey: 'isActive',
-        header: 'Status',
-        cell: ({ row }) => (
-          <Badge variant={row.original.isActive ? 'success' : 'outline'}>
-            {row.original.isActive ? 'Active' : 'Inactive'}
-          </Badge>
-        ),
+        cell: ({ row }) => <StringCell value={row.original.orderContactName ?? row.original.orderContactLabel} />,
       },
       {
         id: 'actions',
         header: '',
-        cell: ({ row }) => (
-          <RowActions
-            actions={[
-              {
-                id: 'edit',
-                icon: Pencil,
-                label: 'Edit',
-                permission: LE_SUPPLIERS.sites.edit,
-                dialog: {
-                  title: 'Edit Site Enrollment',
-                  description: 'Update the origin registration and branch bank picks for this site.',
-                  content: (close) => (
-                    <EditSupplierSiteDialog
-                      supplierId={supplierId}
-                      partyId={partyId}
-                      site={row.original}
-                      onSuccess={close}
-                      onCancel={close}
-                    />
-                  ),
+        cell: ({ row }) => {
+          const site = row.original;
+          const enrollmentId = site.id;
+          return (
+            <RowActions
+              actions={[
+                {
+                  id: 'view',
+                  icon: Eye,
+                  label: 'View',
+                  permission: LE_SUPPLIERS.sites.view,
+                  onClick: () => navigate(fromTab(sitePath(site)), { relative: 'path' }),
                 },
-              },
-              {
-                id: 'remove',
-                icon: Trash2,
-                label: 'Remove',
-                variant: 'destructive',
-                permission: LE_SUPPLIERS.sites.delete,
-                onClick: () => handleRemove(row.original),
-              },
-            ]}
-          />
-        ),
+                enrollmentId
+                  ? {
+                      id: 'edit',
+                      icon: Pencil,
+                      label: 'Edit',
+                      permission: LE_SUPPLIERS.sites.editEnroll,
+                      dialog: {
+                        title: 'Edit Site Enrollment',
+                        description: 'Update the payment term, tax registration, bank account and order contact.',
+                        content: (close) => (
+                          <EditSupplierSiteDialog
+                            supplierId={supplierId}
+                            partyId={partyId}
+                            site={site}
+                            enrollmentId={enrollmentId}
+                            onSuccess={close}
+                            onCancel={close}
+                          />
+                        ),
+                      },
+                    }
+                  : {
+                      id: 'enroll',
+                      icon: UserPlus,
+                      label: 'Enroll Supplier',
+                      permission: LE_SUPPLIERS.sites.enroll,
+                      dialog: {
+                        title: 'Enroll Supplier',
+                        description: `Choose the payment term, tax registration, bank account and order contact for ${site.siteName ?? site.siteCode ?? 'the site'}.`,
+                        content: (close) => (
+                          <AddSupplierSiteDialog
+                            supplierId={supplierId}
+                            partyId={partyId}
+                            defaultPaymentTermId={defaultPaymentTermId}
+                            siteId={site.siteId}
+                            onSuccess={close}
+                            onCancel={close}
+                          />
+                        ),
+                      },
+                    },
+              ]}
+            />
+          );
+        },
         enableSorting: false,
         enableHiding: false,
       },
     ],
-    [supplierId, partyId, handleRemove],
+    [supplierId, partyId, defaultPaymentTermId, navigate, fromTab],
   );
 
   const { table } = useDataTable({
@@ -153,41 +170,53 @@ export const SitesTab: React.FC<SitesTabProps> = ({ supplierId, partyId }) => {
         mode="tab"
         isLoading={isLoading}
         permission={LE_SUPPLIERS.sites.view}
+        searchConfig={{
+          columns: [
+            { id: 'siteName', label: 'Site' },
+            { id: 'siteCode', label: 'Code' },
+          ],
+          searchAll: true,
+        }}
+        filters={[
+          <SelectFilter
+            key="enrollmentStatus"
+            name="enrollmentStatus"
+            label="Enrollment Status"
+            options={SITE_ENROLLMENT_STATUS_OPTIONS}
+          />,
+        ]}
         toolbarActions={{
           actions: (
             <Button
               size="sm"
-              permission={LE_SUPPLIERS.sites.add}
+              permission={LE_SUPPLIERS.sites.enroll}
               startAdornment={<Plus className="size-4" />}
               onClick={addDialog.open}
             >
-              Enroll Site
+              Enroll Supplier
             </Button>
           ),
         }}
         emptyStateConfig={{
           icon: Building2,
-          title: 'No enrolled sites',
-          description: 'Enroll a site so it can purchase from this supplier.',
-          action: (
-            <Button
-              permission={LE_SUPPLIERS.sites.add}
-              startAdornment={<Plus className="size-4" />}
-              onClick={addDialog.open}
-            >
-              Enroll Site
-            </Button>
-          ),
+          title: 'No sites',
+          description: 'The legal entity has no sites yet.',
         }}
       />
 
       <Dialog
         handle={addDialog}
         icon={Building2}
-        title="Enroll Site"
-        description="Enroll a site so it can purchase from this supplier."
+        title="Enroll Supplier"
+        description="Choose the site, payment term, tax registration, bank account and order contact."
         content={(close) => (
-          <AddSupplierSiteDialog supplierId={supplierId} partyId={partyId} onSuccess={close} onCancel={close} />
+          <AddSupplierSiteDialog
+            supplierId={supplierId}
+            partyId={partyId}
+            defaultPaymentTermId={defaultPaymentTermId}
+            onSuccess={close}
+            onCancel={close}
+          />
         )}
       />
     </>

@@ -51,7 +51,8 @@ export interface InventoryItem {
   description: string | null;
   uomId: string;
   uomSymbol: string | null;
-  purchaseTaxGroupId: string | null;
+  taxClassId: string;
+  taxClassName: string | null;
   hsnCode: string | null;
   canDelete: boolean;
   createdAt: string;

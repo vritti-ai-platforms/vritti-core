@@ -1,48 +1,122 @@
+import type { SiteTermsRow } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, getColumns, inArray, ne, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, getColumns, inArray, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
   goodsReceiptItems,
   inventoryItems,
   type NewSupplierItem,
-  type NewSupplierItemPrice,
   type NewSupplierItemSite,
   parties,
   purchaseOrderItems,
   type Supplier,
   type SupplierItem,
-  type SupplierItemPrice,
   type SupplierItemSite,
   supplierItemPrices,
   supplierItemSites,
   supplierItems,
+  supplierSites,
   suppliers,
   uom,
 } from '@/db/schema';
 
-// Correlated scalar subquery resolving the price effective today for the outer supplier_items row.
-export function currentPriceSql(): SQL<bigint | null> {
-  return sql<bigint | null>`(
-    SELECT sip.unit_price FROM ${supplierItemPrices} sip
+// A site id as a typed SQL parameter; null yields no site terms (ORG views)
+function siteParam(siteId: string | null): SQL {
+  return siteId ? sql`${siteId}::uuid` : sql`NULL::uuid`;
+}
+
+// Correlated scalar subquery reading one column of a site's price row in force today
+function currentPriceColumnSql<T>(column: string, siteId: string | null, map?: (value: unknown) => T): SQL<T | null> {
+  const expr = sql<T | null>`(
+    SELECT ${sql.raw(`sip.${column}`)} FROM ${supplierItemPrices} sip
     WHERE sip.supplier_item_id = ${supplierItems.id}
+      AND sip.site_id = ${siteParam(siteId)}
       AND sip.valid_from <= CURRENT_DATE
       AND (sip.valid_to IS NULL OR sip.valid_to >= CURRENT_DATE)
-      AND (sip.site_id IS NULL OR sip.site_id = current_setting('app.site_id', true)::uuid)
-    ORDER BY (sip.site_id IS NULL) ASC, sip.valid_from DESC
+    ORDER BY sip.valid_from DESC
     LIMIT 1
-  )`.mapWith((value: unknown) => (value == null ? null : BigInt(value as string)));
+  )`;
+  return map ? expr.mapWith((value: unknown) => (value == null ? null : map(value))) : expr;
 }
 
-// Matches rows of the same price stratum as the session context — the site GUC when set, else general (NULL)
-function gucStratumSql(): SQL {
-  return sql`${supplierItemPrices.siteId} IS NOT DISTINCT FROM current_setting('app.site_id', true)::uuid`;
+function currentPriceSql(siteId: string | null): SQL<bigint | null> {
+  return currentPriceColumnSql('unit_price', siteId, (value) => BigInt(value as string));
 }
 
-// Matches rows of the same price stratum as a fetched row's own site
-function rowStratumSql(siteId: string | null): SQL {
-  return sql`${supplierItemPrices.siteId} IS NOT DISTINCT FROM ${siteId}::uuid`;
+// A site's operational settings (joined supplier_item_sites row) and the price row in force there today
+function siteTermsSelect(siteId: string | null) {
+  return {
+    itemSiteId: supplierItemSites.id,
+    siteIsPreferred: supplierItemSites.isPreferred,
+    siteLeadTimeDays: supplierItemSites.leadTimeDays,
+    siteIsLeadTimeOverridden: supplierItemSites.isLeadTimeOverridden,
+    currentUnitPrice: currentPriceSql(siteId),
+    currentCurrencyCode: currentPriceColumnSql<string>('currency_code', siteId),
+    currentSchemeBuyQty: currentPriceColumnSql('scheme_buy_qty', siteId, (value) => Number(value)),
+    currentSchemeFreeQty: currentPriceColumnSql('scheme_free_qty', siteId, (value) => Number(value)),
+    currentTaxInclusive: currentPriceColumnSql<boolean>('tax_inclusive', siteId),
+  };
+}
+
+function siteJoin(siteId: string | null): SQL {
+  return and(
+    eq(supplierItemSites.supplierItemId, supplierItems.id),
+    sql`${supplierItemSites.siteId} = ${siteParam(siteId)}`,
+  ) as SQL;
+}
+
+export type SupplierItemTableRow = SupplierItem & {
+  inventoryItemName: string;
+  uomSymbol: string;
+  siteCount: number;
+  preferredSiteCount: number;
+};
+
+export type SiteSupplierItemTableRow = SupplierItem & SiteTermsRow & { inventoryItemName: string; uomSymbol: string };
+
+// The supplier's default and accepted currencies come along: an item's prices may be in any of them
+type SupplierCurrencies = { supplierCurrencyCode: string; supplierCurrencyCodes: string[] };
+
+// The item's price history, which decides whether it can be deleted and whether its unit can change
+type PriceUsage = { priceCount: number; pricedSiteCount: number };
+
+export type SupplierItemDetailRow = SupplierItemTableRow & { supplierCode: string | null } & SupplierCurrencies &
+  PriceUsage;
+
+export type SiteSupplierItemDetailRow = SiteSupplierItemTableRow & {
+  supplierCode: string | null;
+} & SupplierCurrencies &
+  PriceUsage;
+
+export type InventoryItemSupplierRow = SupplierItem &
+  SiteTermsRow & { supplierName: string; supplierCode: string; uomSymbol: string; siteCount: number };
+
+// How many price rows a supplier item has, and at how many sites
+function priceUsageSql() {
+  return {
+    priceCount: sql<number>`(
+      SELECT count(*)::int FROM ${supplierItemPrices} p WHERE p.supplier_item_id = ${supplierItems.id}
+    )`.mapWith(Number),
+    pricedSiteCount: sql<number>`(
+      SELECT count(DISTINCT p.site_id)::int FROM ${supplierItemPrices} p WHERE p.supplier_item_id = ${supplierItems.id}
+    )`.mapWith(Number),
+  };
+}
+
+// Number of sites a supplier item is set up at
+function itemSiteCountSql(): SQL<number> {
+  return sql<number>`(
+    SELECT count(*)::int FROM ${supplierItemSites} sis WHERE sis.supplier_item_id = ${supplierItems.id}
+  )`.mapWith(Number);
+}
+
+function preferredSiteCountSql(): SQL<number> {
+  return sql<number>`(
+    SELECT count(*)::int FROM ${supplierItemSites} sis
+    WHERE sis.supplier_item_id = ${supplierItems.id} AND sis.is_preferred
+  )`.mapWith(Number);
 }
 
 @Injectable()
@@ -51,16 +125,27 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
     super(database, supplierItems);
   }
 
-  // Returns paginated supplier item options — one row per (inventoryItem, uom) pair.
+  // Returns paginated supplier item options — one row per (inventoryItem, uom) pair
   override findForSelect(
     config: FindForSelectConfig,
     options?: {
       supplierId?: string;
+      siteId?: string | null;
       excludeOnPurchaseOrderId?: string;
       excludeOnGoodsReceiptId?: string;
     },
   ): Promise<SelectQueryResult> {
-    const conditions: SQL[] = [eq(supplierItems.isActive, true)];
+    const siteId = options?.siteId ?? null;
+    const conditions: SQL[] = [];
+
+    // At a site only the items set up and active there; from a legal entity every item of its suppliers
+    if (siteId) {
+      conditions.push(sql`EXISTS (
+        SELECT 1 FROM ${supplierItemSites} sis
+        WHERE sis.supplier_item_id = ${supplierItems.id}
+          AND sis.site_id = ${siteParam(siteId)}
+      )`);
+    }
 
     if (options?.supplierId) {
       conditions.push(eq(supplierItems.supplierId, options.supplierId));
@@ -96,10 +181,12 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions,
       additionalExpressions: {
-        unitPrice: currentPriceSql(),
-        schemeBuyQty: sql`${supplierItems.schemeBuyQty}`,
-        schemeFreeQty: sql`${supplierItems.schemeFreeQty}`,
-        hasScheme: sql`${supplierItems.hasScheme}`,
+        unitPrice: currentPriceSql(siteId),
+        currencyCode: currentPriceColumnSql('currency_code', siteId),
+        schemeBuyQty: currentPriceColumnSql('scheme_buy_qty', siteId),
+        schemeFreeQty: currentPriceColumnSql('scheme_free_qty', siteId),
+        hasScheme: sql`(${currentPriceColumnSql('scheme_buy_qty', siteId)} IS NOT NULL AND ${currentPriceColumnSql('scheme_free_qty', siteId)} IS NOT NULL)`,
+        taxInclusive: currentPriceColumnSql('tax_inclusive', siteId),
       },
     });
   }
@@ -109,116 +196,116 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
     return row as Supplier | undefined;
   }
 
-  // Returns paginated supplier items for a supplier with joined item/UOM display fields and the resolved current price
+  // Returns paginated supplier items for a supplier with item/UOM display fields and how many sites carry each
   async findItemsForTable(
     supplierId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
-  ): Promise<{
-    result: (SupplierItem & { inventoryItemName: string; uomSymbol: string; currentUnitPrice: bigint | null })[];
-    count: number;
-  }> {
+  ): Promise<{ result: SupplierItemTableRow[]; count: number }> {
     const baseWhere = eq(supplierItems.supplierId, supplierId);
-    const where = options.where ? and(baseWhere, options.where) : baseWhere;
-    return this.findAllAndCount<
-      SupplierItem & { inventoryItemName: string; uomSymbol: string; currentUnitPrice: bigint | null }
-    >({
+    return this.findAllAndCount<SupplierItemTableRow>({
       select: {
         ...getColumns(supplierItems),
         inventoryItemName: inventoryItems.name,
         uomSymbol: uom.symbol,
-        currentUnitPrice: currentPriceSql(),
+        siteCount: itemSiteCountSql(),
+        preferredSiteCount: preferredSiteCountSql(),
       },
       leftJoins: [
         { table: inventoryItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(supplierItems.uomId, uom.id) },
       ],
-      where,
+      where: options.where ? and(baseWhere, options.where) : baseWhere,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierItems.createdAt)],
       limit: options.limit,
       offset: options.offset,
     });
   }
 
-  // Returns paginated supplier items for an inventory item with joined supplier name/code, UOM symbol, and current
-  // price Returns paginated supplier items for an inventory item with joined supplier name/code, UOM symbol, and
-  // current price
-  async findSuppliersForItem(
-    inventoryItemId: string,
+  // Returns paginated supplier items carried by a site, with that site's terms and price in force
+  async findSiteItemsForTable(
+    supplierId: string,
+    siteId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
-  ): Promise<{
-    result: (SupplierItem & {
-      supplierName: string;
-      supplierCode: string;
-      uomSymbol: string;
-      currentUnitPrice: bigint | null;
-    })[];
-    count: number;
-  }> {
-    const baseWhere = eq(supplierItems.inventoryItemId, inventoryItemId);
-    const where = options.where ? and(baseWhere, options.where) : baseWhere;
-    return this.findAllAndCount<
-      SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string; currentUnitPrice: bigint | null }
-    >({
+    { carriedOnly }: { carriedOnly: boolean },
+  ): Promise<{ result: SiteSupplierItemTableRow[]; count: number }> {
+    const baseWhere = eq(supplierItems.supplierId, supplierId);
+    const siteRow = { table: supplierItemSites, on: siteJoin(siteId) };
+    return this.findAllAndCount<SiteSupplierItemTableRow>({
       select: {
         ...getColumns(supplierItems),
-        supplierName: parties.displayName,
-        supplierCode: suppliers.code,
+        inventoryItemName: inventoryItems.name,
         uomSymbol: uom.symbol,
-        currentUnitPrice: currentPriceSql(),
+        ...siteTermsSelect(siteId),
       },
+      innerJoins: carriedOnly ? [siteRow] : [],
       leftJoins: [
-        { table: suppliers, on: eq(supplierItems.supplierId, suppliers.id) },
-        { table: parties, on: eq(suppliers.partyId, parties.id) },
+        ...(carriedOnly ? [] : [siteRow]),
+        { table: inventoryItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(supplierItems.uomId, uom.id) },
       ],
-      where,
-      orderBy: options.orderBy?.length
-        ? options.orderBy
-        : [desc(supplierItems.isPreferred), desc(supplierItems.createdAt)],
+      where: options.where ? and(baseWhere, options.where) : baseWhere,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierItems.createdAt)],
       limit: options.limit,
       offset: options.offset,
     });
   }
 
-  // Stable-ordered page for the mobile Relay suppliers feed: preferred first, then newest, with an id tie-breaker so
-  // the total order is deterministic (offset cursors don't skip/duplicate).
-  async findSuppliersFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
-    rows: (SupplierItem & {
-      supplierName: string;
-      supplierCode: string;
-      uomSymbol: string;
-      currentUnitPrice: bigint | null;
-    })[];
-    hasMore: boolean;
-  }> {
-    return this.findKeyset<
-      SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string; currentUnitPrice: bigint | null }
-    >({
+  // current price
+  async findSuppliersForItem(
+    inventoryItemId: string,
+    siteId: string | null,
+    options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: InventoryItemSupplierRow[]; count: number }> {
+    const baseWhere = eq(supplierItems.inventoryItemId, inventoryItemId);
+    return this.findAllAndCount<InventoryItemSupplierRow>({
       select: {
         ...getColumns(supplierItems),
         supplierName: parties.displayName,
+        siteCount: itemSiteCountSql(),
         supplierCode: suppliers.code,
         uomSymbol: uom.symbol,
-        currentUnitPrice: currentPriceSql(),
+        ...siteTermsSelect(siteId),
       },
       leftJoins: [
         { table: suppliers, on: eq(supplierItems.supplierId, suppliers.id) },
         { table: parties, on: eq(suppliers.partyId, parties.id) },
         { table: uom, on: eq(supplierItems.uomId, uom.id) },
+        { table: supplierItemSites, on: siteJoin(siteId) },
+      ],
+      where: options.where ? and(baseWhere, options.where) : baseWhere,
+      orderBy: options.orderBy?.length
+        ? options.orderBy
+        : [sql`${supplierItemSites.isPreferred} DESC NULLS LAST`, desc(supplierItems.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
+  }
+
+  // Stable-ordered page for the mobile Relay suppliers feed: preferred at the site first, then newest, with an id
+  // tie-breaker so the total order is deterministic (offset cursors don't skip/duplicate).
+  async findSuppliersFeedKeyset(
+    siteId: string | null,
+    options: { where?: SQL; orderBy: SQL[]; limit: number },
+  ): Promise<{ rows: InventoryItemSupplierRow[]; hasMore: boolean }> {
+    return this.findKeyset<InventoryItemSupplierRow>({
+      select: {
+        ...getColumns(supplierItems),
+        supplierName: parties.displayName,
+        siteCount: itemSiteCountSql(),
+        supplierCode: suppliers.code,
+        uomSymbol: uom.symbol,
+        ...siteTermsSelect(siteId),
+      },
+      leftJoins: [
+        { table: suppliers, on: eq(supplierItems.supplierId, suppliers.id) },
+        { table: parties, on: eq(suppliers.partyId, parties.id) },
+        { table: uom, on: eq(supplierItems.uomId, uom.id) },
+        { table: supplierItemSites, on: siteJoin(siteId) },
       ],
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
     });
-  }
-
-  // Returns linked inventory item IDs for a supplier
-  async findItemIdsBySupplierId(supplierId: string): Promise<string[]> {
-    const rows = await this.db
-      .select({ inventoryItemId: supplierItems.inventoryItemId })
-      .from(supplierItems)
-      .where(eq(supplierItems.supplierId, supplierId));
-    return rows.map((row) => row.inventoryItemId);
   }
 
   // Creates a supplier item link
@@ -233,54 +320,9 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
     return row as SupplierItem;
   }
 
-  // Clears is_preferred on all supplier_items for an inventory item except the given row.
-  async clearPreferredForOtherSuppliers(inventoryItemId: string, exceptSupplierItemId?: string): Promise<void> {
-    const where = exceptSupplierItemId
-      ? and(eq(supplierItems.inventoryItemId, inventoryItemId), ne(supplierItems.id, exceptSupplierItemId))
-      : eq(supplierItems.inventoryItemId, inventoryItemId);
-    await this.db.update(supplierItems).set({ isPreferred: false }).where(where);
-  }
-
   // Deletes a supplier item link by ID
   async deleteSupplierItem(id: string): Promise<void> {
     await this.db.delete(supplierItems).where(eq(supplierItems.id, id));
-  }
-
-  // Bulk-deletes supplier item links by IDs
-  async bulkDeleteSupplierItems(ids: string[]): Promise<void> {
-    if (ids.length === 0) return;
-    await this.db.delete(supplierItems).where(inArray(supplierItems.id, ids));
-  }
-
-  // Bulk-sets the free-goods scheme on the given supplier item links
-  async bulkSetScheme(
-    ids: string[],
-    scheme: { buyQty: number | null; freeQty: number | null; hasScheme: boolean },
-  ): Promise<void> {
-    if (ids.length === 0) return;
-    await this.db
-      .update(supplierItems)
-      .set({ schemeBuyQty: scheme.buyQty, schemeFreeQty: scheme.freeQty, hasScheme: scheme.hasScheme })
-      .where(inArray(supplierItems.id, ids));
-  }
-
-  // Bulk-sets is_preferred on the given supplier item links.
-  async bulkSetPreferred(ids: string[], isPreferred: boolean): Promise<void> {
-    if (ids.length === 0) return;
-    if (isPreferred) {
-      const rows = await this.db
-        .select({ inventoryItemId: supplierItems.inventoryItemId })
-        .from(supplierItems)
-        .where(inArray(supplierItems.id, ids));
-      const inventoryItemIds = [...new Set(rows.map((row) => row.inventoryItemId))];
-      if (inventoryItemIds.length > 0) {
-        await this.db
-          .update(supplierItems)
-          .set({ isPreferred: false })
-          .where(and(inArray(supplierItems.inventoryItemId, inventoryItemIds), notInArray(supplierItems.id, ids)));
-      }
-    }
-    await this.db.update(supplierItems).set({ isPreferred }).where(inArray(supplierItems.id, ids));
   }
 
   // Finds a supplier item by ID with inventory item name and UOM symbol
@@ -302,23 +344,19 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
     return row as (SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined;
   }
 
-  // Finds a supplier item by ID with display joins, supplier identity, and the resolved current price
-  async findItemDetailById(id: string): Promise<
-    | (SupplierItem & {
-        inventoryItemName: string;
-        uomSymbol: string;
-        supplierCode: string | null;
-        currentUnitPrice: bigint | null;
-      })
-    | undefined
-  > {
+  // Finds a supplier item by ID with display joins, supplier identity, and how many sites carry it
+  async findItemDetailById(id: string): Promise<SupplierItemDetailRow | undefined> {
     const [row] = await this.db
       .select({
         ...getColumns(supplierItems),
         inventoryItemName: inventoryItems.name,
         uomSymbol: uom.symbol,
         supplierCode: suppliers.code,
-        currentUnitPrice: currentPriceSql(),
+        supplierCurrencyCode: suppliers.currencyCode,
+        supplierCurrencyCodes: suppliers.currencyCodes,
+        ...priceUsageSql(),
+        siteCount: itemSiteCountSql(),
+        preferredSiteCount: preferredSiteCountSql(),
       })
       .from(supplierItems)
       .leftJoin(inventoryItems, eq(supplierItems.inventoryItemId, inventoryItems.id))
@@ -326,15 +364,31 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       .leftJoin(suppliers, eq(supplierItems.supplierId, suppliers.id))
       .where(eq(supplierItems.id, id))
       .limit(1);
+    return row as SupplierItemDetailRow | undefined;
+  }
 
-    return row as
-      | (SupplierItem & {
-          inventoryItemName: string;
-          uomSymbol: string;
-          supplierCode: string | null;
-          currentUnitPrice: bigint | null;
-        })
-      | undefined;
+  // Finds a supplier item as one site sees it — its terms and price in force there, both empty when the site does not
+  // carry it
+  async findSiteItemDetailById(id: string, siteId: string): Promise<SiteSupplierItemDetailRow | undefined> {
+    const [row] = await this.db
+      .select({
+        ...getColumns(supplierItems),
+        inventoryItemName: inventoryItems.name,
+        uomSymbol: uom.symbol,
+        supplierCode: suppliers.code,
+        supplierCurrencyCode: suppliers.currencyCode,
+        supplierCurrencyCodes: suppliers.currencyCodes,
+        ...priceUsageSql(),
+        ...siteTermsSelect(siteId),
+      })
+      .from(supplierItems)
+      .leftJoin(supplierItemSites, siteJoin(siteId))
+      .leftJoin(inventoryItems, eq(supplierItems.inventoryItemId, inventoryItems.id))
+      .leftJoin(uom, eq(supplierItems.uomId, uom.id))
+      .leftJoin(suppliers, eq(supplierItems.supplierId, suppliers.id))
+      .where(eq(supplierItems.id, id))
+      .limit(1);
+    return row as SiteSupplierItemDetailRow | undefined;
   }
 
   async findItemBySupplierInventoryItemAndUom(
@@ -361,199 +415,132 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
     return row?.symbol ?? null;
   }
 
-  // Bulk-updates currency on a supplier's items and rescales their whole price timelines by the conversion rate
-  async recalculateAllForSupplier(supplierId: string, newCurrencyCode: string, conversionRate: number): Promise<void> {
-    await this.db
-      .update(supplierItems)
-      .set({ currencyCode: newCurrencyCode })
-      .where(eq(supplierItems.supplierId, supplierId));
-    await this.db
-      .update(supplierItemPrices)
-      .set({ unitPrice: sql`ROUND(${supplierItemPrices.unitPrice}::numeric * ${conversionRate})::bigint` })
-      .where(
-        inArray(
-          supplierItemPrices.supplierItemId,
-          this.db.select({ id: supplierItems.id }).from(supplierItems).where(eq(supplierItems.supplierId, supplierId)),
-        ),
-      );
+  async findEnrolledSiteIds(supplierId: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ siteId: supplierSites.siteId })
+      .from(supplierSites)
+      .where(eq(supplierSites.supplierId, supplierId));
+    return rows.map((row) => row.siteId);
   }
 
-  // Returns paginated price timeline rows of a supplier item — site rows scoped by the session site GUC
-  async findPricesForTable(
-    supplierItemId: string,
-    options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: SupplierItemPrice[]; count: number }> {
-    const baseWhere = and(
-      eq(supplierItemPrices.supplierItemId, supplierItemId),
-      sql`(${supplierItemPrices.siteId} IS NULL OR ${supplierItemPrices.siteId} = current_setting('app.site_id', true)::uuid)`,
-    ) as SQL;
-    const where = options.where ? (and(baseWhere, options.where) as SQL) : baseWhere;
-
-    const rowsPromise = this.db
-      .select()
-      .from(supplierItemPrices)
-      .where(where)
-      .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(supplierItemPrices.validFrom)]))
-      .limit(options.limit)
-      .offset(options.offset);
-
-    const countPromise = this.db.select({ count: sql<number>`count(*)::int` }).from(supplierItemPrices).where(where);
-
-    const [rows, countResult] = await Promise.all([rowsPromise, countPromise]);
-    return { result: rows as SupplierItemPrice[], count: countResult[0]?.count ?? 0 };
-  }
-
-  // Resolves the price effective on a date — site row wins over general within the session site GUC
-  async resolvePrice(supplierItemId: string, onDate?: string): Promise<SupplierItemPrice | undefined> {
-    const dateExpr = onDate ? sql`${onDate}::date` : sql`CURRENT_DATE`;
-    const [row] = await this.db
-      .select()
-      .from(supplierItemPrices)
-      .where(
-        and(
-          eq(supplierItemPrices.supplierItemId, supplierItemId),
-          sql`${supplierItemPrices.validFrom} <= ${dateExpr}`,
-          sql`(${supplierItemPrices.validTo} IS NULL OR ${supplierItemPrices.validTo} >= ${dateExpr})`,
-          sql`(${supplierItemPrices.siteId} IS NULL OR ${supplierItemPrices.siteId} = current_setting('app.site_id', true)::uuid)`,
-        ),
-      )
-      .orderBy(asc(sql`(${supplierItemPrices.siteId} IS NULL)`), desc(supplierItemPrices.validFrom))
-      .limit(1);
-    return row as SupplierItemPrice | undefined;
-  }
-
-  // Returns true when the session-context stratum has a row effective on or after the date
-  async hasPriceOnOrAfter(supplierItemId: string, validFrom: string): Promise<boolean> {
-    return this.priceExists(
-      and(
-        eq(supplierItemPrices.supplierItemId, supplierItemId),
-        gucStratumSql(),
-        sql`${supplierItemPrices.validFrom} >= ${validFrom}::date`,
-      ) as SQL,
-    );
-  }
-
-  // Closes the stratum's open-ended row to the day before the new price takes effect
-  async closeOpenPrice(supplierItemId: string, newValidFrom: string): Promise<void> {
-    await this.db
-      .update(supplierItemPrices)
-      .set({ validTo: sql`${newValidFrom}::date - 1` })
-      .where(
-        and(
-          eq(supplierItemPrices.supplierItemId, supplierItemId),
-          gucStratumSql(),
-          sql`${supplierItemPrices.validTo} IS NULL`,
-          sql`${supplierItemPrices.validFrom} < ${newValidFrom}::date`,
-        ),
-      );
-  }
-
-  // Inserts a price row — site_id is never passed so the DB GUC default assigns the stratum
-  async insertPrice(data: Omit<NewSupplierItemPrice, 'siteId' | 'organizationId'>): Promise<SupplierItemPrice> {
-    const [row] = await this.db.insert(supplierItemPrices).values(data).returning();
-    return row as SupplierItemPrice;
-  }
-
-  // Loads a single price row by id
-  async findPriceById(id: string): Promise<SupplierItemPrice | undefined> {
-    const [row] = await this.db.select().from(supplierItemPrices).where(eq(supplierItemPrices.id, id)).limit(1);
-    return row as SupplierItemPrice | undefined;
-  }
-
-  // Returns the stratum row that was delimited to exactly the day before the given validity start
-  async findContiguousPreviousPrice(
-    supplierItemId: string,
-    siteId: string | null,
-    validFrom: string,
-  ): Promise<SupplierItemPrice | undefined> {
-    const [row] = await this.db
-      .select()
-      .from(supplierItemPrices)
-      .where(
-        and(
-          eq(supplierItemPrices.supplierItemId, supplierItemId),
-          rowStratumSql(siteId),
-          sql`${supplierItemPrices.validTo} = ${validFrom}::date - 1`,
-        ),
-      )
-      .limit(1);
-    return row as SupplierItemPrice | undefined;
-  }
-
-  // Updates a price row by id
-  async updatePriceRow(id: string, data: Partial<NewSupplierItemPrice>): Promise<void> {
-    await this.db.update(supplierItemPrices).set(data).where(eq(supplierItemPrices.id, id));
-  }
-
-  // Deletes a price row by id
-  async deletePriceRow(id: string): Promise<void> {
-    await this.db.delete(supplierItemPrices).where(eq(supplierItemPrices.id, id));
-  }
-
-  // Returns true when a price row exists matching the condition
-  private async priceExists(where: SQL): Promise<boolean> {
-    const [row] = await this.db.select({ one: sql`1` }).from(supplierItemPrices).where(where).limit(1);
-    return Boolean(row);
-  }
-
-  // Returns true when the row's stratum has a later-starting row
-  async hasLaterPrice(supplierItemId: string, siteId: string | null, validFrom: string): Promise<boolean> {
-    return this.priceExists(
-      and(
-        eq(supplierItemPrices.supplierItemId, supplierItemId),
-        rowStratumSql(siteId),
-        sql`${supplierItemPrices.validFrom} > ${validFrom}::date`,
-      ) as SQL,
-    );
-  }
-
-  // Returns paginated per-site override rows of a supplier item
-  async findItemSitesForTable(
+  // Returns paginated site rows of a supplier item
+  findItemSitesForTable(
     supplierItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{ result: SupplierItemSite[]; count: number }> {
-    const baseWhere = eq(supplierItemSites.supplierItemId, supplierItemId);
-    const where = options.where ? (and(baseWhere, options.where) as SQL) : baseWhere;
+    const scope = eq(supplierItems.id, supplierItemId);
+    return this.findAllAndCount<SupplierItemSite>({
+      select: getColumns(supplierItemSites),
+      innerJoin: { table: supplierItemSites, on: eq(supplierItemSites.supplierItemId, supplierItems.id) },
+      where: options.where ? and(scope, options.where) : scope,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierItemSites.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
+  }
 
-    const rowsPromise = this.db
+  async findItemSite(supplierItemId: string, siteId: string): Promise<SupplierItemSite | undefined> {
+    const [row] = await this.db
       .select()
       .from(supplierItemSites)
-      .where(where)
-      .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(supplierItemSites.createdAt)]))
-      .limit(options.limit)
-      .offset(options.offset);
-
-    const countPromise = this.db.select({ count: sql<number>`count(*)::int` }).from(supplierItemSites).where(where);
-
-    const [rows, countResult] = await Promise.all([rowsPromise, countPromise]);
-    return { result: rows as SupplierItemSite[], count: countResult[0]?.count ?? 0 };
+      .where(and(eq(supplierItemSites.supplierItemId, supplierItemId), eq(supplierItemSites.siteId, siteId)))
+      .limit(1);
+    return row as SupplierItemSite | undefined;
   }
 
-  // Inserts or updates the per-site override for a (supplier item, site) pair
-  async upsertItemSite(data: NewSupplierItemSite): Promise<SupplierItemSite> {
+  async findItemSiteIds(supplierItemId: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ siteId: supplierItemSites.siteId })
+      .from(supplierItemSites)
+      .where(eq(supplierItemSites.supplierItemId, supplierItemId));
+    return rows.map((row) => row.siteId);
+  }
+
+  async findItemSitesFor(supplierItemIds: string[], siteIds: string[]): Promise<SupplierItemSite[]> {
+    if (supplierItemIds.length === 0 || siteIds.length === 0) return [];
+    const rows = await this.db
+      .select()
+      .from(supplierItemSites)
+      .where(
+        and(inArray(supplierItemSites.supplierItemId, supplierItemIds), inArray(supplierItemSites.siteId, siteIds)),
+      );
+    return rows as SupplierItemSite[];
+  }
+
+  async insertItemSites(rows: Omit<NewSupplierItemSite, 'organizationId'>[]): Promise<SupplierItemSite[]> {
+    if (rows.length === 0) return [];
+    return (await this.db.insert(supplierItemSites).values(rows).returning()) as SupplierItemSite[];
+  }
+
+  // How many price rows the supplier items have, and at how many sites — any price history blocks deleting them
+  async countPrices(supplierItemIds: string[]): Promise<{ prices: number; sites: number }> {
     const [row] = await this.db
-      .insert(supplierItemSites)
-      .values(data)
-      .onConflictDoUpdate({
-        target: [supplierItemSites.supplierItemId, supplierItemSites.siteId],
-        set: { leadTimeDays: data.leadTimeDays ?? null, minOrderQuantity: data.minOrderQuantity ?? null },
+      .select({
+        prices: sql<number>`count(*)::int`.mapWith(Number),
+        sites: sql<number>`count(distinct ${supplierItemPrices.siteId})::int`.mapWith(Number),
       })
-      .returning();
-    return row as SupplierItemSite;
+      .from(supplierItemPrices)
+      .where(inArray(supplierItemPrices.supplierItemId, supplierItemIds));
+    return { prices: row?.prices ?? 0, sites: row?.sites ?? 0 };
   }
 
-  // Loads a per-site override row by id
+  // Sets a supplier item's lead time on every site still following it; returns how many took it
+  async applyLeadTimeToSites(supplierItemIds: string[], leadTimeDays: number | null): Promise<number> {
+    if (supplierItemIds.length === 0) return 0;
+    const rows = await this.db
+      .update(supplierItemSites)
+      .set({ leadTimeDays })
+      .where(
+        and(
+          inArray(supplierItemSites.supplierItemId, supplierItemIds),
+          eq(supplierItemSites.isLeadTimeOverridden, false),
+        ),
+      )
+      .returning({ id: supplierItemSites.id });
+    return rows.length;
+  }
+
+  // Updates the supplier's items among the given ids; returns the ids updated
+  async bulkUpdateSupplierItems(
+    supplierId: string,
+    ids: string[],
+    data: Pick<Partial<NewSupplierItem>, 'minOrderQuantity' | 'leadTimeDays'>,
+  ): Promise<string[]> {
+    const rows = await this.db
+      .update(supplierItems)
+      .set(data)
+      .where(and(eq(supplierItems.supplierId, supplierId), inArray(supplierItems.id, ids)))
+      .returning({ id: supplierItems.id });
+    return rows.map((row) => row.id);
+  }
+
+  // Clears the preferred flag of every other supplier for an inventory item at a site
+  async clearPreferredAtSite(inventoryItemId: string, siteId: string, exceptItemSiteId: string): Promise<void> {
+    await this.db
+      .update(supplierItemSites)
+      .set({ isPreferred: false })
+      .where(
+        and(
+          eq(supplierItemSites.inventoryItemId, inventoryItemId),
+          eq(supplierItemSites.siteId, siteId),
+          eq(supplierItemSites.isPreferred, true),
+          ne(supplierItemSites.id, exceptItemSiteId),
+        ),
+      );
+  }
+
+  // Loads a site row by id
   async findItemSiteById(id: string): Promise<SupplierItemSite | undefined> {
     const [row] = await this.db.select().from(supplierItemSites).where(eq(supplierItemSites.id, id)).limit(1);
     return row as SupplierItemSite | undefined;
   }
 
-  // Updates a per-site override row by id
+  // Updates a site row by id
   async updateItemSite(id: string, data: Partial<NewSupplierItemSite>): Promise<void> {
     await this.db.update(supplierItemSites).set(data).where(eq(supplierItemSites.id, id));
   }
 
-  // Deletes a per-site override row by id
+  // Deletes a site row by id
   async deleteItemSite(id: string): Promise<void> {
     await this.db.delete(supplierItemSites).where(eq(supplierItemSites.id, id));
   }

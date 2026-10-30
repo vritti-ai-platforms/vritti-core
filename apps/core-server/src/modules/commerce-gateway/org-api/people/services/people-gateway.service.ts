@@ -302,6 +302,11 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.people.registrations.update', { id: registrationId, ...dto });
   }
 
+  setRegistrationActive(registrationId: string, isActive: boolean): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.registrations.setActive — id: ${registrationId}, isActive: ${isActive}`);
+    return this.nats.send('commerce', 'org.people.registrations.setActive', { id: registrationId, isActive });
+  }
+
   // Deletes a person tax registration by ID
   deleteRegistration(registrationId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.people.registrations.delete — id: ${registrationId}`);

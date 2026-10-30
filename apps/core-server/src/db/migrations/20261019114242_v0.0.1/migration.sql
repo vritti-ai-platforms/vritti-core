@@ -1,1 +1,0 @@
-ALTER TABLE "core"."apps" ADD COLUMN "base_url" varchar(2000);

@@ -1,5 +1,7 @@
+import { Body } from '@nestjs/common';
 import { ForbiddenException } from '@vritti/api-sdk/exceptions';
 import { of } from 'rxjs';
+import { FieldPermission } from '../decorators/field-permission.decorator';
 import { REQUIRE_FEATURE_KEY, SKIP_FEATURE_KEY } from '../decorators/require-feature.decorator';
 import { REQUIRE_PERMISSION_KEY } from '../decorators/require-permission.decorator';
 
@@ -348,5 +350,76 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
         'http',
       );
     });
+  });
+});
+
+describe('PermissionInterceptor — @FieldPermission enforcement', () => {
+  class CreateItemDto {
+    @FieldPermission(['org.offerings.add', 'org.offerings.variants.add'], (value) => value === true)
+    createOffering!: boolean;
+  }
+
+  class ItemsController {
+    create(@Body() _dto: CreateItemDto) {}
+  }
+
+  const NEXT = of('handler-result');
+  let reflectorReturns: Record<string, unknown>;
+  let enabled: Set<string>;
+  let interceptor: PermissionInterceptor;
+  let next: { handle: jest.Mock };
+
+  const context = () =>
+    ({
+      getClass: () => ItemsController,
+      getHandler: () => ItemsController.prototype.create,
+      getType: () => 'http',
+    }) as Any;
+
+  const send = (body: unknown) =>
+    mockGetRequest.mockReturnValue({
+      method: 'POST',
+      url: '/commerce-api/org/inventory-items',
+      body,
+      auth: { kind: 'session', userId: 'u1', organizationId: 'o1', sessionType: 'WEB' },
+    });
+
+  beforeEach(() => {
+    reflectorReturns = {};
+    enabled = new Set(['org.inventory-items.add']);
+    const reflector = { getAllAndOverride: (key: string) => reflectorReturns[key] } as Any;
+    const userPermissions = {
+      resolveEnabledPermissions: jest.fn(async () => enabled),
+      resolveAvailableFeatures: jest.fn().mockResolvedValue(new Set<string>()),
+    };
+    const primaryDb = { runWithRlsContext: jest.fn((_ctx: unknown, fn: () => unknown) => fn()) } as Any;
+    interceptor = new PermissionInterceptor(reflector, userPermissions as Any, primaryDb);
+    next = { handle: jest.fn().mockReturnValue(NEXT) };
+    reflectorReturns[REQUIRE_PERMISSION_KEY] = 'org.inventory-items.add';
+  });
+
+  it('passes when the gated field is not used', async () => {
+    send({ createOffering: false });
+    await expect(interceptor.intercept(context(), next as Any)).resolves.toBe(NEXT);
+  });
+
+  it('denies when the gated field is used without every code', async () => {
+    send({ createOffering: true });
+    enabled.add('org.offerings.add');
+    await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
+    expect(next.handle).not.toHaveBeenCalled();
+  });
+
+  it('allows when the gated field is used with every code', async () => {
+    send({ createOffering: true });
+    enabled.add('org.offerings.add');
+    enabled.add('org.offerings.variants.add');
+    await expect(interceptor.intercept(context(), next as Any)).resolves.toBe(NEXT);
+  });
+
+  it('enforces a used gated field even on a route without @RequirePermission', async () => {
+    reflectorReturns = {};
+    send({ createOffering: true });
+    await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

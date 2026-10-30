@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsEmail, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateSupplierDto {
   @Trim({ nullify: false })
@@ -10,18 +10,10 @@ export class UpdateSupplierDto {
   @MaxLength(100)
   code?: string;
 
-  @Trim()
-  @ApiPropertyOptional({ description: 'Updated payment terms' })
+  @ApiPropertyOptional({ description: 'Payment term new site enrollments start from', nullable: true })
   @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  paymentTerms?: string | null;
-
-  @ApiPropertyOptional({ description: 'Updated lead time in days' })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  leadTimeDays?: number | null;
+  @IsUUID('7')
+  defaultPaymentTermId?: string | null;
 
   @Trim()
   @ApiPropertyOptional({ description: 'Updated notes' })
@@ -29,11 +21,6 @@ export class UpdateSupplierDto {
   @IsString()
   @MaxLength(500)
   notes?: string | null;
-
-  @ApiPropertyOptional({ description: 'Whether supplier is active' })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 
   @ApiPropertyOptional({ description: 'Block new purchase orders for this supplier' })
   @IsOptional()

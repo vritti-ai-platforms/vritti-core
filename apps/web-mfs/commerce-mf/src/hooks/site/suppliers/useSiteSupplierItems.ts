@@ -2,17 +2,17 @@ import { type UseQueryOptions, useQuery, useSuspenseQuery } from '@tanstack/reac
 import { SITE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { AxiosError } from 'axios';
-import type { SupplierItemData, SupplierItemsTableResponse } from '@/schemas/suppliers';
+import type { SiteSupplierItemDetail, SiteSupplierItemsTableResponse } from '@/schemas/suppliers';
 import { getSiteSupplierItem, getSiteSupplierItemsTable } from '@/services/site/suppliers.service';
 import { SITE_SUPPLIER_ITEM_KEY, SITE_SUPPLIER_ITEMS_TABLE_KEY } from './keys';
 
 // Fetches an enrolled supplier's items; self-gates on the items view permission
 export function useSiteSupplierItemsTable(
   supplierId: string,
-  options?: Omit<UseQueryOptions<SupplierItemsTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
+  options?: Omit<UseQueryOptions<SiteSupplierItemsTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
   const { available } = usePermission(SITE_SUPPLIERS.items.view);
-  return useQuery<SupplierItemsTableResponse, AxiosError>({
+  return useQuery<SiteSupplierItemsTableResponse, AxiosError>({
     queryKey: SITE_SUPPLIER_ITEMS_TABLE_KEY(supplierId),
     queryFn: () => getSiteSupplierItemsTable(supplierId),
     ...options,
@@ -22,7 +22,7 @@ export function useSiteSupplierItemsTable(
 
 // Fetches a single enrolled supplier item detail
 export function useSiteSupplierItem(supplierId: string, itemId: string) {
-  return useSuspenseQuery<SupplierItemData, AxiosError>({
+  return useSuspenseQuery<SiteSupplierItemDetail, AxiosError>({
     queryKey: SITE_SUPPLIER_ITEM_KEY(supplierId, itemId),
     queryFn: () => getSiteSupplierItem({ supplierId, itemId }),
   });

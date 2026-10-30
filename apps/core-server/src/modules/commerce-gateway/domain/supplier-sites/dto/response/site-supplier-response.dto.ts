@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { SITE_ENROLLMENT_STATUSES, type SiteEnrollmentStatus } from './site-supplier-list-row-response.dto';
 
 export class SiteSupplierResponseDto {
   @ApiProperty({ description: 'Supplier ID' })
@@ -16,12 +17,6 @@ export class SiteSupplierResponseDto {
   @ApiProperty({ description: 'Default supplier currency code (ISO 4217)', example: 'INR' })
   currencyCode: string;
 
-  @ApiPropertyOptional({ description: 'Payment terms', nullable: true })
-  paymentTerms: string | null;
-
-  @ApiPropertyOptional({ description: 'Default lead time in days', nullable: true })
-  leadTimeDays: number | null;
-
   @ApiProperty({ description: 'Whether purchasing from this supplier is blocked' })
   purchasingBlocked: boolean;
 
@@ -37,10 +32,25 @@ export class SiteSupplierResponseDto {
   @ApiProperty({ description: 'Whether the supplier is active' })
   isActive: boolean;
 
-  @ApiProperty({ description: 'Site enrollment ID' })
-  enrollmentId: string;
+  @ApiPropertyOptional({ description: 'Payment term new enrollments start from', nullable: true })
+  defaultPaymentTermId: string | null;
 
-  @ApiPropertyOptional({ description: 'Party tax registration pick for this site', nullable: true })
+  @ApiProperty({ description: 'Whether the supplier is enrolled at the site', enum: SITE_ENROLLMENT_STATUSES })
+  enrollmentStatus: SiteEnrollmentStatus;
+
+  @ApiPropertyOptional({ description: "The site's enrollment of the supplier, when enrolled", nullable: true })
+  enrollmentId: string | null;
+
+  @ApiPropertyOptional({ description: 'Payment term the site buys on, when enrolled', nullable: true })
+  paymentTermId: string | null;
+
+  @ApiPropertyOptional({ description: 'Name of the payment term, when enrolled', nullable: true })
+  paymentTermName: string | null;
+
+  @ApiPropertyOptional({
+    description: "Supplier's tax registration the site is billed under, when enrolled",
+    nullable: true,
+  })
   partyTaxRegistrationId: string | null;
 
   @ApiPropertyOptional({ description: 'Registration number of the picked tax registration', nullable: true })
@@ -52,9 +62,9 @@ export class SiteSupplierResponseDto {
   @ApiPropertyOptional({ description: 'Account name of the picked bank account', nullable: true })
   bankAccountName: string | null;
 
-  @ApiProperty({ description: 'Whether the site enrollment is active' })
-  enrollmentActive: boolean;
+  @ApiPropertyOptional({ description: 'Order contact (company-person relationship) for this site', nullable: true })
+  orderRelationshipId: string | null;
 
-  @ApiProperty({ description: 'ISO timestamp the enrollment was created' })
-  enrolledAt: string;
+  @ApiPropertyOptional({ description: 'ISO timestamp the enrollment was created, when enrolled', nullable: true })
+  enrolledAt: string | null;
 }

@@ -1,8 +1,22 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 
+// The commerce `tax_registration_type` enum — every registration form offers exactly these
 export const REGISTRATION_TYPES = ['GSTIN', 'VAT', 'TIN', 'PAN', 'OTHER'] as const;
 export type RegistrationType = (typeof REGISTRATION_TYPES)[number];
+
+export const REGISTRATION_TYPE_LABELS: Record<RegistrationType, string> = {
+  GSTIN: 'GSTIN',
+  VAT: 'VAT',
+  TIN: 'TIN',
+  PAN: 'PAN',
+  OTHER: 'Other',
+};
+
+export const REGISTRATION_TYPE_OPTIONS = REGISTRATION_TYPES.map((value) => ({
+  value,
+  label: REGISTRATION_TYPE_LABELS[value],
+}));
 
 export interface TaxRegistrationData {
   id: string;

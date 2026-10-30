@@ -1,1 +1,0 @@
-ALTER TABLE "commerce"."offering_variants" DROP COLUMN "sort_order";

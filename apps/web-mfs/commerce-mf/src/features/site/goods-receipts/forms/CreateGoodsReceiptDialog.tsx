@@ -12,6 +12,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateGoodsReceipt } from '@/hooks/site/goods-receipts/useCreateGoodsReceipt';
+import { useSiteId } from '@/hooks/site/useSiteId';
 import {
   type CreateGoodsReceiptFormData,
   createGoodsReceiptSchema,
@@ -33,6 +34,7 @@ interface PoSelection {
 
 export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> = ({ onSuccess, onCancel }) => {
   const buCurrencyCode = useBUCurrency();
+  const siteId = useSiteId();
   const form = useForm<CreateGoodsReceiptFormData>({
     resolver: zodResolver(createGoodsReceiptSchema),
     defaultValues: {
@@ -56,8 +58,10 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
   }, [form]);
 
   // Exchange-rate UX by context: sameCurrency hides the field, FIXED PO shows it read-only, else editable+required.
-  const sameCurrency = !!supplierCurrencyCode && supplierCurrencyCode === buCurrencyCode;
-  const showRateField = !!supplierCurrencyCode && !sameCurrency;
+  // Received against a PO, the goods are in the PO's currency; otherwise in the supplier's default
+  const receiptCurrencyCode = poSelection?.currencyCode ?? supplierCurrencyCode;
+  const sameCurrency = !!receiptCurrencyCode && receiptCurrencyCode === buCurrencyCode;
+  const showRateField = !!receiptCurrencyCode && !sameCurrency;
   const fixedFromPo = !!poSelection && poSelection.exchangeRateType === 'FIXED';
 
   // When a FIXED-rate PO is picked, mirror its rate into the read-only field for display; submit ignores it.
@@ -110,6 +114,7 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
         name="supplierId"
         label="Supplier"
         placeholder="Select supplier"
+        params={{ siteId, enrollmentStatus: 'ENROLLED' }}
         onOptionSelect={handleSupplierSelect}
       />
       <PurchaseOrderSelector
@@ -127,14 +132,14 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
       {showRateField && (
         <TextField
           name="exchangeRate"
-          label={`Exchange Rate (${supplierCurrencyCode} → ${buCurrencyCode})`}
+          label={`Exchange Rate (${receiptCurrencyCode} → ${buCurrencyCode})`}
           type="number"
           positive
           disabled={fixedFromPo}
           description={
             fixedFromPo
               ? 'Locked from the purchase order (FIXED rate).'
-              : 'Required — supplier currency differs from your site currency.'
+              : 'Required — the receipt currency differs from your site currency.'
           }
         />
       )}

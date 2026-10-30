@@ -24,6 +24,14 @@ export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<ty
     return this.db.select().from(inventoryItemSites).where(eq(inventoryItemSites.inventoryItemId, inventoryItemId));
   }
 
+  async insertMissing(siteId: string, inventoryItemIds: string[]): Promise<InventoryItemSite[]> {
+    return this.db
+      .insert(inventoryItemSites)
+      .values(inventoryItemIds.map((inventoryItemId) => ({ siteId, inventoryItemId })))
+      .onConflictDoNothing({ target: [inventoryItemSites.inventoryItemId, inventoryItemSites.siteId] })
+      .returning() as Promise<InventoryItemSite[]>;
+  }
+
   // Updates the reorder point for a projection row identified by (item, site)
   async updateReorder(inventoryItemId: string, siteId: string, reorderPoint: number): Promise<void> {
     await this.db

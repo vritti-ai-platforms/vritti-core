@@ -35,6 +35,7 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
               value={inventoryPickStrategyConfig[item.pickStrategy].label}
             />
             <DetailField label="HSN Code" type="string" value={item.hsnCode} mono />
+            <DetailField label="Tax Class" type="string" value={item.taxClassName} />
             <DetailField label="Description" type="string" value={item.description} className="col-span-full" />
           </div>
         </div>

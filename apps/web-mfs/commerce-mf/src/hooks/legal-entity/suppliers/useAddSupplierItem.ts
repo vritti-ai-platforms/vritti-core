@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { SupplierItemData } from '@/schemas/suppliers';
 import { type AddSupplierItemPayload, addSupplierItem } from '@/services/legal-entity/suppliers.service';
-import { SUPPLIER_ITEM_IDS_KEY, SUPPLIER_ITEMS_TABLE_KEY, SUPPLIER_KEY } from './keys';
+import { SUPPLIER_ITEMS_TABLE_KEY, SUPPLIER_KEY } from './keys';
 
 // Adds an inventory item to a supplier and invalidates the detail
 export function useAddSupplierItem(
@@ -18,7 +18,6 @@ export function useAddSupplierItem(
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(supplierId) });
       queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_IDS_KEY(supplierId) });
       options?.onSuccess?.(...args);
     },
   });

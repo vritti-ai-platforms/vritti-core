@@ -58,4 +58,9 @@ export class UpdateInventoryItemDto {
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
+
+  @ApiPropertyOptional({ description: 'Tax class the goods are bought under' })
+  @IsOptional()
+  @IsUUID('7')
+  taxClassId?: string;
 }

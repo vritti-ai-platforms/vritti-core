@@ -1,5 +1,6 @@
 import { CreatePersonDto } from '@commerce/parties/dto/request/create-person.dto';
 import { CreatePersonRegistrationDto } from '@commerce/parties/dto/request/create-person-registration.dto';
+import { SetRegistrationActiveDto } from '@commerce/parties/dto/request/set-registration-active.dto';
 import { UpdatePersonDto } from '@commerce/parties/dto/request/update-person.dto';
 import { UpdatePersonRegistrationDto } from '@commerce/parties/dto/request/update-person-registration.dto';
 import type { PersonRegistrationResponseDto } from '@commerce/parties/dto/response/person-registration-response.dto';
@@ -206,6 +207,18 @@ export class PeopleGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/people/${id}/registrations/${registrationId}`);
     return this.service.updateRegistration(registrationId, dto);
+  }
+
+  // Activates or retires a person tax registration
+  @Patch(':id/registrations/:registrationId/active')
+  @RequirePermission(ORG_PEOPLE.registrations.edit)
+  setRegistrationActive(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('registrationId', new ParseUUIDPipe()) registrationId: string,
+    @Body() dto: SetRegistrationActiveDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/people/${id}/registrations/${registrationId}/active`);
+    return this.service.setRegistrationActive(registrationId, dto.isActive);
   }
 
   // Deletes a person tax registration

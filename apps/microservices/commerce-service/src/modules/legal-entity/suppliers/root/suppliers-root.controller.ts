@@ -1,6 +1,8 @@
 import type { SupplierDetailDto, SupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
+import { BulkSetSupplierActiveDto } from '@domain/suppliers/dto/request/bulk-set-supplier-active.dto';
 import { ChangeSupplierCurrencyDto } from '@domain/suppliers/dto/request/change-supplier-currency.dto';
 import { CreateSupplierDto } from '@domain/suppliers/dto/request/create-supplier.dto';
+import { SetSupplierActiveDto } from '@domain/suppliers/dto/request/set-supplier-active.dto';
 import { UpdateSupplierDto } from '@domain/suppliers/dto/request/update-supplier.dto';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { Controller, Logger } from '@nestjs/common';
@@ -41,6 +43,18 @@ export class SuppliersRootController {
     const { id, ...updateData } = dto;
     this.logger.log('suppliers.update');
     return this.service.update(id, updateData);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.setActive' })
+  async setActive(@Payload() dto: SetSupplierActiveDto): Promise<SuccessResponseDto> {
+    this.logger.log(`suppliers.setActive — id: ${dto.id}, isActive: ${dto.isActive}`);
+    return this.service.setActive(dto.id, dto.isActive);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.bulkSetActive' })
+  async bulkSetActive(@Payload() dto: BulkSetSupplierActiveDto): Promise<SuccessResponseDto> {
+    this.logger.log(`suppliers.bulkSetActive — ${dto.ids.length} selected, isActive: ${dto.isActive}`);
+    return this.service.bulkSetActive(dto.ids, dto.isActive);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.delete' })

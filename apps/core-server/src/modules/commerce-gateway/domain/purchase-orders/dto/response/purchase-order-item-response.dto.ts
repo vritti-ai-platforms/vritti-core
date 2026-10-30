@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 export class PurchaseOrderItemResponseDto {
@@ -25,6 +25,14 @@ export class PurchaseOrderItemResponseDto {
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Line total in PO/supplier currency' })
   totalPrice: CurrencyAmountDto;
+
+  @ApiPropertyOptional({
+    type: CurrencyAmountDto,
+    nullable: true,
+    description:
+      "The supplier item's own price when it is in another currency than the PO; unitPrice is its conversion",
+  })
+  sourceUnitPrice: CurrencyAmountDto | null;
 
   @ApiProperty({ description: 'Free-goods scheme buy qty (e.g. 9 in "9+1").', nullable: true })
   schemeBuyQty: number | null;

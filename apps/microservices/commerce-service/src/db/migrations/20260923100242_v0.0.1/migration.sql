@@ -1,1 +1,0 @@
-ALTER TABLE "commerce"."offering_variants" ALTER COLUMN "fulfilment_type" SET NOT NULL;

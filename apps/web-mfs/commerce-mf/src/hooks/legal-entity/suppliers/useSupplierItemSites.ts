@@ -18,7 +18,7 @@ import {
   type UpdateSupplierItemSitePayload,
   updateSupplierItemSite,
 } from '@/services/legal-entity/suppliers.service';
-import { SUPPLIER_ITEM_SITES_TABLE_KEY } from './keys';
+import { SUPPLIER_ITEM_KEY, SUPPLIER_ITEM_SITES_TABLE_KEY, SUPPLIER_ITEMS_TABLE_KEY } from './keys';
 
 // Fetches a supplier item's per-site overrides; self-gates on the items view permission
 export function useSupplierItemSitesTable(
@@ -26,7 +26,7 @@ export function useSupplierItemSitesTable(
   itemId: string,
   options?: Omit<UseQueryOptions<SupplierItemSitesTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(LE_SUPPLIERS.items.view);
+  const { available } = usePermission(LE_SUPPLIERS.sites.items.view);
   return useQuery<SupplierItemSitesTableResponse, AxiosError>({
     queryKey: SUPPLIER_ITEM_SITES_TABLE_KEY(supplierId, itemId),
     queryFn: () => getSupplierItemSitesTable({ supplierId, itemId }),
@@ -45,7 +45,8 @@ export function useAddSupplierItemSite(
     ...options,
     mutationFn: (data) => addSupplierItemSite({ supplierId, itemId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_SITES_TABLE_KEY(supplierId, itemId) });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_KEY(supplierId, itemId) });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
       options?.onSuccess?.(...args);
     },
   });
@@ -66,7 +67,8 @@ export function useUpdateSupplierItemSite(
     ...options,
     mutationFn: ({ rowId, data }) => updateSupplierItemSite({ supplierId, itemId, rowId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_SITES_TABLE_KEY(supplierId, itemId) });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_KEY(supplierId, itemId) });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
       options?.onSuccess?.(...args);
     },
   });
@@ -82,7 +84,8 @@ export function useDeleteSupplierItemSite(
     ...options,
     mutationFn: (rowId) => deleteSupplierItemSite({ supplierId, itemId, rowId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_SITES_TABLE_KEY(supplierId, itemId) });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_KEY(supplierId, itemId) });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
       options?.onSuccess?.(...args);
     },
   });

@@ -1,1 +1,0 @@
-ALTER TABLE "core"."payment_gateway_configs" ADD COLUMN "verified_at" timestamp;

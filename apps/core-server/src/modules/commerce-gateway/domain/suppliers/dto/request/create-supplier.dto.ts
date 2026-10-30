@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
 import { IsCurrencyCode } from '@vritti/api-sdk/money';
-import { IsBoolean, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateSupplierDto {
   @ApiProperty({ description: 'The party (COMPANY or PERSON) this supplier represents' })
@@ -20,18 +20,20 @@ export class CreateSupplierDto {
   @IsCurrencyCode()
   currencyCode: string;
 
-  @Trim()
-  @ApiPropertyOptional({ description: 'Payment terms', example: 'Net 30' })
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Further currencies the supplier trades in; the default is always included',
+    example: ['USD'],
+  })
   @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  paymentTerms?: string | null;
+  @IsArray()
+  @IsCurrencyCode({ each: true })
+  currencyCodes?: string[];
 
-  @ApiPropertyOptional({ description: 'Default lead time in days', example: 7 })
+  @ApiPropertyOptional({ description: 'Payment term new site enrollments start from', nullable: true })
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  leadTimeDays?: number;
+  @IsUUID('7')
+  defaultPaymentTermId?: string | null;
 
   @Trim()
   @ApiPropertyOptional({ description: 'Additional notes' })

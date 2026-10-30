@@ -1,6 +1,9 @@
+import type { GroupInventoryItemDto } from '@domain/inventory-items/dto/entity/scoped-inventory-item.dto';
 import { GroupMatrixQueryDto } from '@domain/inventory-items/dto/request/group-matrix-query.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import type { TableViewState } from '@vritti/api-sdk/data-table';
+import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type {
   SiteGroupInventoryItemDto,
   SiteGroupItemAvailabilityDto,
@@ -14,10 +17,20 @@ export class SiteGroupInventoryItemsController {
 
   constructor(private readonly service: SiteGroupInventoryItemsService) {}
 
-  // Full item × site availability matrix across the group's sites
+  // Every master item with how many of the group's sites have it enabled
   @MessagePattern({ cmd: 'sg.inventoryItems.table' })
-  async table(@Payload() query: GroupMatrixQueryDto): Promise<SiteGroupInventoryItemDto[]> {
-    this.logger.log(`inventoryItems.table — sites: ${query.siteIds.length}`);
+  async table(
+    @Payload() state: TableViewState,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<{ result: GroupInventoryItemDto[]; count: number }> {
+    this.logger.log('inventoryItems.table');
+    return this.service.findForTable(state, headers.siteIds ? headers.siteIds.split(',') : []);
+  }
+
+  // Full item × site availability matrix across the group's sites
+  @MessagePattern({ cmd: 'sg.inventoryItems.matrix' })
+  async matrix(@Payload() query: GroupMatrixQueryDto): Promise<SiteGroupInventoryItemDto[]> {
+    this.logger.log(`inventoryItems.matrix — sites: ${query.siteIds.length}`);
     return this.service.findMatrix(query.siteIds);
   }
 

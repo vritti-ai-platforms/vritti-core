@@ -13,6 +13,7 @@ import {
   createPersonRegistration,
   deletePersonRegistration,
   getPersonRegistrations,
+  setPersonRegistrationActive,
   updatePersonRegistration,
 } from '@/services/organization/people.service';
 import { PERSON_KEY, PERSON_REGISTRATIONS_TABLE_KEY } from './keys';
@@ -47,6 +48,11 @@ export function useCreatePersonRegistration(
   });
 }
 
+interface SetRegistrationActiveVars {
+  registrationId: string;
+  isActive: boolean;
+}
+
 interface UpdateRegistrationVars {
   registrationId: string;
   data: PartyRegistrationFormData;
@@ -78,6 +84,22 @@ export function useDeletePersonRegistration(
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: PERSON_REGISTRATIONS_TABLE_KEY(personId) });
       queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+// Activates or retires a registration through its dedicated status endpoint
+export function useSetPersonRegistrationActive(
+  personId: string,
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetRegistrationActiveVars>, 'mutationFn'>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation<SuccessResponse, AxiosError, SetRegistrationActiveVars>({
+    ...options,
+    mutationFn: ({ registrationId, isActive }) => setPersonRegistrationActive({ personId, registrationId, isActive }),
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: PERSON_REGISTRATIONS_TABLE_KEY(personId) });
       options?.onSuccess?.(...args);
     },
   });

@@ -152,6 +152,11 @@ export class CompaniesGatewayService {
     return this.nats.send('commerce', 'org.companies.registrations.update', { id: registrationId, ...dto });
   }
 
+  setRegistrationActive(registrationId: string, isActive: boolean): Promise<SuccessResponseDto> {
+    this.logger.log(`org.companies.registrations.setActive — id: ${registrationId}, isActive: ${isActive}`);
+    return this.nats.send('commerce', 'org.companies.registrations.setActive', { id: registrationId, isActive });
+  }
+
   // Deletes a company tax registration by ID
   deleteRegistration(registrationId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.companies.registrations.delete — id: ${registrationId}`);

@@ -1,16 +1,20 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, Min } from 'class-validator';
 
 export class UpdateSupplierItemSiteDto {
-  @ApiPropertyOptional({ description: 'Site-specific lead time in days', example: 5 })
+  @ApiPropertyOptional({ description: 'Whether this is the preferred supplier for the item at the site' })
+  @IsOptional()
+  @IsBoolean()
+  isPreferred?: boolean;
+
+  @ApiPropertyOptional({ description: "Pins a lead time to this site instead of the supplier item's", example: 5 })
   @IsOptional()
   @IsInt()
   @Min(0)
   leadTimeDays?: number | null;
 
-  @ApiPropertyOptional({ description: 'Site-specific minimum order quantity', example: 10 })
+  @ApiPropertyOptional({ description: "Drops the site's own lead time and follows the supplier item's again" })
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  minOrderQuantity?: number | null;
+  @IsBoolean()
+  followItemLeadTime?: boolean;
 }

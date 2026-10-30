@@ -9,6 +9,11 @@ export class BulkSetSupplierItemPreferredDto {
   @IsUUID('7', { each: true })
   supplierItemIds: string[];
 
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('7', { each: true })
+  siteIds: string[];
+
   @IsBoolean()
   isPreferred: boolean;
 }

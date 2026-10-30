@@ -28,6 +28,7 @@ import {
   useDeleteCompanySocialProfile,
   useRemoveCompanyAddress,
   useRemoveCompanyIdentifier,
+  useSetCompanyRegistrationActive,
   useUpdateCompanyAddress,
   useUpdateCompanyBankAccount,
   useUpdateCompanyCommunication,
@@ -85,6 +86,7 @@ export const companyBindings: {
     useList: useCompanyRegistrationsTable,
     useCreate: useCreateCompanyRegistration,
     useUpdate: useUpdateCompanyRegistration,
+    useSetActive: useSetCompanyRegistrationActive,
     useRemove: useDeleteCompanyRegistration,
   },
   licenses: {

@@ -13,6 +13,7 @@ import {
   createCompanyRegistration,
   deleteCompanyRegistration,
   getCompanyRegistrations,
+  setCompanyRegistrationActive,
   updateCompanyRegistration,
 } from '@/services/organization/companies.service';
 import { COMPANY_KEY, COMPANY_REGISTRATIONS_TABLE_KEY } from './keys';
@@ -47,6 +48,11 @@ export function useCreateCompanyRegistration(
   });
 }
 
+interface SetRegistrationActiveVars {
+  registrationId: string;
+  isActive: boolean;
+}
+
 interface UpdateRegistrationVars {
   registrationId: string;
   data: CompanyRegistrationFormData;
@@ -78,6 +84,22 @@ export function useDeleteCompanyRegistration(
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: COMPANY_REGISTRATIONS_TABLE_KEY(companyId) });
       queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+// Activates or retires a registration through its dedicated status endpoint
+export function useSetCompanyRegistrationActive(
+  companyId: string,
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, SetRegistrationActiveVars>, 'mutationFn'>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation<SuccessResponse, AxiosError, SetRegistrationActiveVars>({
+    ...options,
+    mutationFn: ({ registrationId, isActive }) => setCompanyRegistrationActive({ companyId, registrationId, isActive }),
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: COMPANY_REGISTRATIONS_TABLE_KEY(companyId) });
       options?.onSuccess?.(...args);
     },
   });

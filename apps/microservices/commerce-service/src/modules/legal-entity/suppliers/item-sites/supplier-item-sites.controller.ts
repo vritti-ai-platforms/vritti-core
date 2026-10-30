@@ -13,7 +13,7 @@ export class SupplierItemSitesController {
 
   constructor(private readonly service: SupplierItemsDomainService) {}
 
-  // Returns the paginated per-site operational overrides of a supplier item
+  // Returns the paginated site rows of a supplier item
   @MessagePattern({ cmd: 'le.suppliers.itemSitesTable' })
   itemSitesTable(
     @Payload() data: { supplierItemId: string } & TableViewState,
@@ -23,27 +23,21 @@ export class SupplierItemSitesController {
     return this.service.findItemSitesForTable(supplierItemId, state);
   }
 
-  // Creates or replaces a per-site override for a supplier item
+  // Sets a supplier item up at a site
   @MessagePattern({ cmd: 'le.suppliers.addItemSite' })
   addItemSite(@Payload() dto: AddSupplierItemSiteDto): Promise<CreateResponseDto<SupplierItemSiteDto>> {
     this.logger.log(`suppliers.addItemSite — supplierItemId: ${dto.supplierItemId}, siteId: ${dto.siteId}`);
-    return this.service.upsertItemSite(dto.supplierItemId, dto.siteId, {
-      leadTimeDays: dto.leadTimeDays,
-      minOrderQuantity: dto.minOrderQuantity,
-    });
+    return this.service.addItemSite(dto);
   }
 
-  // Updates a per-site override by ID
+  // Updates a supplier item's settings at one site
   @MessagePattern({ cmd: 'le.suppliers.updateItemSite' })
   updateItemSite(@Payload() dto: UpdateSupplierItemSiteDto): Promise<SuccessResponseDto> {
     this.logger.log(`suppliers.updateItemSite — id: ${dto.id}`);
-    return this.service.updateItemSite(dto.id, {
-      leadTimeDays: dto.leadTimeDays,
-      minOrderQuantity: dto.minOrderQuantity,
-    });
+    return this.service.updateItemSite(dto);
   }
 
-  // Deletes a per-site override by ID
+  // Removes a supplier item from a site
   @MessagePattern({ cmd: 'le.suppliers.deleteItemSite' })
   deleteItemSite(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`suppliers.deleteItemSite — id: ${data.id}`);

@@ -325,8 +325,7 @@ export class PartiesDomainService {
     if (!existing) throw new NotFoundException('Tax registration not found.');
 
     const nextPrimary = data.isPrimary ?? existing.isPrimary;
-    const nextActive = data.isActive ?? existing.isActive;
-    if (nextPrimary && !nextActive) {
+    if (nextPrimary && !existing.isActive) {
       throw new ConflictException({
         label: 'Primary In Use',
         detail:
@@ -338,6 +337,26 @@ export class PartiesDomainService {
 
     this.logger.log(`Updated tax registration: ${id}`);
     return { success: true, message: 'Tax registration updated successfully.' };
+  }
+
+  // Activates or retires a tax registration; only active ones can be picked for a supplier's site enrollment, and the
+  // primary registration must stay active
+  async setRegistrationActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findRegistrationById(id);
+    if (!existing) throw new NotFoundException('Tax registration not found.');
+    if (!isActive && existing.isPrimary) {
+      throw new ConflictException({
+        label: 'Primary In Use',
+        detail:
+          'The primary registration must stay active. Set another registration as primary before retiring this one.',
+      });
+    }
+    await this.repository.updateRegistration(id, { isActive });
+    this.logger.log(`${isActive ? 'Activated' : 'Deactivated'} tax registration: ${id}`);
+    return {
+      success: true,
+      message: isActive ? 'Tax registration activated.' : 'Tax registration deactivated.',
+    };
   }
 
   // Deletes a party tax registration

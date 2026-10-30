@@ -2,6 +2,7 @@ import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purcha
 import { ChangePurchaseOrderExchangeRateDto } from '@domain/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import { ChangePurchaseOrderSupplierDto } from '@domain/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import { CreatePurchaseOrderDto } from '@domain/purchase-orders/dto/request/create-purchase-order.dto';
+import { SetPurchaseOrderConversionRateDto } from '@domain/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
 import { UpdatePurchaseOrderNotesDto } from '@domain/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@domain/purchase-orders/dto/request/update-purchase-order-status.dto';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
@@ -53,9 +54,10 @@ export class PurchaseOrdersRootController {
   changeSupplier(
     @Payload() dto: ChangePurchaseOrderSupplierDto,
     @RpcSiteId() siteId: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeSupplier — id: ${dto.id}, supplier: ${dto.supplierId}`);
-    return this.appService.changeSupplier(dto.id, dto, siteId);
+    return this.appService.changeSupplier(dto.id, dto, siteId, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'site.purchaseOrders.changeExchangeRate' })
@@ -65,6 +67,12 @@ export class PurchaseOrdersRootController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeExchangeRate — id: ${dto.id}, type: ${dto.exchangeRateType}`);
     return this.appService.changeExchangeRate(dto.id, dto, siteCurrencyCode);
+  }
+
+  @MessagePattern({ cmd: 'site.purchaseOrders.setConversionRate' })
+  setConversionRate(@Payload() dto: SetPurchaseOrderConversionRateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.setConversionRate — id: ${dto.id}, currency: ${dto.currencyCode}`);
+    return this.appService.setConversionRate(dto);
   }
 
   @MessagePattern({ cmd: 'site.purchaseOrders.closeShort' })

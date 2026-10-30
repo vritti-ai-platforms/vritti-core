@@ -1,1 +1,0 @@
-ALTER TABLE "core"."organizations" DROP COLUMN "logo_url";

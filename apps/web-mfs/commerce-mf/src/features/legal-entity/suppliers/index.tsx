@@ -1,28 +1,21 @@
-import { Suspense } from 'react';
-import type { RouteObject } from 'react-router-dom';
-import { SupplierDetailPage } from './SupplierDetailPage';
-import { SupplierDetailPageSkeleton } from './SupplierDetailPageSkeleton';
-import { SupplierItemDetailPage } from './SupplierItemDetailPage';
-import { SupplierItemDetailPageSkeleton } from './SupplierItemDetailPageSkeleton';
+import { Navigate, type RouteObject } from 'react-router-dom';
+import { SupplierChildPage } from './SupplierChildPage';
+import { SupplierGrandchildPage } from './SupplierGrandchildPage';
 import { SuppliersPage } from './SuppliersPage';
 
 const routes: RouteObject[] = [
   { index: true, element: <SuppliersPage /> },
+  // The supplier view always opens on a tab, so its bare URL lands on Overview
+  { path: ':supplierSlug', element: <Navigate to="overview" replace /> },
+  // A tab (plain word), a site (bare id) or an item (`name~uuid` slug) of the supplier — the segment's shape decides
   {
-    path: ':supplierSlug',
-    element: (
-      <Suspense fallback={<SupplierDetailPageSkeleton />}>
-        <SupplierDetailPage />
-      </Suspense>
-    ),
+    path: ':supplierSlug/:detail',
+    element: <SupplierChildPage />,
   },
+  // A site's item (bare-id site) or an item's tab (`name~uuid` item) — the middle segment's shape decides
   {
-    path: ':supplierSlug/items/:itemSlug',
-    element: (
-      <Suspense fallback={<SupplierItemDetailPageSkeleton />}>
-        <SupplierItemDetailPage />
-      </Suspense>
-    ),
+    path: ':supplierSlug/:detail/:subDetail',
+    element: <SupplierGrandchildPage />,
   },
 ];
 

@@ -8,7 +8,7 @@ import { OfferingSelector } from '@/utils/RemoteSelectors';
 interface OfferingSwitcherProps {
   // The raw `name~uuid` breadcrumb segment; the id addresses the API, the slug is the fallback label
   segment: string;
-  // The offerings root, e.g. `/<workspaceSlug>/offerings`
+  // The offerings root, e.g. `/<kind>/<id>/offerings`
   basePath: string;
 }
 

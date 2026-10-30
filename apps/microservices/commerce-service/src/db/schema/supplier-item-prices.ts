@@ -1,25 +1,47 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, date, decimal, index, pgPolicy, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  bigint,
+  boolean,
+  date,
+  decimal,
+  index,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { supplierPriceSourceEnum } from './enums';
+import { inventoryItemMrps } from './inventory-item-mrps';
+import { supplierQuotationSites } from './supplier-quotations';
 import { supplierItems } from './suppliers';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { organizationIdColumn, siteDocumentPolicies } from './workspace-scope';
 
 export const supplierItemPrices = commerceSchema.table(
   'supplier_item_prices',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
+    legalEntityId: uuid('legal_entity_id').notNull(),
+    siteId: uuid('site_id').notNull(),
     supplierItemId: uuid('supplier_item_id')
       .notNull()
-      .references(() => supplierItems.id, { onDelete: 'cascade' }),
-    siteId: uuid('site_id').default(sql.raw("cast(current_setting('app.site_id', true) as uuid)")),
+      // A priced supplier item cannot be deleted: its price history is never dropped with it
+      .references(() => supplierItems.id, { onDelete: 'restrict' }),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
+    // One of the supplier's currencies; each price carries its own, so a supplier can requote an item in another
+    currencyCode: varchar('currency_code', { length: 3 }).notNull(),
+    mrpId: uuid('mrp_id').references(() => inventoryItemMrps.id, { onDelete: 'restrict' }),
     schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
     schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),
+    taxInclusive: boolean('tax_inclusive').notNull().default(false),
     validFrom: date('valid_from', { mode: 'string' }).notNull(),
     validTo: date('valid_to', { mode: 'string' }),
     source: supplierPriceSourceEnum('source').notNull().default('MANUAL'),
+    // Set on rows a quotation posted; removing the quotation from the site removes them
+    quotationSiteId: uuid('quotation_site_id').references(() => supplierQuotationSites.id, { onDelete: 'restrict' }),
+    note: varchar('note', { length: 500 }),
+    createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -27,31 +49,13 @@ export const supplierItemPrices = commerceSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    uniqueIndex('uq_supplier_item_prices_site_from')
-      .on(table.supplierItemId, table.siteId, table.validFrom)
-      .where(sql`site_id IS NOT NULL`),
-    uniqueIndex('uq_supplier_item_prices_general_from')
-      .on(table.supplierItemId, table.validFrom)
-      .where(sql`site_id IS NULL`),
+    uniqueIndex('uq_supplier_item_prices_site_from').on(table.supplierItemId, table.siteId, table.validFrom),
     index('idx_supplier_item_prices_item').on(table.supplierItemId, table.validFrom),
     index('idx_supplier_item_prices_site').on(table.siteId),
-    orgIsolationPolicy(),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id IS NULL OR site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
+    index('idx_supplier_item_prices_le').on(table.legalEntityId),
+    index('idx_supplier_item_prices_mrp').on(table.mrpId),
+    index('idx_supplier_item_prices_quotation_site').on(table.quotationSiteId),
+    ...siteDocumentPolicies(),
   ],
 );
 

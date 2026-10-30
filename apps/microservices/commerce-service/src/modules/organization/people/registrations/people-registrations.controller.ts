@@ -39,6 +39,13 @@ export class PeopleRegistrationsController {
     return this.service.updateRegistration(id, payload);
   }
 
+  // Activates or retires a tax registration
+  @MessagePattern({ cmd: 'org.people.registrations.setActive' })
+  async setActive(@Payload() data: { id: string; isActive: boolean }): Promise<SuccessResponseDto> {
+    this.logger.log(`people.registrations.setActive — id: ${data.id}, isActive: ${data.isActive}`);
+    return this.service.setRegistrationActive(data.id, data.isActive);
+  }
+
   // Deletes a tax registration by ID
   @MessagePattern({ cmd: 'org.people.registrations.delete' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {

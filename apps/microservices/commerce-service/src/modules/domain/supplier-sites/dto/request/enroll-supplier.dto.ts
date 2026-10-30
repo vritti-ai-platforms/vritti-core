@@ -4,11 +4,17 @@ export class EnrollSupplierDto {
   @IsUUID('7')
   supplierId: string;
 
-  @IsOptional()
   @IsUUID('7')
-  partyTaxRegistrationId?: string | null;
+  paymentTermId: string;
+
+  @IsUUID('7')
+  partyTaxRegistrationId: string;
 
   @IsOptional()
   @IsUUID('7')
   partyBankAccountId?: string | null;
+
+  @IsOptional()
+  @IsUUID('7')
+  orderRelationshipId?: string | null;
 }

@@ -162,6 +162,22 @@ export class SelectApiResolver {
     return this.nats.send<SelectOptions>('commerce', 'select.suppliers', input ?? {});
   }
 
+  @Query(() => SelectOptions, { name: 'paymentTermsOptions' })
+  paymentTermsOptions(
+    @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
+  ): Promise<SelectOptions> {
+    this.logger.log('QUERY paymentTermsOptions');
+    return this.nats.send<SelectOptions>('commerce', 'select.paymentTerms', input ?? {});
+  }
+
+  @Query(() => SelectOptions, { name: 'taxClassesOptions' })
+  taxClassesOptions(
+    @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
+  ): Promise<SelectOptions> {
+    this.logger.log('QUERY taxClassesOptions');
+    return this.nats.send<SelectOptions>('commerce', 'select.taxClasses', input ?? {});
+  }
+
   @Query(() => SelectOptions, { name: 'taxGroupsOptions' })
   taxGroupsOptions(
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,

@@ -1,159 +1,92 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useDialog } from '@vritti/quantum-ui/hooks';
+import { type ColumnDef, NumberCell, type RowAction } from '@vritti/quantum-ui/DataTable';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { Eye, Package, Plus } from 'lucide-react';
-import { useMemo } from 'react';
+import { Eye, PackageCheck } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { InventoryItemsTable } from '@/components/inventory-items/InventoryItemsTable';
 import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/site/inventory-items';
-import type { InventoryItemData } from '@/schemas/inventory-items';
-import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
-import { CategoryFilter } from '@/selectors/category';
-import { UomFilter } from '@/selectors/uom';
+import type { SiteInventoryItemData } from '@/schemas/inventory-items';
 import { EnableInventoryItemDialog } from './forms/EnableInventoryItemDialog';
 
 export const InventoryItemsPage = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { data: response, isLoading } = useInventoryItemsTable();
-  const enableDialog = useDialog();
 
-  const columns = useMemo<ColumnDef<InventoryItemData>[]>(
+  const extraColumns = useMemo<ColumnDef<SiteInventoryItemData>[]>(
     () => [
       {
-        accessorKey: 'sku',
-        header: 'SKU',
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'name',
-        header: 'Name',
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'categoryName',
-        header: 'Category',
-        cell: ({ row }) => <StringCell value={row.original.categoryName} />,
+        accessorKey: 'isEnabled',
+        header: 'At This Site',
+        cell: ({ row }) =>
+          row.original.isEnabled ? (
+            <Badge variant="success">Enabled</Badge>
+          ) : (
+            <Badge variant="outline">Not enabled</Badge>
+          ),
         enableSorting: false,
       },
       {
-        accessorKey: 'type',
-        header: 'Type',
-        cell: ({ row }) => {
-          const config = inventoryItemTypeConfig[row.original.type];
-          return <Badge variant={config.variant}>{config.label}</Badge>;
+        accessorKey: 'stockedQuantity',
+        header: 'On Hand',
+        cell: ({ row }) => (row.original.isEnabled ? <NumberCell value={row.original.stockedQuantity} /> : '—'),
+        enableSorting: false,
+      },
+    ],
+    [],
+  );
+
+  const rowActions = useCallback(
+    (item: SiteInventoryItemData): RowAction[] => [
+      {
+        id: 'view',
+        icon: Eye,
+        label: 'View',
+        hidden: !item.isEnabled,
+        onClick: () => navigate(buildSlug(item.name, item.id)),
+      },
+      {
+        id: 'enable',
+        icon: PackageCheck,
+        label: 'Enable at Site',
+        permission: SITE_INVENTORY_ITEMS.enable,
+        hidden: item.isEnabled,
+        dialog: {
+          title: `Enable "${item.name}"`,
+          description: 'Start stocking this item at the site. Thresholds can be set now or later.',
+          content: (close) => <EnableInventoryItemDialog item={item} onSuccess={close} onCancel={close} />,
         },
-      },
-      {
-        accessorKey: 'tracking',
-        header: 'Tracking',
-        enableSorting: true,
-        cell: ({ row }) => inventoryTrackingConfig[row.original.tracking].label,
-      },
-      {
-        accessorKey: 'uomSymbol',
-        header: 'Unit',
-        cell: ({ row }) => <StringCell value={row.original.uomSymbol} />,
-        enableSorting: false,
-      },
-      {
-        id: 'actions',
-        header: '',
-        cell: ({ row }) => (
-          <RowActions
-            actions={[
-              {
-                id: 'view',
-                icon: Eye,
-                label: 'View',
-                onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
-              },
-            ]}
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
       },
     ],
     [navigate],
   );
 
-  const { table } = useDataTable({
-    columns,
-    slug: 'commerce-site-inventory-items',
-    label: 'inventory item',
-    serverState: response,
-    enableRowSelection: false,
-    enableSorting: true,
-    enableMultiSort: false,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: INVENTORY_ITEMS_TABLE_KEY }),
-  });
-
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Inventory Items" description="Items enabled and stocked at this site" />
+      <PageHeader title="Inventory Items" description="The organization's items, and which of them this site stocks" />
 
-      <DataTable
-        table={table}
+      <InventoryItemsTable
+        response={response}
         isLoading={isLoading}
-        searchConfig={{
-          columns: [
-            { id: 'name', label: 'Name' },
-            { id: 'sku', label: 'SKU' },
-          ],
-          searchAll: true,
-        }}
-        filters={[
+        slug="commerce-site-inventory-items"
+        tableKey={INVENTORY_ITEMS_TABLE_KEY}
+        permission={SITE_INVENTORY_ITEMS.view}
+        extraColumns={extraColumns}
+        extraFilters={[
           <SelectFilter
-            key="type"
-            name="type"
-            label="Type"
-            multiple
-            options={Object.entries(inventoryItemTypeConfig).map(([value, { label }]) => ({ label, value }))}
+            key="isEnabled"
+            name="isEnabled"
+            label="At This Site"
+            options={[
+              { label: 'Enabled', value: 'true' },
+              { label: 'Not enabled', value: 'false' },
+            ]}
           />,
-          <SelectFilter
-            key="tracking"
-            name="tracking"
-            label="Tracking"
-            multiple
-            options={Object.entries(inventoryTrackingConfig).map(([value, { label }]) => ({ label, value }))}
-          />,
-          <CategoryFilter key="categoryId" multiple />,
-          <UomFilter key="uomId" multiple />,
         ]}
-        toolbarActions={{
-          actions: (
-            <Button size="sm" onClick={enableDialog.open}>
-              <Plus className="mr-2 size-4" />
-              Enable at Site
-            </Button>
-          ),
-        }}
-        emptyStateConfig={{
-          icon: Package,
-          title: 'No inventory items',
-          description: 'Enable a master item at this site to start tracking stock.',
-          action: (
-            <Button onClick={enableDialog.open}>
-              <Plus className="mr-2 size-4" />
-              Enable at Site
-            </Button>
-          ),
-        }}
-      />
-
-      <Dialog
-        handle={enableDialog}
-        icon={Package}
-        title="Enable Inventory Item"
-        className="max-w-2xl"
-        description="Enable a master inventory item at this site and set its stock thresholds."
-        content={(close) => <EnableInventoryItemDialog onSuccess={close} onCancel={close} />}
+        rowActions={rowActions}
       />
     </div>
   );

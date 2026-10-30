@@ -15,7 +15,8 @@ export const InventoryItemFieldsFragment = graphql(`
     description
     uomId
     uomSymbol
-    purchaseTaxGroupId
+    taxClassId
+    taxClassName
     hsnCode
     canDelete
     createdAt

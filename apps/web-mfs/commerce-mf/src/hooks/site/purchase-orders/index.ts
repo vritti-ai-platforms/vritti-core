@@ -17,6 +17,7 @@ export { usePurchaseOrderItemsTable } from './usePurchaseOrderItemsTable';
 export { usePurchaseOrdersTable } from './usePurchaseOrdersTable';
 export { useRemovePurchaseOrderItem } from './useRemovePurchaseOrderItem';
 export { useSendPurchaseOrderEmail } from './useSendPurchaseOrderEmail';
+export { useSetPurchaseOrderConversionRate } from './useSetPurchaseOrderConversionRate';
 export { useUpdatePurchaseOrderItem } from './useUpdatePurchaseOrderItem';
 export { useUpdatePurchaseOrderNotes } from './useUpdatePurchaseOrderNotes';
 export { type UpdatePurchaseOrderStatusPayload, useUpdatePurchaseOrderStatus } from './useUpdatePurchaseOrderStatus';

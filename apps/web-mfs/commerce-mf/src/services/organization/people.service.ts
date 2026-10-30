@@ -185,6 +185,20 @@ export function updatePersonRegistration({
     .then((r) => r.data);
 }
 
+export function setPersonRegistrationActive({
+  personId,
+  registrationId,
+  isActive,
+}: {
+  personId: string;
+  registrationId: string;
+  isActive: boolean;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/people/${personId}/registrations/${registrationId}/active`, { isActive })
+    .then((r) => r.data);
+}
+
 export function deletePersonRegistration({
   personId,
   registrationId,

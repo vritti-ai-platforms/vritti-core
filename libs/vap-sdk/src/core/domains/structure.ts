@@ -1,9 +1,8 @@
 import type { ApolloClient } from '@apollo/client';
 import { APP_LEGAL_ENTITIES_QUERY, APP_SITES_QUERY } from '../graphql/structure.js';
 import { requireData, run } from '../transport/errors.js';
+import { cacheFor } from '../transport/response-cache-store.js';
 import { type RequestContext, withoutWorkspace } from '../types.js';
-
-const DEFAULT_STRUCTURE_CACHE_SECONDS = 300;
 
 export type StructureSiteType = 'OUTLET' | 'WAREHOUSE' | 'PRODUCTION';
 
@@ -35,14 +34,13 @@ export function createStructureOperations(client: ApolloClient, context: Request
     pick: (data: unknown) => T | null | undefined,
     options: { cacheSeconds?: number; variables?: Record<string, unknown> } = {},
   ): Promise<T> => {
-    const ttlSeconds = options.cacheSeconds ?? DEFAULT_STRUCTURE_CACHE_SECONDS;
     return run(async () => {
       const result = await client.query({
         query,
         ...(options.variables ? { variables: options.variables } : {}),
         context: {
           requestContext: withoutWorkspace(context),
-          ...(ttlSeconds > 0 ? { responseCache: { ttlSeconds } } : {}),
+          responseCache: cacheFor(options.cacheSeconds),
         },
       });
       return requireData(pick(result.data));

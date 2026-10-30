@@ -8,7 +8,7 @@ import { SmsProviderSelector } from '@/utils/RemoteSelectors';
 interface SmsProviderSwitcherProps {
   // The raw `name~uuid` breadcrumb segment; the id addresses the API, the slug is the fallback label
   segment: string;
-  // The providers root, e.g. `/<workspaceSlug>/sms-providers`
+  // The providers root, e.g. `/<kind>/<id>/sms-providers`
   basePath: string;
 }
 

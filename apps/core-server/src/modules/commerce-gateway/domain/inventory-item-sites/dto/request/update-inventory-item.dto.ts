@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
@@ -53,9 +53,10 @@ export class UpdateSiteInventoryItemDto {
   @IsEnum(['none', 'fifo', 'fefo'])
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
-  @ApiProperty({ description: 'Purchase tax group ID' })
+  @ApiPropertyOptional({ description: 'Tax class the goods are bought under' })
+  @IsOptional()
   @IsUUID('7')
-  purchaseTaxGroupId: string;
+  taxClassId?: string;
 
   @Trim()
   @ApiPropertyOptional({ description: 'HSN sku for tax reporting', nullable: true })

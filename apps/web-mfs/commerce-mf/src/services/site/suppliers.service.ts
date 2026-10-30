@@ -3,38 +3,48 @@ import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { SiteSupplierRow, SiteSuppliersTableResponse } from '@/schemas/site-suppliers';
 import type {
-  SupplierItemData,
+  SiteSupplierItemDetail,
+  SiteSupplierItemsTableResponse,
+  SupplierItemPriceHistory,
   SupplierItemPriceRow,
   SupplierItemPricesTableResponse,
-  SupplierItemsTableResponse,
 } from '@/schemas/suppliers';
+import type { PriceRange } from '@/utils/supplierPrice';
 
 const BASE = 'commerce-api/site/suppliers';
 
 export interface EnrollSiteSupplierPayload {
   supplierId: string;
-  partyTaxRegistrationId?: string | null;
+  paymentTermId: string;
+  partyTaxRegistrationId: string;
   partyBankAccountId?: string | null;
+  orderRelationshipId?: string | null;
 }
 
 export interface UpdateSiteEnrollmentPayload {
-  partyTaxRegistrationId?: string | null;
+  paymentTermId?: string;
+  partyTaxRegistrationId?: string;
   partyBankAccountId?: string | null;
-  isActive?: boolean;
+  orderRelationshipId?: string | null;
 }
 
 export interface AddSiteSupplierItemPricePayload {
   unitPrice?: CurrencyValue;
+  mrpId?: string;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
+  taxInclusive?: boolean;
   validFrom: string;
   validTo?: string | null;
+  note?: string;
 }
 
 export interface UpdateSiteSupplierItemPricePayload {
   unitPrice?: CurrencyValue;
+  mrpId?: string | null;
   schemeBuyQty?: number | null;
   schemeFreeQty?: number | null;
+  taxInclusive?: boolean;
   validTo?: string | null;
 }
 
@@ -70,9 +80,9 @@ export function unenrollSiteSupplier(supplierId: string): Promise<SuccessRespons
 }
 
 // Fetches an enrolled supplier's items for the table
-export function getSiteSupplierItemsTable(supplierId: string): Promise<SupplierItemsTableResponse> {
+export function getSiteSupplierItemsTable(supplierId: string): Promise<SiteSupplierItemsTableResponse> {
   return axios
-    .get<SupplierItemsTableResponse>(`${BASE}/${supplierId}/items/table`, { showSuccessToast: false })
+    .get<SiteSupplierItemsTableResponse>(`${BASE}/${supplierId}/items/table`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
@@ -83,10 +93,31 @@ export function getSiteSupplierItem({
 }: {
   supplierId: string;
   itemId: string;
-}): Promise<SupplierItemData> {
+}): Promise<SiteSupplierItemDetail> {
   return axios
-    .get<SupplierItemData>(`${BASE}/${supplierId}/items/${itemId}`, { showSuccessToast: false })
+    .get<SiteSupplierItemDetail>(`${BASE}/${supplierId}/items/${itemId}`, { showSuccessToast: false })
     .then((r) => r.data);
+}
+
+export interface UpdateSiteSupplierItemTermsPayload {
+  isPreferred?: boolean;
+  leadTimeDays?: number | null;
+  followItemLeadTime?: boolean;
+}
+
+// Updates this site's terms for a supplier item
+export function updateSiteSupplierItemTerms({
+  supplierId,
+  itemId,
+  rowId,
+  data,
+}: {
+  supplierId: string;
+  itemId: string;
+  rowId: string;
+  data: UpdateSiteSupplierItemTermsPayload;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${supplierId}/items/${itemId}/sites/${rowId}`, data).then((r) => r.data);
 }
 
 // Fetches the price timeline visible to this site for a supplier item
@@ -104,6 +135,24 @@ export function getSiteSupplierItemPricesTable({
     .then((r) => r.data);
 }
 
+// Fetches this site's price windows for a supplier item — unpaged, for charts
+export function getSiteSupplierItemPriceHistory({
+  supplierId,
+  itemId,
+  range,
+}: {
+  supplierId: string;
+  itemId: string;
+  range: PriceRange;
+}): Promise<SupplierItemPriceHistory> {
+  return axios
+    .get<SupplierItemPriceHistory>(`${BASE}/${supplierId}/items/${itemId}/prices/history`, {
+      params: { from: range.from, to: range.to },
+      showSuccessToast: false,
+    })
+    .then((r) => r.data);
+}
+
 // Adds a site-specific price record to a supplier item's timeline
 export function addSiteSupplierItemPrice({
   supplierId,
@@ -113,9 +162,9 @@ export function addSiteSupplierItemPrice({
   supplierId: string;
   itemId: string;
   data: AddSiteSupplierItemPricePayload;
-}): Promise<SupplierItemPriceRow> {
+}): Promise<SupplierItemPriceRow[]> {
   return axios
-    .post<CreateResponse<SupplierItemPriceRow>>(`${BASE}/${supplierId}/items/${itemId}/prices`, data)
+    .post<CreateResponse<SupplierItemPriceRow[]>>(`${BASE}/${supplierId}/items/${itemId}/prices`, data)
     .then((r) => r.data.data);
 }
 

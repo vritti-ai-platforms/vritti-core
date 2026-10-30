@@ -14,6 +14,7 @@ import { OfferingsDomainModule } from '@domain/offerings/offerings.module';
 import { PartiesDomainModule } from '@domain/parties/parties.module';
 import { PartyBankAccountsDomainModule } from '@domain/party-bank-accounts/party-bank-accounts.module';
 import { PartyRelationshipsDomainModule } from '@domain/party-relationships/party-relationships.module';
+import { PaymentTermsDomainModule } from '@domain/payment-terms/payment-terms.module';
 import { PosTerminalsDomainModule } from '@domain/pos-terminals/pos-terminals.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
@@ -53,6 +54,7 @@ import { SelectController } from './select.controller';
     CostCategoriesDomainModule,
     SupplierItemsDomainModule,
     SuppliersDomainModule,
+    PaymentTermsDomainModule,
     TaxClassesDomainModule,
     TaxComponentsDomainModule,
     TaxGroupsDomainModule,

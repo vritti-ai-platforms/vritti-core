@@ -1,1 +1,0 @@
-ALTER TABLE "core"."organizations" ALTER COLUMN "storage" SET NOT NULL;

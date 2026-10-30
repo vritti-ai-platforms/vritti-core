@@ -10,6 +10,8 @@ export class PurchaseOrderDto {
   currencyCode: string;
   exchangeRate: number | null;
   exchangeRateType: ExchangeRateType;
+  // Rates from other supplier currencies into the PO currency, as decimal strings: { "USD": "83.250000" }
+  conversionRates: Record<string, string>;
   orderDate: string;
   expectedBy: string | null;
   timezone: string;
@@ -29,6 +31,7 @@ export class PurchaseOrderDto {
     dto.currencyCode = entity.currencyCode;
     dto.exchangeRate = entity.exchangeRate;
     dto.exchangeRateType = entity.exchangeRateType;
+    dto.conversionRates = entity.conversionRates ?? {};
     dto.orderDate = entity.orderDate;
     dto.expectedBy = entity.expectedBy ?? null;
     dto.timezone = entity.timezone;
