@@ -46,7 +46,9 @@ export function vapCacheCollection(extraFields: Field[] = []): CollectionLike {
         name: 'response',
         type: 'relationship',
         relationTo: VAP_CACHE_RESPONSES_SLUG as CollectionSlug,
-        required: true,
+        // Not `required`: Payload keys a single relationship `ON DELETE set null` but adds `notNull` only when
+        // required, so a required one makes the sweep's delete of a response error instead of clearing the link. A key
+        // left pointing at nothing is simply a miss — the read joins it away — and core refills it.
         index: true,
         admin: {
           readOnly: true,
