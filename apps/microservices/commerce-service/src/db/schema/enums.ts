@@ -164,10 +164,6 @@ export const CreditNoteStatusValues = {
   FULLY_APPLIED: 'FULLY_APPLIED' as const,
 };
 
-export const fieldTypeEnum = commerceSchema.enum('field_type', ['text', 'number', 'boolean', 'select']);
-export const FieldTypeValues = { TEXT: 'text', NUMBER: 'number', BOOLEAN: 'boolean', SELECT: 'select' } as const;
-export type FieldType = (typeof fieldTypeEnum.enumValues)[number];
-
 export const locationRoleEnum = commerceSchema.enum('location_role', ['STORAGE', 'RESERVED_STORAGE', 'ZONE']);
 export const LocationRoleValues = {
   STORAGE: 'STORAGE' as const,
@@ -210,26 +206,26 @@ export const InventoryItemTypeValues = {
 export type InventoryItemType = (typeof inventoryItemTypeEnum.enumValues)[number];
 
 export const inventoryTrackingEnum = commerceSchema.enum('inventory_tracking', [
-  'quantity',
-  'lot',
-  'lot_serial',
-  'serial',
+  'QUANTITY',
+  'LOT',
+  'LOT_SERIAL',
+  'SERIAL',
 ]);
-export const InventoryTrackingValues = {
-  QUANTITY: 'quantity' as const,
-  LOT: 'lot' as const,
-  SERIAL: 'serial' as const,
-  LOT_SERIAL: 'lot_serial' as const,
-};
 export type InventoryTracking = (typeof inventoryTrackingEnum.enumValues)[number];
+export const InventoryTrackingValues = {
+  QUANTITY: 'QUANTITY',
+  LOT: 'LOT',
+  SERIAL: 'SERIAL',
+  LOT_SERIAL: 'LOT_SERIAL',
+} as const satisfies Record<InventoryTracking, InventoryTracking>;
 
-export const inventoryPickStrategyEnum = commerceSchema.enum('inventory_pick_strategy', ['none', 'fifo', 'fefo']);
-export const InventoryPickStrategyValues = {
-  NONE: 'none' as const,
-  FIFO: 'fifo' as const,
-  FEFO: 'fefo' as const,
-};
+export const inventoryPickStrategyEnum = commerceSchema.enum('inventory_pick_strategy', ['NONE', 'FIFO', 'FEFO']);
 export type InventoryPickStrategy = (typeof inventoryPickStrategyEnum.enumValues)[number];
+export const InventoryPickStrategyValues = {
+  NONE: 'NONE',
+  FIFO: 'FIFO',
+  FEFO: 'FEFO',
+} as const satisfies Record<InventoryPickStrategy, InventoryPickStrategy>;
 
 export const serialStatusEnum = commerceSchema.enum('quant_item_status', ['AVAILABLE', 'RESERVED', 'CONSUMED']);
 export const SerialStatusValues = {
@@ -401,30 +397,30 @@ export const CostCategoryKindValues = {
 export type CostCategoryKind = (typeof costCategoryKindEnum.enumValues)[number];
 
 export const costSourceTypeEnum = commerceSchema.enum('cost_source_type', [
-  'goods_receipt',
-  'stock_adjustment',
-  'stock_transfer',
-  'manual_adjustment',
+  'GOODS_RECEIPT',
+  'STOCK_ADJUSTMENT',
+  'STOCK_TRANSFER',
+  'MANUAL_ADJUSTMENT',
 ]);
-export const CostSourceTypeValues = {
-  GOODS_RECEIPT: 'goods_receipt' as const,
-  STOCK_ADJUSTMENT: 'stock_adjustment' as const,
-  STOCK_TRANSFER: 'stock_transfer' as const,
-  MANUAL_ADJUSTMENT: 'manual_adjustment' as const,
-};
 export type CostSourceType = (typeof costSourceTypeEnum.enumValues)[number];
+export const CostSourceTypeValues = {
+  GOODS_RECEIPT: 'GOODS_RECEIPT',
+  STOCK_ADJUSTMENT: 'STOCK_ADJUSTMENT',
+  STOCK_TRANSFER: 'STOCK_TRANSFER',
+  MANUAL_ADJUSTMENT: 'MANUAL_ADJUSTMENT',
+} as const satisfies Record<CostSourceType, CostSourceType>;
 
 export const costDistributionMethodEnum = commerceSchema.enum('cost_distribution_method', [
-  'by_value',
-  'by_quantity',
-  'equal',
+  'BY_VALUE',
+  'BY_QUANTITY',
+  'EQUAL',
 ]);
-export const CostDistributionMethodValues = {
-  BY_VALUE: 'by_value' as const,
-  BY_QUANTITY: 'by_quantity' as const,
-  EQUAL: 'equal' as const,
-};
 export type CostDistributionMethod = (typeof costDistributionMethodEnum.enumValues)[number];
+export const CostDistributionMethodValues = {
+  BY_VALUE: 'BY_VALUE',
+  BY_QUANTITY: 'BY_QUANTITY',
+  EQUAL: 'EQUAL',
+} as const satisfies Record<CostDistributionMethod, CostDistributionMethod>;
 
 export const taxAuthorityLevelEnum = commerceSchema.enum('tax_authority_level', [
   'FEDERAL',

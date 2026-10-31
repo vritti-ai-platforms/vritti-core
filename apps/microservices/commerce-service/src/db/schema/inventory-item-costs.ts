@@ -17,7 +17,7 @@ export const inventoryItemCosts = commerceSchema.table(
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     sourceType: costSourceTypeEnum('source_type').notNull(),
     sourceId: uuid('source_id').notNull(),
-    distributionMethod: costDistributionMethodEnum('distribution_method').notNull().default('by_value'),
+    distributionMethod: costDistributionMethodEnum('distribution_method').notNull().default('BY_VALUE'),
     unallocatedAmount: bigint('unallocated_amount', { mode: 'bigint' }).notNull().default(0n),
     vendorRef: varchar('vendor_ref', { length: 100 }),
     notes: text('notes'),

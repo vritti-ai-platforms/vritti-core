@@ -171,7 +171,7 @@ export class StockAdjustmentsService {
     return this.adjustmentsService.findById(id, siteCurrencyCode);
   }
 
-  // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials]).
+  // OPENING_STOCK: line carries (locationId, lot draft FK if not QUANTITY, quantity, [serials]).
   private async publishRegisterLine(
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string },
@@ -198,7 +198,7 @@ export class StockAdjustmentsService {
     let createParams: CreateQuantParams;
     if (tracking === InventoryTrackingValues.QUANTITY) {
       if (line.stockAdjustmentLotId) {
-        throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=quantity.`);
+        throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=QUANTITY.`);
       }
       createParams = {
         inventoryItemId: adjustment.inventoryItemId,
@@ -209,7 +209,7 @@ export class StockAdjustmentsService {
       };
     } else if (tracking === InventoryTrackingValues.SERIAL) {
       if (line.stockAdjustmentLotId) {
-        throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=serial.`);
+        throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=SERIAL.`);
       }
       const serials = lineItems.map((li) => li.serialNumber);
       if (serials.length !== line.uomQty) {
@@ -250,7 +250,7 @@ export class StockAdjustmentsService {
           ...costProvenance,
         };
       } else {
-        // tracking === 'lot_serial'
+        // tracking === LOT_SERIAL
         const serials = lineItems.map((li) => li.serialNumber);
         if (serials.length !== line.uomQty) {
           throw new BadRequestException(

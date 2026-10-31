@@ -36,7 +36,7 @@ export const InventoryItemDetailPage = () => {
             label: 'Stock',
             content: <StockLevelsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
           },
-          ...(item.tracking === 'lot' || item.tracking === 'lot_serial'
+          ...(item.tracking === 'LOT' || item.tracking === 'LOT_SERIAL'
             ? [
                 {
                   value: 'lots',

@@ -34,7 +34,7 @@ export const AddOpeningLineForm = ({
   onSuccess,
   onCancel,
 }: AddOpeningLineFormProps) => {
-  const isItem = tracking === 'serial' || tracking === 'lot_serial';
+  const isItem = tracking === 'SERIAL' || tracking === 'LOT_SERIAL';
   const [allowDecimal, setAllowDecimal] = useState(true);
   // Serial-tracked items are restricted to the primary UOM at the BE; we submit it directly.
 
@@ -43,7 +43,7 @@ export const AddOpeningLineForm = ({
     defaultValues: {
       stockAdjustmentLotId: stockAdjustmentLotId ?? undefined,
       uomId: primaryUomId,
-      // For tracking='serial', quantity is derived from serials count — start at 0 (server will refresh).
+      // For tracking='SERIAL', quantity is derived from serials count — start at 0 (server will refresh).
       uomQty: 0,
     },
   });

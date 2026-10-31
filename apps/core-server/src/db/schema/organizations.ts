@@ -13,7 +13,7 @@ export const organizations = coreSchema.table('organizations', {
   size: orgSizeEnum('size').notNull(),
   logoLightUrl: varchar('logo_light_url', { length: 500 }),
   logoDarkUrl: varchar('logo_dark_url', { length: 500 }),
-  plan: orgPlanEnum('plan').notNull().default('free'),
+  plan: orgPlanEnum('plan').notNull().default('FREE'),
   planCode: varchar('plan_code', { length: 100 }),
   businessCode: varchar('business_code', { length: 100 }),
   // Signed entitlement document pushed from cloud — planCode/businessCode are denormalized from it

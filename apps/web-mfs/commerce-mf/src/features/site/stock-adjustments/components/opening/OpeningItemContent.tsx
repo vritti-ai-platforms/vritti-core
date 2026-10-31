@@ -43,7 +43,7 @@ export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentPr
           inventoryItemId={adjustment.inventoryItemId}
           primaryUomId={adjustment.inventoryItemUomId}
           lotId={selectedLotId}
-          tracking="lot_serial"
+          tracking="LOT_SERIAL"
           isDraft={isDraft}
           uomSymbol={adjustment.inventoryItemUomSymbol}
           onLotRemoved={() => setSelectedLotId(null)}

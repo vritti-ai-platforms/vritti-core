@@ -55,7 +55,7 @@ export class StockAdjustmentLineItemsDomainService {
     return this.repository.countByLineId(lineId);
   }
 
-  // For tracking='serial' lines: - OPENING_STOCK: register a NEW serial — must not exist in inventory_item_serials for
+  // For tracking='SERIAL' lines: - OPENING_STOCK: register a NEW serial — must not exist in inventory_item_serials for
   // this item - Deduct types: consume an EXISTING serial — must be AVAILABLE on the line's quant
   async addLineItem(
     adjustment: AdjustmentContext,

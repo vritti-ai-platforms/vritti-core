@@ -92,7 +92,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
                             adjustmentId={adjustment.id}
                             inventoryItemId={adjustment.inventoryItemId}
                             line={row.original}
-                            tracking="quantity"
+                            tracking="QUANTITY"
                             onSuccess={close}
                             onCancel={close}
                           />
@@ -169,7 +169,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
             inventoryItemId={adjustment.inventoryItemId}
             primaryUomId={adjustment.inventoryItemUomId}
             stockAdjustmentLotId={null}
-            tracking="quantity"
+            tracking="QUANTITY"
             onSuccess={close}
             onCancel={close}
           />

@@ -15,8 +15,8 @@ export const inventoryItems = commerceSchema.table(
     name: varchar('name', { length: 255 }).notNull(),
     sku: varchar('sku', { length: 100 }).notNull(),
     type: inventoryItemTypeEnum('type').notNull(),
-    tracking: inventoryTrackingEnum('tracking').notNull().default('lot'),
-    pickStrategy: inventoryPickStrategyEnum('pick_strategy').notNull().default('none'),
+    tracking: inventoryTrackingEnum('tracking').notNull().default('LOT'),
+    pickStrategy: inventoryPickStrategyEnum('pick_strategy').notNull().default('NONE'),
     categoryId: uuid('category_id')
       .notNull()
       .references(() => categories.id),

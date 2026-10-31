@@ -28,7 +28,7 @@ export class OrganizationDto {
   @ApiPropertyOptional({ description: 'Public logo URL for dark surfaces', nullable: true })
   logoDarkUrl: string | null;
 
-  @ApiProperty({ description: 'Subscription plan', enum: ['free', 'pro', 'enterprise'], example: 'free' })
+  @ApiProperty({ description: 'Subscription plan', enum: ['FREE', 'PRO', 'ENTERPRISE'], example: 'FREE' })
   plan: OrgPlan;
 
   @ApiProperty({ description: 'External services this organization has provisioned', type: [OrgServiceDto] })

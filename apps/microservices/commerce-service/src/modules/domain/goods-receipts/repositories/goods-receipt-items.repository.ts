@@ -69,7 +69,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
       CASE WHEN ${uom.symbol} IS NOT NULL THEN CONCAT(' ', ${uom.symbol}) ELSE '' END
     )`;
 
-    // tracking='lot': lots as leaves, badge is the lot's accepted total
+    // tracking='LOT': lots as leaves, badge is the lot's accepted total
     const lotsOnlyJson = sql`(
       SELECT COALESCE(
         json_agg(
@@ -95,7 +95,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
       WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
 
-    // tracking='lot_serial': lots with line children showing serial-fill progress
+    // tracking='LOT_SERIAL': lots with line children showing serial-fill progress
     const lotsWithLinesJson = sql`(
       SELECT COALESCE(
         json_agg(
@@ -140,7 +140,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
       WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
 
-    // tracking='serial': lines as direct children of the item.
+    // tracking='SERIAL': lines as direct children of the item.
     const linesOnlyJson = sql`(
       SELECT COALESCE(
         json_agg(
@@ -170,9 +170,9 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
       'balanced', ${itemBalanced},
       'badge', ${itemBadge},
       'children', CASE ${inventoryItems.tracking}
-        WHEN 'lot' THEN ${lotsOnlyJson}
-        WHEN 'lot_serial' THEN ${lotsWithLinesJson}
-        WHEN 'serial' THEN ${linesOnlyJson}
+        WHEN 'LOT' THEN ${lotsOnlyJson}
+        WHEN 'LOT_SERIAL' THEN ${lotsWithLinesJson}
+        WHEN 'SERIAL' THEN ${linesOnlyJson}
         ELSE '[]'::json
       END
     )`;

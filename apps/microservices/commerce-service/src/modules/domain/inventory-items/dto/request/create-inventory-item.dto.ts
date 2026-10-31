@@ -1,6 +1,12 @@
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
-import type { InventoryItemType, InventoryPickStrategy, InventoryTracking } from '@/db/schema';
+import {
+  type InventoryItemType,
+  type InventoryPickStrategy,
+  InventoryPickStrategyValues,
+  type InventoryTracking,
+  InventoryTrackingValues,
+} from '@/db/schema';
 
 export class CreateInventoryItemDto {
   @Trim({ nullify: false })
@@ -19,10 +25,10 @@ export class CreateInventoryItemDto {
   @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
   type: InventoryItemType;
 
-  @IsEnum(['quantity', 'lot', 'lot_serial', 'serial'])
+  @IsEnum(InventoryTrackingValues)
   tracking: InventoryTracking;
 
-  @IsEnum(['none', 'fifo', 'fefo'])
+  @IsEnum(InventoryPickStrategyValues)
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;
 

@@ -3,8 +3,8 @@ import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 const ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'];
-const TRACKING_TYPES = ['quantity', 'lot', 'lot_serial', 'serial'];
-const PICK_STRATEGIES = ['none', 'fifo', 'fefo'];
+const TRACKING_TYPES = ['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'];
+const PICK_STRATEGIES = ['NONE', 'FIFO', 'FEFO'];
 
 @InputType()
 export class CreateInventoryItemInput {
@@ -29,12 +29,12 @@ export class CreateInventoryItemInput {
 
   @Field(() => String)
   @IsEnum(TRACKING_TYPES)
-  tracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
+  tracking: 'QUANTITY' | 'LOT' | 'LOT_SERIAL' | 'SERIAL';
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsEnum(PICK_STRATEGIES)
-  pickStrategy?: 'none' | 'fifo' | 'fefo';
+  pickStrategy?: 'NONE' | 'FIFO' | 'FEFO';
 
   @Field(() => String)
   @IsUUID('7')
@@ -105,7 +105,7 @@ export class UpdateInventoryItemInput {
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsEnum(PICK_STRATEGIES)
-  pickStrategy?: 'none' | 'fifo' | 'fefo';
+  pickStrategy?: 'NONE' | 'FIFO' | 'FEFO';
 
   @Field(() => String, { nullable: true })
   @IsOptional()

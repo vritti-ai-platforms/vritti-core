@@ -126,6 +126,25 @@ export type NewOffering = typeof offerings.$inferInsert;
 
 Always both, always immediately after the table.
 
+### Enums — values are UPPERCASE `SCREAMING_SNAKE`
+
+```typescript
+export const purchaseOrderStatusEnum = commerceSchema.enum('purchase_order_status', ['DRAFT', 'SENT', 'RECEIVED']);
+export type PurchaseOrderStatus = (typeof purchaseOrderStatusEnum.enumValues)[number];
+export const PurchaseOrderStatusValues = {
+  DRAFT: 'DRAFT',
+  SENT: 'SENT',
+  RECEIVED: 'RECEIVED',
+} as const satisfies Record<PurchaseOrderStatus, PurchaseOrderStatus>;
+```
+
+- Never lowercase, kebab or camel values. An external format (an agent wire protocol, a manifest, a third-party
+  API) is mapped at that boundary with a typed map; the enum itself stays uppercase.
+- `satisfies Record<…>` makes a missing key or a typo a compile error.
+- Renaming a value: drizzle-kit can't rename an enum value. It drops and recreates the type, which fails on live
+  rows. Use a `db:generate:custom` migration of `ALTER TYPE … RENAME VALUE 'old' TO 'NEW'`, plus any rewrite of
+  saved filters (`table_views.state`, Redis `dt:*`), with the snapshot drizzle computes for the new code.
+
 ## 8. No comments on tables, columns, types, or enums
 
 The name is the documentation. A `//` comment is warranted only above a helper whose behaviour is

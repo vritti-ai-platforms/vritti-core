@@ -17,7 +17,7 @@ import { EditChangeLineForm } from '../../forms/change/EditChangeLineDialog';
 interface ChangeContentProps {
   adjustment: StockAdjustmentData;
   isDraft: boolean;
-  tracking: Extract<InventoryTracking, 'quantity' | 'lot'>;
+  tracking: Extract<InventoryTracking, 'QUANTITY' | 'LOT'>;
 }
 
 export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentProps) => {

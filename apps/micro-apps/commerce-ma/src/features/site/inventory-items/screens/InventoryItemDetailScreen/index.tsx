@@ -48,7 +48,7 @@ export function InventoryItemDetailHeader() {
 
   const tabs = useMemo<ScreenHeaderTabConfig[]>(() => {
     if (!item) return [];
-    const lotTracked = item.tracking === 'lot' || item.tracking === 'lot_serial';
+    const lotTracked = item.tracking === 'LOT' || item.tracking === 'LOT_SERIAL';
     return [
       { id: 'overview', label: 'Overview', icon: TAB_ICONS.overview, content: <OverviewTab item={item} /> },
       {

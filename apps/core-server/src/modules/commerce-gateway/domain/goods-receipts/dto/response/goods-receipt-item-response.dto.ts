@@ -6,8 +6,8 @@ export class GoodsReceiptItemResponseDto {
   @ApiProperty() goodsReceiptId: string;
   @ApiProperty() inventoryItemId: string;
   @ApiPropertyOptional({ nullable: true }) inventoryItemName: string | null;
-  @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] })
-  inventoryItemTracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
+  @ApiProperty({ enum: ['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'] })
+  inventoryItemTracking: 'QUANTITY' | 'LOT' | 'LOT_SERIAL' | 'SERIAL';
   @ApiPropertyOptional({ nullable: true }) inventoryItemUomSymbol: string | null;
   @ApiProperty() inventoryItemAllowDecimal: boolean;
   @ApiProperty() inventoryItemHasMrp: boolean;

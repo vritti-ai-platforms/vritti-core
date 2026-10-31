@@ -84,7 +84,7 @@ export const LinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }
         adjustmentId={adjustment.id}
         inventoryItemId={adjustment.inventoryItemId}
         primaryUomId={adjustment.inventoryItemUomId}
-        tracking="serial"
+        tracking="SERIAL"
         adjustmentType={adjustment.type}
         handle={addLineDialog}
       />

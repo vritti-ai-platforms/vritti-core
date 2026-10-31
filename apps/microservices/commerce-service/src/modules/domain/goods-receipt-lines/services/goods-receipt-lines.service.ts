@@ -253,7 +253,7 @@ export class GoodsReceiptLinesDomainService {
     }
     if (!data.goodsReceiptLotId) {
       throw new ValidationException({
-        detail: 'A lot must be selected for items with tracking=lot or tracking=lot_serial.',
+        detail: 'A lot must be selected for items with tracking=LOT or tracking=LOT_SERIAL.',
         errors: [{ field: 'goodsReceiptLotId', message: 'Lot is required.' }],
       });
     }

@@ -1,8 +1,8 @@
 import { z, zodCodeField } from '@vritti/quantum-ui-native/zod';
 
 const typeEnum = z.enum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE']);
-const trackingEnum = z.enum(['quantity', 'lot', 'lot_serial', 'serial']);
-const pickStrategyEnum = z.enum(['none', 'fifo', 'fefo']);
+const trackingEnum = z.enum(['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL']);
+const pickStrategyEnum = z.enum(['NONE', 'FIFO', 'FEFO']);
 
 const nameField = z.string().min(1, 'Name is required').max(255, 'Name is too long');
 const skuField = zodCodeField({ max: 100 });

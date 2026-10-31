@@ -14,11 +14,11 @@ export class SiteInventoryItemResponseDto {
   @ApiProperty({ enum: ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] })
   type: string;
 
-  @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] })
-  tracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
+  @ApiProperty({ enum: ['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'] })
+  tracking: 'QUANTITY' | 'LOT' | 'LOT_SERIAL' | 'SERIAL';
 
-  @ApiProperty({ enum: ['none', 'fifo', 'fefo'], default: 'none' })
-  pickStrategy: 'none' | 'fifo' | 'fefo';
+  @ApiProperty({ enum: ['NONE', 'FIFO', 'FEFO'], default: 'NONE' })
+  pickStrategy: 'NONE' | 'FIFO' | 'FEFO';
 
   @ApiProperty()
   categoryId: string;

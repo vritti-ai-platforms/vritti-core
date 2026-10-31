@@ -8,6 +8,7 @@ import {
   goodsReceiptLines,
   goodsReceiptLots,
   type InventoryTracking,
+  InventoryTrackingValues,
   inventoryItems,
   locations,
   uom,
@@ -154,7 +155,7 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
 
   // Recomputes isBalanced for a line, syncing serial-tracked lines to their line-item count
   async refreshIsBalanced(lineId: string, tracking: InventoryTracking): Promise<void> {
-    if (tracking !== 'serial' && tracking !== 'lot_serial') {
+    if (tracking !== InventoryTrackingValues.SERIAL && tracking !== InventoryTrackingValues.LOT_SERIAL) {
       await this.db.update(goodsReceiptLines).set({ isBalanced: true }).where(eq(goodsReceiptLines.id, lineId));
       return;
     }

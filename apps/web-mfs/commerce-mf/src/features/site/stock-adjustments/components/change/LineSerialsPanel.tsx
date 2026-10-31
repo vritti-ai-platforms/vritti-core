@@ -323,7 +323,7 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
         adjustmentId={adjustment.id}
         inventoryItemId={adjustment.inventoryItemId}
         line={line}
-        tracking="serial"
+        tracking="SERIAL"
         adjustmentType={adjustment.type}
         handle={editLineDialog}
       />

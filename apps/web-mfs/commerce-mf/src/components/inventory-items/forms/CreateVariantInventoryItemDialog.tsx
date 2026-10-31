@@ -39,8 +39,8 @@ export const CreateVariantInventoryItemDialog: React.FC<CreateVariantInventoryIt
     defaultValues: {
       name: variant.name,
       type: 'FINISHED_GOOD',
-      tracking: 'lot',
-      pickStrategy: 'none',
+      tracking: 'LOT',
+      pickStrategy: 'NONE',
       uomId: variant.salesUomId,
       description: '',
       hsnCode: '',

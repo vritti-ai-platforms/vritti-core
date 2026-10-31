@@ -28,20 +28,20 @@ export class CreateSiteInventoryItemDto {
 
   @ApiProperty({
     description: 'Tracking type — granularity at which stock for this item is identified.',
-    enum: ['quantity', 'lot', 'lot_serial', 'serial'],
-    example: 'lot',
+    enum: ['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'],
+    example: 'LOT',
   })
-  @IsEnum(['quantity', 'lot', 'lot_serial', 'serial'])
-  tracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
+  @IsEnum(['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'])
+  tracking: 'QUANTITY' | 'LOT' | 'LOT_SERIAL' | 'SERIAL';
 
   @ApiPropertyOptional({
     description: 'Pick strategy for lot/serial tracked items',
-    enum: ['none', 'fifo', 'fefo'],
-    default: 'none',
+    enum: ['NONE', 'FIFO', 'FEFO'],
+    default: 'NONE',
   })
   @IsOptional()
-  @IsEnum(['none', 'fifo', 'fefo'])
-  pickStrategy?: 'none' | 'fifo' | 'fefo';
+  @IsEnum(['NONE', 'FIFO', 'FEFO'])
+  pickStrategy?: 'NONE' | 'FIFO' | 'FEFO';
 
   @ApiProperty({ description: 'Category ID' })
   @IsUUID('7')

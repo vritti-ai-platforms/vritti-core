@@ -19,7 +19,7 @@ export const media = coreSchema.table(
     storageKey: varchar('storage_key', { length: 512 }).notNull(),
     bucket: varchar('bucket', { length: 255 }),
     provider: varchar('provider', { length: 50 }).notNull(),
-    status: mediaStatusEnum('status').notNull().default('pending'),
+    status: mediaStatusEnum('status').notNull().default('PENDING'),
     entityType: varchar('entity_type', { length: 255 }).notNull(),
     entityId: varchar('entity_id', { length: 255 }).notNull(),
     uploadedBy: uuid('uploaded_by'),

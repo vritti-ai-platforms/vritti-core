@@ -60,12 +60,12 @@ export const linkGoodsReceiptPurchaseOrderSchema = z.object({
 });
 export type LinkGoodsReceiptPurchaseOrderFormData = z.infer<typeof linkGoodsReceiptPurchaseOrderSchema>;
 
-export type InventoryTracking = 'quantity' | 'lot' | 'lot_serial' | 'serial';
+export type InventoryTracking = 'QUANTITY' | 'LOT' | 'LOT_SERIAL' | 'SERIAL';
 export const InventoryTrackingValues = {
-  QUANTITY: 'quantity' as const,
-  LOT: 'lot' as const,
-  LOT_SERIAL: 'lot_serial' as const,
-  SERIAL: 'serial' as const,
+  QUANTITY: 'QUANTITY' as const,
+  LOT: 'LOT' as const,
+  LOT_SERIAL: 'LOT_SERIAL' as const,
+  SERIAL: 'SERIAL' as const,
 };
 
 export interface GoodsReceiptItemData {

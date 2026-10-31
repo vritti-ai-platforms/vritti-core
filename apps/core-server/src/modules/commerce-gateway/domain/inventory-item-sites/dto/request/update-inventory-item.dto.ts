@@ -46,12 +46,12 @@ export class UpdateSiteInventoryItemDto {
 
   @ApiPropertyOptional({
     description: 'Pick strategy for lot/serial tracked items',
-    enum: ['none', 'fifo', 'fefo'],
-    default: 'none',
+    enum: ['NONE', 'FIFO', 'FEFO'],
+    default: 'NONE',
   })
   @IsOptional()
-  @IsEnum(['none', 'fifo', 'fefo'])
-  pickStrategy?: 'none' | 'fifo' | 'fefo';
+  @IsEnum(['NONE', 'FIFO', 'FEFO'])
+  pickStrategy?: 'NONE' | 'FIFO' | 'FEFO';
 
   @ApiPropertyOptional({ description: 'Tax class the goods are bought under' })
   @IsOptional()

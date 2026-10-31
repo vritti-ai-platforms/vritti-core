@@ -8,11 +8,11 @@ export class StockAdjustmentResponseDto {
   @ApiProperty() inventoryItemName: string;
   @ApiProperty() inventoryItemUomId: string;
   @ApiProperty() inventoryItemUomSymbol: string;
-  @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] }) inventoryItemTracking:
-    | 'quantity'
-    | 'lot'
-    | 'lot_serial'
-    | 'serial';
+  @ApiProperty({ enum: ['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'] }) inventoryItemTracking:
+    | 'QUANTITY'
+    | 'LOT'
+    | 'LOT_SERIAL'
+    | 'SERIAL';
   @ApiProperty({ example: 'WASTE' }) type: string;
   @ApiProperty({ description: 'Sum of stock_adjustment_lines.primary_qty (item primary UOM units)' })
   totalQuantity: number;

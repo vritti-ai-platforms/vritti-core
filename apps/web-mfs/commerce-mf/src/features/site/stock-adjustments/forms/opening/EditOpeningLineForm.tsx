@@ -33,7 +33,7 @@ export const EditOpeningLineForm = ({
   onSuccess,
   onCancel,
 }: EditOpeningLineFormProps) => {
-  const isItem = tracking === 'serial' || tracking === 'lot_serial';
+  const isItem = tracking === 'SERIAL' || tracking === 'LOT_SERIAL';
   const [allowDecimal, setAllowDecimal] = useState(true);
 
   const form = useForm<AddOpeningStockLineFormData>({

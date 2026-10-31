@@ -22,7 +22,11 @@ export class CreateOrganizationInternalDto {
   @IsEnum(OrgSizeValues)
   size: OrgSize;
 
-  @ApiPropertyOptional({ description: 'Subscription plan', enum: ['free', 'pro', 'enterprise'], example: 'free' })
+  @ApiPropertyOptional({
+    description: 'Subscription plan',
+    enum: Object.values(OrgPlanValues),
+    example: OrgPlanValues.FREE,
+  })
   @IsOptional()
   @IsEnum(OrgPlanValues)
   plan?: OrgPlan;

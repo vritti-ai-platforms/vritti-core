@@ -1,6 +1,6 @@
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
 import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
-import type { InventoryItemType, InventoryPickStrategy } from '@/db/schema';
+import { type InventoryItemType, type InventoryPickStrategy, InventoryPickStrategyValues } from '@/db/schema';
 
 export class UpdateInventoryItemDto {
   @IsUUID('7')
@@ -37,7 +37,7 @@ export class UpdateInventoryItemDto {
   @IsUUID('7')
   uomId?: string;
 
-  @IsEnum(['none', 'fifo', 'fefo'])
+  @IsEnum(InventoryPickStrategyValues)
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;
 

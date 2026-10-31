@@ -173,7 +173,7 @@ export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<
       .where(eq(stockAdjustmentLines.id, lineId));
   }
 
-  // Returns lines with mismatch (line_items count != uomQty) — for tracking='serial' validation at publish
+  // Returns lines with mismatch (line_items count != uomQty) — for tracking='SERIAL' validation at publish
   async findUnbalancedItemLines(
     adjustmentId: string,
   ): Promise<{ lineId: string; lineUomQty: number; lineItemsCount: number; delta: number }[]> {

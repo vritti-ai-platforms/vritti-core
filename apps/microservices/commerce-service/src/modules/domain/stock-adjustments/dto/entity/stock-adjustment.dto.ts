@@ -1,5 +1,11 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { InventoryTracking, StockAdjustment, StockAdjustmentStatus, StockAdjustmentType } from '@/db/schema';
+import {
+  type InventoryTracking,
+  InventoryTrackingValues,
+  type StockAdjustment,
+  type StockAdjustmentStatus,
+  type StockAdjustmentType,
+} from '@/db/schema';
 
 export class StockAdjustmentDto {
   id: string;
@@ -66,7 +72,7 @@ export class StockAdjustmentDto {
     dto.inventoryItemName = '';
     dto.inventoryItemUomId = '';
     dto.inventoryItemUomSymbol = '';
-    dto.inventoryItemTracking = 'lot';
+    dto.inventoryItemTracking = InventoryTrackingValues.LOT;
     dto.type = entity.type;
     dto.totalQuantity = 0;
     dto.status = entity.status;

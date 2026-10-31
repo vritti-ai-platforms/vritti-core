@@ -256,7 +256,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
     return tracking;
   }
 
-  // Find an existing quant by item + location + lotId. lotId=null matches NULL (tracking='quantity').
+  // Find an existing quant by item + location + lotId. lotId=null matches NULL (tracking='QUANTITY').
   async findByItemLocationLotCost(
     inventoryItemId: string,
     locationId: string,

@@ -45838,11 +45838,11 @@
             "type": "string",
             "description": "Subscription plan",
             "enum": [
-              "free",
-              "pro",
-              "enterprise"
+              "FREE",
+              "PRO",
+              "ENTERPRISE"
             ],
-            "example": "free"
+            "example": "FREE"
           },
           "industryId": {
             "type": "number",
@@ -45943,11 +45943,11 @@
             "type": "string",
             "description": "Subscription plan",
             "enum": [
-              "free",
-              "pro",
-              "enterprise"
+              "FREE",
+              "PRO",
+              "ENTERPRISE"
             ],
-            "example": "free"
+            "example": "FREE"
           },
           "services": {
             "description": "External services this organization has provisioned",
@@ -49508,18 +49508,18 @@
           "tracking": {
             "type": "string",
             "enum": [
-              "quantity",
-              "lot",
-              "lot_serial",
-              "serial"
+              "QUANTITY",
+              "LOT",
+              "LOT_SERIAL",
+              "SERIAL"
             ]
           },
           "pickStrategy": {
             "type": "string",
             "enum": [
-              "none",
-              "fifo",
-              "fefo"
+              "NONE",
+              "FIFO",
+              "FEFO"
             ]
           },
           "categoryId": {
@@ -50172,7 +50172,7 @@
           },
           "tracking": {
             "type": "string",
-            "description": "Tracking mode (lot / serial / quantity / lot_serial)"
+            "description": "Tracking mode (QUANTITY / LOT / LOT_SERIAL / SERIAL)"
           },
           "uomSymbol": {
             "type": "object",
@@ -54083,22 +54083,22 @@
             "type": "string",
             "description": "Tracking type — granularity at which stock for this item is identified.",
             "enum": [
-              "quantity",
-              "lot",
-              "lot_serial",
-              "serial"
+              "QUANTITY",
+              "LOT",
+              "LOT_SERIAL",
+              "SERIAL"
             ],
-            "example": "lot"
+            "example": "LOT"
           },
           "pickStrategy": {
             "type": "string",
             "description": "Pick strategy for lot/serial tracked items",
             "enum": [
-              "none",
-              "fifo",
-              "fefo"
+              "NONE",
+              "FIFO",
+              "FEFO"
             ],
-            "default": "none"
+            "default": "NONE"
           },
           "categoryId": {
             "type": "string",
@@ -54254,11 +54254,11 @@
             "type": "string",
             "description": "Pick strategy for lot/serial tracked items",
             "enum": [
-              "none",
-              "fifo",
-              "fefo"
+              "NONE",
+              "FIFO",
+              "FEFO"
             ],
-            "default": "none"
+            "default": "NONE"
           },
           "hsnCode": {
             "type": "object",

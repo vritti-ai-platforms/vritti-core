@@ -175,7 +175,7 @@ export const addStockAdjustmentLotSchema = z
 export type AddStockAdjustmentLotFormData = z.infer<typeof addStockAdjustmentLotSchema>;
 
 export const addOpeningStockLineSchema = z.object({
-  stockAdjustmentLotId: z.uuid().optional(), // null for tracking='quantity'
+  stockAdjustmentLotId: z.uuid().optional(), // null for tracking='QUANTITY'
   locationId: z.uuid('Location is required'),
   uomId: z.uuid('UOM is required'),
   uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),

@@ -89,7 +89,7 @@ export const OpeningLinesSidePanel = ({
             inventoryItemId={adjustment.inventoryItemId}
             primaryUomId={adjustment.inventoryItemUomId}
             stockAdjustmentLotId={null}
-            tracking="serial"
+            tracking="SERIAL"
             onSuccess={close}
             onCancel={close}
           />

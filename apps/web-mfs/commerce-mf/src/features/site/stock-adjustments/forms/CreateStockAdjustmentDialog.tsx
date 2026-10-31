@@ -9,6 +9,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateStockAdjustment } from '@/hooks/site/stock-adjustments';
+import { type InventoryTracking, inventoryTrackingConfig } from '@/schemas/inventory-items';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { type CreateStockAdjustmentFormData, createStockAdjustmentSchema } from '@/schemas/stock-adjustments';
 import { InventoryItemSelector } from '@/selectors/inventory-item';
@@ -62,12 +63,7 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
         label="Inventory Item"
         placeholder="Select item"
         fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'tracking' }}
-        transformDescription={(desc) =>
-          desc
-            .split('_')
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(' + ')
-        }
+        transformDescription={(desc) => inventoryTrackingConfig[desc as InventoryTracking]?.label ?? desc}
       />
       <Select name="type" label="Adjustment Type" placeholder="Select type" options={adjustmentTypeOptions} />
       {isOpeningStock && (

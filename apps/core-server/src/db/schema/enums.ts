@@ -28,13 +28,17 @@ export const AppTypeValues = {
   HTTP: 'HTTP' as const,
 };
 
-export const orgPlanEnum = coreSchema.enum('org_plan', ['free', 'pro', 'enterprise']);
+export const orgPlanEnum = coreSchema.enum('org_plan', ['FREE', 'PRO', 'ENTERPRISE']);
 export const orgSizeEnum = coreSchema.enum('org_size', ['0-10', '10-20', '20-50', '50-100', '100-500', '500+']);
 
 export type OrgPlan = (typeof orgPlanEnum.enumValues)[number];
 export type OrgSize = (typeof orgSizeEnum.enumValues)[number];
 
-export const OrgPlanValues = { free: 'free' as const, pro: 'pro' as const, enterprise: 'enterprise' as const };
+export const OrgPlanValues = {
+  FREE: 'FREE',
+  PRO: 'PRO',
+  ENTERPRISE: 'ENTERPRISE',
+} as const satisfies Record<OrgPlan, OrgPlan>;
 export const OrgSizeValues = {
   s0_10: '0-10' as const,
   s10_20: '10-20' as const,
@@ -70,14 +74,14 @@ export const AssignmentTypeValues = {
   INHERITED: 'INHERITED' as const,
 };
 
-export const mediaStatusEnum = coreSchema.enum('media_status', ['pending', 'ready', 'failed', 'deleted']);
+export const mediaStatusEnum = coreSchema.enum('media_status', ['PENDING', 'READY', 'FAILED', 'DELETED']);
 export type MediaStatus = (typeof mediaStatusEnum.enumValues)[number];
 export const MediaStatusValues = {
-  PENDING: 'pending' as const,
-  READY: 'ready' as const,
-  FAILED: 'failed' as const,
-  DELETED: 'deleted' as const,
-};
+  PENDING: 'PENDING',
+  READY: 'READY',
+  FAILED: 'FAILED',
+  DELETED: 'DELETED',
+} as const satisfies Record<MediaStatus, MediaStatus>;
 
 export const pickStrategyEnum = coreSchema.enum('pick_strategy', ['FEFO', 'FIFO', 'LIFO']);
 export type PickStrategy = (typeof pickStrategyEnum.enumValues)[number];

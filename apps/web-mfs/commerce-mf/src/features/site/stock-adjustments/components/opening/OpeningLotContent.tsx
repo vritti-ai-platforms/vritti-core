@@ -26,7 +26,7 @@ export const OpeningLotContent = ({ adjustment, isDraft }: OpeningLotContentProp
         inventoryItemId={adjustment.inventoryItemId}
         primaryUomId={adjustment.inventoryItemUomId}
         lotId={selectedLotId}
-        tracking="lot"
+        tracking="LOT"
         isDraft={isDraft}
         uomSymbol={adjustment.inventoryItemUomSymbol}
         onLotRemoved={() => setSelectedLotId(null)}

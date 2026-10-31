@@ -2,6 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import type React from 'react';
+import { inventoryTrackingConfig } from '@/schemas/inventory-items';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 
 interface OverviewTabProps {
@@ -23,7 +24,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ adjustment, typeLabel,
         <DetailField
           label="Tracking"
           type="string"
-          value={<Badge variant="outline">{adjustment.inventoryItemTracking}</Badge>}
+          value={<Badge variant="outline">{inventoryTrackingConfig[adjustment.inventoryItemTracking]?.label}</Badge>}
         />
         <DetailField label="Reason" type="string" value={adjustment.reason} />
         <DetailField

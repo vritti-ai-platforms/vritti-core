@@ -10,16 +10,16 @@ export const TYPE_OPTIONS: SelectOption[] = [
 ];
 
 export const TRACKING_OPTIONS: SelectOption[] = [
-  { value: 'quantity', label: 'Quantity' },
-  { value: 'lot', label: 'Lot' },
-  { value: 'lot_serial', label: 'Lot + serial' },
-  { value: 'serial', label: 'Serial' },
+  { value: 'QUANTITY', label: 'Quantity' },
+  { value: 'LOT', label: 'Lot' },
+  { value: 'LOT_SERIAL', label: 'Lot + serial' },
+  { value: 'SERIAL', label: 'Serial' },
 ];
 
 export const PICK_STRATEGY_OPTIONS: SelectOption[] = [
-  { value: 'none', label: 'None' },
-  { value: 'fifo', label: 'FIFO', description: 'First in, first out' },
-  { value: 'fefo', label: 'FEFO', description: 'First expired, first out' },
+  { value: 'NONE', label: 'None' },
+  { value: 'FIFO', label: 'FIFO', description: 'First in, first out' },
+  { value: 'FEFO', label: 'FEFO', description: 'First expired, first out' },
 ];
 
 const TYPE_LABELS = Object.fromEntries(TYPE_OPTIONS.map((o) => [o.value, o.label])) as Record<string, string>;

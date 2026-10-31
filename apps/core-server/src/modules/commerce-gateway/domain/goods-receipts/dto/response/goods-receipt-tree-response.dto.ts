@@ -18,8 +18,8 @@ export class GoodsReceiptTreeNodeResponseDto {
   kind: 'item' | 'lot' | 'line';
 
   // item-only:
-  @ApiPropertyOptional({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] })
-  inventoryItemTracking?: 'quantity' | 'lot' | 'lot_serial' | 'serial';
+  @ApiPropertyOptional({ enum: ['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'] })
+  inventoryItemTracking?: 'QUANTITY' | 'LOT' | 'LOT_SERIAL' | 'SERIAL';
 
   @ApiPropertyOptional({ description: 'UOM symbol for the inventory item (items only).' })
   inventoryItemUomSymbol?: string;

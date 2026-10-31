@@ -35,9 +35,9 @@ export type { CursorPage } from '@vritti/quantum-ui-native/types';
 
 export type InventoryItemType = 'RAW_MATERIAL' | 'SEMI_FINISHED' | 'FINISHED_GOOD' | 'PACKAGING' | 'CONSUMABLE';
 
-export type InventoryItemTracking = 'quantity' | 'lot' | 'lot_serial' | 'serial';
+export type InventoryItemTracking = 'QUANTITY' | 'LOT' | 'LOT_SERIAL' | 'SERIAL';
 
-export type InventoryItemPickStrategy = 'none' | 'fifo' | 'fefo';
+export type InventoryItemPickStrategy = 'NONE' | 'FIFO' | 'FEFO';
 
 export interface InventoryItem {
   id: string;

@@ -34,13 +34,13 @@ function defaultTransformLabel(label: string, option: SelectOption): string {
 // Humanises the `inventory_items.tracking` enum that the backend serves as the option description.
 function defaultTransformDescription(value: string): string {
   switch (value) {
-    case 'quantity':
+    case 'QUANTITY':
       return 'Quantity';
-    case 'lot':
+    case 'LOT':
       return 'Lot';
-    case 'serial':
+    case 'SERIAL':
       return 'Serial';
-    case 'lot_serial':
+    case 'LOT_SERIAL':
       return 'Lot + Serial';
     default:
       return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());

@@ -53,8 +53,8 @@ export type CreateQuantParams = {
 };
 
 export type AdjustQuantParams =
-  | { tracking: 'quantity' | 'lot'; delta: number }
-  | { tracking: 'serial' | 'lot_serial'; serials: string[] };
+  | { tracking: typeof InventoryTrackingValues.QUANTITY | typeof InventoryTrackingValues.LOT; delta: number }
+  | { tracking: typeof InventoryTrackingValues.SERIAL | typeof InventoryTrackingValues.LOT_SERIAL; serials: string[] };
 
 @Injectable()
 export class InventoryItemQuantsDomainService {
@@ -204,7 +204,7 @@ export class InventoryItemQuantsDomainService {
         params.lotId == null
       ) {
         throw new BadRequestException(
-          'lotId is required for tracking=lot or lot_serial. App-layer must resolve the lot.',
+          'lotId is required for tracking=LOT or LOT_SERIAL. App-layer must resolve the lot.',
         );
       }
 
@@ -298,23 +298,23 @@ export class InventoryItemQuantsDomainService {
       throw new BadRequestException('Unit cost must be a positive amount.');
     }
     if (params.tracking === InventoryTrackingValues.QUANTITY) {
-      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=quantity.');
+      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=QUANTITY.');
       if (params.serialNumbers?.length) {
-        throw new BadRequestException('serialNumbers must not be provided for tracking=quantity.');
+        throw new BadRequestException('serialNumbers must not be provided for tracking=QUANTITY.');
       }
       return;
     }
     if (params.tracking === InventoryTrackingValues.LOT) {
       if (!params.lot?.lotNumber && params.lotId == null) {
-        throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=lot.');
+        throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=LOT.');
       }
       if (params.serialNumbers?.length) {
-        throw new BadRequestException('serialNumbers must not be provided for tracking=lot.');
+        throw new BadRequestException('serialNumbers must not be provided for tracking=LOT.');
       }
       return;
     }
     if (params.tracking === InventoryTrackingValues.SERIAL) {
-      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=serial.');
+      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=SERIAL.');
       const serials = params.serialNumbers ?? [];
       if (serials.length !== params.quantity) {
         throw new BadRequestException(
@@ -329,7 +329,7 @@ export class InventoryItemQuantsDomainService {
     }
     // LOT_SERIAL: lot (or pre-resolved lotId) required + serials required
     if (!params.lot?.lotNumber && params.lotId == null) {
-      throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=lot_serial.');
+      throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=LOT_SERIAL.');
     }
     const serials = params.serialNumbers ?? [];
     if (serials.length !== params.quantity) {
@@ -346,8 +346,8 @@ export class InventoryItemQuantsDomainService {
   // Adjusts a quant in its own transaction and writes the ledger entry. Tracking-aware.
   async adjustQuant(params: {
     quantId: string;
-    quantity: number; // signed; for tracking='serial' should equal -serials.length
-    serials?: string[]; // tracking='serial' only
+    quantity: number; // signed; for tracking='SERIAL' should equal -serials.length
+    serials?: string[]; // tracking='SERIAL' only
     type: InventoryItemLedgerType;
     referenceType?: InventoryItemLedgerReferenceType;
     referenceId?: string;
@@ -372,8 +372,8 @@ export class InventoryItemQuantsDomainService {
     return { quant: updated };
   }
 
-  // Adjusts a quant within a transaction (no ledger — caller handles it). 'quantity' | 'lot': delta-based adjustment;
-  // auto-deletes quant when quantity <= 0 'serial' | 'lot_serial': resolves serials → consumes those quant_items;
+  // Adjusts a quant within a transaction (no ledger — caller handles it). QUANTITY | LOT: delta-based adjustment;
+  // auto-deletes quant when quantity <= 0. SERIAL | LOT_SERIAL: resolves serials → consumes those quant_items;
   // auto-deletes at zero
   async adjustQuantScoped(
     quantId: string,
@@ -383,8 +383,8 @@ export class InventoryItemQuantsDomainService {
       // PR4 (cost-tracking foundation, plan §6): zero-qty quants STAY — cost history, returns, and period-end snapshots
       // all read this row.
       switch (params.tracking) {
-        case 'quantity':
-        case 'lot': {
+        case InventoryTrackingValues.QUANTITY:
+        case InventoryTrackingValues.LOT: {
           let quant = await this.repository.updateQuantity(quantId, params.delta);
           // Outflow: decrement value (clears to 0 on final depletion). Inflow (rare): add baseline.
           if (params.delta < 0) {
@@ -395,8 +395,8 @@ export class InventoryItemQuantsDomainService {
           }
           return { quant, consumedItems: [] };
         }
-        case 'serial':
-        case 'lot_serial': {
+        case InventoryTrackingValues.SERIAL:
+        case InventoryTrackingValues.LOT_SERIAL: {
           const items = await this.repository.loadAvailableQuantItemsBySerials(quantId, params.serials);
           if (items.length !== params.serials.length) {
             throw new BadRequestException('Some serials are not AVAILABLE or do not belong to the given quant.');

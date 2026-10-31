@@ -14,12 +14,12 @@ export class CreateVariantInventoryItemDto {
   @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
   type: string;
 
-  @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] })
-  @IsEnum(['quantity', 'lot', 'lot_serial', 'serial'])
+  @ApiProperty({ enum: ['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'] })
+  @IsEnum(['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL'])
   tracking: string;
 
-  @ApiPropertyOptional({ enum: ['none', 'fifo', 'fefo'] })
-  @IsEnum(['none', 'fifo', 'fefo'])
+  @ApiPropertyOptional({ enum: ['NONE', 'FIFO', 'FEFO'] })
+  @IsEnum(['NONE', 'FIFO', 'FEFO'])
   @IsOptional()
   pickStrategy?: string;
 

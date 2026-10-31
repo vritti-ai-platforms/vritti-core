@@ -327,7 +327,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
               adjustmentId={adjustmentId}
               inventoryItemId={inventoryItemId}
               line={line}
-              tracking="serial"
+              tracking="SERIAL"
               onSuccess={close}
               onCancel={close}
             />

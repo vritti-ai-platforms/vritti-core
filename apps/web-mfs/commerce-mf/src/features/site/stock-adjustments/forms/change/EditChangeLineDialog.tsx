@@ -36,7 +36,7 @@ export const EditChangeLineForm = ({
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
-  const isItem = tracking === 'serial' || tracking === 'lot_serial';
+  const isItem = tracking === 'SERIAL' || tracking === 'LOT_SERIAL';
   const isCorrection = adjustmentType === StockAdjustmentTypeValues.CORRECTION;
   const [allowDecimal, setAllowDecimal] = useState(true);
 

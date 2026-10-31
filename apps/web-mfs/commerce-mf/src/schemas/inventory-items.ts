@@ -8,11 +8,11 @@ export const createOrgInventoryItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   sku: zodCodeField({ max: 100 }),
   type: z.enum(INVENTORY_ITEM_TYPES),
-  tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
+  tracking: z.enum(['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL']),
   categoryId: z.uuid('Category is required'),
   description: z.string().optional(),
   uomId: z.uuid('Unit of measure is required'),
-  pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
+  pickStrategy: z.enum(['NONE', 'FIFO', 'FEFO']).optional(),
   hsnCode: z.string().max(20).optional(),
   taxClassId: z.uuid('Tax class is required'),
   createOffering: z.boolean(),
@@ -25,7 +25,7 @@ export const updateOrgInventoryItemSchema = z.object({
   description: z.string().nullable().optional(),
   categoryId: z.uuid('Category is required').optional(),
   uomId: z.uuid('Unit of measure is required').optional(),
-  pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
+  pickStrategy: z.enum(['NONE', 'FIFO', 'FEFO']).optional(),
   hsnCode: z.string().max(20).nullable().optional(),
   taxClassId: z.uuid('Tax class is required').optional(),
 });
@@ -80,10 +80,10 @@ export const inventoryItemTypeOptions: { value: InventoryItemType; label: string
 ];
 
 export const InventoryTrackingValues = {
-  QUANTITY: 'quantity',
-  LOT: 'lot',
-  SERIAL: 'serial',
-  LOT_SERIAL: 'lot_serial',
+  QUANTITY: 'QUANTITY',
+  LOT: 'LOT',
+  SERIAL: 'SERIAL',
+  LOT_SERIAL: 'LOT_SERIAL',
 } as const;
 
 export type InventoryTracking = (typeof InventoryTrackingValues)[keyof typeof InventoryTrackingValues];
@@ -92,16 +92,16 @@ export const inventoryTrackingConfig: Record<
   InventoryTracking,
   { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' }
 > = {
-  quantity: { label: 'Quantity', variant: 'outline' },
-  lot: { label: 'Lot', variant: 'secondary' },
-  serial: { label: 'Serial', variant: 'default' },
-  lot_serial: { label: 'Lot + Serial', variant: 'default' },
+  QUANTITY: { label: 'Quantity', variant: 'outline' },
+  LOT: { label: 'Lot', variant: 'secondary' },
+  SERIAL: { label: 'Serial', variant: 'default' },
+  LOT_SERIAL: { label: 'Lot + Serial', variant: 'default' },
 };
 
 export const InventoryPickStrategyValues = {
-  NONE: 'none',
-  FIFO: 'fifo',
-  FEFO: 'fefo',
+  NONE: 'NONE',
+  FIFO: 'FIFO',
+  FEFO: 'FEFO',
 } as const;
 
 export type InventoryPickStrategy = (typeof InventoryPickStrategyValues)[keyof typeof InventoryPickStrategyValues];
@@ -177,9 +177,9 @@ export type InventoryItemLedgerTableResponse = TableResponse<InventoryItemLedger
 
 // Short labels for display, mirroring inventoryItemTypeConfig and inventoryTrackingConfig
 export const inventoryPickStrategyConfig: Record<InventoryPickStrategy, { label: string; hint: string }> = {
-  none: { label: 'None', hint: 'free pick' },
-  fifo: { label: 'FIFO', hint: 'oldest received first' },
-  fefo: { label: 'FEFO', hint: 'nearest expiry first' },
+  NONE: { label: 'None', hint: 'free pick' },
+  FIFO: { label: 'FIFO', hint: 'oldest received first' },
+  FEFO: { label: 'FEFO', hint: 'nearest expiry first' },
 };
 
 // Select options carry the hint alongside the label; derived so the two can never disagree
@@ -191,18 +191,18 @@ export const pickStrategyOptions = (Object.keys(inventoryPickStrategyConfig) as 
 );
 
 export const trackingOptions = [
-  { value: 'quantity', label: 'Quantity — bulk fungible (e.g. office supplies)' },
-  { value: 'lot', label: 'Lot — batch identity (mfg/expiry, lot #)' },
-  { value: 'serial', label: 'Serial — per unit, no batch (e.g. IT assets, tools)' },
-  { value: 'lot_serial', label: 'Lot + Serial — per unit within batch (e.g. pharma)' },
+  { value: InventoryTrackingValues.QUANTITY, label: 'Quantity — bulk fungible (e.g. office supplies)' },
+  { value: InventoryTrackingValues.LOT, label: 'Lot — batch identity (mfg/expiry, lot #)' },
+  { value: InventoryTrackingValues.SERIAL, label: 'Serial — per unit, no batch (e.g. IT assets, tools)' },
+  { value: InventoryTrackingValues.LOT_SERIAL, label: 'Lot + Serial — per unit within batch (e.g. pharma)' },
 ];
 
 // The inventory counterpart of a variant. No sku field — the server takes it from the variant.
 export const createVariantInventoryItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   type: z.enum(INVENTORY_ITEM_TYPES),
-  tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
-  pickStrategy: z.enum(['none', 'fifo', 'fefo']),
+  tracking: z.enum(['QUANTITY', 'LOT', 'LOT_SERIAL', 'SERIAL']),
+  pickStrategy: z.enum(['NONE', 'FIFO', 'FEFO']),
   categoryId: z.uuid('Category is required'),
   uomId: z.uuid('Unit is required'),
   description: z.string().max(500).optional(),
