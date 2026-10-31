@@ -98,30 +98,30 @@ export const relations = defineRelations(schema, (r) => ({
     payoutAccounts: r.many.payoutAccounts(),
   },
 
-  // Payout channel relations
-  payoutChannels: {
+  // Payout channel bank account relations — a scope's bank account
+  payoutChannelBankAccounts: {
     bankAccount: r.one.bankAccounts({
-      from: r.payoutChannels.bankAccountId,
+      from: r.payoutChannelBankAccounts.bankAccountId,
       to: r.bankAccounts.id,
     }),
-    accounts: r.many.payoutChannelAccounts(),
+    payoutChannels: r.many.payoutChannels(),
   },
 
-  // Payout channel account relations
-  payoutChannelAccounts: {
-    payoutChannel: r.one.payoutChannels({
-      from: r.payoutChannelAccounts.payoutChannelId,
-      to: r.payoutChannels.id,
+  // Payout channel relations — a payout account switched on for a scope
+  payoutChannels: {
+    payoutChannelBankAccount: r.one.payoutChannelBankAccounts({
+      from: r.payoutChannels.payoutChannelBankAccountId,
+      to: r.payoutChannelBankAccounts.id,
     }),
     payoutAccount: r.one.payoutAccounts({
-      from: r.payoutChannelAccounts.payoutAccountId,
+      from: r.payoutChannels.payoutAccountId,
       to: r.payoutAccounts.id,
     }),
   },
 
   // Payout account relations
   payoutAccounts: {
-    channelAccounts: r.many.payoutChannelAccounts(),
+    payoutChannels: r.many.payoutChannels(),
     paymentGatewayConfig: r.one.paymentGatewayConfigs({
       from: r.payoutAccounts.paymentGatewayConfigId,
       to: r.paymentGatewayConfigs.id,

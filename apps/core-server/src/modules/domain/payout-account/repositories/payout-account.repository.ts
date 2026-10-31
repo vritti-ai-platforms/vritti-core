@@ -7,7 +7,7 @@ import {
   type PayoutAccount,
   paymentGatewayConfigs,
   payoutAccounts,
-  payoutChannelAccounts,
+  payoutChannels,
 } from '@/db/schema';
 
 export interface PayoutAccountHolder {
@@ -47,10 +47,7 @@ export class PayoutAccountDomainRepository extends PrimaryBaseRepository<typeof 
         bankName: bankAccounts.bankName,
         accountNumber: bankAccounts.accountNumber,
       },
-      payoutChannelCount: this.db.$count(
-        payoutChannelAccounts,
-        eq(payoutChannelAccounts.payoutAccountId, payoutAccounts.id),
-      ),
+      payoutChannelCount: this.db.$count(payoutChannels, eq(payoutChannels.payoutAccountId, payoutAccounts.id)),
     };
   }
 

@@ -6,7 +6,7 @@ import {
   paymentGatewayConfigStatus,
 } from '@domain/payment-gateway-config/payment-gateway-config-status';
 import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
-import type { SwitchedOnPayoutAccount } from '@domain/payout-channel/repositories/payout-channel.repository';
+import type { SwitchedOnPayoutAccount } from '@domain/payout-channel/repositories/payout-channel-bank-account.repository';
 import { PayoutChannelDomainService } from '@domain/payout-channel/services/payout-channel.service';
 import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';

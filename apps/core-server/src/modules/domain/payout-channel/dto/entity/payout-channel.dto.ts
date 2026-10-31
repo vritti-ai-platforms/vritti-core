@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { type PaymentChannelType, PaymentChannelTypeValues } from '@/db/schema';
-import type { PayoutChannelDetail } from '../../repositories/payout-channel.repository';
+import type { PayoutChannelDetail } from '../../repositories/payout-channel-bank-account.repository';
 
 export class PayoutChannelBankDto {
   @ApiProperty({ example: 'uuid-here' })

@@ -23,7 +23,7 @@ export * from './bank-account';
 export * from './payment-gateway-config';
 export * from './payout-account';
 export * from './payout-channel';
-export * from './payout-channel-account';
+export * from './payout-channel-bank-account';
 export * from './app-webhook-endpoint';
 export * from './webhook-delivery';
 export * from './role';

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type BankAccount, bankAccounts, payoutAccounts, payoutChannels } from '@/db/schema';
+import { type BankAccount, bankAccounts, payoutAccounts, payoutChannelBankAccounts } from '@/db/schema';
 
 @Injectable()
 export class BankAccountDomainRepository extends PrimaryBaseRepository<typeof bankAccounts> {
@@ -48,7 +48,7 @@ export class BankAccountDomainRepository extends PrimaryBaseRepository<typeof ba
     const [row] = await this.db
       .select({
         payoutAccounts: this.db.$count(payoutAccounts, eq(payoutAccounts.bankAccountId, id)),
-        payoutChannels: this.db.$count(payoutChannels, eq(payoutChannels.bankAccountId, id)),
+        payoutChannels: this.db.$count(payoutChannelBankAccounts, eq(payoutChannelBankAccounts.bankAccountId, id)),
       })
       .from(bankAccounts)
       .where(eq(bankAccounts.id, id));
