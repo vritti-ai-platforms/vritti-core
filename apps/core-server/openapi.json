@@ -7969,11 +7969,20 @@
         ]
       }
     },
-    "/payout-accounts/internal/table": {
+    "/payout-accounts/internal/bank-account/{bankAccountId}/table": {
       "post": {
-        "description": "Resolves one page of the organization's payout accounts from the page request (filters, search, sort, pagination) cloud sends for the view state it holds. Only the last four digits of an account number are returned.",
+        "description": "Resolves one page of a bank account's payout accounts from the page request (filters, search, sort, pagination) cloud sends for the view state it holds. Only the last four digits of an account number are returned.",
         "operationId": "PayoutAccountInternalController_findForTable",
         "parameters": [
+          {
+            "name": "bankAccountId",
+            "required": true,
+            "in": "path",
+            "description": "Bank account ID",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "x-timestamp",
             "in": "header",

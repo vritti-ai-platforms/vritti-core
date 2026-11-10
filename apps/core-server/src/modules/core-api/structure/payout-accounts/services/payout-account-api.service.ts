@@ -29,8 +29,8 @@ export class PayoutAccountService {
   }
 
   // Resolves a table page from the page request cloud sends
-  async findForTablePage(page: TablePageRequest): Promise<PayoutAccountsPageResponseDto> {
-    return this.payoutAccountService.findForTable(page);
+  async findForTablePage(bankAccountId: string, page: TablePageRequest): Promise<PayoutAccountsPageResponseDto> {
+    return this.payoutAccountService.findForTable(bankAccountId, page);
   }
 
   // Adds a payout account to a bank account after checking the bank and gateway and classifying the account. A gateway

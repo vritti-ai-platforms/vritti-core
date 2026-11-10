@@ -25,8 +25,9 @@ export function ApiFindForTablePayoutAccountsInternal() {
     ApiOperation({
       summary: 'Payout accounts table',
       description:
-        "Resolves one page of the organization's payout accounts from the page request (filters, search, sort, pagination) cloud sends for the view state it holds. Only the last four digits of an account number are returned.",
+        "Resolves one page of a bank account's payout accounts from the page request (filters, search, sort, pagination) cloud sends for the view state it holds. Only the last four digits of an account number are returned.",
     }),
+    ApiParam({ name: 'bankAccountId', description: 'Bank account ID' }),
     ...ORG_HEADERS,
     ApiBody({ type: InternalTablePageDto }),
     ApiResponse({ status: 200, description: 'Payout accounts page retrieved.', type: PayoutAccountsPageResponseDto }),

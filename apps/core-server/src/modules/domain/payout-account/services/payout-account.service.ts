@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TablePageRequest } from '@vritti/api-sdk/data-table';
-import { and } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -17,7 +17,6 @@ export class PayoutAccountDomainService {
   private readonly logger = new Logger(PayoutAccountDomainService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
-    bankAccountId: { column: payoutAccounts.bankAccountId, type: 'string' },
     legalEntityId: { column: payoutAccounts.legalEntityId, type: 'string' },
     gatewayAccountId: { column: payoutAccounts.gatewayAccountId, type: 'string' },
     isMainAccount: { column: payoutAccounts.isMainAccount, type: 'boolean' },
@@ -34,18 +33,22 @@ export class PayoutAccountDomainService {
     return rows.map((row) => PayoutAccountDto.from(row));
   }
 
-  // Returns a page of the organization's payout accounts for the data table
-  async findForTable(page: TablePageRequest): Promise<PayoutAccountsPageResponseDto> {
+  // Returns a page of a bank account's payout accounts for the data table
+  async findForTable(bankAccountId: string, page: TablePageRequest): Promise<PayoutAccountsPageResponseDto> {
     const { filters, search, sort, pagination } = page;
     const fieldMap = PayoutAccountDomainService.FIELD_MAP;
     const { result, count } = await this.payoutAccountRepository.findForTable({
-      where: and(FilterProcessor.buildWhere(filters, fieldMap), FilterProcessor.buildSearch(search, fieldMap)),
+      where: and(
+        eq(payoutAccounts.bankAccountId, bankAccountId),
+        FilterProcessor.buildWhere(filters, fieldMap),
+        FilterProcessor.buildSearch(search, fieldMap),
+      ),
       orderBy: FilterProcessor.buildOrderBy(sort, fieldMap),
       limit: pagination.limit,
       offset: pagination.offset,
     });
 
-    this.logger.log(`Fetched payout accounts table (${count} results)`);
+    this.logger.log(`Fetched payout accounts table for bank account ${bankAccountId} (${count} results)`);
     return { result: result.map((row) => PayoutAccountDto.from(row)), count };
   }
 

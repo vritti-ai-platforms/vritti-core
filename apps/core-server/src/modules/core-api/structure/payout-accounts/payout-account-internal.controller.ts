@@ -39,13 +39,16 @@ export class PayoutAccountInternalController {
 
   constructor(private readonly payoutAccountService: PayoutAccountService) {}
 
-  // Resolves one table page from the page request cloud sends for the view state it holds
-  @Post('table')
+  // Resolves one table page of a bank account's payout accounts from the page request cloud sends
+  @Post('bank-account/:bankAccountId/table')
   @HttpCode(HttpStatus.OK)
   @ApiFindForTablePayoutAccountsInternal()
-  findForTable(@Body() page: InternalTablePageDto): Promise<PayoutAccountsPageResponseDto> {
-    this.logger.log('POST /payout-accounts/internal/table');
-    return this.payoutAccountService.findForTablePage(page);
+  findForTable(
+    @Param('bankAccountId', ParseUUIDPipe) bankAccountId: string,
+    @Body() page: InternalTablePageDto,
+  ): Promise<PayoutAccountsPageResponseDto> {
+    this.logger.log(`POST /payout-accounts/internal/bank-account/${bankAccountId}/table`);
+    return this.payoutAccountService.findForTablePage(bankAccountId, page);
   }
 
   // Every payout account of a legal entity, for the payout channel picker
