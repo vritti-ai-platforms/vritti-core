@@ -2,7 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { type LegalEntity, legalEntities, sites } from '@/db/schema';
+import {
+  bankAccounts,
+  type LegalEntity,
+  legalEntities,
+  payoutAccounts,
+  payoutChannelBankAccounts,
+  sites,
+} from '@/db/schema';
 
 @Injectable()
 export class LegalEntityDomainRepository extends PrimaryBaseRepository<typeof legalEntities> {
@@ -128,5 +135,25 @@ export class LegalEntityDomainRepository extends PrimaryBaseRepository<typeof le
       .from(sites)
       .where(eq(sites.legalEntityId, legalEntityId));
     return (result[0] as { count: number }).count;
+  }
+
+  // Counts the bank accounts, payout accounts and payout channel bank accounts that keep a legal entity from being deleted
+  async countPaymentDependents(
+    legalEntityId: string,
+  ): Promise<{ bankAccounts: number; payoutAccounts: number; payoutChannelBankAccounts: number }> {
+    const count = sql<number>`count(*)::int`;
+    const [banks, payouts, channelBanks] = await Promise.all([
+      this.db.select({ count }).from(bankAccounts).where(eq(bankAccounts.legalEntityId, legalEntityId)),
+      this.db.select({ count }).from(payoutAccounts).where(eq(payoutAccounts.legalEntityId, legalEntityId)),
+      this.db
+        .select({ count })
+        .from(payoutChannelBankAccounts)
+        .where(eq(payoutChannelBankAccounts.legalEntityId, legalEntityId)),
+    ]);
+    return {
+      bankAccounts: (banks[0] as { count: number }).count,
+      payoutAccounts: (payouts[0] as { count: number }).count,
+      payoutChannelBankAccounts: (channelBanks[0] as { count: number }).count,
+    };
   }
 }

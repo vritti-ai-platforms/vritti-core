@@ -185,6 +185,22 @@ export class LegalEntityDomainService {
       });
     }
 
+    // Each of these holds the legal entity in place at the database, so name them instead of failing on the constraint
+    const dependents = await this.legalEntityRepository.countPaymentDependents(id);
+    const blocking = [
+      dependents.payoutAccounts > 0 ? pluralize('payout account', dependents.payoutAccounts, true) : null,
+      dependents.payoutChannelBankAccounts > 0
+        ? pluralize('payout channel bank account', dependents.payoutChannelBankAccounts, true)
+        : null,
+      dependents.bankAccounts > 0 ? pluralize('bank account', dependents.bankAccounts, true) : null,
+    ].filter((item): item is string => item !== null);
+    if (blocking.length > 0) {
+      throw new ConflictException({
+        label: 'Cannot Delete',
+        detail: `This legal entity has ${listInWords(blocking)}. Remove them before deleting.`,
+      });
+    }
+
     const { organizationId, parentId } = legalEntity;
     await this.legalEntityRepository.delete(id);
 
@@ -261,4 +277,9 @@ export class LegalEntityDomainService {
       guard += 1;
     }
   }
+}
+
+// "a", "a and b", "a, b and c"
+function listInWords(items: string[]): string {
+  return items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 }
