@@ -6,6 +6,7 @@ import { RouterModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AuthConfigModule, type TokenExpiryString } from '@vritti/api-sdk/auth';
+import { ContextStateModule } from '@vritti/api-sdk/context-state';
 import { DataTableModule } from '@vritti/api-sdk/data-table';
 import { DatabaseModule, type DatabaseModuleOptions, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { EmailModule } from '@vritti/api-sdk/email';
@@ -256,6 +257,7 @@ const graphqlBaseOptions = {
     EmailModule,
     // Server-stored data table view state
     DataTableModule.forRoot({ tableViews: schema.tableViews }),
+    ContextStateModule,
     // Permission-set cache + @RequirePermission guard
     RbacModule,
     // Cloud-signature guard + org-scope/RLS interceptors (global)

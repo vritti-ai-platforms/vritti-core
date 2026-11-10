@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, index, integer, timestamp, unique, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, check, index, integer, timestamp, unique, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
 import { supplierItems } from './suppliers';
@@ -19,7 +19,7 @@ export const supplierSiteItems = commerceSchema.table(
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     isPreferred: boolean('is_preferred').notNull().default(false),
-    leadTimeDays: integer('lead_time_days'),
+    leadTimeDays: integer('lead_time_days').notNull().default(0),
     // True once the site sets its own lead time; until then it follows the supplier item's
     isLeadTimeOverridden: boolean('is_lead_time_overridden').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -36,6 +36,7 @@ export const supplierSiteItems = commerceSchema.table(
     index('idx_supplier_site_items_site').on(table.siteId),
     index('idx_supplier_site_items_item').on(table.inventoryItemId),
     index('idx_supplier_site_items_le').on(table.legalEntityId),
+    check('supplier_site_items_lead_time_chk', sql`${table.leadTimeDays} between 0 and 365`),
     ...siteDocumentPolicies(),
   ],
 );

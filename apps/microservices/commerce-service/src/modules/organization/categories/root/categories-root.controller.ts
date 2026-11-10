@@ -7,7 +7,7 @@ import { UpdateCategoryDto } from '@domain/categories/dto/request/update-categor
 import { CategoriesDomainService } from '@domain/categories/services/categories.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -33,7 +33,7 @@ export class CategoriesRootController {
   // Returns paginated child categories for a given parent ID
   @MessagePattern({ cmd: 'org.categories.childrenTable' })
   async childrenTable(
-    @Payload() data: { parentId: string } & TableViewState,
+    @Payload() data: { parentId: string } & TableState,
   ): Promise<{ result: CategoryDto[]; count: number }> {
     this.logger.log(`categories.childrenTable — parentId: ${data.parentId}`);
     return this.categoriesService.findChildrenForTable(data.parentId, data);

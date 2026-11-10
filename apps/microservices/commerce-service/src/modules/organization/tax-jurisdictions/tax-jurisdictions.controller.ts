@@ -6,7 +6,7 @@ import { UpdateTaxJurisdictionDto } from '@domain/tax-jurisdictions/dto/request/
 import { TaxJurisdictionsDomainService } from '@domain/tax-jurisdictions/services/tax-jurisdictions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -32,7 +32,7 @@ export class TaxJurisdictionsController {
   // Returns paginated child jurisdictions for a given parent ID
   @MessagePattern({ cmd: 'org.taxJurisdictions.childrenTable' })
   async childrenTable(
-    @Payload() data: { parentId: string } & TableViewState,
+    @Payload() data: { parentId: string } & TableState,
   ): Promise<{ result: TaxJurisdictionDto[]; count: number }> {
     this.logger.log(`taxJurisdictions.childrenTable — parentId: ${data.parentId}`);
     return this.service.findChildrenForTable(data.parentId, data);

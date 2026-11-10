@@ -43,7 +43,7 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
   const queryClient = useQueryClient();
 
   const { data: currencies = [], isLoading: currenciesLoading } = binding.useCurrencies(catalogId);
-  const { data: response, isLoading } = binding.useCurrencyListingsTable(catalogId, currencyCode);
+  const currencyListingsTableQuery = binding.useCurrencyListingsTable(catalogId, currencyCode);
   const confirm = useConfirm();
   const clearMutation = binding.useClearListingPrice();
   const bulkPriceDialog = useDialog();
@@ -184,11 +184,11 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
     [binding, catalogId, currencyCode, handleClear],
   );
 
-  const { table } = useDataTable({
+  const currencyListingsTable = useDataTable({
     columns,
     slug: binding.pricesTableSlug(catalogId),
     label: 'price',
-    serverState: response,
+    query: currencyListingsTableQuery,
     enableRowSelection: true,
     enableSorting: true,
     enableMultiSort: false,
@@ -230,8 +230,7 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
         />
 
         <DataTable
-          table={table}
-          isLoading={isLoading}
+          table={currencyListingsTable}
           permission={binding.permissions.prices.view}
           selectActions={(rows) => {
             const ids = rows.map((row) => row.original.id);

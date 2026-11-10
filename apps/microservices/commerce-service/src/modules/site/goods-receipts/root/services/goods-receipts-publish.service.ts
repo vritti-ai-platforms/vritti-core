@@ -15,6 +15,7 @@ import {
   GoodsReceiptItemsDomainService,
 } from '@domain/goods-receipts/services/goods-receipt-items.service';
 import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
+import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InventoryItemLedgerDomainService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
@@ -22,7 +23,6 @@ import { InventoryItemCostsDomainRepository } from '@domain/inventory-item-quant
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
 import { PurchaseOrderItemsDomainRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
-import { PurchaseOrdersDomainRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
@@ -51,7 +51,6 @@ export class GoodsReceiptsPublishService {
     private readonly linesRepository: GoodsReceiptLinesDomainRepository,
     private readonly lineItemsRepository: GoodsReceiptLineItemsDomainRepository,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
-    private readonly purchaseOrdersRepository: PurchaseOrdersDomainRepository,
     private readonly purchaseOrderItemsRepository: PurchaseOrderItemsDomainRepository,
     private readonly quantsService: InventoryItemQuantsDomainService,
     private readonly costsRepository: InventoryItemCostsDomainRepository,
@@ -59,16 +58,17 @@ export class GoodsReceiptsPublishService {
     private readonly ledgerService: InventoryItemLedgerDomainService,
     private readonly mrpsService: InventoryItemMrpsDomainService,
     private readonly inventoryItemSitesService: InventoryItemSitesDomainService,
+    private readonly inboundDeliveriesService: InboundDeliveriesDomainService,
   ) {}
 
-  // Lands a draft receipt's accepted stock at its site at provisional PO cost, in that site's context, and moves the PO
+  // Lands a draft receipt's accepted stock at its site at provisional PO cost, in that site's context, and moves its POs
   async publish(id: string, leCurrencyCode: string, headers: NatsHeaders): Promise<GoodsReceiptDto> {
     const receipt = await this.goodsReceiptsRepository.findDraftOrThrow(id, 'Cannot Publish');
     this.goodsReceiptsRepository.assertPublishable(receipt);
     const siteContext: NatsHeaders = {
       ...headers,
       siteId: receipt.siteId,
-      siteTimezone: receipt.poTimezone,
+      siteTimezone: receipt.siteTimezone ?? headers.siteTimezone,
       siteCurrencyCode: leCurrencyCode,
     };
 
@@ -83,15 +83,19 @@ export class GoodsReceiptsPublishService {
           await this.landItem(receipt, cost, leCurrencyCode);
         }
         await this.goodsReceiptsService.markPublished(receipt.id);
-        await this.purchaseOrderItemsRepository.syncReceivedQuantities(receipt.purchaseOrderId);
-        const purchaseOrder = await this.purchaseOrdersRepository.findDetailOrThrow(receipt.purchaseOrderId);
-        const purchaseOrderLines = await this.purchaseOrderItemsRepository.findByPurchaseOrderId(purchaseOrder.id);
-        await this.purchaseOrdersService.syncReceiptStatus(purchaseOrder, purchaseOrderLines);
+        await this.syncReceivedDocuments(receipt);
       });
     });
 
     this.logger.log(`goodsReceipts.publish — ${receipt.grNumber} at site ${receipt.siteId}`);
     return this.goodsReceiptsService.findById(id);
+  }
+
+  // Moves what the published receipt counted onto its documents: each PO line's received quantity, each touched PO's status, then its inbound delivery's
+  private async syncReceivedDocuments(receipt: GoodsReceiptRow): Promise<void> {
+    await this.purchaseOrderItemsRepository.syncReceivedQuantitiesForReceipt(receipt.id);
+    await this.purchaseOrdersService.syncReceiptStatusesForReceipt(receipt.id);
+    await this.inboundDeliveriesService.syncReceiptStatus(receipt.inboundDeliveryId);
   }
 
   // Turns an item's lines into quants with ledger entries, records its printed MRP and spreads its value over them

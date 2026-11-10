@@ -4,7 +4,7 @@ import type { UpdateInventoryItemUomConversionDto } from '@domain/inventory-item
 import { InventoryItemUomConversionsDomainService } from '@domain/inventory-item-uom-conversions/services/inventory-item-uom-conversions.service';
 import { UomDomainRepository } from '@domain/uom/repositories/uom.repository';
 import { Injectable } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -18,7 +18,7 @@ export class InventoryItemsUomConversionsService {
   // Returns paginated UOM conversion overrides for an inventory item
   findForTable(
     inventoryItemId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
     return this.conversionsService.findForTable(inventoryItemId, state);
   }

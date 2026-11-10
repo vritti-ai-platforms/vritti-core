@@ -1,7 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsDateString, IsIn, IsInt, IsNumber, IsOptional, IsUUID, Matches, Max, Min } from 'class-validator';
-import { TAX_BASES, TAX_CALCULATIONS, TAX_JURISDICTION_CHECKS, TAX_MEASURES } from '../response/tax-group-rate-response.dto';
+import {
+  TAX_BASES,
+  TAX_CALCULATIONS,
+  TAX_JURISDICTION_CHECKS,
+  TAX_MEASURES,
+} from '../response/tax-group-rate-response.dto';
 
 export class CreateTaxGroupRateDto {
   @ApiProperty({ description: 'Tax component charged — must be of the group’s country' })
@@ -17,7 +22,8 @@ export class CreateTaxGroupRateDto {
   jurisdictionId?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Same: the supplier and the place of supply are in the same jurisdiction (state); Different: they are not; null: the rate applies either way',
+    description:
+      'Same: the supplier and the place of supply are in the same jurisdiction (state); Different: they are not; null: the rate applies either way',
     enum: TAX_JURISDICTION_CHECKS,
     nullable: true,
   })

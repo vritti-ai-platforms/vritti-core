@@ -18,7 +18,7 @@ interface ListingsTabProps {
 // What this channel carries. Whether it is available at a given price, in a given currency, is the Prices tab.
 export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, channelId }) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = binding.useChannelItems(channelId);
+  const channelItemsQuery = binding.useChannelItems(channelId);
   const visibilityMutation = binding.useSetChannelItemVisibility();
 
   const columns = useMemo<ColumnDef<ChannelItemData>[]>(
@@ -102,25 +102,24 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, channelId }) 
     [binding, channelId, visibilityMutation],
   );
 
-  const { table } = useDataTable({
+  const channelItemsTable = useDataTable({
     columns,
     slug: binding.itemsTableSlug(channelId),
     label: 'item',
-    serverState: response,
+    query: channelItemsQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: binding.itemsKey(channelId) }),
   });
 
-  const available = response?.result.filter((item) => item.availableHere).length ?? 0;
-  const onPage = response?.result.length ?? 0;
+  const available = channelItemsQuery.data?.result.filter((item) => item.availableHere).length ?? 0;
+  const onPage = channelItemsQuery.data?.result.length ?? 0;
 
   return (
     <DataTable
-      table={table}
+      table={channelItemsTable}
       mode="tab"
-      isLoading={isLoading}
       permission={binding.permissions.listings}
       searchConfig={{
         columns: [

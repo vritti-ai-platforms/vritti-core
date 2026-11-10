@@ -96,9 +96,6 @@ export const TAX_BASE_LABELS: Record<TaxBase, string> = {
 
 export const TAX_BASE_OPTIONS = TAX_BASES.map((value) => ({ value, label: TAX_BASE_LABELS[value] }));
 
-// The country the tax groups pages open on when the organization has no tax groups yet
-export const DEFAULT_TAX_COUNTRY = 'IN';
-
 const validToOnOrAfterValidFrom = {
   check: (data: { validFrom: string; validTo?: string | null }) => !data.validTo || data.validTo >= data.validFrom,
   params: { message: 'Valid to must be on or after valid from', path: ['validTo'] },
@@ -109,10 +106,13 @@ const taxGroupFields = {
   name: z.string({ error: 'Name is required' }).min(1, 'Name is required').max(100),
   treatment: z.enum(TAX_TREATMENTS, { error: 'Treatment is required' }),
   legalText: z.string().max(1000),
-  isActive: z.boolean(),
 };
 
-export const createTaxGroupSchema = z.object({ countryCode: countryCodeField, ...taxGroupFields });
+export const createTaxGroupSchema = z.object({
+  countryCode: countryCodeField,
+  ...taxGroupFields,
+  isActive: z.boolean(),
+});
 export type CreateTaxGroupFormData = z.infer<typeof createTaxGroupSchema>;
 
 // `countryCode` is fixed once the group exists but shown disabled in the edit form, so it belongs to the form type only
@@ -130,6 +130,7 @@ export interface TaxGroupData {
   rateCount: number;
   classCount: number;
   canDelete: boolean;
+  canDeactivate: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -145,7 +146,7 @@ export interface CreateTaxGroupPayload {
   isActive: boolean;
 }
 
-export type UpdateTaxGroupPayload = Partial<Omit<CreateTaxGroupPayload, 'countryCode'>>;
+export type UpdateTaxGroupPayload = Partial<Omit<CreateTaxGroupPayload, 'countryCode' | 'isActive'>>;
 
 export const taxGroupRateSchema = z
   .object({
@@ -255,13 +256,3 @@ export interface CreateTaxClassGroupPayload {
 }
 
 export type UpdateTaxClassGroupPayload = Omit<CreateTaxClassGroupPayload, 'taxClassId'>;
-
-export interface TaxClassMappingData {
-  taxClassId: string;
-  taxClassCode: string;
-  taxClassName: string;
-  countryCode: string;
-  mapping: TaxClassGroupData | null;
-}
-
-export type TaxClassMappingTableResponse = TableResponse<TaxClassMappingData>;

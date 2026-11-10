@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
+import { useOrgCountryCode } from '@vritti/quantum-ui/hooks';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -19,6 +20,7 @@ interface AddPersonDialogProps {
 }
 
 export const AddPersonDialog: React.FC<AddPersonDialogProps> = ({ onSuccess, onCancel }) => {
+  const orgCountryCode = useOrgCountryCode();
   const form = useForm<CreatePersonFormData>({
     resolver: zodResolver(createPersonSchema),
     defaultValues: {
@@ -34,7 +36,7 @@ export const AddPersonDialog: React.FC<AddPersonDialogProps> = ({ onSuccess, onC
       city: '',
       region: '',
       postalCode: '',
-      countryCode: undefined,
+      countryCode: orgCountryCode,
     },
   });
 

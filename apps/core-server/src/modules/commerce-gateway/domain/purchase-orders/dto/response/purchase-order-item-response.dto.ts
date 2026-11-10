@@ -14,6 +14,33 @@ export class PurchaseOrderItemResponseDto {
   @ApiProperty({ description: 'Inventory item name' })
   inventoryItemName: string;
 
+  @ApiProperty({
+    description: 'Date the line is expected to be delivered (YYYY-MM-DD); set by its inbound deliveries while on any',
+  })
+  expectedDeliveryDate: string;
+
+  @ApiProperty({
+    description:
+      'Numbers of the non-cancelled inbound deliveries the line is on; its expected delivery is read-only while any',
+    type: [String],
+  })
+  inboundDeliveryNumbers: string[];
+
+  @ApiProperty({
+    description: 'IDs of the non-cancelled inbound deliveries the line is on, in the order of inboundDeliveryNumbers',
+    type: [String],
+  })
+  inboundDeliveryIds: string[];
+
+  @ApiProperty({ description: 'Date tax is determined on for the line (YYYY-MM-DD)' })
+  taxDate: string;
+
+  @ApiProperty({ description: "True when the line has its own tax date instead of following the purchase order's" })
+  isTaxDateOverridden: boolean;
+
+  @ApiProperty({ description: 'True once a published goods receipt or a posted supplier invoice counts the line' })
+  isTaxDateLocked: boolean;
+
   @ApiProperty({ description: 'Unit the line is ordered in' })
   uomId: string;
 
@@ -31,6 +58,12 @@ export class PurchaseOrderItemResponseDto {
 
   @ApiProperty({ description: "Ordered quantity in the item's primary unit" })
   primaryUomQty: number;
+
+  @ApiProperty({ description: "Expected free quantity in the item's primary unit" })
+  expectedFreePrimaryQty: number;
+
+  @ApiProperty({ description: "Received quantity in the item's primary unit" })
+  receivedPrimaryQty: number;
 
   @ApiPropertyOptional({ description: "Symbol of the item's primary unit", nullable: true })
   primaryUomSymbol: string | null;

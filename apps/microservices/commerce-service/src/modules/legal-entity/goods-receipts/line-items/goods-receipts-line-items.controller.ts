@@ -3,7 +3,7 @@ import { AddGoodsReceiptLineItemDto } from '@domain/goods-receipt-line-items/dto
 import { GoodsReceiptLineItemsDomainService } from '@domain/goods-receipt-line-items/services/goods-receipt-line-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsLineItemsService } from '@/modules/site/goods-receipts/line-items/services/goods-receipts-line-items.service';
 
@@ -19,7 +19,7 @@ export class LeGoodsReceiptsLineItemsController {
   // Returns one page of the serials registered on a goods receipt line
   @MessagePattern({ cmd: 'le.goodsReceipts.lineItemsTable' })
   lineItemsTable(
-    @Payload() data: { goodsReceiptId: string; itemId: string; lineId: string } & TableViewState,
+    @Payload() data: { goodsReceiptId: string; itemId: string; lineId: string } & TableState,
   ): Promise<{ result: GoodsReceiptLineItemDto[]; count: number }> {
     this.logger.log(`le.goodsReceipts.lineItemsTable — line: ${data.lineId}`);
     const { goodsReceiptId, itemId, lineId, ...state } = data;

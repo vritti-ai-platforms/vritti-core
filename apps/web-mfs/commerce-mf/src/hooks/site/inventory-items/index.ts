@@ -3,7 +3,7 @@ export {
   INVENTORY_ITEM_LEDGER_KEY,
   INVENTORY_ITEM_LOCATIONS_KEY,
   INVENTORY_ITEM_LOTS_KEY,
-  INVENTORY_ITEM_PRICE_GRAPH_KEY,
+  INVENTORY_ITEM_PRICE_HISTORY_KEY,
   INVENTORY_ITEM_PRICES_TABLE_KEY,
   INVENTORY_ITEM_QUANTS_KEY,
   INVENTORY_ITEM_STOCKS_KEY,
@@ -24,9 +24,8 @@ export {
   useUpdateInventoryItemLocation,
 } from './useInventoryItemLocations';
 export {
-  useInventoryItemPriceGraph,
+  useInventoryItemPriceHistoryQuery,
   useInventoryItemPricesTable,
-  useSaveInventoryItemPriceGraph,
 } from './useInventoryItemPrices';
 export { useInventoryItemStocks } from './useInventoryItemStocks';
 export { useInventoryItemSuppliersTable } from './useInventoryItemSuppliers';

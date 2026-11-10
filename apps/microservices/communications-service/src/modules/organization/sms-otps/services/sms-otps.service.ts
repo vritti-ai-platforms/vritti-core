@@ -8,7 +8,7 @@ import { SmsProviderTemplatesDomainService } from '@domain/sms-provider-template
 import { SmsProviderRegistry } from '@domain/sms-providers/services/sms-provider-transports';
 import { SmsProvidersDomainService } from '@domain/sms-providers/services/sms-providers.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 
 // Orchestrates the domains a send touches — the OTP row, the provider row's credentials, and the
 // transport that delivers the message. Domain modules never import each other, so the coordination
@@ -70,7 +70,7 @@ export class SmsOtpsService {
     return this.otpsService.verify(dto);
   }
 
-  findForTable(state: TableViewState): Promise<{ result: SmsOtpDto[]; count: number }> {
+  findForTable(state: TableState): Promise<{ result: SmsOtpDto[]; count: number }> {
     return this.otpsService.findForTable(state);
   }
 

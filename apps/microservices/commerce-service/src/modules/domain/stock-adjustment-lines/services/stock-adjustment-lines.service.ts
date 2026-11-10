@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,
@@ -51,7 +52,7 @@ export class StockAdjustmentLinesDomainService {
 
   async findForTable(
     adjustmentId: string,
-    state: TableViewState,
+    state: TableState,
     lotId?: string | null,
   ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLinesDomainService.FILTER_FIELD_MAP);

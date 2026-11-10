@@ -5,7 +5,7 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { OverviewTab } from '@/features/organization/inventory-items/tabs/OverviewTab';
 import { useInventoryItem } from '@/hooks/legal-entity/inventory-items';
 import { MrpTab } from './tabs/MrpTab';
-import { PriceGraphTab } from './tabs/PriceGraphTab';
+import { PriceHistoryTab } from './tabs/PriceHistoryTab';
 import { PricesTableTab } from './tabs/PricesTableTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
 
@@ -43,10 +43,10 @@ export const InventoryItemDetailPage = () => {
             ),
           },
           {
-            value: 'price-graph',
-            label: 'Prices Graph',
+            value: 'price-history',
+            label: 'Price History',
             permission: LE_INVENTORY_ITEMS.prices.view,
-            content: <PriceGraphTab inventoryItemId={item.id} />,
+            content: <PriceHistoryTab inventoryItemId={item.id} />,
           },
           {
             value: 'mrp',

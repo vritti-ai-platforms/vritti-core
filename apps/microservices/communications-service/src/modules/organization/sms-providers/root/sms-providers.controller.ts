@@ -4,7 +4,7 @@ import { UpdateSmsProviderDto } from '@domain/sms-providers/dto/request/update-s
 import type { SmsProviderCapabilities } from '@domain/sms-providers/services/sms-provider-transports';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { SmsProvidersService } from './services/sms-providers.service';
@@ -22,7 +22,7 @@ export class SmsProvidersController {
   }
 
   @MessagePattern({ cmd: 'org.smsProviders.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: SmsProviderDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: SmsProviderDto[]; count: number }> {
     this.logger.log('smsProviders.table');
     return this.service.findForTable(state);
   }

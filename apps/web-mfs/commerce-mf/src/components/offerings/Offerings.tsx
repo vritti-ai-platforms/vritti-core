@@ -34,7 +34,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
   const { permissions: PERMISSIONS } = binding;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = binding.useOfferingsTable();
+  const offeringsTableQuery = binding.useOfferingsTable();
   const addDialog = useDialog();
   const setStatusMutation = binding.useSetOfferingStatus();
   const markActiveMutation = binding.useMarkOfferingsActive();
@@ -116,16 +116,17 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
     [navigate, PERMISSIONS.toggle, setStatusMutation],
   );
 
-  const { table } = useDataTable({
+  const offeringsTable = useDataTable({
     columns,
     slug: binding.tableSlug,
     label: 'offering',
-    serverState: response,
+    query: offeringsTableQuery,
     enableRowSelection: (row) => row.original.canMarkActive,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: binding.tableKey }),
   });
+  const { table } = offeringsTable;
 
   const resetSelection = { onSuccess: () => table.resetRowSelection() };
 
@@ -134,8 +135,7 @@ export const Offerings: React.FC<OfferingsProps> = ({ binding }) => {
       <PageHeader title="Offerings" description={binding.listDescription} />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={offeringsTable}
         permission={PERMISSIONS.view}
         selectActions={(rows) => (
           <>

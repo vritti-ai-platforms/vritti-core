@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterOperators, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterOperators, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq, isNotNull, isNull, or } from '@vritti/api-sdk/drizzle-orm';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectQueryResult } from '@vritti/api-sdk/select';
@@ -13,10 +14,7 @@ import type { SupplierEnrolledSitesQueryDto } from '../dto/request/supplier-enro
 import type { SupplierEnrollmentSelectQueryDto } from '../dto/request/supplier-enrollment-select-query.dto';
 import type { UpdateSupplierEnrollmentDto } from '../dto/request/update-supplier-enrollment.dto';
 import { SiteSuppliersDomainRepository } from '../repositories/site-suppliers.repository';
-import {
-  type EnrolledSite,
-  SupplierEnrollmentsDomainRepository,
-} from '../repositories/supplier-enrollments.repository';
+import { SupplierEnrollmentsDomainRepository } from '../repositories/supplier-enrollments.repository';
 
 @Injectable()
 export class SupplierEnrollmentsDomainService {
@@ -53,7 +51,7 @@ export class SupplierEnrollmentsDomainService {
   async findForSiteTable(
     legalEntityId: string,
     siteId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: SupplierEnrollmentRowDto[]; count: number }> {
     const { limit = 20, offset = 0 } = state.pagination;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
@@ -155,9 +153,9 @@ export class SupplierEnrollmentsDomainService {
     return this.siteSuppliersRepository.findForSiteSelect(legalEntityId, siteId, query);
   }
 
-  // Returns the sites a supplier is enrolled at, each with whether the enrollment is effectively active; the gateway
-  // builds the site options
-  findEnrolledSites(query: SupplierEnrolledSitesQueryDto): Promise<EnrolledSite[]> {
-    return this.repository.findEnrolledSites(query.supplierId, query.activeOnly);
+  // Returns the sites a supplier (or any supplier of an inventory item) is enrolled at, only the active enrollments with
+  // isActive; core-api's site select limits its options to them
+  findEnrolledSiteIds({ supplierId, inventoryItemId, isActive }: SupplierEnrolledSitesQueryDto): Promise<string[]> {
+    return this.repository.findEnrolledSiteIds({ supplierId, inventoryItemId }, isActive);
   }
 }

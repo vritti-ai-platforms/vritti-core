@@ -3,7 +3,7 @@ import { AddCompanyIdentifierDto } from '@domain/party-identifiers/dto/request/a
 import { PartyIdentifiersDomainService } from '@domain/party-identifiers/services/party-identifiers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -15,7 +15,7 @@ export class CompanyIdentifiersController {
   // Returns the paginated identifiers of a company
   @MessagePattern({ cmd: 'org.companies.identifiers.table' })
   async table(
-    @Payload() data: { companyId: string } & TableViewState,
+    @Payload() data: { companyId: string } & TableState,
   ): Promise<{ result: PartyIdentifierDto[]; count: number }> {
     const { companyId, ...state } = data;
     this.logger.log(`companies.identifiers.table — companyId: ${companyId}`);

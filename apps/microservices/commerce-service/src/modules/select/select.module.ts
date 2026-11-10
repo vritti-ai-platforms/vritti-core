@@ -3,6 +3,7 @@ import { CategoriesDomainModule } from '@domain/categories/categories.module';
 import { CostCategoriesDomainModule } from '@domain/cost-categories/cost-categories.module';
 import { CustomersDomainModule } from '@domain/customers/customers.module';
 import { DimensionTemplatesDomainModule } from '@domain/dimension-templates/dimension-templates.module';
+import { InboundDeliveriesDomainModule } from '@domain/inbound-deliveries/inbound-deliveries.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemMrpsDomainModule } from '@domain/inventory-item-mrps/inventory-item-mrps.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
@@ -52,6 +53,7 @@ import { SelectController } from './select.controller';
     InventoryItemSerialsDomainModule,
     PosTerminalsDomainModule,
     PurchaseOrderItemsDomainModule,
+    InboundDeliveriesDomainModule,
     PurchaseOrdersDomainModule,
     CostCategoriesDomainModule,
     SupplierItemsDomainModule,

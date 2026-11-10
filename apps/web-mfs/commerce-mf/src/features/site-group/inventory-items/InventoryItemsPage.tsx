@@ -10,7 +10,7 @@ import {
 import type { SiteGroupInventoryItemData } from '@/schemas/inventory-items';
 
 export const InventoryItemsPage = () => {
-  const { data: response, isLoading } = useSiteGroupInventoryItemsTable();
+  const siteGroupInventoryItemsTableQuery = useSiteGroupInventoryItemsTable();
 
   const extraColumns = useMemo<ColumnDef<SiteGroupInventoryItemData>[]>(
     () => [
@@ -32,8 +32,7 @@ export const InventoryItemsPage = () => {
       />
 
       <InventoryItemsTable
-        response={response}
-        isLoading={isLoading}
+        query={siteGroupInventoryItemsTableQuery}
         slug="commerce-site-group-inventory-items"
         tableKey={SITE_GROUP_INVENTORY_ITEMS_TABLE_KEY}
         permission={SITE_GROUP_INVENTORY_ITEMS.view}

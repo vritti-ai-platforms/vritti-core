@@ -13,6 +13,7 @@ export class SupplierInvoiceDto {
   poNumber: string;
   invoiceNumber: string;
   invoiceDate: string;
+  taxDate: string;
   currencyCode: string;
   exchangeRate: number;
   poExchangeRate: number;
@@ -46,6 +47,7 @@ export class SupplierInvoiceDto {
     dto.poNumber = row.poNumber;
     dto.invoiceNumber = row.invoiceNumber;
     dto.invoiceDate = row.invoiceDate;
+    dto.taxDate = row.taxDate;
     dto.currencyCode = row.currencyCode;
     dto.exchangeRate = row.exchangeRate;
     dto.poExchangeRate = row.poExchangeRate;

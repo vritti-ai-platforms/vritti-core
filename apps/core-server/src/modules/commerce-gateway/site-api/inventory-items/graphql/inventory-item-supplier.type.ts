@@ -41,8 +41,8 @@ export class InventoryItemSupplier {
   @Field(() => Float, { nullable: true })
   minOrderQuantity: number | null;
 
-  @Field(() => Int, { nullable: true })
-  leadTimeDays: number | null;
+  @Field(() => Int)
+  leadTimeDays: number;
 
   @Field(() => Boolean)
   isPreferred: boolean;

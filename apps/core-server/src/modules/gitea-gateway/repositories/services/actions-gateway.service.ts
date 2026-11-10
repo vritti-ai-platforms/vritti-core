@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OrganizationGatewayService } from '../../organization/services/organization-gateway.service';
 import { GiteaHttpService } from '../../services/gitea-http.service';
@@ -27,7 +27,7 @@ export class ActionsGatewayService {
   constructor(
     private readonly gitea: GiteaHttpService,
     private readonly organizationGatewayService: OrganizationGatewayService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Resolves the repository's Gitea base path.
@@ -115,7 +115,7 @@ export class ActionsGatewayService {
     workflowId?: string,
   ): Promise<RunTableResponseDto> {
     const base = await this.repoBase(subdomain, name);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, RUNS_TABLE_SLUG);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, RUNS_TABLE_SLUG);
     const { page, limit } = toGiteaPaging(state);
 
     const response = await this.fetchRuns(

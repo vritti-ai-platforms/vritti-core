@@ -232,9 +232,11 @@ export class TaxGroupRatesDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Matches the rates charged in a jurisdiction: its own rows, and the whole-country rows of every component and
-  // jurisdiction check it has none for — per component, the more specific jurisdiction wins
+  // jurisdiction check it has none for — per component, together with the components that stand in for it, the more
+  // specific jurisdiction wins, so a jurisdiction's UTGST row replaces the whole-country SGST row
   private appliesIn(jurisdictionId: string, asOf: string | undefined): SQL | undefined {
     const stateRates = alias(taxGroupRates, 'state_rates');
+    const stateComponents = alias(taxComponents, 'state_components');
     return or(
       eq(taxGroupRates.jurisdictionId, jurisdictionId),
       and(
@@ -243,10 +245,11 @@ export class TaxGroupRatesDomainRepository extends PrimaryBaseRepository<typeof 
           this.db
             .select({ one: sql`1` })
             .from(stateRates)
+            .innerJoin(stateComponents, eq(stateComponents.id, stateRates.taxComponentId))
             .where(
               and(
                 eq(stateRates.taxGroupId, taxGroupRates.taxGroupId),
-                eq(stateRates.taxComponentId, taxGroupRates.taxComponentId),
+                sql`coalesce(${stateComponents.standsInForId}, ${stateComponents.id}) = coalesce(${taxComponents.standsInForId}, ${taxComponents.id})`,
                 sql`${stateRates.jurisdictionCheck} is not distinct from ${taxGroupRates.jurisdictionCheck}`,
                 eq(stateRates.jurisdictionId, jurisdictionId),
                 asOf ? this.validOn(stateRates, asOf) : undefined,

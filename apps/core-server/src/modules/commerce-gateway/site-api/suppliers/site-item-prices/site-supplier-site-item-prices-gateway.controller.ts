@@ -1,16 +1,16 @@
 import { AddSupplierSiteItemPriceDto } from '@commerce/supplier-item-prices/dto/request/add-supplier-site-item-price.dto';
-import { SupplierSiteItemPriceHistoryQueryDto } from '@commerce/supplier-item-prices/dto/request/supplier-site-item-price-history-query.dto';
 import { UpdateSupplierSiteItemPriceDto } from '@commerce/supplier-item-prices/dto/request/update-supplier-site-item-price.dto';
 import type { SupplierItemPriceHistoryResponseDto } from '@commerce/supplier-item-prices/dto/response/supplier-item-price-history-response.dto';
 import type { SupplierSiteItemPriceResponseDto } from '@commerce/supplier-item-prices/dto/response/supplier-site-item-price-response.dto';
 import type { SupplierSiteItemPriceTableResponseDto } from '@commerce/supplier-item-prices/dto/response/supplier-site-item-price-table-response.dto';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SITE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { OrgId } from '@/security/decorators';
 import { SiteSupplierSiteItemPricesGatewayService } from './services/site-supplier-site-item-prices-gateway.service';
 
 // A supplier site item's validity-dated prices at the session site: the table, the price history and their records
@@ -31,21 +31,22 @@ export class SiteSupplierSiteItemPricesGatewayController {
     @Param('id') supplierId: string,
     @Param('itemId') itemId: string,
     @UserId() userId: string,
+    @OrgId() orgId: string,
   ): Promise<SupplierSiteItemPriceTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}/prices/table`);
-    return this.service.findPricesTable(itemId, userId);
+    return this.service.findPricesTable(itemId, userId, orgId);
   }
 
-  // Returns this site's price windows for a supplier item in a date range
+  // Returns this site's price windows for a supplier item, in one currency, at the history's saved context
   @Get(':id/site-items/:itemId/price-history')
   @RequirePermission(SITE_SUPPLIERS.siteItems.prices.view)
   getSiteItemPriceHistory(
     @Param('id') supplierId: string,
     @Param('itemId') itemId: string,
-    @Query() query: SupplierSiteItemPriceHistoryQueryDto,
+    @UserId() userId: string,
   ): Promise<SupplierItemPriceHistoryResponseDto> {
     this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}/price-history`);
-    return this.service.findPriceHistory(itemId, query);
+    return this.service.findPriceHistory(itemId, userId);
   }
 
   // Adds a site-specific price record to a supplier item's timeline

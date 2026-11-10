@@ -7,14 +7,12 @@ import type { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-
 import type { UpdateTaxGroupRateDto } from '@commerce/tax-groups/dto/request/update-tax-group-rate.dto';
 import type { TaxClassGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-response.dto';
 import type { TaxClassGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-table-response.dto';
-import type { TaxClassMappingResponseDto } from '@commerce/tax-groups/dto/response/tax-class-mapping-response.dto';
-import type { TaxClassMappingTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-mapping-table-response.dto';
 import type { TaxGroupRateResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-response.dto';
 import type { TaxGroupRateTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-table-response.dto';
 import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
 import type { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -24,13 +22,13 @@ export class TaxGroupsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated tax groups for the data table; the country comes from the saved table context
   async findForTable(userId: string): Promise<TaxGroupTableResponseDto> {
     this.logger.log('org.taxGroups.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-org-tax-groups');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-tax-groups');
     const { result, count } = await this.nats.send<{ result: TaxGroupResponseDto[]; count: number }>(
       'commerce',
       'org.taxGroups.table',
@@ -57,6 +55,12 @@ export class TaxGroupsGatewayService {
     return this.nats.send('commerce', 'org.taxGroups.update', { id, ...dto });
   }
 
+  // Activates or deactivates a tax group
+  setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
+    this.logger.log(`org.taxGroups.setActive — id: ${id}, isActive: ${isActive}`);
+    return this.nats.send('commerce', 'org.taxGroups.setActive', { id, isActive });
+  }
+
   // Deletes a tax group by ID
   delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.taxGroups.delete — id: ${id}`);
@@ -72,10 +76,7 @@ export class TaxGroupsGatewayService {
     this.logger.log(
       `org.taxGroups.rates.table — taxGroupId: ${taxGroupId}, jurisdiction: ${context.jurisdiction ?? 'all'}, asOf: ${context.asOf ?? 'any'}`,
     );
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-org-tax-group-rates',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-tax-group-rates');
     const { result, count } = await this.nats.send<{ result: TaxGroupRateResponseDto[]; count: number }>(
       'commerce',
       'org.taxGroups.rates.table',
@@ -105,7 +106,7 @@ export class TaxGroupsGatewayService {
   // Returns a group's paginated class mappings for the data table
   async findClassesForTable(userId: string, taxGroupId: string): Promise<TaxClassGroupTableResponseDto> {
     this.logger.log(`org.taxGroups.classes.table — taxGroupId: ${taxGroupId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       'commerce-org-tax-group-classes',
     );
@@ -133,20 +134,5 @@ export class TaxGroupsGatewayService {
   deleteClass(taxGroupId: string, id: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.taxGroups.classes.delete — taxGroupId: ${taxGroupId}, id: ${id}`);
     return this.nats.send('commerce', 'org.taxGroups.classes.delete', { taxGroupId, id });
-  }
-
-  // Returns every active tax class with its group valid today in the country of the saved table context
-  async findClassMappingForTable(userId: string): Promise<TaxClassMappingTableResponseDto> {
-    this.logger.log('org.taxGroups.classMapping.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-org-tax-class-mapping',
-    );
-    const { result, count } = await this.nats.send<{ result: TaxClassMappingResponseDto[]; count: number }>(
-      'commerce',
-      'org.taxGroups.classMapping.table',
-      state,
-    );
-    return { result, count, state, activeViewId };
   }
 }

@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
+import { useOrgCountryCode } from '@vritti/quantum-ui/hooks';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { ISOCountrySelect } from '@vritti/quantum-ui/selects/iso-country';
@@ -18,6 +19,7 @@ interface AddCompanyDialogProps {
 }
 
 export const AddCompanyDialog: React.FC<AddCompanyDialogProps> = ({ onSuccess, onCancel }) => {
+  const orgCountryCode = useOrgCountryCode();
   const form = useForm<CreateCompanyFormData>({
     resolver: zodResolver(createCompanySchema),
     defaultValues: {
@@ -32,6 +34,8 @@ export const AddCompanyDialog: React.FC<AddCompanyDialogProps> = ({ onSuccess, o
       city: '',
       region: '',
       postalCode: '',
+      countryCode: orgCountryCode,
+      addressCountryCode: orgCountryCode,
     },
   });
   const countryCode = useWatch({ control: form.control, name: 'countryCode' });

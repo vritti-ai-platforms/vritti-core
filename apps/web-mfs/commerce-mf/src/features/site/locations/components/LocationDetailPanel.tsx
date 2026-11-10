@@ -73,7 +73,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
   const addChildDialog = useDialog();
   const editDialog = useDialog();
   const deleteMutation = useDeleteLocation();
-  const { data: childrenResponse, isLoading: isChildrenLoading } = useLocationChildrenTable(location.id);
+  const locationChildrenTableQuery = useLocationChildrenTable(location.id);
   const canAddChild = location.locationRole === 'ZONE';
   const RoleIcon = LOCATION_ROLE_ICON[location.locationRole];
 
@@ -127,9 +127,9 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
     [onSelectLocation],
   );
 
-  const { table } = useDataTable({
+  const locationChildrenTable = useDataTable({
     columns,
-    serverState: childrenResponse,
+    query: locationChildrenTableQuery,
     slug: `location-${location.id}-children`,
     label: 'child location',
     enableRowSelection: false,
@@ -207,7 +207,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
             className="px-4 py-2"
             label="Child Locations"
             type="number"
-            value={childrenResponse?.count ?? 0}
+            value={locationChildrenTableQuery.data?.count ?? 0}
           />
           <DetailField className="px-4 py-2" label="Parent" type="string" value={location.parentName} />
           <DetailField className="px-4 py-2" label="Area" type="string" value={location.area} />
@@ -217,12 +217,11 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
       {location.locationRole === 'ZONE' ? (
         <div>
           <Typography variant="overline" intent="muted" className="mb-3">
-            Child Locations ({childrenResponse?.count ?? 0})
+            Child Locations ({locationChildrenTableQuery.data?.count ?? 0})
           </Typography>
           <DataTable
-            table={table}
+            table={locationChildrenTable}
             mode="compact"
-            isLoading={isChildrenLoading}
             toolbarActions={{
               actions: (
                 <Button
@@ -285,7 +284,7 @@ interface LocationItemsSectionProps {
 const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId }) => {
   const queryClient = useQueryClient();
   const fmt = useFormatters();
-  const { data: itemsResponse, isLoading } = useLocationItemsTable(locationId);
+  const locationItemsTableQuery = useLocationItemsTable(locationId);
 
   const columns = useMemo<ColumnDef<LocationItemRow>[]>(
     () => [
@@ -347,9 +346,9 @@ const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId 
     [fmt, locationId],
   );
 
-  const { table } = useDataTable({
+  const locationItemsTable = useDataTable({
     columns,
-    serverState: itemsResponse,
+    query: locationItemsTableQuery,
     slug: `location-${locationId}-items`,
     label: 'item',
     enableRowSelection: false,
@@ -359,12 +358,11 @@ const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId 
   return (
     <div>
       <Typography variant="overline" intent="muted" className="mb-3">
-        Items ({itemsResponse?.count ?? 0})
+        Items ({locationItemsTableQuery.data?.count ?? 0})
       </Typography>
       <DataTable
-        table={table}
+        table={locationItemsTable}
         mode="compact"
-        isLoading={isLoading}
         permission={SITE_LOCATIONS.quants.view}
         emptyStateConfig={{
           icon: Boxes,

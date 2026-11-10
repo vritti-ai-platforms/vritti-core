@@ -34,7 +34,7 @@ import type { UpdateCompanySocialProfileDto } from '@commerce/party-social-profi
 import type { PartySocialProfileResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-response.dto';
 import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -44,13 +44,13 @@ export class CompaniesGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated, filtered, and sorted companies for the data table
   async findForTable(userId: string): Promise<CompanyTableResponseDto> {
     this.logger.log('org.companies.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-org-companies');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-companies');
 
     const { result, count } = await this.nats.send<{ result: CompanyResponseDto[]; count: number }>(
       'commerce',
@@ -88,7 +88,7 @@ export class CompaniesGatewayService {
   // Returns the linked people (person relationships) of a company for the data table
   async listPeople(companyId: string, userId: string): Promise<CompanyPersonTableResponseDto> {
     this.logger.log(`org.companies.people.table — companyId: ${companyId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-company-${companyId}-people`,
     );
@@ -123,7 +123,7 @@ export class CompaniesGatewayService {
   // Returns the tax registrations of a company for the data table
   async listRegistrations(companyId: string, userId: string): Promise<CompanyRegistrationTableResponseDto> {
     this.logger.log(`org.companies.registrations.table — companyId: ${companyId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-company-${companyId}-registrations`,
     );
@@ -166,7 +166,7 @@ export class CompaniesGatewayService {
   // Returns the identifiers of a company for the data table
   async listIdentifiers(companyId: string, userId: string): Promise<PartyIdentifierTableResponseDto> {
     this.logger.log(`org.companies.identifiers.table — companyId: ${companyId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-company-${companyId}-identifiers`,
     );
@@ -198,7 +198,7 @@ export class CompaniesGatewayService {
   // Returns the addresses of a company for the data table
   async listAddresses(companyId: string, userId: string): Promise<PartyAddressTableResponseDto> {
     this.logger.log(`org.companies.addresses.table — companyId: ${companyId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-company-${companyId}-addresses`,
     );
@@ -233,7 +233,7 @@ export class CompaniesGatewayService {
   // Returns the licenses of a company for the data table
   async listLicenses(companyId: string, userId: string): Promise<PartyLicenseTableResponseDto> {
     this.logger.log(`org.companies.licenses.table — companyId: ${companyId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-company-${companyId}-licenses`,
     );
@@ -268,7 +268,7 @@ export class CompaniesGatewayService {
   // Returns the bank accounts of a company for the data table
   async listBankAccounts(companyId: string, userId: string): Promise<PartyBankAccountTableResponseDto> {
     this.logger.log(`org.companies.bankAccounts.table — companyId: ${companyId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-company-${companyId}-bank-accounts`,
     );
@@ -306,7 +306,7 @@ export class CompaniesGatewayService {
   // Returns paginated communications of a company for the data table
   async listCommunications(companyId: string, userId: string): Promise<PartyCommunicationTableResponseDto> {
     this.logger.log(`org.companies.communications.table — companyId: ${companyId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-company-${companyId}-communications`,
     );
@@ -344,7 +344,7 @@ export class CompaniesGatewayService {
   // Returns paginated social profiles of a company for the data table
   async listSocialProfiles(companyId: string, userId: string): Promise<PartySocialProfileTableResponseDto> {
     this.logger.log(`org.companies.socialProfiles.table — companyId: ${companyId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-company-${companyId}-social-profiles`,
     );

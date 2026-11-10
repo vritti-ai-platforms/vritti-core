@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
+import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { OfferingVariantResponseDto } from './offering-variant-response.dto';
 
 export const OFFERING_CHANNEL_TYPES = ['APP', 'POS', 'B2B'] as const;
@@ -75,7 +75,7 @@ export class ChannelVariantResponseDto extends OfferingVariantResponseDto {
 export class ChannelVariantPagesTableResponseDto extends TableResponseDto<ChannelVariantResponseDto> {
   @ApiProperty({ type: [ChannelVariantResponseDto] }) declare result: ChannelVariantResponseDto[];
   @ApiProperty() declare count: number;
-  @ApiProperty() declare state: TableViewState;
+  @ApiProperty() declare state: TableState;
   @ApiPropertyOptional({ nullable: true }) declare activeViewId: string | null;
 
   @ApiProperty({ description: 'False when this channel names no storefront, so the page columns say nothing' })

@@ -11,7 +11,7 @@ import type {
 } from '@commerce/payment-terms/dto/response/payment-term-response.dto';
 import type { PaymentTermTableResponseDto } from '@commerce/payment-terms/dto/response/payment-term-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -21,16 +21,13 @@ export class PaymentTermsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated, filtered, and sorted payment terms for the data table
   async findForTable(userId: string): Promise<PaymentTermTableResponseDto> {
     this.logger.log('org.paymentTerms.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-org-payment-terms',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-payment-terms');
 
     const { result, count } = await this.nats.send<{ result: PaymentTermResponseDto[]; count: number }>(
       'commerce',

@@ -1,11 +1,12 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { SupplierItemPrice, SupplierPriceSource } from '@/db/schema';
+import { type SupplierItemPrice, type SupplierPriceSource, type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 
 export class SupplierItemPriceDto {
   id: string;
   supplierItemId: string;
   legalEntityId: string;
-  siteId: string;
+  siteId: string | null;
+  ownerScope: WorkspaceScope;
   unitPrice: CurrencyAmountDto;
   mrpId: string | null;
   mrp: CurrencyAmountDto | null;
@@ -27,6 +28,7 @@ export class SupplierItemPriceDto {
     dto.supplierItemId = entity.supplierItemId;
     dto.legalEntityId = entity.legalEntityId;
     dto.siteId = entity.siteId;
+    dto.ownerScope = workspaceScopeOf(entity);
     dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, entity.currencyCode);
     dto.mrpId = entity.mrpId ?? null;
     dto.mrp = entity.mrpAmount != null ? CurrencyAmountDto.from(entity.mrpAmount, entity.currencyCode) : null;

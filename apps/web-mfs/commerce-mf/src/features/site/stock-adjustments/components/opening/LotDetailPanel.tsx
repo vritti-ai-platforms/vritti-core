@@ -141,7 +141,7 @@ const LotDetailContent = ({
   const editLotDialog = useDialog();
   const addLineDialog = useDialog();
 
-  const { data: response, isLoading: isLinesLoading } = useStockAdjustmentLinesByLotTable(adjustmentId, lot.id);
+  const stockAdjustmentLinesByLotTableQuery = useStockAdjustmentLinesByLotTable(adjustmentId, lot.id);
 
   const deleteLotMutation = useDeleteStockAdjustmentLot(adjustmentId, {
     onSuccess: () => onLotRemoved?.(),
@@ -256,9 +256,9 @@ const LotDetailContent = ({
     [adjustmentId, inventoryItemId, isDraft, isSerial, tracking, uomSymbol, handleRemoveLine],
   );
 
-  const { table } = useDataTable({
+  const stockAdjustmentLinesByLotTable = useDataTable({
     columns,
-    serverState: response,
+    query: stockAdjustmentLinesByLotTableQuery,
     slug: `stock-adjustment-${adjustmentId}-lot-${lot.id}-lines`,
     label: 'line',
     enableRowSelection: false,
@@ -318,9 +318,8 @@ const LotDetailContent = ({
       </DetailSection>
 
       <DataTable
-        table={table}
+        table={stockAdjustmentLinesByLotTable}
         mode="compact"
-        isLoading={isLinesLoading}
         onRowClick={onSelectLine ? (row) => onSelectLine(row.id) : undefined}
         selectedRowId={selectedLineId ?? null}
         searchConfig={{

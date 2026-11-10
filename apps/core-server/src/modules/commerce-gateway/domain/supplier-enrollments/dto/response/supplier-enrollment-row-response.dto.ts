@@ -8,9 +8,6 @@ export type SupplierEnrollmentStatus =
   (typeof SupplierEnrollmentStatusValues)[keyof typeof SupplierEnrollmentStatusValues];
 export const SUPPLIER_ENROLLMENT_STATUSES = Object.values(SupplierEnrollmentStatusValues);
 
-export const SUPPLIER_ENROLLMENT_SITE_STATUSES = [...SUPPLIER_ENROLLMENT_STATUSES, 'ALL'] as const;
-export type SupplierEnrollmentSiteStatus = (typeof SUPPLIER_ENROLLMENT_SITE_STATUSES)[number];
-
 export class SupplierEnrollmentRowResponseDto {
   @ApiPropertyOptional({
     description: 'Enrollment ID; null when the supplier is not enrolled at the site',

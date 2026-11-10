@@ -1,4 +1,5 @@
 import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
+import type { InboundDeliveryTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-table-response.dto';
 import { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/add-purchase-order-item.dto';
 import { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
@@ -8,6 +9,7 @@ import { SetPurchaseOrderConversionRateDto } from '@commerce/purchase-orders/dto
 import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
 import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-status.dto';
+import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
 import type { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
@@ -50,6 +52,7 @@ import {
   ApiFindById,
   ApiFindForTablePurchaseOrderInvoices,
   ApiFindGoodsReceiptTable,
+  ApiFindInboundDeliveryTable,
   ApiFindItemIds,
   ApiFindItemsTable,
   ApiFindProblems,
@@ -61,6 +64,7 @@ import {
   ApiUpdateItem,
   ApiUpdateNotes,
   ApiUpdateStatus,
+  ApiUpdateTaxDate,
 } from './docs/purchase-orders-gateway.docs';
 import { PurchaseOrdersGatewayService } from './services/purchase-orders-gateway.service';
 
@@ -142,6 +146,18 @@ export class PurchaseOrdersGatewayController {
     return this.service.findGoodsReceiptTable(id, userId);
   }
 
+  // Returns the inbound deliveries carrying a line of a purchase order, for the data table
+  @Get(':id/inbound-deliveries/table')
+  @RequirePermission(SITE_PURCHASE_ORDERS.view)
+  @ApiFindInboundDeliveryTable()
+  findInboundDeliveryTable(
+    @Param('id') id: string,
+    @UserId() userId: string,
+  ): Promise<InboundDeliveryTableResponseDto> {
+    this.logger.log(`GET /commerce-api/purchase-orders/${id}/inbound-deliveries/table`);
+    return this.service.findInboundDeliveryTable(id, userId);
+  }
+
   // Returns the flags raised on a purchase order's receipts and invoices, grouped by order line
   @Get(':id/problems')
   @RequirePermission(SITE_PURCHASE_ORDERS.view)
@@ -193,6 +209,15 @@ export class PurchaseOrdersGatewayController {
   updateNotes(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/notes`);
     return this.service.updateNotes(id, dto);
+  }
+
+  // Sets a purchase order's tax date and moves the lines that follow it
+  @Patch(':id/tax-date')
+  @RequirePermission(SITE_PURCHASE_ORDERS.edit)
+  @ApiUpdateTaxDate()
+  updateTaxDate(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/tax-date`);
+    return this.service.updateTaxDate(id, dto);
   }
 
   // Moves a draft purchase order to another supplier

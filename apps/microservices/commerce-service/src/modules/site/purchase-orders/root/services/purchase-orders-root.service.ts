@@ -4,6 +4,7 @@ import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purcha
 import type { ChangePurchaseOrderSupplierDto } from '@domain/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '@domain/purchase-orders/dto/request/create-purchase-order.dto';
 import type { SetPurchaseOrderConversionRateDto } from '@domain/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
+import type { UpdatePurchaseOrderTaxDateDto } from '@domain/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import { PurchaseOrdersDomainRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { SupplierEnrollmentsDomainRepository } from '@domain/supplier-enrollments/repositories/supplier-enrollments.repository';
@@ -86,6 +87,19 @@ export class PurchaseOrdersService {
     return {
       success: true,
       message: `1 ${dto.currencyCode} = ${dto.rate} ${po.currencyCode} on "${po.poNumber}"; ${pluralize('line', repricedCount, true)} converted again.`,
+    };
+  }
+
+  // Sets a PO's tax date and moves every line that follows it in the same transaction
+  async updateTaxDate(dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
+    const po = await this.purchaseOrdersRepository.findDetailOrThrow(dto.id);
+    const movedCount = await this.database.runInTransaction(async () => {
+      await this.purchaseOrdersService.updateTaxDate(po, dto.taxDate);
+      return this.itemsService.followPoTaxDate(po.id, dto.taxDate);
+    });
+    return {
+      success: true,
+      message: `Tax date of purchase order "${po.poNumber}" set to ${dto.taxDate}; ${pluralize('following line', movedCount, true)} updated.`,
     };
   }
 

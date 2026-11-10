@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -21,7 +20,6 @@ export const EditTaxClassDialog: React.FC<EditTaxClassDialogProps> = ({ taxClass
     defaultValues: {
       code: taxClass.code,
       name: taxClass.name,
-      isActive: taxClass.isActive,
     },
   });
 
@@ -32,16 +30,11 @@ export const EditTaxClassDialog: React.FC<EditTaxClassDialogProps> = ({ taxClass
       form={form}
       mutation={updateMutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({ id: taxClass.id, data: { name: data.name, isActive: data.isActive } })}
+      transformSubmit={(data) => ({ id: taxClass.id, data: { name: data.name } })}
     >
       <div className="space-y-4">
         <TextField name="code" label="Code" disabled description="Code cannot be changed" />
         <TextField name="name" label="Name" placeholder="e.g. Standard Rate" />
-        <Switch
-          name="isActive"
-          label="Active"
-          description="Inactive tax classes are hidden from product and catalog forms"
-        />
       </div>
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

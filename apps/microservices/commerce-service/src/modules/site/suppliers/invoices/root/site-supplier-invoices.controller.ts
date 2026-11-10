@@ -7,7 +7,7 @@ import { UpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/
 import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/services/supplier-invoices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { type NatsHeaders, RpcNatsHeaders, RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -20,7 +20,7 @@ export class SiteSupplierInvoicesController {
   // Returns the supplier's invoices at the caller's site for the data table
   @MessagePattern({ cmd: 'site.suppliers.invoices.table' })
   table(
-    @Payload() data: { supplierId: string } & TableViewState,
+    @Payload() data: { supplierId: string } & TableState,
   ): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
     const { supplierId, ...state } = data;
     this.logger.log(`site.suppliers.invoices.table — supplierId: ${supplierId}`);

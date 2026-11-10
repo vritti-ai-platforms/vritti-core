@@ -90,8 +90,8 @@ return useQuery<OfferingsTableResponse, AxiosError>({
 });
 ```
 
-The page passes `isLoading` (first load → skeleton) and `isFetching` (thin progress bar over the kept rows) to
-`DataTable`, and `onStatePush` returns the invalidation promise (`() => queryClient.invalidateQueries(...)`) so the
+The page passes the whole query to `useDataTable({ query })`, which carries `isLoading` (first load → skeleton) and
+`isFetching` (thin progress bar over the kept rows) through to `<DataTable table={…}>`; `onStatePush` returns the invalidation promise (`() => queryClient.invalidateQueries(...)`) so the
 skeleton holds until a default-filled refetch lands. Context and filters travel in the saved table state — the hook
 takes no context arguments and its query key carries none.
 

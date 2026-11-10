@@ -124,6 +124,23 @@ export class SupplierQuotationsGatewayController {
     return this.service.postToSite(quotationId, dto.siteId, orgId, legalEntityId);
   }
 
+  // Posts the quotation as the legal entity's prices, which every site without its own price in force uses
+  @Post(':quotationId/legal-entity')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(LE_SUPPLIERS.sites.quotations.add)
+  postToLegalEntity(@Param('quotationId') quotationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/le/suppliers/quotations/${quotationId}/legal-entity`);
+    return this.service.postToLegalEntity(quotationId);
+  }
+
+  // Removes the quotation's legal-entity prices, restoring the ones they replaced
+  @Delete(':quotationId/legal-entity')
+  @RequirePermission(LE_SUPPLIERS.sites.quotations.delete)
+  removeFromLegalEntity(@Param('quotationId') quotationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/suppliers/quotations/${quotationId}/legal-entity`);
+    return this.service.removeFromLegalEntity(quotationId);
+  }
+
   // Removes the quotation from a site, deleting its prices there and restoring the earlier ones
   @Delete(':quotationId/sites/:siteId')
   @RequirePermission(LE_SUPPLIERS.sites.quotations.delete)

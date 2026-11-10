@@ -5,9 +5,8 @@ import {
   FilterOperators,
   type SearchState,
   type SortCondition,
-  type TableFilters,
-  type TablePageRequest,
-} from '@vritti/api-sdk/data-table';
+} from '@vritti/api-sdk/conditions';
+import { type TableFilters, type TablePageRequest } from '@vritti/api-sdk/data-table';
 import { Type } from 'class-transformer';
 import {
   IsArray,

@@ -1,5 +1,4 @@
 export {
-  LE_PURCHASE_ORDER_INVOICES_SUMMARY_KEY,
   LE_PURCHASE_ORDER_INVOICES_TABLE_KEY,
   LE_SUPPLIER_INVOICE_KEY,
   LE_SUPPLIER_INVOICES_KEY,
@@ -11,7 +10,6 @@ export { useCreatePurchaseOrderInvoice } from './useCreatePurchaseOrderInvoice';
 export { useCreateSupplierInvoice } from './useCreateSupplierInvoice';
 export { useDeleteSupplierInvoice } from './useDeleteSupplierInvoice';
 export { usePostSupplierInvoice } from './usePostSupplierInvoice';
-export { usePurchaseOrderInvoicesSummary } from './usePurchaseOrderInvoicesSummary';
 export { usePurchaseOrderInvoicesTable } from './usePurchaseOrderInvoicesTable';
 export { useRemoveSupplierInvoiceLine } from './useRemoveSupplierInvoiceLine';
 export { useSupplierInvoice } from './useSupplierInvoice';

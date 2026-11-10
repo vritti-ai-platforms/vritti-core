@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type InventoryItemLot, inventoryItemLots } from '@/db/schema';
@@ -18,7 +19,7 @@ export class InventoryItemLotsDomainService {
 
   async findLotsForTable(
     inventoryItemId: string,
-    state: TableViewState,
+    state: TableState,
     _siteCurrencyCode?: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsDomainService.LOTS_FIELD_MAP);

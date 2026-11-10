@@ -14,7 +14,7 @@ interface MrpTabProps {
 // The item's MRPs, read-only — the organization maintains them; quotations and goods receipts record new ones
 export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading, isFetching } = useInventoryItemMrpTable(inventoryItemId);
+  const inventoryItemMrpTableQuery = useInventoryItemMrpTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemMrpData>[]>(
     () => [
@@ -35,9 +35,9 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
     [],
   );
 
-  const { table } = useDataTable({
+  const inventoryItemMrpTable = useDataTable({
     columns,
-    serverState: response,
+    query: inventoryItemMrpTableQuery,
     slug: `commerce-le-inventory-item-${inventoryItemId}-mrp`,
     label: 'MRP',
     enableRowSelection: false,
@@ -47,10 +47,8 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
 
   return (
     <DataTable
-      table={table}
+      table={inventoryItemMrpTable}
       mode="tab"
-      isLoading={isLoading}
-      isFetching={isFetching}
       permission={LE_INVENTORY_ITEMS.mrp.view}
       emptyStateConfig={{
         icon: Tag,

@@ -356,7 +356,6 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.suppliers.id,
     }),
     purchaseOrderItems: r.many.purchaseOrderItems(),
-    goodsReceipts: r.many.goodsReceipts(),
   },
   purchaseOrderItems: {
     purchaseOrder: r.one.purchaseOrders({
@@ -372,14 +371,32 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.uom.id,
     }),
   },
+  inboundDeliveries: {
+    supplier: r.one.suppliers({
+      from: r.inboundDeliveries.supplierId,
+      to: r.suppliers.id,
+    }),
+    lines: r.many.inboundDeliveryLines(),
+    goodsReceipts: r.many.goodsReceipts(),
+  },
+  inboundDeliveryLines: {
+    inboundDelivery: r.one.inboundDeliveries({
+      from: r.inboundDeliveryLines.inboundDeliveryId,
+      to: r.inboundDeliveries.id,
+    }),
+    purchaseOrderItem: r.one.purchaseOrderItems({
+      from: r.inboundDeliveryLines.purchaseOrderItemId,
+      to: r.purchaseOrderItems.id,
+    }),
+  },
   goodsReceipts: {
     supplier: r.one.suppliers({
       from: r.goodsReceipts.supplierId,
       to: r.suppliers.id,
     }),
-    purchaseOrder: r.one.purchaseOrders({
-      from: r.goodsReceipts.purchaseOrderId,
-      to: r.purchaseOrders.id,
+    inboundDelivery: r.one.inboundDeliveries({
+      from: r.goodsReceipts.inboundDeliveryId,
+      to: r.inboundDeliveries.id,
     }),
     goodsReceiptItems: r.many.goodsReceiptItems(),
   },

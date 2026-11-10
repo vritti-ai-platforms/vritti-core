@@ -14,7 +14,7 @@ import type {
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-uom-conversion-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -24,16 +24,13 @@ export class InventoryItemsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated org-wide inventory items for the data table
   async findForTable(userId: string): Promise<InventoryItemTableResponseDto> {
     this.logger.log('org.inventoryItems.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-org-inventory-items',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-inventory-items');
 
     const { result, count } = await this.nats.send<{ result: InventoryItemResponseDto[]; count: number }>(
       'commerce',
@@ -71,7 +68,7 @@ export class InventoryItemsGatewayService {
   // Returns paginated UOM conversion overrides for an inventory item
   async findUomConversionsForTable(inventoryItemId: string, userId: string) {
     this.logger.log(`org.inventoryItems.uom.table — inventoryItemId: ${inventoryItemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `org-inventory-item-${inventoryItemId}-uom-overrides`,
     );
@@ -112,7 +109,7 @@ export class InventoryItemsGatewayService {
   // Returns an inventory item's MRPs, table-shaped
   async findMrpTable(inventoryItemId: string, userId: string): Promise<InventoryItemMrpTableResponseDto> {
     this.logger.log(`org.inventoryItems.mrp.table — inventoryItemId: ${inventoryItemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-inventory-item-${inventoryItemId}-mrp`,
     );
@@ -157,7 +154,7 @@ export class InventoryItemsGatewayService {
   // Returns supplier links for a given inventory item, table-shaped
   async findSuppliersTable(inventoryItemId: string, userId: string): Promise<InventoryItemSupplierTableResponseDto> {
     this.logger.log(`org.inventoryItems.suppliers.table — inventoryItemId: ${inventoryItemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `org-inventory-item-${inventoryItemId}-suppliers`,
     );

@@ -5,7 +5,7 @@ import { UpdateCommunicationDto } from '@domain/party-communications/dto/request
 import { PartyCommunicationsDomainService } from '@domain/party-communications/services/party-communications.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -17,7 +17,7 @@ export class PeopleCommunicationsController {
   // Returns the paginated communications of a person
   @MessagePattern({ cmd: 'org.people.communications.table' })
   table(
-    @Payload() data: { personId: string } & TableViewState,
+    @Payload() data: { personId: string } & TableState,
   ): Promise<{ result: PartyCommunicationDto[]; count: number }> {
     const { personId, ...state } = data;
     this.logger.log(`people.communications.table — personId: ${personId}`);

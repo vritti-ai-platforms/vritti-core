@@ -17,7 +17,7 @@ import type { UpdateSupplierQuotationItemDto } from '@domain/supplier-quotations
 import { SupplierQuotationsDomainService } from '@domain/supplier-quotations/services/supplier-quotations.service';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CurrencyAmountDto, majorToMinor } from '@vritti/api-sdk/money';
@@ -41,7 +41,7 @@ export class LeSupplierQuotationsService {
     private readonly mrps: InventoryItemMrpsDomainService,
   ) {}
 
-  table(supplierId: string, state: TableViewState): Promise<{ result: SupplierQuotationDto[]; count: number }> {
+  table(supplierId: string, state: TableState): Promise<{ result: SupplierQuotationDto[]; count: number }> {
     return this.quotations.findForSupplierTable(supplierId, state);
   }
 
@@ -117,12 +117,13 @@ export class LeSupplierQuotationsService {
     return { success: true, message: 'Line removed.' };
   }
 
-  // Posts the quotation to a site: every line becomes the site's price from the quotation's start date, creating the
-  // supplier item and setting it up at the site where either is missing
-  async postToSite(quotationId: string, siteId: string, userId: string | null): Promise<SuccessResponseDto> {
+  // Posts the quotation to a site, or to the whole legal entity when the site is empty: every line becomes the price
+  // there from the quotation's start date, creating the supplier item (and setting it up at the site) where missing
+  async postToSite(quotationId: string, siteId: string | null, userId: string | null): Promise<SuccessResponseDto> {
     const quotation = await this.quotations.requireQuotation(quotationId);
+    const target = siteId ? 'this site' : 'all sites';
     if (await this.quotations.findSite(quotationId, siteId)) {
-      throw new ConflictException({ label: 'Already Posted', detail: 'The quotation is already posted to this site.' });
+      throw new ConflictException({ label: 'Already Posted', detail: `The quotation is already posted to ${target}.` });
     }
     const items = await this.quotations.findItems(quotationId);
     if (items.length === 0) {
@@ -131,7 +132,7 @@ export class LeSupplierQuotationsService {
         detail: 'Add at least one line before posting the quotation.',
       });
     }
-    if (!(await this.supplierEnrollments.isEnrolled(quotation.supplierId, siteId))) {
+    if (siteId && !(await this.supplierEnrollments.isEnrolled(quotation.supplierId, siteId))) {
       throw new BadRequestException({
         label: 'Supplier Not Enrolled',
         detail: 'Enroll the supplier at this site before posting the quotation to it.',
@@ -174,22 +175,28 @@ export class LeSupplierQuotationsService {
         userId,
       );
     });
-    this.logger.log(`Posted quotation ${quotation.quotationNumber} to site ${siteId}: ${posted} prices`);
-    return { success: true, message: `Posted ${pluralize('price', posted, true)} to the site.` };
+    this.logger.log(
+      `Posted quotation ${quotation.quotationNumber} to ${siteId ?? 'the legal entity'}: ${posted} prices`,
+    );
+    return { success: true, message: `Posted ${pluralize('price', posted, true)} to ${target}.` };
   }
 
-  // Removes the quotation from a site as though it was never posted there: its prices go, earlier prices return
-  async removeFromSite(quotationId: string, siteId: string): Promise<SuccessResponseDto> {
+  // Removes the quotation from a site, or from the whole legal entity when the site is empty, as though it was never
+  // posted there: its prices go, earlier prices return
+  async removeFromSite(quotationId: string, siteId: string | null): Promise<SuccessResponseDto> {
     const quotation = await this.quotations.requireQuotation(quotationId);
+    const target = siteId ? 'this site' : 'all sites';
     const site = await this.quotations.findSite(quotationId, siteId);
-    if (!site) throw new NotFoundException('The quotation is not posted to this site.');
+    if (!site) throw new NotFoundException(`The quotation is not posted to ${target}.`);
     const removed = await this.database.runInTransaction(async () => {
       const count = await this.supplierItemPrices.removeQuotationPrices(site.id);
       await this.quotations.removeSiteRecord(site.id);
       return count;
     });
-    this.logger.log(`Removed quotation ${quotation.quotationNumber} from site ${siteId}: ${removed} prices`);
-    return { success: true, message: `Removed ${pluralize('price', removed, true)} from the site.` };
+    this.logger.log(
+      `Removed quotation ${quotation.quotationNumber} from ${siteId ?? 'the legal entity'}: ${removed} prices`,
+    );
+    return { success: true, message: `Removed ${pluralize('price', removed, true)} from ${target}.` };
   }
 
   // The quoted MRP as one of the item's MRPs in the line's unit — reusing an equal amount, recording a new one

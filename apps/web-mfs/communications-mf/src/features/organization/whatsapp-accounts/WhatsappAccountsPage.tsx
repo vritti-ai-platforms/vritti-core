@@ -27,7 +27,7 @@ import type { WhatsappAccountData } from '@/schemas/whatsapp-accounts';
 export const WhatsappAccountsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useWhatsappAccounts();
+  const whatsappAccountsQuery = useWhatsappAccounts();
 
   const { data: signupConfig } = useEmbeddedSignupConfig();
 
@@ -124,11 +124,11 @@ export const WhatsappAccountsPage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const whatsappAccountsTable = useDataTable({
     columns,
     slug: 'communications-org-whatsapp-accounts',
     label: 'WhatsApp account',
-    serverState: response,
+    query: whatsappAccountsQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -140,8 +140,7 @@ export const WhatsappAccountsPage = () => {
       <PageHeader title="WhatsApp accounts" description="WhatsApp Business Accounts connected to your organization." />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={whatsappAccountsTable}
         permission={ORG_WHATSAPP_ACCOUNTS.view}
         searchConfig={{
           columns: [

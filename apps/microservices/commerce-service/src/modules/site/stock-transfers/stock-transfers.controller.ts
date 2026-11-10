@@ -4,7 +4,7 @@ import { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/reques
 import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { StockTransfersService } from './services/stock-transfers-root.service';
 
 @Controller()
@@ -17,7 +17,7 @@ export class StockTransfersController {
   ) {}
 
   @MessagePattern({ cmd: 'site.stockTransfers.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: StockTransferDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: StockTransferDto[]; count: number }> {
     this.logger.log('stockTransfers.table');
     return this.service.findForTable(state);
   }

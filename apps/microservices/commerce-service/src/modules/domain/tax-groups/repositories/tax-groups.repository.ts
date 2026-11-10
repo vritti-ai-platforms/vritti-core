@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, getColumns, ne, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, getColumns, gte, isNull, ne, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type TaxGroup, taxClassGroups, taxGroupRates, taxGroups } from '@/db/schema';
@@ -8,6 +8,7 @@ import { type TaxGroup, taxClassGroups, taxGroupRates, taxGroups } from '@/db/sc
 export type TaxGroupDetail = TaxGroup & {
   rateCount: number;
   classCount: number;
+  openClassCount: number;
 };
 
 @Injectable()
@@ -71,12 +72,30 @@ export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxG
     });
   }
 
-  // Selects a tax group with how many rates and class mappings it has
+  // A class mapped to the group today or later would be taxed by an inactive group, so the group stays active while a
+  // mapping in force or still to come names it
+  assertDeactivatable(group: TaxGroupDetail): void {
+    if (group.openClassCount === 0) return;
+    throw new ConflictException({
+      label: 'Tax Group In Use',
+      detail: `Cannot deactivate "${group.name}" — tax classes are mapped to it today or from a later day. End those mappings first.`,
+    });
+  }
+
+  // Selects a tax group with how many rates and class mappings it has, and how many mappings are in force or still to
+  // come
   private selection() {
     return {
       ...getColumns(taxGroups),
       rateCount: this.db.$count(taxGroupRates, eq(taxGroupRates.taxGroupId, taxGroups.id)),
       classCount: this.db.$count(taxClassGroups, eq(taxClassGroups.taxGroupId, taxGroups.id)),
+      openClassCount: this.db.$count(
+        taxClassGroups,
+        and(
+          eq(taxClassGroups.taxGroupId, taxGroups.id),
+          or(isNull(taxClassGroups.validTo), gte(taxClassGroups.validTo, sql`current_date`)),
+        ),
+      ),
     };
   }
 }

@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { LE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import {
-  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -49,9 +48,12 @@ export class AddSupplierItemPriceDto {
   @IsDateString()
   validTo?: string | null;
 
-  @ApiProperty({ description: 'Sites the price is added for; one price row is created per site', type: [String] })
+  @ApiProperty({
+    description:
+      "Sites the price is added for, one price row per site; empty for the legal entity's price, which every site without one of its own uses",
+    type: [String],
+  })
   @IsArray()
-  @ArrayMinSize(1)
   @IsUUID('7', { each: true })
   siteIds: string[];
 

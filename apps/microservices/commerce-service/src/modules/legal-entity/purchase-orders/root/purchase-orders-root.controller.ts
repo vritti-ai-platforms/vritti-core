@@ -2,10 +2,11 @@ import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purcha
 import { SetPurchaseOrderConversionRateDto } from '@domain/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
 import { UpdatePurchaseOrderNotesDto } from '@domain/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@domain/purchase-orders/dto/request/update-purchase-order-status.dto';
+import { UpdatePurchaseOrderTaxDateDto } from '@domain/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { PurchaseOrderProblemsDto } from '@/modules/site/purchase-orders/root/dto/entity/purchase-order-problems.dto';
 import { PurchaseOrdersService } from '@/modules/site/purchase-orders/root/services/purchase-orders-root.service';
@@ -24,7 +25,7 @@ export class LePurchaseOrdersRootController {
 
   // Returns one page of the purchase orders of the legal entity's sites
   @MessagePattern({ cmd: 'le.purchaseOrders.table' })
-  table(@Payload() state: TableViewState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
+  table(@Payload() state: TableState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
     this.logger.log('le.purchaseOrders.table');
     return this.purchaseOrdersService.findForTable(state);
   }
@@ -56,6 +57,13 @@ export class LePurchaseOrdersRootController {
   updateNotes(@Payload() dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchaseOrders.updateNotes — id: ${dto.id}`);
     return this.purchaseOrdersService.updateNotes(dto);
+  }
+
+  // Sets a purchase order's tax date and moves the lines that follow it
+  @MessagePattern({ cmd: 'le.purchaseOrders.updateTaxDate' })
+  updateTaxDate(@Payload() dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchaseOrders.updateTaxDate — id: ${dto.id}, date: ${dto.taxDate}`);
+    return this.service.updateTaxDate(dto);
   }
 
   // Moves a draft purchase order to another supplier

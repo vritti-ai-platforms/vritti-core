@@ -1,4 +1,5 @@
 import { CreateTaxComponentDto } from '@commerce/tax-components/dto/request/create-tax-component.dto';
+import { SetTaxComponentActiveDto } from '@commerce/tax-components/dto/request/set-tax-component-active.dto';
 import { UpdateTaxComponentDto } from '@commerce/tax-components/dto/request/update-tax-component.dto';
 import type { TaxComponentResponseDto } from '@commerce/tax-components/dto/response/tax-component-response.dto';
 import type { TaxComponentTableResponseDto } from '@commerce/tax-components/dto/response/tax-component-table-response.dto';
@@ -52,6 +53,14 @@ export class TaxComponentsGatewayController {
   update(@Param('id') id: string, @Body() dto: UpdateTaxComponentDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/tax-components/${id}`);
     return this.service.update(id, dto);
+  }
+
+  // Activates or deactivates a tax component
+  @Patch(':id/active')
+  @RequirePermission(ORG_TAX_COMPONENTS.toggle)
+  setActive(@Param('id') id: string, @Body() dto: SetTaxComponentActiveDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/tax-components/${id}/active`);
+    return this.service.setActive(id, dto.isActive);
   }
 
   // Deletes a tax component by ID

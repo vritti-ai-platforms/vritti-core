@@ -24,12 +24,8 @@ import type {
   InventoryItemSupplierTableResponseDto,
 } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  DataTableStateService,
-  type SearchState,
-  type SortCondition,
-  type TableFilters,
-} from '@vritti/api-sdk/data-table';
+import { type SearchState, type SortCondition } from '@vritti/api-sdk/conditions';
+import { type TableFilters, TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -39,16 +35,13 @@ export class SiteInventoryItemsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated inventory items for the data table
   async findForTable(userId: string): Promise<SiteInventoryItemTableResponseDto> {
     this.logger.log('site.inventoryItems.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-site-inventory-items',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-inventory-items');
 
     const { result, count } = await this.nats.send<{ result: SiteInventoryItemTableRowDto[]; count: number }>(
       'commerce',
@@ -95,7 +88,7 @@ export class SiteInventoryItemsGatewayService {
   // Returns supplier links for a given inventory item, table-shaped
   async findSuppliersTable(inventoryItemId: string, userId: string): Promise<InventoryItemSupplierTableResponseDto> {
     this.logger.log(`inventoryItems.suppliersTable — inventoryItemId: ${inventoryItemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-inventory-item-${inventoryItemId}-suppliers`,
     );
@@ -134,7 +127,7 @@ export class SiteInventoryItemsGatewayService {
   // Returns paginated ledger entries for an inventory item data table
   async findLedgerForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLedgerTableResponseDto> {
     this.logger.log('site.inventoryItems.ledgerTable');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `inventory-item-${inventoryItemId}-ledger`,
     );
@@ -190,7 +183,7 @@ export class SiteInventoryItemsGatewayService {
   // Returns paginated quants for an inventory item data table
   async findQuantsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemQuantTableResponseDto> {
     this.logger.log('inventoryItems.quantsTable');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `inventory-item-${inventoryItemId}-quants`,
     );
@@ -222,7 +215,7 @@ export class SiteInventoryItemsGatewayService {
   // Returns paginated lots for an inventory item data table
   async findLotsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLotTableResponseDto> {
     this.logger.log('inventoryItems.lotsTable');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `inventory-item-${inventoryItemId}-lots`,
     );
@@ -241,7 +234,7 @@ export class SiteInventoryItemsGatewayService {
     userId: string,
   ): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log('inventoryItems.locationsTable');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `inventory-item-${inventoryItemId}-locations`,
     );
@@ -295,7 +288,7 @@ export class SiteInventoryItemsGatewayService {
   // Returns paginated UOM conversion overrides for an inventory item
   async findUomConversionsForTable(inventoryItemId: string, userId: string) {
     this.logger.log(`org.inventoryItems.uom.table — inventoryItemId: ${inventoryItemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `inventory-item-${inventoryItemId}-uom-overrides`,
     );

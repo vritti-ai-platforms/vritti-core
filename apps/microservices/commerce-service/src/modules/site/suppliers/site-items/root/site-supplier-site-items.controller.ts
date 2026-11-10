@@ -4,7 +4,7 @@ import { UpdateSupplierSiteItemDto } from '@domain/supplier-items/dto/request/up
 import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -17,7 +17,7 @@ export class SiteSupplierSiteItemsController {
   // Returns a supplier's site items at the caller's site
   @MessagePattern({ cmd: 'site.suppliers.siteItems.table' })
   table(
-    @Payload() data: { supplierId: string } & TableViewState,
+    @Payload() data: { supplierId: string } & TableState,
     @RpcSiteId() siteId: string,
   ): Promise<{ result: SupplierSiteItemRowDto[]; count: number }> {
     const { supplierId, ...state } = data;

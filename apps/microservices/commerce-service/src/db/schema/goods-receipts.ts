@@ -2,7 +2,7 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, jsonb, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { goodsReceiptStatusEnum } from './enums';
-import { purchaseOrders } from './purchase-orders';
+import { inboundDeliveries } from './inbound-deliveries';
 import { suppliers } from './suppliers';
 import { LE_GUC, organizationIdColumn, siteDocumentPolicies } from './workspace-scope';
 
@@ -18,9 +18,9 @@ export const goodsReceipts = commerceSchema.table(
       .references(() => suppliers.id),
     grNumber: varchar('gr_number', { length: 50 }).notNull(),
     status: goodsReceiptStatusEnum('status').notNull().default('DRAFT'),
-    purchaseOrderId: uuid('purchase_order_id')
+    inboundDeliveryId: uuid('inbound_delivery_id')
       .notNull()
-      .references(() => purchaseOrders.id),
+      .references(() => inboundDeliveries.id),
     receivedDate: timestamp('received_date', { withTimezone: true, mode: 'string' }).notNull(),
     notes: text('notes'),
     metadata: jsonb('metadata').notNull().default({}),
@@ -30,7 +30,7 @@ export const goodsReceipts = commerceSchema.table(
   (table) => [
     unique('uq_goods_receipts_org_gr_number').on(table.organizationId, table.grNumber),
     index('idx_goods_receipts_supplier').on(table.supplierId),
-    index('idx_goods_receipts_po').on(table.purchaseOrderId),
+    index('idx_goods_receipts_inbound_delivery').on(table.inboundDeliveryId),
     index('idx_goods_receipts_site').on(table.organizationId, table.siteId),
     ...siteDocumentPolicies(),
   ],

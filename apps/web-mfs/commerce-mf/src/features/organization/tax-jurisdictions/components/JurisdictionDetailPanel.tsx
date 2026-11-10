@@ -70,7 +70,7 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
   const addChildDialog = useDialog();
   const editDialog = useDialog();
   const deleteMutation = useDeleteTaxJurisdiction();
-  const { data: childrenResponse, isLoading: isChildrenLoading } = useTaxJurisdictionChildrenTable(jurisdiction.id);
+  const taxJurisdictionChildrenTableQuery = useTaxJurisdictionChildrenTable(jurisdiction.id);
 
   const columns = useMemo<ColumnDef<TaxJurisdictionData>[]>(
     () => [
@@ -113,9 +113,9 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
     [onSelectJurisdiction],
   );
 
-  const { table } = useDataTable({
+  const taxJurisdictionChildrenTable = useDataTable({
     columns,
-    serverState: childrenResponse,
+    query: taxJurisdictionChildrenTableQuery,
     slug: `commerce-org-tax-jurisdiction-${jurisdiction.id}-children`,
     label: 'child jurisdiction',
     enableRowSelection: false,
@@ -193,12 +193,11 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
 
       <div>
         <Typography variant="overline" intent="muted" className="mb-3">
-          Child Jurisdictions ({childrenResponse?.count ?? 0})
+          Child Jurisdictions ({taxJurisdictionChildrenTableQuery.data?.count ?? 0})
         </Typography>
         <DataTable
-          table={table}
+          table={taxJurisdictionChildrenTable}
           mode="compact"
-          isLoading={isChildrenLoading}
           permission={ORG_TAX_JURISDICTIONS.view}
           toolbarActions={{
             actions: (

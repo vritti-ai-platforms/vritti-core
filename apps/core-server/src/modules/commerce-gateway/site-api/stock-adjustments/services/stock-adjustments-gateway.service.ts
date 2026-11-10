@@ -18,7 +18,7 @@ import type { StockAdjustmentResponseDto } from '@commerce/stock-adjustments/dto
 import type { StockAdjustmentTableResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-table-response.dto';
 import type { StockAdjustmentTreeNodeResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-tree-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -29,15 +29,12 @@ export class StockAdjustmentsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   async findForTable(userId: string): Promise<StockAdjustmentTableResponseDto> {
     this.logger.log('site.stockAdjustments.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-stock-adjustments',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-stock-adjustments');
 
     const { result, count } = await this.nats.send<{ result: StockAdjustmentResponseDto[]; count: number }>(
       'commerce',
@@ -65,7 +62,7 @@ export class StockAdjustmentsGatewayService {
 
   async findLinesTable(adjustmentId: string, userId: string): Promise<StockAdjustmentLineTableResponseDto> {
     this.logger.log(`stockAdjustments.linesTable — adjustment: ${adjustmentId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `stock-adjustment-${adjustmentId}-lines`,
     );
@@ -83,7 +80,7 @@ export class StockAdjustmentsGatewayService {
     userId: string,
   ): Promise<StockAdjustmentLineTableResponseDto> {
     this.logger.log(`stockAdjustments.linesByLotTable — adjustment: ${adjustmentId}, lot: ${lotId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `stock-adjustment-${adjustmentId}-lot-${lotId}-lines`,
     );
@@ -207,7 +204,7 @@ export class StockAdjustmentsGatewayService {
     userId: string,
   ): Promise<StockAdjustmentLineItemTableResponseDto> {
     this.logger.log(`stockAdjustments.lineItemsTable — line: ${lineId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `stock-adjustment-${adjustmentId}-line-${lineId}-items`,
     );

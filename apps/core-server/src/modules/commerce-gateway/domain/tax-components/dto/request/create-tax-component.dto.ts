@@ -1,6 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsIn, IsISO31661Alpha2, IsNotEmpty, IsString, IsUppercase, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsISO31661Alpha2,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUppercase,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateTaxComponentDto {
   @ApiProperty({ description: 'Uppercase ISO 3166-1 alpha-2 country whose tax the component is', example: 'IN' })
@@ -31,6 +41,16 @@ export class CreateTaxComponentDto {
   @IsNotEmpty()
   @IsIn(['FEDERAL', 'STATE', 'COUNTY', 'CITY', 'SPECIAL'])
   authorityLevel: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Component of the same country this one replaces where it has a rate of its own — e.g. UTGST stands in for SGST in a Union Territory. Null clears it.',
+    nullable: true,
+    example: '019a0000-0000-7000-8000-000000000000',
+  })
+  @IsOptional()
+  @IsUUID('7')
+  standsInForId?: string | null;
 
   @ApiProperty({ description: 'Whether the tax is recoverable (input credit)' })
   @IsBoolean()

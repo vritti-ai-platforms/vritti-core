@@ -2,11 +2,12 @@ import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-quer
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type {
-  AddGoodsReceiptItemPayload,
   AddGoodsReceiptLineItemPayload,
   AddGoodsReceiptLinePayload,
   AddGoodsReceiptLotPayload,
-  CreateGoodsReceiptPayload,
+  AddGoodsReceiptPurchaseOrderPayload,
+  CreateGoodsReceiptFromDeliveryPayload,
+  CreateGoodsReceiptFromPurchaseOrdersPayload,
   GoodsReceiptData,
   GoodsReceiptItemData,
   GoodsReceiptItemQuantsData,
@@ -21,6 +22,7 @@ import type {
   UpdateGoodsReceiptItemPayload,
   UpdateGoodsReceiptLinePayload,
   UpdateGoodsReceiptLotPayload,
+  UpdateGoodsReceiptPayload,
 } from '@/schemas/goods-receipts';
 
 export interface GoodsReceiptPermissions {
@@ -55,9 +57,12 @@ export type UseGoodsReceiptLineItemsTable = (
   lineId: string,
 ) => Query<GoodsReceiptLineItemsTableResponse>;
 
-export type UseCreateGoodsReceipt = (
-  options?: MutationOptions<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptPayload>,
-) => MutationResult<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptPayload>;
+export type UseCreateGoodsReceiptFromDelivery = (
+  options?: MutationOptions<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromDeliveryPayload>,
+) => MutationResult<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromDeliveryPayload>;
+export type UseCreateGoodsReceiptFromPurchaseOrders = (
+  options?: MutationOptions<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromPurchaseOrdersPayload>,
+) => MutationResult<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromPurchaseOrdersPayload>;
 export type UsePublishGoodsReceipt = (
   id: string,
   options?: MutationOptions<GoodsReceiptData, void>,
@@ -65,10 +70,14 @@ export type UsePublishGoodsReceipt = (
 export type UseDeleteGoodsReceipt = (
   options?: MutationOptions<SuccessResponse, string>,
 ) => MutationResult<SuccessResponse, string>;
-export type UseAddGoodsReceiptItem = (
+export type UseAddGoodsReceiptPurchaseOrder = (
   goodsReceiptId: string,
-  options?: MutationOptions<CreateResponse<GoodsReceiptItemData>, AddGoodsReceiptItemPayload>,
-) => MutationResult<CreateResponse<GoodsReceiptItemData>, AddGoodsReceiptItemPayload>;
+  options?: MutationOptions<SuccessResponse, AddGoodsReceiptPurchaseOrderPayload>,
+) => MutationResult<SuccessResponse, AddGoodsReceiptPurchaseOrderPayload>;
+export type UseUpdateGoodsReceipt = (
+  goodsReceiptId: string,
+  options?: MutationOptions<SuccessResponse, UpdateGoodsReceiptPayload>,
+) => MutationResult<SuccessResponse, UpdateGoodsReceiptPayload>;
 export type UseUpdateGoodsReceiptItem = (
   goodsReceiptId: string,
   itemId: string,

@@ -8,7 +8,7 @@ import { UpdateSupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/re
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { type NatsHeaders, RpcNatsHeaders, RpcSiteId } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectQueryResult } from '@vritti/api-sdk/select';
@@ -22,7 +22,7 @@ export class SiteSuppliersController {
   // Returns every supplier of the legal entity with its enrollment at the caller's site
   @MessagePattern({ cmd: 'site.suppliers.table' })
   table(
-    @Payload() state: TableViewState,
+    @Payload() state: TableState,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<{ result: SupplierEnrollmentRowDto[]; count: number }> {
     this.logger.log('site.suppliers.table');

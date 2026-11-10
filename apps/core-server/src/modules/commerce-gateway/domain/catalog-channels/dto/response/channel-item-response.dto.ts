@@ -1,6 +1,6 @@
 import { VariantFacetResponseDto } from '@commerce/offerings/dto/response/variant-facet-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
+import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 export class ChannelItemResponseDto {
@@ -40,7 +40,7 @@ export class ChannelItemTableResponseDto extends TableResponseDto<ChannelItemRes
   @ApiProperty({ type: [ChannelItemResponseDto] }) declare result: ChannelItemResponseDto[];
 
   @ApiProperty() declare count: number;
-  @ApiProperty() declare state: TableViewState;
+  @ApiProperty() declare state: TableState;
   @ApiPropertyOptional({ nullable: true }) declare activeViewId: string | null;
 }
 
@@ -82,6 +82,6 @@ export class ChannelPriceResponseDto {
 export class ChannelPriceTableResponseDto extends TableResponseDto<ChannelPriceResponseDto> {
   @ApiProperty({ type: [ChannelPriceResponseDto] }) declare result: ChannelPriceResponseDto[];
   @ApiProperty() declare count: number;
-  @ApiProperty() declare state: TableViewState;
+  @ApiProperty() declare state: TableState;
   @ApiPropertyOptional({ nullable: true }) declare activeViewId: string | null;
 }

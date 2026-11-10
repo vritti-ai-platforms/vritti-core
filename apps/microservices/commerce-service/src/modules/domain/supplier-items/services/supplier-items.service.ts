@@ -4,15 +4,8 @@ import {
   SupplierItemDto,
 } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Injectable } from '@nestjs/common';
-import {
-  CursorCodec,
-  type FieldMap,
-  FilterOperators,
-  FilterProcessor,
-  type KeysetOrderBy,
-  KeysetProcessor,
-  type TableViewState,
-} from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterOperators, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { CursorCodec, type KeysetOrderBy, KeysetProcessor, type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -118,7 +111,7 @@ export class SupplierItemsDomainService {
     options?: {
       supplierId?: string;
       siteId?: string | null;
-      excludeOnPurchaseOrderId?: string;
+      purchaseOrderId?: string;
       excludeOnGoodsReceiptId?: string;
     },
   ): Promise<SelectQueryResult> {
@@ -142,7 +135,7 @@ export class SupplierItemsDomainService {
   }
 
   // Returns paginated supplier items for a supplier
-  async findForTable(supplierId: string, state: TableViewState): Promise<{ result: SupplierItemDto[]; count: number }> {
+  async findForTable(supplierId: string, state: TableState): Promise<{ result: SupplierItemDto[]; count: number }> {
     await this.requireSupplier(supplierId);
     const { result, count } = await this.repository.findItemsForTable(
       supplierId,
@@ -156,7 +149,7 @@ export class SupplierItemsDomainService {
   async findSiteItemsAtSiteForTable(
     supplierId: string,
     siteId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: SupplierSiteItemRowDto[]; count: number }> {
     await this.requireSupplier(supplierId);
     const enrolled = (await this.repository.findEnrolledSiteIds(supplierId)).includes(siteId);
@@ -176,7 +169,7 @@ export class SupplierItemsDomainService {
   async findSuppliersForItem(
     inventoryItemId: string,
     siteId: string | null,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(
       state.filters,
@@ -285,7 +278,7 @@ export class SupplierItemsDomainService {
         inventoryItemId: data.inventoryItemId,
         supplierItemCode: data.supplierItemCode ?? null,
         minOrderQuantity: data.minOrderQuantity ?? null,
-        defaultLeadTimeDays: data.defaultLeadTimeDays ?? null,
+        defaultLeadTimeDays: data.defaultLeadTimeDays,
         uomId: data.uomId,
       });
       await this.repository.insertSiteItems(
@@ -345,12 +338,13 @@ export class SupplierItemsDomainService {
     }
 
     // A new default lead time reaches every site still following the item; sites with their own keep it
+    const defaultLeadTimeDays = update.defaultLeadTimeDays;
     const defaultLeadTimeChanged =
-      update.defaultLeadTimeDays !== undefined && update.defaultLeadTimeDays !== existing.defaultLeadTimeDays;
+      defaultLeadTimeDays !== undefined && defaultLeadTimeDays !== existing.defaultLeadTimeDays;
     const cascaded = await this.database.runInTransaction(async () => {
       await this.repository.updateSupplierItem(supplierItemId, update);
       return defaultLeadTimeChanged
-        ? this.repository.applyDefaultLeadTimeToSiteItems([supplierItemId], update.defaultLeadTimeDays ?? null)
+        ? this.repository.applyDefaultLeadTimeToSiteItems([supplierItemId], defaultLeadTimeDays)
         : 0;
     });
     const name = `"${existing.inventoryItemName}" (${existing.uomSymbol})`;
@@ -410,24 +404,23 @@ export class SupplierItemsDomainService {
   // Sets the default lead time of the selected supplier items and applies it to their sites that do not set their own
   async bulkSetDefaultLeadTime(dto: BulkSetSupplierItemDefaultLeadTimeDto): Promise<SuccessResponseDto> {
     await this.requireSupplier(dto.supplierId);
-    const defaultLeadTimeDays = dto.defaultLeadTimeDays ?? null;
     const { updated, cascaded } = await this.database.runInTransaction(async () => {
       const updated = await this.repository.bulkUpdateSupplierItems(dto.supplierId, dto.supplierItemIds, {
-        defaultLeadTimeDays,
+        defaultLeadTimeDays: dto.defaultLeadTimeDays,
       });
-      const cascaded = await this.repository.applyDefaultLeadTimeToSiteItems(updated, defaultLeadTimeDays);
+      const cascaded = await this.repository.applyDefaultLeadTimeToSiteItems(updated, dto.defaultLeadTimeDays);
       return { updated, cascaded };
     });
     return {
       success: true,
-      message: `Default lead time ${defaultLeadTimeDays == null ? 'cleared' : 'set'} on ${pluralize('item', updated.length, true)} and applied to ${pluralize('site', cascaded, true)}.`,
+      message: `Default lead time set to ${pluralize('day', dto.defaultLeadTimeDays, true)} on ${pluralize('item', updated.length, true)} and applied to ${pluralize('site', cascaded, true)}.`,
     };
   }
 
   // Returns the paginated site items of a supplier item
   async findSiteItemsForTable(
     supplierItemId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: SupplierSiteItemDto[]; count: number }> {
     const item = await this.repository.findById(supplierItemId);
     if (!item) throw new NotFoundException('Supplier item not found.');
@@ -461,7 +454,7 @@ export class SupplierItemsDomainService {
           inventoryItemId: item.inventoryItemId,
           // A lead time given here is the site's own; otherwise the site follows the item's default
           leadTimeDays: dto.leadTimeDays ?? item.defaultLeadTimeDays,
-          isLeadTimeOverridden: dto.leadTimeDays != null,
+          isLeadTimeOverridden: dto.leadTimeDays !== undefined,
         },
       ]);
       return dto.isPreferred ? this.applySiteItemSettings(created, { isPreferred: true }) : created;
@@ -473,16 +466,15 @@ export class SupplierItemsDomainService {
     };
   }
 
-  // Updates a supplier item's settings at one site (undefined skips, null clears)
+  // Updates a supplier item's settings at one site; an omitted field is left as it is
   async updateSiteItem(dto: UpdateSupplierSiteItemDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findSiteItemById(dto.id);
     if (!existing) throw new NotFoundException('Site item not found.');
+    const item = dto.followDefaultLeadTime ? await this.repository.findById(existing.supplierItemId) : undefined;
+    if (dto.followDefaultLeadTime && !item) throw new NotFoundException('Supplier item not found.');
     // Following the default takes the item's default lead time back; setting one pins it to this site
-    const leadTime = dto.followDefaultLeadTime
-      ? {
-          leadTimeDays: (await this.repository.findById(existing.supplierItemId))?.defaultLeadTimeDays ?? null,
-          isLeadTimeOverridden: false,
-        }
+    const leadTime = item
+      ? { leadTimeDays: item.defaultLeadTimeDays, isLeadTimeOverridden: false }
       : dto.leadTimeDays !== undefined
         ? { leadTimeDays: dto.leadTimeDays, isLeadTimeOverridden: true }
         : {};
@@ -504,8 +496,9 @@ export class SupplierItemsDomainService {
   }
 
   // Finds the supplier's item for a quoted item and unit — creating it when the supplier does not have it yet — and sets
-  // it up at the site when the site does not carry it; returns the supplier item's id
-  async findOrCreateItemAtSite(line: QuotedItem, siteId: string): Promise<string> {
+  // it up at the site when the site does not carry it (with no site, for the whole legal entity, it sets up nowhere);
+  // returns the supplier item's id
+  async findOrCreateItemAtSite(line: QuotedItem, siteId: string | null): Promise<string> {
     let item = await this.repository.findItemBySupplierInventoryItemAndUom(
       line.supplierId,
       line.inventoryItemId,
@@ -520,7 +513,7 @@ export class SupplierItemsDomainService {
         uomId: line.uomId,
       });
     }
-    if (!(await this.repository.findSiteItem(item.id, siteId))) {
+    if (siteId && !(await this.repository.findSiteItem(item.id, siteId))) {
       await this.repository.insertSiteItems([
         {
           legalEntityId: supplier.legalEntityId,
@@ -581,7 +574,7 @@ export class SupplierItemsDomainService {
     }
   }
 
-  private static tableOptions(state: TableViewState, fieldMap: FieldMap) {
+  private static tableOptions(state: TableState, fieldMap: FieldMap) {
     const { limit = 20, offset = 0 } = state.pagination;
     return {
       where: and(

@@ -1,5 +1,5 @@
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsInt, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min, ValidateIf } from 'class-validator';
 
 export class UpdateSupplierItemDto {
   @IsUUID('7')
@@ -25,8 +25,9 @@ export class UpdateSupplierItemDto {
   minOrderQuantity?: number | null;
 
   // Days from order to delivery; every site of the item that does not set its own follows it
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsInt()
   @Min(0)
-  defaultLeadTimeDays?: number | null;
+  @Max(365)
+  defaultLeadTimeDays?: number;
 }

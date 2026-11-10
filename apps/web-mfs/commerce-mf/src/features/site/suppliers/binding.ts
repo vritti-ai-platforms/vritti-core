@@ -27,13 +27,14 @@ import {
   useSupplierQuotationsTable,
 } from '@/hooks/site/supplier-quotations';
 import {
+  SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY,
   SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY,
   SITE_SUPPLIER_SITE_ITEMS_TABLE_KEY,
   SITE_SUPPLIERS_TABLE_KEY,
   useAddSupplierSiteItemPrice,
   useDeleteSupplierSiteItemPrice,
   useSupplierSiteItem,
-  useSupplierSiteItemPriceHistory,
+  useSupplierSiteItemPriceHistoryQuery,
   useSupplierSiteItemPricesTable,
   useUpdateSupplierSiteItem,
   useUpdateSupplierSiteItemPrice,
@@ -41,8 +42,7 @@ import {
 import { useSiteId } from '@/hooks/site/useSiteId';
 import type { SupplierEnrollmentKey, SupplierParty } from '@/schemas/supplier-enrollments';
 import type { SupplierQuotationData } from '@/schemas/supplier-quotations';
-import type { PriceRange } from '@/utils/supplierPrice';
-import { InvoicesTab } from './invoices/InvoicesTab';
+import { InvoicesTab } from './tabs/invoices/InvoicesTab';
 
 // The site item route is `…/<supplier>/site-items/<itemSlug>`
 function useSiteItemId(): string {
@@ -92,25 +92,32 @@ function usePricesTable(supplierId: string, itemId: string) {
   return useSupplierSiteItemPricesTable(supplierId, itemId);
 }
 
-function usePriceHistory(supplierId: string, itemId: string, _siteIds: string[], range: PriceRange) {
-  return useSupplierSiteItemPriceHistory(supplierId, itemId, range);
-}
-
 const pricesBinding: SupplierItemPricesBinding = {
   permissions: { ...SITE_SUPPLIERS.siteItems.prices, mrp: SITE_INVENTORY_ITEMS.mrp },
   tableKey: SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY,
   tableSlug: (_supplierId, itemId) => `commerce-site-supplier-item-${itemId}-prices`,
   usePricesTable,
-  usePriceHistory,
+  usePriceHistoryQuery: useSupplierSiteItemPriceHistoryQuery,
+  priceHistoryKey: SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY,
+  priceHistorySlug: (_supplierId, itemId) => `commerce-site-supplier-item-${itemId}-price-history`,
   useUpdatePrice: useUpdateSupplierSiteItemPrice,
   useDeletePrice: useDeleteSupplierSiteItemPrice,
 };
+
+// The site's supplier site item API is addressed by the site item alone, so the supplier item id isn't needed
+function useUpdateSiteSupplierSiteItem(
+  supplierId: string,
+  _itemId: string,
+  options?: Parameters<typeof useUpdateSupplierSiteItem>[1],
+) {
+  return useUpdateSupplierSiteItem(supplierId, options);
+}
 
 export const siteItemPage: SupplierSiteItemPageBinding = {
   permissions: { editTerms: SITE_SUPPLIERS.siteItems.terms.edit },
   useItemId: useSiteItemId,
   useSiteItem: useSupplierSiteItem,
-  useUpdateSiteItem: useUpdateSupplierSiteItem,
+  useUpdateSiteItem: useUpdateSiteSupplierSiteItem,
   prices: pricesBinding,
   useAddSitePrice: useAddSupplierSiteItemPrice,
 };
@@ -142,7 +149,7 @@ export const binding: SupplierEnrollmentBinding = {
     enroll: SITE_SUPPLIERS.enroll,
     editEnroll: SITE_SUPPLIERS.editEnroll,
     unenroll: SITE_SUPPLIERS.unenroll,
-    siteItems: { view: SITE_SUPPLIERS.siteItems.view },
+    siteItems: { view: SITE_SUPPLIERS.siteItems.view, edit: SITE_SUPPLIERS.siteItems.terms.edit },
   },
   table: {
     rows: 'suppliers',
@@ -166,6 +173,7 @@ export const binding: SupplierEnrollmentBinding = {
   useDeleteEnrollment: useDeleteSupplierEnrollment,
 
   useSiteItemsTable: useSupplierEnrollmentSiteItemsTable,
+  useUpdateSiteItem: useUpdateSiteSupplierSiteItem,
   // The supplier route is `<supplier>`, so a site item's page is `site-items/<itemSlug>` below it
   siteItemPath: (itemSlug) => `site-items/${itemSlug}`,
   siteItemPage,

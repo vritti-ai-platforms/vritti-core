@@ -6,7 +6,7 @@ import { SupplierItemsDomainService } from '@domain/supplier-items/services/supp
 import type { SupplierItemDetailDto, SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SuppliersItemsService } from './services/suppliers-items.service';
 
@@ -21,7 +21,7 @@ export class SuppliersItemsController {
 
   @MessagePattern({ cmd: 'le.suppliers.itemsTable' })
   itemsTable(
-    @Payload() data: { supplierId: string } & TableViewState,
+    @Payload() data: { supplierId: string } & TableState,
   ): Promise<{ result: SupplierItemDto[]; count: number }> {
     this.logger.log('suppliers.itemsTable');
     const { supplierId, ...state } = data;

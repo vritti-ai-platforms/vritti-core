@@ -1,6 +1,7 @@
 import type { AuthStatusResponse } from '@services/user.service';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearToken, scheduleTokenRefresh, setToken } from '@vritti/quantum-ui/axios';
+import { setOrgCountryCode } from '@vritti/quantum-ui/country';
 import { setWorkspaceCurrency } from '@vritti/quantum-ui/currency';
 import { useSSE } from '@vritti/quantum-ui/hooks';
 import { setWorkspaceTimeZone } from '@vritti/quantum-ui/timezone';
@@ -10,8 +11,8 @@ type AuthEvents = {
   'auth-state': AuthStatusResponse;
 };
 
-// Records every workspace's currency and timezone before the payload renders a workspace screen; a site prices in its
-// legal entity's currency, and the org and its site groups in the org default
+// Records the org's country and every workspace's currency and timezone before the payload renders a workspace screen;
+// a site prices in its legal entity's currency, and the org and its site groups in the org default
 function recordWorkspaceSettings({ org, sites = [], legalEntities = [], siteGroups = [] }: AuthStatusResponse) {
   for (const site of sites) {
     setWorkspaceTimeZone(site.id, site.timezone);
@@ -21,6 +22,7 @@ function recordWorkspaceSettings({ org, sites = [], legalEntities = [], siteGrou
     setWorkspaceCurrency(le.id, le.currencyCode);
   }
   if (!org) return;
+  setOrgCountryCode(org.countryCode);
   setWorkspaceCurrency(org.id, org.defaultCurrencyCode);
   for (const group of siteGroups) {
     setWorkspaceCurrency(group.id, org.defaultCurrencyCode);

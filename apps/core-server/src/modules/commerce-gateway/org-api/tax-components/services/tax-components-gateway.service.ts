@@ -3,7 +3,7 @@ import type { UpdateTaxComponentDto } from '@commerce/tax-components/dto/request
 import type { TaxComponentResponseDto } from '@commerce/tax-components/dto/response/tax-component-response.dto';
 import type { TaxComponentTableResponseDto } from '@commerce/tax-components/dto/response/tax-component-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -13,16 +13,13 @@ export class TaxComponentsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated, filtered, and sorted tax components; the country comes from the saved table context
   async findForTable(userId: string): Promise<TaxComponentTableResponseDto> {
     this.logger.log('org.taxComponents.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-org-tax-components',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-tax-components');
 
     const { result, count } = await this.nats.send<{ result: TaxComponentResponseDto[]; count: number }>(
       'commerce',
@@ -49,6 +46,12 @@ export class TaxComponentsGatewayService {
   update(id: string, dto: UpdateTaxComponentDto): Promise<SuccessResponseDto> {
     this.logger.log(`taxComponents.update — id: ${id}`);
     return this.nats.send('commerce', 'org.taxComponents.update', { id, ...dto });
+  }
+
+  // Activates or deactivates a tax component
+  setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
+    this.logger.log(`taxComponents.setActive — id: ${id}, isActive: ${isActive}`);
+    return this.nats.send('commerce', 'org.taxComponents.setActive', { id, isActive });
   }
 
   // Deletes a tax component by ID

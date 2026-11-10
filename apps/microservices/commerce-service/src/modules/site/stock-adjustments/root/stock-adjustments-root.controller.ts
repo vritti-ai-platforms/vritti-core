@@ -3,7 +3,7 @@ import { CreateStockAdjustmentDto } from '@domain/stock-adjustments/dto/request/
 import { UpdateStockAdjustmentDto } from '@domain/stock-adjustments/dto/request/update-stock-adjustment.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { StockAdjustmentsService } from './services/stock-adjustments-root.service';
@@ -16,7 +16,7 @@ export class StockAdjustmentsRootController {
 
   @MessagePattern({ cmd: 'site.stockAdjustments.table' })
   table(
-    @Payload() state: TableViewState,
+    @Payload() state: TableState,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
     this.logger.log('stockAdjustments.table');

@@ -1,12 +1,10 @@
 import axios from '@vritti/quantum-ui/axios';
-import type { SelectOptionsResponse } from '@vritti/quantum-ui/Select';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   CreateTaxClassGroupPayload,
   CreateTaxGroupPayload,
   TaxClassGroupData,
   TaxClassGroupsTableResponse,
-  TaxClassMappingTableResponse,
   TaxGroupData,
   TaxGroupRateData,
   TaxGroupRatePayload,
@@ -18,15 +16,6 @@ import type {
 } from '@/schemas/tax-groups';
 
 const BASE = 'commerce-api/tax-groups';
-
-// Finds the first country, alphabetically, the organization has tax groups in; null when it has none
-export function getFirstTaxGroupCountry(): Promise<string | null> {
-  return axios
-    .get<SelectOptionsResponse>('commerce-api/select-api/tax-groups', {
-      params: { valueKey: 'countryCode', orderByKey: 'countryCode', limit: 1 },
-    })
-    .then((r) => (r.data.options[0] ? String(r.data.options[0].value) : null));
-}
 
 // Fetches the current page of tax groups; the country comes from the saved table state
 export function getTaxGroupsTable(): Promise<TaxGroupsTableResponse> {
@@ -49,6 +38,11 @@ export function updateTaxGroup({ id, data }: { id: string; data: UpdateTaxGroupP
 }
 
 // Deletes a tax group no tax class is mapped to
+// Activates or deactivates a tax group
+export function setTaxGroupActive({ id, isActive }: { id: string; isActive: boolean }): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${id}/active`, { isActive }).then((r) => r.data);
+}
+
 export function deleteTaxGroup(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/${id}`).then((r) => r.data);
 }
@@ -136,10 +130,4 @@ export function deleteTaxClassGroup({
   mappingId: string;
 }): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/${taxGroupId}/classes/${mappingId}`).then((r) => r.data);
-}
-
-// Fetches every active tax class of the organization with the tax group it maps to today, if any, in the country of
-// the saved table state
-export function getTaxClassMappingTable(): Promise<TaxClassMappingTableResponse> {
-  return axios.get<TaxClassMappingTableResponse>(`${BASE}/class-mapping/table`).then((r) => r.data);
 }

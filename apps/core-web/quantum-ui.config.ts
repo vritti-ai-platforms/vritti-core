@@ -94,5 +94,6 @@ export default defineConfig({
   views: {
     viewsEndpoint: 'table-views',
     statesEndpoint: 'table-states',
+    contextStatesEndpoint: 'context-states',
   },
 });

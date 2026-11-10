@@ -4,6 +4,7 @@ export const ORG_TAX_GROUPS = {
   add: 'org.tax-groups.add',
   edit: 'org.tax-groups.edit',
   delete: 'org.tax-groups.delete',
+  toggle: 'org.tax-groups.toggle',
   rates: {
     view: 'org.tax-groups.rates.view',
     add: 'org.tax-groups.rates.add',

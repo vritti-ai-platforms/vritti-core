@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type StockTransferStatus, StockTransferStatusValues, stockTransfers } from '@/db/schema';
@@ -19,7 +20,7 @@ export class StockTransfersDomainService {
   constructor(private readonly repository: StockTransfersDomainRepository) {}
 
   // Returns paginated stock transfers for the data table
-  async findForTable(state: TableViewState): Promise<{ result: StockTransferDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: StockTransferDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockTransfersDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, StockTransfersDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);

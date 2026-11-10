@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
@@ -30,7 +31,7 @@ export class TaxGroupsDomainService {
   constructor(private readonly repository: TaxGroupsDomainRepository) {}
 
   // Returns paginated tax groups with their rate and class counts, filtered by the table's panel and context
-  async findForTable(state: TableViewState): Promise<{ result: TaxGroupDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: TaxGroupDto[]; count: number }> {
     const fieldMap = TaxGroupsDomainService.FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
@@ -85,7 +86,7 @@ export class TaxGroupsDomainService {
     return {
       success: true,
       message: `Tax group "${entity.name}" created successfully.`,
-      data: TaxGroupDto.from({ ...entity, rateCount: 0, classCount: 0 }),
+      data: TaxGroupDto.from({ ...entity, rateCount: 0, classCount: 0, openClassCount: 0 }),
     };
   }
 
@@ -98,6 +99,19 @@ export class TaxGroupsDomainService {
     await this.repository.update(id, data);
     this.logger.log(`Updated tax group: ${existing.countryCode} ${existing.code} (${id})`);
     return { success: true, message: `Tax group "${data.name ?? existing.name}" updated successfully.` };
+  }
+
+  // Activates or deactivates a tax group; one that a class mapping in force or still to come names stays active
+  async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findDetailOrThrow(id);
+    if (!isActive) this.repository.assertDeactivatable(existing);
+
+    await this.repository.update(id, { isActive });
+
+    this.logger.log(
+      `${isActive ? 'Activated' : 'Deactivated'} tax group: ${existing.countryCode} ${existing.code} (${id})`,
+    );
+    return { success: true, message: `Tax group "${existing.name}" ${isActive ? 'activated' : 'deactivated'}.` };
   }
 
   // Deletes a tax group and its rates unless tax classes are mapped to it

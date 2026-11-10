@@ -27,14 +27,14 @@ interface GoodsReceiptsTabProps {
   purchaseOrder: PurchaseOrderDetail;
 }
 
-// The goods receipts counted against the order, where a new one is started; a row opens the receipt in the goods receipts feature
+// The goods receipts counting any of the order's lines, where a new one is started; a row opens the receipt in the goods receipts feature
 export const GoodsReceiptsTab: React.FC<GoodsReceiptsTabProps> = ({ binding, purchaseOrder }) => {
   const purchaseOrderId = purchaseOrder.id;
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
   const createReceiptDialog = useDialog();
-  const { data: response, isLoading } = binding.useGoodsReceiptsTable(purchaseOrderId);
+  const goodsReceiptsTableQuery = binding.useGoodsReceiptsTable(purchaseOrderId);
 
   const openReceipt = useCallback(
     (receipt: GoodsReceiptData) =>
@@ -60,6 +60,12 @@ export const GoodsReceiptsTab: React.FC<GoodsReceiptsTabProps> = ({ binding, pur
         cell: ({ row }) => <GoodsReceiptStatusBadge status={row.original.status} />,
       },
       {
+        accessorKey: 'poNumbers',
+        header: 'Purchase Orders',
+        cell: ({ row }) => <StringCell value={row.original.poNumbers.join(', ')} mono />,
+        enableSorting: false,
+      },
+      {
         accessorKey: 'notes',
         header: 'Notes',
         cell: ({ row }) => <StringCell value={row.original.notes} />,
@@ -77,11 +83,11 @@ export const GoodsReceiptsTab: React.FC<GoodsReceiptsTabProps> = ({ binding, pur
     [openReceipt],
   );
 
-  const { table } = useDataTable({
+  const goodsReceiptsTable = useDataTable({
     columns,
     slug: binding.goodsReceiptsTableSlug(purchaseOrderId),
     label: 'goods receipt',
-    serverState: response,
+    query: goodsReceiptsTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -102,16 +108,15 @@ export const GoodsReceiptsTab: React.FC<GoodsReceiptsTabProps> = ({ binding, pur
   return (
     <>
       <DataTable
-        table={table}
+        table={goodsReceiptsTable}
         mode="tab"
-        isLoading={isLoading}
         permission={binding.permissions.view}
         onRowClick={openReceipt}
         toolbarActions={{ actions: createReceiptAction }}
         emptyStateConfig={{
           icon: PackageCheck,
           title: 'No goods receipts',
-          description: 'Goods received against this purchase order will appear here.',
+          description: 'Goods receipts counting lines of this purchase order will appear here.',
           action: createReceiptAction,
         }}
       />
@@ -120,11 +125,11 @@ export const GoodsReceiptsTab: React.FC<GoodsReceiptsTabProps> = ({ binding, pur
         handle={createReceiptDialog}
         icon={PackageCheck}
         title="Create Goods Receipt"
-        description={`Start a draft receipt of the goods delivered against ${purchaseOrder.poNumber}, then count them line by line.`}
+        description={`Receive goods of ${purchaseOrder.poNumber} that arrived without an announced delivery: a draft receipt and its inbound delivery carry every open line, and more of ${purchaseOrder.supplierName}'s orders can be picked.`}
         content={(close) => (
           <CreateGoodsReceiptDialog
-            useCreateGoodsReceipt={binding.goodsReceipts.useCreate}
-            purchaseOrderId={purchaseOrderId}
+            mutations={binding.goodsReceipts}
+            purchaseOrder={{ id: purchaseOrderId, supplierId: purchaseOrder.supplierId }}
             onSuccess={(receipt) => {
               close();
               openReceipt(receipt);

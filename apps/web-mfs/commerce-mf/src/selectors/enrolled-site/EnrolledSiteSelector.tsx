@@ -1,38 +1,24 @@
-import { Select, type SelectOption, type SelectProps } from '@vritti/quantum-ui/Select';
+import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
 import { forwardRef } from 'react';
-import type { SupplierEnrollmentStatus } from '@/schemas/supplier-enrollments';
 
 export type EnrolledSiteSelectorProps = Omit<SelectProps, 'optionsEndpoint'> & {
   supplierId: string | undefined;
-  // The legal entity's sites to list against the supplier: enrolled ones (default), not-enrolled ones, or every site
-  enrollmentStatus?: SupplierEnrollmentStatus | 'ALL';
+  isEnrolled?: boolean;
 };
 
-// The site's code, then a marker when the supplier is not enrolled there
-function describeSite(value: string, option: SelectOption): string {
-  const notEnrolled = option.additionals?.isEnrolled === false ? 'Not Enrolled' : '';
-  return [value, notEnrolled].filter(Boolean).join(' · ');
-}
-
-// Pre-configured Select over the legal entity's sites as one supplier is enrolled there; inert until the supplier is known
+// Pre-configured Select over the legal entity's sites by one supplier's enrollments; inert until the supplier is known
 export const EnrolledSiteSelector = forwardRef<HTMLButtonElement, EnrolledSiteSelectorProps>(
-  ({ supplierId, enrollmentStatus = 'ENROLLED', params, ...props }, ref) => (
+  ({ supplierId, isEnrolled = true, params, ...props }, ref) => (
     <Select
       ref={ref}
       label="Site"
       placeholder={supplierId ? 'Select site' : 'Select a supplier first'}
       searchable
-      fieldKeys={{
-        valueKey: 'id',
-        labelKey: 'name',
-        descriptionKey: 'code',
-        additionalKeys: 'siteCode,isEnrolled,isActive',
-      }}
-      transformDescription={describeSite}
+      fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'code' }}
       {...props}
       disabled={!supplierId || props.disabled}
-      optionsEndpoint={supplierId ? 'commerce-api/select-api/supplier-enrollments' : undefined}
-      params={supplierId ? { ...params, supplierId, enrollmentStatus } : undefined}
+      optionsEndpoint={supplierId ? 'select-api/sites' : undefined}
+      params={supplierId ? { ...params, supplierId, isEnrolled, ...(isEnrolled ? { isActive: true } : {}) } : undefined}
     />
   ),
 );

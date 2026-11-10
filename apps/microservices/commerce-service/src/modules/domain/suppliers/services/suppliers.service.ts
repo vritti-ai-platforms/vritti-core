@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterOperators, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterOperators, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, arrayOverlaps, asc, not, sql } from '@vritti/api-sdk/drizzle-orm';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -9,7 +10,7 @@ import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
 import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
-import { type PricedItemAtSite, SuppliersDomainRepository } from '../repositories/suppliers.repository';
+import { SuppliersDomainRepository } from '../repositories/suppliers.repository';
 
 @Injectable()
 export class SuppliersDomainService {
@@ -47,7 +48,7 @@ export class SuppliersDomainService {
   constructor(private readonly repository: SuppliersDomainRepository) {}
 
   // Returns paginated suppliers for the data table with the joined party name
-  async findForTable(state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: SupplierDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, SuppliersDomainService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, SuppliersDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -67,10 +68,10 @@ export class SuppliersDomainService {
     return { result: rows.map((row) => SupplierDto.from(row)), count };
   }
 
-  // Returns paginated supplier options; activeOnly drops inactive suppliers and pricedItem keeps those priced at a site
+  // Returns paginated supplier options; activeOnly drops inactive suppliers and inventoryItemId keeps those supplying the item
   findForSelect(
     query: SelectOptionsQueryDto,
-    options?: { pricedItem?: PricedItemAtSite; activeOnly?: boolean },
+    options?: { activeOnly?: boolean; inventoryItemId?: string },
   ): Promise<SelectQueryResult> {
     return this.repository.findForSelect(
       {

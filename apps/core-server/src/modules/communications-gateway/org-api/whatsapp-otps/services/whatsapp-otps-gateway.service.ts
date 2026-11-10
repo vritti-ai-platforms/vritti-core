@@ -5,7 +5,7 @@ import type {
 import type { WhatsappOtpStatsResponseDto } from '@communications/whatsapp-otps/dto/response/whatsapp-otp-stats-response.dto';
 import type { WhatsappOtpTableResponseDto } from '@communications/whatsapp-otps/dto/response/whatsapp-otp-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AppWhatsappOtpConfig } from '@/db/schema';
@@ -28,7 +28,7 @@ export class WhatsappOtpsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly appService: AppDomainService,
   ) {}
 
@@ -80,7 +80,7 @@ export class WhatsappOtpsGatewayService {
   // Returns paginated, filtered, and sorted codes for the monitoring data table
   async findForTable(userId: string): Promise<WhatsappOtpTableResponseDto> {
     this.logger.log('org.whatsappOtps.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       'communications-org-whatsapp-otps',
     );

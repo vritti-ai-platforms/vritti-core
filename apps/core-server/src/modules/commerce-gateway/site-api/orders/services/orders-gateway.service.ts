@@ -3,7 +3,7 @@ import type { UpdateOrderStatusDto } from '@commerce/orders/dto/request/update-o
 import type { OrderDetailResponseDto, OrderResponseDto } from '@commerce/orders/dto/response/order-response.dto';
 import type { OrderTableResponseDto } from '@commerce/orders/dto/response/order-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
@@ -12,13 +12,13 @@ export class OrdersGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated, filtered, and sorted orders for the data table
   async findForTable(userId: string): Promise<OrderTableResponseDto> {
     this.logger.log('site.orders.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-orders');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-orders');
 
     const { result, count } = await this.nats.send<{ result: OrderResponseDto[]; count: number }>(
       'commerce',

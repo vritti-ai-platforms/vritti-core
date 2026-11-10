@@ -1,15 +1,14 @@
 import type { GoodsReceiptItemDto } from '@domain/goods-receipts/dto/entity/goods-receipt-item.dto';
 import type { GoodsReceiptItemsCostDto } from '@domain/goods-receipts/dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '@domain/goods-receipts/dto/entity/goods-receipt-tree.dto';
-import { AddGoodsReceiptItemDto } from '@domain/goods-receipts/dto/request/add-goods-receipt-item.dto';
 import { UpdateGoodsReceiptItemDto } from '@domain/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/goods-receipt-items.service';
 import type { GoodsReceiptItemQuantsDto } from '@domain/inventory-item-quants/dto/entity/goods-receipt-item-quants.dto';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { TableState } from '@vritti/api-sdk/data-table';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsItemsService } from '@/modules/site/goods-receipts/items/services/goods-receipts-items.service';
 
 @Controller()
@@ -46,7 +45,7 @@ export class LeGoodsReceiptsItemsController {
   // Returns one page of a goods receipt's items
   @MessagePattern({ cmd: 'le.goodsReceipts.itemsTable' })
   itemsTable(
-    @Payload() data: { goodsReceiptId: string } & TableViewState,
+    @Payload() data: { goodsReceiptId: string } & TableState,
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     this.logger.log(`le.goodsReceipts.itemsTable — receipt: ${data.goodsReceiptId}`);
     const { goodsReceiptId, ...state } = data;
@@ -67,26 +66,17 @@ export class LeGoodsReceiptsItemsController {
     return this.quantsService.findCostsByGrItemId(data.itemId);
   }
 
-  // Counts a purchase order line on a goods receipt
-  @MessagePattern({ cmd: 'le.goodsReceipts.addItemFromPurchaseOrderItem' })
-  addItemFromPurchaseOrderItem(
-    @Payload() dto: AddGoodsReceiptItemDto,
-  ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
-    this.logger.log(`le.goodsReceipts.addItemFromPurchaseOrderItem — poItem: ${dto.purchaseOrderItemId}`);
-    return this.service.addItem(dto);
-  }
-
   // Changes the received or rejected quantity of a goods receipt item
   @MessagePattern({ cmd: 'le.goodsReceipts.updateItem' })
   updateItem(@Payload() dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.goodsReceipts.updateItem — item: ${dto.itemId}`);
-    return this.itemsService.updateItem(dto);
+    return this.service.updateItem(dto);
   }
 
   // Removes an item from a goods receipt
   @MessagePattern({ cmd: 'le.goodsReceipts.removeItem' })
   removeItem(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.goodsReceipts.removeItem — item: ${data.itemId}`);
-    return this.itemsService.removeItem(data.goodsReceiptId, data.itemId);
+    return this.service.removeItem(data.goodsReceiptId, data.itemId);
   }
 }

@@ -14,7 +14,8 @@ export class PurchaseOrderDto {
   exchangeRate: number;
   conversionRates: Record<string, string>;
   orderDate: string;
-  expectedBy: string | null;
+  taxDate: string;
+  latestExpectedDeliveryDate: string | null;
   timezone: string;
   notes: string | null;
   totalAmount: CurrencyAmountDto;
@@ -35,7 +36,8 @@ export class PurchaseOrderDto {
     dto.exchangeRate = row.exchangeRate;
     dto.conversionRates = row.conversionRates;
     dto.orderDate = row.orderDate;
-    dto.expectedBy = row.expectedBy;
+    dto.taxDate = row.taxDate;
+    dto.latestExpectedDeliveryDate = row.latestExpectedDeliveryDate;
     dto.timezone = row.timezone;
     dto.notes = row.notes;
     dto.totalAmount = CurrencyAmountDto.from(row.totalAmount, row.currencyCode);

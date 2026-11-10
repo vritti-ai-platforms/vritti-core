@@ -104,6 +104,7 @@ export function removeSupplierQuotationItem({
   return axios.delete<SuccessResponse>(`${base(supplierId)}/${quotationId}/items/${itemId}`).then((r) => r.data);
 }
 
+// Posts the quotation to a site, or with no site as the legal entity's prices
 export function postSupplierQuotationToSite({
   supplierId,
   quotationId,
@@ -111,11 +112,16 @@ export function postSupplierQuotationToSite({
 }: {
   supplierId: string;
   quotationId: string;
-  siteId: string;
+  siteId: string | null;
 }): Promise<SuccessResponse> {
-  return axios.post<SuccessResponse>(`${base(supplierId)}/${quotationId}/sites`, { siteId }).then((r) => r.data);
+  return (
+    siteId
+      ? axios.post<SuccessResponse>(`${base(supplierId)}/${quotationId}/sites`, { siteId })
+      : axios.post<SuccessResponse>(`${base(supplierId)}/${quotationId}/legal-entity`)
+  ).then((r) => r.data);
 }
 
+// Removes the quotation from a site, or with no site its legal-entity prices
 export function removeSupplierQuotationFromSite({
   supplierId,
   quotationId,
@@ -123,7 +129,9 @@ export function removeSupplierQuotationFromSite({
 }: {
   supplierId: string;
   quotationId: string;
-  siteId: string;
+  siteId: string | null;
 }): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`${base(supplierId)}/${quotationId}/sites/${siteId}`).then((r) => r.data);
+  return axios
+    .delete<SuccessResponse>(`${base(supplierId)}/${quotationId}/${siteId ? `sites/${siteId}` : 'legal-entity'}`)
+    .then((r) => r.data);
 }

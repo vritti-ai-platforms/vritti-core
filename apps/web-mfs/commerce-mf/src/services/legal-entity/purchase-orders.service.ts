@@ -1,6 +1,7 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
+import type { InboundDeliveriesTableResponse } from '@/schemas/inbound-deliveries';
 import type {
   AddPurchaseOrderItemPayload,
   ChangePurchaseOrderExchangeRatePayload,
@@ -17,6 +18,7 @@ import type {
   UpdatePurchaseOrderItemPayload,
   UpdatePurchaseOrderNotesPayload,
   UpdatePurchaseOrderStatusPayload,
+  UpdatePurchaseOrderTaxDatePayload,
 } from '@/schemas/purchase-orders';
 
 // Fetches the purchase orders of the legal entity's sites for the data table, narrowed by the table's saved context
@@ -43,6 +45,13 @@ export function getPurchaseOrderItemIds(id: string): Promise<string[]> {
 export function getPurchaseOrderItemsTable(id: string): Promise<PurchaseOrderItemsTableResponse> {
   return axios
     .get<PurchaseOrderItemsTableResponse>(`commerce-api/le/purchase-orders/${id}/items/table`)
+    .then((r) => r.data);
+}
+
+// Fetches the inbound deliveries carrying a line of a purchase order for the data table
+export function getPurchaseOrderInboundDeliveriesTable(id: string): Promise<InboundDeliveriesTableResponse> {
+  return axios
+    .get<InboundDeliveriesTableResponse>(`commerce-api/le/purchase-orders/${id}/inbound-deliveries/table`)
     .then((r) => r.data);
 }
 
@@ -93,6 +102,16 @@ export function removePurchaseOrderItem({ id, itemId }: PurchaseOrderItemRef): P
 export function updatePurchaseOrderNotes({ id, notes }: UpdatePurchaseOrderNotesPayload): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/le/purchase-orders/${id}/notes`, { notes: notes || null })
+    .then((r) => r.data);
+}
+
+// Sets a purchase order's tax date; the lines that follow it move with it
+export function updatePurchaseOrderTaxDate({
+  id,
+  taxDate,
+}: UpdatePurchaseOrderTaxDatePayload): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/le/purchase-orders/${id}/tax-date`, { taxDate })
     .then((r) => r.data);
 }
 

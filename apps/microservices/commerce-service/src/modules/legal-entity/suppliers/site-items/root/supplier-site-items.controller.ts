@@ -5,7 +5,7 @@ import { UpdateSupplierSiteItemDto } from '@domain/supplier-items/dto/request/up
 import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -17,7 +17,7 @@ export class SupplierSiteItemsController {
   // Returns the paginated site items of a supplier item
   @MessagePattern({ cmd: 'le.suppliers.siteItems.table' })
   table(
-    @Payload() data: { supplierItemId: string } & TableViewState,
+    @Payload() data: { supplierItemId: string } & TableState,
   ): Promise<{ result: SupplierSiteItemDto[]; count: number }> {
     const { supplierItemId, ...state } = data;
     this.logger.log(`le.suppliers.siteItems.table — supplierItemId: ${supplierItemId}`);

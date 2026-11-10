@@ -16,7 +16,7 @@ import { AddCustomerDialog } from './forms/AddCustomerDialog';
 export const CustomersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useCustomersTable();
+  const customersTableQuery = useCustomersTable();
   const addDialog = useDialog();
 
   const columns = useMemo<ColumnDef<CustomerData>[]>(
@@ -70,11 +70,11 @@ export const CustomersPage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const customersTable = useDataTable({
     columns,
     slug: 'commerce-site-customers',
     label: 'customer',
-    serverState: response,
+    query: customersTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -86,8 +86,7 @@ export const CustomersPage = () => {
       <PageHeader title="Customers" description="Manage your customer directory" />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={customersTable}
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },

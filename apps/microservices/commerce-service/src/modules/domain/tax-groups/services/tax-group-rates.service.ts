@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { majorToMinor } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -44,7 +45,7 @@ export class TaxGroupRatesDomainService {
   // narrow them to the rates charged there on that day
   async findForTable(
     taxGroupId: string,
-    state: TableViewState,
+    state: TableState,
     context: TaxGroupRateContext,
   ): Promise<{ result: TaxGroupRateDto[]; count: number }> {
     const group = await this.groupsRepository.findByIdOrThrow(taxGroupId);

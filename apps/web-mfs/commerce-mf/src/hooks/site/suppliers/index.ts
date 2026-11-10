@@ -1,6 +1,7 @@
 export {
   SITE_SUPPLIER_KEY,
   SITE_SUPPLIER_SITE_ITEM_KEY,
+  SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY,
   SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY,
   SITE_SUPPLIER_SITE_ITEMS_TABLE_KEY,
   SITE_SUPPLIERS_KEY,
@@ -9,7 +10,7 @@ export {
 export {
   useAddSupplierSiteItemPrice,
   useDeleteSupplierSiteItemPrice,
-  useSupplierSiteItemPriceHistory,
+  useSupplierSiteItemPriceHistoryQuery,
   useSupplierSiteItemPricesTable,
   useUpdateSupplierSiteItemPrice,
 } from './useSupplierSiteItemPrices';

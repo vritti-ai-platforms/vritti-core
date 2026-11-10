@@ -11,7 +11,7 @@ interface CompaniesTabProps {
 }
 
 export const CompaniesTab: React.FC<CompaniesTabProps> = ({ partyId }) => {
-  const { data: response, isLoading } = usePersonCompanies(partyId);
+  const personCompaniesQuery = usePersonCompanies(partyId);
 
   const columns = useMemo<ColumnDef<PersonCompanyRow>[]>(
     () => [
@@ -29,9 +29,9 @@ export const CompaniesTab: React.FC<CompaniesTabProps> = ({ partyId }) => {
     [],
   );
 
-  const { table } = useDataTable({
+  const personCompaniesTable = useDataTable({
     columns,
-    serverState: response,
+    query: personCompaniesQuery,
     slug: `commerce-org-person-${partyId}-companies`,
     label: 'company',
     enableRowSelection: false,
@@ -40,9 +40,8 @@ export const CompaniesTab: React.FC<CompaniesTabProps> = ({ partyId }) => {
 
   return (
     <DataTable
-      table={table}
+      table={personCompaniesTable}
       mode="tab"
-      isLoading={isLoading}
       permission={ORG_PEOPLE.view}
       emptyStateConfig={{
         icon: Building2,

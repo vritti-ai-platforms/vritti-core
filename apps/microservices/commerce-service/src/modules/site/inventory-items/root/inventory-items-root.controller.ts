@@ -5,7 +5,7 @@ import type { SiteInventoryItemDto } from '@domain/inventory-items/dto/entity/sc
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { InventoryItemSite } from '@/db/schema';
@@ -23,7 +23,7 @@ export class InventoryItemsRootController {
   // Every master item, marked with whether this site has it enabled and the stock it holds here
   @MessagePattern({ cmd: 'site.inventoryItems.table' })
   async table(
-    @Payload() state: TableViewState,
+    @Payload() state: TableState,
     @RpcSiteId() siteId: string,
   ): Promise<{ result: SiteInventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');

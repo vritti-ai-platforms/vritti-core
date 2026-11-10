@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
+import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { SiteInventoryItemResponseDto } from './inventory-item-response.dto';
 
 export class SiteInventoryItemTableRowDto extends SiteInventoryItemResponseDto {
@@ -24,7 +24,7 @@ export class SiteInventoryItemTableResponseDto extends TableResponseDto<SiteInve
   declare count: number;
 
   @ApiProperty()
-  declare state: TableViewState;
+  declare state: TableState;
 
   @ApiPropertyOptional()
   declare activeViewId: string | null;

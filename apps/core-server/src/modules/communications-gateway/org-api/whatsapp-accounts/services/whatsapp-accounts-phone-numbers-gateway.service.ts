@@ -5,7 +5,7 @@ import type { WhatsappPhoneNumberProfileResponseDto } from '@communications/what
 import type { WhatsappPhoneNumberResponseDto } from '@communications/whatsapp-account-phone-numbers/dto/response/whatsapp-phone-number-response.dto';
 import type { WhatsappPhoneNumberTableResponseDto } from '@communications/whatsapp-account-phone-numbers/dto/response/whatsapp-phone-number-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -15,13 +15,13 @@ export class WhatsappAccountsPhoneNumbersGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns the WABA's phone numbers as a data table.
   async findForTable(userId: string, accountId: string): Promise<WhatsappPhoneNumberTableResponseDto> {
     this.logger.log(`whatsappAccounts.phoneNumbers.list — account: ${accountId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       'communications-org-whatsapp-phone-numbers',
     );

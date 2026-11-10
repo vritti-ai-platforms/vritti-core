@@ -1,6 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, getColumns, inArray, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  getColumns,
+  gte,
+  inArray,
+  isNull,
+  lte,
+  ne,
+  or,
+  type SQL,
+  sql,
+} from '@vritti/api-sdk/drizzle-orm';
+import { alias, QueryBuilder } from '@vritti/api-sdk/drizzle-pg-core';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
@@ -11,6 +25,7 @@ import {
   type NewSupplierSiteItem,
   parties,
   purchaseOrderItems,
+  purchaseOrders,
   type Supplier,
   type SupplierItem,
   type SupplierSiteItem,
@@ -28,22 +43,44 @@ function siteParam(siteId: string | null): SQL {
   return siteId ? sql`${siteId}::uuid` : sql`NULL::uuid`;
 }
 
-// Correlated scalar subquery reading one column of a site's price row in force today
-function currentPriceColumnSql<T>(column: string, siteId: string | null, map?: (value: unknown) => T): SQL<T | null> {
-  const expr = sql<T | null>`(
-    SELECT ${sql.raw(`sip.${column}`)} FROM ${supplierItemPrices} sip
-    WHERE sip.supplier_item_id = ${supplierItems.id}
-      AND sip.site_id = ${siteParam(siteId)}
-      AND sip.valid_from <= CURRENT_DATE
-      AND (sip.valid_to IS NULL OR sip.valid_to >= CURRENT_DATE)
-    ORDER BY sip.valid_from DESC
-    LIMIT 1
-  )`;
+interface PriceLookup<T> {
+  map?: (value: unknown) => T;
+  asOf?: string | null;
+  currency?: string | null;
+}
+
+const priceRows = alias(supplierItemPrices, 'price_rows');
+
+type PriceColumn = 'unitPrice' | 'currencyCode' | 'schemeBuyQty' | 'schemeFreeQty' | 'taxInclusive';
+
+// Correlated scalar subquery reading one column of the price row a site pays: its own in force, else its legal entity's
+function currentPriceColumnSql<T>(
+  column: PriceColumn,
+  siteId: string | null,
+  { map, asOf, currency }: PriceLookup<T> = {},
+): SQL<T | null> {
+  const day = asOf ? sql`${asOf}::date` : sql`CURRENT_DATE`;
+  const row = new QueryBuilder()
+    .select({ value: priceRows[column] })
+    .from(priceRows)
+    .where(
+      and(
+        eq(priceRows.supplierItemId, supplierItems.id),
+        // A site pays its own price in force, else the legal entity's; with no site only the legal entity's applies
+        siteId ? or(eq(priceRows.siteId, siteId), isNull(priceRows.siteId)) : isNull(priceRows.siteId),
+        lte(priceRows.validFrom, day),
+        or(isNull(priceRows.validTo), gte(priceRows.validTo, day)),
+        currency ? eq(priceRows.currencyCode, currency) : undefined,
+      ),
+    )
+    .orderBy(isNull(priceRows.siteId), desc(priceRows.validFrom))
+    .limit(1);
+  const expr = sql<T | null>`(${row})`;
   return map ? expr.mapWith((value: unknown) => (value == null ? null : map(value))) : expr;
 }
 
-function currentPriceSql(siteId: string | null): SQL<bigint | null> {
-  return currentPriceColumnSql('unit_price', siteId, (value) => BigInt(value as string));
+function currentPriceSql(siteId: string | null, lookup: Omit<PriceLookup<bigint>, 'map'> = {}): SQL<bigint | null> {
+  return currentPriceColumnSql('unitPrice', siteId, { ...lookup, map: (value) => BigInt(value as string) });
 }
 
 // A site's operational settings (joined supplier_site_items row) and the price row in force there today
@@ -54,10 +91,10 @@ function siteItemTermsSelect(siteId: string | null) {
     siteLeadTimeDays: supplierSiteItems.leadTimeDays,
     siteIsLeadTimeOverridden: supplierSiteItems.isLeadTimeOverridden,
     currentUnitPrice: currentPriceSql(siteId),
-    currentCurrencyCode: currentPriceColumnSql<string>('currency_code', siteId),
-    currentSchemeBuyQty: currentPriceColumnSql('scheme_buy_qty', siteId, (value) => Number(value)),
-    currentSchemeFreeQty: currentPriceColumnSql('scheme_free_qty', siteId, (value) => Number(value)),
-    currentTaxInclusive: currentPriceColumnSql<boolean>('tax_inclusive', siteId),
+    currentCurrencyCode: currentPriceColumnSql<string>('currencyCode', siteId),
+    currentSchemeBuyQty: currentPriceColumnSql('schemeBuyQty', siteId, { map: (value) => Number(value) }),
+    currentSchemeFreeQty: currentPriceColumnSql('schemeFreeQty', siteId, { map: (value) => Number(value) }),
+    currentTaxInclusive: currentPriceColumnSql<boolean>('taxInclusive', siteId),
   };
 }
 
@@ -129,19 +166,32 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Returns paginated supplier item options — one row per (inventoryItem, uom) pair
-  override findForSelect(
+  override async findForSelect(
     config: FindForSelectConfig,
     options?: {
       supplierId?: string;
       siteId?: string | null;
-      excludeOnPurchaseOrderId?: string;
+      purchaseOrderId?: string;
       excludeOnGoodsReceiptId?: string;
     },
   ): Promise<SelectQueryResult> {
-    const siteId = options?.siteId ?? null;
+    // An order's items come from its site, priced as of its order date in its currency (none when the item has no price
+    // in it), whichever workspace raises it
+    const [purchaseOrder] = options?.purchaseOrderId
+      ? await this.db
+          .select({
+            siteId: purchaseOrders.siteId,
+            orderDate: purchaseOrders.orderDate,
+            currencyCode: purchaseOrders.currencyCode,
+          })
+          .from(purchaseOrders)
+          .where(eq(purchaseOrders.id, options.purchaseOrderId))
+      : [];
+    const siteId = purchaseOrder?.siteId ?? options?.siteId ?? null;
+    const lookup = { asOf: purchaseOrder?.orderDate, currency: purchaseOrder?.currencyCode };
     const conditions: SQL[] = [];
 
-    // At a site only the items set up and active there; from a legal entity every item of its suppliers
+    // At a site, the workspace's or the order's, only the items set up there; otherwise every item of its suppliers
     if (siteId) {
       conditions.push(sql`EXISTS (
         SELECT 1 FROM ${supplierSiteItems} ssi
@@ -154,8 +204,8 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       conditions.push(eq(supplierItems.supplierId, options.supplierId));
     }
 
-    if (options?.excludeOnPurchaseOrderId) {
-      const poId = options.excludeOnPurchaseOrderId;
+    if (options?.purchaseOrderId) {
+      const poId = options.purchaseOrderId;
       conditions.push(sql`NOT EXISTS (
         SELECT 1 FROM ${purchaseOrderItems} poi
         WHERE poi.purchase_order_id = ${poId}
@@ -184,12 +234,12 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions,
       additionalExpressions: {
-        unitPrice: currentPriceSql(siteId),
-        currencyCode: currentPriceColumnSql('currency_code', siteId),
-        schemeBuyQty: currentPriceColumnSql('scheme_buy_qty', siteId),
-        schemeFreeQty: currentPriceColumnSql('scheme_free_qty', siteId),
-        hasScheme: sql`(${currentPriceColumnSql('scheme_buy_qty', siteId)} IS NOT NULL AND ${currentPriceColumnSql('scheme_free_qty', siteId)} IS NOT NULL)`,
-        taxInclusive: currentPriceColumnSql('tax_inclusive', siteId),
+        unitPrice: currentPriceSql(siteId, lookup),
+        currencyCode: currentPriceColumnSql('currencyCode', siteId, lookup),
+        schemeBuyQty: currentPriceColumnSql('schemeBuyQty', siteId, lookup),
+        schemeFreeQty: currentPriceColumnSql('schemeFreeQty', siteId, lookup),
+        hasScheme: sql`(${currentPriceColumnSql('schemeBuyQty', siteId, lookup)} IS NOT NULL AND ${currentPriceColumnSql('schemeFreeQty', siteId, lookup)} IS NOT NULL)`,
+        taxInclusive: currentPriceColumnSql('taxInclusive', siteId, lookup),
       },
     });
   }
@@ -525,10 +575,7 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Sets a supplier item's default lead time on every site item still following it; returns how many took it
-  async applyDefaultLeadTimeToSiteItems(
-    supplierItemIds: string[],
-    defaultLeadTimeDays: number | null,
-  ): Promise<number> {
+  async applyDefaultLeadTimeToSiteItems(supplierItemIds: string[], defaultLeadTimeDays: number): Promise<number> {
     if (supplierItemIds.length === 0) return 0;
     const rows = await this.db
       .update(supplierSiteItems)

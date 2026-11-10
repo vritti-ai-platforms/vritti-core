@@ -16,7 +16,7 @@ export class PriceWindowResponseDto {
 }
 
 export class SitePriceHistoryResponseDto {
-  @ApiProperty({ description: 'Site the windows belong to' })
+  @ApiProperty({ description: "Site the windows belong to — its own prices, else the legal entity's" })
   siteId: string;
 
   @ApiPropertyOptional({ description: 'Site name (gateway-enriched)', nullable: true })
@@ -44,6 +44,12 @@ export class SitePriceHistoryResponseDto {
 
 // Each window carries its own currency; a supplier can requote an item in another of its currencies
 export class SupplierItemPriceHistoryResponseDto {
-  @ApiProperty({ type: [SitePriceHistoryResponseDto], description: 'The charted sites with prices in the window' })
+  @ApiPropertyOptional({
+    description: "Currency every window is in — the context's; null when none is chosen",
+    nullable: true,
+  })
+  currency: string | null;
+
+  @ApiProperty({ type: [SitePriceHistoryResponseDto], description: 'The charted sites with prices in the period' })
   sites: SitePriceHistoryResponseDto[];
 }

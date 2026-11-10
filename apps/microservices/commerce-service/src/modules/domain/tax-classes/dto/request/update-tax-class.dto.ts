@@ -1,17 +1,13 @@
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateTaxClassDto {
   @IsUUID('7')
   id: string;
 
   @Trim({ nullify: false })
-  @IsOptional()
   @IsString()
+  @MinLength(1)
   @MaxLength(255)
-  name?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  name: string;
 }

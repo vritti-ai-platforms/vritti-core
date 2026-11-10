@@ -3,7 +3,7 @@ import { CreateCompanyDto } from '@domain/parties/dto/request/create-company.dto
 import { UpdateCompanyDto } from '@domain/parties/dto/request/update-company.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { CompaniesService } from './services/companies-root.service';
 
@@ -15,7 +15,7 @@ export class CompaniesController {
 
   // Returns paginated COMPANY parties for the companies table
   @MessagePattern({ cmd: 'org.companies.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: CompanyDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
     this.logger.log('companies.table');
     return this.service.findForTable(state);
   }

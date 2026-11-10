@@ -1,15 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { type FieldMap, FilterProcessor, type SearchState, type SortCondition } from '@vritti/api-sdk/conditions';
 import {
   CursorCodec,
-  type FieldMap,
-  FilterProcessor,
   type KeysetOrderBy,
   KeysetProcessor,
   keysetSignature,
-  type SearchState,
-  type SortCondition,
   type TableFilters,
-  type TableViewState,
+  type TableState,
 } from '@vritti/api-sdk/data-table';
 import { and, asc, Column, desc, eq, is, isNotNull, isNull } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -57,7 +54,7 @@ export class InventoryItemsDomainService {
   constructor(private readonly repository: InventoryItemsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted inventory items for the data table
-  async findForTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -82,7 +79,7 @@ export class InventoryItemsDomainService {
   // Returns paginated inventory items scoped to a single category (for the category detail items table)
   async findForTableByCategory(
     categoryId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
@@ -170,13 +167,13 @@ export class InventoryItemsDomainService {
   }
 
   // Org-wide master list (no site filter). Same table shape as findForTable; RLS scopes to org.
-  async findForOrgTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
+  async findForOrgTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
     return this.findForTable(state);
   }
 
   // Every master item, marked with whether this site has it enabled and the stock it holds here
   async findForSiteTable(
-    state: TableViewState,
+    state: TableState,
     siteId: string,
   ): Promise<{ result: SiteInventoryItemDto[]; count: number }> {
     const { result, count } = await this.repository.findForSiteTable(
@@ -197,7 +194,7 @@ export class InventoryItemsDomainService {
 
   // Every master item with how many of the group's sites have it enabled
   async findForGroupTable(
-    state: TableViewState,
+    state: TableState,
     siteIds: string[],
   ): Promise<{ result: GroupInventoryItemDto[]; count: number }> {
     const { result, count } = await this.repository.findForGroupTable(
@@ -213,7 +210,7 @@ export class InventoryItemsDomainService {
     };
   }
 
-  private tableQuery(state: TableViewState, filterFields: FieldMap) {
+  private tableQuery(state: TableState, filterFields: FieldMap) {
     const where = and(
       FilterProcessor.buildWhere(state.filters, filterFields),
       FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP),

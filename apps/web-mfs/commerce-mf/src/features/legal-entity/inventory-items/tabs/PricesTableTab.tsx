@@ -13,18 +13,12 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { isoTodayDate } from '@vritti/quantum-ui/timezone';
 import { Eye, Scale } from 'lucide-react';
 import type React from 'react';
-import { startTransition, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ContextFilterSkeleton } from '@/components/ContextFilterSkeleton';
-import { PriceTrendChip } from '@/components/suppliers/PriceTrendChip';
-import {
-  LE_INVENTORY_ITEM_PRICES_TABLE_KEY,
-  useInventoryItemPricedSiteIds,
-  useInventoryItemPricesTable,
-} from '@/hooks/legal-entity/inventory-items';
+import { PriceTrendChip } from '@/components/inventory-items/PriceTrendChip';
+import { LE_INVENTORY_ITEM_PRICES_TABLE_KEY, useInventoryItemPricesTable } from '@/hooks/legal-entity/inventory-items';
 import type { ItemSupplierPriceComparisonRow } from '@/schemas/suppliers';
-import { SiteFilter } from '@/selectors/site';
-import { contextSiteId, pickerSiteIds } from '@/utils/supplierPrice';
+import { EnrolledSiteFilter } from '@/selectors/enrolled-site';
 import { workspaceBase } from '@/utils/workspace';
 
 interface PricesTableTabProps {
@@ -46,11 +40,8 @@ export const PricesTableTab: React.FC<PricesTableTabProps> = ({ inventoryItemId,
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const fmt = useFormatters();
-  // The day the table is about — set in its context bar and not saved, since a saved day goes stale
   const timeZone = useWorkspaceTimeZone();
-  const [asOf, setAsOf] = useState(() => isoTodayDate(timeZone));
-  const { data: response, isLoading, isFetching } = useInventoryItemPricesTable(inventoryItemId, asOf);
-  const { data: siteIds, isLoading: isSitesLoading } = useInventoryItemPricedSiteIds(inventoryItemId);
+  const inventoryItemPricesTableQuery = useInventoryItemPricesTable(inventoryItemId);
   const showMrp = usePermission(LE_INVENTORY_ITEMS.mrp.view).available;
 
   // A price per the unit the supplier quotes, and below it per the item's own unit when the two differ — as on a PO line
@@ -181,26 +172,25 @@ export const PricesTableTab: React.FC<PricesTableTabProps> = ({ inventoryItemId,
     [showMrp, fmt, priceLines, navigate, pathname, itemName],
   );
 
-  // The site is context saved with the table, defaulting to the first priced site in the picker's order
-  const { table, context } = useDataTable({
+  // The site and day are context saved with the table: until a site is saved the filter picks the first site the item's
+  // suppliers are enrolled at, and the day opens on today each visit
+  const inventoryItemPricesTable = useDataTable({
     columns,
-    serverState: response,
+    query: inventoryItemPricesTableQuery,
     slug: `commerce-le-inventory-item-${inventoryItemId}-prices`,
     label: 'supplier',
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: LE_INVENTORY_ITEM_PRICES_TABLE_KEY(inventoryItemId) }),
-    defaultContext: siteIds?.length ? [filter('site').equals(siteIds[0])] : [],
+    defaultContext: [filter('asOf').equals(isoTodayDate(timeZone))],
+    resetOnOpen: ['asOf'],
   });
-  const siteOptions = pickerSiteIds(siteIds ?? [], contextSiteId(context));
 
   return (
     <DataTable
-      table={table}
+      table={inventoryItemPricesTable}
       mode="tab"
-      isLoading={isLoading || isSitesLoading}
-      isFetching={isFetching}
       permission={LE_INVENTORY_ITEMS.prices.view}
       searchConfig={{
         columns: [{ id: 'supplierName', label: 'Supplier name' }],
@@ -208,19 +198,15 @@ export const PricesTableTab: React.FC<PricesTableTabProps> = ({ inventoryItemId,
       }}
       contextBar={
         <>
-          {isSitesLoading ? (
-            <ContextFilterSkeleton labelWidth="w-8" valueWidth="w-24" />
-          ) : (
-            siteOptions.length > 0 && <SiteFilter name="site" mode="context" siteIds={siteOptions} />
-          )}
-          <DateFilter
-            name="asOf"
-            label="As of"
+          <EnrolledSiteFilter
+            name="site"
+            label="Site"
             mode="context"
+            inventoryItemId={inventoryItemId}
             clearable={false}
-            value={{ field: 'asOf', operator: 'equals', value: asOf }}
-            onChange={(condition) => startTransition(() => setAsOf(condition.value))}
+            selectFirst
           />
+          <DateFilter name="asOf" label="As of" mode="context" />
         </>
       }
       filters={[

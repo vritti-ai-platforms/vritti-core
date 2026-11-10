@@ -49,7 +49,7 @@ const NameStatusBadge = ({ status }: { status: string | null }) => {
 // Rows are read live from Meta — verification status and quality are always current
 export const PhoneNumbersTab = ({ accountId }: PhoneNumbersTabProps) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useWhatsappPhoneNumbers(accountId);
+  const whatsappPhoneNumbersQuery = useWhatsappPhoneNumbers(accountId);
   // const addDialog = useDialog();
 
   // Every column carries an explicit size: DataTable takes the table's minWidth from their total, so the
@@ -133,11 +133,11 @@ export const PhoneNumbersTab = ({ accountId }: PhoneNumbersTabProps) => {
   );
 
   // Sorting is off deliberately: the rows come live from Meta, which cannot sort or filter this list
-  const { table } = useDataTable({
+  const whatsappPhoneNumbersTable = useDataTable({
     columns,
     slug: 'communications-org-whatsapp-phone-numbers',
     label: 'phone number',
-    serverState: response,
+    query: whatsappPhoneNumbersQuery,
     enableRowSelection: false,
     enableSorting: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: WHATSAPP_ACCOUNT_PHONE_NUMBERS_KEY(accountId) }),
@@ -146,9 +146,8 @@ export const PhoneNumbersTab = ({ accountId }: PhoneNumbersTabProps) => {
   return (
     <div className="flex flex-col gap-6">
       <DataTable
-        table={table}
+        table={whatsappPhoneNumbersTable}
         mode="tab"
-        isLoading={isLoading}
         permission={ORG_WHATSAPP_ACCOUNTS.phoneNumbers.view}
         enableViews={false}
         /* Parked add-number entry points — see the note at the top of this file

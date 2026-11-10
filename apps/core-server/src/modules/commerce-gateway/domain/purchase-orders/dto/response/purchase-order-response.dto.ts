@@ -46,8 +46,14 @@ export class PurchaseOrderResponseDto {
   @ApiProperty({ description: 'Order date (YYYY-MM-DD)' })
   orderDate: string;
 
-  @ApiPropertyOptional({ description: 'Expected-by date/time', nullable: true })
-  expectedBy: string | null;
+  @ApiProperty({ description: 'Date tax is determined on (YYYY-MM-DD); lines follow it unless overridden' })
+  taxDate: string;
+
+  @ApiPropertyOptional({
+    description: 'Latest date one of the lines is expected to be delivered (YYYY-MM-DD); null without lines',
+    nullable: true,
+  })
+  latestExpectedDeliveryDate: string | null;
 
   @ApiProperty({ description: 'IANA timezone of the site the PO was raised for', example: 'Asia/Kolkata' })
   timezone: string;

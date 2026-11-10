@@ -9,7 +9,7 @@ import { UpdateSupplierQuotationDto } from '@domain/supplier-quotations/dto/requ
 import { UpdateSupplierQuotationItemDto } from '@domain/supplier-quotations/dto/request/update-supplier-quotation-item.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { LeSupplierQuotationsService } from './services/supplier-quotations.service';
@@ -22,7 +22,7 @@ export class SupplierQuotationsController {
 
   @MessagePattern({ cmd: 'le.suppliers.quotations.table' })
   table(
-    @Payload() data: { supplierId: string } & TableViewState,
+    @Payload() data: { supplierId: string } & TableState,
   ): Promise<{ result: SupplierQuotationDto[]; count: number }> {
     const { supplierId, ...state } = data;
     this.logger.log(`suppliers.quotations.table — supplierId: ${supplierId}`);
@@ -81,6 +81,22 @@ export class SupplierQuotationsController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`suppliers.quotations.sites.post — quotationId: ${dto.quotationId}, siteId: ${dto.siteId}`);
     return this.service.postToSite(dto.quotationId, dto.siteId, headers.userId || null);
+  }
+
+  // Posts the quotation as the legal entity's prices, which every site without its own price in force uses
+  @MessagePattern({ cmd: 'le.suppliers.quotations.legalEntity.post' })
+  postToLegalEntity(
+    @Payload() data: { quotationId: string },
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`suppliers.quotations.legalEntity.post — quotationId: ${data.quotationId}`);
+    return this.service.postToSite(data.quotationId, null, headers.userId || null);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.quotations.legalEntity.remove' })
+  removeFromLegalEntity(@Payload() data: { quotationId: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`suppliers.quotations.legalEntity.remove — quotationId: ${data.quotationId}`);
+    return this.service.removeFromSite(data.quotationId, null);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.quotations.sites.remove' })

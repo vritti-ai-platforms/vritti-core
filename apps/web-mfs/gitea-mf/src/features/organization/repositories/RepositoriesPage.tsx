@@ -25,7 +25,7 @@ import { CreateRepositoryDialog } from './forms/CreateRepositoryDialog';
 export const RepositoriesPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useRepositories();
+  const repositoriesQuery = useRepositories();
   const createDialog = useDialog();
 
   // Every column carries an explicit size: DataTable takes the table's minWidth from their total, so the
@@ -86,11 +86,11 @@ export const RepositoriesPage = () => {
 
   // Sorting and search are off deliberately: the git service paginates but cannot sort or filter, so
   // either control would silently act on the current page only.
-  const { table } = useDataTable({
+  const repositoriesTable = useDataTable({
     columns,
     slug: 'gitea-org-repositories',
     label: 'repository',
-    serverState: response,
+    query: repositoriesQuery,
     enableRowSelection: false,
     enableSorting: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: GITEA_REPOSITORIES_TABLE_KEY }),
@@ -101,8 +101,7 @@ export const RepositoriesPage = () => {
       <PageHeader title="Repositories" description="Git repositories inside your organization's namespace." />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={repositoriesTable}
         permission={ORG_REPOSITORIES.view}
         // Named views round-trip table state through the backend; the git service has none, so the
         // views chrome would only issue pointless table-views requests.

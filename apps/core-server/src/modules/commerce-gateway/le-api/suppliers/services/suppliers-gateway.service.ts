@@ -1,5 +1,4 @@
 import type { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
-import type { SupplierEnrollmentSitesSelectQueryDto } from '@commerce/supplier-enrollments/dto/request/supplier-enrollment-sites-select-query.dto';
 import type { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
 import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
@@ -28,13 +27,13 @@ import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/s
 import type { SupplierItemTableResponseDto } from '@commerce/suppliers/dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from '@commerce/suppliers/dto/response/supplier-response.dto';
 import type { SupplierTableResponseDto } from '@commerce/suppliers/dto/response/supplier-table-response.dto';
-import { SiteDomainRepository, type SiteEnrollment } from '@domain/site/repositories/site.repository';
+import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, FilterOperators, type TableViewState } from '@vritti/api-sdk/data-table';
+import { FilterOperators } from '@vritti/api-sdk/conditions';
+import { type TableState, TableStateService } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 
 @Injectable()
@@ -43,7 +42,7 @@ export class SuppliersGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly siteRepository: SiteDomainRepository,
     private readonly ownerNames: OwnerNameService,
   ) {}
@@ -51,7 +50,7 @@ export class SuppliersGatewayService {
   // Returns paginated, filtered, and sorted suppliers for the data table
   async findForTable(userId: string): Promise<SupplierTableResponseDto> {
     this.logger.log('le.suppliers.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-le-suppliers');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-suppliers');
 
     const { result, count } = await this.nats.send<{ result: SupplierResponseDto[]; count: number }>(
       'commerce',
@@ -77,7 +76,7 @@ export class SuppliersGatewayService {
   // Returns linked supplier items for the table
   async findItemsTable(supplierId: string, userId: string): Promise<SupplierItemTableResponseDto> {
     this.logger.log('le.suppliers.itemsTable');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-supplier-${supplierId}-items`,
     );
@@ -196,7 +195,7 @@ export class SuppliersGatewayService {
     });
   }
 
-  // Bulk-sets the default lead time of supplier items (or clears it), applied to their sites that follow it
+  // Bulk-sets the default lead time of supplier items, applied to their sites that follow it
   async bulkSetItemDefaultLeadTime(
     supplierId: string,
     dto: BulkSetSupplierItemDefaultLeadTimeDto,
@@ -205,7 +204,7 @@ export class SuppliersGatewayService {
     return this.nats.send('commerce', 'le.suppliers.bulkSetItemDefaultLeadTime', {
       supplierId,
       supplierItemIds: dto.supplierItemIds,
-      defaultLeadTimeDays: dto.defaultLeadTimeDays ?? null,
+      defaultLeadTimeDays: dto.defaultLeadTimeDays,
     });
   }
 
@@ -219,7 +218,7 @@ export class SuppliersGatewayService {
   ): Promise<SupplierEnrollmentTableResponseDto> {
     this.logger.log(`le.suppliers.enrollments.findAll — supplierId: ${supplierId}`);
     const leId = SuppliersGatewayService.requireLegalEntity(legalEntityId);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-supplier-${supplierId}-enrollments`,
     );
@@ -285,7 +284,7 @@ export class SuppliersGatewayService {
   }
 
   // Applies the Enrollments tab's enrollment-status filter (single or multi value, positive or negated)
-  private static matchesEnrollmentFilters(row: SupplierEnrollmentRowResponseDto, state: TableViewState): boolean {
+  private static matchesEnrollmentFilters(row: SupplierEnrollmentRowResponseDto, state: TableState): boolean {
     return state.filters.panel.every((filter) => {
       if (filter.field !== 'enrollmentStatus') return true;
       const values = Array.isArray(filter.value) ? filter.value.map(String) : [String(filter.value)];
@@ -297,7 +296,7 @@ export class SuppliersGatewayService {
   }
 
   // Matches the search box against the site's name and code
-  private static matchesEnrollmentSearch(row: SupplierEnrollmentRowResponseDto, state: TableViewState): boolean {
+  private static matchesEnrollmentSearch(row: SupplierEnrollmentRowResponseDto, state: TableState): boolean {
     const term = state.search?.value?.trim().toLowerCase();
     if (!term) return true;
     const columns =
@@ -325,24 +324,6 @@ export class SuppliersGatewayService {
     return enriched;
   }
 
-  // Returns the LE's sites for a supplier's enrollment picker — enrolled (default), not enrolled, or all — each marked
-  // with the supplier's enrollment there
-  async selectEnrollments(
-    query: SupplierEnrollmentSitesSelectQueryDto,
-    legalEntityId: string | undefined,
-  ): Promise<SelectQueryResult> {
-    const { supplierId, enrollmentStatus = SupplierEnrollmentStatusValues.ENROLLED, activeOnly } = query;
-    this.logger.log(`le.suppliers.enrollments.siteIds — supplierId: ${supplierId}, status: ${enrollmentStatus}`);
-    const leId = SuppliersGatewayService.requireLegalEntity(legalEntityId);
-    const enrolledSites = await this.nats.send<SiteEnrollment[]>('commerce', 'le.suppliers.enrollments.siteIds', {
-      supplierId,
-      activeOnly,
-    });
-    const enrolled =
-      enrollmentStatus === 'ALL' ? undefined : enrollmentStatus === SupplierEnrollmentStatusValues.ENROLLED;
-    return this.siteRepository.findForSelectOptions(leId, query, undefined, { sites: enrolledSites, enrolled });
-  }
-
   // Returns a supplier's site items at one of the LE's sites
   async findEnrollmentSiteItemsTable(
     supplierId: string,
@@ -350,7 +331,7 @@ export class SuppliersGatewayService {
     userId: string,
   ): Promise<SupplierSiteItemRowTableResponseDto> {
     this.logger.log(`le.suppliers.enrollments.siteItems.table — supplierId: ${supplierId}, siteId: ${siteId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-supplier-${supplierId}-site-${siteId}-site-items`,
     );
@@ -420,7 +401,7 @@ export class SuppliersGatewayService {
     orgId: string,
   ): Promise<SupplierSiteItemTableResponseDto> {
     this.logger.log(`le.suppliers.siteItems.table — supplierItemId: ${supplierItemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-supplier-item-${supplierItemId}-site-items`,
     );

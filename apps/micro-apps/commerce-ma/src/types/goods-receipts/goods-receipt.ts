@@ -1,15 +1,9 @@
 // Hand type mirroring the GraphQL GoodsReceipt. `status` is a union (the server field is String — the
-// enum-precision caveat in native-graphql.md); every receipt has its purchase order. `totalAmount`
-// is the major-unit money pair ({ currency, value:string }).
+// enum-precision caveat in native-graphql.md); a receipt counts lines of one or more purchase orders of its supplier,
+// always through an inbound delivery — announced ahead, or created by the receipt itself (`deliverySource`).
 export type GoodsReceiptStatus = 'DRAFT' | 'PUBLISHED';
 
-export interface GoodsReceiptPo {
-  id: string;
-  poNumber: string;
-  orderDate: string;
-  expectedBy: string | null;
-  totalAmount: { currency: string; value: string };
-}
+export type InboundDeliverySource = 'ANNOUNCED' | 'RECEIPT';
 
 export interface GoodsReceipt {
   id: string;
@@ -17,7 +11,15 @@ export interface GoodsReceipt {
   supplierId: string;
   supplierName: string;
   status: GoodsReceiptStatus;
-  po: GoodsReceiptPo;
+  inboundDeliveryId: string;
+  deliveryNumber: string;
+  deliverySource: InboundDeliverySource;
+  carrier: string | null;
+  trackingNumber: string | null;
+  supplierDeliveryNoteNumber: string | null;
+  supplierDeliveryNoteDate: string | null;
+  poNumbers: string[];
+  expectedDeliveryDate: string | null;
   receivedDate: string;
   notes: string | null;
   publishedAt: string | null;

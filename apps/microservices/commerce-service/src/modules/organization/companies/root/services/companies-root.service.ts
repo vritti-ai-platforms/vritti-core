@@ -4,7 +4,7 @@ import type { UpdateCompanyDto } from '@domain/parties/dto/request/update-compan
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { PartyAddressesDomainService } from '@domain/party-addresses/services/party-addresses.service';
 import { Injectable } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PartyTypeValues } from '@/db/schema';
 
@@ -16,7 +16,7 @@ export class CompaniesService {
   ) {}
 
   // Paginated COMPANY parties for the companies table
-  findForTable(state: TableViewState): Promise<{ result: CompanyDto[]; count: number }> {
+  findForTable(state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
     return this.partiesService.findCompaniesForTable(state);
   }
 

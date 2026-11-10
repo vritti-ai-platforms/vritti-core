@@ -25,11 +25,12 @@ export class SupplierSiteItemResponseDto {
   @ApiPropertyOptional({ description: 'Site code (gateway-enriched, not sortable)', nullable: true })
   siteCode: string | null;
 
-  @ApiPropertyOptional({
-    description: "Lead time in days at the site — the item's unless the site sets its own",
-    nullable: true,
+  @ApiProperty({
+    description: "Lead time in whole days at the site — the item's unless the site sets its own",
+    minimum: 0,
+    maximum: 365,
   })
-  leadTimeDays: number | null;
+  leadTimeDays: number;
 
   @ApiProperty({ description: "True when the site sets its own lead time instead of following the supplier item's" })
   isLeadTimeOverridden: boolean;

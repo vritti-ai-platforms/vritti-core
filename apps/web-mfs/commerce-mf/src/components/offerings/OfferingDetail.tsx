@@ -12,11 +12,11 @@ import { useNavigate } from 'react-router-dom';
 import type { OfferingsBinding } from './bindings';
 import { EditOfferingDialog } from './forms/EditOfferingDialog';
 import { SetTaxClassDialog } from './forms/SetTaxClassDialog';
-import { AttributesTab } from './tabs/AttributesTab';
-import { ChannelsTab } from './tabs/ChannelsTab';
-import { DimensionsTab } from './tabs/DimensionsTab';
+import { AttributesTab } from './tabs/attributes/AttributesTab';
+import { ChannelsTab } from './tabs/channels/ChannelsTab';
+import { DimensionsTab } from './tabs/dimensions/DimensionsTab';
 import { OverviewTab } from './tabs/OverviewTab';
-import { VariantsTab } from './tabs/VariantsTab';
+import { VariantsTab } from './tabs/variants/VariantsTab';
 
 interface OfferingDetailProps {
   binding: OfferingsBinding;

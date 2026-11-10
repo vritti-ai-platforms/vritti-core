@@ -9,7 +9,7 @@ import type { LocationItemTableResponseDto } from '@commerce/locations/dto/respo
 import type { LocationResponseDto } from '@commerce/locations/dto/response/location-response.dto';
 import type { LocationTreeResponseDto } from '@commerce/locations/dto/response/location-tree-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -19,7 +19,7 @@ export class LocationsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns total storage location count
@@ -38,7 +38,7 @@ export class LocationsGatewayService {
   async findChildrenForTable(userId: string, parentId: string): Promise<LocationChildrenTableResponseDto> {
     this.logger.log(`locations.childrenTable — parentId: ${parentId}`);
     const slug = `locations-children-${parentId}`;
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, slug);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, slug);
     const { result, count } = await this.nats.send<{ result: LocationResponseDto[]; count: number }>(
       'commerce',
       'site.locations.childrenTable',
@@ -50,10 +50,7 @@ export class LocationsGatewayService {
   // Returns a location's stocked items (grouped across non-zero quants), table-shaped
   async findItemsForTable(userId: string, locationId: string): Promise<LocationItemTableResponseDto> {
     this.logger.log(`locations.itemsTable — locationId: ${locationId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      `location-${locationId}-items`,
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, `location-${locationId}-items`);
     const { result, count } = await this.nats.send<{ result: LocationItemResponseDto[]; count: number }>(
       'commerce',
       'site.locations.itemsTable',

@@ -17,7 +17,7 @@ import { AddPersonDialog } from './forms/AddPersonDialog';
 export const PeoplePage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = usePeopleTable();
+  const peopleTableQuery = usePeopleTable();
   const addDialog = useDialog();
 
   const columns = useMemo<ColumnDef<PersonData>[]>(
@@ -74,11 +74,11 @@ export const PeoplePage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const peopleTable = useDataTable({
     columns,
     slug: 'commerce-org-people',
     label: 'person',
-    serverState: response,
+    query: peopleTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -90,8 +90,7 @@ export const PeoplePage = () => {
       <PageHeader title="People" description="Individuals you do business with — one shared identity across the org." />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={peopleTable}
         permission={ORG_PEOPLE.view}
         searchConfig={{
           columns: [{ id: 'displayName', label: 'Name' }],

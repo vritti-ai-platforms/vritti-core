@@ -4,7 +4,6 @@ import { forwardRef } from 'react';
 
 export type PurchaseOrderItemSelectorParams = {
   purchaseOrderId: string;
-  excludeOnGoodsReceiptId?: string;
 };
 
 export type PurchaseOrderItemSelectorProps = Omit<SelectProps, 'optionsEndpoint' | 'params'> & {

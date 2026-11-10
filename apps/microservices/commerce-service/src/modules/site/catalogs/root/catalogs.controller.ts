@@ -7,7 +7,7 @@ import { CatalogListingsDomainService } from '@domain/catalogs/services/catalog-
 import { CatalogsDomainService } from '@domain/catalogs/services/catalogs.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 
@@ -22,7 +22,7 @@ export class SiteCatalogsController {
 
   // Returns paginated catalogs for the data table
   @MessagePattern({ cmd: 'site.catalogs.table' })
-  findForTable(@Payload() state: TableViewState): Promise<{ result: CatalogDto[]; count: number }> {
+  findForTable(@Payload() state: TableState): Promise<{ result: CatalogDto[]; count: number }> {
     this.logger.log('catalogs.table');
     return this.service.findForTable(state);
   }

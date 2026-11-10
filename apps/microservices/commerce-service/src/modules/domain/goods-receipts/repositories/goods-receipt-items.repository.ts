@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { aliasedTable, and, asc, desc, eq, getColumns, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   type GoodsReceiptItem,
   type GoodsReceiptStatus,
@@ -15,6 +15,7 @@ import {
   InventoryTrackingValues,
   inventoryItems,
   locations,
+  type NewGoodsReceiptItem,
   purchaseOrderItems,
   purchaseOrders,
   uom,
@@ -53,6 +54,11 @@ export type PurchaseOrderReceiptItemRow = GoodsReceiptItemRow & {
   receiptStatus: GoodsReceiptStatus;
 };
 
+export type GoodsReceiptDraftLine = Pick<
+  GoodsReceiptItem,
+  'purchaseOrderItemId' | 'inventoryItemId' | 'uomId' | 'receivedQty'
+>;
+
 export type GoodsReceiptItemContext = Pick<
   GoodsReceiptItem,
   'id' | 'goodsReceiptId' | 'siteId' | 'inventoryItemId' | 'uomId' | 'receivedQty' | 'rejectedQuantity'
@@ -90,12 +96,12 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
     });
   }
 
-  // Returns every item counted on a purchase order's receipts, newest receipt first and each receipt's items in line order
+  // Returns every receipt item counted against a purchase order's lines, newest receipt first and each receipt's items in line order
   async findByPurchaseOrderId(purchaseOrderId: string): Promise<PurchaseOrderReceiptItemRow[]> {
     return this.findAllWithSelect<PurchaseOrderReceiptItemRow>({
       select: { ...this.selection(), grNumber: goodsReceipts.grNumber, receiptStatus: goodsReceipts.status },
       leftJoins: this.joins(),
-      where: eq(goodsReceipts.purchaseOrderId, purchaseOrderId),
+      where: eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
       orderBy: [desc(goodsReceipts.receivedDate), desc(goodsReceipts.createdAt), asc(goodsReceiptItems.createdAt)],
     });
   }
@@ -177,20 +183,9 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
     return rows.map((row) => row.node);
   }
 
-  // Rejects counting a purchase order line twice on the same receipt
-  async assertPurchaseOrderItemNotOnReceipt(goodsReceiptId: string, purchaseOrderItemId: string): Promise<void> {
-    const isOnReceipt = await this.exists(
-      and(
-        eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId),
-        eq(goodsReceiptItems.purchaseOrderItemId, purchaseOrderItemId),
-      ) as SQL,
-    );
-    if (!isOnReceipt) return;
-    throw new ConflictException({
-      label: 'Already Received',
-      detail: 'This purchase order line is already on the goods receipt. Edit its quantities instead.',
-      errors: [{ field: 'purchaseOrderItemId', message: 'Already on this receipt' }],
-    });
+  // Inserts the given items in one statement
+  async insertMany(rows: NewGoodsReceiptItem[]): Promise<void> {
+    await this.db.insert(goodsReceiptItems).values(rows);
   }
 
   // Rejects rejecting more than was received

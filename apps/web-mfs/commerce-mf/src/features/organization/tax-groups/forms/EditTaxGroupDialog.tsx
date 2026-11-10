@@ -2,7 +2,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
-import { Switch } from '@vritti/quantum-ui/Switch';
 import { ISOCountrySelect } from '@vritti/quantum-ui/selects/iso-country';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -32,7 +31,6 @@ export const EditTaxGroupDialog: React.FC<EditTaxGroupDialogProps> = ({ taxGroup
       name: taxGroup.name,
       treatment: taxGroup.treatment,
       legalText: taxGroup.legalText ?? '',
-      isActive: taxGroup.isActive,
     },
   });
 
@@ -58,7 +56,6 @@ export const EditTaxGroupDialog: React.FC<EditTaxGroupDialogProps> = ({ taxGroup
         placeholder="e.g. Exempt under Article 47"
         description="Printed on documents taxed by this group"
       />
-      <Switch name="isActive" label="Active" description="Inactive groups are hidden from tax group pickers" />
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel

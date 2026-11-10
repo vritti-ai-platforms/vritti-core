@@ -4,7 +4,7 @@ import type {
 } from '@commerce/supplier-quotations/dto/response/supplier-quotation-response.dto';
 import type { SupplierQuotationTableResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 
@@ -14,14 +14,14 @@ export class SiteSupplierQuotationsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
   ) {}
 
   // The supplier's quotations posted to the session site, with server-stored table state
   async findForTable(supplierId: string, userId: string): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`site.suppliers.quotations.table — supplierId: ${supplierId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-site-supplier-${supplierId}-quotations`,
     );

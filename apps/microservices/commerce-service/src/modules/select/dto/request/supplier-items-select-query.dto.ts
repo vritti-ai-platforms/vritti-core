@@ -8,7 +8,7 @@ export class SupplierItemsSelectQueryDto extends SelectOptionsQueryDto {
 
   @IsOptional()
   @IsUUID('7')
-  excludeOnPurchaseOrderId?: string;
+  purchaseOrderId?: string;
 
   @IsOptional()
   @IsUUID('7')

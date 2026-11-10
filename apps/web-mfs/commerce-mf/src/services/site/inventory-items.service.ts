@@ -11,12 +11,10 @@ import type {
   UpdateReorderFormData,
 } from '@/schemas/inventory-items';
 import type {
-  InventoryItemPriceGraph,
+  InventoryItemPriceHistory,
   InventoryItemSuppliersTableResponse,
   ItemSupplierPricesTableResponse,
-  PriceGraphSelection,
 } from '@/schemas/suppliers';
-import { priceGraphState } from '@/utils/supplierPrice';
 
 const BASE = 'commerce-api/site/inventory-items';
 
@@ -64,21 +62,6 @@ export function getInventoryItemPricesTable(id: string): Promise<ItemSupplierPri
   return axios.get<ItemSupplierPricesTableResponse>(`${BASE}/${id}/prices/table`).then((r) => r.data);
 }
 
-export function getInventoryItemPriceGraph(id: string): Promise<InventoryItemPriceGraph> {
-  return axios.get<InventoryItemPriceGraph>(`${BASE}/${id}/prices/graph`).then((r) => r.data);
-}
-
-// Saves what the price graph shows to its live table state, which the graph endpoint reads back
-export function saveInventoryItemPriceGraph(id: string, selection: PriceGraphSelection): Promise<void> {
-  return axios
-    .post(
-      'table-states',
-      {
-        tableSlug: `commerce-site-inventory-item-${id}-price-graph`,
-        state: priceGraphState(selection),
-        activeViewId: null,
-      },
-      { showSuccessToast: false },
-    )
-    .then(() => undefined);
+export function getInventoryItemPriceHistory(id: string): Promise<InventoryItemPriceHistory> {
+  return axios.get<InventoryItemPriceHistory>(`${BASE}/${id}/prices/history`).then((r) => r.data);
 }

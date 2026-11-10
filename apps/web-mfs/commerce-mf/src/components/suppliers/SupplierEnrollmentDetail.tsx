@@ -13,9 +13,9 @@ import { useNavigate } from 'react-router-dom';
 import type { SupplierEnrollmentBinding } from './bindings';
 import { EditEnrollmentDialog } from './forms/EditEnrollmentDialog';
 import { EnrollDialog } from './forms/EnrollDialog';
-import { QuotationsTab } from './quotations/QuotationsTab';
 import { OverviewTab } from './tabs/OverviewTab';
-import { SiteItemsTab } from './tabs/SiteItemsTab';
+import { QuotationsTab } from './tabs/quotations/QuotationsTab';
+import { SiteItemsTab } from './tabs/site-items/SiteItemsTab';
 
 interface SupplierEnrollmentDetailProps {
   binding: SupplierEnrollmentBinding;

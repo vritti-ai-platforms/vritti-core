@@ -81,7 +81,7 @@ export class SupplierQuotationItemDto {
 
 export class SupplierQuotationSiteDto {
   id: string;
-  siteId: string;
+  siteId: string | null;
   postedBy: string | null;
   postedAt: string;
 

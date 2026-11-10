@@ -58,17 +58,17 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   variantsKey,
   variantsSlug,
 }) => {
-  const { data: response, isLoading } = useOfferingChannelVariantsTable(offeringId, channelType, targetId);
+  const offeringChannelVariantsTableQuery = useOfferingChannelVariantsTable(offeringId, channelType, targetId);
   const { data: dimensions = [] } = useOfferingDimensions(offeringId);
   const { data: attributes = [] } = useOfferingAttributes(offeringId);
   const queryClient = useQueryClient();
   const addDialog = useDialog();
   const createPages = useCreateOfferingChannelPages();
   const setAvailability = useSetOfferingTargetAvailability();
-  const storefront = response?.storefront ?? false;
-  const catalogName = response?.catalogName ?? '';
+  const storefront = offeringChannelVariantsTableQuery.data?.storefront ?? false;
+  const catalogName = offeringChannelVariantsTableQuery.data?.catalogName ?? '';
   // A channel a wider workspace set is read-only here, the way the channels screen treats an inherited one
-  const canSetAvailability = response?.isOwn ?? false;
+  const canSetAvailability = offeringChannelVariantsTableQuery.data?.isOwn ?? false;
 
   const create = useCallback(
     (variantCodes: string[]) => createPages.mutate({ offeringId, channelType, targetId, variantCodes }),
@@ -174,11 +174,11 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
     ],
   );
 
-  const { table } = useDataTable({
+  const offeringChannelVariantsTable = useDataTable({
     columns,
     slug: variantsSlug(offeringId, targetId),
     label: 'variant',
-    serverState: response,
+    query: offeringChannelVariantsTableQuery,
     enableRowSelection: true,
     enableSorting: true,
     enableMultiSort: false,
@@ -188,9 +188,8 @@ export const ChannelVariants: React.FC<ChannelVariantsProps> = ({
   return (
     <div className="flex flex-col gap-4">
       <DataTable
-        table={table}
+        table={offeringChannelVariantsTable}
         mode="tab"
-        isLoading={isLoading}
         searchConfig={{ columns: [{ id: 'code', label: 'Code' }], searchAll: true }}
         filters={[...facetFilters('dimension', dimensions), ...facetFilters('attribute', attributes)]}
         toolbarActions={{

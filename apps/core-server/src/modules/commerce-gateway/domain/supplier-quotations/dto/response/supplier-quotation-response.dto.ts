@@ -90,8 +90,8 @@ export class SupplierQuotationSiteResponseDto {
   @ApiProperty({ description: 'Posting ID' })
   id: string;
 
-  @ApiProperty({ description: 'Site ID' })
-  siteId: string;
+  @ApiProperty({ description: 'Site ID; null when posted to the whole legal entity', nullable: true, type: String })
+  siteId: string | null;
 
   @ApiPropertyOptional({ description: 'Site name', type: String, nullable: true })
   siteName: string | null;

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsUUID, Max, Min, ValidateIf } from 'class-validator';
 
 export class AddSupplierSiteItemDto {
   @ApiProperty({ description: 'Enrolled site to set the item up at' })
@@ -15,9 +15,15 @@ export class AddSupplierSiteItemDto {
   @IsBoolean()
   isPreferred?: boolean;
 
-  @ApiPropertyOptional({ description: 'Site-specific lead time in days', example: 5 })
-  @IsOptional()
+  @ApiPropertyOptional({
+    description: "The site's own lead time in whole days; omit to follow the supplier item's default",
+    minimum: 0,
+    maximum: 365,
+    example: 5,
+  })
+  @ValidateIf((_, value) => value !== undefined)
   @IsInt()
   @Min(0)
+  @Max(365)
   leadTimeDays?: number;
 }

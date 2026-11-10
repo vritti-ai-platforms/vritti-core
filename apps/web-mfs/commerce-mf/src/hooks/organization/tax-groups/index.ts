@@ -1,9 +1,7 @@
 export {
-  TAX_CLASS_MAPPING_TABLE_KEY,
   TAX_GROUP_CLASSES_TABLE_KEY,
   TAX_GROUP_KEY,
   TAX_GROUP_RATES_TABLE_KEY,
-  TAX_GROUPS_FIRST_COUNTRY_KEY,
   TAX_GROUPS_KEY,
   TAX_GROUPS_TABLE_KEY,
 } from './keys';
@@ -13,8 +11,7 @@ export { useCreateTaxGroupRate } from './useCreateTaxGroupRate';
 export { useDeleteTaxClassGroup } from './useDeleteTaxClassGroup';
 export { useDeleteTaxGroup } from './useDeleteTaxGroup';
 export { useDeleteTaxGroupRate } from './useDeleteTaxGroupRate';
-export { useFirstTaxGroupCountry } from './useFirstTaxGroupCountry';
-export { useTaxClassMappingTable } from './useTaxClassMappingTable';
+export { useSetTaxGroupActive } from './useSetTaxGroupActive';
 export { useTaxGroup } from './useTaxGroup';
 export { useTaxGroupClassesTable } from './useTaxGroupClassesTable';
 export { useTaxGroupRatesTable } from './useTaxGroupRatesTable';

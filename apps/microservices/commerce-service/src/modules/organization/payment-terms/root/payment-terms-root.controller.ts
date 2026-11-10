@@ -5,7 +5,7 @@ import { UpdatePaymentTermDto } from '@domain/payment-terms/dto/request/update-p
 import { PaymentTermsDomainService } from '@domain/payment-terms/services/payment-terms.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -15,7 +15,7 @@ export class PaymentTermsRootController {
   constructor(private readonly service: PaymentTermsDomainService) {}
 
   @MessagePattern({ cmd: 'org.paymentTerms.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: PaymentTermDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: PaymentTermDto[]; count: number }> {
     this.logger.log('paymentTerms.table');
     return this.service.findForTable(state);
   }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
@@ -29,7 +30,7 @@ export class PaymentTermsDomainService {
   constructor(private readonly repository: PaymentTermsDomainRepository) {}
 
   // Returns paginated payment terms for the data table
-  async findForTable(state: TableViewState): Promise<{ result: PaymentTermDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: PaymentTermDto[]; count: number }> {
     const fieldMap = PaymentTermsDomainService.FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);

@@ -34,7 +34,7 @@ const STATUS_LABEL: Record<WhatsappOtpStatus, string> = {
 
 export const OtpsTab = () => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useWhatsappOtps();
+  const whatsappOtpsQuery = useWhatsappOtps();
 
   const columns = useMemo<ColumnDef<WhatsappOtpData>[]>(
     () => [
@@ -91,11 +91,11 @@ export const OtpsTab = () => {
     [],
   );
 
-  const { table } = useDataTable({
+  const whatsappOtpsTable = useDataTable({
     columns,
     slug: 'communications-org-whatsapp-otps',
     label: 'OTP',
-    serverState: response,
+    query: whatsappOtpsQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -104,8 +104,7 @@ export const OtpsTab = () => {
 
   return (
     <DataTable
-      table={table}
-      isLoading={isLoading}
+      table={whatsappOtpsTable}
       mode="tab"
       permission={ORG_WHATSAPP_OTPS.view}
       searchConfig={{

@@ -1,7 +1,7 @@
 import type { InventoryItemLotDto } from '@domain/inventory-item-lots/dto/entity/inventory-item-lot.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import { InventoryItemsLotsService } from './services/inventory-items-lots.service';
 
@@ -14,7 +14,7 @@ export class InventoryItemsLotsController {
   // Returns paginated lots for an inventory item data table (one row per lot, with stock totals)
   @MessagePattern({ cmd: 'site.inventoryItems.lotsTable' })
   async lotsTable(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
     @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     this.logger.log(`inventoryItems.lotsTable — inventoryItemId: ${data.inventoryItemId}`);

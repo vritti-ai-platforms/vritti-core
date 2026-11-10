@@ -39,7 +39,7 @@ const QualityBadge = ({ score }: { score: string | null }) => {
 // name+language pair, exactly as Meta models templates.
 export const TemplatesTab = ({ accountId }: TemplatesTabProps) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useWhatsappTemplates(accountId);
+  const whatsappTemplatesQuery = useWhatsappTemplates(accountId);
   const createDialog = useDialog();
 
   // Every column carries an explicit size: DataTable takes the table's minWidth from their total, so the
@@ -134,11 +134,11 @@ export const TemplatesTab = ({ accountId }: TemplatesTabProps) => {
   );
 
   // Sorting is off deliberately: the rows come live from Meta, which cannot sort or filter this list
-  const { table } = useDataTable({
+  const whatsappTemplatesTable = useDataTable({
     columns,
     slug: 'communications-org-whatsapp-templates',
     label: 'template',
-    serverState: response,
+    query: whatsappTemplatesQuery,
     enableRowSelection: false,
     enableSorting: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: WHATSAPP_ACCOUNT_TEMPLATES_KEY(accountId) }),
@@ -147,9 +147,8 @@ export const TemplatesTab = ({ accountId }: TemplatesTabProps) => {
   return (
     <div className="flex flex-col gap-6">
       <DataTable
-        table={table}
+        table={whatsappTemplatesTable}
         mode="tab"
-        isLoading={isLoading}
         permission={ORG_WHATSAPP_ACCOUNTS.templates.view}
         enableViews={false}
         toolbarActions={{

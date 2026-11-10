@@ -1,6 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateSupplierInvoiceDto {
   @Trim({ nullify: false })
@@ -15,6 +24,15 @@ export class UpdateSupplierInvoiceDto {
   @IsOptional()
   @IsDateString()
   invoiceDate?: string;
+
+  @ApiPropertyOptional({
+    description: 'Date tax is determined on (YYYY-MM-DD); changes only while the invoice is a draft',
+    example: '2026-11-07',
+  })
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'taxDate must be YYYY-MM-DD' })
+  taxDate?: string;
 
   @ApiPropertyOptional({
     description: "1 unit of the invoice currency in the legal entity's currency; 1 when the two are the same",

@@ -2,46 +2,35 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ORG_TAX_CLASSES } from '@vritti/commerce-permissions/tax-classes';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import {
-  type ColumnDef,
-  DataTable,
-  type RowAction,
-  RowActions,
-  StringCell,
-  useDataTable,
-} from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { DateFilter } from '@vritti/quantum-ui/DateFilter';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { filter } from '@vritti/quantum-ui/filter';
+import { useDialog, useOrgCountryCode, useWorkspaceTimeZone } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
-import { TAX_CLASSES_TABLE_KEY, useDeleteTaxClass, useTaxClassesTable } from '@/hooks/organization/tax-classes';
-import type { TaxClassData } from '@/schemas/tax-classes';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
+import { ISOCountryFilter } from '@vritti/quantum-ui/selects/iso-country';
+import { isoTodayDate } from '@vritti/quantum-ui/timezone';
+import { Eye, Plus, Tags } from 'lucide-react';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { TAX_CLASSES_TABLE_KEY, useSetTaxClassActive, useTaxClassesTable } from '@/hooks/organization/tax-classes';
+import type { TaxClassRowData } from '@/schemas/tax-classes';
+import { TaxGroupsInForceCell } from './components/TaxGroupsInForceCell';
+import { taxClassPath } from './components/taxClassPath';
 import { AddTaxClassDialog } from './forms/AddTaxClassDialog';
-import { EditTaxClassDialog } from './forms/EditTaxClassDialog';
 
+// Every tax class with the tax groups it is taxed by on a day (today by default) in the chosen country
 export const TaxClassesPage = () => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useTaxClassesTable();
+  const navigate = useNavigate();
+  const orgCountryCode = useOrgCountryCode();
+  const timeZone = useWorkspaceTimeZone();
+  const taxClassesTableQuery = useTaxClassesTable();
   const addDialog = useDialog();
-  const confirm = useConfirm();
+  const setActiveMutation = useSetTaxClassActive();
 
-  const deleteMutation = useDeleteTaxClass();
-
-  const handleDelete = useCallback(
-    async (row: TaxClassData) => {
-      const ok = await confirm({
-        title: `Delete "${row.name}"?`,
-        description: 'This permanently removes the tax class. Only allowed when nothing references it.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
-
-  const columns = useMemo<ColumnDef<TaxClassData>[]>(
+  const columns = useMemo<ColumnDef<TaxClassRowData>[]>(
     () => [
       {
         accessorKey: 'code',
@@ -49,84 +38,90 @@ export const TaxClassesPage = () => {
         cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
-      { accessorKey: 'name', header: 'Name', enableSorting: true },
       {
-        accessorKey: 'isActive',
-        header: 'Status',
+        accessorKey: 'name',
+        header: 'Name',
         cell: ({ row }) => (
-          <Badge
-            variant={row.original.isActive ? 'secondary' : 'outline'}
-            className={row.original.isActive ? 'bg-success/15 text-success' : ''}
-          >
-            {row.original.isActive ? 'Active' : 'Inactive'}
-          </Badge>
+          <span className="inline-flex items-center gap-1.5">
+            {row.original.name}
+            {row.original.isSystem && <Badge variant="outline">System</Badge>}
+          </span>
         ),
         enableSorting: true,
       },
       {
-        accessorKey: 'isSystem',
-        header: '',
-        cell: ({ row }) => (row.original.isSystem ? <Badge variant="outline">System</Badge> : null),
+        id: 'taxGroups',
+        header: 'Tax Group',
+        cell: ({ row }) => <TaxGroupsInForceCell taxGroups={row.original.taxGroups} />,
         enableSorting: false,
+      },
+      {
+        accessorKey: 'isActive',
+        header: 'Status',
+        cell: ({ row }) => (
+          <StatusSwitch
+            checked={row.original.isActive}
+            permission={ORG_TAX_CLASSES.toggle}
+            isLoading={setActiveMutation.isPending && setActiveMutation.variables?.id === row.original.id}
+            onCheckedChange={(isActive) => setActiveMutation.mutate({ id: row.original.id, isActive })}
+            ariaLabel={`Mark ${row.original.name} active`}
+          />
+        ),
+        enableSorting: true,
       },
       {
         id: 'actions',
         header: '',
         cell: ({ row }) => {
-          const r = row.original;
-          const actions: RowAction[] = [
-            {
-              id: 'edit',
-              icon: Pencil,
-              label: 'Edit',
-              permission: ORG_TAX_CLASSES.edit,
-              dialog: {
-                title: 'Edit Tax Class',
-                description: 'Rename the tax class or toggle its status. Code is immutable.',
-                content: (close) => <EditTaxClassDialog taxClass={r} onSuccess={close} onCancel={close} />,
-              },
-            },
-            {
-              id: 'delete',
-              icon: Trash2,
-              label: 'Delete',
-              variant: 'destructive',
-              permission: ORG_TAX_CLASSES.delete,
-              disabled: !r.canDelete,
-              onClick: () => handleDelete(r),
-            },
-          ];
-          return <RowActions actions={actions} />;
+          return (
+            <RowActions
+              actions={[
+                {
+                  id: 'view',
+                  icon: Eye,
+                  label: 'View',
+                  onClick: () => navigate(taxClassPath(row.original, 'overview')),
+                },
+              ]}
+            />
+          );
         },
         enableSorting: false,
         enableHiding: false,
       },
     ],
-    [handleDelete],
+    [navigate, setActiveMutation],
   );
 
-  const { table } = useDataTable({
+  const taxClassesTable = useDataTable({
     columns,
     slug: 'commerce-org-tax-classes',
     label: 'tax class',
-    serverState: response,
+    query: taxClassesTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: TAX_CLASSES_TABLE_KEY }),
+    defaultContext: [filter('country').equals(orgCountryCode), filter('asOf').equals(isoTodayDate(timeZone))],
+    resetOnOpen: ['asOf'],
   });
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Tax Classes"
-        description="Group products by tax treatment to drive rate resolution across your catalog."
+        description="What a product is for tax, and the tax group each class is taxed by in a country on a day."
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={taxClassesTable}
         permission={ORG_TAX_CLASSES.view}
+        contextBar={
+          <>
+            <ISOCountryFilter name="country" mode="context" />
+            <DateFilter name="asOf" label="As of" mode="context" />
+          </>
+        }
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },

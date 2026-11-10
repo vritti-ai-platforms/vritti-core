@@ -11,28 +11,30 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useOrgCountryCode } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { countryFlag, ISOCountryFilter } from '@vritti/quantum-ui/selects/iso-country';
 import { Blocks, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   TAX_COMPONENTS_TABLE_KEY,
   useDeleteTaxComponent,
+  useSetTaxComponentActive,
   useTaxComponentsTable,
 } from '@/hooks/organization/tax-components';
 import { AUTHORITY_LEVEL_LABELS, type TaxComponentData } from '@/schemas/tax-components';
-import { contextValue } from '@/utils/tableContext';
 import { AddTaxComponentDialog } from './forms/AddTaxComponentDialog';
 import { EditTaxComponentDialog } from './forms/EditTaxComponentDialog';
 
 export const TaxComponentsPage = () => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading, isFetching } = useTaxComponentsTable();
+  const taxComponentsTableQuery = useTaxComponentsTable();
   const addDialog = useDialog();
   const confirm = useConfirm();
 
   const deleteMutation = useDeleteTaxComponent();
+  const setActiveMutation = useSetTaxComponentActive();
 
   const handleDelete = useCallback(
     async (row: TaxComponentData) => {
@@ -61,7 +63,17 @@ export const TaxComponentsPage = () => {
         cell: ({ row }) => <StringCell value={row.original.code} mono />,
         enableSorting: true,
       },
-      { accessorKey: 'name', header: 'Name', enableSorting: true },
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: ({ row }) => (
+          <span className="inline-flex items-center gap-1.5">
+            {row.original.name}
+            {row.original.isSystem && <Badge variant="outline">System</Badge>}
+          </span>
+        ),
+        enableSorting: true,
+      },
       {
         accessorKey: 'authorityLevel',
         header: 'Authority',
@@ -69,34 +81,41 @@ export const TaxComponentsPage = () => {
         enableSorting: true,
       },
       {
-        accessorKey: 'isRecoverable',
-        header: 'Recoverable',
-        cell: ({ row }) =>
-          row.original.isRecoverable ? (
-            <Badge variant="success">Recoverable</Badge>
-          ) : (
-            <Badge variant="outline">Non-recoverable</Badge>
-          ),
-        enableSorting: true,
+        accessorKey: 'standsInForName',
+        header: 'Stands In For',
+        cell: ({ row }) => row.original.standsInForName ?? '—',
+        enableSorting: false,
       },
       {
-        accessorKey: 'isWithholding',
-        header: '',
-        cell: ({ row }) => (row.original.isWithholding ? <Badge variant="outline">Withholding</Badge> : null),
-        enableSorting: false,
+        accessorKey: 'isRecoverable',
+        header: 'Recoverable',
+        cell: ({ row }) => (
+          <span className="inline-flex items-center gap-1.5">
+            {row.original.isRecoverable ? (
+              <Badge variant="success">Recoverable</Badge>
+            ) : (
+              <Badge variant="outline">Non-recoverable</Badge>
+            )}
+            {row.original.isWithholding && <Badge variant="outline">Withholding</Badge>}
+          </span>
+        ),
+        enableSorting: true,
       },
       {
         accessorKey: 'isActive',
         header: 'Status',
-        cell: ({ row }) =>
-          row.original.isActive ? <Badge variant="success">Active</Badge> : <Badge variant="outline">Inactive</Badge>,
+        cell: ({ row }) => (
+          <StatusSwitch
+            checked={row.original.isActive}
+            permission={ORG_TAX_COMPONENTS.toggle}
+            disabled={row.original.isActive && !row.original.canDeactivate}
+            disabledTip="Tax-group rates in force or still to come use this component. End those rates first."
+            isLoading={setActiveMutation.isPending && setActiveMutation.variables?.id === row.original.id}
+            onCheckedChange={(isActive) => setActiveMutation.mutate({ id: row.original.id, isActive })}
+            ariaLabel={`Mark ${row.original.name} active`}
+          />
+        ),
         enableSorting: true,
-      },
-      {
-        accessorKey: 'isSystem',
-        header: '',
-        cell: ({ row }) => (row.original.isSystem ? <Badge variant="outline">System</Badge> : null),
-        enableSorting: false,
       },
       {
         id: 'actions',
@@ -111,7 +130,7 @@ export const TaxComponentsPage = () => {
               permission: ORG_TAX_COMPONENTS.edit,
               dialog: {
                 title: 'Edit Tax Component',
-                description: 'Update the tax component or toggle its status. Country and code are fixed.',
+                description: 'Update the tax component. Country and code are fixed.',
                 content: (close) => <EditTaxComponentDialog taxComponent={r} onSuccess={close} onCancel={close} />,
               },
             },
@@ -131,20 +150,22 @@ export const TaxComponentsPage = () => {
         enableHiding: false,
       },
     ],
-    [handleDelete],
+    [handleDelete, setActiveMutation],
   );
 
-  const { table, context } = useDataTable({
+  const taxComponentsTable = useDataTable({
     columns,
     slug: 'commerce-org-tax-components',
     label: 'tax component',
-    serverState: response,
+    query: taxComponentsTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: TAX_COMPONENTS_TABLE_KEY }),
   });
-  const country = contextValue(context, 'country');
+  const { contextValue } = taxComponentsTable;
+  const country = contextValue('country');
+  const orgCountryCode = useOrgCountryCode();
 
   return (
     <div className="flex flex-col gap-6">
@@ -154,9 +175,7 @@ export const TaxComponentsPage = () => {
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
-        isFetching={isFetching}
+        table={taxComponentsTable}
         permission={ORG_TAX_COMPONENTS.view}
         contextBar={<ISOCountryFilter name="country" mode="context" placeholder="All countries" />}
         searchConfig={{
@@ -199,7 +218,9 @@ export const TaxComponentsPage = () => {
         icon={Blocks}
         title="Add Tax Component"
         description="Create an atomic tax component of one country for building tax group rates."
-        content={(close) => <AddTaxComponentDialog countryCode={country} onSuccess={close} onCancel={close} />}
+        content={(close) => (
+          <AddTaxComponentDialog countryCode={country ?? orgCountryCode} onSuccess={close} onCancel={close} />
+        )}
       />
     </div>
   );

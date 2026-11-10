@@ -2,6 +2,7 @@ import { GoodsReceiptLineItemsDomainModule } from '@domain/goods-receipt-line-it
 import { GoodsReceiptLinesDomainModule } from '@domain/goods-receipt-lines/goods-receipt-lines.module';
 import { GoodsReceiptLotsDomainModule } from '@domain/goods-receipt-lots/goods-receipt-lots.module';
 import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts.module';
+import { InboundDeliveriesDomainModule } from '@domain/inbound-deliveries/inbound-deliveries.module';
 import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/inventory-item-ledger.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemMrpsDomainModule } from '@domain/inventory-item-mrps/inventory-item-mrps.module';
@@ -30,6 +31,7 @@ import { GoodsReceiptsService } from './root/services/goods-receipts-root.servic
     GoodsReceiptLotsDomainModule,
     GoodsReceiptLinesDomainModule,
     GoodsReceiptLineItemsDomainModule,
+    InboundDeliveriesDomainModule,
     PurchaseOrdersDomainModule,
     PurchaseOrderItemsDomainModule,
     SupplierEnrollmentsDomainModule,

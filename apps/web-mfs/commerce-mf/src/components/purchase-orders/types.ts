@@ -2,6 +2,7 @@ import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-quer
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
+import type { InboundDeliveriesTableResponse } from '@/schemas/inbound-deliveries';
 import type {
   AddPurchaseOrderItemPayload,
   ChangePurchaseOrderExchangeRatePayload,
@@ -18,6 +19,7 @@ import type {
   UpdatePurchaseOrderItemPayload,
   UpdatePurchaseOrderNotesPayload,
   UpdatePurchaseOrderStatusPayload,
+  UpdatePurchaseOrderTaxDatePayload,
 } from '@/schemas/purchase-orders';
 
 export interface PurchaseOrderPermissions {
@@ -46,6 +48,10 @@ export type UsePurchaseOrderGoodsReceiptsTable = (id: string) => {
   data: GoodsReceiptsTableResponse | undefined;
   isLoading: boolean;
 };
+export type UsePurchaseOrderInboundDeliveriesTable = (id: string) => {
+  data: InboundDeliveriesTableResponse | undefined;
+  isLoading: boolean;
+};
 export type UsePurchaseOrderProblems = (id: string) => { data: PurchaseOrderProblemsResponse | undefined };
 
 export type UseCreatePurchaseOrder = Mutation<CreateResponse<PurchaseOrderData>, CreatePurchaseOrderPayload>;
@@ -57,6 +63,7 @@ export type UseChangePurchaseOrderSupplier = Mutation<SuccessResponse, ChangePur
 export type UseChangePurchaseOrderExchangeRate = Mutation<SuccessResponse, ChangePurchaseOrderExchangeRatePayload>;
 export type UseSetPurchaseOrderConversionRate = Mutation<SuccessResponse, SetPurchaseOrderConversionRatePayload>;
 export type UseUpdatePurchaseOrderStatus = Mutation<SuccessResponse, UpdatePurchaseOrderStatusPayload>;
+export type UseUpdatePurchaseOrderTaxDate = Mutation<SuccessResponse, UpdatePurchaseOrderTaxDatePayload>;
 export type UseSendPurchaseOrderEmail = Mutation<SuccessResponse, SendPurchaseOrderEmailPayload>;
 export type UseClosePurchaseOrder = Mutation<SuccessResponse, string>;
 export type UseDeletePurchaseOrder = Mutation<SuccessResponse, string>;

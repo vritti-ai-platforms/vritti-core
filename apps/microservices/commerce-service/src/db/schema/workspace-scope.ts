@@ -169,6 +169,11 @@ export const workspaceScopeColumns = {
   siteId: uuid('site_id').default(sql.raw(SITE_GUC)),
 };
 
+// A site column as a unique-index key where an empty site stands for the legal entity: every empty site is the same
+// stratum, which a plain NULL key would treat as distinct
+export const siteStratum = (siteId: AnyPgColumn) =>
+  sql`coalesce(${siteId}, '00000000-0000-0000-0000-000000000000'::uuid)`;
+
 // The tenant column every commerce table carries, defaulted from the request's organization
 export const organizationIdColumn = uuid('organization_id')
   .notNull()
@@ -294,15 +299,20 @@ export const legalEntityOwnedPolicies = () => {
 
 // For a site-owned document table (both owner columns always set): sites write their own rows, an LE writes for its
 // sites, a site group and the org only read.
-export const siteDocumentPolicies = () => {
-  const write = sql.raw(`coalesce(${siteDocumentWriteSql()}, false)`);
+// With `legalEntityRows`, a row may also leave site_id empty to stand for the whole legal entity: the LE writes it, and
+// every workspace that reads the LE's rows reads it too, so each of its sites sees it beside its own.
+export const siteDocumentPolicies = (options?: { legalEntityRows?: boolean }) => {
+  const { site } = columnNames();
+  const orLegalEntityRow = (siteSql: string, legalEntitySql: string) =>
+    options?.legalEntityRows ? `(${siteSql}) or (${site} is null and (${legalEntitySql}))` : siteSql;
+  const write = sql.raw(`coalesce(${orLegalEntityRow(siteDocumentWriteSql(), legalEntityWriteSql())}, false)`);
 
   return [
     orgIsolationPolicy(),
     pgPolicy('reach_read', {
       as: 'restrictive',
       for: 'select',
-      using: sql.raw(`coalesce(${siteDocumentReadSql()}, false)`),
+      using: sql.raw(`coalesce(${orLegalEntityRow(siteDocumentReadSql(), legalEntityReadSql())}, false)`),
     }),
     pgPolicy('owner_insert', { as: 'restrictive', for: 'insert', withCheck: write }),
     pgPolicy('owner_update', { as: 'restrictive', for: 'update', using: write, withCheck: write }),

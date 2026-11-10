@@ -3,7 +3,7 @@ import { CreatePosTerminalDto } from '@domain/pos-terminals/dto/request/create-p
 import { UpdatePosTerminalPayloadDto } from '@domain/pos-terminals/dto/request/update-pos-terminal-payload.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { PosTerminalsService } from './services/pos-terminals.service';
@@ -16,7 +16,7 @@ export class PosTerminalsController {
 
   // Returns paginated POS terminals for the data table
   @MessagePattern({ cmd: 'site.posTerminals.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: PosTerminalDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: PosTerminalDto[]; count: number }> {
     this.logger.log('posTerminals.table');
     return this.service.findForTable(state);
   }

@@ -118,7 +118,7 @@ export function useRemoveSupplierQuotationItem(
 export function usePostSupplierQuotationToSite(
   supplierId: string,
   quotationId: string,
-  options?: Options<SuccessResponse, string>,
+  options?: Options<SuccessResponse, string | null>,
 ) {
   return useSupplierMutation(
     supplierId,
@@ -131,7 +131,7 @@ export function usePostSupplierQuotationToSite(
 export function useRemoveSupplierQuotationFromSite(
   supplierId: string,
   quotationId: string,
-  options?: Options<SuccessResponse, string>,
+  options?: Options<SuccessResponse, string | null>,
 ) {
   return useSupplierMutation(
     supplierId,

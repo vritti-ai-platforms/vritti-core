@@ -15,7 +15,7 @@ import { supplierPriceSourceEnum } from './enums';
 import { inventoryItemMrps } from './inventory-item-mrps';
 import { supplierQuotationSites } from './supplier-quotations';
 import { supplierItems } from './suppliers';
-import { organizationIdColumn, siteDocumentPolicies } from './workspace-scope';
+import { organizationIdColumn, siteDocumentPolicies, siteStratum } from './workspace-scope';
 
 export const supplierItemPrices = commerceSchema.table(
   'supplier_item_prices',
@@ -23,7 +23,8 @@ export const supplierItemPrices = commerceSchema.table(
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
     organizationId: organizationIdColumn,
     legalEntityId: uuid('legal_entity_id').notNull(),
-    siteId: uuid('site_id').notNull(),
+    // Empty for the legal entity's price, which every site without a price of its own in force uses
+    siteId: uuid('site_id'),
     supplierItemId: uuid('supplier_item_id')
       .notNull()
       // A priced supplier item cannot be deleted: its price history is never dropped with it
@@ -49,16 +50,21 @@ export const supplierItemPrices = commerceSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    uniqueIndex('uq_supplier_item_prices_site_from').on(table.supplierItemId, table.siteId, table.validFrom),
+    // The legal entity's prices are one stratum of their own, so an empty site compares equal to another empty site
+    uniqueIndex('uq_supplier_item_prices_site_from').on(
+      table.supplierItemId,
+      siteStratum(table.siteId),
+      table.validFrom,
+    ),
     uniqueIndex('uq_supplier_item_prices_site_open')
-      .on(table.supplierItemId, table.siteId)
+      .on(table.supplierItemId, siteStratum(table.siteId))
       .where(sql`${table.validTo} IS NULL`),
     index('idx_supplier_item_prices_item').on(table.supplierItemId, table.validFrom),
     index('idx_supplier_item_prices_site').on(table.siteId),
     index('idx_supplier_item_prices_le').on(table.legalEntityId),
     index('idx_supplier_item_prices_mrp').on(table.mrpId),
     index('idx_supplier_item_prices_quotation_site').on(table.quotationSiteId),
-    ...siteDocumentPolicies(),
+    ...siteDocumentPolicies({ legalEntityRows: true }),
   ],
 );
 

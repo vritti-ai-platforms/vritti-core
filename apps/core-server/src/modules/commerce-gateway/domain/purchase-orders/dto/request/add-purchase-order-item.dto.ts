@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsBoolean, IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsPositive, IsUUID, Matches, Min } from 'class-validator';
 
 export class AddPurchaseOrderItemDto {
   @ApiProperty({ description: 'Supplier item ID' })
@@ -48,4 +48,14 @@ export class AddPurchaseOrderItemDto {
   @IsOptional()
   @IsBoolean()
   hasScheme?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      "Date the line is expected to be delivered (YYYY-MM-DD), on or after the order date. Defaults to the order date plus the supplier item's lead time at the PO's site.",
+    example: '2026-04-25',
+  })
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'expectedDeliveryDate must be YYYY-MM-DD' })
+  expectedDeliveryDate?: string;
 }

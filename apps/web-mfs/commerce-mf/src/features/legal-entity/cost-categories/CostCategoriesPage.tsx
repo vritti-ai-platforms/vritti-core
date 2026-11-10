@@ -20,7 +20,7 @@ import { EditCostCategoryDialog } from './forms/EditCostCategoryDialog';
 
 export const CostCategoriesPage = () => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useCostCategoriesTable();
+  const costCategoriesTableQuery = useCostCategoriesTable();
   const addDialog = useDialog();
   const confirm = useConfirm();
 
@@ -128,11 +128,11 @@ export const CostCategoriesPage = () => {
     [handleActivate, handleDeactivate, handleDelete],
   );
 
-  const { table } = useDataTable({
+  const costCategoriesTable = useDataTable({
     columns,
     slug: 'commerce-le-cost-categories',
     label: 'cost category',
-    serverState: response,
+    query: costCategoriesTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -147,8 +147,7 @@ export const CostCategoriesPage = () => {
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={costCategoriesTable}
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },

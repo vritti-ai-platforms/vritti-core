@@ -1,5 +1,5 @@
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { EnrollmentsTable } from '@/components/suppliers/enrollments/EnrollmentsTable';
+import { EnrollmentsTable } from '@/components/suppliers/EnrollmentsTable';
 import { binding } from './binding';
 
 export const SuppliersPage = () => (

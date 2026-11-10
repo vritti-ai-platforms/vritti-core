@@ -18,7 +18,7 @@ import { AddCompanyDialog } from './forms/AddCompanyDialog';
 export const CompaniesPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useCompaniesTable();
+  const companiesTableQuery = useCompaniesTable();
   const addDialog = useDialog();
 
   const columns = useMemo<ColumnDef<CompanyData>[]>(
@@ -82,11 +82,11 @@ export const CompaniesPage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const companiesTable = useDataTable({
     columns,
     slug: 'commerce-org-companies',
     label: 'company',
-    serverState: response,
+    query: companiesTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -101,8 +101,7 @@ export const CompaniesPage = () => {
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={companiesTable}
         permission={ORG_COMPANIES.view}
         searchConfig={{
           columns: [{ id: 'displayName', label: 'Name' }],

@@ -5,7 +5,7 @@ import type {
 import { SupplierQuotationsDomainService } from '@domain/supplier-quotations/services/supplier-quotations.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { RpcSiteId } from '@vritti/api-sdk/nats';
 
 @Controller()
@@ -17,7 +17,7 @@ export class SiteSupplierQuotationsController {
   // Returns the supplier's quotations posted to the caller's site
   @MessagePattern({ cmd: 'site.suppliers.quotations.table' })
   table(
-    @Payload() data: { supplierId: string } & TableViewState,
+    @Payload() data: { supplierId: string } & TableState,
     @RpcSiteId() siteId: string,
   ): Promise<{ result: SupplierQuotationDto[]; count: number }> {
     const { supplierId, ...state } = data;

@@ -7,7 +7,7 @@ import type { WhatsappAccountResponseDto } from '@communications/whatsapp-accoun
 import type { WhatsappAccountTableResponseDto } from '@communications/whatsapp-accounts/dto/response/whatsapp-account-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -36,7 +36,7 @@ export class WhatsappAccountsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly appService: AppDomainService,
     private readonly configService: ConfigService,
     private readonly signupStateService: EmbeddedSignupStateService,
@@ -102,7 +102,7 @@ export class WhatsappAccountsGatewayService {
   // Returns paginated, filtered, and sorted WhatsApp accounts for the data table
   async findForTable(userId: string): Promise<WhatsappAccountTableResponseDto> {
     this.logger.log('org.whatsappAccounts.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       'communications-org-whatsapp-accounts',
     );

@@ -33,7 +33,7 @@ import type { UpdatePersonSocialProfileDto } from '@commerce/party-social-profil
 import type { PartySocialProfileResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-response.dto';
 import type { PartySocialProfileTableResponseDto } from '@commerce/party-social-profiles/dto/response/party-social-profile-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -83,13 +83,13 @@ export class PeopleGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated, filtered, and sorted people for the data table
   async findForTable(userId: string): Promise<PersonTableResponseDto> {
     this.logger.log('org.people.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-org-people');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-people');
 
     const { result, count } = await this.nats.send<{ result: PersonResponseDto[]; count: number }>(
       'commerce',
@@ -148,7 +148,7 @@ export class PeopleGatewayService {
   // Returns the identifiers of a person for the data table
   async listIdentifiers(personId: string, userId: string): Promise<PartyIdentifierTableResponseDto> {
     this.logger.log(`org.people.identifiers.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-person-${personId}-identifiers`,
     );
@@ -165,7 +165,7 @@ export class PeopleGatewayService {
   // Returns the companies a person is linked to for the data table
   async findCompaniesForTable(personId: string, userId: string): Promise<PersonCompanyTableResponseDto> {
     this.logger.log(`org.people.companies.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-person-${personId}-companies`,
     );
@@ -194,7 +194,7 @@ export class PeopleGatewayService {
   // Returns the addresses of a person for the data table
   async listAddresses(personId: string, userId: string): Promise<PartyAddressTableResponseDto> {
     this.logger.log(`org.people.addresses.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-person-${personId}-addresses`,
     );
@@ -273,7 +273,7 @@ export class PeopleGatewayService {
   // Returns the tax registrations of a person for the data table
   async listRegistrations(personId: string, userId: string): Promise<PersonRegistrationTableResponseDto> {
     this.logger.log(`org.people.registrations.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-person-${personId}-registrations`,
     );
@@ -316,7 +316,7 @@ export class PeopleGatewayService {
   // Returns the licenses of a person for the data table
   async listLicenses(personId: string, userId: string): Promise<PartyLicenseTableResponseDto> {
     this.logger.log(`org.people.licenses.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-person-${personId}-licenses`,
     );
@@ -351,7 +351,7 @@ export class PeopleGatewayService {
   // Returns the bank accounts of a person for the data table
   async listBankAccounts(personId: string, userId: string): Promise<PartyBankAccountTableResponseDto> {
     this.logger.log(`org.people.bankAccounts.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-person-${personId}-bank-accounts`,
     );
@@ -389,7 +389,7 @@ export class PeopleGatewayService {
   // Returns paginated communications of a person for the data table
   async listCommunications(personId: string, userId: string): Promise<PartyCommunicationTableResponseDto> {
     this.logger.log(`org.people.communications.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-person-${personId}-communications`,
     );
@@ -427,7 +427,7 @@ export class PeopleGatewayService {
   // Returns paginated social profiles of a person for the data table
   async listSocialProfiles(personId: string, userId: string): Promise<PartySocialProfileTableResponseDto> {
     this.logger.log(`org.people.socialProfiles.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-person-${personId}-social-profiles`,
     );

@@ -3,27 +3,23 @@ import { Separator } from '@vritti/quantum-ui/Separator';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ChevronsUpDown, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { EnrolledSiteSelector } from '@/utils/RemoteSelectors';
+import { SiteSelector } from '@/utils/RemoteSelectors';
 
 interface EnrolledSiteSwitcherProps {
   // The site of an LE supplier enrollment view
   siteId: string;
-  // The supplier whose enrolled sites are offered
-  supplierId: string;
   // The supplier root, e.g. `/le/<id>/suppliers/<supplierSlug>`
   basePath: string;
   // The site's name as the breadcrumb already knows it, shown until the selector resolves
   fallbackLabel: string;
 }
 
-export const EnrolledSiteSwitcher = ({ siteId, supplierId, basePath, fallbackLabel }: EnrolledSiteSwitcherProps) => {
+export const EnrolledSiteSwitcher = ({ siteId, basePath, fallbackLabel }: EnrolledSiteSwitcherProps) => {
   const navigate = useNavigate();
 
   return (
-    <EnrolledSiteSelector
-      supplierId={supplierId}
-      // Every site has an enrollment view, enrolled or not
-      enrollmentStatus="ALL"
+    // Every site of the legal entity has an enrollment view, enrolled or not
+    <SiteSelector
       value={siteId}
       // The anchor replaces the trigger but not the surrounding Field, so a label would still render above it
       label={undefined}

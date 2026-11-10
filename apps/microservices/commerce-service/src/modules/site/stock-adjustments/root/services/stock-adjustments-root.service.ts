@@ -13,7 +13,7 @@ import { type StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/st
 import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { StockAdjustmentsDomainService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -53,7 +53,7 @@ export class StockAdjustmentsService {
     private readonly adjustmentsService: StockAdjustmentsDomainService,
   ) {}
 
-  table(state: TableViewState, siteCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+  table(state: TableState, siteCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
     return this.adjustmentsService.findForTable(state, siteCurrencyCode);
   }
 

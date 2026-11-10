@@ -47,6 +47,7 @@ const invoiceHeaderFields = {
     .min(1, 'Invoice number is required')
     .max(100, 'Invoice number must be at most 100 characters'),
   invoiceDate: z.string({ error: 'Invoice date is required' }).min(1, 'Invoice date is required'),
+  taxDate: z.string({ error: 'Tax date is required' }).min(1, 'Tax date is required'),
   notes: z.string().max(1000, 'Notes must be at most 1000 characters'),
 };
 
@@ -129,6 +130,7 @@ export interface SupplierInvoice {
   poNumber: string;
   invoiceNumber: string;
   invoiceDate: string;
+  taxDate: string;
   currencyCode: string;
   exchangeRate: number;
   poExchangeRate: number;
@@ -156,25 +158,20 @@ export interface SupplierInvoiceDetail extends SupplierInvoice {
 
 export type SupplierInvoicesTableResponse = TableResponse<SupplierInvoice>;
 
-export interface PurchaseOrderInvoiceSummary {
-  invoiceCount: number;
-  flaggedInvoiceCount: number;
-  billedQty: number;
-  billedPercent: number;
-}
-
 export type SupplierInvoiceRef = Pick<SupplierInvoice, 'id' | 'supplierId'>;
 
 export interface CreateSupplierInvoicePayload {
   purchaseOrderId: string;
   invoiceNumber: string;
   invoiceDate: string;
+  taxDate: string;
   notes: string | null;
 }
 
 export interface UpdateSupplierInvoicePayload {
   invoiceNumber: string;
   invoiceDate: string;
+  taxDate?: string;
   exchangeRate?: number;
   notes: string | null;
 }

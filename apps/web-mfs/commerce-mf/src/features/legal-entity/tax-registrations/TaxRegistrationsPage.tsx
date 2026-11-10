@@ -21,7 +21,7 @@ import { EditTaxRegistrationDialog } from './forms/EditTaxRegistrationDialog';
 
 export const TaxRegistrationsPage = () => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useTaxRegistrationsTable();
+  const taxRegistrationsTableQuery = useTaxRegistrationsTable();
   const deleteMutation = useDeleteTaxRegistration();
   const addDialog = useDialog();
   const confirm = useConfirm();
@@ -146,11 +146,11 @@ export const TaxRegistrationsPage = () => {
     [deleteMutation.isPending, handleDelete],
   );
 
-  const { table } = useDataTable({
+  const taxRegistrationsTable = useDataTable({
     columns,
     slug: 'commerce-le-tax-registrations',
     label: 'tax registration',
-    serverState: response,
+    query: taxRegistrationsTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -165,8 +165,7 @@ export const TaxRegistrationsPage = () => {
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={taxRegistrationsTable}
         permission={LE_TAX_REGISTRATIONS.view}
         searchConfig={{ columns: [{ id: 'registrationNumber', label: 'Number' }], searchAll: true }}
         filters={[

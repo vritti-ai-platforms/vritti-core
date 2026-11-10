@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { FieldMap, FilterOperator } from '@vritti/api-sdk/data-table';
+import type { FieldMap, FilterOperator } from '@vritti/api-sdk/conditions';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, desc, eq, exists, gte, isNull, lt, lte, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
@@ -105,13 +105,13 @@ export class ItemSupplierPriceComparisonsRepository extends PrimaryBaseRepositor
     };
   }
 
-  // The price each supplier item has in force at its site on the day, with what it costs per the quoted unit and per
-  // the item's primary unit, before and after its scheme — a lateral subquery, so filters and sorts can read every
-  // figure it computes
+  // Builds the lateral subquery of each supplier item's price in force at its site on the day — its own, else its legal
+  // entity's — with every per-unit and after-scheme figure that filters and sorts read
   currentPriceOn(asOf: string) {
     return this.db
       .select({
         id: supplierItemPrices.id,
+        siteId: supplierItemPrices.siteId,
         currencyCode: supplierItemPrices.currencyCode,
         unitPrice: supplierItemPrices.unitPrice,
         validFrom: supplierItemPrices.validFrom,
@@ -138,17 +138,17 @@ export class ItemSupplierPriceComparisonsRepository extends PrimaryBaseRepositor
       .where(
         and(
           eq(supplierItemPrices.supplierItemId, supplierSiteItems.supplierItemId),
-          eq(supplierItemPrices.siteId, supplierSiteItems.siteId),
+          or(eq(supplierItemPrices.siteId, supplierSiteItems.siteId), isNull(supplierItemPrices.siteId)),
           lte(supplierItemPrices.validFrom, asOf),
           or(isNull(supplierItemPrices.validTo), gte(supplierItemPrices.validTo, asOf)),
         ),
       )
-      .orderBy(desc(supplierItemPrices.validFrom))
+      .orderBy(sql`${supplierItemPrices.siteId} is null`, desc(supplierItemPrices.validFrom))
       .limit(1)
       .as('current_price');
   }
 
-  // The price the one in force replaced, and the move between them in percent when both are in one currency
+  // The price the one in force replaced in its own stratum (the site's, or the legal entity's), and the move between them in percent when both are in one currency
   previousPriceBefore(current: ReturnType<ItemSupplierPriceComparisonsRepository['currentPriceOn']>) {
     return this.db
       .select({
@@ -165,7 +165,7 @@ export class ItemSupplierPriceComparisonsRepository extends PrimaryBaseRepositor
       .where(
         and(
           eq(earlierPrices.supplierItemId, supplierSiteItems.supplierItemId),
-          eq(earlierPrices.siteId, supplierSiteItems.siteId),
+          sql`${earlierPrices.siteId} is not distinct from ${current.siteId}`,
           lt(earlierPrices.validFrom, current.validFrom),
         ),
       )
@@ -174,7 +174,7 @@ export class ItemSupplierPriceComparisonsRepository extends PrimaryBaseRepositor
       .as('previous_price');
   }
 
-  // Every supplier item of an inventory item that has prices at a site, one row each with its standing on the day;
+  // Every supplier item of an inventory item that has prices at a site or for its legal entity, one row each with its standing on the day;
   // the where (the site in the table's context, the user's filters and search) is built by the caller
   findForTable(options: {
     inventoryItemId: string;
@@ -209,7 +209,7 @@ export class ItemSupplierPriceComparisonsRepository extends PrimaryBaseRepositor
         priceCount: sql<number>`(
           select count(*)::int from ${supplierItemPrices}
           where ${supplierItemPrices.supplierItemId} = ${supplierSiteItems.supplierItemId}
-            and ${supplierItemPrices.siteId} = ${supplierSiteItems.siteId}
+            and (${supplierItemPrices.siteId} = ${supplierSiteItems.siteId} or ${supplierItemPrices.siteId} is null)
         )`.mapWith(Number),
       },
       innerJoins: [
@@ -241,7 +241,7 @@ export class ItemSupplierPriceComparisonsRepository extends PrimaryBaseRepositor
             .where(
               and(
                 eq(supplierItemPrices.supplierItemId, supplierSiteItems.supplierItemId),
-                eq(supplierItemPrices.siteId, supplierSiteItems.siteId),
+                or(eq(supplierItemPrices.siteId, supplierSiteItems.siteId), isNull(supplierItemPrices.siteId)),
               ),
             ),
         ),

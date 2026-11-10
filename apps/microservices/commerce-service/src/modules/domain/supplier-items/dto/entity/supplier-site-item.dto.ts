@@ -7,7 +7,7 @@ export class SupplierSiteItemDto {
   siteId: string;
   inventoryItemId: string;
   isPreferred: boolean;
-  leadTimeDays: number | null;
+  leadTimeDays: number;
   // True when the site sets its own lead time instead of following the supplier item's
   isLeadTimeOverridden: boolean;
   createdAt: string;
@@ -22,7 +22,7 @@ export class SupplierSiteItemDto {
     dto.siteId = entity.siteId;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.isPreferred = entity.isPreferred;
-    dto.leadTimeDays = entity.leadTimeDays ?? null;
+    dto.leadTimeDays = entity.leadTimeDays;
     dto.isLeadTimeOverridden = entity.isLeadTimeOverridden;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

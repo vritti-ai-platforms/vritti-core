@@ -4,6 +4,9 @@ import { CategoriesDomainService } from '@domain/categories/services/categories.
 import { CostCategoriesDomainService } from '@domain/cost-categories/services/cost-categories.service';
 import { CustomersDomainService } from '@domain/customers/services/customers.service';
 import { DimensionTemplatesDomainService } from '@domain/dimension-templates/services/dimension-templates.service';
+import { DeliverablePurchaseOrderItemsSelectQueryDto } from '@domain/inbound-deliveries/dto/request/deliverable-purchase-order-items-select-query.dto';
+import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
+import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
@@ -48,6 +51,7 @@ import { PartyTaxRegistrationSelectQueryDto } from './dto/request/party-tax-regi
 import { PaymentTermsSelectQueryDto } from './dto/request/payment-terms-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from './dto/request/purchase-order-items-select-query.dto';
 import { PurchaseOrdersSelectQueryDto } from './dto/request/purchase-orders-select-query.dto';
+import { ReceivablePurchaseOrdersSelectQueryDto } from './dto/request/receivable-purchase-orders-select-query.dto';
 import { SupplierItemsSelectQueryDto } from './dto/request/supplier-items-select-query.dto';
 import { SuppliersSelectQueryDto } from './dto/request/suppliers-select-query.dto';
 import { TaxComponentsSelectQueryDto } from './dto/request/tax-components-select-query.dto';
@@ -77,6 +81,8 @@ export class SelectController {
     private readonly inventoryItemSerialsService: InventoryItemSerialsDomainService,
     private readonly posTerminalsService: PosTerminalsDomainService,
     private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
+    private readonly inboundDeliveryLinesService: InboundDeliveryLinesDomainService,
+    private readonly inboundDeliveriesService: InboundDeliveriesDomainService,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
     private readonly costCategoriesService: CostCategoriesDomainService,
     private readonly supplierItemsService: SupplierItemsDomainService,
@@ -229,7 +235,9 @@ export class SelectController {
   // Returns the MRPs one offering variant could be listed at, found through its bill of materials
   @MessagePattern({ cmd: 'select.inventoryItemMrps' })
   async inventoryItemMrps(@Payload() data: InventoryItemMrpsSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log(`select.inventoryItemMrps — variantId: ${data.variantId}`);
+    this.logger.log(
+      `select.inventoryItemMrps — variantId: ${data.variantId}, inventoryItemId: ${data.inventoryItemId}`,
+    );
     return this.inventoryItemMrpsService.findForSelect(data);
   }
 
@@ -257,9 +265,34 @@ export class SelectController {
   // Returns paginated purchase order item options for the select component
   @MessagePattern({ cmd: 'select.purchaseOrderItems' })
   async purchaseOrderItems(@Payload() data: PurchaseOrderItemsSelectQueryDto): Promise<SelectQueryResult> {
-    const { purchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
+    const { purchaseOrderId, ...query } = data;
     this.logger.log(`select.purchaseOrderItems — poId: ${purchaseOrderId}`);
-    return this.purchaseOrderItemsService.findForSelectByPurchaseOrder(purchaseOrderId, query, excludeOnGoodsReceiptId);
+    return this.purchaseOrderItemsService.findForSelectByPurchaseOrder(purchaseOrderId, query);
+  }
+
+  // Returns a supplier's purchase orders a goods receipt can receive, for the receipt's purchase order picker
+  @MessagePattern({ cmd: 'select.receivablePurchaseOrders' })
+  receivablePurchaseOrders(@Payload() data: ReceivablePurchaseOrdersSelectQueryDto): Promise<SelectQueryResult> {
+    const { supplierId, goodsReceiptId, ...query } = data;
+    this.logger.log(`select.receivablePurchaseOrders — supplierId: ${supplierId}, receipt: ${goodsReceiptId ?? 'new'}`);
+    return this.inboundDeliveryLinesService.findForSelectReceivablePurchaseOrders(supplierId, query, goodsReceiptId);
+  }
+
+  // Returns the announced inbound deliveries a goods receipt can be created from
+  @MessagePattern({ cmd: 'select.receivableInboundDeliveries' })
+  receivableInboundDeliveries(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.receivableInboundDeliveries');
+    return this.inboundDeliveriesService.findForSelectReceivable(data);
+  }
+
+  // Returns the open purchase order lines of an inbound delivery's supplier at its site that can still go on it
+  @MessagePattern({ cmd: 'select.deliverablePurchaseOrderItems' })
+  deliverablePurchaseOrderItems(
+    @Payload() data: DeliverablePurchaseOrderItemsSelectQueryDto,
+  ): Promise<SelectQueryResult> {
+    const { inboundDeliveryId, ...query } = data;
+    this.logger.log(`select.deliverablePurchaseOrderItems — inboundDeliveryId: ${inboundDeliveryId}`);
+    return this.inboundDeliveryLinesService.findForSelectDeliverable(inboundDeliveryId, query);
   }
 
   // Returns paginated purchase order options for the select component
@@ -282,12 +315,12 @@ export class SelectController {
     @Payload() data: SupplierItemsSelectQueryDto,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<SelectQueryResult> {
-    const { supplierId, excludeOnPurchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
+    const { supplierId, purchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
     this.logger.log(`select.supplierItems — supplierId: ${supplierId ?? 'all'}`);
     return this.supplierItemsService.findForSelect(query, {
       supplierId,
       siteId: headers.siteId || null,
-      excludeOnPurchaseOrderId,
+      purchaseOrderId,
       excludeOnGoodsReceiptId,
     });
   }
@@ -295,9 +328,9 @@ export class SelectController {
   // Returns paginated supplier options for the select component
   @MessagePattern({ cmd: 'select.suppliers' })
   async suppliers(@Payload() data: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
-    const { activeOnly, ...query } = data;
-    this.logger.log('select.suppliers');
-    return this.suppliersService.findForSelect(query, { activeOnly });
+    const { activeOnly, inventoryItemId, ...query } = data;
+    this.logger.log(`select.suppliers${inventoryItemId ? ` — inventoryItemId: ${inventoryItemId}` : ''}`);
+    return this.suppliersService.findForSelect(query, { activeOnly, inventoryItemId });
   }
 
   // Returns paginated tax class options for the select component

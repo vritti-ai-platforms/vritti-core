@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { majorToMinor } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { formatISO, parseISO, subDays } from 'date-fns';
 import { taxClasses, taxClassGroups, taxGroups } from '@/db/schema';
 import { TaxClassGroupDto } from '../dto/entity/tax-class-group.dto';
-import { TaxClassMappingDto } from '../dto/entity/tax-class-mapping.dto';
 import type { CreateTaxClassGroupDto } from '../dto/request/create-tax-class-group.dto';
 import type { UpdateTaxClassGroupDto } from '../dto/request/update-tax-class-group.dto';
+import type { UpdateTaxClassGroupOnClassDto } from '../dto/request/update-tax-class-group-on-class.dto';
 import { TaxClassGroupsDomainRepository } from '../repositories/tax-class-groups.repository';
-import { TaxClassMappingsDomainRepository } from '../repositories/tax-class-mappings.repository';
 import { TaxGroupsDomainRepository } from '../repositories/tax-groups.repository';
 
 @Injectable()
@@ -30,23 +30,25 @@ export class TaxClassGroupsDomainService {
     taxClassCode: TaxClassGroupsDomainService.FIELD_MAP.taxClassCode,
   };
 
-  private static readonly MAPPING_FIELD_MAP: FieldMap = {
-    taxClassName: { column: taxClasses.name, type: 'string' },
-    taxClassCode: { column: taxClasses.code, type: 'string' },
+  private static readonly CLASS_FIELD_MAP: FieldMap = {
     taxGroupName: { column: taxGroups.name, type: 'string' },
+    taxGroupCode: { column: taxGroups.code, type: 'string' },
+    validFrom: { column: taxClassGroups.validFrom, type: 'string' },
+    validTo: { column: taxClassGroups.validTo, type: 'string' },
+  };
+
+  private static readonly CLASS_SEARCH_FIELD_MAP: FieldMap = {
+    taxGroupName: TaxClassGroupsDomainService.CLASS_FIELD_MAP.taxGroupName,
+    taxGroupCode: TaxClassGroupsDomainService.CLASS_FIELD_MAP.taxGroupCode,
   };
 
   constructor(
     private readonly groupsRepository: TaxGroupsDomainRepository,
     private readonly repository: TaxClassGroupsDomainRepository,
-    private readonly mappingsRepository: TaxClassMappingsDomainRepository,
   ) {}
 
   // Returns the paginated class mappings of a group, latest period first
-  async findForTable(
-    taxGroupId: string,
-    state: TableViewState,
-  ): Promise<{ result: TaxClassGroupDto[]; count: number }> {
+  async findForTable(taxGroupId: string, state: TableState): Promise<{ result: TaxClassGroupDto[]; count: number }> {
     const group = await this.groupsRepository.findByIdOrThrow(taxGroupId);
     const fieldMap = TaxClassGroupsDomainService.FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;
@@ -64,26 +66,29 @@ export class TaxClassGroupsDomainService {
     return { result: result.map(TaxClassGroupDto.from), count };
   }
 
-  // Returns every active tax class with its mapping valid today in the context's country, unmapped classes included;
-  // the country picks the joined mapping, not the rows, so it bypasses the field map — no country, no rows
-  async findMappingForTable(state: TableViewState): Promise<{ result: TaxClassMappingDto[]; count: number }> {
+  // Returns the paginated group mappings of a class in the context's country, latest period first — no country, no rows
+  async findForClassTable(
+    taxClassId: string,
+    state: TableState,
+  ): Promise<{ result: TaxClassGroupDto[]; count: number }> {
+    const taxClass = await this.repository.findParentClassOrThrow(taxClassId);
     const country = state.filters.context.find((condition) => condition.field === 'country');
     if (country?.operator !== 'equals' || typeof country.value !== 'string') return { result: [], count: 0 };
-    const countryCode = country.value;
-    const fieldMap = TaxClassGroupsDomainService.MAPPING_FIELD_MAP;
+    const fieldMap = TaxClassGroupsDomainService.CLASS_FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.mappingsRepository.findMappingsForTable({
-      countryCode,
+    const { result, count } = await this.repository.findDetailsForTable({
       where: and(
+        eq(taxClassGroups.taxClassId, taxClass.id),
+        eq(taxClassGroups.countryCode, country.value),
         FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, fieldMap),
+        FilterProcessor.buildSearch(state.search, TaxClassGroupsDomainService.CLASS_SEARCH_FIELD_MAP),
       ),
-      orderBy: orderBy.length > 0 ? orderBy : [asc(taxClasses.name)],
+      orderBy: orderBy.length > 0 ? orderBy : [desc(taxClassGroups.validFrom), asc(taxGroups.name)],
       limit,
       offset,
     });
-    return { result: result.map((row) => TaxClassMappingDto.from({ ...row, countryCode })), count };
+    return { result: result.map(TaxClassGroupDto.from), count };
   }
 
   // Maps a tax class to a group in the group's country for a period, optionally only up to a unit price; it overlaps
@@ -157,5 +162,23 @@ export class TaxClassGroupsDomainService {
     await this.repository.deleteOrThrow(group.id, id);
     this.logger.log(`Deleted tax class mapping ${id} from tax group ${group.code}`);
     return { success: true, message: `Class mapping removed from "${group.name}".` };
+  }
+
+  // Updates a mapping of a class through its group; neither the class nor the group changes
+  async updateOnClass(data: UpdateTaxClassGroupOnClassDto): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findOnClassOrThrow(data.taxClassId, data.id);
+    return this.update({
+      id: existing.id,
+      taxGroupId: existing.taxGroupId,
+      maxUnitPrice: data.maxUnitPrice,
+      validFrom: data.validFrom,
+      validTo: data.validTo,
+    });
+  }
+
+  // Removes a mapping of a class from its group
+  async deleteOnClass(taxClassId: string, id: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findOnClassOrThrow(taxClassId, id);
+    return this.delete(existing.taxGroupId, existing.id);
   }
 }

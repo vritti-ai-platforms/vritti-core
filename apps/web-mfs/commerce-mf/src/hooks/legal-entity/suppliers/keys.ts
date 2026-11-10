@@ -12,8 +12,5 @@ export const SUPPLIER_ITEM_PRICES_TABLE_KEY = (supplierId: string, itemId: strin
 export const SUPPLIER_SITE_ITEMS_TABLE_KEY = (supplierId: string, itemId: string) =>
   [...SUPPLIER_ITEM_KEY(supplierId, itemId), 'site-items'] as const;
 
-export const SUPPLIER_ITEM_PRICED_SITE_IDS_KEY = (supplierId: string, itemId: string) =>
-  [...SUPPLIER_ITEM_KEY(supplierId, itemId), 'priced-site-ids'] as const;
-
 export const SUPPLIER_ITEM_PRICE_HISTORY_KEY = (supplierId: string, itemId: string) =>
   [...SUPPLIER_ITEM_KEY(supplierId, itemId), 'price-history'] as const;

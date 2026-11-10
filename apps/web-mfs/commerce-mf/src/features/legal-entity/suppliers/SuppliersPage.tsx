@@ -36,7 +36,7 @@ import { BulkChangeDefaultPaymentTermDialog } from './forms/BulkChangeDefaultPay
 export const SuppliersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useSuppliersTable();
+  const suppliersTableQuery = useSuppliersTable();
   const addDialog = useDialog();
   const defaultPaymentTermDialog = useDialog();
   const [targetIds, setTargetIds] = useState<string[]>([]);
@@ -117,24 +117,24 @@ export const SuppliersPage = () => {
     [navigate, setActiveMutation],
   );
 
-  const { table } = useDataTable({
+  const suppliersTable = useDataTable({
     columns,
     slug: 'commerce-le-suppliers',
     label: 'supplier',
-    serverState: response,
+    query: suppliersTableQuery,
     enableRowSelection: true,
     enableSorting: true,
     enableMultiSort: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: SUPPLIERS_TABLE_KEY }),
   });
+  const { table } = suppliersTable;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Suppliers" description="Manage your supplier directory and linked inventory items" />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={suppliersTable}
         permission={LE_SUPPLIERS.view}
         selectActions={(rows) => {
           const ids = rows.map((row) => row.original.id);

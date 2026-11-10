@@ -22,6 +22,7 @@ import {
   organizationIdColumn,
   scopeFromOwnerPolicies,
   siteDocumentPolicies,
+  siteStratum,
   workspaceHierarchyPolicies,
   workspaceScopeColumns,
 } from './workspace-scope';
@@ -116,14 +117,15 @@ export const supplierQuotationSites = commerceSchema.table(
     quotationId: uuid('quotation_id')
       .notNull()
       .references((): AnyPgColumn => supplierQuotations.id, { onDelete: 'cascade' }),
-    siteId: uuid('site_id').notNull(),
+    // Empty when the quotation is posted to the whole legal entity
+    siteId: uuid('site_id'),
     postedBy: uuid('posted_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex('uq_supplier_quotation_sites_site').on(table.quotationId, table.siteId),
+    uniqueIndex('uq_supplier_quotation_sites_site').on(table.quotationId, siteStratum(table.siteId)),
     index('idx_supplier_quotation_sites_site').on(table.siteId),
-    ...siteDocumentPolicies(),
+    ...siteDocumentPolicies({ legalEntityRows: true }),
   ],
 );
 

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -25,7 +26,7 @@ export class WhatsappAccountsDomainService {
   constructor(private readonly repository: WhatsappAccountsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted WhatsApp accounts for the data table
-  async findForTable(state: TableViewState): Promise<{ result: WhatsappAccountDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: WhatsappAccountDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, WhatsappAccountsDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, WhatsappAccountsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);

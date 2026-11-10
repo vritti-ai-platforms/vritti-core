@@ -1,5 +1,5 @@
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsBoolean, IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsPositive, IsUUID, Matches, Min } from 'class-validator';
 
 export class AddPurchaseOrderItemDto {
   @IsUUID('7')
@@ -33,4 +33,9 @@ export class AddPurchaseOrderItemDto {
   @IsOptional()
   @IsBoolean()
   hasScheme?: boolean;
+
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'expectedDeliveryDate must be YYYY-MM-DD' })
+  expectedDeliveryDate?: string;
 }

@@ -47,7 +47,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
   const onSelectRun = (run: RunData) =>
     navigate(buildSlug(`Run ${run.runNumber}`, String(run.id)), { relative: 'path' });
 
-  const { data: response, isLoading, isFetching } = useRuns(repositoryName, { workflowId: workflowId || undefined });
+  const runsQuery = useRuns(repositoryName, { workflowId: workflowId || undefined });
 
   const rerunMutation = useRerunRun(repositoryName);
   const rerunFailedMutation = useRerunFailedJobs(repositoryName);
@@ -65,7 +65,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
 
   // Sorting and search are off deliberately: the git service paginates but cannot sort or filter, so
   // either control would silently act on the current page only.
-  const { table } = useDataTable({
+  const runsTable = useDataTable({
     columns: getColumns({
       onView: onSelectRun,
       onRerun: (run) => rerunMutation.mutate(run.id),
@@ -76,7 +76,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
     }),
     slug: TABLE_SLUG,
     label: 'run',
-    serverState: response,
+    query: runsQuery,
     enableRowSelection: false,
     enableSorting: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: GITEA_RUN_LISTS_KEY(repositoryName) }),
@@ -88,9 +88,9 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
     <Button
       variant="outline"
       size="sm"
-      disabled={isFetching}
+      disabled={runsQuery.isFetching}
       permission={ORG_REPOSITORIES.actions.runs.view}
-      startAdornment={<RefreshCw className={cn('size-4', isFetching && 'animate-spin')} />}
+      startAdornment={<RefreshCw className={cn('size-4', runsQuery.isFetching && 'animate-spin')} />}
       onClick={() => queryClient.invalidateQueries({ queryKey: GITEA_RUN_LISTS_KEY(repositoryName) })}
     >
       Refresh
@@ -99,8 +99,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
 
   return (
     <DataTable
-      table={table}
-      isLoading={isLoading}
+      table={runsTable}
       mode="tab"
       toolbarActions={{ actions: refreshButton }}
       permission={ORG_REPOSITORIES.actions.runs.view}

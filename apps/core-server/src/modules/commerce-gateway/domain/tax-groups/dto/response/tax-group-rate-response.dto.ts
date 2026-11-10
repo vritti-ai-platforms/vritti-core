@@ -33,7 +33,8 @@ export class TaxGroupRateResponseDto {
   jurisdictionName: string | null;
 
   @ApiProperty({
-    description: 'Same: the supplier and the place of supply are in the same jurisdiction (state); Different: they are not; null: the rate applies either way',
+    description:
+      'Same: the supplier and the place of supply are in the same jurisdiction (state); Different: they are not; null: the rate applies either way',
     enum: TAX_JURISDICTION_CHECKS,
     nullable: true,
   })

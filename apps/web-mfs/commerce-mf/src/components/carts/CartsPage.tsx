@@ -26,7 +26,7 @@ export const CartsPage: React.FC<{ binding: CartsBinding }> = ({ binding }) => {
   const { permissions } = binding;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = binding.useCartsTable();
+  const cartsTableQuery = binding.useCartsTable();
   const openDialog = useDialog();
 
   const columns = useMemo<ColumnDef<CartData>[]>(
@@ -87,11 +87,11 @@ export const CartsPage: React.FC<{ binding: CartsBinding }> = ({ binding }) => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const cartsTable = useDataTable({
     columns,
     slug: binding.tableSlug,
     label: 'basket',
-    serverState: response,
+    query: cartsTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -103,8 +103,7 @@ export const CartsPage: React.FC<{ binding: CartsBinding }> = ({ binding }) => {
       <PageHeader title="Carts" description={binding.description} />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={cartsTable}
         permission={permissions.view}
         searchConfig={{
           columns: [{ id: 'partyName', label: 'Shopper' }],

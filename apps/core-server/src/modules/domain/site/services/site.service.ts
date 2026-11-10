@@ -16,7 +16,7 @@ import { sequentialSortOrders } from '@/utils/sort-order';
 import { SiteDto } from '../dto/entity/site.dto';
 import type { CreateSiteInternalDto } from '../dto/request/create-site-internal.dto';
 import type { UpdateSiteInternalDto } from '../dto/request/update-site-internal.dto';
-import { SiteDomainRepository } from '../repositories/site.repository';
+import { SiteDomainRepository, type SiteSelectScope } from '../repositories/site.repository';
 
 @Injectable()
 export class SiteDomainService {
@@ -77,13 +77,15 @@ export class SiteDomainService {
     return this.siteRepository.findForOrgSelectOptions(orgId, query);
   }
 
-  // Returns a legal entity's active sites as select options, optionally only the given ones; none without an entity
+  // Returns a legal entity's active sites as select options, kept to the scope's sites and without its excluded ones;
+  // none without an entity
   findForLegalEntitySelect(
     legalEntityId: string | undefined,
-    query: SelectOptionsQueryDto & { ids?: string[] },
+    query: SelectOptionsQueryDto,
+    scope?: SiteSelectScope,
   ): Promise<SelectQueryResult> {
     if (!legalEntityId) return Promise.resolve({ options: [], hasMore: false, totalCount: 0 });
-    return this.siteRepository.findForSelectOptions(legalEntityId, query, query.ids);
+    return this.siteRepository.findForSelectOptions(legalEntityId, query, scope);
   }
 
   // The site types this organization actually has — the options behind a type filter

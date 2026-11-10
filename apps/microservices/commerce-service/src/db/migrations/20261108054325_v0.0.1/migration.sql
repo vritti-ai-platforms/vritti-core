@@ -1,0 +1,3 @@
+ALTER TABLE "commerce"."tax_components" ADD COLUMN "stands_in_for_id" uuid;--> statement-breakpoint
+ALTER TABLE "commerce"."tax_components" ADD CONSTRAINT "tax_components_stands_in_for_id_tax_components_id_fkey" FOREIGN KEY ("stands_in_for_id") REFERENCES "commerce"."tax_components"("id");--> statement-breakpoint
+ALTER TABLE "commerce"."tax_components" ADD CONSTRAINT "tax_components_stands_in_for_chk" CHECK ("stands_in_for_id" <> "id");

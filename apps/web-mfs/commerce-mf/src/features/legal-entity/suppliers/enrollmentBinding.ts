@@ -1,4 +1,5 @@
 import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
+import { filter } from '@vritti/quantum-ui/filter';
 import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { useParams } from 'react-router-dom';
@@ -15,8 +16,9 @@ import {
   useSupplierEnrollmentsTable,
   useUpdateSupplierEnrollment,
 } from '@/hooks/legal-entity/supplier-enrollments';
-import { useSupplierLookup } from '@/hooks/legal-entity/suppliers';
+import { useSupplierLookup, useUpdateSupplierSiteItem } from '@/hooks/legal-entity/suppliers';
 import type { SupplierEnrollmentKey, SupplierParty } from '@/schemas/supplier-enrollments';
+import { pricesBinding } from './pricesBinding';
 import { quotationsBinding } from './quotationsBinding';
 
 // Back to the Enrollments tab of the supplier the enrollment page was opened from
@@ -45,7 +47,7 @@ export const enrollmentBinding: SupplierEnrollmentBinding = {
     enroll: LE_SUPPLIERS.sites.enroll,
     editEnroll: LE_SUPPLIERS.sites.editEnroll,
     unenroll: LE_SUPPLIERS.sites.unenroll,
-    siteItems: { view: LE_SUPPLIERS.siteItems.view },
+    siteItems: { view: LE_SUPPLIERS.siteItems.view, edit: LE_SUPPLIERS.siteItems.edit },
   },
   table: {
     rows: 'sites',
@@ -70,6 +72,12 @@ export const enrollmentBinding: SupplierEnrollmentBinding = {
   useDeleteEnrollment: useDeleteSupplierEnrollment,
 
   useSiteItemsTable: useSupplierEnrollmentSiteItemsTable,
+  useUpdateSiteItem: useUpdateSupplierSiteItem,
   // The supplier item page's Prices tab with the enrollment's site picked — LE keeps an item's site data there
-  siteItemPath: (itemSlug, ref) => `../../items/${itemSlug}/prices?site=${ref.siteId}`,
+  siteItemPath: (itemSlug) => `../../items/${itemSlug}/prices`,
+  siteItemTableContext: (itemId, ref) => ({
+    tableSlug: pricesBinding.tableSlug(ref.supplierId, itemId),
+    queryKey: pricesBinding.tableKey(ref.supplierId, itemId),
+    context: ref.siteId ? [filter('site').equals(ref.siteId)] : [],
+  }),
 };

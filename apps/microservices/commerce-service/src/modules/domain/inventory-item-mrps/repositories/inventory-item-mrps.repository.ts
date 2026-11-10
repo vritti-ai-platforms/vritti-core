@@ -9,18 +9,10 @@ import {
   inventoryItemMrps,
   inventoryItems,
   offeringBom,
-  supplierItemPrices,
   uom,
 } from '@/db/schema';
 
 export type InventoryItemMrpWithUom = InventoryItemMrp & { uomSymbol: string | null };
-
-// Narrows an item's MRPs to those a supplier price at a site was agreed against within a date window
-export interface MrpPricedAt {
-  siteId: string;
-  from?: string;
-  to?: string;
-}
 
 @Injectable()
 export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemMrps> {
@@ -36,20 +28,10 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
     uomId: string | undefined,
     currencyCode: string | undefined,
     config: Omit<FindForSelectConfig, 'conditions' | 'joins'>,
-    pricedAt?: MrpPricedAt,
   ) {
     const conditions: SQL[] = [eq(inventoryItemMrps.inventoryItemId, inventoryItemId) as SQL];
     if (uomId) conditions.push(eq(inventoryItemMrps.uomId, uomId) as SQL);
     if (currencyCode) conditions.push(eq(inventoryItemMrps.currencyCode, currencyCode) as SQL);
-    if (pricedAt) {
-      conditions.push(sql`EXISTS (
-        SELECT 1 FROM ${supplierItemPrices}
-        WHERE ${supplierItemPrices.mrpId} = ${inventoryItemMrps.id}
-          AND ${supplierItemPrices.siteId} = ${pricedAt.siteId}
-          ${pricedAt.to ? sql`AND ${supplierItemPrices.validFrom} <= ${pricedAt.to}::date` : sql``}
-          ${pricedAt.from ? sql`AND (${supplierItemPrices.validTo} IS NULL OR ${supplierItemPrices.validTo} >= ${pricedAt.from}::date)` : sql``}
-      )`);
-    }
     return this.findForSelect({
       ...config,
       joins: [{ table: uom, on: eq(uom.id, inventoryItemMrps.uomId), type: 'left' }],

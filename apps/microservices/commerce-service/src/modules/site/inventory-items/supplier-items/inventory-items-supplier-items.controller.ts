@@ -2,7 +2,7 @@ import { SupplierItemsDomainService } from '@domain/supplier-items/services/supp
 import type { InventoryItemSupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { RpcSiteId } from '@vritti/api-sdk/nats';
 
 @Controller()
@@ -13,7 +13,7 @@ export class InventoryItemsSupplierItemsController {
 
   @MessagePattern({ cmd: 'site.inventoryItems.suppliersTable' })
   async suppliersTable(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
     @RpcSiteId() siteId: string,
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;

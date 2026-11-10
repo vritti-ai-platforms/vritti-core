@@ -4,7 +4,6 @@ import { CreateSupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/re
 import { SetSupplierEnrollmentActiveDto } from '@domain/supplier-enrollments/dto/request/set-supplier-enrollment-active.dto';
 import { SupplierEnrolledSitesQueryDto } from '@domain/supplier-enrollments/dto/request/supplier-enrolled-sites-query.dto';
 import { UpdateSupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
-import type { EnrolledSite } from '@domain/supplier-enrollments/repositories/supplier-enrollments.repository';
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -62,10 +61,12 @@ export class SupplierEnrollmentsController {
     return this.service.delete(data.supplierId, data.siteId);
   }
 
-  // Returns the sites a supplier is enrolled at, each with whether the enrollment is effectively active
+  // Returns the sites a supplier, or any supplier of an inventory item, is enrolled at
   @MessagePattern({ cmd: 'le.suppliers.enrollments.siteIds' })
-  findEnrolledSites(@Payload() query: SupplierEnrolledSitesQueryDto): Promise<EnrolledSite[]> {
-    this.logger.log(`le.suppliers.enrollments.siteIds — supplierId: ${query.supplierId}`);
-    return this.service.findEnrolledSites(query);
+  findEnrolledSiteIds(@Payload() query: SupplierEnrolledSitesQueryDto): Promise<string[]> {
+    this.logger.log(
+      `le.suppliers.enrollments.siteIds — supplierId: ${query.supplierId}, inventoryItemId: ${query.inventoryItemId}, isActive: ${query.isActive}`,
+    );
+    return this.service.findEnrolledSiteIds(query);
   }
 }

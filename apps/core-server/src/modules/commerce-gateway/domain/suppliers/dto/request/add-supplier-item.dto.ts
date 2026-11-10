@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   Min,
 } from 'class-validator';
 
@@ -35,14 +36,17 @@ export class AddSupplierItemDto {
   @Min(0)
   minOrderQuantity?: number;
 
-  @ApiPropertyOptional({
-    description: 'Days from order to delivery; every site that does not set its own follows it',
-    example: 5,
+  @ApiProperty({
+    description:
+      'Whole days from order to delivery, 0 for the same day; every site that does not set its own follows it',
+    minimum: 0,
+    maximum: 365,
+    example: 0,
   })
-  @IsOptional()
   @IsInt()
   @Min(0)
-  defaultLeadTimeDays?: number;
+  @Max(365)
+  defaultLeadTimeDays: number;
 
   @ApiProperty({ type: [String], description: 'Enrolled sites to set the item up at' })
   @IsArray()

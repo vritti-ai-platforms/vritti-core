@@ -6,7 +6,7 @@ import type { UomDimensionDto } from '@domain/uom-dimensions/dto/entity/uom-dime
 import { UomDimensionsDomainService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -20,9 +20,7 @@ export class UomController {
 
   // Returns paginated UOMs for the data table (scoped to a dimension)
   @MessagePattern({ cmd: 'org.uom.table' })
-  async table(
-    @Payload() state: TableViewState & { dimensionId: string },
-  ): Promise<{ result: UomDto[]; count: number }> {
+  async table(@Payload() state: TableState & { dimensionId: string }): Promise<{ result: UomDto[]; count: number }> {
     this.logger.log(`uom.table — dimensionId: ${state.dimensionId}`);
     return this.uomService.findForTable(state);
   }

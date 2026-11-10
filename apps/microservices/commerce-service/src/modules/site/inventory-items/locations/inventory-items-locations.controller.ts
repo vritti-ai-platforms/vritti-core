@@ -3,7 +3,7 @@ import { AddInventoryItemLocationDto } from '@domain/inventory-item-locations/dt
 import { UpdateInventoryItemLocationDto } from '@domain/inventory-item-locations/dto/request/update-inventory-item-location.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InventoryItemsLocationsService } from './services/inventory-items-locations.service';
 
@@ -15,7 +15,7 @@ export class InventoryItemsLocationsController {
 
   @MessagePattern({ cmd: 'site.inventoryItems.locationsTable' })
   async locationsTable(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
     this.logger.log(`inventoryItems.locationsTable — inventoryItemId: ${data.inventoryItemId}`);
     return this.service.findForTable(data.inventoryItemId, data);

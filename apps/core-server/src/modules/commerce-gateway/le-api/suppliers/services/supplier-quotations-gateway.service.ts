@@ -9,7 +9,7 @@ import type {
 import type { SupplierQuotationTableResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-table-response.dto';
 import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -20,13 +20,13 @@ export class SupplierQuotationsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly siteRepository: SiteDomainRepository,
   ) {}
 
   async findForTable(supplierId: string, userId: string): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`le.suppliers.quotations.table — supplierId: ${supplierId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-supplier-${supplierId}-quotations`,
     );
@@ -45,7 +45,7 @@ export class SupplierQuotationsGatewayService {
     userId: string,
   ): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`le.suppliers.enrollments.quotations.table — supplierId: ${supplierId}, siteId: ${siteId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-supplier-${supplierId}-site-${siteId}-quotations`,
     );
@@ -66,15 +66,15 @@ export class SupplierQuotationsGatewayService {
     );
     const sites = await this.siteRepository.findByIds(
       orgId,
-      quotation.sites.map((site) => site.siteId),
+      quotation.sites.flatMap((site) => (site.siteId ? [site.siteId] : [])),
     );
     const sitesById = new Map(sites.map((site) => [site.id, site]));
     return {
       ...quotation,
       sites: quotation.sites.map((site) => ({
         ...site,
-        siteName: sitesById.get(site.siteId)?.name ?? null,
-        siteCode: sitesById.get(site.siteId)?.code ?? null,
+        siteName: site.siteId ? (sitesById.get(site.siteId)?.name ?? null) : null,
+        siteCode: site.siteId ? (sitesById.get(site.siteId)?.code ?? null) : null,
       })),
     };
   }
@@ -126,5 +126,17 @@ export class SupplierQuotationsGatewayService {
 
   removeFromSite(quotationId: string, siteId: string): Promise<SuccessResponseDto> {
     return this.nats.send('commerce', 'le.suppliers.quotations.sites.remove', { quotationId, siteId });
+  }
+
+  // Posts the quotation as the legal entity's prices, which every site without its own price in force uses
+  postToLegalEntity(quotationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.suppliers.quotations.legalEntity.post — quotationId: ${quotationId}`);
+    return this.nats.send('commerce', 'le.suppliers.quotations.legalEntity.post', { quotationId });
+  }
+
+  // Removes the quotation's legal-entity prices, restoring the ones they replaced
+  removeFromLegalEntity(quotationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.suppliers.quotations.legalEntity.remove — quotationId: ${quotationId}`);
+    return this.nats.send('commerce', 'le.suppliers.quotations.legalEntity.remove', { quotationId });
   }
 }

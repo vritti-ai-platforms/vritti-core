@@ -2,7 +2,7 @@ import type { AddSmsProviderTemplateDto } from '@communications/sms-provider-tem
 import type { SmsProviderTemplateResponseDto } from '@communications/sms-provider-templates/dto/response/sms-provider-template-response.dto';
 import type { SmsProviderTemplateTableResponseDto } from '@communications/sms-provider-templates/dto/response/sms-provider-template-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -12,13 +12,13 @@ export class SmsProviderTemplatesGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Reads Vritti's rows rather than the vendor: MSG91 has no endpoint that lists an account's SMS templates, so these rows are the list (see the schema note on sms_provider_templates)
   async findForTable(userId: string, providerId: string): Promise<SmsProviderTemplateTableResponseDto> {
     this.logger.log(`smsProviders.templates.list — provider: ${providerId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       'communications-org-sms-provider-templates',
     );

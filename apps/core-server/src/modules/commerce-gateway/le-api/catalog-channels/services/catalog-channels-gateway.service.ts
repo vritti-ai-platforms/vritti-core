@@ -23,7 +23,7 @@ import type {
 } from '@commerce/catalog-channels/dto/response/channel-item-response.dto';
 import { AppDomainRepository } from '@domain/app/repositories/app.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
@@ -45,7 +45,7 @@ export class LeCatalogChannelsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly appRepository: AppDomainRepository,
     private readonly ownerNames: OwnerNameService,
   ) {}
@@ -146,10 +146,7 @@ export class LeCatalogChannelsGatewayService {
 
   async findItemsForTable(userId: string, channelId: string): Promise<ChannelItemTableResponseDto> {
     this.logger.log(`le.catalogChannels.items — channelId: ${channelId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      ITEMS_TABLE_SLUG(channelId),
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, ITEMS_TABLE_SLUG(channelId));
     const { result, count } = await this.nats.send<{ result: ChannelItemResponseDto[]; count: number }>(
       'commerce',
       'le.catalogChannels.items',
@@ -172,10 +169,7 @@ export class LeCatalogChannelsGatewayService {
     currencyCode: string,
   ): Promise<ChannelPriceTableResponseDto> {
     this.logger.log(`le.catalogChannels.prices — channelId: ${channelId}, currency: ${currencyCode}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      PRICES_TABLE_SLUG(channelId),
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, PRICES_TABLE_SLUG(channelId));
     const { result, count } = await this.nats.send<{ result: ChannelPriceResponseDto[]; count: number }>(
       'commerce',
       'le.catalogChannels.prices',

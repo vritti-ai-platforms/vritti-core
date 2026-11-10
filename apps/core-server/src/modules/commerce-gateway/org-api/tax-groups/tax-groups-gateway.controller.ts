@@ -1,13 +1,13 @@
 import { CreateTaxClassGroupDto } from '@commerce/tax-groups/dto/request/create-tax-class-group.dto';
 import { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
 import { CreateTaxGroupRateDto } from '@commerce/tax-groups/dto/request/create-tax-group-rate.dto';
+import { SetTaxGroupActiveDto } from '@commerce/tax-groups/dto/request/set-tax-group-active.dto';
 import { TaxGroupRateTableQueryDto } from '@commerce/tax-groups/dto/request/tax-group-rate-table-query.dto';
 import { UpdateTaxClassGroupDto } from '@commerce/tax-groups/dto/request/update-tax-class-group.dto';
 import { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
 import { UpdateTaxGroupRateDto } from '@commerce/tax-groups/dto/request/update-tax-group-rate.dto';
 import type { TaxClassGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-response.dto';
 import type { TaxClassGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-table-response.dto';
-import type { TaxClassMappingTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-mapping-table-response.dto';
 import type { TaxGroupRateResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-response.dto';
 import type { TaxGroupRateTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-table-response.dto';
 import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
@@ -39,11 +39,11 @@ import {
   ApiDeleteTaxGroup,
   ApiDeleteTaxGroupClass,
   ApiDeleteTaxGroupRate,
-  ApiFindForTableTaxClassMapping,
   ApiFindForTableTaxGroupClasses,
   ApiFindForTableTaxGroupRates,
   ApiFindForTableTaxGroups,
   ApiGetTaxGroup,
+  ApiSetTaxGroupActive,
   ApiUpdateTaxGroup,
   ApiUpdateTaxGroupClass,
   ApiUpdateTaxGroupRate,
@@ -67,15 +67,6 @@ export class TaxGroupsGatewayController {
   findForTable(@UserId() userId: string): Promise<TaxGroupTableResponseDto> {
     this.logger.log('GET /commerce-api/tax-groups/table');
     return this.service.findForTable(userId);
-  }
-
-  // Returns every active tax class with its group valid today in the country of the saved table context
-  @Get('class-mapping/table')
-  @RequirePermission(ORG_TAX_GROUPS.classes.view)
-  @ApiFindForTableTaxClassMapping()
-  findClassMappingForTable(@UserId() userId: string): Promise<TaxClassMappingTableResponseDto> {
-    this.logger.log('GET /commerce-api/tax-groups/class-mapping/table');
-    return this.service.findClassMappingForTable(userId);
   }
 
   // Creates a tax group for one country
@@ -104,6 +95,18 @@ export class TaxGroupsGatewayController {
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/tax-groups/${id}`);
     return this.service.update(id, dto);
+  }
+
+  // Activates or deactivates a tax group; it stays active while a class mapping in force or still to come names it
+  @Patch(':id/active')
+  @RequirePermission(ORG_TAX_GROUPS.toggle)
+  @ApiSetTaxGroupActive()
+  setActive(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: SetTaxGroupActiveDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/tax-groups/${id}/active`);
+    return this.service.setActive(id, dto.isActive);
   }
 
   // Deletes a tax group and its rates unless tax classes are mapped to it

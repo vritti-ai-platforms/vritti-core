@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { compareCount, type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { compareCount, type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   BadRequestException,
@@ -119,7 +120,7 @@ export class OfferingVariantsDomainService {
   // listed in, and whether the calling workspace set the channel and so may change what it offers.
   async findForTable(
     offeringId: string,
-    state: TableViewState,
+    state: TableState,
     channelType?: CatalogChannelType,
     targetId?: string,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number; catalogName: string; isOwn: boolean }> {

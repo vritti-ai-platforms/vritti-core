@@ -4,7 +4,7 @@ import { UpdateCostCategoryDto } from '@domain/cost-categories/dto/request/updat
 import { CostCategoriesDomainService } from '@domain/cost-categories/services/cost-categories.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -14,7 +14,7 @@ export class CostCategoriesController {
   constructor(private readonly service: CostCategoriesDomainService) {}
 
   @MessagePattern({ cmd: 'le.costCategories.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: CostCategoryDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: CostCategoryDto[]; count: number }> {
     this.logger.log('costCategories.table');
     return this.service.findForTable(state);
   }

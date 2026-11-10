@@ -24,6 +24,7 @@ export const createTaxComponentSchema = z.object({
   code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(255, 'Name must be at most 255 characters'),
   authorityLevel: z.enum(AUTHORITY_LEVELS),
+  standsInForId: z.uuid().nullish(),
   isRecoverable: z.boolean(),
   isWithholding: z.boolean(),
   isActive: z.boolean(),
@@ -32,9 +33,9 @@ export const createTaxComponentSchema = z.object({
 export const updateTaxComponentSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255).optional(),
   authorityLevel: z.enum(AUTHORITY_LEVELS).optional(),
+  standsInForId: z.uuid().nullish(),
   isRecoverable: z.boolean().optional(),
   isWithholding: z.boolean().optional(),
-  isActive: z.boolean().optional(),
 });
 
 export type CreateTaxComponentFormData = z.infer<typeof createTaxComponentSchema>;
@@ -53,11 +54,14 @@ export interface TaxComponentData {
   code: string;
   name: string;
   authorityLevel: AuthorityLevel;
+  standsInForId: string | null;
+  standsInForName: string | null;
   isRecoverable: boolean;
   isWithholding: boolean;
   isActive: boolean;
   isSystem: boolean;
   canDelete: boolean;
+  canDeactivate: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -69,9 +73,10 @@ export interface CreateTaxComponentPayload {
   code: string;
   name: string;
   authorityLevel: AuthorityLevel;
+  standsInForId: string | null;
   isRecoverable: boolean;
   isWithholding: boolean;
   isActive: boolean;
 }
 
-export type UpdateTaxComponentPayload = Partial<Omit<CreateTaxComponentPayload, 'countryCode' | 'code'>>;
+export type UpdateTaxComponentPayload = Partial<Omit<CreateTaxComponentPayload, 'countryCode' | 'code' | 'isActive'>>;

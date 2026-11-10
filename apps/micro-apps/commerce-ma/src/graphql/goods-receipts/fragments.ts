@@ -9,16 +9,15 @@ export const GoodsReceiptFieldsFragment = graphql(`
     supplierId
     supplierName
     status
-    po {
-      id
-      poNumber
-      orderDate
-      expectedBy
-      totalAmount {
-        currency
-        value
-      }
-    }
+    inboundDeliveryId
+    deliveryNumber
+    deliverySource
+    carrier
+    trackingNumber
+    supplierDeliveryNoteNumber
+    supplierDeliveryNoteDate
+    poNumbers
+    expectedDeliveryDate
     receivedDate
     notes
     publishedAt

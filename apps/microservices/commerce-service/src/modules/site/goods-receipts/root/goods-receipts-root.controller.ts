@@ -1,5 +1,8 @@
 import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
-import { CreateGoodsReceiptDto } from '@domain/goods-receipts/dto/request/create-goods-receipt.dto';
+import { AddGoodsReceiptPurchaseOrderDto } from '@domain/goods-receipts/dto/request/add-goods-receipt-purchase-order.dto';
+import { CreateGoodsReceiptFromDeliveryDto } from '@domain/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
+import { CreateGoodsReceiptFromPurchaseOrdersDto } from '@domain/goods-receipts/dto/request/create-goods-receipt-from-purchase-orders.dto';
+import { UpdateGoodsReceiptDto } from '@domain/goods-receipts/dto/request/update-goods-receipt.dto';
 import {
   type GoodsReceiptFeed,
   type GoodsReceiptFeedQuery,
@@ -7,7 +10,7 @@ import {
 } from '@domain/goods-receipts/services/goods-receipts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsPublishService } from './services/goods-receipts-publish.service';
@@ -23,16 +26,41 @@ export class GoodsReceiptsRootController {
     private readonly publishService: GoodsReceiptsPublishService,
   ) {}
 
-  // Creates a goods receipt against one of the site's purchase orders
-  @MessagePattern({ cmd: 'site.goodsReceipts.create' })
-  create(@Payload() dto: CreateGoodsReceiptDto): Promise<CreateResponseDto<GoodsReceiptDto>> {
-    this.logger.log(`site.goodsReceipts.create — purchaseOrder: ${dto.purchaseOrderId}`);
-    return this.service.create(dto);
+  // Creates a draft goods receipt of an announced inbound delivery, pre-filled with its open lines
+  @MessagePattern({ cmd: 'site.goodsReceipts.createFromDelivery' })
+  createFromDelivery(@Payload() dto: CreateGoodsReceiptFromDeliveryDto): Promise<CreateResponseDto<GoodsReceiptDto>> {
+    this.logger.log(`site.goodsReceipts.createFromDelivery — delivery: ${dto.inboundDeliveryId}`);
+    return this.service.createFromDelivery(dto);
+  }
+
+  // Creates an arrived inbound delivery of a supplier's purchase orders and a draft goods receipt of it, pre-filled with their open lines
+  @MessagePattern({ cmd: 'site.goodsReceipts.createFromPurchaseOrders' })
+  createFromPurchaseOrders(
+    @Payload() dto: CreateGoodsReceiptFromPurchaseOrdersDto,
+  ): Promise<CreateResponseDto<GoodsReceiptDto>> {
+    this.logger.log(
+      `site.goodsReceipts.createFromPurchaseOrders — supplier: ${dto.supplierId}, POs: ${dto.purchaseOrderIds.length}`,
+    );
+    return this.service.createFromPurchaseOrders(dto);
+  }
+
+  // Adds the open lines of another purchase order of the supplier to a draft goods receipt and its inbound delivery
+  @MessagePattern({ cmd: 'site.goodsReceipts.addPurchaseOrder' })
+  addPurchaseOrder(@Payload() dto: AddGoodsReceiptPurchaseOrderDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.addPurchaseOrder — receipt: ${dto.goodsReceiptId}, PO: ${dto.purchaseOrderId}`);
+    return this.service.addPurchaseOrder(dto);
+  }
+
+  // Changes a draft goods receipt's notes and the supplier's delivery note on the inbound delivery it created
+  @MessagePattern({ cmd: 'site.goodsReceipts.update' })
+  update(@Payload() dto: UpdateGoodsReceiptDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.update — id: ${dto.id}`);
+    return this.service.update(dto);
   }
 
   // Returns one page of the site's goods receipts
   @MessagePattern({ cmd: 'site.goodsReceipts.table' })
-  table(@Payload() state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
+  table(@Payload() state: TableState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
     this.logger.log('site.goodsReceipts.table');
     return this.goodsReceiptsService.findForTable(state);
   }
@@ -58,10 +86,10 @@ export class GoodsReceiptsRootController {
     return this.publishService.publish(data.id, headers.siteCurrencyCode, headers);
   }
 
-  // Deletes a draft goods receipt
+  // Deletes a draft goods receipt, with the inbound delivery it created
   @MessagePattern({ cmd: 'site.goodsReceipts.delete' })
   delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`site.goodsReceipts.delete — id: ${data.id}`);
-    return this.goodsReceiptsService.delete(data.id);
+    return this.service.delete(data.id);
   }
 }

@@ -51,7 +51,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
   const editLineDialog = useDialog();
 
   const { data: line, isLoading: lineLoading } = useStockAdjustmentLine(adjustmentId, lineId);
-  const { data: response, isLoading } = useStockAdjustmentLineItemsTable(adjustmentId, lineId);
+  const stockAdjustmentLineItemsTableQuery = useStockAdjustmentLineItemsTable(adjustmentId, lineId);
   const removeSerialMutation = useRemoveStockAdjustmentLineItem(adjustmentId, lineId ?? '');
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustmentId);
   const addSerialMutation = useAddStockAdjustmentLineItem(adjustmentId, lineId ?? '');
@@ -138,9 +138,9 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
     ? `stock-adjustment-${adjustmentId}-line-${lineId}-items`
     : `stock-adjustment-${adjustmentId}-line-none-items`;
 
-  const { table } = useDataTable({
+  const stockAdjustmentLineItemsTable = useDataTable({
     columns,
-    serverState: response,
+    query: stockAdjustmentLineItemsTableQuery,
     slug: tableSlug,
     label: 'serial',
     enableRowSelection: isDraft,
@@ -150,6 +150,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
       }
     },
   });
+  const { table } = stockAdjustmentLineItemsTable;
 
   const handleBulkRemove = useCallback(
     async (rows: Parameters<SelectActions<StockAdjustmentLineItemData>>[0]) => {
@@ -174,7 +175,9 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
     );
   }
 
-  const lastSerial = response?.result?.[response.result.length - 1]?.serialNumber;
+  const lastSerial =
+    stockAdjustmentLineItemsTableQuery.data?.result?.[stockAdjustmentLineItemsTableQuery.data.result.length - 1]
+      ?.serialNumber;
 
   const skeleton = (
     <div className="space-y-3 p-4">
@@ -261,9 +264,8 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
         )}
 
         <DataTable
-          table={table}
+          table={stockAdjustmentLineItemsTable}
           mode="compact"
-          isLoading={isLoading}
           searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
           filters={[<ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />]}
           selectActions={(rows) => (

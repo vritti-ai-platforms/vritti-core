@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
@@ -42,7 +43,7 @@ export class CatalogListingsDomainService {
   // Returns one page of a catalog's listings, each with its prices.
   async findForTable(
     catalogId: string,
-    state: TableViewState,
+    state: TableState,
     currencyCode?: string,
   ): Promise<{ result: CatalogListingDto[]; count: number }> {
     await this.requireCatalog(catalogId);

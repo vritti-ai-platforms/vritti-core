@@ -1,26 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { pluralize } from '@vritti/api-sdk/pluralize';
+import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { convertMinor } from '@/common/convert-minor';
-import { goodsReceiptItems, inventoryItems, type PurchaseOrderItem } from '@/db/schema';
+import { goodsReceiptItems, inventoryItems } from '@/db/schema';
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
 import { GoodsReceiptItemsCostDto } from '../dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
 import { PurchaseOrderReceiptItemFlagsDto } from '../dto/entity/purchase-order-receipt-item-flags.dto';
-import type { AddGoodsReceiptItemDto } from '../dto/request/add-goods-receipt-item.dto';
 import type { UpdateGoodsReceiptItemDto } from '../dto/request/update-goods-receipt-item.dto';
 import {
+  type GoodsReceiptDraftLine,
   type GoodsReceiptItemRow,
   GoodsReceiptItemsDomainRepository,
 } from '../repositories/goods-receipt-items.repository';
-import { type GoodsReceiptRow, GoodsReceiptsDomainRepository } from '../repositories/goods-receipts.repository';
-
-export type GoodsReceiptPurchaseOrderItem = Pick<
-  PurchaseOrderItem,
-  'id' | 'purchaseOrderId' | 'inventoryItemId' | 'uomId'
->;
+import type { GoodsReceiptRow } from '../repositories/goods-receipts.repository';
 
 export interface GoodsReceiptItemCost {
   item: GoodsReceiptItemRow;
@@ -43,15 +40,12 @@ export class GoodsReceiptItemsDomainService {
     rejectedQuantity: { column: goodsReceiptItems.rejectedQuantity, type: 'number' },
   };
 
-  constructor(
-    private readonly receiptsRepository: GoodsReceiptsDomainRepository,
-    private readonly itemsRepository: GoodsReceiptItemsDomainRepository,
-  ) {}
+  constructor(private readonly itemsRepository: GoodsReceiptItemsDomainRepository) {}
 
   // Returns one page of a receipt's items with their purchase order context and flags
   async findForTable(
     goodsReceiptId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptItemsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
@@ -122,38 +116,28 @@ export class GoodsReceiptItemsDomainService {
     );
   }
 
-  // Counts a purchase order line on a draft receipt; its item and unit are the line's
-  async addItem(
+  // Adds the open lines of another purchase order to a draft receipt, each at its open quantity
+  async addPurchaseOrderLines(
     receipt: GoodsReceiptRow,
-    purchaseOrderItem: GoodsReceiptPurchaseOrderItem,
-    dto: AddGoodsReceiptItemDto,
-  ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
-    const rejectedQuantity = dto.rejectedQuantity ?? 0;
-    this.itemsRepository.assertRejectedWithinReceived(dto.receivedQty, rejectedQuantity);
-    await this.itemsRepository.assertPurchaseOrderItemNotOnReceipt(receipt.id, purchaseOrderItem.id);
-
-    const created = await this.itemsRepository.create({
-      goodsReceiptId: receipt.id,
-      siteId: receipt.siteId,
-      purchaseOrderItemId: purchaseOrderItem.id,
-      inventoryItemId: purchaseOrderItem.inventoryItemId,
-      uomId: purchaseOrderItem.uomId,
-      receivedQty: dto.receivedQty,
-      rejectedQuantity,
-    });
-
-    this.logger.log(`Added PO line ${purchaseOrderItem.id} to goods receipt ${receipt.grNumber}`);
+    poNumber: string,
+    lines: GoodsReceiptDraftLine[],
+  ): Promise<SuccessResponseDto> {
+    await this.itemsRepository.insertMany(
+      lines.map((line) => ({ ...line, goodsReceiptId: receipt.id, siteId: receipt.siteId })),
+    );
+    this.logger.log(`Added ${lines.length} lines of ${poNumber} to goods receipt ${receipt.grNumber}`);
     return {
       success: true,
-      message: `Item added to goods receipt "${receipt.grNumber}".`,
-      data: await this.findById(receipt.id, created.id),
+      message: `${pluralize('line', lines.length, true)} of "${poNumber}" added to goods receipt "${receipt.grNumber}".`,
     };
   }
 
   // Changes the received or rejected quantity of an item on a draft receipt
-  async updateItem(dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
-    const receipt = await this.receiptsRepository.findDraftOrThrow(dto.goodsReceiptId, 'Cannot Edit Item');
-    const item = await this.itemsRepository.findOnReceiptOrThrow(receipt.id, dto.itemId);
+  async updateItem(
+    receipt: GoodsReceiptRow,
+    item: GoodsReceiptItemRow,
+    dto: UpdateGoodsReceiptItemDto,
+  ): Promise<SuccessResponseDto> {
     const receivedQty = dto.receivedQty ?? item.receivedQty;
     const rejectedQuantity = dto.rejectedQuantity ?? item.rejectedQuantity;
     this.itemsRepository.assertRejectedWithinReceived(receivedQty, rejectedQuantity);
@@ -164,10 +148,7 @@ export class GoodsReceiptItemsDomainService {
   }
 
   // Removes an item, with its lots and lines, from a draft receipt
-  async removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
-    const receipt = await this.receiptsRepository.findDraftOrThrow(goodsReceiptId, 'Cannot Remove Item');
-    const item = await this.itemsRepository.findOnReceiptOrThrow(receipt.id, itemId);
-
+  async removeItem(receipt: GoodsReceiptRow, item: GoodsReceiptItemRow): Promise<SuccessResponseDto> {
     await this.itemsRepository.delete(item.id);
     this.logger.log(`Removed item ${item.id} from goods receipt ${receipt.grNumber}`);
     return { success: true, message: `"${item.inventoryItemName}" removed from goods receipt "${receipt.grNumber}".` };

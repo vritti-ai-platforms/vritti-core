@@ -27,7 +27,7 @@ function paymentTermPath(term: Pick<PaymentTermData, 'id' | 'name'>, tab: 'overv
 export const PaymentTermsPage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { data: response, isLoading } = usePaymentTermsTable();
+  const paymentTermsTableQuery = usePaymentTermsTable();
   const addDialog = useDialog();
 
   const columns = useMemo<ColumnDef<PaymentTermData>[]>(
@@ -67,11 +67,11 @@ export const PaymentTermsPage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const paymentTermsTable = useDataTable({
     columns,
     slug: 'commerce-org-payment-terms',
     label: 'payment term',
-    serverState: response,
+    query: paymentTermsTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -86,8 +86,7 @@ export const PaymentTermsPage = () => {
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={paymentTermsTable}
         permission={ORG_PAYMENT_TERMS.view}
         filters={[
           <SelectFilter key="isPublished" name="isPublished" label="Status" options={PAYMENT_TERM_STATUS_OPTIONS} />,

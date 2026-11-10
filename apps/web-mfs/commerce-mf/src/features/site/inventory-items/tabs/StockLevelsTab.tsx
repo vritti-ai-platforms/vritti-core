@@ -80,11 +80,11 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId,
     [uomSymbol],
   );
 
-  const serverState = useMemo(() => ({ result: stocks, count: stocks.length }), [stocks]);
+  const stockRows = useMemo(() => ({ result: stocks, count: stocks.length }), [stocks]);
 
-  const { table } = useDataTable({
+  const stockLevelsTable = useDataTable({
     columns,
-    serverState,
+    query: { data: stockRows, isLoading },
     slug: `inventory-item-${inventoryItemId}-stock-levels`,
     label: 'stock level',
     enableRowSelection: false,
@@ -93,9 +93,8 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId,
 
   return (
     <DataTable
-      table={table}
+      table={stockLevelsTable}
       mode="tab"
-      isLoading={isLoading}
       emptyStateConfig={{
         icon: MapPin,
         title: 'No stock levels',

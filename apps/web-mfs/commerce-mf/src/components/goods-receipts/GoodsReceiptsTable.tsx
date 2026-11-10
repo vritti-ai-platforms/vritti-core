@@ -28,14 +28,14 @@ interface GoodsReceiptsTableProps {
 
 const STATUS_OPTIONS = Object.entries(goodsReceiptStatusConfig).map(([value, { label }]) => ({ label, value }));
 
-// Goods receipts, newest first, each against a purchase order; across the legal entity's sites they are narrowed by
+// Goods receipts, newest first, each of one supplier across its purchase orders; across the legal entity's sites they are narrowed by
 // site and name it, and a row opens its receipt
 export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding }) => {
   const { permissions } = binding;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createDialog = useDialog();
-  const { data: response, isLoading, isFetching } = binding.useTable();
+  const goodsReceiptsTableQuery = binding.useTable();
 
   const openReceipt = useCallback(
     (receipt: Pick<GoodsReceiptData, 'grNumber' | 'id'>) => navigate(buildSlug(receipt.grNumber, receipt.id)),
@@ -76,10 +76,16 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
         cell: ({ row }) => <GoodsReceiptStatusBadge status={row.original.status} />,
       },
       {
-        accessorKey: 'po',
-        header: 'Purchase Order',
-        cell: ({ row }) => <StringCell value={row.original.po.poNumber} mono />,
+        accessorKey: 'poNumbers',
+        header: 'Purchase Orders',
+        cell: ({ row }) => <StringCell value={row.original.poNumbers.join(', ')} mono />,
         enableSorting: false,
+      },
+      {
+        accessorKey: 'deliveryNumber',
+        header: 'Inbound Delivery',
+        cell: ({ row }) => <StringCell value={row.original.deliveryNumber} mono />,
+        enableSorting: true,
       },
       {
         accessorKey: 'notes',
@@ -110,11 +116,11 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
     [binding.spansSites, permissions.view, openReceipt],
   );
 
-  const { table } = useDataTable({
+  const goodsReceiptsTable = useDataTable({
     columns,
     slug: binding.tableSlug,
     label: 'goods receipt',
-    serverState: response,
+    query: goodsReceiptsTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -135,9 +141,7 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
   return (
     <>
       <DataTable
-        table={table}
-        isLoading={isLoading}
-        isFetching={isFetching}
+        table={goodsReceiptsTable}
         permission={permissions.view}
         onRowClick={openReceipt}
         contextBar={
@@ -149,7 +153,8 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
           columns: [
             { id: 'grNumber', label: 'GR Number' },
             { id: 'supplierName', label: 'Supplier' },
-            { id: 'poNumber', label: 'PO Number' },
+            { id: 'poNumbers', label: 'PO Number' },
+            { id: 'deliveryNumber', label: 'Delivery Number' },
           ],
           searchAll: true,
         }}
@@ -158,7 +163,7 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
         emptyStateConfig={{
           icon: PackageCheck,
           title: 'No goods receipts',
-          description: 'Receive goods against a confirmed purchase order to start a goods receipt.',
+          description: "Receive goods against a supplier's confirmed purchase orders to start a goods receipt.",
           action: newReceiptAction,
         }}
       />
@@ -167,10 +172,10 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
         handle={createDialog}
         icon={PackageCheck}
         title="New Goods Receipt"
-        description="Pick the purchase order the goods were delivered against, then count them on the draft."
+        description="Receive an announced inbound delivery, or the supplier's purchase orders when the goods arrived without one; then count them on the draft."
         content={(close) => (
           <CreateGoodsReceiptDialog
-            useCreateGoodsReceipt={binding.useCreate}
+            mutations={binding}
             onSuccess={(receipt) => {
               close();
               openReceipt(receipt);

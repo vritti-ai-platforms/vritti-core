@@ -11,7 +11,7 @@ import { UpdateSupplierDto } from '@domain/suppliers/dto/request/update-supplier
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SuppliersService } from './services/suppliers-root.service';
 
@@ -25,7 +25,7 @@ export class SuppliersRootController {
   ) {}
 
   @MessagePattern({ cmd: 'le.suppliers.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: SupplierDto[]; count: number }> {
     this.logger.log('suppliers.table');
     return this.service.findForTable(state);
   }

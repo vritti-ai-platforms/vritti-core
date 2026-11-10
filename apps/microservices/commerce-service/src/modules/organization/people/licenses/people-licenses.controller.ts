@@ -4,7 +4,7 @@ import { UpdateCompanyLicenseDto } from '@domain/party-licenses/dto/request/upda
 import { PartyLicensesDomainService } from '@domain/party-licenses/services/party-licenses.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -15,7 +15,7 @@ export class PeopleLicensesController {
 
   // Returns the paginated licenses of a person
   @MessagePattern({ cmd: 'org.people.licenses.table' })
-  table(@Payload() data: { personId: string } & TableViewState): Promise<{ result: PartyLicenseDto[]; count: number }> {
+  table(@Payload() data: { personId: string } & TableState): Promise<{ result: PartyLicenseDto[]; count: number }> {
     const { personId, ...state } = data;
     this.logger.log(`people.licenses.table — personId: ${personId}`);
     return this.service.findForTable(personId, state);

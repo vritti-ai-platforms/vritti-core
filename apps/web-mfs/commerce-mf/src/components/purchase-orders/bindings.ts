@@ -1,7 +1,10 @@
 import type { SelectFilterProps, SelectProps } from '@vritti/quantum-ui/Select';
 import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import type { ComponentType } from 'react';
-import type { UseCreateGoodsReceipt } from '@/components/goods-receipts/types';
+import type {
+  UseCreateGoodsReceiptFromDelivery,
+  UseCreateGoodsReceiptFromPurchaseOrders,
+} from '@/components/goods-receipts/types';
 import type { SupplierInvoicePath } from '@/components/supplier-invoices/types';
 import type {
   PurchaseOrderPermissions,
@@ -14,6 +17,7 @@ import type {
   UseDownloadPurchaseOrderPdf,
   UsePurchaseOrder,
   UsePurchaseOrderGoodsReceiptsTable,
+  UsePurchaseOrderInboundDeliveriesTable,
   UsePurchaseOrderItemIds,
   UsePurchaseOrderItemsTable,
   UsePurchaseOrderProblems,
@@ -24,6 +28,7 @@ import type {
   UseUpdatePurchaseOrderItem,
   UseUpdatePurchaseOrderNotes,
   UseUpdatePurchaseOrderStatus,
+  UseUpdatePurchaseOrderTaxDate,
 } from './types';
 
 export interface PurchaseOrderSuppliersBinding {
@@ -33,7 +38,8 @@ export interface PurchaseOrderSuppliersBinding {
 
 export interface PurchaseOrderGoodsReceiptsBinding {
   addPermission: string;
-  useCreate: UseCreateGoodsReceipt;
+  useCreateFromDelivery: UseCreateGoodsReceiptFromDelivery;
+  useCreateFromPurchaseOrders: UseCreateGoodsReceiptFromPurchaseOrders;
 }
 
 export interface PurchaseOrderInvoicesBinding {
@@ -55,12 +61,15 @@ export interface PurchaseOrdersBinding {
   itemsTableSlug: (id: string) => string;
   goodsReceiptsTableKey: (id: string) => readonly unknown[];
   goodsReceiptsTableSlug: (id: string) => string;
+  inboundDeliveriesTableKey: (id: string) => readonly unknown[];
+  inboundDeliveriesTableSlug: (id: string) => string;
 
   useTable: UsePurchaseOrdersTable;
   usePurchaseOrder: UsePurchaseOrder;
   useItemIds: UsePurchaseOrderItemIds;
   useItemsTable: UsePurchaseOrderItemsTable;
   useGoodsReceiptsTable: UsePurchaseOrderGoodsReceiptsTable;
+  useInboundDeliveriesTable: UsePurchaseOrderInboundDeliveriesTable;
   useProblems: UsePurchaseOrderProblems;
 
   useCreate: UseCreatePurchaseOrder;
@@ -72,6 +81,7 @@ export interface PurchaseOrdersBinding {
   useChangeExchangeRate: UseChangePurchaseOrderExchangeRate;
   useSetConversionRate: UseSetPurchaseOrderConversionRate;
   useUpdateStatus: UseUpdatePurchaseOrderStatus;
+  useUpdateTaxDate: UseUpdatePurchaseOrderTaxDate;
   useSendEmail: UseSendPurchaseOrderEmail;
   useClose: UseClosePurchaseOrder;
   useDelete: UseDeletePurchaseOrder;

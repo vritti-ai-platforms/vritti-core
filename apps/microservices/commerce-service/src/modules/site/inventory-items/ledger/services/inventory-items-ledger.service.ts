@@ -2,7 +2,7 @@ import type { InventoryItemLedgerDto } from '@domain/inventory-item-ledger/dto/e
 import { InventoryItemLedgerDomainService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 
 @Injectable()
 export class InventoryItemsLedgerService {
@@ -16,7 +16,7 @@ export class InventoryItemsLedgerService {
   // Returns paginated ledger entries for an inventory item data table
   async findForTable(
     inventoryItemId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
     this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
     await this.inventoryItemsService.findById(inventoryItemId);

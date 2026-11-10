@@ -27,7 +27,7 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
 
   const uomSymbol = adjustment.inventoryItemUomSymbol;
 
-  const { data: response, isLoading } = useStockAdjustmentLinesTable(adjustment.id);
+  const stockAdjustmentLinesTableQuery = useStockAdjustmentLinesTable(adjustment.id);
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
 
   const handleRemoveLine = useCallback(
@@ -126,9 +126,9 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
     [isDraft, uomSymbol, handleRemoveLine, adjustment, tracking],
   );
 
-  const { table } = useDataTable({
+  const stockAdjustmentLinesTable = useDataTable({
     columns,
-    serverState: response,
+    query: stockAdjustmentLinesTableQuery,
     slug: `stock-adjustment-${adjustment.id}-change-lines`,
     label: 'line',
     enableRowSelection: false,
@@ -138,9 +138,8 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
   return (
     <>
       <DataTable
-        table={table}
+        table={stockAdjustmentLinesTable}
         mode="compact"
-        isLoading={isLoading}
         searchConfig={{
           columns: [
             { id: 'quant', label: 'Quant' },

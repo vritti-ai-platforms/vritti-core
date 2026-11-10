@@ -20,6 +20,7 @@ export * from './goods-receipt-line-items';
 export * from './goods-receipt-lines';
 export * from './goods-receipt-lots';
 export * from './goods-receipts';
+export * from './inbound-deliveries';
 export * from './inventory-item-costs';
 export * from './inventory-item-ledger';
 export * from './inventory-item-locations';

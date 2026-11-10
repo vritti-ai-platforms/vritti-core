@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -43,7 +44,7 @@ export class OrdersDomainService {
   constructor(private readonly repository: OrdersDomainRepository) {}
 
   // Returns paginated orders for the data table
-  async findForTable(state: TableViewState): Promise<{ result: OrderDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: OrderDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, OrdersDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, OrdersDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);

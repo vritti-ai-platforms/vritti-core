@@ -4,7 +4,7 @@ import { UpdateCompanyPersonDto } from '@domain/party-relationships/dto/request/
 import { PartyRelationshipsDomainService } from '@domain/party-relationships/services/party-relationships.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -16,7 +16,7 @@ export class CompanyPeopleController {
   // Returns the paginated people (person relationships) of a company
   @MessagePattern({ cmd: 'org.companies.people.table' })
   async table(
-    @Payload() data: { companyId: string } & TableViewState,
+    @Payload() data: { companyId: string } & TableState,
   ): Promise<{ result: PartyRelationshipDto[]; count: number }> {
     const { companyId, ...state } = data;
     this.logger.log(`companies.people.table — companyId: ${companyId}`);

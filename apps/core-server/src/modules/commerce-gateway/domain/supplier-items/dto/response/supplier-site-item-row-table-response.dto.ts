@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
+import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { SupplierSiteItemRowResponseDto } from './supplier-site-item-row-response.dto';
 
 export class SupplierSiteItemRowTableResponseDto extends TableResponseDto<SupplierSiteItemRowResponseDto> {
@@ -10,7 +10,7 @@ export class SupplierSiteItemRowTableResponseDto extends TableResponseDto<Suppli
   declare count: number;
 
   @ApiProperty({ description: 'Current active filter/sort/visibility state' })
-  declare state: TableViewState;
+  declare state: TableState;
 
   @ApiPropertyOptional()
   declare activeViewId: string | null;

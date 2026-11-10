@@ -39,7 +39,7 @@ export function SupplierCard({ supplier }: { supplier: Supplier }) {
 
   const unitPrice = supplier.unitPrice ? fmt.currency(supplier.unitPrice).primary : '—';
   const minOrder = supplier.minOrderQuantity != null ? String(supplier.minOrderQuantity) : '—';
-  const leadTime = supplier.leadTimeDays != null ? `${supplier.leadTimeDays} d` : '—';
+  const leadTime = `${supplier.leadTimeDays} d`;
 
   return (
     <Card className="gap-0 overflow-hidden p-0">

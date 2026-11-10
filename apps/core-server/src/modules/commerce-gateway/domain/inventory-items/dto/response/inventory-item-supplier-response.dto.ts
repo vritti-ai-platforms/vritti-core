@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
+import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 export class InventoryItemSupplierResponseDto {
@@ -13,7 +13,7 @@ export class InventoryItemSupplierResponseDto {
   @ApiProperty() uomSymbol: string;
   @ApiProperty({ description: 'Number of sites the supplier item is set up at' }) siteCount: number;
   @ApiProperty({ nullable: true }) minOrderQuantity: number | null;
-  @ApiProperty({ nullable: true }) leadTimeDays: number | null;
+  @ApiProperty({ description: 'Lead time in whole days at the site', minimum: 0, maximum: 365 }) leadTimeDays: number;
   @ApiProperty({ description: "True when the site sets its own lead time instead of following the supplier item's" })
   isLeadTimeOverridden: boolean;
   @ApiProperty() isPreferred: boolean;
@@ -27,7 +27,7 @@ export class InventoryItemSupplierTableResponseDto extends TableResponseDto<Inve
   declare count: number;
 
   @ApiProperty({ description: 'Current active filter/sort/visibility state' })
-  declare state: TableViewState;
+  declare state: TableState;
 
   @ApiPropertyOptional()
   declare activeViewId: string | null;

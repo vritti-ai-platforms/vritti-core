@@ -236,6 +236,31 @@ export const GoodsReceiptStatusValues = {
 };
 export type GoodsReceiptStatus = (typeof goodsReceiptStatusEnum.enumValues)[number];
 
+export const inboundDeliveryStatusEnum = commerceSchema.enum('inbound_delivery_status', [
+  'PLANNED',
+  'IN_TRANSIT',
+  'ARRIVED',
+  'PARTIALLY_RECEIVED',
+  'RECEIVED',
+  'CANCELLED',
+]);
+export const InboundDeliveryStatusValues = {
+  PLANNED: 'PLANNED' as const,
+  IN_TRANSIT: 'IN_TRANSIT' as const,
+  ARRIVED: 'ARRIVED' as const,
+  PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED' as const,
+  RECEIVED: 'RECEIVED' as const,
+  CANCELLED: 'CANCELLED' as const,
+};
+export type InboundDeliveryStatus = (typeof inboundDeliveryStatusEnum.enumValues)[number];
+
+export const inboundDeliverySourceEnum = commerceSchema.enum('inbound_delivery_source', ['ANNOUNCED', 'RECEIPT']);
+export const InboundDeliverySourceValues = {
+  ANNOUNCED: 'ANNOUNCED' as const,
+  RECEIPT: 'RECEIPT' as const,
+};
+export type InboundDeliverySource = (typeof inboundDeliverySourceEnum.enumValues)[number];
+
 export const supplierInvoiceStatusEnum = commerceSchema.enum('supplier_invoice_status', [
   'DRAFT',
   'POSTED',

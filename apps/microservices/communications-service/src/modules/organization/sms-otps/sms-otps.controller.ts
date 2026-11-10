@@ -5,7 +5,7 @@ import { SendSmsOtpDto } from '@domain/sms-otps/dto/request/send-sms-otp.dto';
 import { VerifySmsOtpDto } from '@domain/sms-otps/dto/request/verify-sms-otp.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { SmsOtpsService } from './services/sms-otps.service';
 
 @Controller()
@@ -27,7 +27,7 @@ export class SmsOtpsController {
   }
 
   @MessagePattern({ cmd: 'org.smsOtps.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: SmsOtpDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: SmsOtpDto[]; count: number }> {
     this.logger.log('smsOtps.table');
     return this.service.findForTable(state);
   }

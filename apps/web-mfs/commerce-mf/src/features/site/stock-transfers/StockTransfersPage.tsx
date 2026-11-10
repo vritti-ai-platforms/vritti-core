@@ -34,7 +34,7 @@ const statusConfig: Record<
 export const StockTransfersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useStockTransfersTable();
+  const stockTransfersTableQuery = useStockTransfersTable();
   const addDialog = useDialog();
 
   const columns = useMemo<ColumnDef<StockTransferData>[]>(
@@ -100,11 +100,11 @@ export const StockTransfersPage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const stockTransfersTable = useDataTable({
     columns,
     slug: 'commerce-site-stock-transfers',
     label: 'stock transfer',
-    serverState: response,
+    query: stockTransfersTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -116,8 +116,7 @@ export const StockTransfersPage = () => {
       <PageHeader title="Stock Transfers" description="Transfer inventory between sites and locations" />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={stockTransfersTable}
         searchConfig={{
           columns: [{ id: 'inventoryItemName', label: 'Item' }],
           searchAll: true,

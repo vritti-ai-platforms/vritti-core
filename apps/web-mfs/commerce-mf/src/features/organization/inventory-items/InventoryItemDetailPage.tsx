@@ -10,10 +10,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/organization/inventory-items';
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
-import { MrpTab } from './tabs/MrpTab';
+import { MrpTab } from './tabs/mrp/MrpTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
-import { UomConversionsTab } from './tabs/UomConversionsTab';
+import { UomConversionsTab } from './tabs/uom-conversions/UomConversionsTab';
 
 export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');

@@ -8,7 +8,7 @@ import type {
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
 import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -23,7 +23,7 @@ export class SupplierInvoicesGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
     private readonly siteRepository: SiteDomainRepository,
   ) {}
@@ -31,10 +31,7 @@ export class SupplierInvoicesGatewayService {
   // Returns the invoices of the legal entity's sites with server-stored state and site names
   async findForTable(userId: string, orgId: string): Promise<SupplierInvoiceTableResponseDto> {
     this.logger.log('le.supplierInvoices.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-le-supplier-invoices',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-supplier-invoices');
     const { result, count } = await this.nats.send<{ result: CommerceSupplierInvoice[]; count: number }>(
       'commerce',
       'le.supplierInvoices.table',

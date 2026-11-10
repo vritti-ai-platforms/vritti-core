@@ -1,6 +1,7 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
+import { type InboundDeliverySource, supplierDeliveryNoteShape } from '@/schemas/inbound-deliveries';
 import type { InventoryTracking } from '@/schemas/inventory-items';
 
 export const GoodsReceiptStatus = {
@@ -15,14 +16,6 @@ export const goodsReceiptStatusConfig: Record<GoodsReceiptStatus, { label: strin
   PUBLISHED: { label: 'Published', variant: 'success' },
 };
 
-export interface GoodsReceiptPoData {
-  id: string;
-  poNumber: string;
-  orderDate: string;
-  expectedBy: string | null;
-  totalAmount: CurrencyValue;
-}
-
 export interface GoodsReceiptData {
   id: string;
   grNumber: string;
@@ -35,8 +28,15 @@ export interface GoodsReceiptData {
   status: GoodsReceiptStatus;
   isPublishable: boolean;
   itemCount: number;
-  purchaseOrderId: string;
-  po: GoodsReceiptPoData;
+  inboundDeliveryId: string;
+  deliveryNumber: string;
+  deliverySource: InboundDeliverySource;
+  carrier: string | null;
+  trackingNumber: string | null;
+  supplierDeliveryNoteNumber: string | null;
+  supplierDeliveryNoteDate: string | null;
+  poNumbers: string[];
+  expectedDeliveryDate: string | null;
   receivedDate: string;
   notes: string | null;
   publishedAt: string | null;
@@ -169,16 +169,31 @@ export type GoodsReceiptsTableResponse = TableResponse<GoodsReceiptData>;
 export type GoodsReceiptLinesTableResponse = TableResponse<GoodsReceiptLineData>;
 export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineItemData>;
 
-export interface CreateGoodsReceiptPayload {
-  purchaseOrderId: string;
+export interface CreateGoodsReceiptFromDeliveryPayload {
+  inboundDeliveryId: string;
   receivedDate: string;
   notes?: string;
 }
 
-export interface AddGoodsReceiptItemPayload {
-  purchaseOrderItemId: string;
-  receivedQty: number;
-  rejectedQuantity: number;
+export interface CreateGoodsReceiptFromPurchaseOrdersPayload {
+  supplierId: string;
+  purchaseOrderIds: string[];
+  carrier?: string;
+  trackingNumber?: string;
+  supplierDeliveryNoteNumber?: string;
+  supplierDeliveryNoteDate?: string;
+  receivedDate: string;
+  notes?: string;
+}
+
+export interface UpdateGoodsReceiptPayload {
+  supplierDeliveryNoteNumber?: string | null;
+  supplierDeliveryNoteDate?: string | null;
+  notes?: string | null;
+}
+
+export interface AddGoodsReceiptPurchaseOrderPayload {
+  purchaseOrderId: string;
 }
 
 export interface UpdateGoodsReceiptItemPayload {
@@ -216,12 +231,40 @@ export interface AddGoodsReceiptLineItemPayload {
   serialNumber: string;
 }
 
-export const createGoodsReceiptSchema = z.object({
-  purchaseOrderId: z.uuid('Purchase order is required'),
-  receivedDate: z.string({ error: 'Received date is required' }).min(1, 'Received date is required'),
+export type GoodsReceiptCreatePath = 'DELIVERY' | 'PURCHASE_ORDERS';
+
+const receivedDateField = z.string({ error: 'Received date is required' }).min(1, 'Received date is required');
+
+export const createGoodsReceiptFromDeliverySchema = z.object({
+  inboundDeliveryId: z.uuid('Inbound delivery is required'),
+  receivedDate: receivedDateField,
   notes: z.string(),
 });
-export type CreateGoodsReceiptFormData = z.infer<typeof createGoodsReceiptSchema>;
+export type CreateGoodsReceiptFromDeliveryFormData = z.infer<typeof createGoodsReceiptFromDeliverySchema>;
+
+export const createGoodsReceiptFromPurchaseOrdersSchema = z.object({
+  supplierId: z.uuid('Supplier is required'),
+  purchaseOrderIds: z
+    .array(z.uuid(), { error: 'Pick at least one purchase order' })
+    .min(1, 'Pick at least one purchase order'),
+  carrier: z.string().max(100),
+  trackingNumber: z.string().max(100),
+  ...supplierDeliveryNoteShape,
+  receivedDate: receivedDateField,
+  notes: z.string(),
+});
+export type CreateGoodsReceiptFromPurchaseOrdersFormData = z.infer<typeof createGoodsReceiptFromPurchaseOrdersSchema>;
+
+export const updateGoodsReceiptSchema = z.object({
+  ...supplierDeliveryNoteShape,
+  notes: z.string(),
+});
+export type UpdateGoodsReceiptFormData = z.infer<typeof updateGoodsReceiptSchema>;
+
+export const addGoodsReceiptPurchaseOrderSchema = z.object({
+  purchaseOrderId: z.uuid('Purchase order is required'),
+});
+export type AddGoodsReceiptPurchaseOrderFormData = z.infer<typeof addGoodsReceiptPurchaseOrderSchema>;
 
 // Received counts paid and free goods together; the rejected part of it never reaches stock
 function receivedCountsShape(allowDecimal: boolean) {
@@ -240,17 +283,6 @@ function enforceRejectedWithinReceived(data: { receivedQty: number; rejectedQuan
     message: 'Cannot be more than the received quantity.',
   });
 }
-
-// Whole numbers unless the PO line's unit allows decimals
-export function buildAddGoodsReceiptItemSchema({ allowDecimal }: { allowDecimal: boolean }) {
-  return z
-    .object({
-      purchaseOrderItemId: z.uuid('Purchase order line is required'),
-      ...receivedCountsShape(allowDecimal),
-    })
-    .superRefine(enforceRejectedWithinReceived);
-}
-export type AddGoodsReceiptItemFormData = z.infer<ReturnType<typeof buildAddGoodsReceiptItemSchema>>;
 
 // Whole numbers unless the item's unit allows decimals
 export function buildUpdateGoodsReceiptItemSchema({ allowDecimal }: { allowDecimal: boolean }) {

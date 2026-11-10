@@ -1,11 +1,11 @@
 import { CreateTaxClassGroupDto } from '@commerce/tax-groups/dto/request/create-tax-class-group.dto';
 import { CreateTaxGroupDto } from '@commerce/tax-groups/dto/request/create-tax-group.dto';
 import { CreateTaxGroupRateDto } from '@commerce/tax-groups/dto/request/create-tax-group-rate.dto';
+import { SetTaxGroupActiveDto } from '@commerce/tax-groups/dto/request/set-tax-group-active.dto';
 import { UpdateTaxClassGroupDto } from '@commerce/tax-groups/dto/request/update-tax-class-group.dto';
 import { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
 import { UpdateTaxGroupRateDto } from '@commerce/tax-groups/dto/request/update-tax-group-rate.dto';
 import { TaxClassGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-table-response.dto';
-import { TaxClassMappingTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-mapping-table-response.dto';
 import { TaxGroupRateTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-table-response.dto';
 import { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
 import { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
@@ -24,17 +24,6 @@ export function ApiFindForTableTaxGroups() {
         'The organization’s tax groups with their rate and class counts. The country comes from the saved table state (`filters.context`, field `country`); without one every country’s groups are listed.',
     }),
     ApiResponse({ status: 200, type: TaxGroupTableResponseDto }),
-  );
-}
-
-export function ApiFindForTableTaxClassMapping() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Tax class mapping of a country',
-      description:
-        'One row per active tax class with the group it is mapped to in the country today (price-limited mappings aside), or no mapping — an unmapped class cannot be taxed there. The country comes from the saved table state (`filters.context`, field `country`); without one the table is empty.',
-    }),
-    ApiResponse({ status: 200, type: TaxClassMappingTableResponseDto }),
   );
 }
 
@@ -67,6 +56,20 @@ export function ApiUpdateTaxGroup() {
     ApiResponse({ status: 200, description: 'Tax group updated.' }),
     ApiResponse({ status: 404, description: 'Tax group not found.' }),
     ApiResponse({ status: 409, description: 'The country already has a group with this code.' }),
+  );
+}
+
+export function ApiSetTaxGroupActive() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Activate or deactivate a tax group',
+      description: 'Deactivating is refused while a class mapping in force or still to come names the group.',
+    }),
+    ApiParam(ID),
+    ApiBody({ type: SetTaxGroupActiveDto }),
+    ApiResponse({ status: 200, description: 'Tax group activated or deactivated.' }),
+    ApiResponse({ status: 404, description: 'Tax group not found.' }),
+    ApiResponse({ status: 409, description: 'Tax classes are mapped to the group today or from a later day.' }),
   );
 }
 

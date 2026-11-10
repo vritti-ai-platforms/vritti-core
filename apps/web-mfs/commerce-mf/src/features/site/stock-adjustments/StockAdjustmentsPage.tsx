@@ -22,7 +22,7 @@ import { CreateStockAdjustmentDialog } from './forms/CreateStockAdjustmentDialog
 export const StockAdjustmentsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useStockAdjustmentsTable();
+  const stockAdjustmentsTableQuery = useStockAdjustmentsTable();
   const addDialog = useDialog();
 
   const columns = useMemo<ColumnDef<StockAdjustmentData>[]>(
@@ -89,11 +89,11 @@ export const StockAdjustmentsPage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const stockAdjustmentsTable = useDataTable({
     columns,
     slug: 'commerce-site-stock-adjustments',
     label: 'stock adjustment',
-    serverState: response,
+    query: stockAdjustmentsTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -108,8 +108,7 @@ export const StockAdjustmentsPage = () => {
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={stockAdjustmentsTable}
         searchConfig={{
           columns: [
             { id: 'code', label: 'Code' },

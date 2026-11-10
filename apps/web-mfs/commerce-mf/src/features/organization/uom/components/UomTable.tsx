@@ -28,7 +28,7 @@ interface UomTableProps {
 export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const { data: response, isLoading } = useUomTable(dimensionId);
+  const uomTableQuery = useUomTable(dimensionId);
   const deleteMutation = useDeleteUom();
   const addDialog = useDialog();
 
@@ -128,9 +128,9 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
     [handleDelete],
   );
 
-  const { table } = useDataTable({
+  const uomTable = useDataTable({
     columns,
-    serverState: response,
+    query: uomTableQuery,
     slug: `commerce-org-uom-${dimensionId}`,
     label: 'UOM',
     enableRowSelection: false,
@@ -142,8 +142,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
   return (
     <>
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={uomTable}
         permission={ORG_UOM.view}
         mode="compact"
         filters={[

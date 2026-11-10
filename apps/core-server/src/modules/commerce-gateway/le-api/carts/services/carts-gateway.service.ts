@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -54,13 +54,13 @@ export class LeCartsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated, filtered, and sorted carts for the data table
   async findForTable(userId: string): Promise<CartTableResponse> {
     this.logger.log('le.carts.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-le-carts');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-carts');
 
     const { result, count } = await this.nats.send<{ result: CartRow[]; count: number }>(
       'commerce',
@@ -86,7 +86,7 @@ export class LeCartsGatewayService {
   // Returns paginated, filtered and sorted items of one cart for the data table
   async findItemsForTable(cartId: string, userId: string, currencyCode: string): Promise<CartItemsTableResponse> {
     this.logger.log(`le.carts.items.table — cart: ${cartId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-cart-${cartId}-items`,
     );

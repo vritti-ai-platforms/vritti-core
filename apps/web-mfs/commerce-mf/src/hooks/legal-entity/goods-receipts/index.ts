@@ -12,11 +12,12 @@ export {
   GOODS_RECEIPTS_KEY,
   GOODS_RECEIPTS_TABLE_KEY,
 } from './keys';
-export { useAddGoodsReceiptItem } from './useAddGoodsReceiptItem';
 export { useAddGoodsReceiptLine } from './useAddGoodsReceiptLine';
 export { useAddGoodsReceiptLineItem } from './useAddGoodsReceiptLineItem';
 export { useAddGoodsReceiptLot } from './useAddGoodsReceiptLot';
-export { useCreateGoodsReceipt } from './useCreateGoodsReceipt';
+export { useAddGoodsReceiptPurchaseOrder } from './useAddGoodsReceiptPurchaseOrder';
+export { useCreateGoodsReceiptFromDelivery } from './useCreateGoodsReceiptFromDelivery';
+export { useCreateGoodsReceiptFromPurchaseOrders } from './useCreateGoodsReceiptFromPurchaseOrders';
 export { useDeleteGoodsReceipt } from './useDeleteGoodsReceipt';
 export { useGoodsReceipt } from './useGoodsReceipt';
 export { useGoodsReceiptItem } from './useGoodsReceiptItem';
@@ -34,6 +35,7 @@ export { useRemoveGoodsReceiptItem } from './useRemoveGoodsReceiptItem';
 export { useRemoveGoodsReceiptLine } from './useRemoveGoodsReceiptLine';
 export { useRemoveGoodsReceiptLineItem } from './useRemoveGoodsReceiptLineItem';
 export { useRemoveGoodsReceiptLot } from './useRemoveGoodsReceiptLot';
+export { useUpdateGoodsReceipt } from './useUpdateGoodsReceipt';
 export { useUpdateGoodsReceiptItem } from './useUpdateGoodsReceiptItem';
 export { useUpdateGoodsReceiptLine } from './useUpdateGoodsReceiptLine';
 export { useUpdateGoodsReceiptLot } from './useUpdateGoodsReceiptLot';

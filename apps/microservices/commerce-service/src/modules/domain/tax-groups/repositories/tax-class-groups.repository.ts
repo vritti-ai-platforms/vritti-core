@@ -33,6 +33,13 @@ export class TaxClassGroupsDomainRepository extends PrimaryBaseRepository<typeof
     return entity;
   }
 
+  // Loads a mapping of the given class, throwing when it is not on that class
+  async findOnClassOrThrow(taxClassId: string, id: string): Promise<TaxClassGroup> {
+    const entity = await this.findById(id, { where: eq(taxClassGroups.taxClassId, taxClassId) });
+    if (!entity) throw new NotFoundException('Tax class mapping not found.');
+    return entity;
+  }
+
   // Loads a class mapping with its class's and group's code and name
   async findDetailOrThrow(id: string): Promise<TaxClassGroupDetail> {
     const entity = await this.findById<TaxClassGroupDetail>(id, { select: this.selection(), innerJoins: this.joins() });
@@ -63,6 +70,13 @@ export class TaxClassGroupsDomainRepository extends PrimaryBaseRepository<typeof
       detail: 'The selected tax class no longer exists. Pick another one.',
       errors: [{ field: 'taxClassId', message: 'Tax class not found' }],
     });
+  }
+
+  // Loads the tax class whose mappings are listed, throwing a 404 when it does not exist
+  async findParentClassOrThrow(taxClassId: string): Promise<TaxClass> {
+    const [taxClass] = await this.db.select().from(taxClasses).where(eq(taxClasses.id, taxClassId)).limit(1);
+    if (!taxClass) throw new NotFoundException('Tax class not found.');
+    return taxClass;
   }
 
   // A price limit is a positive unit price, and a mapping's period must not end before it starts

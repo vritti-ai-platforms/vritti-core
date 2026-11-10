@@ -15,6 +15,7 @@ import { LeCatalogsModule } from './modules/legal-entity/catalogs/catalogs.modul
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
 import { LeDimensionTemplatesModule } from './modules/legal-entity/dimension-templates/dimension-templates.module';
 import { LeGoodsReceiptsModule } from './modules/legal-entity/goods-receipts/goods-receipts.module';
+import { LeInboundDeliveriesModule } from './modules/legal-entity/inbound-deliveries/inbound-deliveries.module';
 import { LeInventoryItemsModule } from './modules/legal-entity/inventory-items/inventory-items.module';
 import { LeOfferingsModule } from './modules/legal-entity/offerings/offerings.module';
 import { LePurchaseOrdersModule } from './modules/legal-entity/purchase-orders/purchase-orders.module';
@@ -46,6 +47,7 @@ import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
 import { SiteCustomersModule } from './modules/site/customers/customers.module';
 import { SiteDimensionTemplatesModule } from './modules/site/dimension-templates/dimension-templates.module';
 import { SiteGoodsReceiptsModule } from './modules/site/goods-receipts/goods-receipts.module';
+import { SiteInboundDeliveriesModule } from './modules/site/inbound-deliveries/inbound-deliveries.module';
 import { SiteInventoryItemsModule } from './modules/site/inventory-items/inventory-items.module';
 import { SiteLocationsModule } from './modules/site/locations/locations.module';
 import { SiteLocationQuantsModule } from './modules/site/locations/quants/location-quants.module';
@@ -150,6 +152,7 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     LeSupplierInvoicesModule,
     LePurchaseOrdersModule,
     LeGoodsReceiptsModule,
+    LeInboundDeliveriesModule,
     LeAttributeTemplatesModule,
     LeDimensionTemplatesModule,
     LeOfferingsModule,
@@ -160,6 +163,7 @@ import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-it
     SiteGroupInventoryItemsModule,
     SitePurchaseOrdersModule,
     SiteGoodsReceiptsModule,
+    SiteInboundDeliveriesModule,
     SiteLocationsModule,
     SiteLocationQuantsModule,
     SiteStockAdjustmentsModule,

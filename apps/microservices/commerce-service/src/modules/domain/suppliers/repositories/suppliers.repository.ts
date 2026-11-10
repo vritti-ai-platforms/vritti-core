@@ -1,6 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, getColumns, inArray, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  exists,
+  getColumns,
+  inArray,
+  notInArray,
+  type SQL,
+  sql,
+} from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -26,14 +37,6 @@ import {
   TaxIdIdentifierTypes,
   taxJurisdictions,
 } from '@/db/schema';
-
-// Narrows a supplier pick list to the suppliers with a price for an inventory item at a site within a date window
-export interface PricedItemAtSite {
-  inventoryItemId: string;
-  siteId: string;
-  from?: string;
-  to?: string;
-}
 
 // One field of the party's tax ID — the primary active identifier of a tax-ID type — or null when it has none on record
 const partyTaxIdField = <T>(column: AnyPgColumn) =>
@@ -74,26 +77,28 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
     super(database, suppliers);
   }
 
-  // Paginated supplier options; activeOnly drops inactive suppliers and pricedItem keeps those priced at a site
+  // Paginated supplier options; activeOnly drops inactive suppliers and inventoryItemId keeps those supplying the item
   override findForSelect(
     config: FindForSelectConfig,
-    options?: { pricedItem?: PricedItemAtSite; activeOnly?: boolean },
+    options?: { activeOnly?: boolean; inventoryItemId?: string },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
     if (options?.activeOnly) conditions.push(eq(suppliers.isActive, true));
-    const priced = options?.pricedItem;
-    if (priced) {
-      conditions.push(sql`EXISTS (
-        SELECT 1 FROM ${supplierItemPrices}
-        INNER JOIN ${supplierItems} ON ${supplierItems.id} = ${supplierItemPrices.supplierItemId}
-        WHERE ${supplierItems.supplierId} = ${suppliers.id}
-          AND ${supplierItems.inventoryItemId} = ${priced.inventoryItemId}
-          AND ${supplierItemPrices.siteId} = ${priced.siteId}
-          ${priced.to ? sql`AND ${supplierItemPrices.validFrom} <= ${priced.to}::date` : sql``}
-          ${priced.from ? sql`AND (${supplierItemPrices.validTo} IS NULL OR ${supplierItemPrices.validTo} >= ${priced.from}::date)` : sql``}
-      )`);
+    if (options?.inventoryItemId) {
+      conditions.push(
+        exists(
+          this.db
+            .select({ one: sql`1` })
+            .from(supplierItems)
+            .where(
+              and(
+                eq(supplierItems.supplierId, suppliers.id),
+                eq(supplierItems.inventoryItemId, options.inventoryItemId),
+              ),
+            ),
+        ),
+      );
     }
-
     return super.findForSelect({
       ...config,
       joins: [{ table: parties, on: eq(parties.id, suppliers.partyId), type: 'inner' }],

@@ -4,7 +4,7 @@ import { UpdateSocialProfileDto } from '@domain/party-social-profiles/dto/reques
 import { PartySocialProfilesDomainService } from '@domain/party-social-profiles/services/party-social-profiles.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -16,7 +16,7 @@ export class CompanySocialProfilesController {
   // Returns the paginated social profiles of a company
   @MessagePattern({ cmd: 'org.companies.socialProfiles.table' })
   table(
-    @Payload() data: { companyId: string } & TableViewState,
+    @Payload() data: { companyId: string } & TableState,
   ): Promise<{ result: PartySocialProfileDto[]; count: number }> {
     const { companyId, ...state } = data;
     this.logger.log(`companies.socialProfiles.table — companyId: ${companyId}`);

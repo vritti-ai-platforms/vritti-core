@@ -1,11 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { isMatch } from 'date-fns';
 import { taxClasses } from '@/db/schema';
 import { TaxClassDto } from '../dto/entity/tax-class.dto';
+import { TaxClassTableRowDto } from '../dto/entity/tax-class-table-row.dto';
 import { CreateTaxClassDto } from '../dto/request/create-tax-class.dto';
 import { UpdateTaxClassDto } from '../dto/request/update-tax-class.dto';
 import { TaxClassesDomainRepository } from '../repositories/tax-classes.repository';
@@ -23,22 +26,31 @@ export class TaxClassesDomainService {
 
   constructor(private readonly repository: TaxClassesDomainRepository) {}
 
-  // Returns paginated, filtered, and sorted tax classes for the data table
-  async findForTable(state: TableViewState): Promise<{ result: TaxClassDto[]; count: number }> {
+  // Returns paginated tax classes with the tax groups they map to in the context's country on the context's day; the
+  // two pick the joined mappings, not the rows, and the field map leaves them out of the where
+  async findForTable(state: TableState): Promise<{ result: TaxClassTableRowDto[]; count: number }> {
+    const country = state.filters.context.find((condition) => condition.field === 'country');
+    const day = state.filters.context.find((condition) => condition.field === 'asOf');
+    const countryCode = country?.operator === 'equals' && typeof country.value === 'string' ? country.value : undefined;
+    const asOf =
+      day?.operator === 'equals' && typeof day.value === 'string' && isMatch(day.value, 'yyyy-MM-dd')
+        ? day.value
+        : undefined;
     const filterWhere = FilterProcessor.buildWhere(state.filters, TaxClassesDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, TaxClassesDomainService.FIELD_MAP);
-    const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxClassesDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result: rows, count } = await this.repository.findAllAndCount({
-      where: where || undefined,
+    const { result: rows, count } = await this.repository.findForTable({
+      countryCode,
+      asOf,
+      where: and(filterWhere, searchWhere),
       orderBy: orderBy.length > 0 ? orderBy : [desc(taxClasses.createdAt)],
       limit,
       offset,
     });
 
-    const dtos = rows.map((row) => TaxClassDto.from(row, !row.isSystem));
+    const dtos = rows.map((row) => TaxClassTableRowDto.from(row, !row.isSystem));
     return { result: dtos, count };
   }
 
@@ -92,15 +104,26 @@ export class TaxClassesDomainService {
     return TaxClassDto.from(entity, !entity.isSystem);
   }
 
-  // Updates a tax class's name and active flag
+  // Renames a tax class
   async update(id: string, data: Omit<UpdateTaxClassDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Tax class not found.');
 
-    await this.repository.update(id, data);
+    await this.repository.update(id, { name: data.name });
 
     this.logger.log(`Updated tax class: ${existing.code} (${id})`);
-    return { success: true, message: `Tax class "${data.name ?? existing.name}" updated successfully.` };
+    return { success: true, message: `Tax class "${data.name}" updated successfully.` };
+  }
+
+  // Activates or deactivates a tax class
+  async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Tax class not found.');
+
+    await this.repository.update(id, { isActive });
+
+    this.logger.log(`${isActive ? 'Activated' : 'Deactivated'} tax class: ${existing.code} (${id})`);
+    return { success: true, message: `Tax class "${existing.name}" ${isActive ? 'activated' : 'deactivated'}.` };
   }
 
   // Deletes a tax class; rejects system rows

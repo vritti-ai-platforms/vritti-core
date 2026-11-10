@@ -16,7 +16,7 @@ import type { CatalogListingTableResponseDto } from '@commerce/catalogs/dto/resp
 import type { CatalogResponseDto } from '@commerce/catalogs/dto/response/catalog-response.dto';
 import type { CatalogTableResponseDto } from '@commerce/catalogs/dto/response/catalog-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
@@ -48,14 +48,14 @@ export class CatalogsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
   ) {}
 
   // Returns paginated, filtered and sorted catalogs for the data table
   async findForTable(orgId: string, userId: string): Promise<CatalogTableResponseDto> {
     this.logger.log('org.catalogs.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, CATALOGS_TABLE_SLUG);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, CATALOGS_TABLE_SLUG);
     const { result, count } = await this.nats.send<{ result: CatalogResponseDto[]; count: number }>(
       'commerce',
       'org.catalogs.table',
@@ -111,7 +111,7 @@ export class CatalogsGatewayService {
     currencyCode?: string,
   ): Promise<CatalogListingTableResponseDto> {
     this.logger.log(`org.catalogs.listings.table — catalogId: ${catalogId}, currency: ${currencyCode ?? 'all'}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       currencyCode ? CATALOG_PRICES_TABLE_SLUG(catalogId) : CATALOG_LISTINGS_TABLE_SLUG(catalogId),
     );

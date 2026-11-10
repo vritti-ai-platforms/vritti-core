@@ -17,7 +17,6 @@ import type {
   SuppliersTableResponse,
   UpdateSupplierSiteItemPayload,
 } from '@/schemas/suppliers';
-import type { PriceRange } from '@/utils/supplierPrice';
 
 export interface CreateSupplierPayload {
   partyId: string;
@@ -41,12 +40,16 @@ export interface AddSupplierItemPayload {
   inventoryItemId: string;
   supplierItemCode?: string;
   uomId: string;
+  minOrderQuantity?: number;
+  defaultLeadTimeDays: number;
   siteIds: string[];
 }
 
 export interface UpdateSupplierItemPayload {
   supplierItemCode?: string | null;
   uomId?: string;
+  minOrderQuantity?: number | null;
+  defaultLeadTimeDays?: number;
 }
 
 // Fetches suppliers for the data table
@@ -218,7 +221,7 @@ export function bulkSetSupplierItemMinOrder({
     .then((r) => r.data);
 }
 
-// Sets (or clears) the lead time of supplier items in a single request; their sites that follow the item take it too
+// Sets the default lead time of supplier items in a single request; their sites that follow the item take it too
 export function bulkSetSupplierItemDefaultLeadTime({
   supplierId,
   supplierItemIds,
@@ -226,7 +229,7 @@ export function bulkSetSupplierItemDefaultLeadTime({
 }: {
   supplierId: string;
   supplierItemIds: string[];
-  defaultLeadTimeDays: number | null;
+  defaultLeadTimeDays: number;
 }): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/le/suppliers/${supplierId}/items/default-lead-time`, {
@@ -290,30 +293,10 @@ export function getSupplierItemPricesTable(
     .then((r) => r.data);
 }
 
-// Fetches the sites a supplier item has prices at, in the site picker's order
-export function getSupplierItemPricedSiteIds(supplierId: string, itemId: string): Promise<string[]> {
-  return axios
-    .get<{ siteIds: string[] }>(`commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices/site-ids`, {
-      showSuccessToast: false,
-    })
-    .then((r) => r.data.siteIds);
-}
-
 // Fetches a supplier item's price windows in a date range at the given sites — every priced site when none are given
-export function getSupplierItemPriceHistory({
-  supplierId,
-  itemId,
-  siteIds,
-  range,
-}: {
-  supplierId: string;
-  itemId: string;
-  siteIds: string[];
-  range: PriceRange;
-}): Promise<SupplierItemPriceHistory> {
+export function getSupplierItemPriceHistory(supplierId: string, itemId: string): Promise<SupplierItemPriceHistory> {
   return axios
     .get<SupplierItemPriceHistory>(`commerce-api/le/suppliers/${supplierId}/items/${itemId}/price-history`, {
-      params: { from: range.from, to: range.to, ...(siteIds.length ? { sites: siteIds.join(',') } : {}) },
       showSuccessToast: false,
     })
     .then((r) => r.data);

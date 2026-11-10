@@ -3,7 +3,7 @@ import { AddInventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/request/
 import { UpdateInventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/request/update-inventory-item-mrp.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InventoryItemsMrpService } from './services/inventory-items-mrp.service';
 
@@ -16,7 +16,7 @@ export class InventoryItemsMrpController {
   // Returns an inventory item's MRPs for the data table
   @MessagePattern({ cmd: 'org.inventoryItems.mrp.table' })
   async table(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.mrp.table — inventoryItemId: ${inventoryItemId}`);

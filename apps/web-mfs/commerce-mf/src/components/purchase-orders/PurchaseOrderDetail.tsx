@@ -6,14 +6,15 @@ import type { PurchaseOrdersBinding } from './bindings';
 import { PurchaseOrderActions } from './PurchaseOrderActions';
 import { PurchaseOrderStatusBadge } from './PurchaseOrderStatusBadge';
 import { GoodsReceiptsTab } from './tabs/GoodsReceiptsTab';
-import { LineItemsTab } from './tabs/LineItemsTab';
+import { InboundDeliveriesTab } from './tabs/InboundDeliveriesTab';
+import { LineItemsTab } from './tabs/line-items/LineItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 
 interface PurchaseOrderDetailProps {
   binding: PurchaseOrdersBinding;
 }
 
-// `…/purchase-orders/<number~id>` — an order, its lines and the goods received against it; the legal entity's names
+// `…/purchase-orders/<number~id>` — an order, its lines, the deliveries carrying them and the goods received against it; the legal entity's names
 // its site, and where the binding carries invoices the order's invoices get a tab
 export const PurchaseOrderDetail: React.FC<PurchaseOrderDetailProps> = ({ binding }) => {
   const { permissions, invoices } = binding;
@@ -47,6 +48,12 @@ export const PurchaseOrderDetail: React.FC<PurchaseOrderDetailProps> = ({ bindin
             label: `Line Items (${itemIds.length})`,
             permission: permissions.view,
             content: <LineItemsTab binding={binding} purchaseOrder={purchaseOrder} />,
+          },
+          {
+            value: 'deliveries',
+            label: 'Inbound Deliveries',
+            permission: permissions.view,
+            content: <InboundDeliveriesTab binding={binding} purchaseOrder={purchaseOrder} />,
           },
           {
             value: 'receipts',

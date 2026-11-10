@@ -1,22 +1,22 @@
 import { ORG_TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { countryFlag } from '@vritti/quantum-ui/selects/iso-country';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Percent } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteTaxGroup, useTaxGroup } from '@/hooks/organization/tax-groups';
+import { useDeleteTaxGroup, useSetTaxGroupActive, useTaxGroup } from '@/hooks/organization/tax-groups';
 import { TaxTreatmentBadge } from './components/TaxTreatmentBadge';
 import { EditTaxGroupDialog } from './forms/EditTaxGroupDialog';
-import { ClassesTab } from './tabs/ClassesTab';
+import { ClassesTab } from './tabs/classes/ClassesTab';
 import { OverviewTab } from './tabs/OverviewTab';
-import { RatesTab } from './tabs/RatesTab';
+import { RatesTab } from './tabs/rates/RatesTab';
 
 export const TaxGroupDetailPage = () => {
   const { id } = useSlugParams('taxGroupSlug');
@@ -25,6 +25,7 @@ export const TaxGroupDetailPage = () => {
   const editDialog = useDialog();
   const confirm = useConfirm();
   const deleteMutation = useDeleteTaxGroup();
+  const setActiveMutation = useSetTaxGroupActive();
   const inUseTip = `Mapped to ${pluralize('tax class', taxGroup.classCount, true)}. Remove the mappings first.`;
 
   const handleDelete = useCallback(async () => {
@@ -45,7 +46,16 @@ export const TaxGroupDetailPage = () => {
         titleSlot={
           <div className="flex items-center gap-2">
             <TaxTreatmentBadge treatment={taxGroup.treatment} />
-            {!taxGroup.isActive && <Badge variant="outline">Inactive</Badge>}
+            <StatusSwitch
+              size="md"
+              checked={taxGroup.isActive}
+              permission={ORG_TAX_GROUPS.toggle}
+              disabled={taxGroup.isActive && !taxGroup.canDeactivate}
+              disabledTip="Tax classes are mapped to this group today or from a later day. End those mappings first."
+              isLoading={setActiveMutation.isPending}
+              onCheckedChange={(isActive) => setActiveMutation.mutate({ id: taxGroup.id, isActive })}
+              ariaLabel={`Mark ${taxGroup.name} active`}
+            />
           </div>
         }
         actions={

@@ -1,33 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 
-// Major-unit money pair (value is a string, mirroring CurrencyAmountDto / SupplierUnitPrice).
-@ObjectType()
-export class GoodsReceiptMoney {
-  @Field(() => String)
-  currency: string;
-
-  @Field(() => String)
-  value: string;
-}
-
-@ObjectType()
-export class GoodsReceiptPo {
-  @Field(() => ID)
-  id: string;
-
-  @Field(() => String)
-  poNumber: string;
-
-  @Field(() => String)
-  orderDate: string;
-
-  @Field(() => String, { nullable: true })
-  expectedBy: string | null;
-
-  @Field(() => GoodsReceiptMoney)
-  totalAmount: GoodsReceiptMoney;
-}
-
 // One goods receipt for the mobile list + detail.
 @ObjectType()
 export class GoodsReceipt {
@@ -59,10 +31,31 @@ export class GoodsReceipt {
   itemCount: number;
 
   @Field(() => ID)
-  purchaseOrderId: string;
+  inboundDeliveryId: string;
 
-  @Field(() => GoodsReceiptPo)
-  po: GoodsReceiptPo;
+  @Field(() => String)
+  deliveryNumber: string;
+
+  @Field(() => String)
+  deliverySource: string;
+
+  @Field(() => String, { nullable: true })
+  carrier: string | null;
+
+  @Field(() => String, { nullable: true })
+  trackingNumber: string | null;
+
+  @Field(() => String, { nullable: true })
+  supplierDeliveryNoteNumber: string | null;
+
+  @Field(() => String, { nullable: true })
+  supplierDeliveryNoteDate: string | null;
+
+  @Field(() => [String])
+  poNumbers: string[];
+
+  @Field(() => String, { nullable: true })
+  expectedDeliveryDate: string | null;
 
   @Field(() => String)
   receivedDate: string;

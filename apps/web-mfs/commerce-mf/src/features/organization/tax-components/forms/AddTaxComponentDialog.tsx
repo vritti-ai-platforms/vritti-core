@@ -7,13 +7,14 @@ import { ISOCountrySelect } from '@vritti/quantum-ui/selects/iso-country';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useCreateTaxComponent } from '@/hooks/organization/tax-components';
 import {
   authorityLevelOptions,
   type CreateTaxComponentFormData,
   createTaxComponentSchema,
 } from '@/schemas/tax-components';
+import { TaxComponentSelector } from '@/selectors/tax-component';
 
 interface AddTaxComponentDialogProps {
   countryCode?: string;
@@ -35,12 +36,25 @@ export const AddTaxComponentDialog: React.FC<AddTaxComponentDialogProps> = ({ co
     },
   });
 
+  const selectedCountry = useWatch({ control: form.control, name: 'countryCode' });
   const createMutation = useCreateTaxComponent({ onSuccess });
 
   return (
-    <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
+    <Form
+      form={form}
+      mutation={createMutation}
+      resetOnSuccess
+      onCancel={onCancel}
+      transformSubmit={(data) => ({ ...data, standsInForId: data.standsInForId ?? null })}
+    >
       <div className="space-y-4">
-        <ISOCountrySelect name="countryCode" description="The country whose tax this is. It can't be changed later." />
+        <ISOCountrySelect
+          name="countryCode"
+          description="The country whose tax this is. It can't be changed later."
+          onOptionSelect={(option) => {
+            if (option?.value !== selectedCountry) form.resetField('standsInForId');
+          }}
+        />
         <TextField name="code" label="Code" placeholder="e.g. cgst" />
         <TextField name="name" label="Name" placeholder="e.g. Central GST" />
         <Select
@@ -48,6 +62,13 @@ export const AddTaxComponentDialog: React.FC<AddTaxComponentDialogProps> = ({ co
           label="Authority Level"
           placeholder="Select authority level"
           options={authorityLevelOptions}
+        />
+        <TaxComponentSelector
+          name="standsInForId"
+          label="Stands In For (optional)"
+          country={selectedCountry}
+          clearable
+          description="Leave empty for a component charged directly. Pick one when this component replaces it where it has a rate of its own, like UTGST for SGST in a Union Territory."
         />
         <Switch
           name="isRecoverable"

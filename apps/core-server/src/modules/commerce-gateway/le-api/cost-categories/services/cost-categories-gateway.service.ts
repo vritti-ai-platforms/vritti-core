@@ -3,7 +3,7 @@ import type { UpdateCostCategoryDto } from '@commerce/cost-categories/dto/reques
 import type { CostCategoryResponseDto } from '@commerce/cost-categories/dto/response/cost-category-response.dto';
 import type { CostCategoryTableResponseDto } from '@commerce/cost-categories/dto/response/cost-category-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -13,15 +13,12 @@ export class CostCategoriesGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   async findForTable(userId: string): Promise<CostCategoryTableResponseDto> {
     this.logger.log('le.costCategories.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-cost-categories',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-cost-categories');
 
     const { result, count } = await this.nats.send<{ result: CostCategoryResponseDto[]; count: number }>(
       'commerce',

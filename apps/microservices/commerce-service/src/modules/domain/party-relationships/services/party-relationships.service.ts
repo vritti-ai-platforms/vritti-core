@@ -1,6 +1,7 @@
 import { PartyFunctionsDomainService } from '@domain/party-functions/services/party-functions.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -36,7 +37,7 @@ export class PartyRelationshipsDomainService {
   // Returns paginated companies a person party is linked to for the data table
   async findCompaniesForPerson(
     personId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: PersonCompanyDto[]; count: number }> {
     const fieldMap = PartyRelationshipsDomainService.COMPANY_FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;
@@ -57,7 +58,7 @@ export class PartyRelationshipsDomainService {
   // Returns paginated people linked to a company party for the data table
   async findRelationshipsForTable(
     companyPartyId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: PartyRelationshipDto[]; count: number }> {
     const fieldMap = PartyRelationshipsDomainService.RELATIONSHIP_FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;

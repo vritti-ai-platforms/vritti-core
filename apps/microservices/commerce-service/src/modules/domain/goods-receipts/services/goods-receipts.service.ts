@@ -1,29 +1,33 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { type FieldMap, FilterProcessor, type SearchState } from '@vritti/api-sdk/conditions';
 import {
   CursorCodec,
-  type FieldMap,
-  FilterProcessor,
   type KeysetOrderBy,
   KeysetProcessor,
   keysetSignature,
-  type SearchState,
-  type TableViewState,
+  type TableState,
 } from '@vritti/api-sdk/data-table';
-import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, or } from '@vritti/api-sdk/drizzle-orm';
+import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type GoodsReceipt, GoodsReceiptStatusValues, goodsReceipts, parties, purchaseOrders } from '@/db/schema';
+import { type GoodsReceipt, GoodsReceiptStatusValues, goodsReceipts, inboundDeliveries, parties } from '@/db/schema';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
-import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
-import { GoodsReceiptsDomainRepository } from '../repositories/goods-receipts.repository';
+import {
+  type GoodsReceiptDraftLine,
+  GoodsReceiptItemsDomainRepository,
+} from '../repositories/goods-receipt-items.repository';
+import { type GoodsReceiptRow, GoodsReceiptsDomainRepository } from '../repositories/goods-receipts.repository';
 
 export const MIN_SHELF_LIFE_DAYS = 180;
 
-export interface GoodsReceiptPurchaseOrder {
-  id: string;
-  poNumber: string;
+export interface GoodsReceiptDraft {
   supplierId: string;
+  inboundDeliveryId: string;
   siteId: string;
   legalEntityId: string;
+  receivedDate: string;
+  notes?: string | null;
+  lines: GoodsReceiptDraftLine[];
 }
 
 export interface GoodsReceiptTableScope {
@@ -48,7 +52,7 @@ export class GoodsReceiptsDomainService {
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     grNumber: { column: goodsReceipts.grNumber, type: 'string' },
     supplierName: { column: parties.displayName, type: 'string' },
-    poNumber: { column: purchaseOrders.poNumber, type: 'string' },
+    deliveryNumber: { column: inboundDeliveries.deliveryNumber, type: 'string' },
   };
   private static readonly FILTER_FIELD_MAP: FieldMap = {
     status: { column: goodsReceipts.status, type: 'string' },
@@ -66,11 +70,14 @@ export class GoodsReceiptsDomainService {
     { column: goodsReceipts.id, direction: 'asc', key: 'id' },
   ];
 
-  constructor(private readonly repository: GoodsReceiptsDomainRepository) {}
+  constructor(
+    private readonly repository: GoodsReceiptsDomainRepository,
+    private readonly itemsRepository: GoodsReceiptItemsDomainRepository,
+  ) {}
 
-  // Returns one page of goods receipts, narrowed to a purchase order when one is named
+  // Returns one page of goods receipts, narrowed to those counting a purchase order's lines when one is named
   async findForTable(
-    state: TableViewState,
+    state: TableState,
     scope: GoodsReceiptTableScope = {},
   ): Promise<{ result: GoodsReceiptDto[]; count: number }> {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptsDomainService.SORT_FIELD_MAP);
@@ -79,8 +86,11 @@ export class GoodsReceiptsDomainService {
     const { result, count } = await this.repository.findForTable({
       where: and(
         FilterProcessor.buildWhere(state.filters, GoodsReceiptsDomainService.FILTER_FIELD_MAP),
-        FilterProcessor.buildSearch(state.search, GoodsReceiptsDomainService.SEARCH_FIELD_MAP),
-        scope.purchaseOrderId ? eq(goodsReceipts.purchaseOrderId, scope.purchaseOrderId) : undefined,
+        or(
+          FilterProcessor.buildSearch(state.search, GoodsReceiptsDomainService.SEARCH_FIELD_MAP),
+          this.repository.matchesPurchaseOrderNumber(state.search),
+        ),
+        scope.purchaseOrderId ? this.repository.countsPurchaseOrder(scope.purchaseOrderId) : undefined,
       ),
       orderBy: orderBy.length > 0 ? orderBy : [desc(goodsReceipts.createdAt)],
       limit,
@@ -95,7 +105,10 @@ export class GoodsReceiptsDomainService {
     const signature = keysetSignature(order);
     const { rows, hasMore } = await this.repository.findKeysetForFeed({
       where: and(
-        FilterProcessor.buildSearch(query.search, GoodsReceiptsDomainService.SEARCH_FIELD_MAP),
+        or(
+          FilterProcessor.buildSearch(query.search, GoodsReceiptsDomainService.SEARCH_FIELD_MAP),
+          this.repository.matchesPurchaseOrderNumber(query.search),
+        ),
         query.cursor ? KeysetProcessor.buildAfter(order, CursorCodec.decode(query.cursor, signature)) : undefined,
       ),
       orderBy: order.map((entry) => (entry.direction === 'asc' ? asc(entry.column) : desc(entry.column))),
@@ -112,33 +125,42 @@ export class GoodsReceiptsDomainService {
     return { edges, pageInfo: { hasNextPage: hasMore, endCursor: edges.at(-1)?.cursor ?? null } };
   }
 
-  // Returns one goods receipt header with its purchase order and publish readiness
+  // Returns one goods receipt header with its supplier, delivery, purchase orders and publish readiness
   async findById(id: string): Promise<GoodsReceiptDto> {
     return GoodsReceiptDto.from(await this.repository.findDetailOrThrow(id));
   }
 
-  // Creates a draft receipt against a receivable PO; its supplier, site and legal entity are the PO's
-  async create(
-    dto: CreateGoodsReceiptDto,
-    purchaseOrder: GoodsReceiptPurchaseOrder,
-  ): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  // Creates a draft receipt against an inbound delivery with its lines, in the caller's transaction
+  async createDraft(draft: GoodsReceiptDraft): Promise<CreateResponseDto<GoodsReceiptDto>> {
     const grNumber = await this.repository.generateGrNumber();
-    const created = await this.repository.create({
+    const receipt = await this.repository.create({
       grNumber,
-      purchaseOrderId: purchaseOrder.id,
-      supplierId: purchaseOrder.supplierId,
-      siteId: purchaseOrder.siteId,
-      legalEntityId: purchaseOrder.legalEntityId,
-      receivedDate: dto.receivedDate,
-      notes: dto.notes ?? null,
+      supplierId: draft.supplierId,
+      inboundDeliveryId: draft.inboundDeliveryId,
+      siteId: draft.siteId,
+      legalEntityId: draft.legalEntityId,
+      receivedDate: draft.receivedDate,
+      notes: draft.notes ?? null,
     });
+    await this.itemsRepository.insertMany(
+      draft.lines.map((line) => ({ ...line, goodsReceiptId: receipt.id, siteId: draft.siteId })),
+    );
 
-    this.logger.log(`Created goods receipt ${grNumber} against PO ${purchaseOrder.poNumber}`);
+    const created = await this.findById(receipt.id);
+    this.logger.log(
+      `Created goods receipt ${grNumber} with ${draft.lines.length} lines of ${created.poNumbers.join(', ')}`,
+    );
     return {
       success: true,
-      message: `Goods receipt "${grNumber}" created against purchase order "${purchaseOrder.poNumber}".`,
-      data: await this.findById(created.id),
+      message: `Goods receipt "${grNumber}" created with ${pluralize('line', draft.lines.length, true)} of ${created.poNumbers.join(', ')}.`,
+      data: created,
     };
+  }
+
+  // Changes the notes of a draft receipt, in the caller's transaction
+  async updateNotes(receipt: GoodsReceiptRow, notes: string | null): Promise<void> {
+    await this.repository.update(receipt.id, { notes });
+    this.logger.log(`Updated the notes of goods receipt ${receipt.grNumber}`);
   }
 
   // Marks a draft receipt published once its stock has landed
@@ -148,8 +170,7 @@ export class GoodsReceiptsDomainService {
   }
 
   // Deletes a draft goods receipt with everything counted on it
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const receipt = await this.repository.findDraftOrThrow(id, 'Cannot Delete');
+  async delete(receipt: GoodsReceiptRow): Promise<SuccessResponseDto> {
     await this.repository.delete(receipt.id);
     this.logger.log(`Deleted goods receipt ${receipt.grNumber} (${receipt.id})`);
     return { success: true, message: `Goods receipt "${receipt.grNumber}" deleted successfully.` };

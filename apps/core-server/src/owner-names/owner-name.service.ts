@@ -47,14 +47,14 @@ export class OwnerNameService {
     }));
   }
 
-  // Fills each row's site name and code: commerce keys rows by site id only. One read covers names and codes alike
-  async withSiteNames<T extends { siteId: string }>(
+  // Fills each row's site name and code, leaving a row with no site (the legal entity's) unnamed
+  async withSiteNames<T extends { siteId: string | null }>(
     orgId: string,
     rows: T[],
   ): Promise<(T & { siteName: string | null; siteCode: string | null })[]> {
     if (rows.length === 0) return [];
 
-    const siteIds = [...new Set(rows.map((row) => row.siteId))];
+    const siteIds = [...new Set(rows.flatMap((row) => (row.siteId ? [row.siteId] : [])))];
     const [names, codes] = await Promise.all([
       this.cache.getMany('site', siteIds),
       this.cache.getMany('siteCode', siteIds),
@@ -80,8 +80,8 @@ export class OwnerNameService {
 
     return rows.map((row) => ({
       ...row,
-      siteName: names.names.get(row.siteId) ?? null,
-      siteCode: codes.names.get(row.siteId) ?? null,
+      siteName: row.siteId ? (names.names.get(row.siteId) ?? null) : null,
+      siteCode: row.siteId ? (codes.names.get(row.siteId) ?? null) : null,
     }));
   }
 

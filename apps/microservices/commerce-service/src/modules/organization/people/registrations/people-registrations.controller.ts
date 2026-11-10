@@ -4,7 +4,7 @@ import { UpdateCompanyRegistrationDto } from '@domain/parties/dto/request/update
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -16,7 +16,7 @@ export class PeopleRegistrationsController {
   // Returns the paginated tax registrations of a person
   @MessagePattern({ cmd: 'org.people.registrations.table' })
   async table(
-    @Payload() data: { personId: string } & TableViewState,
+    @Payload() data: { personId: string } & TableState,
   ): Promise<{ result: PartyTaxRegistrationDto[]; count: number }> {
     const { personId, ...state } = data;
     this.logger.log(`people.registrations.table — personId: ${personId}`);

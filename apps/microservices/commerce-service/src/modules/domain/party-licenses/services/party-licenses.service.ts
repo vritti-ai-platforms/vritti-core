@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -24,7 +25,7 @@ export class PartyLicensesDomainService {
   constructor(private readonly repository: PartyLicensesDomainRepository) {}
 
   // Returns paginated licenses of a party for the data table
-  async findForTable(partyId: string, state: TableViewState): Promise<{ result: PartyLicenseDto[]; count: number }> {
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyLicenseDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, PartyLicensesDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, PartyLicensesDomainService.FIELD_MAP);
     const where = and(eq(partyLicenses.partyId, partyId), filterWhere, searchWhere) || undefined;

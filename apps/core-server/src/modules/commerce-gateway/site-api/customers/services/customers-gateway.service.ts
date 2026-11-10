@@ -3,7 +3,7 @@ import type { UpdateCustomerDto } from '@commerce/customers/dto/request/update-c
 import type { CustomerResponseDto } from '@commerce/customers/dto/response/customer-response.dto';
 import type { CustomerTableResponseDto } from '@commerce/customers/dto/response/customer-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -13,13 +13,13 @@ export class CustomersGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated, filtered, and sorted customers for the data table
   async findForTable(userId: string): Promise<CustomerTableResponseDto> {
     this.logger.log('site.customers.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-customers');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-customers');
 
     const { result, count } = await this.nats.send<{ result: CustomerResponseDto[]; count: number }>(
       'commerce',

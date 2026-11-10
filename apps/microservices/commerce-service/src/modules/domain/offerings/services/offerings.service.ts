@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { compareCount, type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { compareCount, type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -66,7 +67,7 @@ export class OfferingsDomainService {
   constructor(private readonly repository: OfferingsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted offerings for the data table
-  async findForTable(state: TableViewState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsDomainService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsDomainService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);

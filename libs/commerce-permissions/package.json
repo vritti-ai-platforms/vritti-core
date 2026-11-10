@@ -45,6 +45,10 @@
       "types": "./dist/goods-receipts.d.ts",
       "default": "./dist/goods-receipts.js"
     },
+    "./inbound-deliveries": {
+      "types": "./dist/inbound-deliveries.d.ts",
+      "default": "./dist/inbound-deliveries.js"
+    },
     "./purchase-orders": {
       "types": "./dist/purchase-orders.d.ts",
       "default": "./dist/purchase-orders.js"

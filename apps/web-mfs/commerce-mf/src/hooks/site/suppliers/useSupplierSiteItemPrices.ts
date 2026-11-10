@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  queryOptions,
   type UseMutationOptions,
   type UseQueryOptions,
   useMutation,
@@ -24,7 +25,6 @@ import {
   getSupplierSiteItemPricesTable,
   updateSupplierSiteItemPrice,
 } from '@/services/site/suppliers.service';
-import type { PriceRange } from '@/utils/supplierPrice';
 import {
   SITE_SUPPLIER_SITE_ITEM_KEY,
   SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY,
@@ -46,12 +46,13 @@ export function useSupplierSiteItemPricesTable(
   });
 }
 
-// Fetches this site's price windows for a supplier item in a date range; self-gates on the prices view permission
-export function useSupplierSiteItemPriceHistory(supplierId: string, itemId: string, range: PriceRange) {
+// The price history's query options — `useChart` runs them once the context bar has settled; self-gates on the price
+// view permission
+export function useSupplierSiteItemPriceHistoryQuery(supplierId: string, itemId: string) {
   const { available } = usePermission(SITE_SUPPLIERS.siteItems.prices.view);
-  return useQuery<SupplierItemPriceHistory, AxiosError>({
-    queryKey: [...SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY(supplierId, itemId), range.from, range.to],
-    queryFn: () => getSupplierSiteItemPriceHistory({ supplierId, itemId, range }),
+  return queryOptions<SupplierItemPriceHistory, AxiosError>({
+    queryKey: SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY(supplierId, itemId),
+    queryFn: () => getSupplierSiteItemPriceHistory(supplierId, itemId),
     placeholderData: keepPreviousData,
     enabled: !!supplierId && !!itemId && available,
   });

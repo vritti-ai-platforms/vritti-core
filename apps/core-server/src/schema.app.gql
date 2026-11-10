@@ -238,19 +238,6 @@ type SelectGroup {
   name: String!
 }
 
-type GoodsReceiptMoney {
-  currency: String!
-  value: String!
-}
-
-type GoodsReceiptPo {
-  id: ID!
-  poNumber: String!
-  orderDate: String!
-  expectedBy: String
-  totalAmount: GoodsReceiptMoney!
-}
-
 type GoodsReceipt {
   id: ID!
   grNumber: String!
@@ -261,8 +248,15 @@ type GoodsReceipt {
   status: String!
   isPublishable: Boolean!
   itemCount: Int!
-  purchaseOrderId: ID!
-  po: GoodsReceiptPo!
+  inboundDeliveryId: ID!
+  deliveryNumber: String!
+  deliverySource: String!
+  carrier: String
+  trackingNumber: String
+  supplierDeliveryNoteNumber: String
+  supplierDeliveryNoteDate: String
+  poNumbers: [String!]!
+  expectedDeliveryDate: String
   receivedDate: String!
   notes: String
   publishedAt: String
@@ -380,7 +374,7 @@ type InventoryItemSupplier {
   uomId: ID!
   uomSymbol: String!
   minOrderQuantity: Float
-  leadTimeDays: Int
+  leadTimeDays: Int!
   isPreferred: Boolean!
 }
 

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { majorToMinor } from '@vritti/api-sdk/money';
@@ -32,7 +33,7 @@ export class SupplierQuotationsDomainService {
   // Returns a supplier's quotations for the data table, or only those posted to one site
   async findForSupplierTable(
     supplierId: string,
-    state: TableViewState,
+    state: TableState,
     siteId?: string,
   ): Promise<{ result: SupplierQuotationDto[]; count: number }> {
     const fieldMap = SupplierQuotationsDomainService.FIELD_MAP;
@@ -189,7 +190,7 @@ export class SupplierQuotationsDomainService {
     return this.repository.findItems(quotationId);
   }
 
-  findSite(quotationId: string, siteId: string): Promise<SupplierQuotationSite | undefined> {
+  findSite(quotationId: string, siteId: string | null): Promise<SupplierQuotationSite | undefined> {
     return this.repository.findSite(quotationId, siteId);
   }
 
@@ -197,7 +198,7 @@ export class SupplierQuotationsDomainService {
     return this.repository.findSites(quotationId);
   }
 
-  recordSite(quotationId: string, siteId: string, postedBy: string | null): Promise<SupplierQuotationSite> {
+  recordSite(quotationId: string, siteId: string | null, postedBy: string | null): Promise<SupplierQuotationSite> {
     return this.repository.insertSite({ quotationId, siteId, postedBy });
   }
 

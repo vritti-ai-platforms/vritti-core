@@ -44,7 +44,7 @@ const SITE_TERM_COLUMNS: ColumnDef<InventoryItemSupplierData>[] = [
   {
     accessorKey: 'leadTimeDays',
     header: 'Lead Time',
-    cell: ({ row }) => (row.original.leadTimeDays != null ? `${row.original.leadTimeDays} d` : '—'),
+    cell: ({ row }) => `${row.original.leadTimeDays} d`,
   },
   {
     accessorKey: 'isPreferred',
@@ -64,7 +64,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { data: response, isLoading } = useSuppliersTable(inventoryItemId);
+  const suppliersTableQuery = useSuppliersTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemSupplierData>[]>(
     () => [
@@ -127,9 +127,9 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
     [showSiteTerms, supplierView, navigate],
   );
 
-  const { table } = useDataTable({
+  const suppliersTable = useDataTable({
     columns,
-    serverState: response,
+    query: suppliersTableQuery,
     slug: tableSlug,
     label: 'supplier',
     enableRowSelection: false,
@@ -139,9 +139,8 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
 
   return (
     <DataTable
-      table={table}
+      table={suppliersTable}
       mode="tab"
-      isLoading={isLoading}
       permission={permission}
       searchConfig={{
         columns: [

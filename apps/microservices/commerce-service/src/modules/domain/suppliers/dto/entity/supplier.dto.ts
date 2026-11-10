@@ -28,7 +28,7 @@ export class SupplierItemDto {
   // The least the supplier sells per order, in the item's unit
   minOrderQuantity: number | null;
   // Days from order to delivery, which every site follows unless it sets its own
-  defaultLeadTimeDays: number | null;
+  defaultLeadTimeDays: number;
   siteCount: number;
   // Sites where this supplier is the preferred one for the item
   preferredSiteCount: number;
@@ -46,7 +46,7 @@ export class SupplierItemDto {
     dto.uomId = entity.uomId;
     dto.uomSymbol = uomSymbol ?? '';
     dto.minOrderQuantity = entity.minOrderQuantity ?? null;
-    dto.defaultLeadTimeDays = entity.defaultLeadTimeDays ?? null;
+    dto.defaultLeadTimeDays = entity.defaultLeadTimeDays;
     dto.siteCount = Number(entity.siteCount ?? 0);
     dto.preferredSiteCount = Number(entity.preferredSiteCount ?? 0);
     return dto;
@@ -103,7 +103,7 @@ export class InventoryItemSupplierDto {
   siteCount: number;
   supplierSiteItemId: string | null;
   isPreferred: boolean;
-  leadTimeDays: number | null;
+  leadTimeDays: number;
   isLeadTimeOverridden: boolean;
   minOrderQuantity: number | null;
   unitPrice: CurrencyAmountDto | null;

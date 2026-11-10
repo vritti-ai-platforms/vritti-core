@@ -4,7 +4,7 @@ import { UpdateGoodsReceiptLineDto } from '@domain/goods-receipt-lines/dto/reque
 import { GoodsReceiptLinesDomainService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsLinesService } from '@/modules/site/goods-receipts/lines/services/goods-receipts-lines.service';
 
@@ -20,7 +20,7 @@ export class LeGoodsReceiptsLinesController {
   // Returns one page of a goods receipt item's lines
   @MessagePattern({ cmd: 'le.goodsReceipts.linesTable' })
   linesTable(
-    @Payload() data: { goodsReceiptId: string; itemId: string } & TableViewState,
+    @Payload() data: { goodsReceiptId: string; itemId: string } & TableState,
   ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
     this.logger.log(`le.goodsReceipts.linesTable — item: ${data.itemId}`);
     const { goodsReceiptId, itemId, ...state } = data;
@@ -30,7 +30,7 @@ export class LeGoodsReceiptsLinesController {
   // Returns one page of the lines one lot of a goods receipt item is distributed to
   @MessagePattern({ cmd: 'le.goodsReceipts.linesByLotTable' })
   linesByLotTable(
-    @Payload() data: { goodsReceiptId: string; itemId: string; lotId: string } & TableViewState,
+    @Payload() data: { goodsReceiptId: string; itemId: string; lotId: string } & TableState,
   ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
     this.logger.log(`le.goodsReceipts.linesByLotTable — item: ${data.itemId}, lot: ${data.lotId}`);
     const { goodsReceiptId, itemId, lotId, ...state } = data;

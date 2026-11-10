@@ -1,10 +1,12 @@
 import { TaxClassDto } from '@domain/tax-classes/dto/entity/tax-class.dto';
+import type { TaxClassTableRowDto } from '@domain/tax-classes/dto/entity/tax-class-table-row.dto';
 import { CreateTaxClassDto } from '@domain/tax-classes/dto/request/create-tax-class.dto';
+import { SetTaxClassActiveDto } from '@domain/tax-classes/dto/request/set-tax-class-active.dto';
 import { UpdateTaxClassDto } from '@domain/tax-classes/dto/request/update-tax-class.dto';
 import { TaxClassesDomainService } from '@domain/tax-classes/services/tax-classes.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -14,7 +16,7 @@ export class TaxClassesController {
   constructor(private readonly service: TaxClassesDomainService) {}
 
   @MessagePattern({ cmd: 'org.taxClasses.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: TaxClassDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: TaxClassTableRowDto[]; count: number }> {
     this.logger.log('taxClasses.table');
     return this.service.findForTable(state);
   }
@@ -36,6 +38,12 @@ export class TaxClassesController {
     const { id, ...payload } = dto;
     this.logger.log(`taxClasses.update — id: ${id}`);
     return this.service.update(id, payload);
+  }
+
+  @MessagePattern({ cmd: 'org.taxClasses.setActive' })
+  async setActive(@Payload() dto: SetTaxClassActiveDto): Promise<SuccessResponseDto> {
+    this.logger.log(`taxClasses.setActive — id: ${dto.id}, isActive: ${dto.isActive}`);
+    return this.service.setActive(dto.id, dto.isActive);
   }
 
   @MessagePattern({ cmd: 'org.taxClasses.delete' })

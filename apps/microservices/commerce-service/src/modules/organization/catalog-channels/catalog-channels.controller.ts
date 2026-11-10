@@ -16,7 +16,7 @@ import type {
 import { CatalogChannelsDomainService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -85,7 +85,7 @@ export class OrgCatalogChannelsController {
   // One channel's items, each flagged with whether that channel makes it available
   @MessagePattern({ cmd: 'org.catalogChannels.items' })
   findItemsForTable(
-    @Payload() data: { channelId: string; state: TableViewState },
+    @Payload() data: { channelId: string; state: TableState },
   ): Promise<{ result: ChannelItemDto[]; count: number }> {
     this.logger.log(`catalogChannels.items — channelId: ${data.channelId}`);
     return this.service.findItemsForTable(data.channelId, data.state);
@@ -94,7 +94,7 @@ export class OrgCatalogChannelsController {
   // One channel's prices in one currency, each flagged with whether it is available there
   @MessagePattern({ cmd: 'org.catalogChannels.prices' })
   findPricesForTable(
-    @Payload() data: { channelId: string; currencyCode: string; state: TableViewState },
+    @Payload() data: { channelId: string; currencyCode: string; state: TableState },
   ): Promise<{ result: ChannelPriceDto[]; count: number }> {
     this.logger.log(`catalogChannels.prices — channelId: ${data.channelId}, currency: ${data.currencyCode}`);
     return this.service.findPricesForTable(data.channelId, data.currencyCode, data.state);

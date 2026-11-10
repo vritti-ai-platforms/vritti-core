@@ -116,7 +116,7 @@ export class PurchaseOrderDocumentsService {
       poNumber: po.poNumber,
       status: po.status,
       orderDate: po.orderDate,
-      expectedBy: po.expectedBy,
+      latestExpectedDeliveryDate: po.latestExpectedDeliveryDate,
       notes: po.notes,
       totalAmount: po.totalAmount,
       items,
@@ -238,7 +238,7 @@ export class PurchaseOrderDocumentsService {
     const detailRows = [
       { label: 'PO Number', value: po.poNumber ?? '-' },
       { label: 'Order Date', value: formatDate(po.orderDate) },
-      { label: 'Expected By', value: formatDate(po.expectedBy) },
+      { label: 'Expected Delivery', value: formatDate(po.latestExpectedDeliveryDate) },
       { label: 'Status', value: po.status },
     ];
     const detailRowHeight = 13;

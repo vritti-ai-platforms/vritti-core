@@ -16,7 +16,7 @@ import type { UpdateSupplierSiteItemDto } from '@commerce/supplier-items/dto/req
 import type { SupplierSiteItemRowResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-response.dto';
 import type { SupplierSiteItemRowTableResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
@@ -27,14 +27,14 @@ export class SiteSuppliersGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
   ) {}
 
   // Returns the legal entity's suppliers with their enrollment at this site for the data table, named by core
   async findForTable(userId: string, orgId: string): Promise<SupplierEnrollmentTableResponseDto> {
     this.logger.log('site.suppliers.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-suppliers');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-suppliers');
 
     const { result, count } = await this.nats.send<{ result: SupplierEnrollmentRowResponseDto[]; count: number }>(
       'commerce',
@@ -89,7 +89,7 @@ export class SiteSuppliersGatewayService {
   // Returns an enrolled supplier's site items at this site for the data table
   async findSiteItemsTable(supplierId: string, userId: string): Promise<SupplierSiteItemRowTableResponseDto> {
     this.logger.log(`site.suppliers.siteItems.table — supplierId: ${supplierId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-site-supplier-${supplierId}-site-items`,
     );
@@ -118,7 +118,7 @@ export class SiteSuppliersGatewayService {
   // Returns the supplier's invoices at this site for the data table
   async findInvoicesTable(supplierId: string, userId: string, orgId: string): Promise<SupplierInvoiceTableResponseDto> {
     this.logger.log(`site.suppliers.invoices.table — supplierId: ${supplierId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-site-supplier-${supplierId}-invoices`,
     );

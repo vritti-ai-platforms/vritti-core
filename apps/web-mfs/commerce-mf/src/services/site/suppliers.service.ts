@@ -19,7 +19,6 @@ import type {
   UpdateSupplierSiteItemPayload,
   UpdateSupplierSiteItemPricePayload,
 } from '@/schemas/suppliers';
-import type { PriceRange } from '@/utils/supplierPrice';
 
 const BASE = 'commerce-api/site/suppliers';
 
@@ -112,18 +111,9 @@ export function getSupplierSiteItemPricesTable({
 }
 
 // Fetches this site's price windows for a supplier item in a date range — unpaged, for charts
-export function getSupplierSiteItemPriceHistory({
-  supplierId,
-  itemId,
-  range,
-}: {
-  supplierId: string;
-  itemId: string;
-  range: PriceRange;
-}): Promise<SupplierItemPriceHistory> {
+export function getSupplierSiteItemPriceHistory(supplierId: string, itemId: string): Promise<SupplierItemPriceHistory> {
   return axios
     .get<SupplierItemPriceHistory>(`${BASE}/${supplierId}/site-items/${itemId}/price-history`, {
-      params: { from: range.from, to: range.to },
       showSuccessToast: false,
     })
     .then((r) => r.data);

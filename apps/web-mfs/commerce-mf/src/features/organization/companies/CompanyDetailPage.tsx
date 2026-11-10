@@ -10,17 +10,17 @@ import { Building2, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompanyById, useDeleteCompany } from '@/hooks/organization/companies';
-import { AddressesTab } from '../party/tabs/AddressesTab';
-import { BankAccountsTab } from '../party/tabs/BankAccountsTab';
-import { CommunicationsTab } from '../party/tabs/CommunicationsTab';
-import { IdentifiersTab } from '../party/tabs/IdentifiersTab';
-import { LicensesTab } from '../party/tabs/LicensesTab';
-import { RegistrationsTab } from '../party/tabs/RegistrationsTab';
-import { SocialProfilesTab } from '../party/tabs/SocialProfilesTab';
+import { AddressesTab } from '../party/tabs/addresses/AddressesTab';
+import { BankAccountsTab } from '../party/tabs/bank-accounts/BankAccountsTab';
+import { CommunicationsTab } from '../party/tabs/communications/CommunicationsTab';
+import { IdentifiersTab } from '../party/tabs/identifiers/IdentifiersTab';
+import { LicensesTab } from '../party/tabs/licenses/LicensesTab';
+import { RegistrationsTab } from '../party/tabs/registrations/RegistrationsTab';
+import { SocialProfilesTab } from '../party/tabs/social-profiles/SocialProfilesTab';
 import { EditCompanyDialog } from './forms/EditCompanyDialog';
 import { companyBindings } from './party-bindings';
 import { OverviewTab } from './tabs/OverviewTab';
-import { PeopleTab } from './tabs/PeopleTab';
+import { PeopleTab } from './tabs/people/PeopleTab';
 
 export const CompanyDetailPage = () => {
   const { id } = useSlugParams('companySlug');

@@ -1,14 +1,14 @@
 import { Suspense } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
-import { SupplierQuotationPageSkeleton } from '@/components/suppliers/quotations/SupplierQuotationPageSkeleton';
 import { SupplierEnrollmentDetailSkeleton } from '@/components/suppliers/SupplierEnrollmentDetailSkeleton';
-import { SupplierQuotationPage } from './quotations/SupplierQuotationPage';
+import { SupplierQuotationPageSkeleton } from '@/components/suppliers/tabs/quotations/SupplierQuotationPageSkeleton';
 import { SupplierDetailPage } from './SupplierDetailPage';
 import { SupplierDetailPageSkeleton } from './SupplierDetailPageSkeleton';
-import { SupplierEnrollmentPage } from './SupplierEnrollmentPage';
-import { SupplierItemDetailPage } from './SupplierItemDetailPage';
-import { SupplierItemDetailPageSkeleton } from './SupplierItemDetailPageSkeleton';
 import { SuppliersPage } from './SuppliersPage';
+import { SupplierEnrollmentPage } from './tabs/enrollments/SupplierEnrollmentPage';
+import { SupplierItemDetailPage } from './tabs/items/SupplierItemDetailPage';
+import { SupplierItemDetailPageSkeleton } from './tabs/items/SupplierItemDetailPageSkeleton';
+import { SupplierQuotationPage } from './tabs/quotations/SupplierQuotationPage';
 
 const routes: RouteObject[] = [
   { index: true, element: <SuppliersPage /> },

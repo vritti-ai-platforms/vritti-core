@@ -1,5 +1,15 @@
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsIn, IsISO31661Alpha2, IsNotEmpty, IsString, IsUppercase, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsISO31661Alpha2,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUppercase,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 import { type TaxAuthorityLevel, taxAuthorityLevelEnum } from '@/db/schema';
 
 export class CreateTaxComponentDto {
@@ -22,6 +32,10 @@ export class CreateTaxComponentDto {
 
   @IsIn(taxAuthorityLevelEnum.enumValues)
   authorityLevel: TaxAuthorityLevel;
+
+  @IsOptional()
+  @IsUUID('7')
+  standsInForId?: string | null;
 
   @IsBoolean()
   isRecoverable: boolean;

@@ -83,7 +83,7 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
   const pickDialog = useDialog();
   const editLineDialog = useDialog();
 
-  const { data: response, isLoading: isItemsLoading } = useStockAdjustmentLineItemsTable(adjustment.id, lineId);
+  const stockAdjustmentLineItemsTableQuery = useStockAdjustmentLineItemsTable(adjustment.id, lineId);
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
   const removeItemMutation = useRemoveStockAdjustmentLineItem(adjustment.id, lineId);
   const addSerialMutation = useAddStockAdjustmentLineItem(adjustment.id, lineId);
@@ -163,15 +163,16 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
     [isDraft, handleUnpick],
   );
 
-  const { table } = useDataTable({
+  const stockAdjustmentLineItemsTable = useDataTable({
     columns,
-    serverState: response,
+    query: stockAdjustmentLineItemsTableQuery,
     slug: `stock-adjustment-${adjustment.id}-line-${lineId}-items`,
     label: 'serial',
     enableRowSelection: isDraft,
     onStatePush: () =>
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustment.id, lineId) }),
   });
+  const { table } = stockAdjustmentLineItemsTable;
 
   const handleBulkUnpick = useCallback(
     async (rows: Parameters<SelectActions<StockAdjustmentLineItemData>>[0]) => {
@@ -265,9 +266,8 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
       )}
 
       <DataTable
-        table={table}
+        table={stockAdjustmentLineItemsTable}
         mode="compact"
-        isLoading={isItemsLoading}
         searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
         filters={[<ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />]}
         selectActions={(rows) => (

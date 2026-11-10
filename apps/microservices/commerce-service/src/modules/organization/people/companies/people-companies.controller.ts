@@ -2,7 +2,7 @@ import type { PersonCompanyDto } from '@domain/party-relationships/dto/entity/pe
 import { PartyRelationshipsDomainService } from '@domain/party-relationships/services/party-relationships.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class PeopleCompaniesController {
@@ -13,7 +13,7 @@ export class PeopleCompaniesController {
   // Returns paginated companies a person is linked to for the person's companies table
   @MessagePattern({ cmd: 'org.people.companies.table' })
   async table(
-    @Payload() payload: { personId: string } & TableViewState,
+    @Payload() payload: { personId: string } & TableState,
   ): Promise<{ result: PersonCompanyDto[]; count: number }> {
     const { personId, ...state } = payload;
     this.logger.log(`people.companies.table — personId: ${personId}`);

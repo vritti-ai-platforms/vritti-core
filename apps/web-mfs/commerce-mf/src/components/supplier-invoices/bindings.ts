@@ -5,7 +5,6 @@ import type {
   UseAddInvoiceLine,
   UseCreateInvoice,
   UseInvoiceAction,
-  UsePurchaseOrderInvoicesSummary,
   UsePurchaseOrderInvoicesTable,
   UseRemoveInvoiceLine,
   UseUpdateInvoice,
@@ -34,7 +33,6 @@ export interface PurchaseOrderSupplierInvoicesBinding extends SupplierInvoicesLi
   tableKey: (purchaseOrderId: string) => readonly unknown[];
   tableSlug: (purchaseOrderId: string) => string;
   useTable: UsePurchaseOrderInvoicesTable;
-  useSummary: UsePurchaseOrderInvoicesSummary;
 }
 
 export interface SupplierInvoiceRemovalBinding {

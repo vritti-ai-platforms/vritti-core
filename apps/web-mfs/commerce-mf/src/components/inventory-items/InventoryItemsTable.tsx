@@ -4,13 +4,13 @@ import {
   type ColumnDef,
   DataTable,
   type DataTableEmptyConfig,
+  type DataTableQuery,
   type RowAction,
   RowActions,
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
-import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { Package } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -19,8 +19,7 @@ import { CategoryFilter } from '@/selectors/category';
 import { UomFilter } from '@/selectors/uom';
 
 interface InventoryItemsTableProps<TRow extends InventoryItemData> {
-  response: TableResponse<TRow> | undefined;
-  isLoading: boolean;
+  query: DataTableQuery<TRow>;
   slug: string;
   tableKey: readonly unknown[];
   permission: string;
@@ -36,8 +35,7 @@ const NO_FILTERS: React.ReactNode[] = [];
 
 // The master-item table every workspace shows; each scope adds its own columns, actions and toolbar
 export const InventoryItemsTable = <TRow extends InventoryItemData>({
-  response,
-  isLoading,
+  query,
   slug,
   tableKey,
   permission,
@@ -106,11 +104,11 @@ export const InventoryItemsTable = <TRow extends InventoryItemData>({
     [extraColumns, rowActions],
   );
 
-  const { table } = useDataTable({
+  const inventoryItemsTable = useDataTable({
     columns,
     slug,
     label: 'inventory item',
-    serverState: response,
+    query,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -119,8 +117,7 @@ export const InventoryItemsTable = <TRow extends InventoryItemData>({
 
   return (
     <DataTable
-      table={table}
-      isLoading={isLoading}
+      table={inventoryItemsTable}
       permission={permission}
       searchConfig={{
         columns: [

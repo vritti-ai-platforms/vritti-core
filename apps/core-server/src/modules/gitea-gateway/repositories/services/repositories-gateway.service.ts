@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OrganizationGatewayService } from '../../organization/services/organization-gateway.service';
@@ -42,7 +42,7 @@ export class RepositoriesGatewayService {
   constructor(
     private readonly gitea: GiteaHttpService,
     private readonly organizationGatewayService: OrganizationGatewayService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     configService: ConfigService,
   ) {
     this.baseDomain = configService.getOrThrow<string>('BASE_DOMAIN');
@@ -51,7 +51,7 @@ export class RepositoriesGatewayService {
   // Returns a page of repositories for the data table, with the view state the client last pushed.
   async findForTable(userId: string, subdomain: string): Promise<RepositoryTableResponseDto> {
     const namespace = await this.organizationGatewayService.requireNamespace(subdomain);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, REPOSITORIES_TABLE_SLUG);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, REPOSITORIES_TABLE_SLUG);
     const { page, limit } = toGiteaPaging(state);
 
     const response = await this.gitea.getWithHeaders<GiteaApiRepository[]>(`/orgs/${namespace}/repos`, {

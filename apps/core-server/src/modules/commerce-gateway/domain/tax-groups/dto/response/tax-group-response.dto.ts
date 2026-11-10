@@ -36,6 +36,9 @@ export class TaxGroupResponseDto {
   @ApiProperty({ description: 'Whether the group can be deleted (no tax class is mapped to it)' })
   canDelete: boolean;
 
+  @ApiProperty({ description: 'Whether it can be deactivated (no class mapping in force or still to come names it)' })
+  canDeactivate: boolean;
+
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
 

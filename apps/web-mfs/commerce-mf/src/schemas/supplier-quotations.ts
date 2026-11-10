@@ -53,7 +53,8 @@ export const addSupplierQuotationItemSchema = z
 
 export type AddSupplierQuotationItemFormData = z.infer<typeof addSupplierQuotationItemSchema>;
 
-export const postSupplierQuotationSiteSchema = z.object({ siteId: z.uuid('Site is required') });
+// No site posts the quotation as the legal entity's prices, which every site without its own price in force uses
+export const postSupplierQuotationSiteSchema = z.object({ siteId: z.uuid().optional() });
 export type PostSupplierQuotationSiteFormData = z.infer<typeof postSupplierQuotationSiteSchema>;
 
 export interface SupplierQuotationData {
@@ -90,7 +91,7 @@ export interface SupplierQuotationItemData {
 
 export interface SupplierQuotationSiteData {
   id: string;
-  siteId: string;
+  siteId: string | null;
   siteName: string | null;
   siteCode: string | null;
   postedBy: string | null;

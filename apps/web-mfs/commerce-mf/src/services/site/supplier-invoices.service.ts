@@ -3,7 +3,6 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type {
   AddSupplierInvoiceLineVars,
   CreateSupplierInvoicePayload,
-  PurchaseOrderInvoiceSummary,
   RemoveSupplierInvoiceLineVars,
   SupplierInvoice,
   SupplierInvoiceDetail,
@@ -75,11 +74,6 @@ export function removeSupplierInvoiceLine({
 // Fetches the invoices billing a purchase order of the session site
 export function getPurchaseOrderInvoicesTable(purchaseOrderId: string): Promise<SupplierInvoicesTableResponse> {
   return axios.get<SupplierInvoicesTableResponse>(`${purchaseOrderBase(purchaseOrderId)}/table`).then((r) => r.data);
-}
-
-// Fetches a purchase order's invoice counts and the share of its ordered quantity billed
-export function getPurchaseOrderInvoicesSummary(purchaseOrderId: string): Promise<PurchaseOrderInvoiceSummary> {
-  return axios.get<PurchaseOrderInvoiceSummary>(`${purchaseOrderBase(purchaseOrderId)}/summary`).then((r) => r.data);
 }
 
 // Records a draft invoice billing the purchase order; the order travels in the URL, not the body

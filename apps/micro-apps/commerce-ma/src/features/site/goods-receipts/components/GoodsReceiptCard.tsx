@@ -38,7 +38,7 @@ interface GoodsReceiptCardProps {
 }
 
 // GR card: a package tile + mono GR number + received date, a Draft/Published status pill, then supplier
-// and purchase-order rows (PO shows "—" when unlinked). Tap navigates to the detail.
+// and purchase-orders rows (the receipt's PO numbers, "—" before any line is counted). Tap navigates to the detail.
 export function GoodsReceiptCard({ gr, onPress }: GoodsReceiptCardProps) {
   const fmt = useFormatters();
   const meta = STATUS_META[gr.status] ?? STATUS_META.DRAFT;
@@ -91,9 +91,9 @@ export function GoodsReceiptCard({ gr, onPress }: GoodsReceiptCardProps) {
             {gr.supplierName || '—'}
           </Text>
         </InfoRow>
-        <InfoRow label="Purchase Order">
+        <InfoRow label="Purchase Orders">
           <Text className="text-right font-mono text-sm text-foreground" numberOfLines={1}>
-            {gr.po.poNumber}
+            {gr.poNumbers.length > 0 ? gr.poNumbers.join(', ') : '—'}
           </Text>
         </InfoRow>
       </View>

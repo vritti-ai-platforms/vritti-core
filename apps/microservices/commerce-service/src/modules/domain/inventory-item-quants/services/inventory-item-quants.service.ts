@@ -1,12 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  CursorCodec,
-  type FieldMap,
-  FilterProcessor,
-  type KeysetOrderBy,
-  KeysetProcessor,
-  type TableViewState,
-} from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { CursorCodec, type KeysetOrderBy, KeysetProcessor, type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, asc, desc, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
@@ -96,7 +90,7 @@ export class InventoryItemQuantsDomainService {
   // Returns a location's stocked items (grouped, non-zero), table-shaped with FilterProcessor search/sort.
   async findItemsForLocationTable(
     locationId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: LocationItemDto[]; count: number }> {
     this.logger.log(`findItemsForLocationTable — locationId=${locationId}`);
     const filterWhere = FilterProcessor.buildWhere(
@@ -429,7 +423,7 @@ export class InventoryItemQuantsDomainService {
 
   async findQuantsForTable(
     inventoryItemId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsDomainService.QUANTS_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemQuantsDomainService.QUANTS_FIELD_MAP);

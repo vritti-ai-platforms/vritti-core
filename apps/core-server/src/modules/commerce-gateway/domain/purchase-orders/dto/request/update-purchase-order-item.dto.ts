@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsBoolean, IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsPositive, IsUUID, Matches, Min } from 'class-validator';
 
 export class UpdatePurchaseOrderItemDto {
   @ApiPropertyOptional({ description: 'Inventory item ID' })
@@ -49,4 +49,30 @@ export class UpdatePurchaseOrderItemDto {
   @IsOptional()
   @IsBoolean()
   hasScheme?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Date the line is expected to be delivered (YYYY-MM-DD), on or after the order date; rejected while the line is on an inbound delivery',
+    example: '2026-04-25',
+  })
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'expectedDeliveryDate must be YYYY-MM-DD' })
+  expectedDeliveryDate?: string;
+
+  @ApiPropertyOptional({
+    description: "The line's own tax date (YYYY-MM-DD); the line stops following the purchase order's",
+    example: '2026-04-10',
+  })
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'taxDate must be YYYY-MM-DD' })
+  taxDate?: string;
+
+  @ApiPropertyOptional({
+    description: "True to make the line follow the purchase order's tax date again; not together with taxDate",
+  })
+  @IsOptional()
+  @IsBoolean()
+  followPoTaxDate?: boolean;
 }

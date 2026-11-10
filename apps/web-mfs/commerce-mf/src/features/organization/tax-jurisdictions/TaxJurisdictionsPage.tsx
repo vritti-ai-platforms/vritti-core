@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ORG_TAX_JURISDICTIONS } from '@vritti/commerce-permissions/tax-jurisdictions';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog, useOrgCountryCode } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { PermissionGate } from '@vritti/quantum-ui/PermissionGate';
@@ -17,6 +17,7 @@ export const TaxJurisdictionsPage = () => {
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [country, setCountry] = useState<string>();
+  const orgCountryCode = useOrgCountryCode();
   const { data: jurisdictionCount } = useTaxJurisdictionCount();
   const formDialog = useDialog();
 
@@ -62,7 +63,7 @@ export const TaxJurisdictionsPage = () => {
         description="Enter the details for the new tax jurisdiction."
         content={(close) => (
           <AddJurisdictionDialog
-            countryCode={country}
+            countryCode={country ?? orgCountryCode}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: TAX_JURISDICTIONS_KEY });
               close();

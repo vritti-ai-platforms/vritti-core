@@ -8,6 +8,7 @@ import {
   goodsReceiptLots,
   goodsReceipts,
   type NewSupplierInvoiceLineReceipt,
+  purchaseOrderItems,
   SupplierInvoiceStatusValues,
   supplierInvoiceLineReceipts,
   supplierInvoiceLines,
@@ -167,9 +168,10 @@ export class SupplierInvoiceLineReceiptsDomainRepository extends PrimaryBaseRepo
       .from(goodsReceiptLots)
       .innerJoin(goodsReceiptItems, eq(goodsReceiptItems.id, goodsReceiptLots.goodsReceiptItemId))
       .innerJoin(goodsReceipts, eq(goodsReceipts.id, goodsReceiptItems.goodsReceiptId))
+      .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
       .where(
         and(
-          eq(goodsReceipts.purchaseOrderId, purchaseOrderId),
+          eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
           eq(goodsReceipts.status, GoodsReceiptStatusValues.PUBLISHED),
         ),
       );

@@ -4,7 +4,7 @@ import {
 } from '@domain/payout-channel/services/payout-channel.service';
 import { type AppSiteRow, SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -100,7 +100,7 @@ export class CartsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly siteRepository: SiteDomainRepository,
     private readonly payoutChannelService: PayoutChannelDomainService,
   ) {}
@@ -108,7 +108,7 @@ export class CartsGatewayService {
   // Returns paginated, filtered, and sorted carts for the data table
   async findForTable(userId: string): Promise<CartTableResponse> {
     this.logger.log('site.carts.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-site-carts');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-carts');
 
     const { result, count } = await this.nats.send<{ result: CartRow[]; count: number }>(
       'commerce',
@@ -134,7 +134,7 @@ export class CartsGatewayService {
   // Returns paginated, filtered and sorted items of one cart for the data table
   async findItemsForTable(cartId: string, userId: string, currencyCode: string): Promise<CartItemsTableResponse> {
     this.logger.log(`site.carts.items.table — cart: ${cartId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-site-cart-${cartId}-items`,
     );

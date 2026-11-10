@@ -44,7 +44,7 @@ const STATUS_CONFIG: Record<
 export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { data: response, isLoading } = useInventoryItemQuantsTable(inventoryItemId);
+  const inventoryItemQuantsTableQuery = useInventoryItemQuantsTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemQuantData>[]>(
     () => [
@@ -130,9 +130,9 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol
     [uomSymbol, navigate],
   );
 
-  const { table } = useDataTable({
+  const inventoryItemQuantsTable = useDataTable({
     columns,
-    serverState: response,
+    query: inventoryItemQuantsTableQuery,
     slug: `inventory-item-${inventoryItemId}-quants`,
     label: 'quant',
     enableRowSelection: false,
@@ -142,9 +142,8 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol
 
   return (
     <DataTable
-      table={table}
+      table={inventoryItemQuantsTable}
       mode="tab"
-      isLoading={isLoading}
       filters={[
         <LocationFilter key="locationId" />,
         <LotFilter key="lotId" params={{ inventoryItemId: inventoryItemId }} />,

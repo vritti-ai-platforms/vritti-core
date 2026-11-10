@@ -1,9 +1,11 @@
-import { AddGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-item.dto';
 import { AddGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line.dto';
 import { AddGoodsReceiptLineItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
-import { CreateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt.dto';
+import { AddGoodsReceiptPurchaseOrderDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-purchase-order.dto';
+import { CreateGoodsReceiptFromDeliveryDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
+import { CreateGoodsReceiptFromPurchaseOrdersDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-purchase-orders.dto';
 import { LeAddGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/le-add-goods-receipt-lot.dto';
 import { LeUpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/le-update-goods-receipt-lot.dto';
+import { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
 import { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
 import type { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
@@ -28,11 +30,12 @@ import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { LegalEntityId, OrgId } from '@/security/decorators';
 import {
-  ApiAddItemFromPurchaseOrderItem,
   ApiAddLine,
   ApiAddLineItem,
   ApiAddLot,
-  ApiCreate,
+  ApiAddPurchaseOrder,
+  ApiCreateFromDelivery,
+  ApiCreateFromPurchaseOrders,
   ApiDelete,
   ApiFindById,
   ApiFindForTable,
@@ -52,6 +55,7 @@ import {
   ApiRemoveLineItem,
   ApiRemoveLot,
   ApiTree,
+  ApiUpdate,
   ApiUpdateItem,
   ApiUpdateLine,
   ApiUpdateLot,
@@ -68,14 +72,40 @@ export class LeGoodsReceiptsGatewayController {
 
   constructor(private readonly service: LeGoodsReceiptsGatewayService) {}
 
-  // Creates a goods receipt against a confirmed purchase order of one of the legal entity's sites
-  @Post()
+  // Creates a draft goods receipt of an announced inbound delivery, pre-filled with its open lines
+  @Post('from-delivery')
   @RequirePermission(LE_GOODS_RECEIPTS.add)
   @HttpCode(HttpStatus.CREATED)
-  @ApiCreate()
-  create(@Body() dto: CreateGoodsReceiptDto): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log('POST /commerce-api/le/goods-receipts');
-    return this.service.create(dto);
+  @ApiCreateFromDelivery()
+  createFromDelivery(
+    @Body() dto: CreateGoodsReceiptFromDeliveryDto,
+  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
+    this.logger.log('POST /commerce-api/le/goods-receipts/from-delivery');
+    return this.service.createFromDelivery(dto);
+  }
+
+  // Creates an arrived inbound delivery of a supplier's purchase orders and a draft goods receipt of it
+  @Post('from-purchase-orders')
+  @RequirePermission(LE_GOODS_RECEIPTS.add)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiCreateFromPurchaseOrders()
+  createFromPurchaseOrders(
+    @Body() dto: CreateGoodsReceiptFromPurchaseOrdersDto,
+  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
+    this.logger.log('POST /commerce-api/le/goods-receipts/from-purchase-orders');
+    return this.service.createFromPurchaseOrders(dto);
+  }
+
+  // Adds the open lines of another purchase order of the supplier to a draft goods receipt and its inbound delivery
+  @Post(':id/purchase-orders')
+  @RequirePermission(LE_GOODS_RECEIPTS.edit)
+  @ApiAddPurchaseOrder()
+  addPurchaseOrder(
+    @Param('id') goodsReceiptId: string,
+    @Body() dto: AddGoodsReceiptPurchaseOrderDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/purchase-orders`);
+    return this.service.addPurchaseOrder(goodsReceiptId, dto);
   }
 
   // Returns the goods receipts of the legal entity's sites for the data table
@@ -94,6 +124,15 @@ export class LeGoodsReceiptsGatewayController {
   findById(@Param('id') id: string, @OrgId() orgId: string): Promise<LeGoodsReceiptResponseDto> {
     this.logger.log(`GET /commerce-api/le/goods-receipts/${id}`);
     return this.service.findById(id, orgId);
+  }
+
+  // Changes a draft goods receipt's notes and the supplier's delivery note on the inbound delivery it created
+  @Patch(':id')
+  @RequirePermission(LE_GOODS_RECEIPTS.edit)
+  @ApiUpdate()
+  update(@Param('id') id: string, @Body() dto: UpdateGoodsReceiptDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/goods-receipts/${id}`);
+    return this.service.update(id, dto);
   }
 
   // Returns a goods receipt's items with their lots and lines as a tree
@@ -166,19 +205,6 @@ export class LeGoodsReceiptsGatewayController {
   ): Promise<GoodsReceiptItemQuantsResponseDto> {
     this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/quants`);
     return this.service.findItemQuants(goodsReceiptId, itemId);
-  }
-
-  // Counts a purchase order line on a goods receipt
-  @Post(':id/items/from-purchase-order-item')
-  @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiAddItemFromPurchaseOrderItem()
-  addItemFromPurchaseOrderItem(
-    @Param('id') goodsReceiptId: string,
-    @Body() dto: AddGoodsReceiptItemDto,
-  ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/items/from-purchase-order-item`);
-    return this.service.addItemFromPurchaseOrderItem(goodsReceiptId, dto);
   }
 
   // Returns one item of a goods receipt with its purchase order context and flags

@@ -1,0 +1,1 @@
+ALTER TABLE "core"."organizations" ADD COLUMN "country_code" char(2);

@@ -11,14 +11,13 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { isoTodayDate } from '@vritti/quantum-ui/timezone';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useRef } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import {
   type SupplierItemPriceRow,
   type UpdateSupplierItemPriceFormData,
   updateSupplierItemPriceSchema,
 } from '@/schemas/suppliers';
-import { CurrencySelector } from '@/selectors/currency';
 import { InventoryItemMrpSelector } from '@/selectors/inventory-item-mrp';
 import { isPriceInForce } from '@/utils/supplierPrice';
 import type { UseUpdatePrice } from '../types';
@@ -50,7 +49,7 @@ export const EditSitePriceDialog: React.FC<EditSitePriceDialogProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const inForce = isPriceInForce(price, isoTodayDate(useWorkspaceTimeZone(price.siteId)));
+  const inForce = isPriceInForce(price, isoTodayDate(useWorkspaceTimeZone(price.siteId ?? undefined)));
   const form = useForm<UpdateSupplierItemPriceFormData>({
     resolver: zodResolver(updateSupplierItemPriceSchema),
     defaultValues: {
@@ -63,14 +62,14 @@ export const EditSitePriceDialog: React.FC<EditSitePriceDialogProps> = ({
     },
   });
 
-  // A price is in one of the supplier's currencies; switching keeps the amount and drops an MRP printed in the old one
-  const [currency, setCurrency] = useState(price.unitPrice.currency);
-  const changeCurrency = (next: string) => {
-    setCurrency(next);
-    const unitPrice = form.getValues('unitPrice');
-    if (unitPrice) form.setValue('unitPrice', { ...unitPrice, currency: next });
+  // A price is in one of the supplier's currencies; switching drops an MRP printed in the old one
+  const currency = useWatch({ control: form.control, name: 'unitPrice' })?.currency ?? price.unitPrice.currency;
+  const previousCurrency = useRef(currency);
+  useEffect(() => {
+    if (currency === previousCurrency.current) return;
+    previousCurrency.current = currency;
     form.setValue('mrpId', undefined);
-  };
+  }, [currency, form]);
 
   const updateMutation = useUpdatePrice(supplierId, itemId, { onSuccess });
   const canSetMrp = usePermission(mrpPermission).available;
@@ -104,16 +103,13 @@ export const EditSitePriceDialog: React.FC<EditSitePriceDialogProps> = ({
       <FormSection title="Price" contentClassName="block">
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <CurrencySelector
-              label="Currency"
-              includeCodes={currencyCodes}
-              clearable={false}
-              disabled={inForce || currencyCodes.length < 2}
-              value={currency}
-              onChange={(next: unknown) => next && changeCurrency(String(next))}
-              description="One of the supplier's currencies"
+            <CurrencyField
+              name="unitPrice"
+              label="Unit Price"
+              currencies={currencyCodes}
+              disabled={inForce}
+              description="In one of the supplier's currencies"
             />
-            <CurrencyField name="unitPrice" label="Unit Price" currencyCode={currency} disabled={inForce} />
             <InventoryItemMrpSelector
               name="mrpId"
               permission={mrpPermission}

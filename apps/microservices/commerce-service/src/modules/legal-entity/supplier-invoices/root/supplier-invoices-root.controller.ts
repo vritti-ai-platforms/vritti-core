@@ -7,7 +7,7 @@ import { LeUpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/reques
 import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/services/supplier-invoices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -19,7 +19,7 @@ export class LeSupplierInvoicesRootController {
 
   // Returns the invoices of the legal entity's sites for the data table
   @MessagePattern({ cmd: 'le.supplierInvoices.table' })
-  table(@Payload() state: TableViewState): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
+  table(@Payload() state: TableState): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
     this.logger.log('le.supplierInvoices.table');
     return this.service.findForTable(state);
   }

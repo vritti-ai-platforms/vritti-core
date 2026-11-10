@@ -6,7 +6,7 @@ import { SupplierSiteItemTermsDto, type SupplierSiteItemTermsRow } from './suppl
 export class SupplierSiteItemRowDto extends SupplierItemDto {
   supplierSiteItemId: string | null;
   isPreferred: boolean;
-  leadTimeDays: number | null;
+  leadTimeDays: number;
   isLeadTimeOverridden: boolean;
   unitPrice: CurrencyAmountDto | null;
   schemeBuyQty: number | null;

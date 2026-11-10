@@ -4,7 +4,6 @@ import type { AxiosError } from 'axios';
 import type {
   AddSupplierInvoiceLineVars,
   CreateSupplierInvoicePayload,
-  PurchaseOrderInvoiceSummary,
   RemoveSupplierInvoiceLineVars,
   SupplierInvoice,
   SupplierInvoiceRef,
@@ -31,9 +30,6 @@ export type SupplierInvoicePath = (
 export type UsePurchaseOrderInvoicesTable = (purchaseOrderId: string) => {
   data: SupplierInvoicesTableResponse | undefined;
   isLoading: boolean;
-};
-export type UsePurchaseOrderInvoicesSummary = (purchaseOrderId: string) => {
-  data: PurchaseOrderInvoiceSummary | undefined;
 };
 
 export type SupplierInvoiceMutationOptions<TData, TVars> = Omit<

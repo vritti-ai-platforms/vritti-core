@@ -4,7 +4,7 @@ import { CreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/
 import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/services/supplier-invoices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 
@@ -17,7 +17,7 @@ export class PurchaseOrdersInvoicesController {
   // Returns the invoices billing the purchase order for the data table
   @MessagePattern({ cmd: 'site.purchaseOrders.invoices.table' })
   table(
-    @Payload() data: { purchaseOrderId: string } & TableViewState,
+    @Payload() data: { purchaseOrderId: string } & TableState,
   ): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
     const { purchaseOrderId, ...state } = data;
     this.logger.log(`site.purchaseOrders.invoices.table — purchaseOrderId: ${purchaseOrderId}`);

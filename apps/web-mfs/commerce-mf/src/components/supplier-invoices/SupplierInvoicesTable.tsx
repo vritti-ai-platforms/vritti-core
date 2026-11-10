@@ -3,6 +3,7 @@ import {
   type ColumnDef,
   CurrencyCell,
   DataTable,
+  type DataTableQuery,
   DateCell,
   NumberCell,
   RowActions,
@@ -15,11 +16,7 @@ import { Eye, ReceiptText } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  SUPPLIER_INVOICE_STATUS_LABELS,
-  type SupplierInvoice,
-  type SupplierInvoicesTableResponse,
-} from '@/schemas/supplier-invoices';
+import { SUPPLIER_INVOICE_STATUS_LABELS, type SupplierInvoice } from '@/schemas/supplier-invoices';
 import { AddSupplierInvoiceAction } from './AddSupplierInvoiceAction';
 import type { SupplierInvoicesListBinding } from './bindings';
 import { SupplierInvoiceFlagCount } from './SupplierInvoiceFlags';
@@ -28,9 +25,7 @@ import { SupplierInvoiceStatusBadge } from './SupplierInvoiceStatusBadge';
 interface SupplierInvoicesTableProps {
   binding: SupplierInvoicesListBinding;
   mode: 'page' | 'tab';
-  response: SupplierInvoicesTableResponse | undefined;
-  isLoading: boolean;
-  isFetching?: boolean;
+  query: DataTableQuery<SupplierInvoice>;
   slug: string;
   queryKey: readonly unknown[];
   supplierId?: string;
@@ -46,9 +41,7 @@ const STATUS_OPTIONS = Object.entries(SUPPLIER_INVOICE_STATUS_LABELS).map(([valu
 export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
   binding,
   mode,
-  response,
-  isLoading,
-  isFetching,
+  query,
   slug,
   queryKey,
   supplierId,
@@ -141,9 +134,9 @@ export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
     [binding, navigate, showSupplier, showPurchaseOrder, showSite],
   );
 
-  const { table } = useDataTable({
+  const supplierInvoicesTable = useDataTable({
     columns,
-    serverState: response,
+    query,
     slug,
     label: 'invoice',
     enableRowSelection: false,
@@ -158,10 +151,8 @@ export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
 
   return (
     <DataTable
-      table={table}
+      table={supplierInvoicesTable}
       mode={mode}
-      isLoading={isLoading}
-      isFetching={isFetching}
       permission={binding.permissions.view}
       onRowClick={(invoice) => navigate(binding.invoicePath(invoice), { relative: 'path' })}
       searchConfig={{

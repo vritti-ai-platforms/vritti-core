@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
@@ -42,10 +43,7 @@ export class CatalogChannelsDomainService {
   constructor(private readonly repository: CatalogChannelsDomainRepository) {}
 
   // Returns paginated items of one channel, each flagged with whether that channel makes it available
-  async findItemsForTable(
-    channelId: string,
-    state: TableViewState,
-  ): Promise<{ result: ChannelItemDto[]; count: number }> {
+  async findItemsForTable(channelId: string, state: TableState): Promise<{ result: ChannelItemDto[]; count: number }> {
     const channel = await this.requireChannel(channelId);
     const where = and(
       FilterProcessor.buildWhere(state.filters, CatalogChannelsDomainService.ITEM_FIELD_MAP),
@@ -67,7 +65,7 @@ export class CatalogChannelsDomainService {
   async findPricesForTable(
     channelId: string,
     currencyCode: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: ChannelPriceDto[]; count: number }> {
     const channel = await this.requireChannel(channelId);
     const where = and(

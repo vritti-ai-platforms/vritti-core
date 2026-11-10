@@ -4,7 +4,6 @@ import type { PurchaseOrderSupplierInvoicesBinding } from '@/components/supplier
 import {
   LE_PURCHASE_ORDER_INVOICES_TABLE_KEY,
   useCreatePurchaseOrderInvoice,
-  usePurchaseOrderInvoicesSummary,
   usePurchaseOrderInvoicesTable,
 } from '@/hooks/legal-entity/supplier-invoices';
 
@@ -19,6 +18,5 @@ export const invoicesBinding: PurchaseOrderSupplierInvoicesBinding = {
   tableKey: LE_PURCHASE_ORDER_INVOICES_TABLE_KEY,
   tableSlug: (purchaseOrderId) => `commerce-le-purchase-order-${purchaseOrderId}-invoices`,
   useTable: usePurchaseOrderInvoicesTable,
-  useSummary: usePurchaseOrderInvoicesSummary,
   useCreateInvoice: useCreatePurchaseOrderInvoice,
 };

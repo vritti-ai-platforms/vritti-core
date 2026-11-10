@@ -1,11 +1,12 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
-  AddGoodsReceiptItemPayload,
   AddGoodsReceiptLineItemPayload,
   AddGoodsReceiptLinePayload,
   AddGoodsReceiptLotPayload,
-  CreateGoodsReceiptPayload,
+  AddGoodsReceiptPurchaseOrderPayload,
+  CreateGoodsReceiptFromDeliveryPayload,
+  CreateGoodsReceiptFromPurchaseOrdersPayload,
   GoodsReceiptData,
   GoodsReceiptItemData,
   GoodsReceiptItemQuantsData,
@@ -20,6 +21,7 @@ import type {
   UpdateGoodsReceiptItemPayload,
   UpdateGoodsReceiptLinePayload,
   UpdateGoodsReceiptLotPayload,
+  UpdateGoodsReceiptPayload,
 } from '@/schemas/goods-receipts';
 
 // Fetches the site's goods receipts for the data table
@@ -37,12 +39,38 @@ export function getGoodsReceiptTree(id: string): Promise<GoodsReceiptTreeNode[]>
   return axios.get<GoodsReceiptTreeNode[]>(`commerce-api/goods-receipts/${id}/tree`).then((r) => r.data);
 }
 
-// Starts a draft goods receipt against a purchase order
-export function createGoodsReceipt(data: CreateGoodsReceiptPayload): Promise<CreateResponse<GoodsReceiptData>> {
-  return axios.post<CreateResponse<GoodsReceiptData>>('commerce-api/goods-receipts', data).then((r) => r.data);
+// Starts a draft goods receipt of an announced inbound delivery, pre-filled with its open lines
+export function createGoodsReceiptFromDelivery(
+  data: CreateGoodsReceiptFromDeliveryPayload,
+): Promise<CreateResponse<GoodsReceiptData>> {
+  return axios
+    .post<CreateResponse<GoodsReceiptData>>('commerce-api/goods-receipts/from-delivery', data)
+    .then((r) => r.data);
 }
 
-// Publishes a goods receipt: its stock lands at the site and its purchase order's received quantities move
+// Starts a draft goods receipt of a supplier's purchase orders that arrived without an announced delivery
+export function createGoodsReceiptFromPurchaseOrders(
+  data: CreateGoodsReceiptFromPurchaseOrdersPayload,
+): Promise<CreateResponse<GoodsReceiptData>> {
+  return axios
+    .post<CreateResponse<GoodsReceiptData>>('commerce-api/goods-receipts/from-purchase-orders', data)
+    .then((r) => r.data);
+}
+
+// Adds every open line of another purchase order of the supplier to a draft goods receipt
+export function addGoodsReceiptPurchaseOrder(
+  id: string,
+  data: AddGoodsReceiptPurchaseOrderPayload,
+): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`commerce-api/goods-receipts/${id}/purchase-orders`, data).then((r) => r.data);
+}
+
+// Changes a draft receipt's notes and the supplier's delivery note on the inbound delivery it created
+export function updateGoodsReceipt(id: string, data: UpdateGoodsReceiptPayload): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`commerce-api/goods-receipts/${id}`, data).then((r) => r.data);
+}
+
+// Publishes a goods receipt: its stock lands at the site and its purchase order lines' received quantities move
 export function publishGoodsReceipt(id: string): Promise<GoodsReceiptData> {
   return axios.post<GoodsReceiptData>(`commerce-api/goods-receipts/${id}/publish`).then((r) => r.data);
 }
@@ -68,19 +96,6 @@ export function getGoodsReceiptItemQuants(id: string, itemId: string): Promise<G
 export function getGoodsReceiptItem(id: string, itemId: string): Promise<GoodsReceiptItemData> {
   return axios
     .get<GoodsReceiptItemData>(`commerce-api/goods-receipts/${id}/items/${itemId}/detail`)
-    .then((r) => r.data);
-}
-
-// Counts the goods received against one of the purchase order's lines
-export function addGoodsReceiptItem(
-  id: string,
-  data: AddGoodsReceiptItemPayload,
-): Promise<CreateResponse<GoodsReceiptItemData>> {
-  return axios
-    .post<CreateResponse<GoodsReceiptItemData>>(
-      `commerce-api/goods-receipts/${id}/items/from-purchase-order-item`,
-      data,
-    )
     .then((r) => r.data);
 }
 

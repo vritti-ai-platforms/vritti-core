@@ -2,7 +2,7 @@ import type { CartDetailDto, CartDto, CartItemDto, StaffCartItemDto } from '@dom
 import { CartsDomainService } from '@domain/carts/services/carts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -13,7 +13,7 @@ export class LeCartsController {
 
   // Returns paginated carts open at this workspace, for the data table
   @MessagePattern({ cmd: 'le.carts.table' })
-  table(@Payload() state: TableViewState): Promise<{ result: CartDetailDto[]; count: number }> {
+  table(@Payload() state: TableState): Promise<{ result: CartDetailDto[]; count: number }> {
     this.logger.log('le.carts.table');
     return this.service.findForTable(state);
   }
@@ -30,7 +30,7 @@ export class LeCartsController {
   @MessagePattern({ cmd: 'le.carts.items.table' })
   itemsTable(
     @Payload()
-    payload: { cartId: string; currencyCode: string; appId?: string | null } & TableViewState,
+    payload: { cartId: string; currencyCode: string; appId?: string | null } & TableState,
   ): Promise<{ result: CartItemDto[]; count: number }> {
     const { cartId, currencyCode, appId, ...state } = payload;
     this.logger.log(`le.carts.items.table — cart: ${cartId}`);

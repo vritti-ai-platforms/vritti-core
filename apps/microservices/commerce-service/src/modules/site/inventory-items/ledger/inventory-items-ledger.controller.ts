@@ -1,7 +1,7 @@
 import type { InventoryItemLedgerDto } from '@domain/inventory-item-ledger/dto/entity/inventory-item-ledger.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { InventoryItemsLedgerService } from './services/inventory-items-ledger.service';
 
 @Controller()
@@ -13,7 +13,7 @@ export class InventoryItemsLedgerController {
   // Returns paginated ledger entries for an inventory item data table
   @MessagePattern({ cmd: 'site.inventoryItems.ledgerTable' })
   async ledgerTable(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
     this.logger.log(`inventoryItems.ledgerTable — inventoryItemId: ${data.inventoryItemId}`);
     return this.service.findForTable(data.inventoryItemId, data);

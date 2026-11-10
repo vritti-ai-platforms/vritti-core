@@ -8,7 +8,7 @@ import type { CategoryItemTableResponseDto } from '@commerce/categories/dto/resp
 import type { CategoryResponseDto } from '@commerce/categories/dto/response/category-response.dto';
 import type { CategoryTreeResponseDto } from '@commerce/categories/dto/response/category-tree-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -18,7 +18,7 @@ export class CategoriesGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns total category count
@@ -37,7 +37,7 @@ export class CategoriesGatewayService {
   async findChildrenForTable(userId: string, parentId: string): Promise<CategoryChildrenTableResponseDto> {
     this.logger.log(`categories.childrenTable — parentId: ${parentId}`);
     const slug = `categories-children-${parentId}`;
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, slug);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, slug);
     const { result, count } = await this.nats.send<{ result: CategoryResponseDto[]; count: number }>(
       'commerce',
       'org.categories.childrenTable',
@@ -50,10 +50,7 @@ export class CategoriesGatewayService {
   // Returns paginated inventory items for a leaf category (Redis-backed table state)
   async findItemsForTable(userId: string, categoryId: string): Promise<CategoryItemTableResponseDto> {
     this.logger.log(`categories.itemsTable — categoryId: ${categoryId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      `category-${categoryId}-items`,
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, `category-${categoryId}-items`);
     const { result, count } = await this.nats.send<{ result: CategoryItemResponseDto[]; count: number }>(
       'commerce',
       'org.categories.itemsTable',

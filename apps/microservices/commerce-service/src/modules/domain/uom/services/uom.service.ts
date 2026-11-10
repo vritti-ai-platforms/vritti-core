@@ -1,12 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import {
   CursorCodec,
-  type FieldMap,
-  FilterProcessor,
   type KeysetOrderBy,
   KeysetProcessor,
   keysetSignature,
-  type TableViewState,
+  type TableState,
 } from '@vritti/api-sdk/data-table';
 import { and, asc, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -39,7 +38,7 @@ export class UomDomainService {
   constructor(private readonly uomRepository: UomDomainRepository) {}
 
   // Returns paginated UOMs for the data table, scoped to a dimension; joined with base unit symbol
-  async findForTable(state: TableViewState & { dimensionId: string }): Promise<{ result: UomDto[]; count: number }> {
+  async findForTable(state: TableState & { dimensionId: string }): Promise<{ result: UomDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, UomDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, UomDomainService.FIELD_MAP);
     const dimensionWhere = eq(uom.dimensionId, state.dimensionId);

@@ -4,7 +4,7 @@ import { UpdateAddressDto } from '@domain/party-addresses/dto/request/update-add
 import { PartyAddressesDomainService } from '@domain/party-addresses/services/party-addresses.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -16,7 +16,7 @@ export class CompanyAddressesController {
   // Returns the paginated addresses of a company
   @MessagePattern({ cmd: 'org.companies.addresses.table' })
   async table(
-    @Payload() data: { companyId: string } & TableViewState,
+    @Payload() data: { companyId: string } & TableState,
   ): Promise<{ result: PartyAddressDto[]; count: number }> {
     const { companyId, ...state } = data;
     this.logger.log(`companies.addresses.table — companyId: ${companyId}`);

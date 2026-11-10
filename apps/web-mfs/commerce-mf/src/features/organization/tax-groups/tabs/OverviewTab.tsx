@@ -1,4 +1,3 @@
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { countryFlag } from '@vritti/quantum-ui/selects/iso-country';
@@ -24,13 +23,6 @@ export const OverviewTab = ({ taxGroup }: OverviewTabProps) => (
         <DetailField label="Code" type="string" value={taxGroup.code} mono />
         <DetailField label="Name" type="string" value={taxGroup.name} />
         <DetailField label="Treatment" type="string" value={<TaxTreatmentBadge treatment={taxGroup.treatment} />} />
-        <DetailField
-          label="Status"
-          type="string"
-          value={
-            taxGroup.isActive ? <Badge variant="success">Active</Badge> : <Badge variant="outline">Inactive</Badge>
-          }
-        />
         <DetailField label="Rates" type="number" value={taxGroup.rateCount} />
         <DetailField label="Classes" type="number" value={taxGroup.classCount} />
         <DetailField label="Updated" type="dateTime" value={taxGroup.updatedAt} />

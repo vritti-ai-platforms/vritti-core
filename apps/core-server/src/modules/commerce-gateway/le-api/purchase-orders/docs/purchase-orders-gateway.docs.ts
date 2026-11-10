@@ -1,4 +1,5 @@
 import { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
+import { InboundDeliveryTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-table-response.dto';
 import { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/add-purchase-order-item.dto';
 import { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
@@ -8,6 +9,7 @@ import { SetPurchaseOrderConversionRateDto } from '@commerce/purchase-orders/dto
 import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
 import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-status.dto';
+import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import { LePurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-response.dto';
 import { LePurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-table-response.dto';
 import { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
@@ -113,6 +115,18 @@ export function ApiFindGoodsReceiptTable() {
   );
 }
 
+export function ApiFindInboundDeliveryTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List the inbound deliveries of a purchase order',
+      description:
+        "Returns a page of the inbound deliveries carrying a line of the order, using the user's saved table state.",
+    }),
+    ApiParam({ name: 'id', description: 'Purchase order ID' }),
+    ApiResponse({ status: 200, description: 'Inbound deliveries retrieved.', type: InboundDeliveryTableResponseDto }),
+  );
+}
+
 export function ApiFindProblems() {
   return applyDecorators(
     ApiOperation({
@@ -131,12 +145,16 @@ export function ApiAddItem() {
     ApiOperation({
       summary: 'Add a line to a purchase order',
       description:
-        "Orders one of the supplier's items set up at the order's site; a price in another of the supplier's currencies is converted at the order's rate for it.",
+        "Orders one of the supplier's items set up at the order's site; a price in another of the supplier's currencies is converted at the order's rate for it. The line follows the order's tax date, and its expected delivery defaults to the order date plus the item's lead time at the site.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiBody({ type: AddPurchaseOrderItemDto }),
     ApiResponse({ status: 201, description: 'Line added.', type: PurchaseOrderResponseDto }),
-    ApiResponse({ status: 400, description: 'The lines are locked, or the item is not set up at the site.' }),
+    ApiResponse({
+      status: 400,
+      description:
+        'The lines are locked, the item is not set up at the site, or the delivery is before the order date.',
+    }),
     ApiResponse({ status: 409, description: 'The item is already ordered in the same unit.' }),
   );
 }
@@ -146,13 +164,17 @@ export function ApiUpdateItem() {
     ApiOperation({
       summary: 'Update a purchase order line',
       description:
-        'Changes the item, quantity, price or scheme of a line until a goods receipt of the order is published.',
+        "Changes the item, quantity, price, scheme, expected delivery or tax date of a line until a goods receipt of the order is published. The expected delivery is set by the line's inbound deliveries while it is on any, and the tax date is locked once a published receipt or a posted invoice counts the line.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiParam({ name: 'itemId', description: 'Purchase order line ID' }),
     ApiBody({ type: UpdatePurchaseOrderItemDto }),
     ApiResponse({ status: 200, description: 'Line updated.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'The lines are locked.' }),
+    ApiResponse({
+      status: 400,
+      description:
+        'The lines are locked, the delivery is before the order date or set by an inbound delivery, or the tax date is locked or both set and followed.',
+    }),
     ApiResponse({ status: 404, description: 'Purchase order line not found.' }),
   );
 }
@@ -180,6 +202,25 @@ export function ApiUpdateNotes() {
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiBody({ type: UpdatePurchaseOrderNotesDto }),
     ApiResponse({ status: 200, description: 'Notes updated.', type: SuccessResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase order not found.' }),
+  );
+}
+
+export function ApiUpdateTaxDate() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Change the tax date of a purchase order',
+      description:
+        'Sets the date tax is determined on while the order is a draft, sent or confirmed and none of its receipts is published, and moves every line that follows it in the same transaction. Lines with their own tax date keep it.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase order ID' }),
+    ApiBody({ type: UpdatePurchaseOrderTaxDateDto }),
+    ApiResponse({ status: 200, description: 'Tax date updated.', type: SuccessResponseDto }),
+    ApiResponse({
+      status: 400,
+      description:
+        'The order is past confirmation or has a published receipt, or a following line is counted by a published receipt or a posted invoice.',
+    }),
     ApiResponse({ status: 404, description: 'Purchase order not found.' }),
   );
 }

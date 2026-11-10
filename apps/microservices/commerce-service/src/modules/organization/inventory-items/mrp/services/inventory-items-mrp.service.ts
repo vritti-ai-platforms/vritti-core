@@ -3,7 +3,7 @@ import type { AddInventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/req
 import type { UpdateInventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/request/update-inventory-item-mrp.dto';
 import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -16,10 +16,7 @@ export class InventoryItemsMrpService {
   constructor(private readonly mrpsService: InventoryItemMrpsDomainService) {}
 
   // Returns one item's MRPs for the data table
-  findForTable(
-    inventoryItemId: string,
-    state: TableViewState,
-  ): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
+  findForTable(inventoryItemId: string, state: TableState): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
     this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
     return this.mrpsService.findForTable(inventoryItemId, state);
   }

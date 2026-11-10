@@ -11,8 +11,18 @@ export class SupplierItemPriceResponseDto {
   @ApiProperty({ description: 'Legal entity of the supplier' })
   legalEntityId: string;
 
-  @ApiProperty({ description: 'Site the price applies to' })
-  siteId: string;
+  @ApiProperty({
+    description: "Site the price applies to; null for the legal entity's price",
+    nullable: true,
+    type: String,
+  })
+  siteId: string | null;
+
+  @ApiProperty({ description: "SITE for a site's own price, LE for the legal entity's", enum: ['SITE', 'LE'] })
+  ownerScope: 'SITE' | 'LE';
+
+  @ApiProperty({ description: 'Name of the site or legal entity that owns the price' })
+  ownerName: string;
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Unit price for this validity window' })
   unitPrice: CurrencyAmountDto;

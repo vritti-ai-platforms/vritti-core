@@ -6,7 +6,7 @@ import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import type React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ItemsTab } from './tabs/ItemsTab';
+import { ItemsTab } from './tabs/items/ItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import type { CartsBinding } from './types';
 

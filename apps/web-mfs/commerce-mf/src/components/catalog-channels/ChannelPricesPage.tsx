@@ -23,7 +23,7 @@ export const ChannelPricesPage: React.FC<ChannelPricesPageProps> = ({ binding })
   const { currencyCode = '' } = useParams();
   const queryClient = useQueryClient();
 
-  const { data: response, isLoading } = binding.useChannelPrices(channelId, currencyCode);
+  const channelPricesQuery = binding.useChannelPrices(channelId, currencyCode);
   const visibilityMutation = binding.useSetChannelItemVisibility();
 
   const columns = useMemo<ColumnDef<ChannelPriceData>[]>(
@@ -121,11 +121,11 @@ export const ChannelPricesPage: React.FC<ChannelPricesPageProps> = ({ binding })
     [binding, channelId, currencyCode, visibilityMutation],
   );
 
-  const { table } = useDataTable({
+  const channelPricesTable = useDataTable({
     columns,
     slug: binding.pricesTableSlug(channelId),
     label: 'price',
-    serverState: response,
+    query: channelPricesQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -140,8 +140,7 @@ export const ChannelPricesPage: React.FC<ChannelPricesPageProps> = ({ binding })
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={channelPricesTable}
         permission={binding.permissions.prices}
         searchConfig={{
           columns: [

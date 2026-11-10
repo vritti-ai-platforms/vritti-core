@@ -1,12 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  CursorCodec,
-  type FieldMap,
-  FilterProcessor,
-  type KeysetOrderBy,
-  KeysetProcessor,
-  type TableViewState,
-} from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { CursorCodec, type KeysetOrderBy, KeysetProcessor, type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -28,7 +22,7 @@ export class InventoryItemLocationsDomainService {
   // Returns paginated, filtered, and sorted configs for an inventory item
   async findForTable(
     inventoryItemId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLocationsDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLocationsDomainService.FIELD_MAP);

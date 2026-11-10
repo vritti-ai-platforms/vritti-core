@@ -135,6 +135,9 @@ export class SupplierInvoiceResponseDto {
   @ApiProperty({ description: 'Date on the invoice' })
   invoiceDate: string;
 
+  @ApiProperty({ description: 'Date tax is determined on (YYYY-MM-DD)' })
+  taxDate: string;
+
   @ApiProperty({ description: "Invoice currency, the order's (ISO 4217)", example: 'INR' })
   currencyCode: string;
 

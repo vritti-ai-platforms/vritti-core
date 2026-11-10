@@ -36,11 +36,11 @@ export class SupplierSiteItemRowResponseDto {
   @ApiPropertyOptional({ description: "This site's minimum order quantity", nullable: true })
   minOrderQuantity: number | null;
 
-  @ApiPropertyOptional({ description: "The supplier item's default lead time in days", nullable: true })
-  defaultLeadTimeDays: number | null;
+  @ApiProperty({ description: "The supplier item's default lead time in whole days", minimum: 0, maximum: 365 })
+  defaultLeadTimeDays: number;
 
-  @ApiPropertyOptional({ description: 'Effective lead time in days at this site', nullable: true })
-  leadTimeDays: number | null;
+  @ApiProperty({ description: 'Effective lead time in whole days at this site', minimum: 0, maximum: 365 })
+  leadTimeDays: number;
 
   @ApiProperty({ description: "True when the site sets its own lead time instead of following the supplier item's" })
   isLeadTimeOverridden: boolean;

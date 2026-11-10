@@ -57,7 +57,8 @@ export interface PurchaseOrderData {
   exchangeRate: number;
   conversionRates: Record<string, string>;
   orderDate: string;
-  expectedBy: string | null;
+  taxDate: string;
+  latestExpectedDeliveryDate: string | null;
   timezone: string;
   notes: string | null;
   totalAmount: CurrencyValue;
@@ -73,12 +74,20 @@ export interface PurchaseOrderItemData {
   purchaseOrderId: string;
   inventoryItemId: string;
   inventoryItemName: string;
+  expectedDeliveryDate: string;
+  inboundDeliveryNumbers: string[];
+  inboundDeliveryIds: string[];
+  taxDate: string;
+  isTaxDateOverridden: boolean;
+  isTaxDateLocked: boolean;
   uomId: string;
   orderUomSymbol: string | null;
   uomQty: number;
   expectedFreeQty: number;
   receivedQty: number;
   primaryUomQty: number;
+  expectedFreePrimaryQty: number;
+  receivedPrimaryQty: number;
   primaryUomSymbol: string | null;
   currencyCode: string;
   unitPrice: CurrencyValue;
@@ -129,9 +138,9 @@ export interface CreatePurchaseOrderPayload {
   supplierId: string;
   siteId?: string;
   currencyCode: string;
-  exchangeRate?: number;
+  exchangeRate: number;
   orderDate: string;
-  expectedBy?: string | null;
+  taxDate: string;
   notes?: string;
 }
 
@@ -149,6 +158,7 @@ export interface AddPurchaseOrderItemPayload {
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   hasScheme: boolean;
+  expectedDeliveryDate?: string;
 }
 
 export interface UpdatePurchaseOrderItemPayload extends PurchaseOrderItemRef {
@@ -157,11 +167,19 @@ export interface UpdatePurchaseOrderItemPayload extends PurchaseOrderItemRef {
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   hasScheme: boolean;
+  expectedDeliveryDate?: string;
+  taxDate?: string;
+  followPoTaxDate?: boolean;
 }
 
 export interface UpdatePurchaseOrderNotesPayload {
   id: string;
   notes?: string | null;
+}
+
+export interface UpdatePurchaseOrderTaxDatePayload {
+  id: string;
+  taxDate: string;
 }
 
 export interface ChangePurchaseOrderSupplierPayload {
@@ -193,33 +211,29 @@ export interface SendPurchaseOrderEmailPayload {
 
 const currencyCodeField = z.string({ error: 'Currency is required' }).regex(/^[A-Z]{3}$/, 'Currency is required');
 
-// A rate is required exactly when the order is in another currency than the legal entity's; `requiresSite` adds the
-// site picker of a legal entity raising an order for one of its sites
-export function buildCreatePurchaseOrderSchema({
-  leCurrencyCode,
-  requiresSite,
-}: {
-  leCurrencyCode: string;
-  requiresSite: boolean;
-}) {
-  return z
-    .object({
-      supplierId: z.uuid('Supplier is required'),
-      siteId: requiresSite ? z.uuid('Site is required') : z.uuid().optional(),
-      currencyCode: currencyCodeField,
-      exchangeRate: zodNumericField({ positive: true, nonZero: true }).optional(),
-      orderDate: z.string({ error: 'Order date is required' }).min(1, 'Order date is required'),
-      expectedBy: z.string().nullable().optional(),
-      notes: z.string(),
-    })
-    .superRefine((data, ctx) => {
-      if (data.currencyCode === leCurrencyCode || data.exchangeRate != null) return;
-      ctx.addIssue({
-        code: 'custom',
-        path: ['exchangeRate'],
-        message: `Enter how much 1 ${data.currencyCode} is in ${leCurrencyCode}.`,
-      });
-    });
+const expectedDeliveryField = z
+  .string({ error: 'Expected delivery is required' })
+  .min(1, 'Expected delivery is required');
+
+const taxDateField = z.string({ error: 'Tax date is required' }).min(1, 'Tax date is required');
+
+const expectedDeliveryOnOrAfterOrderDate = {
+  check: (data: { orderDate: string; expectedDeliveryDate?: string | null }) =>
+    !data.orderDate || !data.expectedDeliveryDate || data.expectedDeliveryDate >= data.orderDate,
+  params: { message: 'Expected delivery must be on or after the order date', path: ['expectedDeliveryDate'] },
+};
+
+// `requiresSite` adds the site picker of a legal entity raising an order for one of its sites
+export function buildCreatePurchaseOrderSchema({ requiresSite }: { requiresSite: boolean }) {
+  return z.object({
+    supplierId: z.uuid('Supplier is required'),
+    siteId: requiresSite ? z.uuid('Site is required') : z.uuid().optional(),
+    currencyCode: currencyCodeField,
+    exchangeRate: zodNumericField({ required: 'Exchange rate is required', positive: true, nonZero: true }),
+    orderDate: z.string({ error: 'Order date is required' }).min(1, 'Order date is required'),
+    taxDate: taxDateField,
+    notes: z.string(),
+  });
 }
 
 export type CreatePurchaseOrderFormData = z.infer<ReturnType<typeof buildCreatePurchaseOrderSchema>>;
@@ -244,31 +258,39 @@ function enforceSchemeRatio(
   }
 }
 
-export const addPurchaseOrderItemSchema = z
-  .object({
-    supplierItemId: z.uuid('Item is required'),
-    uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
-    unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
-    rateCurrency: z.string().optional(),
-    conversionRate: zodNumericField({ positive: true, nonZero: true }).optional(),
-    ...poSchemeShape,
-  })
-  .superRefine((data, ctx) => {
-    enforceSchemeRatio(data, ctx);
-    if (data.rateCurrency && data.conversionRate == null) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['conversionRate'],
-        message: `Enter how much 1 ${data.rateCurrency} is in the PO currency.`,
-      });
-    }
-  });
+// A line left without a delivery date is expected at the order date plus the item's lead time at the site
+export function buildAddPurchaseOrderItemSchema(orderDate: string) {
+  return z
+    .object({
+      supplierItemId: z.uuid('Item is required'),
+      uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
+      unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+      rateCurrency: z.string().optional(),
+      conversionRate: zodNumericField({ positive: true, nonZero: true }).optional(),
+      expectedDeliveryDate: z.string().nullish(),
+      ...poSchemeShape,
+    })
+    .superRefine((data, ctx) => {
+      enforceSchemeRatio(data, ctx);
+      if (data.rateCurrency && data.conversionRate == null) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['conversionRate'],
+          message: `Enter how much 1 ${data.rateCurrency} is in the PO currency.`,
+        });
+      }
+    })
+    .refine(
+      (data) => expectedDeliveryOnOrAfterOrderDate.check({ ...data, orderDate }),
+      expectedDeliveryOnOrAfterOrderDate.params,
+    );
+}
 
-export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
+export type AddPurchaseOrderItemFormData = z.infer<ReturnType<typeof buildAddPurchaseOrderItemSchema>>;
 
 // Pass `minQty` when the line has already been received against — the ordered quantity cannot drop below it
-export function buildUpdatePurchaseOrderItemSchema(options: { minQty?: number } = {}) {
-  const { minQty } = options;
+export function buildUpdatePurchaseOrderItemSchema(options: { orderDate: string; minQty?: number }) {
+  const { orderDate, minQty } = options;
   return z
     .object({
       uomQty: zodNumericField({
@@ -279,9 +301,20 @@ export function buildUpdatePurchaseOrderItemSchema(options: { minQty?: number } 
           : {}),
       }),
       unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+      expectedDeliveryDate: expectedDeliveryField,
+      followPoTaxDate: z.boolean(),
+      taxDate: z.string().nullish(),
       ...poSchemeShape,
     })
-    .superRefine(enforceSchemeRatio);
+    .superRefine((data, ctx) => {
+      enforceSchemeRatio(data, ctx);
+      if (data.followPoTaxDate || data.taxDate) return;
+      ctx.addIssue({ code: 'custom', path: ['taxDate'], message: 'Tax date is required' });
+    })
+    .refine(
+      (data) => expectedDeliveryOnOrAfterOrderDate.check({ ...data, orderDate }),
+      expectedDeliveryOnOrAfterOrderDate.params,
+    );
 }
 
 export type UpdatePurchaseOrderItemFormData = z.infer<ReturnType<typeof buildUpdatePurchaseOrderItemSchema>>;
@@ -298,6 +331,10 @@ export const changePurchaseOrderExchangeRateSchema = z.object({
 });
 
 export type ChangePurchaseOrderExchangeRateFormData = z.infer<typeof changePurchaseOrderExchangeRateSchema>;
+
+export const updatePurchaseOrderTaxDateSchema = z.object({ taxDate: taxDateField });
+
+export type UpdatePurchaseOrderTaxDateFormData = z.infer<typeof updatePurchaseOrderTaxDateSchema>;
 
 export const updatePurchaseOrderNotesSchema = z.object({
   notes: z.string(),

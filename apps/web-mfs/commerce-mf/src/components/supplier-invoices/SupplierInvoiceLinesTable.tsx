@@ -158,9 +158,9 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
     [binding, invoice, isPosted, fmt, handleRemove],
   );
 
-  const { table } = useDataTable({
+  const linesTable = useDataTable({
     columns,
-    serverState: { result: invoice.lines, count: invoice.lines.length },
+    query: { data: { result: invoice.lines, count: invoice.lines.length } },
     slug: 'commerce-supplier-invoice-lines',
     label: 'line',
     enableRowSelection: false,
@@ -183,7 +183,7 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
   return (
     <>
       <DataTable
-        table={table}
+        table={linesTable}
         mode="tab"
         permission={binding.permissions.view}
         toolbarActions={{ actions: addButton }}

@@ -7,7 +7,7 @@ import { SUPPLIER_KEY } from './keys';
 
 export interface BulkSetSupplierItemDefaultLeadTimePayload {
   supplierItemIds: string[];
-  defaultLeadTimeDays: number | null;
+  defaultLeadTimeDays: number;
 }
 
 export function useBulkSetSupplierItemDefaultLeadTime(

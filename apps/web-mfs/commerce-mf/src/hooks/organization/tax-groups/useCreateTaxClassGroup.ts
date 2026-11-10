@@ -3,14 +3,15 @@ import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { CreateTaxClassGroupPayload, TaxClassGroupData } from '@/schemas/tax-groups';
 import { createTaxClassGroup } from '@/services/organization/tax-groups.service';
-import { TAX_CLASS_MAPPING_TABLE_KEY, TAX_GROUP_KEY, TAX_GROUPS_TABLE_KEY } from './keys';
+import { TAX_CLASSES_TABLE_KEY } from '../tax-classes/keys';
+import { TAX_GROUP_KEY, TAX_GROUPS_TABLE_KEY } from './keys';
 
 interface Vars {
   taxGroupId: string;
   data: CreateTaxClassGroupPayload;
 }
 
-// Maps a tax class to a tax group and refreshes the group, its classes and the class mapping
+// Maps a tax class to a tax group and refreshes the group, its classes and the tax classes table
 export function useCreateTaxClassGroup(
   options?: Omit<UseMutationOptions<CreateResponse<TaxClassGroupData>, AxiosError, Vars>, 'mutationFn'>,
 ) {
@@ -22,7 +23,7 @@ export function useCreateTaxClassGroup(
       const [, vars] = args;
       queryClient.invalidateQueries({ queryKey: TAX_GROUP_KEY(vars.taxGroupId) });
       queryClient.invalidateQueries({ queryKey: TAX_GROUPS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: TAX_CLASS_MAPPING_TABLE_KEY });
+      queryClient.invalidateQueries({ queryKey: TAX_CLASSES_TABLE_KEY });
       options?.onSuccess?.(...args);
     },
   });

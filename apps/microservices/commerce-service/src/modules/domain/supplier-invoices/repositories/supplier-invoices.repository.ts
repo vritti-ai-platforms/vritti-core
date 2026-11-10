@@ -119,6 +119,16 @@ export class SupplierInvoicesDomainRepository extends PrimaryBaseRepository<type
     return invoice;
   }
 
+  // Rejects a tax date change on an invoice that is no longer a draft
+  assertTaxDateEditable(invoice: Pick<SupplierInvoice, 'invoiceNumber' | 'status'>): void {
+    if (invoice.status === SupplierInvoiceStatusValues.DRAFT) return;
+    throw new BadRequestException({
+      label: 'Tax Date Locked',
+      detail: `Invoice "${invoice.invoiceNumber}" is ${invoice.status.toLowerCase()}; its tax date can change only while it is a draft.`,
+      errors: [{ field: 'taxDate', message: 'Locked once posted' }],
+    });
+  }
+
   // Only a draft is posted or deleted; a posted invoice is edited in place or cancelled
   async findDraftOrThrow(id: string, action: 'post' | 'delete'): Promise<SupplierInvoiceRow> {
     const invoice = await this.findDetailOrThrow(id);

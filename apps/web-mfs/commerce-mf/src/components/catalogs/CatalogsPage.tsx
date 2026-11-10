@@ -23,7 +23,7 @@ interface CatalogsPageProps {
 export const CatalogsPage: React.FC<CatalogsPageProps> = ({ binding }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { data: response, isLoading } = binding.useCatalogsTable();
+  const catalogsTableQuery = binding.useCatalogsTable();
   const addDialog = useDialog();
   const columns = useMemo<ColumnDef<CatalogData>[]>(
     () => [
@@ -92,11 +92,11 @@ export const CatalogsPage: React.FC<CatalogsPageProps> = ({ binding }) => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const catalogsTable = useDataTable({
     columns,
     slug: binding.tableSlug,
     label: 'catalog',
-    serverState: response,
+    query: catalogsTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -111,8 +111,7 @@ export const CatalogsPage: React.FC<CatalogsPageProps> = ({ binding }) => {
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={catalogsTable}
         permission={binding.permissions.view}
         searchConfig={{ columns: [{ id: 'name', label: 'Name' }], searchAll: true }}
         filters={[

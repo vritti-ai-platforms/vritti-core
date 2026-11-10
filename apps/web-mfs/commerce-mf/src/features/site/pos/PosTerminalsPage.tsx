@@ -1,5 +1,5 @@
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { PosTerminalsTab } from './tabs/PosTerminalsTab';
+import { PosTerminalsTab } from './tabs/pos-terminals/PosTerminalsTab';
 
 export const PosTerminalsPage = () => {
   return (

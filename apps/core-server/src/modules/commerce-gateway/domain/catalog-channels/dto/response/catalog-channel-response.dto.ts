@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
+import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { type CatalogChannelTypeValue, CHANNEL_TYPES } from '../request/create-catalog-channel.dto';
 
 export class CatalogChannelResponseDto {
@@ -38,7 +38,7 @@ export class ResolvedCatalogResponseDto {
 export class CatalogChannelTableResponseDto extends TableResponseDto<CatalogChannelResponseDto> {
   @ApiProperty({ type: [CatalogChannelResponseDto] }) declare result: CatalogChannelResponseDto[];
   @ApiProperty() declare count: number;
-  @ApiProperty() declare state: TableViewState;
+  @ApiProperty() declare state: TableState;
   @ApiPropertyOptional({ nullable: true }) declare activeViewId: string | null;
 }
 

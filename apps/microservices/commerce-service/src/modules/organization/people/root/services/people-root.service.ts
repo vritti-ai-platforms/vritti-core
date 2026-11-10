@@ -5,7 +5,7 @@ import { PartiesDomainService } from '@domain/parties/services/parties.service';
 import { PartyAddressesDomainService } from '@domain/party-addresses/services/party-addresses.service';
 import { PartyIdentifiersDomainService } from '@domain/party-identifiers/services/party-identifiers.service';
 import { Injectable } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PartyTypeValues } from '@/db/schema';
 
@@ -18,7 +18,7 @@ export class PeopleService {
   ) {}
 
   // Returns paginated PERSON parties for the people table
-  findForTable(state: TableViewState): Promise<{ result: PersonDto[]; count: number }> {
+  findForTable(state: TableState): Promise<{ result: PersonDto[]; count: number }> {
     return this.partiesService.findPeopleForTable(state);
   }
 

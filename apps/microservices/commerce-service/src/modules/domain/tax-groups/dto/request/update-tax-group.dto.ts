@@ -1,5 +1,5 @@
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { type TaxTreatment, taxTreatmentEnum } from '@/db/schema';
 
 export class UpdateTaxGroupDto {
@@ -30,8 +30,4 @@ export class UpdateTaxGroupDto {
   @IsString()
   @MaxLength(1000)
   legalText?: string | null;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, ne, notInArray, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -59,10 +60,7 @@ export class LocationsDomainService {
   }
 
   // Returns paginated child locations for a given parent ID
-  async findChildrenForTable(
-    parentId: string,
-    state: TableViewState,
-  ): Promise<{ result: LocationDto[]; count: number }> {
+  async findChildrenForTable(parentId: string, state: TableState): Promise<{ result: LocationDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, LocationsDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, LocationsDomainService.FIELD_MAP);
     const where = and(eq(locations.parentId, parentId), filterWhere, searchWhere) || undefined;

@@ -16,7 +16,7 @@ export type SupplierSiteItemTermsRow = {
 export class SupplierSiteItemTermsDto {
   supplierSiteItemId: string | null;
   isPreferred: boolean;
-  leadTimeDays: number | null;
+  leadTimeDays: number;
   isLeadTimeOverridden: boolean;
   minOrderQuantity: number | null;
   unitPrice: CurrencyAmountDto | null;
@@ -25,14 +25,14 @@ export class SupplierSiteItemTermsDto {
   hasScheme: boolean;
   taxInclusive: boolean;
 
-  // The minimum order is the supplier item's own, the same at every site
+  // The minimum order is the supplier item's own; a site not carrying the item shows the item's default lead time
   static assign<T extends SupplierSiteItemTermsDto>(
     dto: T,
-    row: SupplierSiteItemTermsRow & { minOrderQuantity: number | null },
+    row: SupplierSiteItemTermsRow & { minOrderQuantity: number | null; defaultLeadTimeDays: number },
   ): T {
     dto.supplierSiteItemId = row.supplierSiteItemId ?? null;
     dto.isPreferred = row.siteIsPreferred ?? false;
-    dto.leadTimeDays = row.siteLeadTimeDays ?? null;
+    dto.leadTimeDays = row.siteLeadTimeDays ?? row.defaultLeadTimeDays;
     dto.isLeadTimeOverridden = row.siteIsLeadTimeOverridden ?? false;
     dto.minOrderQuantity = row.minOrderQuantity ?? null;
     dto.unitPrice = row.currentCurrencyCode

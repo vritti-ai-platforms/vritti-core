@@ -18,6 +18,8 @@ export const organizations = coreSchema.table('organizations', {
   businessCode: varchar('business_code', { length: 100 }),
   // ISO 4217. Pushed from cloud; prices org and site-group workspaces, which hold no ledger of their own
   defaultCurrencyCode: char('default_currency_code', { length: 3 }).notNull(),
+  // ISO 3166-1 alpha-2. Pushed from cloud; the country org-level screens open on
+  countryCode: char('country_code', { length: 2 }).notNull(),
   // Signed entitlement document pushed from cloud — planCode/businessCode are denormalized from it
   entitlement: jsonb('entitlement').$type<SignedDocument<OrgEntitlement>>(),
   // Per-feature lock deny-list gating ORG-scope features in the org context; null = inherit the full plan

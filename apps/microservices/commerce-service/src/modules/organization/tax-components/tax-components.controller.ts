@@ -1,10 +1,11 @@
 import { TaxComponentDto } from '@domain/tax-components/dto/entity/tax-component.dto';
 import { CreateTaxComponentDto } from '@domain/tax-components/dto/request/create-tax-component.dto';
+import { SetTaxComponentActiveDto } from '@domain/tax-components/dto/request/set-tax-component-active.dto';
 import { UpdateTaxComponentDto } from '@domain/tax-components/dto/request/update-tax-component.dto';
 import { TaxComponentsDomainService } from '@domain/tax-components/services/tax-components.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -15,7 +16,7 @@ export class TaxComponentsController {
 
   // Returns paginated tax components for the data table, narrowed to the country in the table context if any
   @MessagePattern({ cmd: 'org.taxComponents.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: TaxComponentDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: TaxComponentDto[]; count: number }> {
     this.logger.log('taxComponents.table');
     return this.service.findForTable(state);
   }
@@ -43,6 +44,12 @@ export class TaxComponentsController {
   }
 
   // Deletes a tax component by ID
+  @MessagePattern({ cmd: 'org.taxComponents.setActive' })
+  async setActive(@Payload() dto: SetTaxComponentActiveDto): Promise<SuccessResponseDto> {
+    this.logger.log(`taxComponents.setActive — id: ${dto.id}, isActive: ${dto.isActive}`);
+    return this.service.setActive(dto.id, dto.isActive);
+  }
+
   @MessagePattern({ cmd: 'org.taxComponents.delete' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`taxComponents.delete — id: ${data.id}`);

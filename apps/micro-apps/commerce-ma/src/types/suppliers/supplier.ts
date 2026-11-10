@@ -14,7 +14,7 @@ export interface Supplier {
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;
-  leadTimeDays: number | null;
+  leadTimeDays: number;
   isPreferred: boolean;
   isActive: boolean;
 }

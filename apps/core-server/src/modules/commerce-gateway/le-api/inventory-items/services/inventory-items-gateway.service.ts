@@ -7,7 +7,7 @@ import type {
 } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 
 @Injectable()
@@ -16,16 +16,13 @@ export class LeInventoryItemsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns the organization's master items for the read-only legal-entity table
   async findForTable(userId: string): Promise<InventoryItemTableResponseDto> {
     this.logger.log('le.inventoryItems.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-le-inventory-items',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-inventory-items');
 
     const { result, count } = await this.nats.send<{ result: InventoryItemResponseDto[]; count: number }>(
       'commerce',
@@ -44,7 +41,7 @@ export class LeInventoryItemsGatewayService {
   // Returns the MRPs of an item, table-shaped
   async findMrpTable(inventoryItemId: string, userId: string): Promise<InventoryItemMrpTableResponseDto> {
     this.logger.log(`le.inventoryItems.mrp.table — inventoryItemId: ${inventoryItemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-inventory-item-${inventoryItemId}-mrp`,
     );
@@ -58,7 +55,7 @@ export class LeInventoryItemsGatewayService {
 
   async findSuppliersTable(inventoryItemId: string, userId: string): Promise<InventoryItemSupplierTableResponseDto> {
     this.logger.log(`le.inventoryItems.suppliers.table — inventoryItemId: ${inventoryItemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-inventory-item-${inventoryItemId}-suppliers`,
     );

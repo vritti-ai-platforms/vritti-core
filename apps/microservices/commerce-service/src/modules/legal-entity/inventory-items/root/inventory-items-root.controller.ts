@@ -6,7 +6,7 @@ import { SupplierItemsDomainService } from '@domain/supplier-items/services/supp
 import type { InventoryItemSupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class LeInventoryItemsController {
@@ -20,7 +20,7 @@ export class LeInventoryItemsController {
 
   // The organization's master items, read-only from a legal entity
   @MessagePattern({ cmd: 'le.inventoryItems.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');
     return this.service.findForOrgTable(state);
   }
@@ -35,7 +35,7 @@ export class LeInventoryItemsController {
   // The legal entity's suppliers carrying the item; the session's legal entity scopes the suppliers
   @MessagePattern({ cmd: 'le.inventoryItems.suppliers.table' })
   async suppliersTable(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.suppliers.table — inventoryItemId: ${inventoryItemId}`);
@@ -45,7 +45,7 @@ export class LeInventoryItemsController {
   // The item's MRPs for the data table, read-only from a legal entity
   @MessagePattern({ cmd: 'le.inventoryItems.mrp.table' })
   async mrpTable(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.mrp.table — inventoryItemId: ${inventoryItemId}`);

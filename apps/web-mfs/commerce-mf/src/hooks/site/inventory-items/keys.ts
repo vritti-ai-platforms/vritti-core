@@ -15,5 +15,5 @@ export const INVENTORY_ITEM_LEDGER_KEY = (inventoryItemId: string) =>
   ['commerce', 'inventory-items', inventoryItemId, 'ledger'] as const;
 export const INVENTORY_ITEM_PRICES_TABLE_KEY = (inventoryItemId: string) =>
   ['commerce', 'inventory-items', inventoryItemId, 'prices', 'table'] as const;
-export const INVENTORY_ITEM_PRICE_GRAPH_KEY = (inventoryItemId: string) =>
-  ['commerce', 'inventory-items', inventoryItemId, 'prices', 'graph'] as const;
+export const INVENTORY_ITEM_PRICE_HISTORY_KEY = (inventoryItemId: string) =>
+  ['commerce', 'inventory-items', inventoryItemId, 'prices', 'history'] as const;

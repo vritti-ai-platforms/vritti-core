@@ -1,4 +1,3 @@
-import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
@@ -10,9 +9,8 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CalendarClock, Coins, Pencil, Truck } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EnrollmentsTable } from '@/components/suppliers/enrollments/EnrollmentsTable';
-import { QuotationsTab } from '@/components/suppliers/quotations/QuotationsTab';
-import { PeopleTab } from '@/features/organization/companies/tabs/PeopleTab';
+import { QuotationsTab } from '@/components/suppliers/tabs/quotations/QuotationsTab';
+import { PeopleTab } from '@/features/organization/companies/tabs/people/PeopleTab';
 import {
   useDeleteSupplier,
   useSetSupplierActive,
@@ -20,12 +18,12 @@ import {
   useSetSupplierPurchasingBlocked,
   useSupplier,
 } from '@/hooks/legal-entity/suppliers';
-import { enrollmentBinding } from './enrollmentBinding';
 import { ChangeCurrencyDialog } from './forms/ChangeCurrencyDialog';
 import { ChangeDefaultPaymentTermDialog } from './forms/ChangeDefaultPaymentTermDialog';
 import { EditSupplierForm } from './forms/EditSupplierForm';
 import { quotationsBinding } from './quotationsBinding';
-import { ItemsTab } from './tabs/ItemsTab';
+import { EnrollmentsTab } from './tabs/enrollments/EnrollmentsTab';
+import { ItemsTab } from './tabs/items/ItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 
 export const SupplierDetailPage = () => {
@@ -148,7 +146,7 @@ export const SupplierDetailPage = () => {
             value: 'enrollments',
             label: `Enrollments (${supplier.enrolledSiteCount})`,
             permission: LE_SUPPLIERS.sites.view,
-            content: <EnrollmentsTable binding={enrollmentBinding} mode="tab" />,
+            content: <EnrollmentsTab />,
           },
           {
             value: 'quotations',
@@ -161,7 +159,6 @@ export const SupplierDetailPage = () => {
                 {
                   value: 'persons',
                   label: 'Persons',
-                  permission: ORG_COMPANIES.people.view,
                   content: <PeopleTab companyId={supplier.partyId} />,
                 },
               ]

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TableResponseDto, type TableViewState } from '@vritti/api-sdk/data-table';
+import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { LocationResponseDto } from './location-response.dto';
 
 export class LocationChildrenTableResponseDto extends TableResponseDto<LocationResponseDto> {
@@ -10,7 +10,7 @@ export class LocationChildrenTableResponseDto extends TableResponseDto<LocationR
   declare count: number;
 
   @ApiProperty()
-  declare state: TableViewState;
+  declare state: TableState;
 
   @ApiPropertyOptional()
   declare activeViewId: string | null;

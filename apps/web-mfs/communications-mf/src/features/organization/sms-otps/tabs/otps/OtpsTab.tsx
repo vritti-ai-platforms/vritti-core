@@ -32,7 +32,7 @@ const STATUS_LABEL: Record<SmsOtpStatus, string> = {
 
 export const OtpsTab = () => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useSmsOtps();
+  const smsOtpsQuery = useSmsOtps();
 
   const columns = useMemo<ColumnDef<SmsOtpData>[]>(
     () => [
@@ -96,11 +96,11 @@ export const OtpsTab = () => {
     [],
   );
 
-  const { table } = useDataTable({
+  const smsOtpsTable = useDataTable({
     columns,
     slug: 'communications-org-sms-otps',
     label: 'OTP',
-    serverState: response,
+    query: smsOtpsQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -109,8 +109,7 @@ export const OtpsTab = () => {
 
   return (
     <DataTable
-      table={table}
-      isLoading={isLoading}
+      table={smsOtpsTable}
       mode="tab"
       permission={ORG_SMS_OTPS.view}
       searchConfig={{

@@ -1,9 +1,11 @@
-import type { AddGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-item.dto';
 import type { AddGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line.dto';
 import type { AddGoodsReceiptLineItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
-import type { CreateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt.dto';
+import type { AddGoodsReceiptPurchaseOrderDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-purchase-order.dto';
+import type { CreateGoodsReceiptFromDeliveryDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
+import type { CreateGoodsReceiptFromPurchaseOrdersDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-purchase-orders.dto';
 import type { LeAddGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/le-add-goods-receipt-lot.dto';
 import type { LeUpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/le-update-goods-receipt-lot.dto';
+import type { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
 import type { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import type { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
 import type { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
@@ -21,7 +23,7 @@ import type { LeGoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/res
 import type { LeGoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/le-goods-receipt-table-response.dto';
 import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -33,24 +35,39 @@ export class LeGoodsReceiptsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
     private readonly siteRepository: SiteDomainRepository,
   ) {}
 
-  // Creates a goods receipt against a purchase order of one of the legal entity's sites
-  create(dto: CreateGoodsReceiptDto): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log(`le.goodsReceipts.create — purchaseOrderId: ${dto.purchaseOrderId}`);
-    return this.nats.send('commerce', 'le.goodsReceipts.create', dto);
+  // Creates a draft goods receipt of an announced inbound delivery, pre-filled with its open lines
+  createFromDelivery(dto: CreateGoodsReceiptFromDeliveryDto): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
+    this.logger.log(`le.goodsReceipts.createFromDelivery — inboundDeliveryId: ${dto.inboundDeliveryId}`);
+    return this.nats.send('commerce', 'le.goodsReceipts.createFromDelivery', dto);
+  }
+
+  // Creates an arrived inbound delivery of a supplier's purchase orders and a draft goods receipt of it
+  createFromPurchaseOrders(
+    dto: CreateGoodsReceiptFromPurchaseOrdersDto,
+  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
+    this.logger.log(
+      `le.goodsReceipts.createFromPurchaseOrders — supplierId: ${dto.supplierId}, purchaseOrders: ${dto.purchaseOrderIds.length}`,
+    );
+    return this.nats.send('commerce', 'le.goodsReceipts.createFromPurchaseOrders', dto);
+  }
+
+  // Adds the open lines of another purchase order of the supplier to a draft goods receipt and its inbound delivery
+  addPurchaseOrder(goodsReceiptId: string, dto: AddGoodsReceiptPurchaseOrderDto): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `le.goodsReceipts.addPurchaseOrder — goodsReceiptId: ${goodsReceiptId}, purchaseOrderId: ${dto.purchaseOrderId}`,
+    );
+    return this.nats.send('commerce', 'le.goodsReceipts.addPurchaseOrder', { goodsReceiptId, ...dto });
   }
 
   // Returns the goods receipts of the legal entity's sites with site names
   async findForTable(userId: string, orgId: string): Promise<LeGoodsReceiptTableResponseDto> {
     this.logger.log('le.goodsReceipts.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-le-goods-receipts',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-goods-receipts');
     const { result, count } = await this.nats.send<{ result: GoodsReceiptResponseDto[]; count: number }>(
       'commerce',
       'le.goodsReceipts.table',
@@ -65,6 +82,12 @@ export class LeGoodsReceiptsGatewayService {
     const receipt = await this.nats.send<GoodsReceiptResponseDto>('commerce', 'le.goodsReceipts.findById', { id });
     const [named] = await this.ownerNames.withSiteNames(orgId, [receipt]);
     return named;
+  }
+
+  // Changes a draft goods receipt's notes and the supplier's delivery note on the inbound delivery it created
+  update(id: string, dto: UpdateGoodsReceiptDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.goodsReceipts.update — id: ${id}`);
+    return this.nats.send('commerce', 'le.goodsReceipts.update', { id, ...dto });
   }
 
   // Returns a goods receipt's items with their lots and lines as a tree
@@ -115,7 +138,7 @@ export class LeGoodsReceiptsGatewayService {
   // Returns a goods receipt's items for the data table with server-stored state
   async findItemsTable(goodsReceiptId: string, userId: string): Promise<GoodsReceiptItemTableResponseDto> {
     this.logger.log(`le.goodsReceipts.itemsTable — goodsReceiptId: ${goodsReceiptId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-goods-receipt-${goodsReceiptId}-items`,
     );
@@ -131,15 +154,6 @@ export class LeGoodsReceiptsGatewayService {
   findItemById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemResponseDto> {
     this.logger.log(`le.goodsReceipts.itemById — itemId: ${itemId}`);
     return this.nats.send('commerce', 'le.goodsReceipts.itemById', { goodsReceiptId, itemId });
-  }
-
-  // Counts a purchase order line on a goods receipt
-  addItemFromPurchaseOrderItem(
-    goodsReceiptId: string,
-    dto: AddGoodsReceiptItemDto,
-  ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
-    this.logger.log(`le.goodsReceipts.addItemFromPurchaseOrderItem — poItemId: ${dto.purchaseOrderItemId}`);
-    return this.nats.send('commerce', 'le.goodsReceipts.addItemFromPurchaseOrderItem', { goodsReceiptId, ...dto });
   }
 
   // Changes the received or rejected quantity of a goods receipt item
@@ -215,7 +229,7 @@ export class LeGoodsReceiptsGatewayService {
     userId: string,
   ): Promise<GoodsReceiptLineTableResponseDto> {
     this.logger.log(`le.goodsReceipts.linesTable — itemId: ${itemId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-goods-receipt-${goodsReceiptId}-item-${itemId}-lines`,
     );
@@ -235,7 +249,7 @@ export class LeGoodsReceiptsGatewayService {
     userId: string,
   ): Promise<GoodsReceiptLineTableResponseDto> {
     this.logger.log(`le.goodsReceipts.linesByLotTable — itemId: ${itemId}, lotId: ${lotId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-goods-receipt-${goodsReceiptId}-item-${itemId}-lot-${lotId}-lines`,
     );
@@ -288,7 +302,7 @@ export class LeGoodsReceiptsGatewayService {
     userId: string,
   ): Promise<GoodsReceiptLineItemTableResponseDto> {
     this.logger.log(`le.goodsReceipts.lineItemsTable — lineId: ${lineId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-goods-receipt-${goodsReceiptId}-line-${lineId}-items`,
     );

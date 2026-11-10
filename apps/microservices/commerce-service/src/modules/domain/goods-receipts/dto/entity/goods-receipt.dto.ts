@@ -1,14 +1,5 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { GoodsReceiptStatus } from '@/db/schema';
+import type { GoodsReceiptStatus, InboundDeliverySource } from '@/db/schema';
 import type { GoodsReceiptRow } from '../../repositories/goods-receipts.repository';
-
-export class GoodsReceiptPurchaseOrderDto {
-  id: string;
-  poNumber: string;
-  orderDate: string;
-  expectedBy: string | null;
-  totalAmount: CurrencyAmountDto;
-}
 
 export class GoodsReceiptDto {
   id: string;
@@ -20,8 +11,15 @@ export class GoodsReceiptDto {
   status: GoodsReceiptStatus;
   isPublishable: boolean;
   itemCount: number;
-  purchaseOrderId: string;
-  po: GoodsReceiptPurchaseOrderDto;
+  inboundDeliveryId: string;
+  deliveryNumber: string;
+  deliverySource: InboundDeliverySource;
+  carrier: string | null;
+  trackingNumber: string | null;
+  supplierDeliveryNoteNumber: string | null;
+  supplierDeliveryNoteDate: string | null;
+  poNumbers: string[];
+  expectedDeliveryDate: string | null;
   receivedDate: string;
   notes: string | null;
   publishedAt: string | null;
@@ -38,14 +36,15 @@ export class GoodsReceiptDto {
     dto.status = row.status;
     dto.isPublishable = row.isPublishable;
     dto.itemCount = row.itemCount;
-    dto.purchaseOrderId = row.purchaseOrderId;
-    dto.po = {
-      id: row.purchaseOrderId,
-      poNumber: row.poNumber,
-      orderDate: row.poOrderDate,
-      expectedBy: row.poExpectedBy,
-      totalAmount: CurrencyAmountDto.from(row.poTotalAmount, row.poCurrencyCode),
-    };
+    dto.inboundDeliveryId = row.inboundDeliveryId;
+    dto.deliveryNumber = row.deliveryNumber;
+    dto.deliverySource = row.deliverySource;
+    dto.carrier = row.carrier;
+    dto.trackingNumber = row.trackingNumber;
+    dto.supplierDeliveryNoteNumber = row.supplierDeliveryNoteNumber;
+    dto.supplierDeliveryNoteDate = row.supplierDeliveryNoteDate;
+    dto.poNumbers = row.poNumbers;
+    dto.expectedDeliveryDate = row.expectedDeliveryDate;
     dto.receivedDate = row.receivedDate;
     dto.notes = row.notes;
     dto.publishedAt = row.publishedAt?.toISOString() ?? null;

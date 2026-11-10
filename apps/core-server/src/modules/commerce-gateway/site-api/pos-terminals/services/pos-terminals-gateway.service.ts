@@ -3,7 +3,7 @@ import type { UpdatePosTerminalDto } from '@commerce/pos-terminals/dto/request/u
 import type { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-response.dto';
 import type { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
@@ -14,16 +14,13 @@ export class PosTerminalsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns paginated POS terminals for the data table
   async findForTable(userId: string): Promise<PosTerminalTableResponseDto> {
     this.logger.log('site.posTerminals.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-site-pos-terminals',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-pos-terminals');
 
     const { result, count } = await this.nats.send<{ result: PosTerminalResponseDto[]; count: number }>(
       'commerce',

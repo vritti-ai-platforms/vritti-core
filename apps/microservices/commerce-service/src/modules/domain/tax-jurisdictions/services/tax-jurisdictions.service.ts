@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
@@ -74,7 +75,7 @@ export class TaxJurisdictionsDomainService {
   // Returns paginated child jurisdictions for a given parent ID
   async findChildrenForTable(
     parentId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: TaxJurisdictionDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, TaxJurisdictionsDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, TaxJurisdictionsDomainService.SEARCH_FIELD_MAP);

@@ -127,6 +127,7 @@ export class OrganizationDomainService {
       subdomain: dto.subdomain,
       size: dto.size,
       defaultCurrencyCode: dto.defaultCurrencyCode,
+      countryCode: dto.countryCode,
       plan: dto.plan,
       logoLightUrl: dto.logoLightUrl,
       logoDarkUrl: dto.logoDarkUrl,
@@ -147,6 +148,7 @@ export class OrganizationDomainService {
       ...(dto.name && { name: dto.name }),
       ...(dto.size && { size: dto.size as OrgSize }),
       ...(dto.defaultCurrencyCode && { defaultCurrencyCode: dto.defaultCurrencyCode }),
+      ...(dto.countryCode && { countryCode: dto.countryCode }),
       ...(dto.logoLightUrl && { logoLightUrl: dto.logoLightUrl }),
       ...(dto.logoDarkUrl && { logoDarkUrl: dto.logoDarkUrl }),
       // Checked against undefined, not truthiness: `false` is the whole point of this field

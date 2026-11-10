@@ -1,12 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  CursorCodec,
-  type FieldMap,
-  FilterProcessor,
-  type KeysetOrderBy,
-  KeysetProcessor,
-  type TableViewState,
-} from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { CursorCodec, type KeysetOrderBy, KeysetProcessor, type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import type { InventoryItemLedgerEntry, NewInventoryItemLedgerEntry } from '@/db/schema';
 import { inventoryItemLedger, inventoryItems } from '@/db/schema';
@@ -64,7 +58,7 @@ export class InventoryItemLedgerDomainService {
   // Returns paginated ledger entries for one item's data table (web).
   async findForTable(
     inventoryItemId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLedgerDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLedgerDomainService.FIELD_MAP);

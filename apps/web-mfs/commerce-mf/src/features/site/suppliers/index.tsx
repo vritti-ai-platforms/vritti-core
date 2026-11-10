@@ -1,14 +1,14 @@
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { SupplierInvoiceDetailSkeleton } from '@/components/supplier-invoices/SupplierInvoiceDetailSkeleton';
-import { SupplierQuotationPageSkeleton } from '@/components/suppliers/quotations/SupplierQuotationPageSkeleton';
 import { SupplierEnrollmentDetailSkeleton } from '@/components/suppliers/SupplierEnrollmentDetailSkeleton';
-import { SupplierSiteItemDetailSkeleton } from '@/components/suppliers/SupplierSiteItemDetailSkeleton';
-import { SupplierInvoicePage } from './invoices/SupplierInvoicePage';
-import { SupplierQuotationPage } from './quotations/SupplierQuotationPage';
+import { SupplierQuotationPageSkeleton } from '@/components/suppliers/tabs/quotations/SupplierQuotationPageSkeleton';
+import { SupplierSiteItemDetailSkeleton } from '@/components/suppliers/tabs/site-items/SupplierSiteItemDetailSkeleton';
 import { SupplierDetailPage } from './SupplierDetailPage';
-import { SupplierSiteItemDetailPage } from './SupplierSiteItemDetailPage';
 import { SuppliersPage } from './SuppliersPage';
+import { SupplierInvoicePage } from './tabs/invoices/SupplierInvoicePage';
+import { SupplierQuotationPage } from './tabs/quotations/SupplierQuotationPage';
+import { SupplierSiteItemDetailPage } from './tabs/site-items/SupplierSiteItemDetailPage';
 
 const routes: RouteObject[] = [
   { index: true, element: <SuppliersPage /> },

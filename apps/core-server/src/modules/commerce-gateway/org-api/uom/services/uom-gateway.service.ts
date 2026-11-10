@@ -7,7 +7,7 @@ import type { UomDimensionResponseDto } from '@commerce/uom/dto/response/uom-dim
 import type { UomResponseDto } from '@commerce/uom/dto/response/uom-response.dto';
 import type { UomTableResponseDto } from '@commerce/uom/dto/response/uom-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -17,7 +17,7 @@ export class UomGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Keyset/cursor Relay connection of a dimension's units for the mobile infinite feed (GraphQL-only).
@@ -50,10 +50,7 @@ export class UomGatewayService {
   // Returns paginated UOMs for the data table, scoped to a dimension
   async findForTable(userId: string, dimensionId: string): Promise<UomTableResponseDto> {
     this.logger.log(`uom.table — dimensionId: ${dimensionId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      `commerce-uom-${dimensionId}`,
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, `commerce-uom-${dimensionId}`);
 
     const { result, count } = await this.nats.send<{ result: UomResponseDto[]; count: number }>(
       'commerce',

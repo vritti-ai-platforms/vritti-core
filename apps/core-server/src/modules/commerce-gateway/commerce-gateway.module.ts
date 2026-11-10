@@ -8,6 +8,7 @@ import { CostCategoriesGatewayController } from './le-api/cost-categories/cost-c
 import { CostCategoriesResolver } from './le-api/cost-categories/cost-categories-gateway.resolver';
 import { LeDimensionTemplatesGatewayController } from './le-api/dimension-templates/dimension-templates-gateway.controller';
 import { LeGoodsReceiptsGatewayController } from './le-api/goods-receipts/goods-receipts-gateway.controller';
+import { LeInboundDeliveriesGatewayController } from './le-api/inbound-deliveries/inbound-deliveries-gateway.controller';
 import { LeInventoryItemPricesGatewayController } from './le-api/inventory-items/inventory-item-prices-gateway.controller';
 import { LeInventoryItemsGatewayController } from './le-api/inventory-items/inventory-items-gateway.controller';
 import { LeOfferingsGatewayController } from './le-api/offerings/offerings-gateway.controller';
@@ -44,6 +45,7 @@ import { CustomersGatewayController } from './site-api/customers/customers-gatew
 import { SiteDimensionTemplatesGatewayController } from './site-api/dimension-templates/dimension-templates-gateway.controller';
 import { GoodsReceiptsGatewayController } from './site-api/goods-receipts/goods-receipts-gateway.controller';
 import { GoodsReceiptsResolver } from './site-api/goods-receipts/goods-receipts-gateway.resolver';
+import { InboundDeliveriesGatewayController } from './site-api/inbound-deliveries/inbound-deliveries-gateway.controller';
 import { InventoryItemQuantsGatewayController } from './site-api/inventory-item-quants/inventory-item-quants-gateway.controller';
 import { InventoryItemLedgerResolver } from './site-api/inventory-items/inventory-item-ledger-gateway.resolver';
 import { InventoryItemLocationsResolver } from './site-api/inventory-items/inventory-item-locations-gateway.resolver';
@@ -82,6 +84,7 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     LeCartsGatewayController,
     CustomersGatewayController,
     GoodsReceiptsGatewayController,
+    InboundDeliveriesGatewayController,
     SiteInventoryItemsGatewayController,
     LocationsGatewayController,
     CatalogChannelsGatewayController,
@@ -101,6 +104,7 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     SupplierInvoicesGatewayController,
     LePurchaseOrdersGatewayController,
     LeGoodsReceiptsGatewayController,
+    LeInboundDeliveriesGatewayController,
     SupplierItemPricesGatewayController,
     SiteSupplierSiteItemPricesGatewayController,
     SuppliersGatewayController,

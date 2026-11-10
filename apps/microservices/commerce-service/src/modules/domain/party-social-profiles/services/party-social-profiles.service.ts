@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -21,10 +22,7 @@ export class PartySocialProfilesDomainService {
   constructor(private readonly repository: PartySocialProfilesDomainRepository) {}
 
   // Returns paginated social profiles of a party for the data table
-  async findForTable(
-    partyId: string,
-    state: TableViewState,
-  ): Promise<{ result: PartySocialProfileDto[]; count: number }> {
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartySocialProfileDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, PartySocialProfilesDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, PartySocialProfilesDomainService.FIELD_MAP);
     const where = and(eq(partySocialProfiles.partyId, partyId), filterWhere, searchWhere) || undefined;

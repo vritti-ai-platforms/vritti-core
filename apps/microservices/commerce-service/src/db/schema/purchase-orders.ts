@@ -37,7 +37,7 @@ export const purchaseOrders = commerceSchema.table(
     // as decimal strings: { "USD": "83.250000" } reads 1 USD = 83.25 in the PO currency
     conversionRates: jsonb('conversion_rates').$type<Record<string, string>>().notNull().default({}),
     orderDate: date('order_date', { mode: 'string' }).notNull(),
-    expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
+    taxDate: date('tax_date', { mode: 'string' }).notNull(),
     timezone: varchar('timezone', { length: 50 })
       .notNull()
       .default(sql.raw("cast(current_setting('app.site_timezone') as text)")),
@@ -71,6 +71,9 @@ export const purchaseOrderItems = commerceSchema.table(
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
+    expectedDeliveryDate: date('expected_delivery_date', { mode: 'string' }).notNull(),
+    taxDate: date('tax_date', { mode: 'string' }).notNull(),
+    isTaxDateOverridden: boolean('is_tax_date_overridden').notNull().default(false),
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),

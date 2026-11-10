@@ -62,12 +62,10 @@ export const SiteSupplierSelector = remoteSelector<
   Omit<SelectProps, 'optionsEndpoint'> & { enrollmentStatus?: 'ENROLLED' | 'NOT_ENROLLED'; activeOnly?: boolean }
 >('commerce/Selectors/SiteSupplier', 'SiteSupplierSelector');
 
-export const EnrolledSiteSelector = remoteSelector<
-  Omit<SelectProps, 'optionsEndpoint'> & {
-    supplierId: string | undefined;
-    enrollmentStatus?: 'ENROLLED' | 'NOT_ENROLLED' | 'ALL';
-  }
->('commerce/Selectors/EnrolledSite', 'EnrolledSiteSelector');
+export const SiteSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
+  'commerce/Selectors/Site',
+  'SiteSelector',
+);
 
 export const RepositorySelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
   'gitea/Selectors/Repository',
@@ -82,6 +80,11 @@ export const WhatsappAccountSelector = remoteSelector<Omit<SelectProps, 'options
 export const SmsProviderSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
   'communications/Selectors/SmsProvider',
   'SmsProviderSelector',
+);
+
+export const TaxClassSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
+  'commerce/Selectors/TaxClass',
+  'TaxClassSelector',
 );
 
 export const TaxGroupSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'> & { anyCountry: true }>(

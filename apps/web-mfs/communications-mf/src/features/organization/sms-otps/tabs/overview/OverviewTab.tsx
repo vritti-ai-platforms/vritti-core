@@ -1,40 +1,42 @@
-import { AreaChart, type ChartConfig } from '@vritti/quantum-ui/AreaChart';
+import { AreaChart } from '@vritti/quantum-ui/AreaChart';
 import { Card } from '@vritti/quantum-ui/Card';
+import { useChart } from '@vritti/quantum-ui/Chart';
 import { PieChart } from '@vritti/quantum-ui/PieChart';
-import { useMemo } from 'react';
 import { useSmsOtpStats } from '@/hooks/organization/sms-otps';
+import type { SmsOtpStatsData } from '@/schemas/sms-otps';
 import { StatStrip } from '../../components/StatStrip';
 import { OverviewTabSkeleton } from './OverviewTabSkeleton';
 
-// Lifecycle order — sent → delivered → verified, then failed (no `read`: SMS has no read receipts)
-const TREND_CONFIG: ChartConfig = {
-  sent: { label: 'Sent', color: 'var(--color-muted-foreground)' },
-  delivered: { label: 'Delivered', color: 'var(--color-info)' },
-  verified: { label: 'Verified', color: 'var(--color-success)' },
-  failed: { label: 'Failed', color: 'var(--color-destructive)' },
-};
+// The charts and the tiles run in lifecycle order — sent → delivered → verified, then failed (no `read`: SMS has no read
+// receipts). Each series is a status, coloured by semantic token rather than the chart palette so it matches the badge
+// the same row carries in the Codes tab
+const STATUS_SERIES = [
+  { id: 'sent', label: 'Sent', color: 'var(--color-muted-foreground)' },
+  { id: 'delivered', label: 'Delivered', color: 'var(--color-info)' },
+  { id: 'verified', label: 'Verified', color: 'var(--color-success)' },
+  { id: 'failed', label: 'Failed', color: 'var(--color-destructive)' },
+];
 
-// Semantic tokens rather than the chart palette: these slices mean something, and the colour should
-// match the badge the same row carries in the Codes tab
-const STATUS_CONFIG: ChartConfig = {
-  sent: { label: 'Sent', color: 'var(--color-muted-foreground)' },
-  delivered: { label: 'Delivered', color: 'var(--color-info)' },
-  verified: { label: 'Verified', color: 'var(--color-success)' },
-  failed: { label: 'Failed', color: 'var(--color-destructive)' },
-};
+const selectTrend = (stats: SmsOtpStatsData) => ({
+  rows: stats.byDay.map((day) => ({ ...day })),
+  series: STATUS_SERIES,
+});
+
+const selectStatuses = (stats: SmsOtpStatsData) => ({
+  rows: [
+    { status: 'sent', count: stats.sent },
+    { status: 'delivered', count: stats.delivered },
+    { status: 'verified', count: stats.verified },
+    { status: 'failed', count: stats.failed },
+  ],
+  series: STATUS_SERIES,
+});
 
 export const OverviewTab = () => {
-  const { data: stats, isLoading } = useSmsOtpStats();
-
-  const statusData = useMemo(
-    () => [
-      { status: 'sent', count: stats?.sent ?? 0, fill: 'var(--color-muted-foreground)' },
-      { status: 'delivered', count: stats?.delivered ?? 0, fill: 'var(--color-info)' },
-      { status: 'verified', count: stats?.verified ?? 0, fill: 'var(--color-success)' },
-      { status: 'failed', count: stats?.failed ?? 0, fill: 'var(--color-destructive)' },
-    ],
-    [stats],
-  );
+  const statsQuery = useSmsOtpStats();
+  const trend = useChart({ data: statsQuery.data, select: selectTrend });
+  const statuses = useChart({ data: statsQuery.data, select: selectStatuses });
+  const { data: stats, isLoading } = statsQuery;
 
   if (isLoading || !stats) return <OverviewTabSkeleton />;
 
@@ -54,17 +56,12 @@ export const OverviewTab = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2 p-4">
           <h3 className="mb-4 text-sm font-medium text-muted-foreground">Codes over time — last 30 days</h3>
-          <AreaChart
-            data={stats.byDay as unknown as Record<string, unknown>[]}
-            config={TREND_CONFIG}
-            xAxisKey="date"
-            areas={[{ dataKey: 'sent' }, { dataKey: 'delivered' }, { dataKey: 'verified' }, { dataKey: 'failed' }]}
-          />
+          <AreaChart chart={trend} xAxisKey="date" mode="compact" className="h-75 border-0 p-0" />
         </Card>
 
         <Card className="p-4">
           <h3 className="mb-4 text-sm font-medium text-muted-foreground">By status</h3>
-          <PieChart data={statusData} config={STATUS_CONFIG} dataKey="count" nameKey="status" />
+          <PieChart chart={statuses} dataKey="count" nameKey="status" mode="compact" className="h-75 border-0 p-0" />
         </Card>
       </div>
     </div>

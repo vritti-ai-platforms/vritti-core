@@ -7,7 +7,7 @@ import { UpdateLocationPayloadDto } from '@domain/locations/dto/request/update-l
 import { LocationsDomainService } from '@domain/locations/services/locations.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -33,7 +33,7 @@ export class LocationsController {
   // Returns paginated child locations for a given parent ID
   @MessagePattern({ cmd: 'site.locations.childrenTable' })
   async childrenTable(
-    @Payload() data: { parentId: string } & TableViewState,
+    @Payload() data: { parentId: string } & TableState,
   ): Promise<{ result: LocationDto[]; count: number }> {
     this.logger.log(`locations.childrenTable — parentId: ${data.parentId}`);
     return this.locationsService.findChildrenForTable(data.parentId, data);

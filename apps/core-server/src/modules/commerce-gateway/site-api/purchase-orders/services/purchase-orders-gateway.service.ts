@@ -1,5 +1,7 @@
 import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-table-response.dto';
+import type { InboundDeliveryResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-response.dto';
+import type { InboundDeliveryTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-table-response.dto';
 import type { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
@@ -8,6 +10,7 @@ import type { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/re
 import type { SetPurchaseOrderConversionRateDto } from '@commerce/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
 import type { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
 import type { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
+import type { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import type { PurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
@@ -22,7 +25,7 @@ import type { PurchaseOrderInvoiceSummaryResponseDto } from '@commerce/supplier-
 import type { SupplierInvoiceResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-response.dto';
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
@@ -33,7 +36,7 @@ export class PurchaseOrdersGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly documents: PurchaseOrderDocumentsService,
     private readonly ownerNames: OwnerNameService,
   ) {}
@@ -41,10 +44,7 @@ export class PurchaseOrdersGatewayService {
   // Returns paginated purchase orders for the data table
   async findForTable(userId: string): Promise<PurchaseOrderTableResponseDto> {
     this.logger.log('site.purchaseOrders.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-site-purchase-orders',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-purchase-orders');
 
     const { result, count } = await this.nats.send<{ result: PurchaseOrderResponseDto[]; count: number }>(
       'commerce',
@@ -76,7 +76,7 @@ export class PurchaseOrdersGatewayService {
   // Returns line items table for a purchase order using persisted table state
   async findItemsTable(id: string, userId: string): Promise<PurchaseOrderItemTableResponseDto> {
     this.logger.log(`site.purchaseOrders.itemsTable — id: ${id}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-purchase-order-${id}-items`,
     );
@@ -91,13 +91,28 @@ export class PurchaseOrdersGatewayService {
   // Returns the goods receipts counted against a purchase order, for the data table
   async findGoodsReceiptTable(id: string, userId: string): Promise<GoodsReceiptTableResponseDto> {
     this.logger.log(`site.purchaseOrders.goodsReceipts — id: ${id}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-purchase-order-${id}-goods-receipts`,
     );
     const { result, count } = await this.nats.send<{ result: GoodsReceiptResponseDto[]; count: number }>(
       'commerce',
       'site.purchaseOrders.goodsReceipts',
+      { purchaseOrderId: id, ...state },
+    );
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns the inbound deliveries carrying a line of a purchase order, for the data table
+  async findInboundDeliveryTable(id: string, userId: string): Promise<InboundDeliveryTableResponseDto> {
+    this.logger.log(`site.purchaseOrders.inboundDeliveries — id: ${id}`);
+    const { state, activeViewId } = await this.tableStateService.getTableState(
+      userId,
+      `commerce-site-purchase-order-${id}-inbound-deliveries`,
+    );
+    const { result, count } = await this.nats.send<{ result: InboundDeliveryResponseDto[]; count: number }>(
+      'commerce',
+      'site.purchaseOrders.inboundDeliveries',
       { purchaseOrderId: id, ...state },
     );
     return { result, count, state, activeViewId };
@@ -131,6 +146,12 @@ export class PurchaseOrdersGatewayService {
   async updateNotes(id: string, dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchaseOrders.updateNotes — id: ${id}`);
     return this.nats.send('commerce', 'site.purchaseOrders.updateNotes', { id, notes: dto.notes ?? null });
+  }
+
+  // Sets a purchase order's tax date and moves the lines that follow it
+  async updateTaxDate(id: string, dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.updateTaxDate — id: ${id}, date: ${dto.taxDate}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.updateTaxDate', { id, ...dto });
   }
 
   // Changes purchase order supplier
@@ -186,7 +207,7 @@ export class PurchaseOrdersGatewayService {
     orgId: string,
   ): Promise<SupplierInvoiceTableResponseDto> {
     this.logger.log(`site.purchaseOrders.invoices.table — purchaseOrderId: ${purchaseOrderId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-site-purchase-order-${purchaseOrderId}-invoices`,
     );

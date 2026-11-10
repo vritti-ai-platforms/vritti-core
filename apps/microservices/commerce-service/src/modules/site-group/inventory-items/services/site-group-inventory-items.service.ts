@@ -1,7 +1,7 @@
 import type { GroupInventoryItemDto } from '@domain/inventory-items/dto/entity/scoped-inventory-item.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import {
   SiteGroupInventoryItemDto,
   SiteGroupItemAvailabilityDto,
@@ -17,7 +17,7 @@ export class SiteGroupInventoryItemsService {
   constructor(private readonly inventoryItemsService: InventoryItemsDomainService) {}
 
   // Every master item with how many of the group's sites have it enabled
-  findForTable(state: TableViewState, siteIds: string[]): Promise<{ result: GroupInventoryItemDto[]; count: number }> {
+  findForTable(state: TableState, siteIds: string[]): Promise<{ result: GroupInventoryItemDto[]; count: number }> {
     return this.inventoryItemsService.findForGroupTable(state, siteIds);
   }
 

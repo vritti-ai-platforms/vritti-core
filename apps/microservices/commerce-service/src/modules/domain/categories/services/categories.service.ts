@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -100,10 +101,7 @@ export class CategoriesDomainService {
   }
 
   // Returns paginated child categories for a given parent ID
-  async findChildrenForTable(
-    parentId: string,
-    state: TableViewState,
-  ): Promise<{ result: CategoryDto[]; count: number }> {
+  async findChildrenForTable(parentId: string, state: TableState): Promise<{ result: CategoryDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, CategoriesDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, CategoriesDomainService.FIELD_MAP);
     const where = and(eq(categories.parentId, parentId), filterWhere, searchWhere) || undefined;

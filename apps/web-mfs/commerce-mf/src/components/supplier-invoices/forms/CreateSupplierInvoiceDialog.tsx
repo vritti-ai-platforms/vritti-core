@@ -6,7 +6,8 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import {
   type CreateSupplierInvoiceFormData,
   createSupplierInvoiceSchema,
@@ -39,6 +40,12 @@ export const CreateSupplierInvoiceDialog: React.FC<CreateSupplierInvoiceDialogPr
     defaultValues: { purchaseOrderId, invoiceNumber: '', notes: '' },
   });
   const createMutation = binding.useCreateInvoice({ onSuccess });
+  const invoiceDate = useWatch({ control: form.control, name: 'invoiceDate' });
+
+  // The tax date follows the invoice date until it is picked
+  useEffect(() => {
+    if (invoiceDate && !form.getFieldState('taxDate').isDirty) form.setValue('taxDate', invoiceDate);
+  }, [invoiceDate, form]);
 
   return (
     <Form
@@ -58,6 +65,7 @@ export const CreateSupplierInvoiceDialog: React.FC<CreateSupplierInvoiceDialogPr
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField name="invoiceNumber" label="Invoice Number" placeholder="As printed by the supplier" />
         <DatePicker name="invoiceDate" label="Invoice Date" />
+        <DatePicker name="taxDate" label="Tax Date" description="Follows the invoice date until changed" />
       </div>
       <TextArea name="notes" label="Notes (optional)" placeholder="e.g. Received with the second delivery" />
       <DialogActions>

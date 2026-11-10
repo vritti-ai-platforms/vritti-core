@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { goodsReceiptLines, type InventoryTracking, locations } from '@/db/schema';
@@ -29,7 +30,7 @@ export class GoodsReceiptLinesDomainService {
   // Returns one page of a receipt item's lines, narrowed to one of its lots when given
   async findForTable(
     itemId: string,
-    state: TableViewState,
+    state: TableState,
     lotId?: string,
   ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptLinesDomainService.FIELD_MAP);

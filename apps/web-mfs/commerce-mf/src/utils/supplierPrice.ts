@@ -1,24 +1,18 @@
+import type { ChartEmptyState } from '@vritti/quantum-ui/Chart';
+import type { ContextStateInstance } from '@vritti/quantum-ui/ContextBar';
 import { addMonths, format, parseISO, subMonths } from '@vritti/quantum-ui/date-fns';
-import { filter } from '@vritti/quantum-ui/filter';
-import type { LineChartEmptyState } from '@vritti/quantum-ui/LineChart';
-import { EMPTY_TABLE_STATE, type FilterCondition, type TableViewState } from '@vritti/quantum-ui/types/table-filter';
-import type { PriceGraphSelection, PriceWindow, SupplierItemPriceRow } from '@/schemas/suppliers';
+import type { LineChartSelection } from '@vritti/quantum-ui/LineChart';
+import type {
+  InventoryItemPriceHistory,
+  PriceHistoryLine,
+  SitePriceHistory,
+  SupplierItemPriceHistory,
+  SupplierItemPriceRow,
+} from '@/schemas/suppliers';
 
 // Mirrors the backend frozen-row rule: a price whose start date has arrived only accepts a new end date
 export function isPriceInForce(price: Pick<SupplierItemPriceRow, 'validFrom'>, today: string): boolean {
   return price.validFrom <= today;
-}
-
-// The site a prices table's context is on, when one is picked
-export function contextSiteId(context: FilterCondition[]): string | undefined {
-  const value = context.find((condition) => condition.field === 'site')?.value;
-  return typeof value === 'string' ? value : undefined;
-}
-
-// The sites a prices table's site picker offers: the priced ones, and the picked one when it has no prices left, so the
-// picker still names the site the rows are at
-export function pickerSiteIds(siteIds: string[], picked: string | undefined): string[] {
-  return picked && !siteIds.includes(picked) ? [...siteIds, picked] : siteIds;
 }
 
 export interface PricePoint {
@@ -43,22 +37,8 @@ export interface PriceRange {
   to: string;
 }
 
-// The live table state a price graph saves its selection as — the same store DataTables use, read back by the graph's
-// endpoint
-export function priceGraphState(selection: PriceGraphSelection): TableViewState {
-  const panel = [
-    ...(selection.siteId ? [filter('siteId').equals(selection.siteId)] : []),
-    filter('from').gte(selection.from),
-    filter('to').lte(selection.to),
-    ...(selection.supplierIds.length ? [filter('supplierIds').isAnyOf(selection.supplierIds)] : []),
-    ...(selection.mrpIds.length ? [filter('mrpIds').isAnyOf(selection.mrpIds)] : []),
-    ...(selection.currency ? [filter('currency').equals(selection.currency)] : []),
-  ];
-  return { ...EMPTY_TABLE_STATE, filters: { panel, context: [] } };
-}
-
 // What a price chart says inside its frame when no price falls in its window
-export const NO_PRICES_IN_RANGE: LineChartEmptyState = {
+export const NO_PRICES_IN_RANGE: ChartEmptyState = {
   title: 'No prices in this period',
   description: 'Widen the date range, or add a price on the Prices tab.',
 };
@@ -163,42 +143,51 @@ export function mergePriceSeries(series: Record<string, PricePoint[]>): Record<s
   });
 }
 
-// A price timeline: its windows (ascending by validFrom) and the price in force, the one before it and the next change
-export interface PriceTimeline {
-  current: PriceWindow | null;
-  previous: PriceWindow | null;
-  next: PriceWindow | null;
-  windows: PriceWindow[];
+// The window a price chart's context bar picked, else the default around today
+export function contextPriceRange(context: ContextStateInstance, today: string): PriceRange {
+  const fallback = defaultPriceRange(today);
+  const [from = fallback.from, to = fallback.to] = context.contextValues('period');
+  return { from, to };
 }
 
-// The currencies the timelines are priced in — those in force first, then the most recently quoted
-export function priceCurrencies(timelines: PriceTimeline[]): string[] {
-  const latest = new Map<string, string>();
-  for (const window of timelines.flatMap((timeline) => timeline.windows)) {
-    const seen = latest.get(window.unitPrice.currency);
-    if (!seen || window.validFrom > seen) latest.set(window.unitPrice.currency, window.validFrom);
-  }
-  const inForce = new Set(
-    timelines.flatMap((timeline) => (timeline.current ? [timeline.current.unitPrice.currency] : [])),
-  );
-  return [...latest.keys()].sort(
-    (a, b) =>
-      Number(inForce.has(b)) - Number(inForce.has(a)) || (latest.get(b) ?? '').localeCompare(latest.get(a) ?? ''),
-  );
-}
-
-// A timeline narrowed to one currency, with the price in force, the one it replaced and the next change found again
-// among its windows, so a trend never compares two currencies
-export function inCurrency<T extends PriceTimeline>(timeline: T, currency: string, today: string): T {
-  const windows = timeline.windows.filter((window) => window.unitPrice.currency === currency);
-  const currentIndex = windows.findIndex(
-    (window) => window.validFrom <= today && (!window.validTo || window.validTo >= today),
-  );
+// A price chart's rows and series: a step series per priced line over the window, with today marked when it falls in it
+function selectPriceLines<TLine extends { id: string; label: string; windows: Parameters<typeof buildPriceSeries>[0] }>(
+  lines: TLine[],
+  range: PriceRange,
+  today: string,
+): LineChartSelection<TLine> {
+  const pointsByLine = Object.fromEntries(lines.map((line) => [line.id, buildPriceSeries(line.windows, range)]));
   return {
-    ...timeline,
-    windows,
-    current: currentIndex >= 0 ? windows[currentIndex] : null,
-    previous: currentIndex > 0 ? windows[currentIndex - 1] : null,
-    next: windows.find((window) => window.validFrom > today) ?? null,
+    rows: mergePriceSeries(pointsByLine),
+    series: lines,
+    yDomain: priceDomain(Object.values(pointsByLine).flatMap((points) => points.map((point) => point.unitPrice))),
+    xDomain: [dayEpoch(range.from), dayEpoch(range.to)],
+    markers: range.from <= today && today <= range.to ? [{ x: dayEpoch(today), label: 'Today' }] : [],
   };
+}
+
+export type ItemPriceHistorySelection = LineChartSelection<PriceHistoryLine> & { currency: string };
+
+// An inventory item's price history as a chart: a line per supplier item over the context's window
+export function selectItemPriceHistory(
+  data: InventoryItemPriceHistory,
+  context: ContextStateInstance,
+  today: string,
+): ItemPriceHistorySelection {
+  return { ...selectPriceLines(data.lines, contextPriceRange(context, today), today), currency: data.currency ?? '' };
+}
+
+export type SitePriceLine = SitePriceHistory & { id: string; label: string };
+export type SitePriceHistorySelection = LineChartSelection<SitePriceLine> & { currency: string };
+
+// A supplier item's price history as a chart: a line per site, by site name, over the context's window
+export function selectSitePriceHistory(
+  data: SupplierItemPriceHistory,
+  context: ContextStateInstance,
+  today: string,
+): SitePriceHistorySelection {
+  const lines = data.sites
+    .map((site) => ({ ...site, id: site.siteId, label: site.siteName ?? site.siteCode ?? site.siteId }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+  return { ...selectPriceLines(lines, contextPriceRange(context, today), today), currency: data.currency ?? '' };
 }

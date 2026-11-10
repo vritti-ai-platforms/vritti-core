@@ -1,4 +1,5 @@
 import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
+import type { ChartQueryOptions } from '@vritti/quantum-ui/Chart';
 import type { SuccessResponse, TableResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type {
@@ -25,7 +26,6 @@ import type {
   UpdateSupplierSiteItemPricePayload,
   UpdateSupplierSiteItemVars,
 } from '@/schemas/suppliers';
-import type { PriceRange } from '@/utils/supplierPrice';
 
 // A supplier, and the site when one is in view; LE pages carry the site in the URL, site pages use the session site
 export interface SupplierEnrollmentRef {
@@ -38,7 +38,7 @@ export interface SupplierEnrollmentPermissions {
   enroll: string;
   editEnroll: string;
   unenroll: string;
-  siteItems: { view: string };
+  siteItems: { view: string; edit: string };
 }
 
 export interface SupplierSiteItemPagePermissions {
@@ -90,6 +90,7 @@ export type UseSiteItemsTable = (ref: SupplierEnrollmentRef) => {
 export type UseSiteItem = (supplierId: string, itemId: string) => { data: SupplierSiteItemDetail };
 export type UseUpdateSiteItem = (
   supplierId: string,
+  itemId: string,
   options?: MutationOptions<SuccessResponse, UpdateSupplierSiteItemVars>,
 ) => MutationResult<SuccessResponse, UpdateSupplierSiteItemVars>;
 
@@ -97,16 +98,10 @@ export type UsePricesTable = (
   supplierId: string,
   itemId: string,
 ) => { data: TableResponse<SupplierItemPriceRow> | undefined; isLoading: boolean; isFetching: boolean };
-export type UsePricedSiteIds = (
+export type UsePriceHistoryQuery = (
   supplierId: string,
   itemId: string,
-) => { data: string[] | undefined; isLoading: boolean };
-export type UsePriceHistory = (
-  supplierId: string,
-  itemId: string,
-  siteIds: string[],
-  range: PriceRange,
-) => { data: SupplierItemPriceHistory | undefined; isLoading: boolean };
+) => ChartQueryOptions<SupplierItemPriceHistory, AxiosError>;
 export type UseAddSitePrice = (
   supplierId: string,
   itemId: string,

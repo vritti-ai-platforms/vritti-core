@@ -2,13 +2,16 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { type ColumnDef, CurrencyCell, DateCell, DateTimeCell } from '@vritti/quantum-ui/DataTable';
 import { PRICE_SOURCE_LABELS, type SupplierItemPriceRow } from '@/schemas/suppliers';
 
-// The data columns of a supplier item's price table at one site
-export function supplierPriceColumns<T extends SupplierItemPriceRow = SupplierItemPriceRow>({
-  showMrp,
-}: {
-  showMrp: boolean;
-}): ColumnDef<T>[] {
+// The data columns of a supplier item's price table at one site: the site's own prices and the legal entity's it
+// falls back to, each named by its owner
+export function supplierPriceColumns({ showMrp }: { showMrp: boolean }): ColumnDef<SupplierItemPriceRow>[] {
   return [
+    {
+      accessorKey: 'ownerName',
+      header: 'Owner',
+      enableSorting: false,
+      cell: ({ row }) => <Badge variant="secondary">{row.original.ownerName}</Badge>,
+    },
     {
       accessorKey: 'unitPrice',
       header: 'Unit Price',
@@ -20,8 +23,8 @@ export function supplierPriceColumns<T extends SupplierItemPriceRow = SupplierIt
             accessorKey: 'mrp',
             header: 'MRP',
             enableSorting: false,
-            cell: ({ row }: { row: { original: T } }) => <CurrencyCell value={row.original.mrp} />,
-          } satisfies ColumnDef<T>,
+            cell: ({ row }) => <CurrencyCell value={row.original.mrp} />,
+          } satisfies ColumnDef<SupplierItemPriceRow>,
         ]
       : []),
     {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
@@ -19,6 +19,7 @@ import {
   type Supplier,
   type SupplierEnrollment,
   supplierEnrollments,
+  supplierItems,
   suppliers,
   type TaxRegistrationType,
   TaxRegistrationTypeValues,
@@ -145,11 +146,6 @@ export interface SupplierEnrollmentPicks {
   orderRelationshipId?: string | null;
   orderEmailCommunicationId?: string;
   orderPhoneCommunicationId?: string;
-}
-
-export interface EnrolledSite {
-  siteId: string;
-  isActive: boolean;
 }
 
 @Injectable()
@@ -436,13 +432,28 @@ export class SupplierEnrollmentsDomainRepository extends PrimaryBaseRepository<t
     );
   }
 
-  // Returns every site a supplier is enrolled at with whether it is effectively active there
-  async findEnrolledSites(supplierId: string, activeOnly?: boolean): Promise<EnrolledSite[]> {
-    const isActive = and(eq(supplierEnrollments.isActive, true), eq(supplierEnrollments.isSupplierActive, true));
-    return this.db
-      .select({ siteId: supplierEnrollments.siteId, isActive: sql<boolean>`${isActive}` })
+  // Returns the sites a supplier, or any supplier of an inventory item, is enrolled at; with isActive only those where the
+  // enrollment and the supplier are both active
+  async findEnrolledSiteIds(
+    owner: { supplierId?: string; inventoryItemId?: string },
+    isActive?: boolean,
+  ): Promise<string[]> {
+    const ofOwner = owner.supplierId
+      ? eq(supplierEnrollments.supplierId, owner.supplierId)
+      : inArray(
+          supplierEnrollments.supplierId,
+          this.db
+            .select({ supplierId: supplierItems.supplierId })
+            .from(supplierItems)
+            .where(eq(supplierItems.inventoryItemId, owner.inventoryItemId as string)),
+        );
+    const active = isActive
+      ? and(eq(supplierEnrollments.isActive, true), eq(supplierEnrollments.isSupplierActive, true))
+      : undefined;
+    const rows = await this.db
+      .selectDistinct({ siteId: supplierEnrollments.siteId })
       .from(supplierEnrollments)
-      .where(and(eq(supplierEnrollments.supplierId, supplierId), activeOnly ? isActive : undefined))
-      .orderBy(asc(supplierEnrollments.createdAt));
+      .where(and(ofOwner, active));
+    return rows.map((row) => row.siteId);
   }
 }

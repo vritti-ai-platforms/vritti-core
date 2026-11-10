@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, desc, ilike, or } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -25,7 +26,7 @@ export class CostCategoriesDomainService {
 
   constructor(private readonly repository: CostCategoriesDomainRepository) {}
 
-  async findForTable(state: TableViewState): Promise<{ result: CostCategoryDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: CostCategoryDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, CostCategoriesDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, CostCategoriesDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);

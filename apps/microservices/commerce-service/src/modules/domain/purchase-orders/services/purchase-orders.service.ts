@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc, inArray } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
@@ -27,12 +28,6 @@ export interface PurchaseOrderSupplier {
   currencyCodes: string[];
 }
 
-export interface PurchaseOrderReceivedLine {
-  uomQty: number;
-  freeQty: number;
-  receivedQuantity: number;
-}
-
 @Injectable()
 export class PurchaseOrdersDomainService {
   private readonly logger = new Logger(PurchaseOrdersDomainService.name);
@@ -51,6 +46,7 @@ export class PurchaseOrdersDomainService {
     ...PurchaseOrdersDomainService.SEARCH_FIELD_MAP,
     ...PurchaseOrdersDomainService.FILTER_FIELD_MAP,
     orderDate: { column: purchaseOrders.orderDate, type: 'string' },
+    taxDate: { column: purchaseOrders.taxDate, type: 'string' },
   };
 
   private static readonly STATUS_TRANSITIONS: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> = {
@@ -94,7 +90,7 @@ export class PurchaseOrdersDomainService {
   }
 
   // Returns one page of purchase orders
-  async findForTable(state: TableViewState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersDomainService.SORT_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
@@ -134,7 +130,7 @@ export class PurchaseOrdersDomainService {
       currencyCode: context.currencyCode,
       exchangeRate,
       orderDate: dto.orderDate,
-      expectedBy: dto.expectedBy ?? null,
+      taxDate: dto.taxDate,
       notes: dto.notes ?? null,
     });
 
@@ -152,6 +148,13 @@ export class PurchaseOrdersDomainService {
     await this.repository.update(po.id, { notes: dto.notes ?? null });
     this.logger.log(`Updated PO ${po.poNumber} notes`);
     return { success: true, message: `Notes updated for purchase order "${po.poNumber}".` };
+  }
+
+  // Sets the tax date of a PO whose lines are still editable; the caller moves the lines that follow it
+  async updateTaxDate(po: PurchaseOrderRow, taxDate: string): Promise<void> {
+    this.repository.assertTaxDateEditable(po);
+    await this.repository.update(po.id, { taxDate });
+    this.logger.log(`Updated PO ${po.poNumber} tax date to ${taxDate}`);
   }
 
   // Moves a draft PO to another supplier, switching to its default currency when it does not trade in the PO's
@@ -248,23 +251,10 @@ export class PurchaseOrdersDomainService {
     return { success: true, message: `Purchase order "${po.poNumber}" closed.` };
   }
 
-  // Moves a receivable PO to received once all lines cover ordered plus free, else to partially received
-  async syncReceiptStatus(po: PurchaseOrderRow, lines: PurchaseOrderReceivedLine[]): Promise<void> {
-    if (!this.repository.isReceivable(po)) return;
-
-    const isEveryLineReceived =
-      lines.length > 0 &&
-      lines.every((line) => new Decimal(line.receivedQuantity).gte(new Decimal(line.uomQty).plus(line.freeQty)));
-    const isAnythingReceived = lines.some((line) => line.receivedQuantity > 0);
-    const status = isEveryLineReceived
-      ? PurchaseOrderStatusValues.RECEIVED
-      : isAnythingReceived
-        ? PurchaseOrderStatusValues.PARTIALLY_RECEIVED
-        : po.status;
-    if (status === po.status) return;
-
-    await this.repository.update(po.id, { status });
-    this.logger.log(`PO ${po.poNumber} status → ${status} from its published receipts`);
+  // Moves each receivable PO a published receipt counts to received or partially received from its lines
+  async syncReceiptStatusesForReceipt(goodsReceiptId: string): Promise<void> {
+    const moved = await this.repository.syncReceiptStatusesForReceipt(goodsReceiptId);
+    for (const po of moved) this.logger.log(`PO ${po.poNumber} status → ${po.status} from its published receipts`);
   }
 
   // Deletes a draft purchase order

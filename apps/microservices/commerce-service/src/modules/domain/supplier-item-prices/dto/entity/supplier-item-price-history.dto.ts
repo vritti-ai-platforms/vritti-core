@@ -55,46 +55,34 @@ function locatePrices(
   };
 }
 
-// One supplier's prices for an inventory item at a site, per the item's primary unit so suppliers quoting different
-// units line up
-export class ItemSupplierPriceHistoryDto {
+export class PriceHistoryLineDto {
+  id: string;
   supplierId: string;
-  supplierItemId: string;
-  supplierName: string;
-  supplierCode: string;
-  // The unit the supplier quotes in; the windows are converted from it, each staying in its own currency
-  quotedUomSymbol: string | null;
+  label: string;
   current: PriceWindowDto | null;
   previous: PriceWindowDto | null;
   next: PriceWindowDto | null;
   windows: PriceWindowDto[];
 
+  // Builds one chart line from its windows (ascending by validFrom) as of a calendar day
   static from(
-    supplier: Pick<
-      ItemSupplierPriceHistoryDto,
-      'supplierId' | 'supplierItemId' | 'supplierName' | 'supplierCode' | 'quotedUomSymbol'
-    >,
+    line: Pick<PriceHistoryLineDto, 'id' | 'supplierId' | 'label'>,
     windows: PriceWindowDto[],
     today: string,
-  ): ItemSupplierPriceHistoryDto {
-    const dto = new ItemSupplierPriceHistoryDto();
-    Object.assign(dto, supplier);
+  ): PriceHistoryLineDto {
+    const dto = new PriceHistoryLineDto();
+    Object.assign(dto, line);
     return Object.assign(dto, locatePrices(windows, today));
   }
 }
 
 export class InventoryItemPriceHistoryDto {
-  siteId: string;
-  // Every supplier's prices are per this unit
-  uomSymbol: string | null;
-  // The suppliers drawn — the ones asked for, or by default the preferred and most recently priced — at most
-  // MAX_CHARTED_SUPPLIERS of them
-  suppliers: ItemSupplierPriceHistoryDto[];
-  // Every supplier with a price for the item at the site within the window
-  supplierCount: number;
+  currency: string | null;
+  lines: PriceHistoryLineDto[];
 }
 
 // Each window carries its own currency; a supplier can requote an item in another of its currencies
 export class SupplierItemPriceHistoryDto {
+  currency: string | null;
   sites: SitePriceHistoryDto[];
 }

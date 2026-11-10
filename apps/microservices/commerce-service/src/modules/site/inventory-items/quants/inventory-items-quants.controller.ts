@@ -2,7 +2,7 @@ import type { InventoryItemQuantDto } from '@domain/inventory-item-quants/dto/en
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { InventoryItemsQuantsService } from './services/inventory-items-quants.service';
 
 @Controller()
@@ -16,7 +16,7 @@ export class InventoryItemsQuantsController {
 
   @MessagePattern({ cmd: 'site.inventoryItems.quantsTable' })
   async quantsTable(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
     this.logger.log(`inventoryItems.quantsTable — inventoryItemId: ${data.inventoryItemId}`);
     return this.itemsQuantsService.findForTable(data.inventoryItemId, data);

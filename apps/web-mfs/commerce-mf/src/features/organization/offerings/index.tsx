@@ -4,12 +4,12 @@ import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/Permissio
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { OfferingDetailSkeleton } from '@/components/offerings/OfferingDetailSkeleton';
-import { VariantDetailSkeleton } from '@/components/offerings/VariantDetailSkeleton';
-import { GenerateVariantsPage } from './GenerateVariantsPage';
-import { OfferingChannelPage } from './OfferingChannelPage';
+import { VariantDetailSkeleton } from '@/components/offerings/tabs/variants/VariantDetailSkeleton';
 import { OfferingDetailPage } from './OfferingDetailPage';
 import { OfferingsPage } from './OfferingsPage';
-import { VariantDetailPage } from './VariantDetailPage';
+import { OfferingChannelPage } from './tabs/channels/OfferingChannelPage';
+import { GenerateVariantsPage } from './tabs/variants/GenerateVariantsPage';
+import { VariantDetailPage } from './tabs/variants/VariantDetailPage';
 
 // The gate sits outside the boundary so a denied user never mounts the page and never fires the request —
 // useSuspenseQuery has no `enabled`, so the guard cannot live in the hook.

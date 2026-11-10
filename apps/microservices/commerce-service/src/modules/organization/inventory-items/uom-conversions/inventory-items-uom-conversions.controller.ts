@@ -3,7 +3,7 @@ import { CreateInventoryItemUomConversionDto } from '@domain/inventory-item-uom-
 import { UpdateInventoryItemUomConversionDto } from '@domain/inventory-item-uom-conversions/dto/request/update-inventory-item-uom-conversion.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InventoryItemsUomConversionsService } from './services/inventory-items-uom-conversions.service';
 
@@ -16,7 +16,7 @@ export class InventoryItemsUomConversionsController {
   // Returns paginated UOM conversion overrides for an inventory item
   @MessagePattern({ cmd: 'org.inventoryItems.uom.table' })
   async table(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.uom.table — inventoryItemId: ${inventoryItemId}`);

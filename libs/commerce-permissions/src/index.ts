@@ -17,6 +17,7 @@ export {
   SITE_DIMENSION_TEMPLATES,
 } from './dimension-templates';
 export { LE_GOODS_RECEIPTS, SITE_GOODS_RECEIPTS } from './goods-receipts';
+export { LE_INBOUND_DELIVERIES, SITE_INBOUND_DELIVERIES } from './inbound-deliveries';
 export {
   ORG_INVENTORY_ITEMS,
   SITE_GROUP_INVENTORY_ITEMS,

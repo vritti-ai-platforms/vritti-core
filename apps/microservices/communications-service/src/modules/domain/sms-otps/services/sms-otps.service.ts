@@ -1,7 +1,8 @@
 import { randomInt } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { hashToken } from '@vritti/api-sdk/auth';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type SmsProviderCode, smsOtps } from '@/db/schema';
 import { SmsOtpDto } from '../dto/entity/sms-otp.dto';
@@ -122,7 +123,7 @@ export class SmsOtpsDomainService {
   }
 
   // Returns paginated, filtered, and sorted codes for the monitoring data table
-  async findForTable(state: TableViewState): Promise<{ result: SmsOtpDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: SmsOtpDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, SmsOtpsDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, SmsOtpsDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);

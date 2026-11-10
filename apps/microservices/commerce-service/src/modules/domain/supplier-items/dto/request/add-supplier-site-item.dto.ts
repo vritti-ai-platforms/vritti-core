@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsOptional, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsUUID, Max, Min, ValidateIf } from 'class-validator';
 
 export class AddSupplierSiteItemDto {
   @IsUUID('7')
@@ -11,8 +11,10 @@ export class AddSupplierSiteItemDto {
   @IsBoolean()
   isPreferred?: boolean;
 
-  @IsOptional()
+  // The site's own lead time; omitted, the site follows the supplier item's default
+  @ValidateIf((_, value) => value !== undefined)
   @IsInt()
   @Min(0)
-  leadTimeDays?: number | null;
+  @Max(365)
+  leadTimeDays?: number;
 }

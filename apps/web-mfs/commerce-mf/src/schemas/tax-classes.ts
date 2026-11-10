@@ -1,5 +1,7 @@
+import type { CurrencyAmount } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCodeField } from '@vritti/quantum-ui/zod';
+import type { UpdateTaxClassGroupPayload } from './tax-groups';
 
 export const createTaxClassSchema = z.object({
   code: zodCodeField({ max: 50 }),
@@ -8,8 +10,7 @@ export const createTaxClassSchema = z.object({
 });
 
 export const updateTaxClassSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255).optional(),
-  isActive: z.boolean().optional(),
+  name: z.string({ error: 'Name is required' }).min(1, 'Name is required').max(255),
 });
 
 export type CreateTaxClassFormData = z.infer<typeof createTaxClassSchema>;
@@ -30,4 +31,21 @@ export interface TaxClassData {
   updatedAt: string;
 }
 
-export type TaxClassesTableResponse = TableResponse<TaxClassData>;
+export interface TaxClassGroupInForce {
+  taxGroupId: string;
+  taxGroupCode: string;
+  taxGroupName: string;
+  maxUnitPrice: CurrencyAmount | null;
+}
+
+export interface TaxClassRowData extends TaxClassData {
+  taxGroups: TaxClassGroupInForce[];
+}
+
+export type TaxClassesTableResponse = TableResponse<TaxClassRowData>;
+
+export interface CreateTaxClassGroupMappingPayload extends UpdateTaxClassGroupPayload {
+  taxGroupId: string;
+}
+
+export type UpdateTaxClassGroupMappingPayload = UpdateTaxClassGroupPayload;

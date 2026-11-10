@@ -35,7 +35,7 @@ export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ bindin
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createDialog = useDialog();
-  const { data: response, isLoading, isFetching } = binding.useTable();
+  const purchaseOrdersTableQuery = binding.useTable();
 
   const openPurchaseOrder = useCallback(
     (purchaseOrder: PurchaseOrderData) => navigate(buildSlug(purchaseOrder.poNumber, purchaseOrder.id)),
@@ -105,11 +105,11 @@ export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ bindin
     [binding.spansSites, permissions.view, openPurchaseOrder],
   );
 
-  const { table } = useDataTable({
+  const purchaseOrdersTable = useDataTable({
     columns,
     slug: binding.tableSlug,
     label: 'purchase order',
-    serverState: response,
+    query: purchaseOrdersTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -130,9 +130,7 @@ export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ bindin
   return (
     <>
       <DataTable
-        table={table}
-        isLoading={isLoading}
-        isFetching={isFetching}
+        table={purchaseOrdersTable}
         permission={permissions.view}
         onRowClick={openPurchaseOrder}
         contextBar={
@@ -162,6 +160,7 @@ export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ bindin
 
       <Dialog
         handle={createDialog}
+        className="max-w-2xl"
         icon={ClipboardList}
         title="New Purchase Order"
         description="Create a purchase order for a supplier."

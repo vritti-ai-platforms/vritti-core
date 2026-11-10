@@ -3,7 +3,7 @@ import { UpdateWhatsappAccountDto } from '@domain/whatsapp-accounts/dto/request/
 import { WhatsappAccountsDomainService } from '@domain/whatsapp-accounts/services/whatsapp-accounts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 
@@ -14,7 +14,7 @@ export class WhatsappAccountsController {
   constructor(private readonly service: WhatsappAccountsDomainService) {}
 
   @MessagePattern({ cmd: 'org.whatsappAccounts.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: WhatsappAccountDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: WhatsappAccountDto[]; count: number }> {
     this.logger.log('whatsappAccounts.table');
     return this.service.findForTable(state);
   }

@@ -60,19 +60,18 @@ export const WishlistTab: React.FC<WishlistTabProps> = ({ partyId }) => {
     [],
   );
 
-  const { table } = useDataTable({
+  const wishlistTable = useDataTable({
     columns,
     slug: `commerce-org-person-${partyId}-wishlist`,
     label: 'saved item',
     // A plain array, like the basket — nothing here is server-paged or sorted.
-    serverState: { result: rows ?? [], count: rows?.length ?? 0 },
+    query: { data: { result: rows ?? [], count: rows?.length ?? 0 }, isLoading },
     enableRowSelection: false,
   });
 
   return (
     <DataTable
-      table={table}
-      isLoading={isLoading}
+      table={wishlistTable}
       permission={ORG_PEOPLE.wishlist.view}
       emptyStateConfig={{
         icon: Heart,

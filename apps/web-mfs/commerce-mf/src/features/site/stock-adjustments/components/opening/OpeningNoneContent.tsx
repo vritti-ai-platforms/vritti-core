@@ -32,7 +32,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
   const queryClient = useQueryClient();
   const addLineDialog = useDialog();
 
-  const { data: response, isLoading } = useStockAdjustmentLinesTable(adjustment.id);
+  const stockAdjustmentLinesTableQuery = useStockAdjustmentLinesTable(adjustment.id);
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
 
   const handleRemove = useCallback(
@@ -118,9 +118,9 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
     [adjustment.id, adjustment.inventoryItemUomSymbol, isDraft, handleRemove, adjustment.inventoryItemId],
   );
 
-  const { table } = useDataTable({
+  const stockAdjustmentLinesTable = useDataTable({
     columns,
-    serverState: response,
+    query: stockAdjustmentLinesTableQuery,
     slug: `stock-adjustment-${adjustment.id}-lines`,
     label: 'line',
     enableRowSelection: false,
@@ -130,9 +130,8 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
   return (
     <>
       <DataTable
-        table={table}
+        table={stockAdjustmentLinesTable}
         mode="compact"
-        isLoading={isLoading}
         searchConfig={{ columns: [{ id: 'locationName', label: 'Location' }], searchAll: true }}
         filters={[<UomFilter key="uomId" params={{ inventoryItemId: adjustment.inventoryItemId }} />]}
         toolbarActions={

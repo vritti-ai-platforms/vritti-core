@@ -6,9 +6,14 @@ import { Text } from '@vritti/quantum-ui-native/Text';
 import { useUnstableNativeVariable } from 'nativewind';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
-import type { GoodsReceipt, GoodsReceiptStatus } from '../../../../../../types/goods-receipts';
+import type { GoodsReceipt, GoodsReceiptStatus, InboundDeliverySource } from '../../../../../../types/goods-receipts';
 
 const useThemeVar = useUnstableNativeVariable as unknown as (name: string) => string | undefined;
+
+const DELIVERY_SOURCE_LABEL: Record<InboundDeliverySource, string> = {
+  ANNOUNCED: 'Announced',
+  RECEIPT: 'From Receipt',
+};
 
 const STATUS_META: Record<GoodsReceiptStatus, { label: string; token: string }> = {
   DRAFT: { label: 'Draft', token: '--muted-foreground' },
@@ -24,8 +29,9 @@ function InfoRow({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-// Overview tab: the GR header (number + status), supplier + received/created + notes, and the linked
-// purchase order (or "no PO"). Read-only; dates/currency via useFormatters (never hand-rolled).
+// Overview tab: the GR header (number + status), supplier + received/created + notes, and its purchasing
+// context — the purchase orders it counts, its inbound delivery (source, carrier, tracking, supplier's delivery note) and the latest expected date. Read-only;
+// dates via useFormatters (never hand-rolled).
 export function OverviewTab({ gr }: { gr: GoodsReceipt }) {
   const fmt = useFormatters();
   const meta = STATUS_META[gr.status] ?? STATUS_META.DRAFT;
@@ -70,29 +76,37 @@ export function OverviewTab({ gr }: { gr: GoodsReceipt }) {
       </Card>
 
       <Card className="gap-3 p-4">
-        <Text className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Purchase Order</Text>
-        {gr.po ? (
-          <>
-            <InfoRow label="PO Number">
-              <Text className="text-right font-mono text-sm text-foreground">{gr.po.poNumber}</Text>
-            </InfoRow>
-            <InfoRow label="Order Date">
-              <Text className="text-right text-sm text-foreground">{fmt.date(gr.po.orderDate).primary}</Text>
-            </InfoRow>
-            <InfoRow label="Expected">
-              <Text className="text-right text-sm text-foreground">
-                {gr.po.expectedBy ? fmt.date(gr.po.expectedBy).primary : '—'}
-              </Text>
-            </InfoRow>
-            <InfoRow label="Total">
-              <Text className="text-right font-mono text-sm text-foreground">
-                {fmt.currency(gr.po.totalAmount).primary}
-              </Text>
-            </InfoRow>
-          </>
-        ) : (
-          <Text className="text-sm text-muted-foreground">No purchase order linked.</Text>
-        )}
+        <Text className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Purchasing</Text>
+        <InfoRow label="Purchase Orders">
+          <Text className="text-right font-mono text-sm text-foreground">
+            {gr.poNumbers.length > 0 ? gr.poNumbers.join(', ') : '—'}
+          </Text>
+        </InfoRow>
+        <InfoRow label="Inbound Delivery">
+          <Text className="text-right font-mono text-sm text-foreground">{gr.deliveryNumber}</Text>
+        </InfoRow>
+        <InfoRow label="Delivery Source">
+          <Text className="text-right text-sm text-foreground">{DELIVERY_SOURCE_LABEL[gr.deliverySource] ?? '—'}</Text>
+        </InfoRow>
+        <InfoRow label="Carrier">
+          <Text className="text-right text-sm text-foreground">{gr.carrier ?? '—'}</Text>
+        </InfoRow>
+        <InfoRow label="Tracking Number">
+          <Text className="text-right font-mono text-sm text-foreground">{gr.trackingNumber ?? '—'}</Text>
+        </InfoRow>
+        <InfoRow label="Delivery Note No.">
+          <Text className="text-right font-mono text-sm text-foreground">{gr.supplierDeliveryNoteNumber ?? '—'}</Text>
+        </InfoRow>
+        <InfoRow label="Delivery Note Date">
+          <Text className="text-right text-sm text-foreground">
+            {gr.supplierDeliveryNoteDate ? fmt.date(gr.supplierDeliveryNoteDate).primary : '—'}
+          </Text>
+        </InfoRow>
+        <InfoRow label="Expected Delivery">
+          <Text className="text-right text-sm text-foreground">
+            {gr.expectedDeliveryDate ? fmt.date(gr.expectedDeliveryDate).primary : '—'}
+          </Text>
+        </InfoRow>
       </Card>
     </ScreenContainer>
   );

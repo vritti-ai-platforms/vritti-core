@@ -14,7 +14,7 @@ import { EnableInventoryItemDialog } from './forms/EnableInventoryItemDialog';
 
 export const InventoryItemsPage = () => {
   const navigate = useNavigate();
-  const { data: response, isLoading } = useInventoryItemsTable();
+  const inventoryItemsTableQuery = useInventoryItemsTable();
 
   const extraColumns = useMemo<ColumnDef<SiteInventoryItemData>[]>(
     () => [
@@ -69,8 +69,7 @@ export const InventoryItemsPage = () => {
       <PageHeader title="Inventory Items" description="The organization's items, and which of them this site stocks" />
 
       <InventoryItemsTable
-        response={response}
-        isLoading={isLoading}
+        query={inventoryItemsTableQuery}
         slug="commerce-site-inventory-items"
         tableKey={INVENTORY_ITEMS_TABLE_KEY}
         permission={SITE_INVENTORY_ITEMS.view}

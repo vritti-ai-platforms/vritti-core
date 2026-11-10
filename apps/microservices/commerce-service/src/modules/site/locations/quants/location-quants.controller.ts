@@ -3,7 +3,7 @@ import type { LocationItemQuantDto } from '@domain/inventory-item-quants/dto/ent
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class LocationQuantsController {
@@ -13,7 +13,7 @@ export class LocationQuantsController {
 
   @MessagePattern({ cmd: 'site.locations.itemsTable' })
   async itemsTable(
-    @Payload() data: { locationId: string } & TableViewState,
+    @Payload() data: { locationId: string } & TableState,
   ): Promise<{ result: LocationItemDto[]; count: number }> {
     this.logger.log(`locations.itemsTable — locationId: ${data.locationId}`);
     const { locationId, ...state } = data;

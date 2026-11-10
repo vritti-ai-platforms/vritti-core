@@ -59,7 +59,16 @@ export function ApiInventoryItemMrpsSelect() {
         "Returns the printed MRPs a variant could be listed at — the recorded prices of whatever its bill of materials draws on, labelled by amount and pack unit. Empty when nothing in the BOM has an MRP recorded, which the form reads as 'list for any batch'.",
     }),
     ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'variantId', description: 'Variant whose bill of materials decides the options', required: true }),
+    ApiQuery({
+      name: 'variantId',
+      description: 'Variant whose bill of materials decides the options; required without inventoryItemId',
+      required: false,
+    }),
+    ApiQuery({
+      name: 'inventoryItemId',
+      description: 'Inventory item whose MRPs to list, instead of a variant',
+      required: false,
+    }),
     ApiQuery({
       name: 'currencyCode',
       description: 'Narrow to the MRPs printed in one currency — what a listing keyed to one may be priced in',
@@ -251,7 +260,7 @@ export function ApiPurchaseOrderItemsSelect() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get purchase order line select options',
-      description: 'Returns paginated PO line options for the goods receipt AddItem selector.',
+      description: 'Returns paginated options for the lines of one purchase order.',
     }),
     ...BASE_SELECT_QUERIES,
     ApiQuery({
@@ -259,12 +268,57 @@ export function ApiPurchaseOrderItemsSelect() {
       description: 'Purchase order whose lines populate the select',
       required: true,
     }),
+    ApiResponse({ status: 200, description: 'Purchase order line select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiReceivablePurchaseOrdersSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get receivable purchase order select options',
+      description:
+        "Returns paginated options for a supplier's confirmed or partially received purchase orders that still have a line left to receive outside their open inbound deliveries, newest PO number first — the goods receipt purchase order picker.",
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiQuery({ name: 'supplierId', description: 'Supplier whose purchase orders are listed', required: true }),
     ApiQuery({
-      name: 'excludeOnGoodsReceiptId',
-      description: 'Exclude PO lines whose (inventoryItemId, uomId) is already on this goods receipt',
+      name: 'goodsReceiptId',
+      description: 'Goods receipt being added to: narrows to its site and leaves out the purchase orders already on it',
       required: false,
     }),
-    ApiResponse({ status: 200, description: 'Purchase order line select options retrieved successfully.' }),
+    ApiResponse({ status: 200, description: 'Receivable purchase order select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiReceivableInboundDeliveriesSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get receivable inbound delivery select options',
+      description:
+        'Returns paginated options for announced inbound deliveries that are not received or cancelled, have no draft goods receipt and still have something to receive — labelled by delivery number with the supplier as description and the expected date as an additional value.',
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Receivable inbound delivery select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiDeliverablePurchaseOrderItemsSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get deliverable purchase order line select options',
+      description:
+        "Returns paginated options for the lines of an inbound delivery's supplier at its site, on sent, confirmed or partially received purchase orders, not yet on the delivery and with quantity left to announce (`deliverableQty`), sorted by PO number with it as the description — the inbound delivery line picker.",
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiQuery({
+      name: 'inboundDeliveryId',
+      description: 'Inbound delivery being filled; its supplier and site narrow the lines',
+      required: true,
+    }),
+    ApiResponse({ status: 200, description: 'Deliverable purchase order line select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }
@@ -292,8 +346,9 @@ export function ApiSupplierItemsSelect() {
     ...BASE_SELECT_QUERIES,
     ApiQuery({ name: 'supplierId', description: 'Filter to a specific supplier', required: false }),
     ApiQuery({
-      name: 'excludeOnPurchaseOrderId',
-      description: 'Exclude supplier items whose (inventoryItemId, uomId) is already on this purchase order',
+      name: 'purchaseOrderId',
+      description:
+        'Items orderable on this purchase order: set up at its site, priced as of its order date, and not already on it',
       required: false,
     }),
     ApiQuery({
@@ -314,6 +369,11 @@ export function ApiSuppliersSelect() {
     }),
     ...BASE_SELECT_QUERIES,
     ApiQuery({ name: 'activeOnly', description: 'Only active suppliers', required: false }),
+    ApiQuery({
+      name: 'inventoryItemId',
+      description: 'Only suppliers with a supplier item for this inventory item',
+      required: false,
+    }),
     ApiResponse({ status: 200, description: 'Supplier select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
@@ -450,30 +510,6 @@ export function ApiSiteSuppliersSelect() {
       required: false,
     }),
     ApiResponse({ status: 200, description: 'Site supplier select options retrieved successfully.' }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
-export function ApiSupplierEnrollmentsSelect() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Get supplier enrollment site select options',
-      description: "Returns the legal entity's sites for a supplier's enrollment picker, labelled with the site name.",
-    }),
-    ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'supplierId', description: 'Supplier whose enrollments list the sites', required: true }),
-    ApiQuery({
-      name: 'enrollmentStatus',
-      description: 'ENROLLED (default) lists enrolled sites, NOT_ENROLLED the rest, ALL every site of the legal entity',
-      required: false,
-    }),
-    ApiQuery({
-      name: 'activeOnly',
-      description: 'Only sites where the enrollment and the supplier are both active',
-      required: false,
-    }),
-    ApiResponse({ status: 200, description: 'Supplier enrollment site select options retrieved successfully.' }),
-    ApiResponse({ status: 400, description: 'Missing legal entity context.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

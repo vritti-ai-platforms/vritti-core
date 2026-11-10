@@ -1,0 +1,1 @@
+ALTER TABLE "core"."organizations" ALTER COLUMN "country_code" SET NOT NULL;

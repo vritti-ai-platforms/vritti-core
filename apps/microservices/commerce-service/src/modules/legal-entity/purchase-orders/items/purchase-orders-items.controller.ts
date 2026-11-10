@@ -5,7 +5,7 @@ import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/se
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PurchaseOrdersItemsService } from '@/modules/site/purchase-orders/items/services/purchase-orders-items.service';
 
@@ -34,9 +34,7 @@ export class LePurchaseOrdersItemsController {
 
   // Returns one page of a purchase order's lines
   @MessagePattern({ cmd: 'le.purchaseOrders.itemsTable' })
-  itemsTable(
-    @Payload() data: { id: string } & TableViewState,
-  ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+  itemsTable(@Payload() data: { id: string } & TableState): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
     this.logger.log(`le.purchaseOrders.itemsTable — id: ${data.id}`);
     const { id, ...state } = data;
     return this.itemsService.findForTable(id, state);

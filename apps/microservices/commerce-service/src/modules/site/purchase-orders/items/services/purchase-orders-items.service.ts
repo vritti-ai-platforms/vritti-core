@@ -20,6 +20,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException, ValidationException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { addDays, formatISO, parseISO } from 'date-fns';
 
 @Injectable()
 export class PurchaseOrdersItemsService {
@@ -38,7 +39,7 @@ export class PurchaseOrdersItemsService {
     private readonly inventoryItemSitesService: InventoryItemSitesDomainService,
   ) {}
 
-  // Orders a supplier item set up at the PO's site, its scheme defaulting to the site price, and enables it there
+  // Orders a supplier item set up at the PO's site, defaulting its scheme and delivery from the site's price and lead time
   async addItem(dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const po = await this.purchaseOrdersRepository.findDetailOrThrow(dto.purchaseOrderId);
     const supplierItem = await this.supplierItemsRepository.findById(dto.supplierItemId);
@@ -71,6 +72,9 @@ export class PurchaseOrdersItemsService {
       await this.itemsService.addItem(pricedPo, dto, {
         inventoryItemId: supplierItem.inventoryItemId,
         uomId: supplierItem.uomId,
+        expectedDeliveryDate:
+          dto.expectedDeliveryDate ??
+          formatISO(addDays(parseISO(po.orderDate), supplierSiteItem.leadTimeDays), { representation: 'date' }),
         primaryUomQty,
         scheme: {
           buyQty: dto.schemeBuyQty ?? price?.schemeBuyQty ?? null,
@@ -91,7 +95,7 @@ export class PurchaseOrdersItemsService {
     };
   }
 
-  // Changes a line's item, quantity, price or scheme and syncs the PO total
+  // Changes a line's item, quantity, price, scheme or expected delivery and syncs the PO total
   async updateItem(dto: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
     const po = await this.purchaseOrdersRepository.findDetailOrThrow(dto.purchaseOrderId);
     const item = await this.itemsRepository.findOnPurchaseOrderOrThrow(po.id, dto.itemId);

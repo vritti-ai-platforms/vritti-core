@@ -11,6 +11,7 @@ import { LeCatalogsGatewayService } from './le-api/catalogs/services/catalogs-ga
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
 import { LeDimensionTemplatesGatewayService } from './le-api/dimension-templates/services/dimension-templates-gateway.service';
 import { LeGoodsReceiptsGatewayService } from './le-api/goods-receipts/services/goods-receipts-gateway.service';
+import { LeInboundDeliveriesGatewayService } from './le-api/inbound-deliveries/services/inbound-deliveries-gateway.service';
 import { LeInventoryItemPricesGatewayService } from './le-api/inventory-items/services/inventory-item-prices-gateway.service';
 import { LeInventoryItemsGatewayService } from './le-api/inventory-items/services/inventory-items-gateway.service';
 import { LeOfferingsGatewayService } from './le-api/offerings/services/offerings-gateway.service';
@@ -42,6 +43,7 @@ import { SiteCatalogsGatewayService } from './site-api/catalogs/services/catalog
 import { CustomersGatewayService } from './site-api/customers/services/customers-gateway.service';
 import { SiteDimensionTemplatesGatewayService } from './site-api/dimension-templates/services/dimension-templates-gateway.service';
 import { GoodsReceiptsGatewayService } from './site-api/goods-receipts/services/goods-receipts-gateway.service';
+import { InboundDeliveriesGatewayService } from './site-api/inbound-deliveries/services/inbound-deliveries-gateway.service';
 import { InventoryItemQuantsGatewayService } from './site-api/inventory-item-quants/services/inventory-item-quants-gateway.service';
 import { SiteInventoryItemPricesGatewayService } from './site-api/inventory-items/services/inventory-item-prices-gateway.service';
 import { SiteInventoryItemsGatewayService } from './site-api/inventory-items/services/inventory-items-gateway.service';
@@ -72,6 +74,8 @@ const services = [
   CustomersGatewayService,
   GoodsReceiptsGatewayService,
   LeGoodsReceiptsGatewayService,
+  InboundDeliveriesGatewayService,
+  LeInboundDeliveriesGatewayService,
   SiteInventoryItemsGatewayService,
   LocationsGatewayService,
   CatalogChannelsGatewayService,

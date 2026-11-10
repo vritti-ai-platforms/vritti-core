@@ -4,7 +4,7 @@ import type { TaxRegistrationResponseDto } from '@commerce/tax-registrations/dto
 import type { TaxRegistrationTableResponseDto } from '@commerce/tax-registrations/dto/response/tax-registration-table-response.dto';
 import type { TaxRegistrationsPageResponseDto } from '@commerce/tax-registrations/dto/response/tax-registrations-page-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, type TablePageRequest } from '@vritti/api-sdk/data-table';
+import { type TablePageRequest, TableStateService } from '@vritti/api-sdk/data-table';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -17,16 +17,13 @@ export class TaxRegistrationsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly siteRepository: SiteDomainRepository,
   ) {}
 
   async findForTable(userId: string): Promise<TaxRegistrationTableResponseDto> {
     this.logger.log('le.taxRegistrations.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'commerce-le-tax-registrations',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-tax-registrations');
     const { result, count } = await this.nats.send<{ result: TaxRegistrationResponseDto[]; count: number }>(
       'commerce',
       'le.taxRegistrations.table',

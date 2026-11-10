@@ -15,6 +15,7 @@ import {
   editTaxComponentFormSchema,
   type TaxComponentData,
 } from '@/schemas/tax-components';
+import { TaxComponentSelector } from '@/selectors/tax-component';
 
 interface EditTaxComponentDialogProps {
   taxComponent: TaxComponentData;
@@ -34,9 +35,9 @@ export const EditTaxComponentDialog: React.FC<EditTaxComponentDialogProps> = ({
       code: taxComponent.code,
       name: taxComponent.name,
       authorityLevel: taxComponent.authorityLevel,
+      standsInForId: taxComponent.standsInForId ?? undefined,
       isRecoverable: taxComponent.isRecoverable,
       isWithholding: taxComponent.isWithholding,
-      isActive: taxComponent.isActive,
     },
   });
 
@@ -52,9 +53,9 @@ export const EditTaxComponentDialog: React.FC<EditTaxComponentDialogProps> = ({
         data: {
           name: data.name,
           authorityLevel: data.authorityLevel,
+          standsInForId: data.standsInForId ?? null,
           isRecoverable: data.isRecoverable,
           isWithholding: data.isWithholding,
-          isActive: data.isActive,
         },
       })}
     >
@@ -68,17 +69,19 @@ export const EditTaxComponentDialog: React.FC<EditTaxComponentDialogProps> = ({
           placeholder="Select authority level"
           options={authorityLevelOptions}
         />
+        <TaxComponentSelector
+          name="standsInForId"
+          label="Stands In For (optional)"
+          country={taxComponent.countryCode}
+          clearable
+          description="Leave empty for a component charged directly. Pick one when this component replaces it where it has a rate of its own, like UTGST for SGST in a Union Territory."
+        />
         <Switch
           name="isRecoverable"
           label="Recoverable"
           description="Recoverable components can be claimed back as input tax credit"
         />
         <Switch name="isWithholding" label="Withholding" description="Withholding components are deducted at source" />
-        <Switch
-          name="isActive"
-          label="Active"
-          description="Inactive tax components are hidden from tax group rate forms"
-        />
       </div>
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

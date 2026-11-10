@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -36,10 +37,10 @@ export class AddSupplierItemDto {
   minOrderQuantity?: number;
 
   // Days from order to delivery; every site of the item that does not set its own follows it
-  @IsOptional()
   @IsInt()
   @Min(0)
-  defaultLeadTimeDays?: number;
+  @Max(365)
+  defaultLeadTimeDays: number;
 
   @IsArray()
   @ArrayNotEmpty()

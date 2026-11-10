@@ -1,5 +1,6 @@
 export {
   SUPPLIER_ITEM_KEY,
+  SUPPLIER_ITEM_PRICE_HISTORY_KEY,
   SUPPLIER_ITEM_PRICES_TABLE_KEY,
   SUPPLIER_ITEMS_TABLE_KEY,
   SUPPLIER_KEY,
@@ -25,8 +26,7 @@ export { useSupplierItem } from './useSupplierItem';
 export {
   useAddSupplierItemPrice,
   useDeleteSupplierItemPrice,
-  useSupplierItemPricedSiteIds,
-  useSupplierItemPriceHistory,
+  useSupplierItemPriceHistoryQuery,
   useSupplierItemPricesTable,
   useUpdateSupplierItemPrice,
 } from './useSupplierItemPrices';

@@ -7,7 +7,7 @@ import type { BankAccountsTableResponseDto } from '@domain/bank-account/dto/resp
 import { BankAccountDomainService } from '@domain/bank-account/services/bank-account.service';
 import { LegalEntityDomainRepository } from '@domain/legal-entity/repositories/legal-entity.repository';
 import { Injectable } from '@nestjs/common';
-import { DataTableStateService, type TablePageRequest } from '@vritti/api-sdk/data-table';
+import { type TablePageRequest, TableStateService } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { CreateLeBankAccountDto } from '../dto/request/create-le-bank-account.dto';
@@ -20,7 +20,7 @@ export class BankAccountService {
   constructor(
     private readonly bankAccountService: BankAccountDomainService,
     private readonly legalEntityRepository: LegalEntityDomainRepository,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Cloud's data table: it holds the view state and sends the page request; core resolves one legal entity's page
@@ -39,7 +39,7 @@ export class BankAccountService {
     legalEntityId: string | undefined,
   ): Promise<BankAccountsTableResponseDto> {
     const contextLegalEntityId = this.requireLegalEntity(legalEntityId);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, TABLE_SLUG);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, TABLE_SLUG);
     const { result, count } = await this.bankAccountService.findForTable(orgId, state, contextLegalEntityId);
     return { result, count, state, activeViewId };
   }

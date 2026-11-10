@@ -34,6 +34,11 @@ export function updateTaxComponent({
 }
 
 // Deletes a tax component by ID
+// Activates or deactivates a tax component
+export function setTaxComponentActive({ id, isActive }: { id: string; isActive: boolean }): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`commerce-api/tax-components/${id}/active`, { isActive }).then((r) => r.data);
+}
+
 export function deleteTaxComponent(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/tax-components/${id}`).then((r) => r.data);
 }

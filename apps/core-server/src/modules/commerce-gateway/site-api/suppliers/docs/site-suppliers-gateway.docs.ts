@@ -63,7 +63,8 @@ export function ApiUpdateSiteSupplierInvoice() {
     ApiResponse({ status: 200, description: 'Supplier invoice updated.', type: SuccessResponseDto }),
     ApiResponse({
       status: 400,
-      description: 'The invoice is cancelled or the exchange rate does not fit its currency.',
+      description:
+        'The invoice is cancelled, the exchange rate does not fit its currency, or the tax date changes on a posted invoice.',
     }),
   );
 }

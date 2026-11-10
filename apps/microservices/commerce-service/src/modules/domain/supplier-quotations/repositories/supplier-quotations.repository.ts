@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, exists, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, exists, getColumns, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemMrps,
   inventoryItems,
@@ -164,11 +164,17 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     return rows as SupplierQuotationSite[];
   }
 
-  async findSite(quotationId: string, siteId: string): Promise<SupplierQuotationSite | undefined> {
+  // The quotation's posting to a site, or to the whole legal entity when the site is empty
+  async findSite(quotationId: string, siteId: string | null): Promise<SupplierQuotationSite | undefined> {
     const [row] = await this.db
       .select()
       .from(supplierQuotationSites)
-      .where(and(eq(supplierQuotationSites.quotationId, quotationId), eq(supplierQuotationSites.siteId, siteId)))
+      .where(
+        and(
+          eq(supplierQuotationSites.quotationId, quotationId),
+          siteId ? eq(supplierQuotationSites.siteId, siteId) : isNull(supplierQuotationSites.siteId),
+        ),
+      )
       .limit(1);
     return row as SupplierQuotationSite | undefined;
   }
@@ -183,7 +189,7 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
 
   async insertSite(data: {
     quotationId: string;
-    siteId: string;
+    siteId: string | null;
     postedBy: string | null;
   }): Promise<SupplierQuotationSite> {
     const [row] = await this.db.insert(supplierQuotationSites).values(data).returning();

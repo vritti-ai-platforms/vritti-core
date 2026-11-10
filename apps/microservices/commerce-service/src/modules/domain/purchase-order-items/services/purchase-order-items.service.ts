@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
@@ -7,7 +8,7 @@ import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { convertMinor } from '@/common/convert-minor';
 import { computeFreeQty } from '@/common/free-qty';
-import { inventoryItems, purchaseOrderItems } from '@/db/schema';
+import { inventoryItems, type PurchaseOrder, purchaseOrderItems } from '@/db/schema';
 import { PurchaseOrderItemDto } from '../dto/entity/purchase-order-item.dto';
 import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
@@ -18,7 +19,9 @@ import {
   PurchaseOrderItemsDomainRepository,
 } from '../repositories/purchase-order-items.repository';
 
-export type PurchaseOrderLinesContext = LinedPurchaseOrder & PricedPurchaseOrder & { id: string };
+export type PurchaseOrderLinesContext = LinedPurchaseOrder &
+  PricedPurchaseOrder &
+  Pick<PurchaseOrder, 'id' | 'orderDate' | 'taxDate'>;
 
 export interface FreeGoodsScheme {
   buyQty: number | null;
@@ -29,6 +32,7 @@ export interface FreeGoodsScheme {
 export interface NewPurchaseOrderLine {
   inventoryItemId: string;
   uomId: string;
+  expectedDeliveryDate: string;
   primaryUomQty: number;
   scheme: FreeGoodsScheme;
   supplierCurrencies: string[];
@@ -50,6 +54,8 @@ export class PurchaseOrderItemsDomainService {
   private static readonly FIELD_MAP: FieldMap = {
     ...PurchaseOrderItemsDomainService.SEARCH_FIELD_MAP,
     inventoryItemId: { column: purchaseOrderItems.inventoryItemId, type: 'string' },
+    expectedDeliveryDate: { column: purchaseOrderItems.expectedDeliveryDate, type: 'string' },
+    taxDate: { column: purchaseOrderItems.taxDate, type: 'string' },
     uomQty: { column: purchaseOrderItems.uomQty, type: 'number' },
     receivedQty: { column: purchaseOrderItems.receivedQuantity, type: 'number' },
     unitPrice: { column: purchaseOrderItems.unitPrice, type: 'number' },
@@ -58,30 +64,22 @@ export class PurchaseOrderItemsDomainService {
 
   constructor(private readonly repository: PurchaseOrderItemsDomainRepository) {}
 
-  // Returns PO line options for the goods receipt add-item picker, without the lines already on that receipt
-  findForSelectByPurchaseOrder(
-    purchaseOrderId: string,
-    query: SelectOptionsQueryDto,
-    excludeOnGoodsReceiptId?: string,
-  ): Promise<SelectQueryResult> {
-    return this.repository.findForSelectByPurchaseOrder(
-      purchaseOrderId,
-      {
-        value: query.valueKey || 'id',
-        label: query.labelKey || 'name',
-        description: query.descriptionKey,
-        additionalKeys: query.additionalKeys,
-        groupIdKey: query.groupIdKey || 'categoryId',
-        search: query.search,
-        limit: query.limit,
-        offset: query.offset,
-        values: query.values,
-        excludeIds: query.excludeIds,
-        orderByKey: query.orderByKey || 'name',
-        orderDirection: query.orderDirection || 'asc',
-      },
-      excludeOnGoodsReceiptId,
-    );
+  // Returns the lines of one PO as select options
+  findForSelectByPurchaseOrder(purchaseOrderId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelectByPurchaseOrder(purchaseOrderId, {
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey || 'categoryId',
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+    });
   }
 
   // Returns every line of a PO
@@ -98,7 +96,7 @@ export class PurchaseOrderItemsDomainService {
   // Returns one page of a PO's lines
   async findForTable(
     purchaseOrderId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrderItemsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
@@ -122,6 +120,7 @@ export class PurchaseOrderItemsDomainService {
     line: NewPurchaseOrderLine,
   ): Promise<void> {
     this.repository.assertLinesEditable(po);
+    this.repository.assertDeliveryNotBeforeOrder(po, line.expectedDeliveryDate);
     await this.repository.assertNotOnPurchaseOrder(po.id, line, 'supplierItemId');
 
     const quotedCurrency = dto.unitPrice.currency;
@@ -140,6 +139,9 @@ export class PurchaseOrderItemsDomainService {
     await this.repository.create({
       purchaseOrderId: po.id,
       inventoryItemId: line.inventoryItemId,
+      expectedDeliveryDate: line.expectedDeliveryDate,
+      taxDate: po.taxDate,
+      isTaxDateOverridden: false,
       uomId: line.uomId,
       uomQty: dto.uomQty,
       primaryUomQty: line.primaryUomQty,
@@ -157,14 +159,21 @@ export class PurchaseOrderItemsDomainService {
     this.logger.log(`Added item ${line.inventoryItemId} to PO ${po.poNumber}`);
   }
 
-  // Updates a line's item, quantity, price or scheme, pricing it again in the PO currency
+  // Updates a line's item, quantity, price, scheme, expected delivery or tax date, pricing it again in the PO currency
   async updateItem(
     po: PurchaseOrderLinesContext,
     dto: UpdatePurchaseOrderItemDto,
     line: ChangedPurchaseOrderLine,
   ): Promise<SuccessResponseDto> {
     this.repository.assertLinesEditable(po);
-    const item = await this.repository.findOnPurchaseOrderOrThrow(po.id, dto.itemId);
+    this.repository.assertSingleTaxDateChange(dto);
+    const item = await this.repository.findDetailOnPurchaseOrderOrThrow(po.id, dto.itemId);
+    if (dto.expectedDeliveryDate !== undefined) {
+      this.repository.assertDeliveryDateEditable(item);
+      this.repository.assertDeliveryNotBeforeOrder(po, dto.expectedDeliveryDate);
+    }
+    const isTaxDateChanged = dto.taxDate !== undefined || dto.followPoTaxDate === true;
+    if (isTaxDateChanged) this.repository.assertTaxDateUnlocked(item);
     const inventoryItemId = dto.inventoryItemId ?? item.inventoryItemId;
     if (inventoryItemId !== item.inventoryItemId) {
       await this.repository.assertNotOnGoodsReceipt(item.id, 'Cannot Change Item');
@@ -194,6 +203,9 @@ export class PurchaseOrderItemsDomainService {
 
     await this.repository.update(item.id, {
       inventoryItemId,
+      expectedDeliveryDate: dto.expectedDeliveryDate ?? item.expectedDeliveryDate,
+      taxDate: dto.followPoTaxDate ? po.taxDate : (dto.taxDate ?? item.taxDate),
+      isTaxDateOverridden: isTaxDateChanged ? !dto.followPoTaxDate : item.isTaxDateOverridden,
       uomQty,
       primaryUomQty: line.primaryUomQty,
       unitPrice,
@@ -208,6 +220,12 @@ export class PurchaseOrderItemsDomainService {
     });
     this.logger.log(`Updated item ${item.id} on PO ${po.poNumber}`);
     return { success: true, message: `Line item updated for purchase order "${po.poNumber}".` };
+  }
+
+  // Moves every line that follows the PO's tax date to its new one, unless a receipt or an invoice locks one of them
+  async followPoTaxDate(purchaseOrderId: string, taxDate: string): Promise<number> {
+    await this.repository.assertFollowersUnlocked(purchaseOrderId);
+    return this.repository.setFollowersTaxDate(purchaseOrderId, taxDate);
   }
 
   // Removes a line that no goods receipt counts goods against

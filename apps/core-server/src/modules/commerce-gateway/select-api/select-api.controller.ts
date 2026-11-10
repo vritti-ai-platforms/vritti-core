@@ -1,4 +1,6 @@
 import { CategoriesSelectQueryDto } from '@commerce/categories/dto/request/categories-select-query.dto';
+import { ReceivablePurchaseOrdersSelectQueryDto } from '@commerce/goods-receipts/dto/request/receivable-purchase-orders-select-query.dto';
+import { DeliverablePurchaseOrderItemsSelectQueryDto } from '@commerce/inbound-deliveries/dto/request/deliverable-purchase-order-items-select-query.dto';
 import { LotsSelectQueryDto } from '@commerce/inventory-item-lots/dto/request/lots-select-query.dto';
 import { QuantsSelectQueryDto } from '@commerce/inventory-item-quants/dto/request/quants-select-query.dto';
 import { SerialsSelectQueryDto } from '@commerce/inventory-item-serials/dto/request/serials-select-query.dto';
@@ -12,7 +14,6 @@ import { PaymentTermsSelectQueryDto } from '@commerce/payment-terms/dto/request/
 import { PurchaseOrderItemsSelectQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-items-select-query.dto';
 import { PurchaseOrderSelectQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-select-query.dto';
 import { SupplierEnrollmentSelectQueryDto } from '@commerce/supplier-enrollments/dto/request/supplier-enrollment-select-query.dto';
-import { SupplierEnrollmentSitesSelectQueryDto } from '@commerce/supplier-enrollments/dto/request/supplier-enrollment-sites-select-query.dto';
 import { SupplierItemsSelectQueryDto } from '@commerce/supplier-items/dto/request/supplier-items-select-query.dto';
 import { SuppliersSelectQueryDto } from '@commerce/suppliers/dto/request/suppliers-select-query.dto';
 import { TaxComponentsSelectQueryDto } from '@commerce/tax-components/dto/request/tax-components-select-query.dto';
@@ -25,14 +26,13 @@ import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { SessionTypeValues } from '@/db/schema';
-import { LegalEntityId } from '@/security/decorators';
-import { SuppliersGatewayService } from '../le-api/suppliers/services/suppliers-gateway.service';
 import {
   ApiAttributeTemplatesSelect,
   ApiCatalogsSelect,
   ApiCategoriesSelect,
   ApiCostCategoriesSelect,
   ApiCustomersSelect,
+  ApiDeliverablePurchaseOrderItemsSelect,
   ApiDimensionTemplatesSelect,
   ApiInventoryItemLotsSelect,
   ApiInventoryItemMrpsSelect,
@@ -46,8 +46,9 @@ import {
   ApiPosTerminalsSelect,
   ApiPurchaseOrderItemsSelect,
   ApiPurchaseOrdersSelect,
+  ApiReceivableInboundDeliveriesSelect,
+  ApiReceivablePurchaseOrdersSelect,
   ApiSiteSuppliersSelect,
-  ApiSupplierEnrollmentsSelect,
   ApiSupplierItemsSelect,
   ApiSuppliersSelect,
   ApiTaxClassesSelect,
@@ -66,10 +67,7 @@ import { OfferingsSelectQueryDto } from './dto/offerings-select-query.dto';
 @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
 @Controller('select-api')
 export class SelectApiController {
-  constructor(
-    private readonly nats: NatsClientService,
-    private readonly suppliersGatewayService: SuppliersGatewayService,
-  ) {}
+  constructor(private readonly nats: NatsClientService) {}
 
   @Get('categories')
   @ApiCategoriesSelect()
@@ -167,6 +165,29 @@ export class SelectApiController {
     return this.nats.send<SelectQueryResult>('commerce', 'select.purchaseOrderItems', query);
   }
 
+  // Returns a supplier's purchase orders a goods receipt can receive
+  @Get('receivable-purchase-orders')
+  @ApiReceivablePurchaseOrdersSelect()
+  selectReceivablePurchaseOrders(@Query() query: ReceivablePurchaseOrdersSelectQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.receivablePurchaseOrders', query);
+  }
+
+  // Returns the announced inbound deliveries a goods receipt can be created from
+  @Get('receivable-inbound-deliveries')
+  @ApiReceivableInboundDeliveriesSelect()
+  selectReceivableInboundDeliveries(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.receivableInboundDeliveries', query);
+  }
+
+  // Returns the open purchase order lines that can still go on an inbound delivery
+  @Get('deliverable-purchase-order-items')
+  @ApiDeliverablePurchaseOrderItemsSelect()
+  selectDeliverablePurchaseOrderItems(
+    @Query() query: DeliverablePurchaseOrderItemsSelectQueryDto,
+  ): Promise<SelectQueryResult> {
+    return this.nats.send<SelectQueryResult>('commerce', 'select.deliverablePurchaseOrderItems', query);
+  }
+
   @Get('purchase-orders')
   @ApiPurchaseOrdersSelect()
   selectPurchaseOrders(@Query() query: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
@@ -189,15 +210,6 @@ export class SelectApiController {
   @ApiSiteSuppliersSelect()
   selectSiteSuppliers(@Query() query: SupplierEnrollmentSelectQueryDto): Promise<SelectQueryResult> {
     return this.nats.send<SelectQueryResult>('commerce', 'site.suppliers.select', query);
-  }
-
-  @Get('supplier-enrollments')
-  @ApiSupplierEnrollmentsSelect()
-  selectSupplierEnrollments(
-    @Query() query: SupplierEnrollmentSitesSelectQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<SelectQueryResult> {
-    return this.suppliersGatewayService.selectEnrollments(query, legalEntityId);
   }
 
   @Get('payment-terms')

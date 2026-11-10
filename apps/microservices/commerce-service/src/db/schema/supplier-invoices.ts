@@ -49,6 +49,7 @@ export const supplierInvoices = commerceSchema.table(
       .references(() => purchaseOrders.id),
     invoiceNumber: varchar('invoice_number', { length: 100 }).notNull(),
     invoiceDate: date('invoice_date', { mode: 'string' }).notNull(),
+    taxDate: date('tax_date', { mode: 'string' }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     exchangeRate: decimal('exchange_rate', { precision: 18, scale: 6, mode: 'number' }).notNull().default(1),
     status: supplierInvoiceStatusEnum('status').notNull().default('DRAFT'),

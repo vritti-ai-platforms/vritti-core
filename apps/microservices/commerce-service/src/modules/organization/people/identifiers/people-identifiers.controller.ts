@@ -3,7 +3,7 @@ import { AddPersonIdentifierDto } from '@domain/party-identifiers/dto/request/ad
 import { PartyIdentifiersDomainService } from '@domain/party-identifiers/services/party-identifiers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -15,7 +15,7 @@ export class PeopleIdentifiersController {
   // Returns the paginated identifiers of a person
   @MessagePattern({ cmd: 'org.people.identifiers.table' })
   async table(
-    @Payload() data: { personId: string } & TableViewState,
+    @Payload() data: { personId: string } & TableState,
   ): Promise<{ result: PartyIdentifierDto[]; count: number }> {
     const { personId, ...state } = data;
     this.logger.log(`people.identifiers.table — personId: ${personId}`);

@@ -1,5 +1,5 @@
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsBoolean, IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsPositive, IsUUID, Matches, Min } from 'class-validator';
 
 export class UpdatePurchaseOrderItemDto {
   @IsUUID('7')
@@ -39,4 +39,18 @@ export class UpdatePurchaseOrderItemDto {
   @IsOptional()
   @IsBoolean()
   hasScheme?: boolean;
+
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'expectedDeliveryDate must be YYYY-MM-DD' })
+  expectedDeliveryDate?: string;
+
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'taxDate must be YYYY-MM-DD' })
+  taxDate?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  followPoTaxDate?: boolean;
 }

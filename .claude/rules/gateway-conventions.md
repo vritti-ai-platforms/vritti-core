@@ -101,23 +101,31 @@ delete(@Param('id') id: string): Promise<SuccessResponseDto> {
 }
 ```
 
-## DataTable state key — scope-prefixed
+## Saved state keys — scope-prefixed
 
-The `getCurrentState(userId, key)` key (and the frontend `useDataTable({ slug })` that must match it
+The `tableStateService.getTableState(userId, key)` key (and the frontend `useDataTable({ slug })` that must match it
 EXACTLY) is `commerce-<scope>-<feature>`, where `<scope>` is the gateway sub-app: `org-api`→`org`,
 `le-api`→`le`, `site-api`→`site`, `site-group-api`→`site-group`.
 
 ```typescript
 // org-api/tax-classes  →  scope 'org'
-getCurrentState(userId, 'commerce-org-tax-classes');
+getTableState(userId, 'commerce-org-tax-classes');
 // le-api/suppliers     →  scope 'le'
-getCurrentState(userId, 'commerce-le-suppliers');
+getTableState(userId, 'commerce-le-suppliers');
 // site-api/inventory-items lots (dynamic) → insert scope right after `commerce-`
-getCurrentState(userId, `commerce-site-inventory-item-${inventoryItemId}-lots`);
+getTableState(userId, `commerce-site-inventory-item-${inventoryItemId}-lots`);
 ```
 
 The backend key and the frontend `slug` are the SAME string — renaming one WITHOUT the other resets/loses
 that user's saved table view. Change both together.
+
+A view that is not a table (a graph, a summary) keeps its context bar in **context state** instead — same key rule,
+read with `contextStateService.getContextState(userId, slug)` (`@vritti/api-sdk/context-state`), which returns the
+`FilterCondition[]` the frontend's `useContextState({ slug })` saved (and loads itself through `GET /context-states`).
+The view's response carries only the data it renders. A saved value can outlive what it points at (a deleted unit, a
+removed supplier): the view ignores a value it can't apply and answers as though it were unset — never an error, and
+never a server-side rewrite of the saved state. The frontend filter drops the stale value itself (see
+`frontend-conventions.md` → context bars).
 
 ## DataTable context — from table state, never a query param
 

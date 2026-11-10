@@ -1,7 +1,19 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
 import { useConfirm, useWorkspaceCurrency } from '@vritti/quantum-ui/hooks';
-import { Ban, Mail, MoreVertical, PackageX, Pencil, Printer, Send, Trash2, Truck, Wallet } from 'lucide-react';
+import {
+  Ban,
+  CalendarClock,
+  Mail,
+  MoreVertical,
+  PackageX,
+  Pencil,
+  Printer,
+  Send,
+  Trash2,
+  Truck,
+  Wallet,
+} from 'lucide-react';
 import type React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -18,9 +30,11 @@ import { ChangeExchangeRateDialog } from './forms/ChangeExchangeRateDialog';
 import { ChangeSupplierDialog } from './forms/ChangeSupplierDialog';
 import { SendEmailDialog } from './forms/SendEmailDialog';
 import { UpdateNotesDialog } from './forms/UpdateNotesDialog';
+import { UpdateTaxDateDialog } from './forms/UpdateTaxDateDialog';
 
 const OPEN_STATUSES: PurchaseOrderStatus[] = ['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED'];
 const CANCELLABLE_STATUSES: PurchaseOrderStatus[] = ['SENT', 'CONFIRMED'];
+const TAX_DATE_EDITABLE_STATUSES: PurchaseOrderStatus[] = ['DRAFT', 'SENT', 'CONFIRMED'];
 
 interface PurchaseOrderActionsProps {
   binding: PurchaseOrdersBinding;
@@ -114,6 +128,23 @@ export const PurchaseOrderActions: React.FC<PurchaseOrderActionsProps> = ({ bind
         description: 'Edit purchase order notes.',
         content: (close) => (
           <UpdateNotesDialog binding={binding} purchaseOrder={purchaseOrder} onSuccess={close} onCancel={close} />
+        ),
+      },
+    },
+    {
+      type: 'dialog',
+      id: 'update-tax-date',
+      label: 'Change Tax Date',
+      icon: CalendarClock,
+      permission: permissions.edit,
+      hidden: !TAX_DATE_EDITABLE_STATUSES.includes(status),
+      disabled: isPricingLocked,
+      dialog: {
+        title: 'Change Tax Date',
+        description:
+          'The date tax is determined on. Lines that follow the order move with it; lines with their own keep it.',
+        content: (close) => (
+          <UpdateTaxDateDialog binding={binding} purchaseOrder={purchaseOrder} onSuccess={close} onCancel={close} />
         ),
       },
     },

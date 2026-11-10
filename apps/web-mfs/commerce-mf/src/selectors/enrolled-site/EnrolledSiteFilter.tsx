@@ -2,28 +2,34 @@ import { SelectFilter, type SelectFilterProps } from '@vritti/quantum-ui/Select'
 import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-// Always a multi-select, so only the multiple branch of SelectFilterProps applies
-export type EnrolledSiteFilterProps = DistributiveOmit<
-  Extract<SelectFilterProps, { multiple: true }>,
-  'optionsEndpoint' | 'name' | 'multiple'
-> & {
-  name?: string;
-  supplierId: string;
-};
+// The supplier whose enrollments list the sites, or an inventory item to list the sites any of its suppliers is
+// enrolled at
+type EnrollmentOwner =
+  | { supplierId: string; inventoryItemId?: never }
+  | { inventoryItemId: string; supplierId?: never };
 
-// Pre-configured SelectFilter over the sites a supplier is enrolled at
+export type EnrolledSiteFilterProps = DistributiveOmit<SelectFilterProps, 'optionsEndpoint' | 'name'> & {
+  name?: string;
+} & EnrollmentOwner;
+
+// Pre-configured SelectFilter over the sites a supplier, or any supplier of an inventory item, is enrolled at — paused
+// enrollments included, since their records stay viewable
 export const EnrolledSiteFilter = Object.assign(
-  forwardRef<HTMLButtonElement, EnrolledSiteFilterProps>(({ supplierId, params, ...props }, ref) => (
+  forwardRef<HTMLButtonElement, EnrolledSiteFilterProps>(({ supplierId, inventoryItemId, params, ...props }, ref) => (
     <SelectFilter
       ref={ref}
       name="sites"
       label="Sites"
-      placeholder="Select sites"
-      multiple
-      optionsEndpoint="commerce-api/select-api/supplier-enrollments"
+      placeholder={props.multiple ? 'Select sites' : 'Select site'}
+      optionsEndpoint="select-api/sites"
       fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'code' }}
       {...props}
-      params={{ ...params, supplierId, enrollmentStatus: 'ENROLLED' }}
+      params={{
+        ...params,
+        ...(supplierId ? { supplierId } : {}),
+        ...(inventoryItemId ? { inventoryItemId } : {}),
+        isEnrolled: true,
+      }}
     />
   )),
   { displayName: 'EnrolledSiteFilter', defaultLabel: 'Sites', defaultName: 'sites' },

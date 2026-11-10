@@ -11,7 +11,7 @@ import { SetCatalogListingPriceDto } from '@domain/catalogs/dto/request/set-cata
 import { CatalogListingsDomainService } from '@domain/catalogs/services/catalog-listings.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -23,7 +23,7 @@ export class SiteCatalogListingsController {
   // Returns paginated listings of one catalog, each with its prices
   @MessagePattern({ cmd: 'site.catalogs.listings.table' })
   findListingsForTable(
-    @Payload() data: { catalogId: string; state: TableViewState; currencyCode?: string },
+    @Payload() data: { catalogId: string; state: TableState; currencyCode?: string },
   ): Promise<{ result: CatalogListingDto[]; count: number }> {
     this.logger.log(`catalogs.listings.table — catalogId: ${data.catalogId}`);
     return this.listingsService.findForTable(data.catalogId, data.state, data.currencyCode);

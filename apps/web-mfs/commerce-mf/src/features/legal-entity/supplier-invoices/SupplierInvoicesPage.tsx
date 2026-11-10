@@ -6,7 +6,7 @@ import { binding } from './binding';
 
 // The supplier invoices of the legal entity's sites — every site until some are picked in the context bar
 export const SupplierInvoicesPage = () => {
-  const { data: response, isLoading, isFetching } = useSupplierInvoicesTable();
+  const supplierInvoicesTableQuery = useSupplierInvoicesTable();
 
   return (
     <div className="flex flex-col gap-6">
@@ -17,9 +17,7 @@ export const SupplierInvoicesPage = () => {
       <SupplierInvoicesTable
         binding={binding}
         mode="page"
-        response={response}
-        isLoading={isLoading}
-        isFetching={isFetching}
+        query={supplierInvoicesTableQuery}
         slug="commerce-le-supplier-invoices"
         queryKey={LE_SUPPLIER_INVOICES_TABLE_KEY}
         contextBar={<SiteFilter name="sites" label="Sites" placeholder="All sites" mode="context" multiple />}

@@ -47,7 +47,7 @@ const channelLabels: Record<OrderChannel, string> = {
 export const OrdersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useOrdersTable();
+  const ordersTableQuery = useOrdersTable();
   const addDialog = useDialog();
 
   const columns = useMemo<ColumnDef<OrderData>[]>(
@@ -119,11 +119,11 @@ export const OrdersPage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const ordersTable = useDataTable({
     columns,
     slug: 'commerce-site-orders',
     label: 'order',
-    serverState: response,
+    query: ordersTableQuery,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
@@ -135,8 +135,7 @@ export const OrdersPage = () => {
       <PageHeader title="Orders" description="View and manage customer orders" />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={ordersTable}
         searchConfig={{
           columns: [
             { id: 'orderNumber', label: 'Order #' },

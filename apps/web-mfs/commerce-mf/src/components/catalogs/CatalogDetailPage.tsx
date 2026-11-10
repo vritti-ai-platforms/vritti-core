@@ -12,8 +12,8 @@ import { useNavigate } from 'react-router-dom';
 import type { CatalogsBinding } from './bindings';
 import { EditCatalogDialog } from './forms/EditCatalogDialog';
 import { ChannelsTab } from './tabs/ChannelsTab';
-import { CurrenciesTab } from './tabs/CurrenciesTab';
-import { ListingsTab } from './tabs/ListingsTab';
+import { CurrenciesTab } from './tabs/currencies/CurrenciesTab';
+import { ListingsTab } from './tabs/listings/ListingsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 
 interface CatalogDetailPageProps {

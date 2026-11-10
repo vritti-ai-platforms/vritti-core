@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  queryOptions,
   type UseMutationOptions,
   type UseQueryOptions,
   useMutation,
@@ -20,16 +21,13 @@ import {
   type AddSupplierItemPricePayload,
   addSupplierItemPrice,
   deleteSupplierItemPrice,
-  getSupplierItemPricedSiteIds,
   getSupplierItemPriceHistory,
   getSupplierItemPricesTable,
   updateSupplierItemPrice,
 } from '@/services/legal-entity/suppliers.service';
-import type { PriceRange } from '@/utils/supplierPrice';
 import {
   SUPPLIER_ITEM_KEY,
   SUPPLIER_ITEM_PRICE_HISTORY_KEY,
-  SUPPLIER_ITEM_PRICED_SITE_IDS_KEY,
   SUPPLIER_ITEM_PRICES_TABLE_KEY,
   SUPPLIER_KEY,
 } from './keys';
@@ -54,23 +52,13 @@ export function useSupplierItemPricesTable(
   });
 }
 
-// Fetches the sites a supplier item has prices at, in the site picker's order; self-gates on the prices view permission
-export function useSupplierItemPricedSiteIds(supplierId: string, itemId: string) {
+// The price history's query options — `useChart` runs them once the context bar has settled; self-gates on the price
+// view permission
+export function useSupplierItemPriceHistoryQuery(supplierId: string, itemId: string) {
   const { available } = usePermission(LE_SUPPLIERS.items.prices.view);
-  return useQuery<string[], AxiosError>({
-    queryKey: SUPPLIER_ITEM_PRICED_SITE_IDS_KEY(supplierId, itemId),
-    queryFn: () => getSupplierItemPricedSiteIds(supplierId, itemId),
-    enabled: !!supplierId && !!itemId && available,
-  });
-}
-
-// Fetches a supplier item's price windows in a date range at the given sites — every priced site when none are given;
-// self-gates on the prices view permission
-export function useSupplierItemPriceHistory(supplierId: string, itemId: string, siteIds: string[], range: PriceRange) {
-  const { available } = usePermission(LE_SUPPLIERS.items.prices.view);
-  return useQuery<SupplierItemPriceHistory, AxiosError>({
-    queryKey: [...SUPPLIER_ITEM_PRICE_HISTORY_KEY(supplierId, itemId), siteIds, range.from, range.to],
-    queryFn: () => getSupplierItemPriceHistory({ supplierId, itemId, siteIds, range }),
+  return queryOptions<SupplierItemPriceHistory, AxiosError>({
+    queryKey: SUPPLIER_ITEM_PRICE_HISTORY_KEY(supplierId, itemId),
+    queryFn: () => getSupplierItemPriceHistory(supplierId, itemId),
     placeholderData: keepPreviousData,
     enabled: !!supplierId && !!itemId && available,
   });

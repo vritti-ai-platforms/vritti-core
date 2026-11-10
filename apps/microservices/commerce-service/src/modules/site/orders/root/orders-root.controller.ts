@@ -4,7 +4,7 @@ import { UpdateOrderStatusDto } from '@domain/orders/dto/request/update-order-st
 import { OrdersDomainService } from '@domain/orders/services/orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class OrdersRootController {
@@ -13,7 +13,7 @@ export class OrdersRootController {
   constructor(private readonly service: OrdersDomainService) {}
 
   @MessagePattern({ cmd: 'site.orders.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: OrderDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: OrderDto[]; count: number }> {
     this.logger.log('orders.table');
     return this.service.findForTable(state);
   }

@@ -36,12 +36,14 @@ export const updateSupplierSchema = z.object({
 
 const siteIdsField = z.array(z.uuid(), { error: 'Select at least one site' }).min(1, 'Select at least one site');
 
+const leadTimeDaysField = zodNumericField({ integer: true, min: 0, max: 365, maxMessage: 'At most 365 days' });
+
 export const addSupplierItemSchema = z.object({
   inventoryItemId: z.uuid('Inventory item is required'),
   supplierItemCode: z.string().max(100).optional(),
   uomId: z.uuid('Unit of measure is required'),
   minOrderQuantity: zodNumericField({ positive: true }).optional(),
-  defaultLeadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
+  defaultLeadTimeDays: leadTimeDaysField,
   siteIds: siteIdsField,
 });
 
@@ -49,7 +51,7 @@ export const updateSupplierItemSchema = z.object({
   supplierItemCode: z.string().max(100).optional(),
   uomId: z.uuid('Unit of measure is required'),
   minOrderQuantity: zodNumericField({ positive: true, nullable: true }).optional(),
-  defaultLeadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  defaultLeadTimeDays: leadTimeDaysField,
 });
 
 export const setSupplierSiteItemPreferredSchema = z.object({
@@ -66,7 +68,7 @@ export const setSupplierItemMinOrderSchema = z.object({
 export type SetSupplierItemMinOrderFormData = z.infer<typeof setSupplierItemMinOrderSchema>;
 
 export const setSupplierItemDefaultLeadTimeSchema = z.object({
-  defaultLeadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  defaultLeadTimeDays: leadTimeDaysField,
 });
 
 export type SetSupplierItemDefaultLeadTimeFormData = z.infer<typeof setSupplierItemDefaultLeadTimeSchema>;
@@ -139,7 +141,7 @@ export interface SupplierItemData {
   // The least the supplier sells per order, in the item's unit
   minOrderQuantity: number | null;
   // Days from order to delivery, which every site follows unless it sets its own
-  defaultLeadTimeDays: number | null;
+  defaultLeadTimeDays: number;
   siteCount: number;
   // Sites where this supplier is the preferred one for the item
   preferredSiteCount: number;
@@ -148,7 +150,7 @@ export interface SupplierItemData {
 export interface SupplierSiteItemTerms {
   supplierSiteItemId: string | null;
   isPreferred: boolean;
-  leadTimeDays: number | null;
+  leadTimeDays: number;
   // True when the site sets its own lead time instead of following the supplier item's default
   isLeadTimeOverridden: boolean;
   minOrderQuantity: number | null;
@@ -227,7 +229,9 @@ export interface SupplierItemPriceRow {
   id: string;
   supplierItemId: string;
   legalEntityId: string;
-  siteId: string;
+  siteId: string | null;
+  ownerScope: 'SITE' | 'LE';
+  ownerName: string;
   unitPrice: CurrencyValue;
   mrpId: string | null;
   mrp: CurrencyValue | null;
@@ -278,43 +282,6 @@ export interface SitePriceHistory {
   windows: PriceWindow[];
 }
 
-// One supplier's prices for an inventory item at a site, converted to the item's primary unit
-export interface ItemSupplierPriceHistory {
-  supplierId: string;
-  supplierItemId: string;
-  supplierName: string;
-  supplierCode: string;
-  quotedUomSymbol: string | null;
-  current: PriceWindow | null;
-  previous: PriceWindow | null;
-  next: PriceWindow | null;
-  windows: PriceWindow[];
-}
-
-export interface InventoryItemPriceHistory {
-  siteId: string | null;
-  // Every supplier's prices are per this unit
-  uomSymbol: string | null;
-  // The suppliers drawn: the ones asked for, or by default the preferred then most recently priced; at most 8
-  suppliers: ItemSupplierPriceHistory[];
-  // Every supplier with a price for the item at the site within the window
-  supplierCount: number;
-}
-
-// What a price graph shows, as saved in its live table state; empty supplier ids means the server chose the ones drawn
-export interface PriceGraphSelection {
-  siteId: string | null;
-  from: string;
-  to: string;
-  supplierIds: string[];
-  mrpIds: string[];
-  currency: string | null;
-}
-
-export interface InventoryItemPriceGraph extends InventoryItemPriceHistory {
-  selection: PriceGraphSelection;
-}
-
 // One supplier item's standing for an inventory item at a site on a date: the price in force per its own unit and per
 // the item's primary unit, what its scheme makes it cost, and how it last moved
 export interface ItemSupplierPriceComparisonRow {
@@ -342,6 +309,7 @@ export type ItemSupplierPriceComparisonTableResponse = TableResponse<ItemSupplie
 
 // Each window carries its own currency; a supplier can requote an item in another of its currencies
 export interface SupplierItemPriceHistory {
+  currency: string | null;
   sites: SitePriceHistory[];
 }
 
@@ -366,10 +334,11 @@ export const addSupplierItemPriceSchema = z
   .object(supplierItemPriceFields)
   .refine(validToAfterValidFrom.check, validToAfterValidFrom.params);
 
+// No sites prices the item for the whole legal entity, which every site without a price of its own uses
 export const addLeSupplierItemPriceSchema = z
   .object({
     ...supplierItemPriceFields,
-    siteIds: siteIdsField,
+    siteIds: z.array(z.uuid()),
   })
   .refine(validToAfterValidFrom.check, validToAfterValidFrom.params);
 
@@ -395,7 +364,7 @@ export interface SupplierSiteItemRow {
   siteName: string | null;
   siteCode: string | null;
   isPreferred: boolean;
-  leadTimeDays: number | null;
+  leadTimeDays: number;
   // True when the site sets its own lead time instead of following the supplier item's default
   isLeadTimeOverridden: boolean;
   createdAt: string;
@@ -406,14 +375,21 @@ export type SupplierSiteItemsTableResponse = TableResponse<SupplierSiteItemRow>;
 export const addSupplierSiteItemSchema = z.object({
   siteId: z.uuid('Site is required'),
   isPreferred: z.boolean(),
-  leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
+  // Blank: the site follows the supplier item's default lead time
+  leadTimeDays: zodNumericField({
+    integer: true,
+    min: 0,
+    max: 365,
+    maxMessage: 'At most 365 days',
+    nullable: true,
+  }).optional(),
 });
 
 export const updateSupplierSiteItemSchema = z.object({
   isPreferred: z.boolean(),
   // On: the site follows the supplier item's default lead time; off: the lead time below is the site's own
   followDefaultLeadTime: z.boolean(),
-  leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  leadTimeDays: leadTimeDaysField.optional(),
 });
 
 export type AddSupplierSiteItemFormData = z.infer<typeof addSupplierSiteItemSchema>;
@@ -427,7 +403,7 @@ export interface AddSupplierSiteItemPayload {
 
 export interface UpdateSupplierSiteItemPayload {
   isPreferred?: boolean;
-  leadTimeDays?: number | null;
+  leadTimeDays?: number;
   followDefaultLeadTime?: boolean;
 }
 
@@ -460,4 +436,19 @@ export interface UpdateSupplierSiteItemPricePayload {
   schemeFreeQty?: number | null;
   taxInclusive?: boolean;
   validTo?: string | null;
+}
+
+export interface PriceHistoryLine {
+  id: string;
+  supplierId: string;
+  label: string;
+  current: PriceWindow | null;
+  previous: PriceWindow | null;
+  next: PriceWindow | null;
+  windows: PriceWindow[];
+}
+
+export interface InventoryItemPriceHistory {
+  currency: string | null;
+  lines: PriceHistoryLine[];
 }

@@ -2,7 +2,7 @@ import { SupplierItemsDomainService } from '@domain/supplier-items/services/supp
 import type { InventoryItemSupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 
 @Controller()
 export class InventoryItemsSuppliersController {
@@ -13,7 +13,7 @@ export class InventoryItemsSuppliersController {
   // Read-only list of supplier_items (LE + currency filter applied by the caller) carrying this item
   @MessagePattern({ cmd: 'org.inventoryItems.suppliers.table' })
   async table(
-    @Payload() data: { inventoryItemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.suppliers.table — inventoryItemId: ${inventoryItemId}`);

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -64,7 +65,7 @@ export class CartsDomainService {
   ) {}
 
   // The carts open at this workspace
-  async findForTable(state: TableViewState): Promise<{ result: CartDetailDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: CartDetailDto[]; count: number }> {
     const where =
       and(
         FilterProcessor.buildWhere(state.filters, CartsDomainService.FIELD_MAP),
@@ -104,7 +105,7 @@ export class CartsDomainService {
   // One cart's items for the data table, priced by the reader's catalogue when they have one
   async findItemsForTable(
     cartId: string,
-    state: TableViewState,
+    state: TableState,
     currencyCode: string,
     appId?: string | null,
   ): Promise<{ result: CartItemDto[]; count: number }> {

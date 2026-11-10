@@ -15,11 +15,11 @@ import {
   useSupplierQuotationsTable,
 } from '@/hooks/legal-entity/supplier-quotations';
 import { useSupplier } from '@/hooks/legal-entity/suppliers';
-import { QuotationDeleteZone } from './quotations/QuotationDeleteZone';
-import { QuotationHeaderActions } from './quotations/QuotationHeaderActions';
-import { QuotationListAction } from './quotations/QuotationListAction';
-import { ItemsTab } from './quotations/tabs/ItemsTab';
-import { SitesTab } from './quotations/tabs/SitesTab';
+import { QuotationDeleteZone } from './tabs/quotations/QuotationDeleteZone';
+import { QuotationHeaderActions } from './tabs/quotations/QuotationHeaderActions';
+import { QuotationListAction } from './tabs/quotations/QuotationListAction';
+import { ItemsTab } from './tabs/quotations/tabs/items/ItemsTab';
+import { SitesTab } from './tabs/quotations/tabs/sites/SitesTab';
 
 // A supplier's quotations, or those posted to the enrollment's site
 function useQuotationsTable(supplierId: string, siteId: string | undefined) {

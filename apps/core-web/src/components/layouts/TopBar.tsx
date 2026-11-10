@@ -31,6 +31,7 @@ import { RepositorySwitcher } from './switchers/RepositorySwitcher';
 import { SmsProviderSwitcher } from './switchers/SmsProviderSwitcher';
 import { SupplierItemSwitcher } from './switchers/SupplierItemSwitcher';
 import { SupplierSwitcher } from './switchers/SupplierSwitcher';
+import { TaxClassSwitcher } from './switchers/TaxClassSwitcher';
 import { TaxGroupSwitcher } from './switchers/TaxGroupSwitcher';
 import { VariantSwitcher } from './switchers/VariantSwitcher';
 import { WhatsappAccountSwitcher } from './switchers/WhatsappAccountSwitcher';
@@ -61,6 +62,7 @@ const DETAIL_SWITCHERS: Record<string, ComponentType<{ segment: string; basePath
   suppliers: SupplierSwitcher,
   'payment-terms': PaymentTermSwitcher,
   'inventory-items': InventoryItemSwitcher,
+  'tax-classes': TaxClassSwitcher,
   'tax-groups': TaxGroupSwitcher,
 };
 
@@ -185,7 +187,6 @@ export const TopBar = () => {
                         <EnrolledSiteSwitcher
                           key={segment.raw}
                           siteId={parseSlug(segment.raw)?.id ?? segment.raw}
-                          supplierId={supplier.id}
                           basePath={parts.slice(0, 5).join('/')}
                           fallbackLabel={entityLabels[segment.path] ?? segment.label}
                         />

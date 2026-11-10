@@ -2,7 +2,7 @@ import type { GroupInventoryItemDto } from '@domain/inventory-items/dto/entity/s
 import { GroupMatrixQueryDto } from '@domain/inventory-items/dto/request/group-matrix-query.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type {
   SiteGroupInventoryItemDto,
@@ -20,7 +20,7 @@ export class SiteGroupInventoryItemsController {
   // Every master item with how many of the group's sites have it enabled
   @MessagePattern({ cmd: 'sg.inventoryItems.table' })
   async table(
-    @Payload() state: TableViewState,
+    @Payload() state: TableState,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<{ result: GroupInventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');

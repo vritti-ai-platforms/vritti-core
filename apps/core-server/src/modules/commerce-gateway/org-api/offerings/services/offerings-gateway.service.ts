@@ -39,7 +39,7 @@ import type { VariantBomResponseDto } from '@commerce/offerings/dto/response/var
 import { AppDomainRepository } from '@domain/app/repositories/app.repository';
 import { AppStorefrontDomainService, type StorefrontCreateResult } from '@domain/app/services/app-storefront.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { BadGatewayException, BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -58,7 +58,7 @@ export class OrgOfferingsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
     private readonly appRepository: AppDomainRepository,
     private readonly appStorefront: AppStorefrontDomainService,
@@ -67,7 +67,7 @@ export class OrgOfferingsGatewayService {
   // Returns paginated offerings for the data table, merged with the caller's saved view state
   async findForTable(orgId: string, userId: string): Promise<OfferingTableResponseDto> {
     this.logger.log('org.offerings.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-org-offerings');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-offerings');
 
     const { result, count } = await this.nats.send<{ result: OfferingResponseDto[]; count: number }>(
       'commerce',
@@ -86,7 +86,7 @@ export class OrgOfferingsGatewayService {
 
   async findVariantsForTable(userId: string, offeringId: string): Promise<OfferingVariantTableResponseDto> {
     this.logger.log(`org.offerings.variants.table — offeringId: ${offeringId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-offering-${offeringId}-variants`,
     );
@@ -467,7 +467,7 @@ export class OrgOfferingsGatewayService {
     targetId: string,
   ): Promise<ChannelVariantPagesTableResponseDto> {
     this.requireChannelType(channelType);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-org-offering-${offeringId}-target-${targetId}-variants`,
     );

@@ -18,7 +18,7 @@ import { UpdateVariantDto } from '@domain/offering-variants/dto/request/update-v
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { CatalogChannelType } from '@/db/schema';
 
@@ -34,21 +34,21 @@ export class LeOfferingVariantsController {
   // Returns paginated variants of one offering for the data table
   @MessagePattern({ cmd: 'le.offerings.variants.table' })
   findForTable(
-    @Payload() data: { offeringId: string } & TableViewState,
+    @Payload() data: { offeringId: string } & TableState,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
     const { offeringId, ...state } = data;
     this.logger.log(`offerings.variants.table — offeringId: ${offeringId}`);
-    return this.service.findForTable(offeringId, state as TableViewState);
+    return this.service.findForTable(offeringId, state as TableState);
   }
   // The same page of variants as the table above, plus how one channel sees each row
   @MessagePattern({ cmd: 'le.offerings.variants.channelTable' })
   findForChannelTable(
     @Payload()
-    data: { offeringId: string; channelType: CatalogChannelType; targetId: string } & TableViewState,
+    data: { offeringId: string; channelType: CatalogChannelType; targetId: string } & TableState,
   ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
     const { offeringId, channelType, targetId, ...state } = data;
     this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, ${channelType} target: ${targetId}`);
-    return this.service.findForTable(offeringId, state as TableViewState, channelType, targetId);
+    return this.service.findForTable(offeringId, state as TableState, channelType, targetId);
   }
 
   // Sets whether one variant is available on one target of one channel

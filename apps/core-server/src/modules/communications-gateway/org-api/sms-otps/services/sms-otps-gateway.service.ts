@@ -5,7 +5,7 @@ import type {
 import type { SmsOtpStatsResponseDto } from '@communications/sms-otps/dto/response/sms-otp-stats-response.dto';
 import type { SmsOtpTableResponseDto } from '@communications/sms-otps/dto/response/sms-otp-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AppSmsOtpConfig } from '@/db/schema';
@@ -28,7 +28,7 @@ export class SmsOtpsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
     private readonly appService: AppDomainService,
   ) {}
 
@@ -79,10 +79,7 @@ export class SmsOtpsGatewayService {
   // Returns paginated, filtered, and sorted codes for the monitoring data table
   async findForTable(userId: string): Promise<SmsOtpTableResponseDto> {
     this.logger.log('org.smsOtps.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      'communications-org-sms-otps',
-    );
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'communications-org-sms-otps');
 
     const { result, count } = await this.nats.send<{ result: SmsOtpResponseDto[]; count: number }>(
       'communications',

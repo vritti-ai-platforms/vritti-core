@@ -4,7 +4,7 @@ import type { SmsProviderCapabilitiesResponseDto } from '@communications/sms-pro
 import type { SmsProviderResponseDto } from '@communications/sms-providers/dto/response/sms-provider-response.dto';
 import type { SmsProviderTableResponseDto } from '@communications/sms-providers/dto/response/sms-provider-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -14,7 +14,7 @@ export class SmsProvidersGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // The providers that can actually be connected.
@@ -26,7 +26,7 @@ export class SmsProvidersGatewayService {
   // The org's own providers plus the Vritti-managed platform rows, as one data table
   async findForTable(userId: string): Promise<SmsProviderTableResponseDto> {
     this.logger.log('smsProviders.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+    const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       'communications-org-sms-providers',
     );

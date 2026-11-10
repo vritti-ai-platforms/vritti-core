@@ -8,10 +8,13 @@ export class SupplierItemsSelectQueryDto extends SelectOptionsQueryDto {
   @IsUUID('7')
   supplierId?: string;
 
-  @ApiPropertyOptional({ description: 'Exclude items already on this purchase order' })
+  @ApiPropertyOptional({
+    description:
+      'Items orderable on this purchase order: set up at its site, priced as of its order date, not already on it',
+  })
   @IsOptional()
   @IsUUID('7')
-  excludeOnPurchaseOrderId?: string;
+  purchaseOrderId?: string;
 
   @ApiPropertyOptional({ description: 'Exclude items already on this goods receipt' })
   @IsOptional()

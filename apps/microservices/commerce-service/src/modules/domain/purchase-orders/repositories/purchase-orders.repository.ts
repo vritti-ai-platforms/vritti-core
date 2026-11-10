@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, exists, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, exists, getColumns, inArray, notExists, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import {
   GoodsReceiptStatusValues,
+  goodsReceiptItems,
   goodsReceipts,
   type PurchaseOrder,
   type PurchaseOrderStatus,
@@ -19,6 +20,7 @@ export type PurchaseOrderRow = PurchaseOrder & {
   supplierName: string | null;
   itemCount: number;
   hasPublishedGoodsReceipt: boolean;
+  latestExpectedDeliveryDate: string | null;
 };
 
 @Injectable()
@@ -26,6 +28,11 @@ export class PurchaseOrdersDomainRepository extends PrimaryBaseRepository<typeof
   private static readonly RECEIVABLE_STATUSES: PurchaseOrderStatus[] = [
     PurchaseOrderStatusValues.CONFIRMED,
     PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
+  ];
+  private static readonly TAX_DATE_EDITABLE_STATUSES: PurchaseOrderStatus[] = [
+    PurchaseOrderStatusValues.DRAFT,
+    PurchaseOrderStatusValues.SENT,
+    PurchaseOrderStatusValues.CONFIRMED,
   ];
 
   constructor(database: PrimaryDatabaseService) {
@@ -76,19 +83,63 @@ export class PurchaseOrdersDomainRepository extends PrimaryBaseRepository<typeof
       .where(eq(purchaseOrders.id, id));
   }
 
+  // Moves each receivable PO a receipt counts to received once every line covers ordered plus free, else to partially received once any line has goods
+  async syncReceiptStatusesForReceipt(goodsReceiptId: string): Promise<Pick<PurchaseOrder, 'poNumber' | 'status'>[]> {
+    const ownLines = eq(purchaseOrderItems.purchaseOrderId, purchaseOrders.id);
+    const linesWhere = (condition?: SQL) =>
+      this.db.select({ id: purchaseOrderItems.id }).from(purchaseOrderItems).where(and(ownLines, condition));
+    const nextStatus = sql`case
+      when ${exists(linesWhere())} and ${notExists(
+        linesWhere(
+          sql`${purchaseOrderItems.receivedQuantity} < ${purchaseOrderItems.uomQty} + ${purchaseOrderItems.freeQty}`,
+        ),
+      )} then ${PurchaseOrderStatusValues.RECEIVED}
+      when ${exists(linesWhere(sql`${purchaseOrderItems.receivedQuantity} > 0`))} then ${PurchaseOrderStatusValues.PARTIALLY_RECEIVED}
+      else ${purchaseOrders.status}
+    end`;
+    const countedOrders = this.db
+      .select({ id: purchaseOrderItems.purchaseOrderId })
+      .from(goodsReceiptItems)
+      .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
+      .where(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId));
+
+    return this.db
+      .update(purchaseOrders)
+      .set({ status: nextStatus })
+      .where(
+        and(
+          inArray(purchaseOrders.id, countedOrders),
+          inArray(purchaseOrders.status, PurchaseOrdersDomainRepository.RECEIVABLE_STATUSES),
+          sql`${purchaseOrders.status} <> ${nextStatus}`,
+        ),
+      )
+      .returning({ poNumber: purchaseOrders.poNumber, status: purchaseOrders.status });
+  }
+
+  // Confirms the sent orders of the given lines — a supplier announcing their delivery confirms the order
+  async confirmSentForItems(purchaseOrderItemIds: string[]): Promise<Pick<PurchaseOrder, 'poNumber'>[]> {
+    if (purchaseOrderItemIds.length === 0) return [];
+    return this.db
+      .update(purchaseOrders)
+      .set({ status: PurchaseOrderStatusValues.CONFIRMED })
+      .where(
+        and(
+          eq(purchaseOrders.status, PurchaseOrderStatusValues.SENT),
+          inArray(
+            purchaseOrders.id,
+            this.db
+              .select({ id: purchaseOrderItems.purchaseOrderId })
+              .from(purchaseOrderItems)
+              .where(inArray(purchaseOrderItems.id, purchaseOrderItemIds)),
+          ),
+        ),
+      )
+      .returning({ poNumber: purchaseOrders.poNumber });
+  }
+
   // Whether goods can be received against the PO: it is confirmed or partially received
   isReceivable(po: Pick<PurchaseOrder, 'status'>): boolean {
     return PurchaseOrdersDomainRepository.RECEIVABLE_STATUSES.includes(po.status);
-  }
-
-  // Rejects a goods receipt against a PO that is not confirmed or partially received
-  assertReceivable(po: Pick<PurchaseOrder, 'poNumber' | 'status'>): void {
-    if (this.isReceivable(po)) return;
-    throw new BadRequestException({
-      label: 'Purchase Order Not Open',
-      detail: `"${po.poNumber}" is ${po.status}; goods can be received only against a confirmed or partially received order.`,
-      errors: [{ field: 'purchaseOrderId', message: `Order is ${po.status}` }],
-    });
   }
 
   // Rejects a change to what the PO's receipts are costed at once one of them is published
@@ -117,6 +168,17 @@ export class PurchaseOrdersDomainRepository extends PrimaryBaseRepository<typeof
     this.assertPricingUnlocked(po, 'Cannot Change Supplier');
   }
 
+  // Rejects a tax date change once the PO is past confirmation or one of its receipts is published
+  assertTaxDateEditable(po: Pick<PurchaseOrderRow, 'poNumber' | 'status' | 'hasPublishedGoodsReceipt'>): void {
+    const isEditableStatus = PurchaseOrdersDomainRepository.TAX_DATE_EDITABLE_STATUSES.includes(po.status);
+    if (isEditableStatus && !po.hasPublishedGoodsReceipt) return;
+    throw new BadRequestException({
+      label: 'Cannot Change Tax Date',
+      detail: `"${po.poNumber}" is ${po.status} or has a published goods receipt, so its tax date is locked.`,
+      errors: [{ field: 'taxDate', message: 'Locked' }],
+    });
+  }
+
   // Returns the rate a PO stores: 1 in the legal entity's own currency, the given one in any other
   resolveExchangeRateOrThrow(currencyCode: string, leCurrencyCode: string, exchangeRate: number | undefined): number {
     if (currencyCode === leCurrencyCode) return 1;
@@ -128,22 +190,29 @@ export class PurchaseOrdersDomainRepository extends PrimaryBaseRepository<typeof
     });
   }
 
-  // Selects a PO with its supplier name, line count and whether any of its goods receipts is published
+  // Selects a PO with its supplier name, line count, published-receipt lock and its latest line delivery date
   private selection() {
-    const publishedGoodsReceipt = this.db
-      .select({ id: goodsReceipts.id })
-      .from(goodsReceipts)
+    const publishedGoodsReceiptItem = this.db
+      .select({ id: goodsReceiptItems.id })
+      .from(goodsReceiptItems)
+      .innerJoin(goodsReceipts, eq(goodsReceipts.id, goodsReceiptItems.goodsReceiptId))
+      .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
       .where(
         and(
-          eq(goodsReceipts.purchaseOrderId, purchaseOrders.id),
+          eq(purchaseOrderItems.purchaseOrderId, purchaseOrders.id),
           eq(goodsReceipts.status, GoodsReceiptStatusValues.PUBLISHED),
         ),
       );
+    const latestExpectedDeliveryDate = this.db
+      .select({ date: sql`max(${purchaseOrderItems.expectedDeliveryDate})::text` })
+      .from(purchaseOrderItems)
+      .where(eq(purchaseOrderItems.purchaseOrderId, purchaseOrders.id));
     return {
       ...getColumns(purchaseOrders),
       supplierName: parties.displayName,
       itemCount: this.db.$count(purchaseOrderItems, eq(purchaseOrderItems.purchaseOrderId, purchaseOrders.id)),
-      hasPublishedGoodsReceipt: sql<boolean>`${exists(publishedGoodsReceipt)}`,
+      hasPublishedGoodsReceipt: sql<boolean>`${exists(publishedGoodsReceiptItem)}`,
+      latestExpectedDeliveryDate: sql<string | null>`(${latestExpectedDeliveryDate})`,
     };
   }
 

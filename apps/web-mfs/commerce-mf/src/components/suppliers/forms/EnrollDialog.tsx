@@ -86,9 +86,7 @@ export const EnrollDialog: React.FC<EnrollDialogProps> = ({ binding, pair, onSuc
               }}
             />
           )}
-          {!pair.siteId && (
-            <EnrolledSiteSelector name="siteId" supplierId={supplierId} enrollmentStatus="NOT_ENROLLED" />
-          )}
+          {!pair.siteId && <EnrolledSiteSelector name="siteId" supplierId={supplierId} isEnrolled={false} />}
           <PaymentTermSelector name="paymentTermId" />
           <Select
             name="partyTaxRegistrationId"

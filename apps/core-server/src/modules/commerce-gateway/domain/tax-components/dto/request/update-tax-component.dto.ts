@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   IsUppercase,
+  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -38,6 +39,16 @@ export class UpdateTaxComponentDto {
   @IsIn(['FEDERAL', 'STATE', 'COUNTY', 'CITY', 'SPECIAL'])
   authorityLevel?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Component of the same country this one replaces where it has a rate of its own — e.g. UTGST stands in for SGST in a Union Territory. Null clears it.',
+    nullable: true,
+    example: '019a0000-0000-7000-8000-000000000000',
+  })
+  @IsOptional()
+  @IsUUID('7')
+  standsInForId?: string | null;
+
   @ApiPropertyOptional({ description: 'Whether the tax is recoverable (input credit)' })
   @IsOptional()
   @IsBoolean()
@@ -47,9 +58,4 @@ export class UpdateTaxComponentDto {
   @IsOptional()
   @IsBoolean()
   isWithholding?: boolean;
-
-  @ApiPropertyOptional({ description: 'Whether the tax component is selectable' })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

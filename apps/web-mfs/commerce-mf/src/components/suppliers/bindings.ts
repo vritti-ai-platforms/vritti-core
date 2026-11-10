@@ -1,3 +1,4 @@
+import type { FilterCondition } from '@vritti/quantum-ui/types/conditions';
 import type { ComponentType } from 'react';
 import type { SupplierEnrollmentKey, SupplierEnrollmentRow } from '@/schemas/supplier-enrollments';
 import type {
@@ -16,8 +17,7 @@ import type {
   UseEnrollmentRef,
   UseEnrollmentScope,
   UseEnrollmentsTable,
-  UsePricedSiteIds,
-  UsePriceHistory,
+  UsePriceHistoryQuery,
   UsePricesTable,
   UseQuotation,
   UseQuotationsTable,
@@ -50,14 +50,12 @@ export interface SupplierItemPricesBinding {
   tableKey: (supplierId: string, itemId: string) => readonly unknown[];
   tableSlug: (supplierId: string, itemId: string) => string;
   usePricesTable: UsePricesTable;
-  usePriceHistory: UsePriceHistory;
+  usePriceHistoryQuery: UsePriceHistoryQuery;
+  priceHistoryKey: (supplierId: string, itemId: string) => readonly unknown[];
+  priceHistorySlug: (supplierId: string, itemId: string) => string;
   useUpdatePrice: UseUpdatePrice;
   useDeletePrice: UseDeletePrice;
-  // Present where prices span several sites (LE): the table shows one of them and the price history charts any
-  sites?: {
-    // The sites the item has prices at — what the table's site picker and the history's Sites filter offer
-    usePricedSiteIds: UsePricedSiteIds;
-  };
+  spansSites?: boolean;
 }
 
 // A site workspace's own supplier site item page, where the site's terms and prices for the item live. At LE the
@@ -71,7 +69,12 @@ export interface SupplierSiteItemPageBinding {
   useAddSitePrice: UseAddSitePrice;
 }
 
-// Everything that differs between the LE and site views of supplier enrollments
+export interface SiteItemTableContext {
+  tableSlug: string;
+  queryKey: readonly unknown[];
+  context: FilterCondition[];
+}
+
 export interface SupplierEnrollmentBinding {
   permissions: SupplierEnrollmentPermissions;
   table: EnrollmentsTableBinding;
@@ -92,8 +95,11 @@ export interface SupplierEnrollmentBinding {
   useDeleteEnrollment: UseDeleteEnrollment;
 
   useSiteItemsTable: UseSiteItemsTable;
+  useUpdateSiteItem: UseUpdateSiteItem;
   // Where an enrollment's site item opens, relative to the enrollment page's URL path
   siteItemPath: (itemSlug: string, ref: SupplierEnrollmentRef) => string;
+  // The table the site item opens on and the context it opens at, written into that table's saved state first
+  siteItemTableContext?: (itemId: string, ref: SupplierEnrollmentRef) => SiteItemTableContext;
   // Present only where the workspace has its own supplier site item page
   siteItemPage?: SupplierSiteItemPageBinding;
   invoices?: SupplierEnrollmentInvoicesBinding;

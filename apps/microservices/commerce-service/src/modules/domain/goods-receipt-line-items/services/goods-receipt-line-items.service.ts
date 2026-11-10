@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { goodsReceiptLineItems, type InventoryTracking } from '@/db/schema';
@@ -29,10 +30,7 @@ export class GoodsReceiptLineItemsDomainService {
   constructor(private readonly repository: GoodsReceiptLineItemsDomainRepository) {}
 
   // Returns one page of the serials registered on a line
-  async findForTable(
-    lineId: string,
-    state: TableViewState,
-  ): Promise<{ result: GoodsReceiptLineItemDto[]; count: number }> {
+  async findForTable(lineId: string, state: TableState): Promise<{ result: GoodsReceiptLineItemDto[]; count: number }> {
     const fieldMap = GoodsReceiptLineItemsDomainService.FIELD_MAP;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
     const { limit = 20, offset = 0 } = state.pagination;

@@ -1,7 +1,8 @@
 import { PartyCommunicationsDomainService } from '@domain/party-communications/services/party-communications.service';
 import { PartySocialProfilesDomainService } from '@domain/party-social-profiles/services/party-social-profiles.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -91,7 +92,7 @@ export class PartiesDomainService {
   ) {}
 
   // Returns paginated COMPANY parties with their main lines for the companies data table
-  async findCompaniesForTable(state: TableViewState): Promise<{ result: CompanyDto[]; count: number }> {
+  async findCompaniesForTable(state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
     const fieldMap = PartiesDomainService.FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
@@ -109,7 +110,7 @@ export class PartiesDomainService {
   }
 
   // Returns paginated PERSON parties with their main lines for the people data table
-  async findPeopleForTable(state: TableViewState): Promise<{ result: PersonDto[]; count: number }> {
+  async findPeopleForTable(state: TableState): Promise<{ result: PersonDto[]; count: number }> {
     const fieldMap = PartiesDomainService.FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
@@ -299,7 +300,7 @@ export class PartiesDomainService {
   // Returns paginated tax registrations of a party for the data table
   async findRegistrationsForTable(
     partyId: string,
-    state: TableViewState,
+    state: TableState,
   ): Promise<{ result: PartyTaxRegistrationDto[]; count: number }> {
     const fieldMap = PartiesDomainService.REGISTRATION_FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;

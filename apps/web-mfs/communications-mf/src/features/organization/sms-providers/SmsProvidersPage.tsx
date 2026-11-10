@@ -21,7 +21,7 @@ const TypeBadge = ({ type }: { type: SmsProviderData['type'] }) =>
 export const SmsProvidersPage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { data: response, isLoading } = useSmsProviders();
+  const smsProvidersQuery = useSmsProviders();
   const connectDialog = useDialog();
 
   // Every column carries an explicit size: DataTable takes the table's minWidth from their total
@@ -93,11 +93,11 @@ export const SmsProvidersPage = () => {
     [navigate],
   );
 
-  const { table } = useDataTable({
+  const smsProvidersTable = useDataTable({
     columns,
     slug: 'communications-org-sms-providers',
     label: 'provider',
-    serverState: response,
+    query: smsProvidersQuery,
     enableRowSelection: false,
     enableSorting: true,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: SMS_PROVIDERS_TABLE_KEY }),
@@ -108,8 +108,7 @@ export const SmsProvidersPage = () => {
       <PageHeader title="SMS Providers" description="Senders for text messages — Vritti's and your own" />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={smsProvidersTable}
         permission={ORG_SMS_PROVIDERS.view}
         enableViews={false}
         toolbarActions={{

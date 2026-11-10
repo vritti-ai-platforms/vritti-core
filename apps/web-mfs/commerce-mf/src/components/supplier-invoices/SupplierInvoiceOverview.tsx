@@ -26,6 +26,7 @@ export const SupplierInvoiceOverview = ({ invoice, showSite }: SupplierInvoiceOv
           {showSite && <DetailField label="Site" type="string" value={invoice.siteName ?? invoice.siteCode} />}
           <DetailField label="Invoice Number" type="string" mono value={invoice.invoiceNumber} />
           <DetailField label="Invoice Date" type="date" value={invoice.invoiceDate} />
+          <DetailField label="Tax Date" type="date" value={invoice.taxDate} />
           <DetailField label="Status" type="string" value={<SupplierInvoiceStatusBadge status={invoice.status} />} />
           <DetailField label="Posted" type="dateTime" value={invoice.postedAt} />
           <DetailField label="Currency" type="string" mono value={invoice.currencyCode} />

@@ -7,7 +7,7 @@ import type { TaxJurisdictionCountResponseDto } from '@commerce/tax-jurisdiction
 import type { TaxJurisdictionResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-response.dto';
 import type { TaxJurisdictionTreeResponseDto } from '@commerce/tax-jurisdictions/dto/response/tax-jurisdiction-tree-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectQueryResult } from '@vritti/api-sdk/select';
@@ -18,7 +18,7 @@ export class TaxJurisdictionsGatewayService {
 
   constructor(
     private readonly nats: NatsClientService,
-    private readonly dataTableStateService: DataTableStateService,
+    private readonly tableStateService: TableStateService,
   ) {}
 
   // Returns total tax jurisdiction count
@@ -37,7 +37,7 @@ export class TaxJurisdictionsGatewayService {
   async findChildrenForTable(userId: string, parentId: string): Promise<TaxJurisdictionChildrenTableResponseDto> {
     this.logger.log(`org.taxJurisdictions.childrenTable — parentId: ${parentId}`);
     const slug = `commerce-org-tax-jurisdiction-${parentId}-children`;
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, slug);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, slug);
     const { result, count } = await this.nats.send<{ result: TaxJurisdictionResponseDto[]; count: number }>(
       'commerce',
       'org.taxJurisdictions.childrenTable',

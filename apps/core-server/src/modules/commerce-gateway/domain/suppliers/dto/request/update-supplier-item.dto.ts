@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsInt, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, IsUUID, Max, Min, ValidateIf } from 'class-validator';
 
 export class UpdateSupplierItemDto {
   @Trim()
@@ -21,11 +21,15 @@ export class UpdateSupplierItemDto {
   minOrderQuantity?: number | null;
 
   @ApiPropertyOptional({
-    description: 'Days from order to delivery; every site that does not set its own follows it',
-    example: 5,
+    description:
+      'Whole days from order to delivery, 0 for the same day; every site that does not set its own follows it',
+    minimum: 0,
+    maximum: 365,
+    example: 0,
   })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsInt()
   @Min(0)
-  defaultLeadTimeDays?: number | null;
+  @Max(365)
+  defaultLeadTimeDays?: number;
 }

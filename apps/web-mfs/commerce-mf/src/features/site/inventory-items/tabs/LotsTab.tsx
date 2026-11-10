@@ -38,7 +38,7 @@ const STATUS_CONFIG: Record<
 
 export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useInventoryItemLotsTable(inventoryItemId);
+  const inventoryItemLotsTableQuery = useInventoryItemLotsTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemLotData>[]>(
     () => [
@@ -101,9 +101,9 @@ export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) 
     [uomSymbol],
   );
 
-  const { table } = useDataTable({
+  const inventoryItemLotsTable = useDataTable({
     columns,
-    serverState: response,
+    query: inventoryItemLotsTableQuery,
     slug: `inventory-item-${inventoryItemId}-lots`,
     label: 'lot',
     enableRowSelection: false,
@@ -113,9 +113,8 @@ export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) 
 
   return (
     <DataTable
-      table={table}
+      table={inventoryItemLotsTable}
       mode="tab"
-      isLoading={isLoading}
       emptyStateConfig={{
         icon: Layers,
         title: 'No lots',

@@ -4,7 +4,7 @@ import { UpdateCompanyBankAccountDto } from '@domain/party-bank-accounts/dto/req
 import { PartyBankAccountsDomainService } from '@domain/party-bank-accounts/services/party-bank-accounts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -16,7 +16,7 @@ export class CompanyBankAccountsController {
   // Returns the paginated bank accounts of a company
   @MessagePattern({ cmd: 'org.companies.bankAccounts.table' })
   table(
-    @Payload() data: { companyId: string } & TableViewState,
+    @Payload() data: { companyId: string } & TableState,
   ): Promise<{ result: PartyBankAccountDto[]; count: number }> {
     const { companyId, ...state } = data;
     this.logger.log(`companies.bankAccounts.table — companyId: ${companyId}`);

@@ -72,7 +72,7 @@ export const supplierItems = commerceSchema.table(
     // The least the supplier sells of the item per order, in the supplier item's unit
     minOrderQuantity: decimal('min_order_quantity', { precision: 12, scale: 3, mode: 'number' }),
     // Days from order to delivery; every site of the item follows it unless the site overrides it
-    defaultLeadTimeDays: integer('default_lead_time_days'),
+    defaultLeadTimeDays: integer('default_lead_time_days').notNull().default(0),
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
@@ -84,6 +84,7 @@ export const supplierItems = commerceSchema.table(
   },
   (table) => [
     uniqueIndex('uq_supplier_items_supplier_item_uom').on(table.supplierId, table.inventoryItemId, table.uomId),
+    check('supplier_items_default_lead_time_chk', sql`${table.defaultLeadTimeDays} between 0 and 365`),
     index('idx_supplier_items_supplier').on(table.supplierId),
     ...scopeFromOwnerPolicies({ owner: suppliers, fk: table.supplierId }),
   ],

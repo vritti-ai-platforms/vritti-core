@@ -3,7 +3,7 @@ import { CreatePersonDto } from '@domain/parties/dto/request/create-person.dto';
 import { UpdatePersonDto } from '@domain/parties/dto/request/update-person.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PeopleService } from './services/people-root.service';
 
@@ -15,7 +15,7 @@ export class PeopleController {
 
   // Returns paginated PERSON parties for the people table
   @MessagePattern({ cmd: 'org.people.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: PersonDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: PersonDto[]; count: number }> {
     this.logger.log('people.table');
     return this.service.findForTable(state);
   }

@@ -40,7 +40,7 @@ interface TemplatesTabProps {
 export const TemplatesTab = ({ provider }: TemplatesTabProps) => {
   const queryClient = useQueryClient();
   const addDialog = useDialog();
-  const { data: response, isLoading } = useSmsProviderTemplates(provider.id);
+  const smsProviderTemplatesQuery = useSmsProviderTemplates(provider.id);
   const { data: capabilities } = useAvailableSmsProviders();
 
   // Destructured because TanStack keeps `mutate` stable while the mutation object itself changes
@@ -125,11 +125,11 @@ export const TemplatesTab = ({ provider }: TemplatesTabProps) => {
     [provider.id, refreshTemplate],
   );
 
-  const { table } = useDataTable({
+  const smsProviderTemplatesTable = useDataTable({
     columns,
     slug: 'communications-org-sms-provider-templates',
     label: 'template',
-    serverState: response,
+    query: smsProviderTemplatesQuery,
     enableRowSelection: false,
     enableSorting: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: SMS_PROVIDER_TEMPLATES_KEY(provider.id) }),
@@ -169,8 +169,7 @@ export const TemplatesTab = ({ provider }: TemplatesTabProps) => {
       />
 
       <DataTable
-        table={table}
-        isLoading={isLoading}
+        table={smsProviderTemplatesTable}
         permission={ORG_SMS_PROVIDERS.templates.view}
         enableViews={false}
         toolbarActions={{ actions: addButton }}

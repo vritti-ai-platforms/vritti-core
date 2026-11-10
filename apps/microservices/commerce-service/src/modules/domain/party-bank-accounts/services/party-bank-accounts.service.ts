@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
@@ -31,10 +32,7 @@ export class PartyBankAccountsDomainService {
   ) {}
 
   // Returns paginated bank accounts of a party for the data table
-  async findForTable(
-    partyId: string,
-    state: TableViewState,
-  ): Promise<{ result: PartyBankAccountDto[]; count: number }> {
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyBankAccountDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, PartyBankAccountsDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, PartyBankAccountsDomainService.FIELD_MAP);
     const where = and(eq(partyBankAccounts.partyId, partyId), filterWhere, searchWhere) || undefined;

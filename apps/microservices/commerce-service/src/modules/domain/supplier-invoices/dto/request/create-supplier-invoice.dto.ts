@@ -1,5 +1,5 @@
 import { Trim } from '@vritti/api-sdk/decorators';
-import { IsDateString, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 
 export class CreateSupplierInvoiceDto {
   @IsUUID('7')
@@ -13,6 +13,11 @@ export class CreateSupplierInvoiceDto {
 
   @IsDateString()
   invoiceDate: string;
+
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'taxDate must be YYYY-MM-DD' })
+  taxDate?: string;
 
   @Trim()
   @IsOptional()

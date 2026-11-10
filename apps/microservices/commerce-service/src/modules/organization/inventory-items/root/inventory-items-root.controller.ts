@@ -3,7 +3,8 @@ import { UpdateInventoryItemDto } from '@domain/inventory-items/dto/request/upda
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SearchState, SortCondition, TableFilters, TableViewState } from '@vritti/api-sdk/data-table';
+import type { SearchState, SortCondition } from '@vritti/api-sdk/conditions';
+import type { TableFilters, TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { CreateOrgInventoryItemDto } from './dto/request/create-org-inventory-item.dto';
 import { OrgInventoryItemsService } from './services/inventory-items-root.service';
@@ -19,7 +20,7 @@ export class InventoryItemsRootController {
 
   // Org-wide master list of inventory items
   @MessagePattern({ cmd: 'org.inventoryItems.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');
     return this.service.findForOrgTable(state);
   }

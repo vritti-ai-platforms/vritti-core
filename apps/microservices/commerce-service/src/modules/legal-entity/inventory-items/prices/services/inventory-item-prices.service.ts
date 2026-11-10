@@ -1,72 +1,49 @@
-import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
-import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import type { ItemSupplierPriceComparisonDto } from '@domain/supplier-item-prices/dto/entity/item-supplier-price-comparison.dto';
 import type { InventoryItemPriceHistoryDto } from '@domain/supplier-item-prices/dto/entity/supplier-item-price-history.dto';
 import { SupplierItemPricesDomainService } from '@domain/supplier-item-prices/services/supplier-item-prices.service';
-import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import { conditionValue, type FilterCondition } from '@vritti/api-sdk/conditions';
+import type { TableState } from '@vritti/api-sdk/data-table';
+import Decimal from '@vritti/api-sdk/decimal';
 
 @Injectable()
 export class LeInventoryItemPricesService {
   constructor(
-    private readonly inventoryItemsService: InventoryItemsDomainService,
     private readonly supplierItemPricesService: SupplierItemPricesDomainService,
     private readonly uomConversionsService: UomConversionsDomainService,
-    private readonly suppliersService: SuppliersDomainService,
-    private readonly mrpsService: InventoryItemMrpsDomainService,
   ) {}
 
-  // The item's MRPs that supplier prices at a site were agreed against within a window, as select options
-  findMrps(
-    inventoryItemId: string,
-    siteId: string,
-    range: { from?: string; to?: string },
-    query: SelectOptionsQueryDto,
-  ): Promise<SelectQueryResult> {
-    return this.mrpsService.findForSelect({ ...query, inventoryItemId, pricedAt: { siteId, ...range } });
-  }
-
-  // The suppliers with a price for the item at a site within a window, as select options
-  findSuppliers(
-    inventoryItemId: string,
-    siteId: string,
-    range: { from?: string; to?: string },
-    query: SelectOptionsQueryDto,
-  ): Promise<SelectQueryResult> {
-    return this.suppliersService.findForSelect(query, { pricedItem: { inventoryItemId, siteId, ...range } });
-  }
-
-  // Every supplier's standing for the item at the table's context site on a date — the price in force, per primary unit
-  // and after its scheme
+  // Every supplier's standing for the item at the table's context site on its context day — the price in force, per
+  // primary unit and after its scheme
   findTable(
     inventoryItemId: string,
-    state: TableViewState,
-    asOf?: string,
+    state: TableState,
   ): Promise<{ result: ItemSupplierPriceComparisonDto[]; count: number }> {
-    return this.supplierItemPricesService.findItemPriceComparisonTable(inventoryItemId, state, asOf);
+    return this.supplierItemPricesService.findItemPriceComparisonTable(inventoryItemId, state);
   }
 
-  // The sites where any supplier has priced the item
-  findSiteIds(inventoryItemId: string): Promise<string[]> {
-    return this.supplierItemPricesService.findSiteIdsWithItemPrices(inventoryItemId);
-  }
-
-  // Every supplier's prices for the item at one site, per the item's primary unit
-  async findAtSite(
+  // The item's price history at one site, per the context's unit (the item's own when none is picked)
+  async findHistory(
     inventoryItemId: string,
     siteId: string,
-    range: { from?: string; to?: string; supplierIds?: string[]; mrpIds?: string[] },
+    context: FilterCondition[],
   ): Promise<InventoryItemPriceHistoryDto> {
-    const item = await this.inventoryItemsService.findById(inventoryItemId);
-    const { suppliers, supplierCount } = await this.supplierItemPricesService.findItemPriceHistoryAtSite(
+    const primaryPerUnit = await this.primaryPerPickedUnit(inventoryItemId, conditionValue(context, 'uom'));
+    return this.supplierItemPricesService.findItemPriceHistoryAtSite(
       inventoryItemId,
       siteId,
-      range,
-      (uomId) => this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, uomId, 1),
+      context,
+      async (supplierUomId) =>
+        new Decimal(await this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, supplierUomId, 1)).dividedBy(
+          primaryPerUnit,
+        ),
     );
-    return { siteId, uomSymbol: item.uomSymbol ?? null, suppliers, supplierCount };
+  }
+
+  // How many of the item's primary units one of the picked unit holds; 1 (the item's own unit) when none is picked
+  private async primaryPerPickedUnit(inventoryItemId: string, uomId: string | undefined): Promise<Decimal> {
+    if (!uomId) return new Decimal(1);
+    return new Decimal(await this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, uomId, 1));
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
@@ -27,6 +28,7 @@ export class SupplierInvoicesDomainService {
   private static readonly FIELD_MAP: FieldMap = {
     invoiceNumber: { column: supplierInvoices.invoiceNumber, type: 'string' },
     invoiceDate: { column: supplierInvoices.invoiceDate, type: 'string' },
+    taxDate: { column: supplierInvoices.taxDate, type: 'string' },
     status: { column: supplierInvoices.status, type: 'string' },
     flagCount: { column: supplierInvoices.flagCount, type: 'number' },
     supplierName: { column: parties.displayName, type: 'string' },
@@ -50,7 +52,7 @@ export class SupplierInvoicesDomainService {
 
   // Returns one page of the invoices a view lists — the LE's sites, one supplier or one purchase order
   async findForTable(
-    state: TableViewState,
+    state: TableState,
     scope: SupplierInvoiceScope = {},
   ): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
     const fieldMap = SupplierInvoicesDomainService.FIELD_MAP;
@@ -103,6 +105,7 @@ export class SupplierInvoicesDomainService {
       purchaseOrderId: purchaseOrder.id,
       invoiceNumber: data.invoiceNumber,
       invoiceDate: data.invoiceDate,
+      taxDate: data.taxDate ?? data.invoiceDate,
       currencyCode: purchaseOrder.currencyCode,
       exchangeRate: purchaseOrder.exchangeRate,
       status: SupplierInvoiceStatusValues.DRAFT,
@@ -123,6 +126,9 @@ export class SupplierInvoicesDomainService {
     const invoice = await this.repository.findEditableOrThrow(id);
     if (fields.invoiceNumber !== undefined && fields.invoiceNumber !== invoice.invoiceNumber) {
       await this.repository.assertInvoiceNumberFree(invoice.supplierId, fields.invoiceNumber, id);
+    }
+    if (fields.taxDate !== undefined && fields.taxDate !== invoice.taxDate) {
+      this.repository.assertTaxDateEditable(invoice);
     }
     if (fields.exchangeRate !== undefined) {
       this.repository.assertExchangeRateFits(invoice.currencyCode, leCurrencyCode, fields.exchangeRate);

@@ -4,7 +4,7 @@ import { UpdateTaxClassGroupDto } from '@domain/tax-groups/dto/request/update-ta
 import { TaxClassGroupsDomainService } from '@domain/tax-groups/services/tax-class-groups.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -16,7 +16,7 @@ export class TaxGroupsClassesController {
   // Returns a group's paginated class mappings for the data table
   @MessagePattern({ cmd: 'org.taxGroups.classes.table' })
   async table(
-    @Payload() data: { taxGroupId: string } & TableViewState,
+    @Payload() data: { taxGroupId: string } & TableState,
   ): Promise<{ result: TaxClassGroupDto[]; count: number }> {
     this.logger.log(`taxGroups.classes.table — taxGroupId: ${data.taxGroupId}`);
     return this.service.findForTable(data.taxGroupId, data);

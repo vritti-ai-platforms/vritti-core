@@ -32,7 +32,7 @@ const TYPE_CONFIG: Record<
 export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol }) => {
   const queryClient = useQueryClient();
   const fmt = useFormatters();
-  const { data: response, isLoading } = useInventoryItemLedgerTable(inventoryItemId);
+  const inventoryItemLedgerTableQuery = useInventoryItemLedgerTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemLedgerData>[]>(
     () => [
@@ -95,9 +95,9 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol
     [uomSymbol, fmt],
   );
 
-  const { table } = useDataTable({
+  const inventoryItemLedgerTable = useDataTable({
     columns,
-    serverState: response,
+    query: inventoryItemLedgerTableQuery,
     slug: `inventory-item-${inventoryItemId}-ledger`,
     label: 'entry',
     enableRowSelection: false,
@@ -107,9 +107,8 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol
 
   return (
     <DataTable
-      table={table}
+      table={inventoryItemLedgerTable}
       mode="tab"
-      isLoading={isLoading}
       emptyStateConfig={{
         icon: ScrollText,
         title: 'No ledger entries',

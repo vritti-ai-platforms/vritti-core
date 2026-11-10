@@ -2,7 +2,7 @@ import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { deleteTaxGroup } from '@/services/organization/tax-groups.service';
-import { TAX_GROUPS_FIRST_COUNTRY_KEY, TAX_GROUPS_TABLE_KEY } from './keys';
+import { TAX_GROUPS_TABLE_KEY } from './keys';
 
 // Deletes a tax group and refreshes the groups lists
 export function useDeleteTaxGroup(
@@ -14,7 +14,6 @@ export function useDeleteTaxGroup(
     mutationFn: deleteTaxGroup,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: TAX_GROUPS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: TAX_GROUPS_FIRST_COUNTRY_KEY });
       options?.onSuccess?.(...args);
     },
   });

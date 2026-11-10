@@ -4,10 +4,10 @@ import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { SessionTypeValues } from '@/db/schema';
 import { AppDomainService } from '@/modules/domain/app/services/app.service';
-import { SiteDomainService } from '@/modules/domain/site/services/site.service';
 import { LegalEntityId, OrgId } from '@/security/decorators';
-import { ApiSelectApps } from './docs/select-api.docs';
+import { ApiSelectApps, ApiSelectSites } from './docs/select-api.docs';
 import { SiteSelectQueryDto } from './dto/site-select-query.dto';
+import { SiteSelectApiService } from './services/site-select-api.service';
 
 @ApiTags('Core - Select')
 @ApiBearerAuth()
@@ -18,7 +18,7 @@ export class CoreSelectApiController {
 
   constructor(
     private readonly appService: AppDomainService,
-    private readonly siteService: SiteDomainService,
+    private readonly siteSelectApiService: SiteSelectApiService,
   ) {}
 
   // Returns paginated app options for select dropdowns
@@ -29,14 +29,15 @@ export class CoreSelectApiController {
     return this.appService.findForSelect(orgId, query);
   }
 
-  // Returns the session legal entity's active sites for select dropdowns, optionally only the given ones; outside a
-  // legal entity there are none
+  // Returns the session legal entity's active sites for select dropdowns — optionally only the given ones, or those a
+  // supplier (or any supplier of an inventory item) is enrolled at or not; outside a legal entity there are none
   @Get('sites')
+  @ApiSelectSites()
   selectSites(
     @LegalEntityId() legalEntityId: string | undefined,
     @Query() query: SiteSelectQueryDto,
   ): Promise<SelectQueryResult> {
     this.logger.log(`GET /select-api/sites (search=${query.search ?? 'none'})`);
-    return this.siteService.findForLegalEntitySelect(legalEntityId, query);
+    return this.siteSelectApiService.findForSelect(legalEntityId, query);
   }
 }

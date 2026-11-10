@@ -2,8 +2,8 @@ import type { ItemSupplierPriceComparisonDto } from '@domain/supplier-item-price
 import type { InventoryItemPriceHistoryDto } from '@domain/supplier-item-prices/dto/entity/supplier-item-price-history.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import type { FilterCondition } from '@vritti/api-sdk/conditions';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { LeInventoryItemPricesService } from './services/inventory-item-prices.service';
 
 @Controller()
@@ -14,53 +14,20 @@ export class LeInventoryItemPricesController {
 
   @MessagePattern({ cmd: 'le.inventoryItems.prices.table' })
   table(
-    @Payload() data: { inventoryItemId: string; asOf?: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: ItemSupplierPriceComparisonDto[]; count: number }> {
-    const { inventoryItemId, asOf, ...state } = data;
+    const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.prices.table — inventoryItemId: ${inventoryItemId}`);
-    return this.service.findTable(inventoryItemId, state, asOf);
+    return this.service.findTable(inventoryItemId, state);
   }
 
-  @MessagePattern({ cmd: 'le.inventoryItems.prices.siteIds' })
-  siteIds(@Payload() data: { inventoryItemId: string }): Promise<string[]> {
-    this.logger.log(`inventoryItems.prices.siteIds — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findSiteIds(data.inventoryItemId);
-  }
-
-  @MessagePattern({ cmd: 'le.inventoryItems.prices.findAtSite' })
-  findAtSite(
+  @MessagePattern({ cmd: 'le.inventoryItems.prices.findHistory' })
+  findHistory(
     @Payload()
-    data: {
-      inventoryItemId: string;
-      siteId: string;
-      from?: string;
-      to?: string;
-      supplierIds?: string[];
-      mrpIds?: string[];
-    },
+    data: { inventoryItemId: string; siteId: string; context: FilterCondition[] },
   ): Promise<InventoryItemPriceHistoryDto> {
-    const { inventoryItemId, siteId, ...range } = data;
+    const { inventoryItemId, siteId, context } = data;
     this.logger.log(`inventoryItems.prices.findAtSite — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
-    return this.service.findAtSite(inventoryItemId, siteId, range);
-  }
-
-  @MessagePattern({ cmd: 'le.inventoryItems.prices.mrps' })
-  mrps(
-    @Payload()
-    data: { inventoryItemId: string; siteId: string; from?: string; to?: string } & SelectOptionsQueryDto,
-  ): Promise<SelectQueryResult> {
-    const { inventoryItemId, siteId, from, to, ...query } = data;
-    this.logger.log(`inventoryItems.prices.mrps — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
-    return this.service.findMrps(inventoryItemId, siteId, { from, to }, query);
-  }
-
-  @MessagePattern({ cmd: 'le.inventoryItems.prices.suppliers' })
-  suppliers(
-    @Payload()
-    data: { inventoryItemId: string; siteId: string; from?: string; to?: string } & SelectOptionsQueryDto,
-  ): Promise<SelectQueryResult> {
-    const { inventoryItemId, siteId, from, to, ...query } = data;
-    this.logger.log(`inventoryItems.prices.suppliers — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
-    return this.service.findSuppliers(inventoryItemId, siteId, { from, to }, query);
+    return this.service.findHistory(inventoryItemId, siteId, context);
   }
 }

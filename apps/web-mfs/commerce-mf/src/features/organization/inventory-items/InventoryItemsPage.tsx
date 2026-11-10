@@ -14,7 +14,7 @@ import { AddInventoryItemDialog } from './forms/AddInventoryItemDialog';
 
 export const InventoryItemsPage = () => {
   const navigate = useNavigate();
-  const { data: response, isLoading } = useInventoryItemsTable();
+  const inventoryItemsTableQuery = useInventoryItemsTable();
   const addDialog = useDialog();
 
   const rowActions = useCallback(
@@ -36,8 +36,7 @@ export const InventoryItemsPage = () => {
       <PageHeader title="Inventory Items" description="Define materials and products for the organization" />
 
       <InventoryItemsTable
-        response={response}
-        isLoading={isLoading}
+        query={inventoryItemsTableQuery}
         slug="commerce-org-inventory-items"
         tableKey={ORG_INVENTORY_ITEMS_TABLE_KEY}
         permission={ORG_INVENTORY_ITEMS.view}

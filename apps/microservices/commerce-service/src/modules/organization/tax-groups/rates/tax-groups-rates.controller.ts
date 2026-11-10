@@ -4,7 +4,7 @@ import { UpdateTaxGroupRateDto } from '@domain/tax-groups/dto/request/update-tax
 import { TaxGroupRatesDomainService } from '@domain/tax-groups/services/tax-group-rates.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -16,7 +16,7 @@ export class TaxGroupsRatesController {
   // Returns a group's paginated rates for the data table, optionally only those charged in a state on a day
   @MessagePattern({ cmd: 'org.taxGroups.rates.table' })
   async table(
-    @Payload() data: { taxGroupId: string; jurisdiction?: string; asOf?: string } & TableViewState,
+    @Payload() data: { taxGroupId: string; jurisdiction?: string; asOf?: string } & TableState,
   ): Promise<{ result: TaxGroupRateDto[]; count: number }> {
     const { taxGroupId, jurisdiction, asOf, ...state } = data;
     this.logger.log(

@@ -69,9 +69,7 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
   const deleteMutation = useDeleteCategory();
   const isGroup = category.categoryRole === CategoryRoleValues.GROUP;
   const RoleIcon = CATEGORY_ROLE_ICON[category.categoryRole];
-  const { data: childrenResponse, isLoading: isChildrenLoading } = useCategoryChildrenTable(
-    isGroup ? category.id : null,
-  );
+  const categoryChildrenTableQuery = useCategoryChildrenTable(isGroup ? category.id : null);
 
   const columns = useMemo<ColumnDef<CategoryData>[]>(
     () => [
@@ -118,9 +116,9 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
     [onSelectCategory],
   );
 
-  const { table } = useDataTable({
+  const categoryChildrenTable = useDataTable({
     columns,
-    serverState: childrenResponse,
+    query: categoryChildrenTableQuery,
     slug: `category-${category.id}-children`,
     label: 'child category',
     enableRowSelection: false,
@@ -211,12 +209,11 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
       {isGroup ? (
         <div>
           <Typography variant="overline" intent="muted" className="mb-3">
-            Child Categories ({childrenResponse?.count ?? 0})
+            Child Categories ({categoryChildrenTableQuery.data?.count ?? 0})
           </Typography>
           <DataTable
-            table={table}
+            table={categoryChildrenTable}
             mode="compact"
-            isLoading={isChildrenLoading}
             permission={ORG_CATEGORIES.view}
             toolbarActions={{
               actions: (
@@ -275,7 +272,7 @@ interface CategoryItemsSectionProps {
 
 const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({ categoryId }) => {
   const queryClient = useQueryClient();
-  const { data: itemsResponse, isLoading } = useCategoryItemsTable(categoryId);
+  const categoryItemsTableQuery = useCategoryItemsTable(categoryId);
 
   const columns = useMemo<ColumnDef<CategoryItemRow>[]>(
     () => [
@@ -310,9 +307,9 @@ const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({ categoryId 
     [],
   );
 
-  const { table } = useDataTable({
+  const categoryItemsTable = useDataTable({
     columns,
-    serverState: itemsResponse,
+    query: categoryItemsTableQuery,
     slug: `category-${categoryId}-items`,
     label: 'item',
     enableRowSelection: false,
@@ -322,12 +319,11 @@ const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({ categoryId 
   return (
     <div>
       <Typography variant="overline" intent="muted" className="mb-3">
-        Items ({itemsResponse?.count ?? 0})
+        Items ({categoryItemsTableQuery.data?.count ?? 0})
       </Typography>
       <DataTable
-        table={table}
+        table={categoryItemsTable}
         mode="compact"
-        isLoading={isLoading}
         permission={ORG_INVENTORY_ITEMS.view}
         emptyStateConfig={{
           icon: Boxes,

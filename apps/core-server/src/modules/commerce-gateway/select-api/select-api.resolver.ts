@@ -92,21 +92,19 @@ export class SelectApiResolver {
   @Query(() => SelectOptions, { name: 'purchaseOrderItemsOptions' })
   purchaseOrderItemsOptions(
     @Args('purchaseOrderId', { type: () => String }) purchaseOrderId: string,
-    @Args('excludeOnGoodsReceiptId', { type: () => String, nullable: true }) excludeOnGoodsReceiptId?: string,
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY purchaseOrderItemsOptions');
     return this.nats.send<SelectOptions>('commerce', 'select.purchaseOrderItems', {
       ...(input ?? {}),
       purchaseOrderId,
-      excludeOnGoodsReceiptId,
     });
   }
 
   @Query(() => SelectOptions, { name: 'supplierItemsOptions' })
   supplierItemsOptions(
     @Args('supplierId', { type: () => String, nullable: true }) supplierId?: string,
-    @Args('excludeOnPurchaseOrderId', { type: () => String, nullable: true }) excludeOnPurchaseOrderId?: string,
+    @Args('purchaseOrderId', { type: () => String, nullable: true }) purchaseOrderId?: string,
     @Args('excludeOnGoodsReceiptId', { type: () => String, nullable: true }) excludeOnGoodsReceiptId?: string,
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
@@ -114,7 +112,7 @@ export class SelectApiResolver {
     return this.nats.send<SelectOptions>('commerce', 'select.supplierItems', {
       ...(input ?? {}),
       supplierId,
-      excludeOnPurchaseOrderId,
+      purchaseOrderId,
       excludeOnGoodsReceiptId,
     });
   }

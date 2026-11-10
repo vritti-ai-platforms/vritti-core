@@ -10,7 +10,7 @@ import type { InventoryItemData } from '@/schemas/inventory-items';
 
 export const InventoryItemsPage = () => {
   const navigate = useNavigate();
-  const { data: response, isLoading } = useInventoryItemsTable();
+  const inventoryItemsTableQuery = useInventoryItemsTable();
   const rowActions = useCallback(
     (row: InventoryItemData) => [
       {
@@ -29,8 +29,7 @@ export const InventoryItemsPage = () => {
       <PageHeader title="Inventory Items" description="The organization's materials and products" />
 
       <InventoryItemsTable
-        response={response}
-        isLoading={isLoading}
+        query={inventoryItemsTableQuery}
         slug="commerce-le-inventory-items"
         tableKey={LE_INVENTORY_ITEMS_TABLE_KEY}
         permission={LE_INVENTORY_ITEMS.view}

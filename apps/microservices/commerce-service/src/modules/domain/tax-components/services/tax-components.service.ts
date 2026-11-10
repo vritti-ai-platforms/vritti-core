@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/data-table';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
@@ -35,7 +36,7 @@ export class TaxComponentsDomainService {
   constructor(private readonly repository: TaxComponentsDomainRepository) {}
 
   // Returns paginated, filtered, and sorted tax components, narrowed to the context's country when one is picked
-  async findForTable(state: TableViewState): Promise<{ result: TaxComponentDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: TaxComponentDto[]; count: number }> {
     const fieldMap = TaxComponentsDomainService.FIELD_MAP;
     const { limit = 20, offset = 0 } = state.pagination;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
@@ -73,22 +74,26 @@ export class TaxComponentsDomainService {
   // Creates a tax component for one country; its code is unique within that country
   async create(data: CreateTaxComponentDto): Promise<CreateResponseDto<TaxComponentDto>> {
     await this.repository.assertCodeFree(data.countryCode, data.code);
-    const entity = await this.repository.create({
+    if (data.standsInForId) {
+      await this.repository.assertStandInValid({ countryCode: data.countryCode, standInCount: 0 }, data.standsInForId);
+    }
+    const created = await this.repository.create({
       countryCode: data.countryCode,
       code: data.code,
       name: data.name,
       authorityLevel: data.authorityLevel,
+      standsInForId: data.standsInForId ?? null,
       isRecoverable: data.isRecoverable,
       isWithholding: data.isWithholding,
       isActive: data.isActive,
       isSystem: false,
     });
 
-    this.logger.log(`Created tax component: ${entity.countryCode} ${entity.code}`);
+    this.logger.log(`Created tax component: ${created.countryCode} ${created.code}`);
     return {
       success: true,
-      message: `Tax component "${entity.name}" created successfully.`,
-      data: TaxComponentDto.from({ ...entity, rateCount: 0 }),
+      message: `Tax component "${created.name}" created successfully.`,
+      data: TaxComponentDto.from(await this.repository.findDetailOrThrow(created.id)),
     };
   }
 
@@ -97,17 +102,34 @@ export class TaxComponentsDomainService {
     return TaxComponentDto.from(await this.repository.findDetailOrThrow(id));
   }
 
-  // Updates a tax component's editable fields; its country is fixed once a tax-group rate uses it
+  // Updates a tax component's editable fields; its country is fixed once a tax-group rate uses it or another component
+  // stands in for it, and the component it stands in for must be valid in the country it ends up in
   async update(id: string, data: Omit<UpdateTaxComponentDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findDetailOrThrow(id);
     const countryCode = data.countryCode ?? existing.countryCode;
+    const standsInForId = data.standsInForId === undefined ? existing.standsInForId : data.standsInForId;
     this.repository.assertCountryChangeable(existing, countryCode);
+    this.repository.assertNoStandInsForCountryChange(existing, countryCode);
     if (countryCode !== existing.countryCode) await this.repository.assertCodeFree(countryCode, existing.code, id);
+    if (standsInForId) await this.repository.assertStandInValid({ ...existing, countryCode }, standsInForId);
 
     await this.repository.update(id, data);
 
     this.logger.log(`Updated tax component: ${existing.countryCode} ${existing.code} (${id})`);
     return { success: true, message: `Tax component "${data.name ?? existing.name}" updated successfully.` };
+  }
+
+  // Activates or deactivates a tax component; one that a tax-group rate in force or still to come uses stays active
+  async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findDetailOrThrow(id);
+    if (!isActive) this.repository.assertDeactivatable(existing);
+
+    await this.repository.update(id, { isActive });
+
+    this.logger.log(
+      `${isActive ? 'Activated' : 'Deactivated'} tax component: ${existing.countryCode} ${existing.code} (${id})`,
+    );
+    return { success: true, message: `Tax component "${existing.name}" ${isActive ? 'activated' : 'deactivated'}.` };
   }
 
   // Deletes a tax component unless it is reserved by the system or a tax-group rate uses it

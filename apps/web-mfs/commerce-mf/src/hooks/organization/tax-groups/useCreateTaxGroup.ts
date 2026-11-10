@@ -3,7 +3,7 @@ import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { CreateTaxGroupPayload, TaxGroupData } from '@/schemas/tax-groups';
 import { createTaxGroup } from '@/services/organization/tax-groups.service';
-import { TAX_GROUPS_FIRST_COUNTRY_KEY, TAX_GROUPS_TABLE_KEY } from './keys';
+import { TAX_GROUPS_TABLE_KEY } from './keys';
 
 type UseCreateTaxGroupOptions = Omit<
   UseMutationOptions<CreateResponse<TaxGroupData>, AxiosError, CreateTaxGroupPayload>,
@@ -18,7 +18,6 @@ export function useCreateTaxGroup(options?: UseCreateTaxGroupOptions) {
     mutationFn: createTaxGroup,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: TAX_GROUPS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: TAX_GROUPS_FIRST_COUNTRY_KEY });
       options?.onSuccess?.(...args);
     },
   });

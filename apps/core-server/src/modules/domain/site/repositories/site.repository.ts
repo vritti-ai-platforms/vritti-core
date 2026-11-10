@@ -28,14 +28,9 @@ export type SiteAccessKeys = Pick<Site, 'id' | 'type' | 'groupId' | 'legalEntity
 
 export type SiteGroupParent = Pick<SiteGroup, 'id' | 'parentId'>;
 
-export interface SiteEnrollment {
-  siteId: string;
-  isActive: boolean;
-}
-
-export interface SiteEnrollmentsScope {
-  sites: SiteEnrollment[];
-  enrolled?: boolean;
+export interface SiteSelectScope {
+  siteIds?: string[];
+  excludeSiteIds?: string[];
 }
 
 @Injectable()
@@ -52,37 +47,22 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
     });
   }
 
-  // Returns a legal entity's active sites as select options; siteIds keeps only those sites, and enrollments marks each
-  // option enrolled or not (with the enrollment's activity), keeping only the enrolled (true) or the other (false) sites
+  // Returns a legal entity's active sites as select options, kept to the scope's sites and without its excluded ones
   async findForSelectOptions(
     legalEntityId: string,
     query: SelectOptionsQueryDto,
-    siteIds?: string[],
-    enrollments?: SiteEnrollmentsScope,
+    scope: SiteSelectScope = {},
   ): Promise<SelectQueryResult> {
-    if (siteIds?.length === 0) return { options: [], hasMore: false, totalCount: 0 };
+    if (scope.siteIds?.length === 0) return { options: [], hasMore: false, totalCount: 0 };
 
     const conditions: SQL[] = [];
-    if (siteIds) conditions.push(inArray(sites.id, siteIds));
-
-    let additionalExpressions: Record<string, SQL> | undefined;
-    if (enrollments) {
-      const enrolledIds = enrollments.sites.map((site) => site.siteId);
-      const activeIds = enrollments.sites.filter((site) => site.isActive).map((site) => site.siteId);
-      if (enrollments.enrolled === true) conditions.push(inArray(sites.id, enrolledIds));
-      if (enrollments.enrolled === false) conditions.push(notInArray(sites.id, enrolledIds));
-      additionalExpressions = {
-        siteCode: sql`${sites.code}`,
-        isEnrolled: sql`${inArray(sites.id, enrolledIds)}`,
-        isActive: sql`case when ${inArray(sites.id, enrolledIds)} then ${inArray(sites.id, activeIds)} end`,
-      };
-    }
+    if (scope.siteIds) conditions.push(inArray(sites.id, scope.siteIds));
+    if (scope.excludeSiteIds?.length) conditions.push(notInArray(sites.id, scope.excludeSiteIds));
 
     return this.findForSelect({
       value: 'id',
       label: 'name',
       description: 'code',
-      additionalExpressions,
       search: query.search,
       searchKeys: ['name', 'code'],
       limit: query.limit,

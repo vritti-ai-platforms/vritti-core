@@ -115,9 +115,9 @@ export function useUomTable(dimensionId: string | null, options?: Omit<UseQueryO
 
 ```tsx
 // UomTable.tsx — call site stays clean: no usePermission, no enabled wiring
-const { data: response, isLoading } = useUomTable(dimensionId);   // fetch self-gated
-…
-<DataTable table={table} isLoading={isLoading} permission={UOM.view} … />  // display gated by the prop
+const uomTableQuery = useUomTable(dimensionId);                     // fetch self-gated
+const uomTable = useDataTable({ columns, query: uomTableQuery, … });
+<DataTable table={uomTable} permission={UOM.view} … />               // display gated by the prop
 ```
 
 So the fetch gate lives in the hook and the display gate lives in `DataTable` — both from the same code, zero

@@ -9,7 +9,7 @@ import type { OfferingTargetRow } from '@domain/offerings/repositories/offerings
 import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk/data-table';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -20,7 +20,7 @@ export class OrgOfferingsController {
 
   // Returns paginated offerings for the data table
   @MessagePattern({ cmd: 'org.offerings.table' })
-  findForTable(@Payload() state: TableViewState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
+  findForTable(@Payload() state: TableState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
     this.logger.log('offerings.table');
     return this.service.findForTable(state);
   }

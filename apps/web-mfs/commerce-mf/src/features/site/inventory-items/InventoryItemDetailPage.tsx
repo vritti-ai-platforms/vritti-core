@@ -5,13 +5,13 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useState } from 'react';
 import { useInventoryItem } from '@/hooks/site/inventory-items';
 import { LedgerTab } from './tabs/LedgerTab';
-import { LocationsTab } from './tabs/LocationsTab';
 import { LotsTab } from './tabs/LotsTab';
+import { LocationsTab } from './tabs/locations/LocationsTab';
 import { OverviewTab } from './tabs/OverviewTab';
-import { PriceGraphTab } from './tabs/PriceGraphTab';
+import { PriceHistoryTab } from './tabs/PriceHistoryTab';
 import { PricesTab } from './tabs/PricesTab';
 import { QuantsTab } from './tabs/QuantsTab';
-import { ReorderTab } from './tabs/ReorderTab';
+import { ReorderTab } from './tabs/reorder/ReorderTab';
 import { StockLevelsTab } from './tabs/StockLevelsTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
 
@@ -67,10 +67,10 @@ export const InventoryItemDetailPage = () => {
             content: <PricesTab inventoryItemId={item.id} />,
           },
           {
-            value: 'price-graph',
-            label: 'Price Graph',
+            value: 'price-history',
+            label: 'Price History',
             permission: SITE_INVENTORY_ITEMS.prices.view,
-            content: <PriceGraphTab inventoryItemId={item.id} />,
+            content: <PriceHistoryTab inventoryItemId={item.id} />,
           },
           {
             value: 'movements',

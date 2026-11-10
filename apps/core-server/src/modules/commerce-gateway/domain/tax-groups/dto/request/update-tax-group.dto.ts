@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { TAX_TREATMENTS } from '../response/tax-group-response.dto';
 
 export class UpdateTaxGroupDto {
@@ -32,9 +32,4 @@ export class UpdateTaxGroupDto {
   @IsString()
   @MaxLength(1000)
   legalText?: string | null;
-
-  @ApiPropertyOptional({ description: 'Whether the group can be picked' })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

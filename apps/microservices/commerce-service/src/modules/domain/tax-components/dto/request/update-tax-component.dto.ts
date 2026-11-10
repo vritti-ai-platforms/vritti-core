@@ -31,14 +31,14 @@ export class UpdateTaxComponentDto {
   authorityLevel?: TaxAuthorityLevel;
 
   @IsOptional()
+  @IsUUID('7')
+  standsInForId?: string | null;
+
+  @IsOptional()
   @IsBoolean()
   isRecoverable?: boolean;
 
   @IsOptional()
   @IsBoolean()
   isWithholding?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

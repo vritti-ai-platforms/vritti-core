@@ -5,4 +5,5 @@ export const ORG_TAX_COMPONENTS = {
   add: 'org.tax-components.add',
   edit: 'org.tax-components.edit',
   delete: 'org.tax-components.delete',
+  toggle: 'org.tax-components.toggle',
 } as const;

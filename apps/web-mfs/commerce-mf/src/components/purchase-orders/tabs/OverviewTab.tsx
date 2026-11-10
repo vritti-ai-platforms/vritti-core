@@ -33,12 +33,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ purchaseOrder, showSit
             value={<PurchaseOrderStatusBadge status={purchaseOrder.status} />}
           />
           <DetailField label="Order Date" type="date" value={purchaseOrder.orderDate} />
-          <DetailField
-            label="Expected By"
-            type="dateTime"
-            value={purchaseOrder.expectedBy}
-            timeZone={purchaseOrder.timezone}
-          />
+          <DetailField label="Tax Date" type="date" value={purchaseOrder.taxDate} />
           <DetailField
             label="Total Amount"
             type="currency"
