@@ -98,6 +98,13 @@ function plural(count: number, singular: string, pluralForm?: string): string {
   return `${count} ${count === 1 ? singular : (pluralForm ?? `${singular}s`)}`;
 }
 
+// One card fills the row, two or four sit two to a row, three or more than four sit three to a row
+function gridColumns(count: number): string {
+  if (count === 1) return 'grid-cols-1';
+  if (count === 2 || count === 4) return 'grid-cols-1 sm:grid-cols-2';
+  return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+}
+
 function useNow(intervalMs: number): Date {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -395,7 +402,7 @@ export const WorkspaceSelectionPage = () => {
         {hasSites && (
           <section className="mt-6">
             <SectionHead label="SITES" count={siteCards.length} />
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className={cn('grid gap-3.5', gridColumns(siteCards.length))}>
               {siteCards.map(({ assignment, site }, index) => {
                 const Icon = SITE_TYPE_ICONS[site.type] ?? Store;
                 const entity = site.legalEntityId ? leById.get(site.legalEntityId) : undefined;
@@ -436,7 +443,7 @@ export const WorkspaceSelectionPage = () => {
         {hasGroups && (
           <section className="mt-6">
             <SectionHead label="SITE GROUPS" count={groupCards.length} />
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className={cn('grid gap-3.5', gridColumns(groupCards.length))}>
               {groupCards.map(({ assignment, group }, index) => {
                 const members = sites.filter((s) => s.groupId === group.id);
                 const names = members.map((m) => m.name);
@@ -475,7 +482,7 @@ export const WorkspaceSelectionPage = () => {
         {hasLes && (
           <section className="mt-6">
             <SectionHead label="LEGAL ENTITIES" count={leCards.length} />
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className={cn('grid gap-3.5', gridColumns(leCards.length))}>
               {leCards.map(({ assignment, entity }, index) => (
                 <WorkspaceCard
                   key={`${assignment.roleCode}-${entity.id}`}

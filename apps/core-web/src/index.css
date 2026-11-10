@@ -7,9 +7,11 @@
 
 /**
  * @import - quantum-ui shared styles: theme tokens + component utilities + PhoneInput
- * (0.3.3+ ships its own compiled utilities, so consumers don't scan its dist)
+ * (0.3.3+ ships its own compiled utilities, so consumers don't scan its dist).
+ * Imported into the components layer so the app's own utilities always win over quantum-ui's copies of the same
+ * classes — otherwise a quantum-ui `.px-0` lands after the app's `lg:px-32` and overrides it.
  */
-@import "@vritti/quantum-ui/index.css";
+@import "@vritti/quantum-ui/index.css" layer(components);
 
 /**
  * Required for Tailwind v4 to compile this file's own `@layer base { @apply … }`.
